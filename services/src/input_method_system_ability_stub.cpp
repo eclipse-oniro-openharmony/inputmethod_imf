@@ -15,6 +15,7 @@
 
 #include "input_method_system_ability_stub.h"
 
+#include <chrono>
 #include <cinttypes>
 #include <memory>
 
@@ -35,8 +36,10 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParc
     MessageOption &option)
 {
     if (code != static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT)) {
-        IMSA_HILOGI("IMSA, code = %{public}u, callingPid/Uid/timestamp: %{public}d/%{public}d.", code,
-            IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
+        IMSA_HILOGI("IMSA, code = %{public}u, callingPid/Uid/timestamp: %{public}d/%{public}d/%{public}lld", code,
+            IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(),
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count());
     }
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (remoteDescriptor != IInputMethodSystemAbility::GetDescriptor()) {

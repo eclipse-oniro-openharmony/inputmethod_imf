@@ -69,7 +69,7 @@ napi_value AttachInputMethodExtensionContext(napi_env env, void *value, void *)
     napi_wrap(
         env, contextObj, workContext,
         [](napi_env, void *data, void *) {
-            IMSA_HILOGI("Finalizer for weak_ptr input method extension context is called.");
+            IMSA_HILOGI("finalizer for weak_ptr input method extension context is called.");
             delete static_cast<std::weak_ptr<InputMethodExtensionContext> *>(data);
         },
         nullptr, nullptr);
@@ -78,7 +78,7 @@ napi_value AttachInputMethodExtensionContext(napi_env env, void *value, void *)
 
 JsInputMethodExtension *JsInputMethodExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
-    IMSA_HILOGI("create.");
+    IMSA_HILOGI("JsInputMethodExtension Create.");
     jsInputMethodExtension = new JsInputMethodExtension(static_cast<JsRuntime &>(*runtime));
     return jsInputMethodExtension;
 }
@@ -96,7 +96,7 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
-    IMSA_HILOGI("init.");
+    IMSA_HILOGI("JsInputMethodExtension Init.");
     InputMethodExtension::Init(record, application, handler, token);
     std::string srcPath;
     GetSrcPath(srcPath);
@@ -107,7 +107,7 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
 
     std::string moduleName(Extension::abilityInfo_->moduleName);
     moduleName.append("::").append(abilityInfo_->name);
-    IMSA_HILOGI("module: %{public}s, srcPath:%{public}s.", moduleName.c_str(), srcPath.c_str());
+    IMSA_HILOGI("JsInputMethodExtension, module: %{public}s, srcPath:%{public}s.", moduleName.c_str(), srcPath.c_str());
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
     jsObj_ = jsRuntime_.LoadModule(moduleName, srcPath, abilityInfo_->hapPath,
@@ -116,7 +116,7 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
         IMSA_HILOGE("failed to get jsObj_!");
         return;
     }
-    IMSA_HILOGI("init GetNapiValue.");
+    IMSA_HILOGI("JsInputMethodExtension::Init GetNapiValue.");
     napi_value obj = jsObj_->GetNapiValue();
     if (obj == nullptr) {
         IMSA_HILOGE("failed to get JsInputMethodExtension object!");
@@ -125,7 +125,7 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
     BindContext(env, obj);
     handler_ = handler;
     ListenWindowManager();
-    IMSA_HILOGI("end.");
+    IMSA_HILOGI("JsInputMethodExtension end.");
 }
 
 void JsInputMethodExtension::ListenWindowManager()

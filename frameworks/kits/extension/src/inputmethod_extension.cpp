@@ -28,7 +28,7 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 InputMethodExtension *InputMethodExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
-    IMSA_HILOGI("create runtime.");
+    IMSA_HILOGI("InputMethodExtension::Create runtime.");
     if (runtime == nullptr) {
         return new InputMethodExtension();
     }
@@ -44,7 +44,7 @@ void InputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &recor
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
-    IMSA_HILOGI("init.");
+    IMSA_HILOGI("InputMethodExtension::Init start.");
     ExtensionBase<InputMethodExtensionContext>::Init(record, application, handler, token);
 }
 
@@ -52,11 +52,11 @@ std::shared_ptr<InputMethodExtensionContext> InputMethodExtension::CreateAndInit
     const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
     std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token)
 {
-    IMSA_HILOGI("create and init context.");
+    IMSA_HILOGI("InputMethodExtension::CreateAndInitContext create and init context.");
     std::shared_ptr<InputMethodExtensionContext> context =
         ExtensionBase<InputMethodExtensionContext>::CreateAndInitContext(record, application, handler, token);
     if (context == nullptr) {
-        IMSA_HILOGE("context is nullptr!");
+        IMSA_HILOGE("InputMethodExtension::CreateAndInitContext context is nullptr!");
         return context;
     }
     return context;

@@ -475,7 +475,7 @@ napi_value JsInputMethodEngineSetting::GetSecurityMode(napi_env env, napi_callba
     int32_t security;
     int32_t ret = InputMethodAbility::GetInstance()->GetSecurityMode(security);
     if (ret != ErrorCode::NO_ERROR) {
-        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get security mode!", TYPE_NONE);
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get security mode", TYPE_NONE);
     }
     napi_value result = nullptr;
     napi_create_int32(env, security, &result);
