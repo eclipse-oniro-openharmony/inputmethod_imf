@@ -42,7 +42,7 @@ void FreezeManager::BeforeIpc(RequestType type)
             isImeInUse_ = true;
         }
         if (!isFrozen_) {
-            IMSA_HILOGD("already not frozen");
+            IMSA_HILOGD("not frozen already.");
             return;
         }
         isFrozen_ = false;
@@ -65,7 +65,7 @@ void FreezeManager::AfterIpc(RequestType type, bool isSuccess)
             isImeInUse_ = false;
         }
         if (isFrozen_ == !isImeInUse_) {
-            IMSA_HILOGD("frozen state already: %{public}d", isFrozen_);
+            IMSA_HILOGD("frozen state already: %{public}d.", isFrozen_);
             return;
         }
         isFrozen_ = !isImeInUse_;
@@ -77,7 +77,7 @@ void FreezeManager::AfterIpc(RequestType type, bool isSuccess)
 void FreezeManager::ControlIme(bool shouldFreeze)
 {
     if (eventHandler_ == nullptr) {
-        IMSA_HILOGW("eventHandler_ is nullptr");
+        IMSA_HILOGW("eventHandler_ is nullptr.");
         ReportRss(shouldFreeze, pid_);
         return;
     }
@@ -101,7 +101,7 @@ void FreezeManager::ReportRss(bool shouldFreeze, pid_t pid)
         { "saName", INPUT_METHOD_SERVICE_SA_NAME },
         { "extensionType", std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD)) },
         { "pid", std::to_string(pid) } };
-    IMSA_HILOGD("report RSS should freeze: %{public}d", shouldFreeze);
+    IMSA_HILOGD("report RSS should freeze: %{public}d.", shouldFreeze);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
 }
 

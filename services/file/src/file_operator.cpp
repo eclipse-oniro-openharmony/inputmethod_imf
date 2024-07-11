@@ -26,7 +26,7 @@ bool FileOperator::Create(const std::string &path, mode_t mode)
 {
     auto ret = mkdir(path.c_str(), mode);
     if (ret != SUCCESS) {
-        IMSA_HILOGE("%{public}s mkdir failed, errno:%{public}d", path.c_str(), errno);
+        IMSA_HILOGE("%{public}s mkdir failed, errno:%{public}d!", path.c_str(), errno);
         return false;
     }
     return true;
@@ -41,7 +41,7 @@ bool FileOperator::Read(const std::string &path, std::string &content)
 {
     std::ifstream file(path);
     if (!file.is_open()) {
-        IMSA_HILOGE("%{public}s open fail", path.c_str());
+        IMSA_HILOGE("%{public}s open fail!", path.c_str());
         return false;
     }
     std::string sLine;
@@ -53,15 +53,15 @@ bool FileOperator::Read(const std::string &path, std::string &content)
 
 bool FileOperator::Write(const std::string &path, const std::string &content, int32_t flags, mode_t mode)
 {
-    IMSA_HILOGD("content:%{public}s", content.c_str());
+    IMSA_HILOGD("content: %{public}s.", content.c_str());
     auto fd = open(path.c_str(), flags, mode);
     if (fd < 0) {
-        IMSA_HILOGE("%{public}s open fail, errno:%{public}d", path.c_str(), errno);
+        IMSA_HILOGE("%{public}s open fail, errno: %{public}d", path.c_str(), errno);
         return false;
     }
     auto ret = write(fd, content.c_str(), content.size());
     if (ret <= 0) {
-        IMSA_HILOGE("%{public}s write fail, ret:%{public}zd, errno:%{public}d", path.c_str(), ret, errno);
+        IMSA_HILOGE("%{public}s write fail, ret: %{public}zd, errno: %{public}d", path.c_str(), ret, errno);
         close(fd);
         return false;
     }
@@ -72,12 +72,12 @@ bool FileOperator::Write(const std::string &path, const std::string &content, in
 bool FileOperator::Read(const std::string &path, const std::string &key, std::string &content)
 {
     if (key.empty()) {
-        IMSA_HILOGE("key is empty");
+        IMSA_HILOGE("key is empty!");
         return false;
     }
     CfgFiles *cfgFiles = GetCfgFiles(path.c_str());
     if (cfgFiles == nullptr) {
-        IMSA_HILOGE("%{public}s cfgFiles is nullptr", path.c_str());
+        IMSA_HILOGE("%{public}s cfgFiles is nullptr!", path.c_str());
         return false;
     }
     // parse config files, ordered by priority from high to low
@@ -100,11 +100,11 @@ std::string FileOperator::Read(const std::string &path, const std::string &key)
     std::string content;
     bool ret = Read(path, content);
     if (!ret) {
-        IMSA_HILOGE("%{public}s read failed", path.c_str());
+        IMSA_HILOGE("%{public}s read failed!", path.c_str());
         return "";
     }
     if (content.find(key) == std::string::npos) {
-        IMSA_HILOGD("%{public}s not contain %{public}s", path.c_str(), key.c_str());
+        IMSA_HILOGD("%{public}s not contain %{public}s!", path.c_str(), key.c_str());
         return "";
     }
     return content;
@@ -121,7 +121,7 @@ std::string FileOperator::GetRealPath(const char *path)
     }
     char realPath[PATH_MAX] = { 0x00 };
     if (realpath(path, realPath) == nullptr) {
-        IMSA_HILOGE("failed to get realpath");
+        IMSA_HILOGE("failed to get realpath!");
         return "";
     }
     return std::string(realPath);

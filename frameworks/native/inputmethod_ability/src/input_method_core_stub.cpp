@@ -41,11 +41,11 @@ InputMethodCoreStub::~InputMethodCoreStub()
 int32_t InputMethodCoreStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    IMSA_HILOGD("InputMethodCoreStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGD("InputMethodCoreStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != IInputMethodCore::GetDescriptor()) {
-        IMSA_HILOGE("InputMethodCoreStub descriptor error");
+        IMSA_HILOGE("InputMethodCoreStub descriptor error!");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(CORE_CMD_LAST)) {
@@ -87,12 +87,12 @@ int32_t InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data
 {
     sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
     if (channelObject == nullptr) {
-        IMSA_HILOGE("channelObject is nullptr");
+        IMSA_HILOGE("channelObject is nullptr!");
         return reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }
     sptr<IInputControlChannel> inputControlChannel = new (std::nothrow) InputControlChannelProxy(channelObject);
     if (inputControlChannel == nullptr) {
-        IMSA_HILOGE("failed to new inputControlChannel");
+        IMSA_HILOGE("failed to new inputControlChannel!");
         return reply.WriteInt32(ErrorCode::ERROR_NULL_POINTER) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto ret = InitInputControlChannel(inputControlChannel);
@@ -101,13 +101,13 @@ int32_t InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data
 
 int32_t InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("CoreStub, callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(),
+    IMSA_HILOGI("CoreStub, callingPid/Uid: %{public}d/%{public}d.", IPCSkeleton::GetCallingPid(),
         IPCSkeleton::GetCallingUid());
     bool isBindFromClient = false;
     InputClientInfo clientInfo = {};
     sptr<IRemoteObject> channel = nullptr;
     if (!ITypesUtil::Unmarshal(data, isBindFromClient, clientInfo, clientInfo.channel)) {
-        IMSA_HILOGE("Unmarshal failed.");
+        IMSA_HILOGE("Unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto ret = StartInput(clientInfo, isBindFromClient);
@@ -118,7 +118,7 @@ int32_t InputMethodCoreStub::SecurityChangeOnRemote(MessageParcel &data, Message
 {
     int32_t security;
     if (!ITypesUtil::Unmarshal(data, security)) {
-        IMSA_HILOGE("Unmarshal failed.");
+        IMSA_HILOGE("Unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto ret = InputMethodAbility::GetInstance()->OnSecurityChange(security);
@@ -134,7 +134,7 @@ int32_t InputMethodCoreStub::OnConnectSystemCmdOnRemote(MessageParcel &data, Mes
 {
     sptr<IRemoteObject> channelObject = nullptr;
     if (!ITypesUtil::Unmarshal(data, channelObject)) {
-        IMSA_HILOGE("failed to read message parcel");
+        IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     sptr<IRemoteObject> agent = nullptr;
@@ -156,7 +156,7 @@ int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParce
 {
     sptr<IRemoteObject> channel = nullptr;
     if (!ITypesUtil::Unmarshal(data, channel)) {
-        IMSA_HILOGE("failed to read message parcel");
+        IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto ret = InputMethodAbility::GetInstance()->StopInput(channel);
@@ -186,7 +186,7 @@ int32_t InputMethodCoreStub::StopInputServiceOnRemote(MessageParcel &data, Messa
 {
     bool isTerminateIme = false;
     if (!ITypesUtil::Unmarshal(data, isTerminateIme)) {
-        IMSA_HILOGE("unmarshal failed");
+        IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     StopInputService(isTerminateIme);
@@ -197,7 +197,7 @@ int32_t InputMethodCoreStub::IsPanelShownOnRemote(MessageParcel &data, MessagePa
 {
     PanelInfo info;
     if (!ITypesUtil::Unmarshal(data, info)) {
-        IMSA_HILOGE("unmarshal failed");
+        IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     bool isShown = false;
@@ -209,7 +209,7 @@ int32_t InputMethodCoreStub::OnClientInactiveOnRemote(MessageParcel &data, Messa
 {
     sptr<IRemoteObject> channel = nullptr;
     if (!ITypesUtil::Unmarshal(data, channel)) {
-        IMSA_HILOGE("failed to read message parcel");
+        IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     InputMethodAbility::GetInstance()->OnClientInactive(channel);
@@ -252,24 +252,24 @@ void InputMethodCoreStub::OnClientInactive(const sptr<IRemoteObject> &channel)
 
 int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)
 {
-    IMSA_HILOGD("InputMethodCoreStub::SendMessage");
+    IMSA_HILOGD("InputMethodCoreStub::SendMessage start.");
     if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr");
+        IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto *parcel = new (std::nothrow) MessageParcel();
     if (parcel == nullptr) {
-        IMSA_HILOGE("parcel is nullptr");
+        IMSA_HILOGE("parcel is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     if (input != nullptr && (!input(*parcel))) {
-        IMSA_HILOGE("write data failed");
+        IMSA_HILOGE("write data failed!");
         delete parcel;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto *msg = new (std::nothrow) Message(code, parcel);
     if (msg == nullptr) {
-        IMSA_HILOGE("msg is nullptr");
+        IMSA_HILOGE("msg is nullptr!");
         delete parcel;
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }

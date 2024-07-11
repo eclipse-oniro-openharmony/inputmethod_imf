@@ -44,10 +44,10 @@ sptr<SettingsDataUtils> SettingsDataUtils::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceMutex_);
         if (instance_ == nullptr) {
-            IMSA_HILOGI("GetInstance need new SettingsDataUtils");
+            IMSA_HILOGI("GetInstance need new SettingsDataUtils.");
             instance_ = new (std::nothrow) SettingsDataUtils();
             if (instance_ == nullptr) {
-                IMSA_HILOGE("instance is nullptr.");
+                IMSA_HILOGE("instance is nullptr!");
                 return instance_;
             }
         }
@@ -60,7 +60,7 @@ int32_t SettingsDataUtils::CreateAndRegisterObserver(const std::string &key, Set
     IMSA_HILOGD("key: %{public}s.", key.c_str());
     sptr<SettingsDataObserver> observer = new (std::nothrow) SettingsDataObserver(key, func);
     if (observer == nullptr) {
-        IMSA_HILOGE("new observer is nullptr.");
+        IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return RegisterObserver(observer);
@@ -69,19 +69,19 @@ int32_t SettingsDataUtils::CreateAndRegisterObserver(const std::string &key, Set
 int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &observer)
 {
     if (observer == nullptr) {
-        IMSA_HILOGE("observer is nullptr.");
+        IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
     auto uri = GenerateTargetUri(observer->GetKey());
     auto helper = SettingsDataUtils::CreateDataShareHelper();
     if (helper == nullptr) {
-        IMSA_HILOGE("CreateDataShareHelper return nullptr.");
+        IMSA_HILOGE("helper is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     helper->RegisterObserver(uri, observer);
     ReleaseDataShareHelper(helper);
-    IMSA_HILOGD("succeed to register observer of uri=%{public}s", uri.ToString().c_str());
+    IMSA_HILOGD("succeed to register observer of uri: %{public}s.", uri.ToString().c_str());
     observerList_.push_back(observer);
     return ErrorCode::NO_ERROR;
 }
@@ -95,7 +95,7 @@ int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &
     }
     helper->UnregisterObserver(uri, observer);
     ReleaseDataShareHelper(helper);
-    IMSA_HILOGD("succeed to unregister observer of uri=%{public}s", uri.ToString().c_str());
+    IMSA_HILOGD("succeed to unregister observer of uri: %{public}s.", uri.ToString().c_str());
     return ErrorCode::NO_ERROR;
 }
 
@@ -103,13 +103,13 @@ std::shared_ptr<DataShare::DataShareHelper> SettingsDataUtils::CreateDataShareHe
 {
     auto remoteObj = GetToken();
     if (remoteObj == nullptr) {
-        IMSA_HILOGE("remoteObk is nullptr.");
+        IMSA_HILOGE("remoteObk is nullptr!");
         return nullptr;
     }
 
     auto helper = DataShare::DataShareHelper::Creator(remoteObj_, SETTING_URI_PROXY, SETTINGS_DATA_EXT_URI);
     if (helper == nullptr) {
-        IMSA_HILOGE("Create helper failed, uri=%{public}s", SETTING_URI_PROXY);
+        IMSA_HILOGE("create helper failed, uri: %{public}s!", SETTING_URI_PROXY);
         return nullptr;
     }
     return helper;
@@ -122,7 +122,7 @@ bool SettingsDataUtils::ReleaseDataShareHelper(std::shared_ptr<DataShare::DataSh
         return true;
     }
     if (!helper->Release()) {
-        IMSA_HILOGE("Release data share helper failed.");
+        IMSA_HILOGE("release data share helper failed.");
         return false;
     }
     return true;
@@ -136,10 +136,10 @@ Uri SettingsDataUtils::GenerateTargetUri(const std::string &key)
 
 int32_t SettingsDataUtils::GetStringValue(const std::string &key, std::string &value)
 {
-    IMSA_HILOGD("Run in.");
+    IMSA_HILOGD("start.");
     auto helper = CreateDataShareHelper();
     if (helper == nullptr) {
-        IMSA_HILOGE("CreateDataShareHelper return nullptr.");
+        IMSA_HILOGE("helper is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     std::vector<std::string> columns = { SETTING_COLUMN_VALUE };
@@ -149,14 +149,14 @@ int32_t SettingsDataUtils::GetStringValue(const std::string &key, std::string &v
     auto resultSet = helper->Query(uri, predicates, columns);
     ReleaseDataShareHelper(helper);
     if (resultSet == nullptr) {
-        IMSA_HILOGE("helper->Query return nullptr.");
+        IMSA_HILOGE("resultSet is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
     int32_t count = 0;
     resultSet->GetRowCount(count);
     if (count <= 0) {
-        IMSA_HILOGW("Not found keyword, key=%{public}s, count=%{public}d", key.c_str(), count);
+        IMSA_HILOGW("not found keyword, key: %{public}s, count: %{public}d.", key.c_str(), count);
         resultSet->Close();
         return ErrorCode::ERROR_KEYWORD_NOT_FOUND;
     }
@@ -166,7 +166,7 @@ int32_t SettingsDataUtils::GetStringValue(const std::string &key, std::string &v
     resultSet->GetColumnIndex(SETTING_COLUMN_VALUE, columIndex);
     int32_t ret = resultSet->GetString(columIndex, value);
     if (ret != DataShare::E_OK) {
-        IMSA_HILOGE("GetString failed, ret=%{public}d", ret);
+        IMSA_HILOGE("failed to GetString, ret: %{public}d!", ret);
     }
     resultSet->Close();
     return ret;
@@ -180,12 +180,12 @@ sptr<IRemoteObject> SettingsDataUtils::GetToken()
     }
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
-        IMSA_HILOGE("GetSystemAbilityManager return nullptr");
+        IMSA_HILOGE("system ability manager is nullptr!");
         return nullptr;
     }
     auto remoteObj = samgr->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID);
     if (remoteObj == nullptr) {
-        IMSA_HILOGE("GetSystemAbility return nullptr");
+        IMSA_HILOGE("system ability is nullptr!");
         return nullptr;
     }
     remoteObj_ = remoteObj;

@@ -42,9 +42,9 @@ bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId,
 #endif
         realFocusedPid = info.pid_;
     }
-    IMSA_HILOGD("focusedPid:%{public}" PRId64 ", pid:%{public}" PRId64 "", realFocusedPid, callingPid);
+    IMSA_HILOGD("focusedPid: %{public}" PRId64 ", pid: %{public}" PRId64 "", realFocusedPid, callingPid);
     if (callingPid == realFocusedPid) {
-        IMSA_HILOGD("pid is same, focused app");
+        IMSA_HILOGD("pid is same, focused app.");
         return true;
     }
     return IsFocusedUIExtension(callingTokenId);
@@ -62,21 +62,21 @@ bool IdentityCheckerImpl::IsBundleNameValid(uint32_t tokenId, const std::string 
         return false;
     }
     if (bundleName != validBundleName) {
-        IMSA_HILOGE("bundleName invalid, caller: %{public}s, current: %{public}s", bundleName.c_str(),
+        IMSA_HILOGE("bundleName is invalid, caller: %{public}s, current: %{public}s", bundleName.c_str(),
             validBundleName.c_str());
         return false;
     }
-    IMSA_HILOGD("checked successfully");
+    IMSA_HILOGD("checked successfully.");
     return true;
 }
 
 bool IdentityCheckerImpl::HasPermission(uint32_t tokenId, const std::string &permission)
 {
     if (AccessTokenKit::VerifyAccessToken(tokenId, permission) != PERMISSION_GRANTED) {
-        IMSA_HILOGE("Permission [%{public}s] not granted", permission.c_str());
+        IMSA_HILOGE("Permission [%{public}s] not granted!", permission.c_str());
         return false;
     }
-    IMSA_HILOGD("verify AccessToken success");
+    IMSA_HILOGD("verify AccessToken success.");
     return true;
 }
 
@@ -96,7 +96,7 @@ bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId)
 {
     bool isFocused = false;
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
-    IMSA_HILOGD("tokenId: %{public}d, check result:%{public}d, isFocused:%{public}d", callingTokenId, ret, isFocused);
+    IMSA_HILOGD("tokenId: %{public}d, check result: %{public}d, isFocused: %{public}d", callingTokenId, ret, isFocused);
     return ret == ErrorCode::NO_ERROR && isFocused;
 }
 
@@ -104,13 +104,13 @@ std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)
 {
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
     if (tokenType != TOKEN_HAP) {
-        IMSA_HILOGE("invalid token");
+        IMSA_HILOGE("invalid token!");
         return "";
     }
     HapTokenInfo info;
     int ret = AccessTokenKit::GetHapTokenInfo(tokenId, info);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to get hap info, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to get hap info, ret: %{public}d!", ret);
         return "";
     }
     return info.bundleName;

@@ -43,19 +43,19 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParc
     }
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (remoteDescriptor != IInputMethodSystemAbility::GetDescriptor()) {
-        IMSA_HILOGE("%{public}s descriptor failed", __func__);
+        IMSA_HILOGE("%{public}s descriptor failed!", __func__);
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)) {
         // service reboot when timeout 30s
-        auto id = XCollie::GetInstance().SetTimer(
-            "IMSA_API[" + std::to_string(code) + "]", FATAL_TIMEOUT, nullptr, nullptr, XCOLLIE_FLAG_DEFAULT);
+        auto id = XCollie::GetInstance().SetTimer("IMSA_API[" + std::to_string(code) + "]", FATAL_TIMEOUT, nullptr,
+            nullptr, XCOLLIE_FLAG_DEFAULT);
         int64_t startPoint = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         auto ret = (this->*HANDLERS.at(code))(data, reply);
         int64_t costTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() - startPoint;
         // log warning when timeout 5s
         if (costTime > WARNING_TIMEOUT) {
-            IMSA_HILOGW("code: %{public}d pid: %{public}d uid: %{public}d cost: %{public}" PRId64 "", code,
+            IMSA_HILOGW("code: %{public}d, pid: %{public}d, uid: %{public}d, cost: %{public}" PRId64 "", code,
                 IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), costTime);
         }
         XCollie::GetInstance().CancelTimer(id);
@@ -70,7 +70,7 @@ int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, Me
     InputClientInfo clientInfo;
     sptr<IRemoteObject> client = nullptr;
     if (!ITypesUtil::Unmarshal(data, clientInfo, client, clientInfo.channel)) {
-        IMSA_HILOGE("read clientInfo failed");
+        IMSA_HILOGE("read clientInfo failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     clientInfo.client = iface_cast<IInputClient>(client);
@@ -102,7 +102,7 @@ int32_t InputMethodSystemAbilityStub::ShowInputOnRemote(MessageParcel &data, Mes
 {
     auto clientObject = data.ReadRemoteObject();
     if (clientObject == nullptr) {
-        IMSA_HILOGE("clientObject is nullptr");
+        IMSA_HILOGE("clientObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     int32_t ret = ShowInput(iface_cast<IInputClient>(clientObject));
@@ -113,7 +113,7 @@ int32_t InputMethodSystemAbilityStub::HideInputOnRemote(MessageParcel &data, Mes
 {
     auto clientObject = data.ReadRemoteObject();
     if (clientObject == nullptr) {
-        IMSA_HILOGE("clientObject is nullptr");
+        IMSA_HILOGE("clientObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     int32_t ret = HideInput(iface_cast<IInputClient>(clientObject));
@@ -124,7 +124,7 @@ int32_t InputMethodSystemAbilityStub::ReleaseInputOnRemote(MessageParcel &data, 
 {
     auto clientObject = data.ReadRemoteObject();
     if (clientObject == nullptr) {
-        IMSA_HILOGE("clientObject is nullptr");
+        IMSA_HILOGE("clientObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     int32_t ret = ReleaseInput(iface_cast<IInputClient>(clientObject));
@@ -151,12 +151,12 @@ int32_t InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote(MessageParcel &dat
 {
     auto coreObject = data.ReadRemoteObject();
     if (coreObject == nullptr) {
-        IMSA_HILOGE("coreObject is nullptr");
+        IMSA_HILOGE("coreObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto agentObject = data.ReadRemoteObject();
     if (agentObject == nullptr) {
-        IMSA_HILOGE("agentObject is nullptr");
+        IMSA_HILOGE("agentObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     int32_t ret = SetCoreAndAgent(iface_cast<IInputMethodCore>(coreObject), agentObject);
@@ -169,7 +169,7 @@ int32_t InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote(MessageParce
     bool isBrief = false;
     auto ret = data.ReadBool(isBrief);
     if (!ret) {
-        IMSA_HILOGE("ReadBool failed.");
+        IMSA_HILOGE("read isBrief failed!");
     }
     ret = GetDefaultInputMethod(prop, isBrief);
     return ITypesUtil::Marshal(reply, ret, *prop) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -179,17 +179,17 @@ int32_t InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote(MessageParcel
 {
     OHOS::AppExecFwk::ElementName inputMethodConfig;
     auto ret = GetInputMethodConfig(inputMethodConfig);
-    IMSA_HILOGD("GetInputMethodConfigOnRemote inputMethodConfig is %{public}s, %{public}s ",
+    IMSA_HILOGD("GetInputMethodConfigOnRemote inputMethodConfig is %{public}s, %{public}s",
         inputMethodConfig.GetBundleName().c_str(), inputMethodConfig.GetAbilityName().c_str());
     return ITypesUtil::Marshal(reply, ret, inputMethodConfig) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::GetSecurityModeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("GetSecurityModeOnRemote");
+    IMSA_HILOGD("GetSecurityModeOnRemote start.");
     int32_t security;
     auto ret = GetSecurityMode(security);
-    IMSA_HILOGD("GetSecurityModeOnRemote, security = %{public}d", security);
+    IMSA_HILOGD("GetSecurityModeOnRemote, security: %{public}d", security);
     return ITypesUtil::Marshal(reply, ret, security) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -197,12 +197,12 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote(MessageParce
 {
     auto property = GetCurrentInputMethod();
     if (property == nullptr) {
-        IMSA_HILOGE("property is nullptr");
+        IMSA_HILOGE("property is nullptr!");
         return reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER) ? ErrorCode::NO_ERROR
                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
     }
     if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property)) {
-        IMSA_HILOGE("Marshal failed");
+        IMSA_HILOGE("marshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -212,12 +212,12 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote(Messa
 {
     auto property = GetCurrentInputMethodSubtype();
     if (property == nullptr) {
-        IMSA_HILOGE("property is nullptr");
+        IMSA_HILOGE("property is nullptr!");
         return reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER) ? ErrorCode::NO_ERROR
                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
     }
     if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property)) {
-        IMSA_HILOGE("Marshal failed");
+        IMSA_HILOGE("marshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -227,13 +227,13 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &dat
 {
     uint32_t status;
     if (!ITypesUtil::Unmarshal(data, status)) {
-        IMSA_HILOGE("read status failed");
+        IMSA_HILOGE("read status failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     std::vector<Property> properties = {};
     auto ret = ListInputMethod(InputMethodStatus(status), properties);
     if (!ITypesUtil::Marshal(reply, ret, properties)) {
-        IMSA_HILOGE("Marshal failed");
+        IMSA_HILOGE("marshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -243,13 +243,13 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote(MessageParc
 {
     std::string bundleName;
     if (!ITypesUtil::Unmarshal(data, bundleName)) {
-        IMSA_HILOGE("read bundleName failed");
+        IMSA_HILOGE("read bundleName failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     std::vector<SubProperty> subProps = {};
     auto ret = ListInputMethodSubtype(bundleName, subProps);
     if (!ITypesUtil::Marshal(reply, ret, subProps)) {
-        IMSA_HILOGE("Marshal failed");
+        IMSA_HILOGE("marshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -260,7 +260,7 @@ int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(Mess
     std::vector<SubProperty> subProps = {};
     auto ret = ListCurrentInputMethodSubtype(subProps);
     if (!ITypesUtil::Marshal(reply, ret, subProps)) {
-        IMSA_HILOGE("Marshal failed");
+        IMSA_HILOGE("marshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -272,7 +272,7 @@ int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &d
     std::string subName;
     SwitchTrigger trigger;
     if (!ITypesUtil::Unmarshal(data, name, subName, trigger)) {
-        IMSA_HILOGE("Unmarshal failed");
+        IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(SwitchInputMethod(name, subName, trigger)) ? ErrorCode::NO_ERROR
@@ -284,7 +284,7 @@ int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &d
     uint32_t status = 0;
     ImeWindowInfo info;
     if (!ITypesUtil::Unmarshal(data, status, info)) {
-        IMSA_HILOGE("Unmarshal failed");
+        IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     int32_t ret = PanelStatusChange(static_cast<InputWindowStatus>(status), info);
@@ -297,7 +297,7 @@ int32_t InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote(MessageParce
     sptr<IRemoteObject> client = nullptr;
     uint32_t eventFlag = 0;
     if (!ITypesUtil::Unmarshal(data, clientInfo, client, clientInfo.channel, eventFlag)) {
-        IMSA_HILOGE("Unmarshal failed");
+        IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     clientInfo.client = iface_cast<IInputClient>(client);
@@ -328,7 +328,7 @@ int32_t InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote(MessageParcel
     int32_t type = -1;
     sptr<IRemoteObject> coreObject = nullptr;
     if (!ITypesUtil::Unmarshal(data, type, coreObject) || coreObject == nullptr) {
-        IMSA_HILOGE("coreObject is nullptr");
+        IMSA_HILOGE("coreObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     int32_t ret = UnRegisteredProxyIme(static_cast<UnRegisteredType>(type), iface_cast<IInputMethodCore>(coreObject));
@@ -339,7 +339,7 @@ int32_t InputMethodSystemAbilityStub::IsInputTypeSupportedOnRemote(MessageParcel
 {
     InputType type;
     if (!ITypesUtil::Unmarshal(data, type)) {
-        IMSA_HILOGE("unmarshal failed");
+        IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsInputTypeSupported(type)) ? ErrorCode::NO_ERROR
@@ -350,7 +350,7 @@ int32_t InputMethodSystemAbilityStub::StartInputTypeOnRemote(MessageParcel &data
 {
     InputType type;
     if (!ITypesUtil::Unmarshal(data, type)) {
-        IMSA_HILOGE("unmarshal failed");
+        IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ITypesUtil::Marshal(reply, StartInputType(type)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -365,7 +365,7 @@ int32_t InputMethodSystemAbilityStub::IsPanelShownOnRemote(MessageParcel &data, 
 {
     PanelInfo info;
     if (!ITypesUtil::Unmarshal(data, info)) {
-        IMSA_HILOGE("unmarshal failed");
+        IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     bool isShown = false;
@@ -382,7 +382,7 @@ int32_t InputMethodSystemAbilityStub::ConnectSystemCmdOnRemote(MessageParcel &da
 {
     auto systemCmdStub = data.ReadRemoteObject();
     if (systemCmdStub == nullptr) {
-        IMSA_HILOGE("systemCmdStub is nullptr");
+        IMSA_HILOGE("systemCmdStub is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     sptr<IRemoteObject> agent = nullptr;

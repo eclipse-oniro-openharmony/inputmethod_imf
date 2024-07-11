@@ -57,11 +57,11 @@ AsyncCall::~AsyncCall()
 napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec, const std::string &resourceName)
 {
     if (context_ == nullptr) {
-        IMSA_HILOGE("context_ is null");
+        IMSA_HILOGE("context_ is nullptr!");
         return nullptr;
     }
     if (context_->ctx == nullptr) {
-        IMSA_HILOGE("context_->ctx is null");
+        IMSA_HILOGE("context_->ctx is nullptr!");
         return nullptr;
     }
     context_->ctx->exec_ = std::move(exec);
@@ -85,7 +85,7 @@ napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec, const std::st
 napi_value AsyncCall::SyncCall(napi_env env, AsyncCall::Context::ExecAction exec)
 {
     if ((context_ == nullptr) || (context_->ctx == nullptr)) {
-        IMSA_HILOGE("context_ or context_->ctx is null");
+        IMSA_HILOGE("context_ or context_->ctx is nullptr!");
         return nullptr;
     }
     context_->ctx->exec_ = std::move(exec);
@@ -115,14 +115,14 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
     if (status == napi_ok && runStatus == napi_ok) {
         napi_get_undefined(env, &result[ARG_ERROR]);
         if (output != nullptr) {
-            IMSA_HILOGD("output != nullptr");
+            IMSA_HILOGD("output != nullptr!");
             result[ARG_DATA] = output;
         } else {
-            IMSA_HILOGD("output == nullptr");
+            IMSA_HILOGD("output is nullptr!");
             napi_get_undefined(env, &result[ARG_DATA]);
         }
     } else {
-        IMSA_HILOGE("runStatus[%{public}d]", runStatus);
+        IMSA_HILOGE("runStatus: [%{public}d]", runStatus);
         result[ARG_ERROR] = JsUtils::ToError(env, context->ctx->errorCode_, context->ctx->errMessage_);
         napi_get_undefined(env, &result[ARG_DATA]);
     }
