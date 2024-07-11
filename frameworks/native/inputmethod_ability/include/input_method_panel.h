@@ -70,7 +70,7 @@ public:
     int32_t CalculatePanelRect(const PanelFlag panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
         const LayoutParams &layoutParams);
     int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, const LayoutParams &layoutParams,
-        PanelAdjustInfo &lanIterValue, int densityDpi);
+        PanelAdjustInfo &lanIterValue, float densityDpi);
     std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(const PanelFlag panelFlag);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
@@ -122,8 +122,8 @@ private:
     bool IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height, int32_t displayWidth, int32_t displayHeight);
     bool CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t height, bool isDataPortrait);
     bool GetDisplaySize(bool isPortrait, WindowSize &size);
-    void CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
-        PanelAdjustInfo &porIterValue, int densityDpi);
+    int32_t CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
+        PanelAdjustInfo &porIterValue, float densityDpi);
     int32_t CalculateNoConfigRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;

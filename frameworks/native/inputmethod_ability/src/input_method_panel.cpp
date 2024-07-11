@@ -18,7 +18,10 @@
 #include <tuple>
 
 #include "dm_common.h"
+#include "display_info.h"
 #include "global.h"
+#include "inputmethod_trace.h"
+#include "input_method_ability.h"
 #include "input_method_ability_utils.h"
 #include "inputmethod_trace.h"
 #include "scene_board_judgement.h"
@@ -36,7 +39,6 @@ constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr int32_t NUMBER_ZERO = 0;
 constexpr int32_t NUMBER_TWO = 2;
 constexpr int32_t CUTOUTINFO = 100;
-constexpr float DPI_CALCULATION_RATIO = 160.0;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
 InputMethodPanel::~InputMethodPanel() = default;
 
@@ -321,12 +323,26 @@ int32_t InputMethodPanel::GetSysPanelAdjust(const PanelFlag panelFlag,
 int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdjustInfo &lanIterValue,
     PanelAdjustInfo &porIterValue, const LayoutParams &layoutParams)
 {
+    auto instance = InputMethodAbility::GetInstance();
+    if (instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) {
+        IMSA_HILOGI("The security keyboard is handled according to no configuration file");
+        return CalculateNoConfigRect(panelFlag, layoutParams);
+    }
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed!");
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
-    auto densityDpi = defaultDisplay->GetDpi();
+    auto displayInfo = defaultDisplay->GetDisplayInfo();
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("GetDisplayInfo failed.");
+        return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
+    }
+    auto densityDpi = displayInfo->GetDensityInCurResolution();
+    IMSA_HILOGI("densityDpi: %{public}f", densityDpi);
+    if (densityDpi < 0) {
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
     if (panelFlag == PanelFlag::FLG_FIXED) {
         //fixed PortraitPanel
         WindowSize portraitDisplaySize;
@@ -335,9 +351,8 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
             return ErrorCode::ERROR_WINDOW_MANAGER;
         }
         keyboardLayoutParams_.PortraitPanelRect_.width_ = portraitDisplaySize.width;
-        keyboardLayoutParams_.PortraitPanelRect_.height_ =
-            layoutParams.portraitRect.height_ +
-            static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
+        keyboardLayoutParams_.PortraitPanelRect_.height_ = layoutParams.portraitRect.height_ +
+            static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * densityDpi);
         if (keyboardLayoutParams_.PortraitPanelRect_.height_ >
             portraitDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO) {
             keyboardLayoutParams_.PortraitPanelRect_.height_ =
@@ -347,24 +362,21 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
             static_cast<int32_t>(portraitDisplaySize.height - keyboardLayoutParams_.PortraitPanelRect_.height_);
         keyboardLayoutParams_.PortraitPanelRect_.posX_ = NUMBER_ZERO;
         //fixed Portraitkeyboard
-        keyboardLayoutParams_.PortraitKeyboardRect_.width_ =
-            keyboardLayoutParams_.PortraitPanelRect_.width_ -
-            static_cast<uint32_t>((porIterValue.left + porIterValue.right) * (densityDpi / DPI_CALCULATION_RATIO));
-        keyboardLayoutParams_.PortraitKeyboardRect_.height_ =
-            keyboardLayoutParams_.PortraitPanelRect_.height_ -
-            static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
-        keyboardLayoutParams_.PortraitKeyboardRect_.posY_ =
-            keyboardLayoutParams_.PortraitPanelRect_.posY_ + porIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
-        keyboardLayoutParams_.PortraitKeyboardRect_.posX_ =
-            keyboardLayoutParams_.PortraitPanelRect_.posX_ + porIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.PortraitKeyboardRect_.width_ = keyboardLayoutParams_.PortraitPanelRect_.width_ -
+            static_cast<uint32_t>((porIterValue.left + porIterValue.right) * densityDpi);
+        keyboardLayoutParams_.PortraitKeyboardRect_.height_ = keyboardLayoutParams_.PortraitPanelRect_.height_ -
+            static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * densityDpi);
+        keyboardLayoutParams_.PortraitKeyboardRect_.posY_ = keyboardLayoutParams_.PortraitPanelRect_.posY_ +
+            static_cast<int32_t>(porIterValue.top * densityDpi);
+        keyboardLayoutParams_.PortraitKeyboardRect_.posX_ = keyboardLayoutParams_.PortraitPanelRect_.posX_ +
+            static_cast<int32_t>(porIterValue.left * densityDpi);
         return CalculateLandscapeRect(defaultDisplay, layoutParams, lanIterValue, densityDpi);
     }
-    CalculateFloatRect(layoutParams, lanIterValue, porIterValue, densityDpi);
-    return ErrorCode::NO_ERROR;
+    return CalculateFloatRect(layoutParams, lanIterValue, porIterValue, densityDpi);
 }
 
-void InputMethodPanel::CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
-    PanelAdjustInfo &porIterValue, int densityDpi)
+int32_t InputMethodPanel::CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
+    PanelAdjustInfo &porIterValue, float densityDpi)
 {
     //portrait floating keyboard
     keyboardLayoutParams_.PortraitKeyboardRect_.width_ = layoutParams.portraitRect.width_;
@@ -372,16 +384,14 @@ void InputMethodPanel::CalculateFloatRect(const LayoutParams &layoutParams, Pane
     keyboardLayoutParams_.PortraitKeyboardRect_.posY_ = layoutParams.portraitRect.posY_;
     keyboardLayoutParams_.PortraitKeyboardRect_.posX_ = layoutParams.portraitRect.posX_;
     //portrait floating panel
-    keyboardLayoutParams_.PortraitPanelRect_.width_ =
-        keyboardLayoutParams_.PortraitKeyboardRect_.width_ +
-        static_cast<uint32_t>((porIterValue.left + porIterValue.right) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.PortraitPanelRect_.height_ =
-        keyboardLayoutParams_.PortraitKeyboardRect_.height_ +
-        static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
+    keyboardLayoutParams_.PortraitPanelRect_.width_ = keyboardLayoutParams_.PortraitKeyboardRect_.width_ +
+        static_cast<uint32_t>((porIterValue.left + porIterValue.right) * densityDpi);
+    keyboardLayoutParams_.PortraitPanelRect_.height_ = keyboardLayoutParams_.PortraitKeyboardRect_.height_ +
+        static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * densityDpi);
     keyboardLayoutParams_.PortraitPanelRect_.posY_ =
-        keyboardLayoutParams_.PortraitKeyboardRect_.posY_ - porIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.PortraitKeyboardRect_.posY_ - static_cast<int32_t>(porIterValue.top * densityDpi);
     keyboardLayoutParams_.PortraitPanelRect_.posX_ =
-        keyboardLayoutParams_.PortraitKeyboardRect_.posX_ - porIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.PortraitKeyboardRect_.posX_ - static_cast<int32_t>(porIterValue.left * densityDpi);
 
     //landscape floating keyboard
     keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = layoutParams.landscapeRect.width_;
@@ -389,20 +399,19 @@ void InputMethodPanel::CalculateFloatRect(const LayoutParams &layoutParams, Pane
     keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ = layoutParams.landscapeRect.posY_;
     keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ = layoutParams.landscapeRect.posX_;
     //landscape floating panel
-    keyboardLayoutParams_.LandscapePanelRect_.width_ =
-        keyboardLayoutParams_.LandscapeKeyboardRect_.width_ +
-        static_cast<uint32_t>((lanIterValue.left + lanIterValue.right) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.LandscapePanelRect_.height_ =
-        keyboardLayoutParams_.LandscapeKeyboardRect_.height_ +
-        static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
+    keyboardLayoutParams_.LandscapePanelRect_.width_ = keyboardLayoutParams_.LandscapeKeyboardRect_.width_ +
+        static_cast<uint32_t>((lanIterValue.left + lanIterValue.right) * densityDpi);
+    keyboardLayoutParams_.LandscapePanelRect_.height_ = keyboardLayoutParams_.LandscapeKeyboardRect_.height_ +
+        static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * densityDpi);
     keyboardLayoutParams_.LandscapePanelRect_.posY_ =
-        keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ - lanIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ - static_cast<int32_t>(lanIterValue.top * densityDpi);
     keyboardLayoutParams_.LandscapePanelRect_.posX_ =
-        keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ - lanIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ - static_cast<int32_t>(lanIterValue.left * densityDpi);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay,
-    const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue, int densityDpi)
+    const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue, float densityDpi)
 {
     //LandscapePanel
     WindowSize landscapeDisplaySize;
@@ -411,9 +420,8 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     keyboardLayoutParams_.LandscapePanelRect_.width_ = landscapeDisplaySize.width;
-    keyboardLayoutParams_.LandscapePanelRect_.height_ =
-        layoutParams.landscapeRect.height_ +
-        static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
+    keyboardLayoutParams_.LandscapePanelRect_.height_ = layoutParams.landscapeRect.height_ +
+        static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * densityDpi);
     if (keyboardLayoutParams_.LandscapePanelRect_.height_ >
         landscapeDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO) {
         keyboardLayoutParams_.LandscapePanelRect_.height_ =
@@ -423,28 +431,24 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
         static_cast<int32_t>(landscapeDisplaySize.height - keyboardLayoutParams_.LandscapePanelRect_.height_);
     keyboardLayoutParams_.LandscapePanelRect_.posX_ = NUMBER_ZERO;
     //Landscapekeyboard
-    keyboardLayoutParams_.LandscapeKeyboardRect_.width_ =
-        keyboardLayoutParams_.LandscapePanelRect_.width_ -
-        static_cast<uint32_t>((lanIterValue.left + lanIterValue.right) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.LandscapeKeyboardRect_.height_ =
-        keyboardLayoutParams_.LandscapePanelRect_.height_ -
-        static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
+    keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = keyboardLayoutParams_.LandscapePanelRect_.width_ -
+        static_cast<uint32_t>((lanIterValue.left + lanIterValue.right) * densityDpi);
+    keyboardLayoutParams_.LandscapeKeyboardRect_.height_ = keyboardLayoutParams_.LandscapePanelRect_.height_ -
+        static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * densityDpi);
     keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ =
-        keyboardLayoutParams_.LandscapePanelRect_.posY_ + lanIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.LandscapePanelRect_.posY_ + static_cast<int32_t>(lanIterValue.top * densityDpi);
     keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ =
-        keyboardLayoutParams_.LandscapePanelRect_.posX_ + lanIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.LandscapePanelRect_.posX_ + static_cast<int32_t>(lanIterValue.left * densityDpi);
     sptr<Rosen::CutoutInfo> cutoutInfo = defaultDisplay->GetCutoutInfo();
     if (cutoutInfo != nullptr) {
         if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
             Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
             return ErrorCode::NO_ERROR;
         }
-        keyboardLayoutParams_.LandscapeKeyboardRect_.width_ =
-            keyboardLayoutParams_.LandscapeKeyboardRect_.width_ -
-            (CUTOUTINFO - lanIterValue.left) * NUMBER_TWO * (densityDpi / DPI_CALCULATION_RATIO);
-        keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ =
-            keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ +
-            (CUTOUTINFO - lanIterValue.left) * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = keyboardLayoutParams_.LandscapeKeyboardRect_.width_ -
+            static_cast<uint32_t>((CUTOUTINFO - lanIterValue.left) * NUMBER_TWO  * densityDpi);
+        keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ = keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ +
+            static_cast<int32_t>((CUTOUTINFO - lanIterValue.left) * densityDpi);
     }
     return ErrorCode::NO_ERROR;
 }
