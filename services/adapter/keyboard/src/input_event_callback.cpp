@@ -35,18 +35,18 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     auto keyAction = keyEvent->GetKeyAction();
     auto currKey = MASK_MAP.find(keyCode);
     if (currKey == MASK_MAP.end()) {
-        IMSA_HILOGD("key code unknown");
+        IMSA_HILOGD("key code is unknown.");
         keyState_ = 0;
         return;
     }
 
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
-        IMSA_HILOGD("key pressed down");
+        IMSA_HILOGD("key pressed down.");
         keyState_ = static_cast<uint32_t>(keyState_ | currKey->second);
         if (keyCode == MMI::KeyEvent::KEYCODE_CAPS_LOCK) {
             if (keyHandler_ != nullptr) {
                 int32_t ret = keyHandler_(keyState_);
-                IMSA_HILOGI("handle key event ret: %{public}d", ret);
+                IMSA_HILOGI("handle key event ret: %{public}d.", ret);
             }
             isKeyHandled_ = true;
             return;
@@ -58,7 +58,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     if (keyAction == MMI::KeyEvent::KEY_ACTION_UP) {
         if (keyHandler_ != nullptr && !isKeyHandled_) {
             int32_t ret = keyHandler_(keyState_);
-            IMSA_HILOGI("handle key event ret: %{public}d", ret);
+            IMSA_HILOGI("handle key event ret: %{public}d.", ret);
         }
         isKeyHandled_ = true;
         keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
@@ -82,7 +82,7 @@ void InputEventCallback::TriggerSwitch()
 {
     auto state = KeyboardEvent::META_MASK | KeyboardEvent::SPACE_MASK;
     int32_t ret = keyHandler_(state);
-    IMSA_HILOGI("handle combinationkey ret: %{public}d", ret);
+    IMSA_HILOGI("handle combinationkey ret: %{public}d.", ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

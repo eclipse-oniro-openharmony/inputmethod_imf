@@ -35,13 +35,13 @@ ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want) const
     return err;
 }
 
-ErrCode InputMethodExtensionContext::StartAbility(
-    const AAFwk::Want &want, const AAFwk::StartOptions &startOptions) const
+ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want,
+    const AAFwk::StartOptions &startOptions) const
 {
-    IMSA_HILOGD("%{public}s begin.", __func__);
+    IMSA_HILOGD("%{public}s start.", __func__);
     ErrCode err =
         AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, ILLEGAL_REQUEST_CODE);
-    IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
+    IMSA_HILOGD("%{public}s ret: %{public}d.", __func__, err);
     if (err != ERR_OK) {
         IMSA_HILOGE("InputMethodExtensionContext::StartAbility failed: %{public}d", err);
     }
@@ -51,20 +51,20 @@ ErrCode InputMethodExtensionContext::StartAbility(
 bool InputMethodExtensionContext::ConnectAbility(const AAFwk::Want &want,
     const sptr<AbilityConnectCallback> &connectCallback) const
 {
-    IMSA_HILOGI("%{public}s begin.", __func__);
+    IMSA_HILOGI("%{public}s start.", __func__);
     ErrCode ret = ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback);
-    IMSA_HILOGI("InputMethodExtensionContext::ConnectAbility ret = %{public}d", ret);
+    IMSA_HILOGI("InputMethodExtensionContext::ConnectAbility ret: %{public}d", ret);
     return ret == ERR_OK;
 }
 
 ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &want, int accountId) const
 {
-    IMSA_HILOGI("%{public}s begin, accountId: %{public}d", __func__, accountId);
+    IMSA_HILOGI("%{public}s start, accountId: %{public}d.", __func__, accountId);
     ErrCode err =
         AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, ILLEGAL_REQUEST_CODE, accountId);
-    IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
+    IMSA_HILOGD("%{public}s ret: %{public}d.", __func__, err);
     if (err != ERR_OK) {
-        IMSA_HILOGE("InputMethodExtensionContext::StartAbilityWithAccount failed: %{public}d", err);
+        IMSA_HILOGE("InputMethodExtensionContext::StartAbilityWithAccount failed: %{public}d!", err);
     }
     return err;
 }
@@ -72,12 +72,12 @@ ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &
 ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &want, int accountId,
     const AAFwk::StartOptions &startOptions) const
 {
-    IMSA_HILOGD("%{public}s begin.", __func__);
+    IMSA_HILOGD("%{public}s start.", __func__);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_,
         ILLEGAL_REQUEST_CODE, accountId);
-    IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
+    IMSA_HILOGD("%{public}s ret: %{public}d", __func__, err);
     if (err != ERR_OK) {
-        IMSA_HILOGE("InputMethodContext::StartAbilityWithAccount is failed %{public}d", err);
+        IMSA_HILOGE("InputMethodContext::StartAbilityWithAccount is failed %{public}d!", err);
     }
     return err;
 }
@@ -85,30 +85,30 @@ ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &
 bool InputMethodExtensionContext::ConnectAbilityWithAccount(const AAFwk::Want &want, int accountId,
     const sptr<AbilityConnectCallback> &connectCallback) const
 {
-    IMSA_HILOGI("%{public}s begin.", __func__);
+    IMSA_HILOGI("%{public}s start.", __func__);
     ErrCode ret = ConnectionManager::GetInstance().ConnectAbilityWithAccount(token_, want, accountId, connectCallback);
-    IMSA_HILOGI("InputMethodExtensionContext::ConnectAbilityWithAccount ret = %{public}d", ret);
+    IMSA_HILOGI("InputMethodExtensionContext::ConnectAbilityWithAccount ret: %{public}d.", ret);
     return ret == ERR_OK;
 }
 
 ErrCode InputMethodExtensionContext::DisconnectAbility(const AAFwk::Want &want,
     const sptr<AbilityConnectCallback> &connectCallback) const
 {
-    IMSA_HILOGI("%{public}s begin.", __func__);
+    IMSA_HILOGI("%{public}s start.", __func__);
     ErrCode ret = ConnectionManager::GetInstance().DisconnectAbility(token_, want.GetElement(), connectCallback);
     if (ret != ERR_OK) {
-        IMSA_HILOGE("%{public}s end DisconnectAbility error, ret=%{public}d", __func__, ret);
+        IMSA_HILOGE("%{public}s end DisconnectAbility error, ret: %{public}d!", __func__, ret);
     }
-    IMSA_HILOGI("%{public}s end DisconnectAbility", __func__);
+    IMSA_HILOGI("%{public}s end DisconnectAbility.", __func__);
     return ret;
 }
 
 ErrCode InputMethodExtensionContext::TerminateAbility()
 {
-    IMSA_HILOGI("%{public}s begin.", __func__);
+    IMSA_HILOGI("%{public}s start.", __func__);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, -1, nullptr);
     if (err != ERR_OK) {
-        IMSA_HILOGE("InputMethodExtensionContext::TerminateAbility failed: %{public}d", err);
+        IMSA_HILOGE("InputMethodExtensionContext::TerminateAbility failed: %{public}d!", err);
     }
     IMSA_HILOGI("%{public}s end.", __func__);
     return err;
@@ -118,7 +118,7 @@ AppExecFwk::AbilityType InputMethodExtensionContext::GetAbilityInfoType() const
 {
     std::shared_ptr<AppExecFwk::AbilityInfo> info = GetAbilityInfo();
     if (info == nullptr) {
-        IMSA_HILOGE("InputMethodContext::GetAbilityInfoType info == nullptr");
+        IMSA_HILOGE("info is nullptr!");
         return AppExecFwk::AbilityType::UNKNOWN;
     }
     return info->type;

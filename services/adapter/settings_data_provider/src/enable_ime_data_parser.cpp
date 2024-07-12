@@ -34,10 +34,10 @@ sptr<EnableImeDataParser> EnableImeDataParser::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceMutex_);
         if (instance_ == nullptr) {
-            IMSA_HILOGI("GetInstance need new EnableImeDataParser");
+            IMSA_HILOGI("need to create instance.");
             instance_ = new (std::nothrow) EnableImeDataParser();
             if (instance_ == nullptr) {
-                IMSA_HILOGI("instance is nullptr.");
+                IMSA_HILOGE("instance is nullptr!");
                 return instance_;
             }
         }
@@ -52,10 +52,10 @@ int32_t EnableImeDataParser::Initialize(const int32_t userId)
     enableList_.insert({ std::string(ENABLE_KEYBOARD), {} });
 
     if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], userId) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGW("get enable ime list failed");
+        IMSA_HILOGW("get enable ime list failed.");
     }
     if (GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], userId) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGW("get enable keyboard list failed");
+        IMSA_HILOGW("get enable keyboard list failed.");
     }
     return ErrorCode::NO_ERROR;
 }
@@ -63,32 +63,36 @@ int32_t EnableImeDataParser::Initialize(const int32_t userId)
 void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
 {
     std::lock_guard<std::mutex> autoLock(listMutex_);
-    IMSA_HILOGD("Current userId %{public}d, switch to %{public}d", currentUserId_, targetUserId);
+    IMSA_HILOGD("current userId: %{public}d, switch to: %{public}d", currentUserId_, targetUserId);
     currentUserId_ = targetUserId;
     if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], targetUserId) != ErrorCode::NO_ERROR ||
-        GetEnableData(ENABLE_KEYBOARD,
-            enableList_[std::string(ENABLE_KEYBOARD)], targetUserId) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("get enable list failed.");
+        GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], targetUserId) !=
+        ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("get enable list failed!");
         return;
     }
 }
 
 bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId)
 {
-    IMSA_HILOGD("Run in, data changed.");
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
-    switchInfo.bundleName = defaultIme.bundleName;
+    IMSA_HILOGD("start, data changed.");
+    auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
+    auto defaultIme = GetDefaultIme();
+    if (defaultIme == nullptr) {
+        IMSA_HILOGE("defaultIme is nullptr!");
+        return false;
+    }
+    switchInfo.bundleName = defaultIme->name;
     switchInfo.subName = "";
     if (currentIme == nullptr) {
-        IMSA_HILOGE("currentIme is nullptr.");
+        IMSA_HILOGE("currentIme is nullptr!");
         return true;
     }
     if (key == std::string(ENABLE_IME)) {
         if (currentIme->bundleName == defaultIme.bundleName) {
             std::lock_guard<std::mutex> autoLock(listMutex_);
             GetEnableData(key, enableList_[key], userId);
-            IMSA_HILOGD("Current ime is default, do not need switch ime.");
+            IMSA_HILOGD("current ime is default, do not need switch ime.");
             return false;
         }
         return CheckTargetEnableName(key, currentIme->bundleName, switchInfo.bundleName, userId);
@@ -102,30 +106,30 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
         switchInfo.subName = defaultIme.subName;
         return CheckTargetEnableName(key, currentIme->subName, switchInfo.subName, userId);
     }
-    IMSA_HILOGW("Invalid key! key: %{public}s", key.c_str());
+    IMSA_HILOGW("invalid key: %{public}s.", key.c_str());
     return false;
 }
 
 bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t userId)
 {
-    IMSA_HILOGD("Current userId %{public}d, target userId %{public}d, check bundleName %{public}s", currentUserId_,
+    IMSA_HILOGD("current userId: %{public}d, target userId: %{public}d, check bundleName: %{public}s", currentUserId_,
         userId, info.bundleName.c_str());
     if (info.bundleName == GetDefaultIme()->name) {
-        IMSA_HILOGD("Default ime, permit to switch");
+        IMSA_HILOGD("default ime, permit to switch");
         return true;
     }
-    IMSA_HILOGD("Check ime.");
+    IMSA_HILOGD("check ime.");
     std::vector<std::string> enableVec;
     int32_t ret = GetEnableData(ENABLE_IME, enableVec, userId);
     if (ret != ErrorCode::NO_ERROR || enableVec.empty()) {
-        IMSA_HILOGD("Get enable list failed, or enable list is empty.");
+        IMSA_HILOGD("get enable list failed, or enable list is empty.");
         return false;
     }
 
     auto iter = std::find_if(enableVec.begin(), enableVec.end(),
         [&info](const std::string &ime) { return info.bundleName == ime; });
     if (iter != enableVec.end()) {
-        IMSA_HILOGD("In enable list.");
+        IMSA_HILOGD("in enable list.");
         return true;
     }
     return false;
@@ -134,23 +138,23 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
 bool EnableImeDataParser::CheckTargetEnableName(const std::string &key, const std::string &targetName,
     std::string &nextIme, const int32_t userId)
 {
-    IMSA_HILOGD("Run in.");
+    IMSA_HILOGD("start.");
     std::vector<std::string> enableVec;
     int32_t ret = GetEnableData(key, enableVec, userId);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("Get enable list abnormal.");
+        IMSA_HILOGE("get enable list abnormal.");
         return false;
     }
 
     if (enableVec.empty()) {
-        IMSA_HILOGE("Enable empty, switch default ime.");
+        IMSA_HILOGE("enable empty, switch default ime.");
         return true;
     }
     std::lock_guard<std::mutex> autoLock(listMutex_);
     auto iter = std::find_if(enableVec.begin(), enableVec.end(),
         [&targetName](const std::string &ime) { return ime == targetName; });
     if (iter != enableVec.end()) {
-        IMSA_HILOGD("Enable list has current ime, do not need switch.");
+        IMSA_HILOGD("enable list has current ime, do not need switch.");
         enableList_[key].assign(enableVec.begin(), enableVec.end());
         return false;
     }
@@ -166,7 +170,7 @@ bool EnableImeDataParser::CheckTargetEnableName(const std::string &key, const st
     auto result =
         std::find_first_of(enableList_[key].begin(), enableList_[key].end(), enableVec.begin(), enableVec.end());
     if (result != enableList_[key].end()) {
-        IMSA_HILOGD("Found the next cached ime in enable ime list.");
+        IMSA_HILOGD("found the next cached ime in enable ime list.");
         nextIme = *result;
     }
     enableList_[key].assign(enableVec.begin(), enableVec.end());
@@ -177,7 +181,7 @@ int32_t EnableImeDataParser::GetEnableData(const std::string &key, std::vector<s
     const int32_t userId)
 {
     if (key != std::string(ENABLE_IME) && key != std::string(ENABLE_KEYBOARD)) {
-        IMSA_HILOGD("Invalid key: %{public}s.", key.c_str());
+        IMSA_HILOGD("invalid key: %{public}s.", key.c_str());
         return ErrorCode::ERROR_ENABLE_IME;
     }
 
@@ -185,12 +189,12 @@ int32_t EnableImeDataParser::GetEnableData(const std::string &key, std::vector<s
     std::string valueStr;
     int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(key, valueStr);
     if (ret == ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
-        IMSA_HILOGW("No keyword exist");
+        IMSA_HILOGW("no keyword exist");
         enableVec.clear();
         return ErrorCode::NO_ERROR;
     }
     if (ret != ErrorCode::NO_ERROR || valueStr.empty()) {
-        IMSA_HILOGW("Get value failed, or valueStr is empty");
+        IMSA_HILOGW("get value failed, or valueStr is empty.");
         return ErrorCode::ERROR_ENABLE_IME;
     }
     auto parseRet = false;

@@ -123,16 +123,19 @@ private:
     void InitServiceHandler();
     int32_t GetCurrentUserIdFromOsAccount();
     void HandleUserChanged(int32_t userId);
-    int32_t RestartCurrentIme();
     void HandleWmsReady(int32_t userId);
     int32_t InitAccountMonitor();
     int32_t RegisterDataShareObserver();
+    static bool IsReady(int32_t saId);
+    bool RestartCurrentIme();
+    void AddRestartIme();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
     static constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
     static constexpr int32_t MAX_WAIT_TIME = 5000;
+    static constexpr int32_t MAX_RESTART_TASKS = 2;
     BlockQueue<SwitchInfo> switchQueue_{ MAX_WAIT_TIME };
     bool stop_ = false;
     void InitMonitors();
@@ -160,7 +163,8 @@ private:
     bool enableSecurityMode_ = false;
 
     bool isScbEnable_ = false;
-    std::atomic<bool> imeStarting_ = false;
+    std::mutex restartMutex_;
+    int32_t restartTasks_ = 0;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;

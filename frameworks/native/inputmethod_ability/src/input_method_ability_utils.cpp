@@ -23,7 +23,7 @@ namespace MiscServices {
 sptr<IInputMethodSystemAbility> ImaUtils::abilityManager_{ nullptr }; // for tdd test
 sptr<IInputMethodSystemAbility> ImaUtils::GetImsaProxy()
 {
-    IMSA_HILOGD("ImaUtils::GetImsaProxy");
+    IMSA_HILOGD("ImaUtils::GetImsaProxy start.");
     // for tdd test begin
     if (abilityManager_ != nullptr) {
         return abilityManager_;
@@ -32,13 +32,13 @@ sptr<IInputMethodSystemAbility> ImaUtils::GetImsaProxy()
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("ImaUtils systemAbilityManager is nullptr");
+        IMSA_HILOGE("ImaUtils systemAbilityManager is nullptr!");
         return nullptr;
     }
 
     auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
     if (systemAbility == nullptr) {
-        IMSA_HILOGE("ImaUtils systemAbility is nullptr");
+        IMSA_HILOGE("ImaUtils systemAbility is nullptr!");
         return nullptr;
     }
     return iface_cast<IInputMethodSystemAbility>(systemAbility);

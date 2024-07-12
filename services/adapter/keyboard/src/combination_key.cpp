@@ -37,10 +37,10 @@ const std::map<CombinationKeyFunction, std::set<uint8_t>> COMBINATION_KEY_MAP{
 
 bool CombinationKey::IsMatch(CombinationKeyFunction combinationKey, uint32_t state)
 {
-    IMSA_HILOGD("combinationKey: %{public}d, state: %{public}d", combinationKey, state);
+    IMSA_HILOGD("combinationKey: %{public}d, state: %{public}d.", combinationKey, state);
     auto expectedKeys = COMBINATION_KEY_MAP.find(combinationKey);
     if (expectedKeys == COMBINATION_KEY_MAP.end()) {
-        IMSA_HILOGD("known key function");
+        IMSA_HILOGD("unknown key function.");
         return false;
     }
     return expectedKeys->second.find(state) != expectedKeys->second.end();

@@ -32,7 +32,7 @@ struct HandleContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr!", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -55,7 +55,7 @@ struct AttachContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr!", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -75,7 +75,7 @@ struct SetCallingWindowContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr!", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -95,7 +95,7 @@ struct UpdateCursorContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr!", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -117,7 +117,7 @@ struct ChangeSelectionContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr!", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -138,7 +138,7 @@ struct UpdateAttributeContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr!", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override

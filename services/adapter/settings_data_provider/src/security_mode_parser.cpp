@@ -35,10 +35,10 @@ sptr<SecurityModeParser> SecurityModeParser::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceMutex_);
         if (instance_ == nullptr) {
-            IMSA_HILOGI("GetInstance need new SecurityModeParser");
+            IMSA_HILOGI("need to create SecurityModeParser.");
             instance_ = new (std::nothrow) SecurityModeParser();
             if (instance_ == nullptr) {
-                IMSA_HILOGI("instance is nullptr.");
+                IMSA_HILOGE("instance is nullptr.");
                 return instance_;
             }
         }
@@ -57,12 +57,12 @@ int32_t SecurityModeParser::UpdateFullModeList(int32_t userId)
     std::string valueStr;
     int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(SECURITY_MODE, valueStr);
     if (ret != ErrorCode::NO_ERROR || valueStr.empty()) {
-        IMSA_HILOGW("Get value failed, or valueStr is empty");
+        IMSA_HILOGW("get value failed, or valueStr is empty");
         return ErrorCode::ERROR_ENABLE_SECURITY_MODE;
     }
 
     if (!ParseSecurityMode(valueStr, userId)) {
-        IMSA_HILOGE("Parse %{public}s failed by %{public}d", valueStr.c_str(), userId);
+        IMSA_HILOGE("parse %{public}s failed by %{public}d", valueStr.c_str(), userId);
         return ErrorCode::ERROR_ENABLE_SECURITY_MODE;
     }
     return ErrorCode::NO_ERROR;
@@ -74,7 +74,7 @@ bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const in
     secModeCfg.userImeCfg.userId = std::to_string(userId);
     auto ret = secModeCfg.Unmarshall(valueStr);
     if (!ret) {
-        IMSA_HILOGE("unmarshall failed");
+        IMSA_HILOGE("unmarshall failed!");
         return ret;
     }
     std::lock_guard<std::mutex> autoLock(listMutex_);

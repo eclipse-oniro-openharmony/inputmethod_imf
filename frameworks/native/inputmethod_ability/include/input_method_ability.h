@@ -95,6 +95,7 @@ public:
     int32_t FinishTextPreview();
     int32_t NotifyPanelStatus(const std::shared_ptr<InputMethodPanel> &inputMethodPanel,
         SysPanelStatus &sysPanelStatus);
+    InputAttribute GetInputAttribute();
 
 private:
     std::thread workThreadHandler;
@@ -152,7 +153,6 @@ private:
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     void SetInputAttribute(const InputAttribute &inputAttribute);
-    InputAttribute GetInputAttribute();
     void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
     int32_t HideKeyboardImplWithoutLock(int32_t cmdId);
