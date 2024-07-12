@@ -74,13 +74,6 @@ struct SubtypeCfg : public Serializable {
     }
 };
 
-struct FullImeInfo {
-    std::string moduleName; //更新label用
-    Property prop;
-    std::vector<SubProperty> subProps;
-    bool isNewIme{ false };
-};
-
 class ImeInfoInquirer {
 public:
     using CompareHandler = std::function<bool(const SubProperty &)>;
@@ -113,10 +106,8 @@ public:
     std::shared_ptr<FullImeInfo> GetFullImeInfo(
         int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
     std::shared_ptr<FullImeInfo> GetFullImeInfo(int32_t userId, const std::string &bundleName);
-    std::string GetStringById(
-        const std::string &bundleName, const std::string &moduleName, const int32_t labelId, const int32_t userId);
+    int32_t UpdateLabel(int32_t userId, const std::shared_ptr<FullImeInfo> &fullImeInfo);
     bool IsInputMethod(int32_t userId, const std::string &bundleName);
-    std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> GetFullImeInfo(int32_t userId, const std::string &bundleName);
 
 private:
     ImeInfoInquirer() = default;
@@ -124,6 +115,8 @@ private:
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
     void InitCache(int32_t userId);
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
+    std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const int32_t labelId,
+        const int32_t userId);
     std::shared_ptr<ImeInfo> GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
         const std::string &subName);
     std::shared_ptr<ImeInfo> GetImeInfoFromBundleMgr(const int32_t userId, const std::string &bundleName,

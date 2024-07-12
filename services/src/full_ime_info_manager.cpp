@@ -17,11 +17,12 @@
 
 #include <algorithm>
 
+#include "ime_info_inquirer.h"
+#include "os_account_info.h"
+#include "os_account_manager.h"
 namespace OHOS {
 namespace MiscServices {
-namespace {
-
-} // namespace
+using namespace AccountSA;
 FullImeInfoManager &FullImeInfoManager::GetInstance()
 {
     static FullImeInfoManager instance;
@@ -33,7 +34,7 @@ int32_t FullImeInfoManager::Init()
 {
     lock_.Lock();
     std::vector<OsAccountInfo> accountInfos;
-    auto ret = QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> & osAccountInfos);
+    auto ret = OsAccountManager::QueryAllCreatedOsAccounts(accountInfos);
     if (ret != 0) {
         return ErrorCode::NO_ERROR;
     }
@@ -45,6 +46,7 @@ int32_t FullImeInfoManager::Init()
         }
         fullImeInfos_.insert_or_assign(userId, infos);
     }
+    Print();
     lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
@@ -130,21 +132,10 @@ int32_t FullImeInfoManager::UpdateAllLabel(int32_t userId)
         return ErrorCode::NO_ERROR;
     }
     for (auto &imeInfo : it->second) {
-        UpdateLabel(userId, imeInfo);
+        ImeInfoInquirer::GetInstance().UpdateLabel(userId, imeInfo);
     }
     fullImeInfos_.insert_or_assign(userId, it->second);
     lock_.UnLock();
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t FullImeInfoManager::UpdateLabel(int32_t userId, const std::shared_ptr<FullImeInfo> &fullImeInfo)
-{
-    for (auto &subProp : fullImeInfo->subProps) {
-        subProp.label = ImeInfoInquirer::GetInstance().GetStringById(
-            subProp.name, fullImeInfo->moduleName, subProp.labelId, userId);
-    }
-    fullImeInfo->prop.label = ImeInfoInquirer::GetInstance().GetStringById(
-        fullImeInfo->prop.name, fullImeInfo->moduleName, fullImeInfo->prop.labelId, userId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -159,8 +150,30 @@ std::vector<FullImeInfo> FullImeInfoManager::Get(int32_t userId)
     for (auto &info : it->second) {
         imeInfos.push_back(*info);
     }
-    lock_.Lock();
+    lock_.UnLock();
     return imeInfos;
+}
+
+void FullImeInfoManager::Print()
+{
+    for (const auto &info : fullImeInfos_) {
+        IMSA_HILOGI("userId:%{public}d.", info.first);
+        for (const auto &fullInfo : info.second) {
+            IMSA_HILOGI("prop:[name:%{public}s,id:%{public}s,labelId:%{public}d,label:%{public}s,iconId:%{public}d].",
+                fullInfo->prop.name.c_str(), fullInfo->prop.id.c_str(), fullInfo->prop.labelId,
+                fullInfo->prop.label.c_str(), fullInfo->prop.iconId);
+            PrintSubProp(fullInfo->subProps);
+        }
+    }
+}
+void FullImeInfoManager::PrintSubProp(const std::vector<SubProperty> &subProps)
+{
+    for (const auto &subProp : subProps) {
+        IMSA_HILOGI("subProp:[name:%{public}s,id:%{public}s,labelId:%{public}d,label:%{public}s,iconId:%{public}d,"
+                    "locale:%{public}s,language:%{public}s,mode:%{public}s].",
+            subProp.name.c_str(), subProp.id.c_str(), subProp.labelId, subProp.label.c_str(), subProp.iconId,
+            subProp.locale.c_str(), subProp.language.c_str(), subProp.mode.c_str());
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

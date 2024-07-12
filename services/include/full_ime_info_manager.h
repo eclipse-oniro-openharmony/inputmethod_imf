@@ -19,7 +19,7 @@
 #include <map>
 
 #include "fair_lock.h"
-#include "ime_info_inquirer.h"
+#include "input_method_property.h"
 namespace OHOS {
 namespace MiscServices {
 
@@ -33,11 +33,12 @@ public:
     int32_t update(int32_t userId, const std::string &bundleName); // 包变化
     int32_t UpdateAllLabel(int32_t userId);                        // 語言变化更新
     std::vector<FullImeInfo> Get(int32_t userId);
+    void Print();
+    void PrintSubProp(const std::vector<SubProperty> &subProps);
 
 private:
     FullImeInfoManager() = default;
     ~FullImeInfoManager() = default;
-    int32_t UpdateLabel(int32_t userId, const std::shared_ptr<FullImeInfo> &fullImeInfo);
     FairLock lock_;
     std::map<int32_t, std::vector<std::shared_ptr<FullImeInfo>>> fullImeInfos_;
 };

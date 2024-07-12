@@ -15,6 +15,7 @@
 
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #ifndef INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 #define INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
@@ -40,6 +41,13 @@ struct SubProperty {
     std::string language; // the language of subtype
     std::string icon;     // the icon of subtype
     int32_t iconId = 0;   // the icon id of subtype
+};
+
+struct FullImeInfo {
+    std::string resPath; //更新label用
+    Property prop;
+    std::vector<SubProperty> subProps;
+    bool isNewIme{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

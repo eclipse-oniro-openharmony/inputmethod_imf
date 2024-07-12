@@ -301,7 +301,7 @@ int32_t ImeInfoInquirer::ListInputMethod(int32_t userId, InputMethodStatus statu
 
 int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Property> &props)
 {
-    IMSA_HILOGD("userId: %{public}d", userId);
+    IMSA_HILOGD("userId: %{public}d.", userId);
     auto infos = FullImeInfoManager::GetInstance().Get(userId);
     for (const auto &info : infos) {
         props.push_back(info.prop);
@@ -324,7 +324,7 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
         auto resMgr = GetResMgr(resPath);
         if (resMgr != nullptr) {
             auto errValue = resMgr->GetStringById(extension.applicationInfo.labelId, label);
-            IMSA_HILOGI("label:%{public}s", label.c_str());
+            IMSA_HILOGI("label:%{public}s.", label.c_str());
             if (errValue != RState::SUCCESS) {
                 IMSA_HILOGE("GetStringById failed, bundleName:%{public}s, id:%{public}d", extension.bundleName.c_str(),
                     extension.applicationInfo.labelId);
@@ -427,8 +427,7 @@ int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int3
 int32_t ImeInfoInquirer::ListInputMethodSubtype(int32_t userId, const std::string &bundleName,
     std::vector<SubProperty> &subProps)
 {
-<<<<<
-    IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
+    IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s.", userId, bundleName.c_str());
     auto infos = FullImeInfoManager::GetInstance().Get(userId);
     for (const auto &info : infos) {
         if (info.prop.name == bundleName) {
@@ -567,7 +566,7 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
 
     std::string resPath = extInfo.hapPath.empty() ? extInfo.resourcePath : extInfo.hapPath;
     auto resMgr = GetResMgr(resPath);
-    IMSA_HILOGD("subtypes size: %{public}zu", subtypes.size());
+    IMSA_HILOGD("subtypes size: %{public}zu.", subtypes.size());
     for (const auto &subtype : subtypes) {
         // subtype which provides a particular input type should not appear in the subtype list
         if (InputTypeManager::GetInstance().IsInputType({ extInfo.bundleName, subtype.id })) {
@@ -584,9 +583,9 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
             subProp.labelId = atoi(subProp.label.substr(pos + 1).c_str());
             if (resMgr != nullptr) {
                 auto errValue = resMgr->GetStringById(subProp.labelId, subProp.label);
-                IMSA_HILOGI("label:%{public}s", subProp.label.c_str());
+                IMSA_HILOGI("label:%{public}s.", subProp.label.c_str());
                 if (errValue != RState::SUCCESS) {
-                    IMSA_HILOGE("GetStringById failed, bundleName:%{public}s, id:%{public}d",
+                    IMSA_HILOGE("GetStringById failed, bundleName:%{public}s, id:%{public}d.",
                         extInfo.bundleName.c_str(), subProp.labelId);
                 }
             }
@@ -698,8 +697,7 @@ std::shared_ptr<Property> ImeInfoInquirer::GetImeProperty(
 std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-master
-    IMSA_HILOGD("currentIme: %{public}s", currentImeCfg->imeId.c_str());
+    IMSA_HILOGD("currentIme: %{public}s.", currentImeCfg->imeId.c_str());
     auto fullInfos = FullImeInfoManager::GetInstance().Get(userId);
     for (const auto &info : fullInfos) {
         if (info.prop.name == currentImeCfg->bundleName) {
@@ -715,8 +713,8 @@ master
 std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
 {
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    IMSA_HILOGD("currentIme: %{public}s", currentIme->imeId.c_str());
-    auto fullInfos = FullImeInfoManager::GetInstance().Get(userId_);
+    IMSA_HILOGD("currentIme: %{public}s.", currentIme->imeId.c_str());
+    auto fullInfos = FullImeInfoManager::GetInstance().Get(userId);
     auto subName = currentIme->subName;
     for (const auto &info : fullInfos) {
         if (info.prop.name == currentIme->bundleName) {
@@ -725,7 +723,7 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
             if (iter != info.subProps.end()) {
                 return std::make_shared<SubProperty>(*iter);
             }
-            IMSA_HILOGE("subtype %{public}s not found", subName.c_str());
+            IMSA_HILOGE("subtype %{public}s not found.", subName.c_str());
             if (!info.subProps.empty()) {
                 return std::make_shared<SubProperty>(info.subProps[0]);
             }
@@ -819,17 +817,17 @@ int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::
 
 int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief)
 {
-    IMSA_HILOGD("userId: %{public}d", userId);
-    auto defaultIme = GetDefaultIme();
-    if (defaultIme.bundleName.empty() || defaultIme.extName.empty()) {
-        IMSA_HILOGE("abnormal default ime cfg");
-        return ErrorCode::ERROR_DEFAULT_IME_CFG;
+    IMSA_HILOGD("userId: %{public}d.", userId);
+    auto defaultIme = GetDefaultImeCfgProp();
+    if (defaultIme == nullptr) {
+        IMSA_HILOGE("abnormal default ime cfg.");
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     auto infos = FullImeInfoManager::GetInstance().Get(userId);
     for (const auto &info : infos) {
-        if (info.prop.name == defaultIme.bundleName) {
+        if (info.prop.name == defaultIme->name) {
             prop = std::make_shared<Property>(info.prop);
-            prop->id = defaultIme.extName;
+            prop->id = defaultIme->id;
             return ErrorCode::NO_ERROR;
         }
     }
@@ -839,11 +837,11 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
         if (prop == nullptr) {
             prop = std::make_shared<Property>();
         }
-        prop->name = defaultIme.bundleName;
-        prop->id = defaultIme.extName;
+        prop->name = defaultIme->name;
+        prop->id = defaultIme->id;
         return ErrorCode::NO_ERROR;
     }
-    prop = GetImeProperty(userId, defaultIme.bundleName, defaultIme.extName);
+    prop = GetImeProperty(userId, defaultIme->name, defaultIme->id);
     return ErrorCode::NO_ERROR;
 }
 
@@ -968,18 +966,18 @@ std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
 std::shared_ptr<ResourceManager> ImeInfoInquirer::GetResMgr(const std::string &resourcePath)
 {
     if (resourcePath.empty()) {
-        IMSA_HILOGE("resourcePath is empty");
+        IMSA_HILOGE("resourcePath is empty.");
         return nullptr;
     }
     std::shared_ptr<ResourceManager> resMgr(CreateResourceManager());
     if (resMgr == nullptr) {
-        IMSA_HILOGE("resMgr is nullptr");
+        IMSA_HILOGE("resMgr is nullptr.");
         return nullptr;
     }
 
     std::unique_ptr<ResConfig> resConfig(CreateResConfig());
     if (resConfig == nullptr) {
-        IMSA_HILOGE("resConfig is nullptr");
+        IMSA_HILOGE("resConfig is nullptr.");
         return nullptr;
     }
     resMgr->UpdateResConfig(*resConfig);
@@ -1024,7 +1022,7 @@ std::shared_ptr<FullImeInfo> ImeInfoInquirer::GetFullImeInfo(int32_t userId, con
     if (bmg == nullptr) {
         return nullptr;
     }
-    BundleInfo info;
+    BundleInfo bundleInfo;
     auto ret = bmg->GetBundleInfo(bundleName, BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO, bundleInfo, userId);
     if (!ret) {
         return nullptr;
@@ -1034,19 +1032,19 @@ std::shared_ptr<FullImeInfo> ImeInfoInquirer::GetFullImeInfo(int32_t userId, con
         if (extInfo.type != ExtensionAbilityType::INPUTMETHOD) {
             continue;
         }
-        extensions.push_back(extInfo);
+        extInfos.push_back(extInfo);
     }
-    if (extensions.empty()) {
-        return nullptr;
-    }
-    return GetFullImeInfo(userId, extensions);
+    return GetFullImeInfo(userId, extInfos);
 }
 
 std::shared_ptr<FullImeInfo> ImeInfoInquirer::GetFullImeInfo(
     int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos)
 {
+    if (extInfos.empty()) {
+        return nullptr;
+    }
     auto info = std::make_shared<FullImeInfo>();
-    info->moduleName = extInfos[0].moduleName;
+    info->resPath = extInfos[0].hapPath.empty() ? extInfos[0].resourcePath : extInfos[0].hapPath;
     info->prop.name = extInfos[0].bundleName;
     info->prop.id = extInfos[0].name;
     info->prop.label =
@@ -1054,16 +1052,38 @@ std::shared_ptr<FullImeInfo> ImeInfoInquirer::GetFullImeInfo(
     info->prop.labelId = extInfos[0].applicationInfo.labelId;
     info->prop.iconId = extInfos[0].applicationInfo.iconId;
 
-    std::vector<SubProperty> subProps;
     info->isNewIme = IsNewExtInfos(extInfos);
-    auto ret = info->isNewIme ? ListInputMethodSubtype(userId, extInfos[0], subProps)
-                              : ListInputMethodSubtype(userId, extInfos, subProps);
-    if (ret != ErrorCode::NO_ERROR || subProps.empty()) {
-        IMSA_HILOGE("[%{public}d,%{public}s] list Subtype failed", userId, extInfos[0].bundleName.c_str());
-        return nullptr;
+    auto ret = info->isNewIme ? ListInputMethodSubtype(userId, extInfos[0], info->subProps)
+                              : ListInputMethodSubtype(userId, extInfos, info->subProps);
+    if (ret != ErrorCode::NO_ERROR || info->subProps.empty()) {
+        IMSA_HILOGE("[%{public}d,%{public}s] list Subtype failed.", userId, extInfos[0].bundleName.c_str());
     }
-    info->subProps = subProps;
     return info;
+}
+
+int32_t ImeInfoInquirer::UpdateLabel(int32_t userId, const std::shared_ptr<FullImeInfo> &fullImeInfo)
+{
+    if (fullImeInfo == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto resMgr = GetResMgr(fullImeInfo->resPath);
+    if (resMgr == nullptr) {
+        IMSA_HILOGE("resMgr is nullptr.");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    for (auto &subProp : fullImeInfo->subProps) {
+        auto ret = resMgr->GetStringById(subProp.labelId, subProp.label);
+        if (ret != RState::SUCCESS) {
+            IMSA_HILOGE("GetStringById failed, userId:%{public}d, bundleName:%{public}s, id:%{public}d.", userId,
+                fullImeInfo->prop.name.c_str(), subProp.labelId);
+        }
+    }
+    auto ret = resMgr->GetStringById(fullImeInfo->prop.labelId, fullImeInfo->prop.label);
+    if (ret != RState::SUCCESS) {
+        IMSA_HILOGE("GetStringById failed, userId:%{public}d, bundleName:%{public}s, id:%{public}d.", userId,
+            fullImeInfo->prop.name.c_str(), fullImeInfo->prop.labelId);
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 bool ImeInfoInquirer::IsInputMethod(int32_t userId, const std::string &bundleName)
@@ -1072,7 +1092,7 @@ bool ImeInfoInquirer::IsInputMethod(int32_t userId, const std::string &bundleNam
     if (bmg == nullptr) {
         return false;
     }
-    BundleInfo info;
+    BundleInfo bundleInfo;
     auto ret = bmg->GetBundleInfo(bundleName, BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO, bundleInfo, userId);
     if (!ret) {
         return false;

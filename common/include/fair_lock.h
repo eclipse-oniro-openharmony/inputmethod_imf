@@ -39,7 +39,7 @@ public:
     void UnLock()
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        ++nextThreadId_;
+        ++currentThreadId_;
         cv_.notify_all();
     }
 

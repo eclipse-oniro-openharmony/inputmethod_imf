@@ -295,7 +295,7 @@ void InputMethodSystemAbility::SubscribeCommonEvent()
     }
 
     IMSA_HILOGE("failed, try again 10s later");
-    auto callback = [this]() { StartUserIdListener(); };
+    auto callback = [this]() { SubscribeCommonEvent(); };
     serviceHandler_->PostTask(callback, INIT_INTERVAL);
 }
 
@@ -776,7 +776,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
     }
     IMSA_HILOGD("need to switch ime: %{public}s|%{public}s.", switchInfo.bundleName.c_str(),
         switchInfo.subName.c_str());
-    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeByBundleName(userId_, switchInfo.bundleName);
+    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeProperty(userId_, switchInfo.bundleName);
     if (targetImeProperty == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
@@ -1205,7 +1205,7 @@ void InputMethodSystemAbility::InitMonitors()
 {
     int32_t ret = InitAccountMonitor();
     IMSA_HILOGI("init account monitor, ret: %{public}d.", ret);
-    StartUserIdListener();
+    SubscribeCommonEvent();
     ret = InitMemMgrMonitor();
     IMSA_HILOGI("init MemMgr monitor, ret: %{public}d.", ret);
     ret = InitKeyEventMonitor();

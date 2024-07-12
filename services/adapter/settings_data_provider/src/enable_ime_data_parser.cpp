@@ -76,13 +76,9 @@ void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
 bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId)
 {
     IMSA_HILOGD("start, data changed.");
-    auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
-    auto defaultIme = GetDefaultIme();
-    if (defaultIme == nullptr) {
-        IMSA_HILOGE("defaultIme is nullptr!");
-        return false;
-    }
-    switchInfo.bundleName = defaultIme->name;
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
+    switchInfo.bundleName = defaultIme.bundleName;
     switchInfo.subName = "";
     if (currentIme == nullptr) {
         IMSA_HILOGE("currentIme is nullptr!");
@@ -98,7 +94,7 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
         return CheckTargetEnableName(key, currentIme->bundleName, switchInfo.bundleName, userId);
     } else if (key == std::string(ENABLE_KEYBOARD)) {
         if (currentIme->bundleName != defaultIme.bundleName || currentIme->subName == defaultIme.subName) {
-            IMSA_HILOGD("Current ime is not default or id is default.");
+            IMSA_HILOGD("current ime is not default or id is default.");
             std::lock_guard<std::mutex> autoLock(listMutex_);
             GetEnableData(key, enableList_[key], userId);
             return false;
@@ -114,7 +110,7 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
 {
     IMSA_HILOGD("current userId: %{public}d, target userId: %{public}d, check bundleName: %{public}s", currentUserId_,
         userId, info.bundleName.c_str());
-    if (info.bundleName == GetDefaultIme()->name) {
+    if (info.bundleName == ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName) {
         IMSA_HILOGD("default ime, permit to switch");
         return true;
     }

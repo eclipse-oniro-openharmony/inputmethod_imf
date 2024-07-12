@@ -58,6 +58,7 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/services/adapter/wms_connection_monitor/src/wms_connection_monitor_manager.cpp",
     "${inputmethod_path}/services/adapter/wms_connection_monitor/src/wms_connection_observer.cpp",
     "${inputmethod_path}/services/identity_checker/src/identity_checker_impl.cpp",
+    "src/full_ime_info_manager.cpp",
     "src/freeze_manager.cpp",
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",
@@ -102,7 +103,7 @@ ohos_shared_library("inputmethod_service") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "input:libmmi-client",
-    "i18n:intl_util"
+    "i18n:intl_util",
     "ipc:ipc_single",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
@@ -146,6 +147,7 @@ ohos_static_library("inputmethod_service_static") {
     "adapter/wms_connection_monitor/src/wms_connection_monitor_manager.cpp",
     "adapter/wms_connection_monitor/src/wms_connection_observer.cpp",
     "identity_checker/src/identity_checker_impl.cpp",
+    "src/full_ime_info_manager.cpp",
     "src/freeze_manager.cpp",
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",
@@ -186,7 +188,7 @@ ohos_static_library("inputmethod_service_static") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "input:libmmi-client",
-    "i18n:intl_util"
+    "i18n:intl_util",
     "ipc:ipc_single",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
