@@ -102,9 +102,11 @@ ohos_shared_library("inputmethod_service") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "input:libmmi-client",
+    "i18n:intl_util"
     "ipc:ipc_single",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
+    "resource_management:global_resmgr",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -184,9 +186,11 @@ ohos_static_library("inputmethod_service_static") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "input:libmmi-client",
+    "i18n:intl_util"
     "ipc:ipc_single",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
+    "resource_management:global_resmgr",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

@@ -105,8 +105,11 @@ private:
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
+    int32_t OnPackageAdded(const Message *msg);
+    int32_t OnPackageChanged(const Message *msg);
+    int32_t OnBundleScanFinished(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
-    void StartUserIdListener();
+    void SubscribeCommonEvent();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
     int32_t CheckSwitchPermission(const SwitchInfo &switchInfo, SwitchTrigger trigger);
     bool IsStartInputTypePermitted();

@@ -57,7 +57,6 @@ int32_t EnableImeDataParser::Initialize(const int32_t userId)
     if (GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], userId) != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("get enable keyboard list failed");
     }
-    GetDefaultIme();
     return ErrorCode::NO_ERROR;
 }
 
@@ -77,35 +76,31 @@ void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
 bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId)
 {
     IMSA_HILOGD("Run in, data changed.");
-    auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
-    auto defaultIme = GetDefaultIme();
-    if (defaultIme == nullptr) {
-        IMSA_HILOGE("defaultIme is nullptr.");
-        return false;
-    }
-    switchInfo.bundleName = defaultIme->name;
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
+    switchInfo.bundleName = defaultIme.bundleName;
     switchInfo.subName = "";
     if (currentIme == nullptr) {
         IMSA_HILOGE("currentIme is nullptr.");
         return true;
     }
     if (key == std::string(ENABLE_IME)) {
-        if (currentIme->name == defaultIme->name) {
+        if (currentIme->bundleName == defaultIme.bundleName) {
             std::lock_guard<std::mutex> autoLock(listMutex_);
             GetEnableData(key, enableList_[key], userId);
             IMSA_HILOGD("Current ime is default, do not need switch ime.");
             return false;
         }
-        return CheckTargetEnableName(key, currentIme->name, switchInfo.bundleName, userId);
+        return CheckTargetEnableName(key, currentIme->bundleName, switchInfo.bundleName, userId);
     } else if (key == std::string(ENABLE_KEYBOARD)) {
-        if (currentIme->name != defaultIme->name || currentIme->id == defaultIme->id) {
+        if (currentIme->bundleName != defaultIme.bundleName || currentIme->subName == defaultIme.subName) {
             IMSA_HILOGD("Current ime is not default or id is default.");
             std::lock_guard<std::mutex> autoLock(listMutex_);
             GetEnableData(key, enableList_[key], userId);
             return false;
         }
-        switchInfo.subName = defaultIme->id;
-        return CheckTargetEnableName(key, currentIme->id, switchInfo.subName, userId);
+        switchInfo.subName = defaultIme.subName;
+        return CheckTargetEnableName(key, currentIme->subName, switchInfo.subName, userId);
     }
     IMSA_HILOGW("Invalid key! key: %{public}s", key.c_str());
     return false;
@@ -232,27 +227,6 @@ bool EnableImeDataParser::ParseEnableKeyboard(const std::string &valueStr, int32
     }
     enableVec = enableKeyboard.userImeCfg.identities;
     return true;
-}
-
-std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
-{
-    std::lock_guard<std::mutex> lock(defaultImeMutex_);
-    if (defaultImeInfo_ == nullptr) {
-        defaultImeInfo_ = std::make_shared<Property>();
-    }
-    if (!defaultImeInfo_->name.empty() && !defaultImeInfo_->id.empty()) {
-        IMSA_HILOGD("defaultImeInfo_ has cached defaultime: %{public}s", defaultImeInfo_->name.c_str());
-        return defaultImeInfo_;
-    }
-
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
-    if (defaultIme == nullptr) {
-        IMSA_HILOGE("GetDefaultImeCfgProp return nullptr");
-        return defaultImeInfo_;
-    }
-    defaultImeInfo_->name = defaultIme->name;
-    defaultImeInfo_->id = defaultIme->id;
-    return defaultImeInfo_;
 }
 } // namespace MiscServices
 } // namespace OHOS

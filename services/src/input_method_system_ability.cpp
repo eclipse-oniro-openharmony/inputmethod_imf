@@ -17,11 +17,14 @@
 
 #include <unistd.h>
 
+#include <algorithm>
+
 #include "ability_manager_client.h"
 #include "application_info.h"
 #include "combination_key.h"
 #include "common_event_support.h"
 #include "errors.h"
+#include "full_ime_info_manager.h"
 #include "global.h"
 #include "im_common_event_manager.h"
 #include "ime_cfg_manager.h"
@@ -244,17 +247,17 @@ void InputMethodSystemAbility::Initialize()
     isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
 }
 
-void InputMethodSystemAbility::StartUserIdListener()
+void InputMethodSystemAbility::SubscribeCommonEvent()
 {
     sptr<ImCommonEventManager> imCommonEventManager = ImCommonEventManager::GetInstance();
-    bool isSuccess = imCommonEventManager->SubscribeEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
+    bool isSuccess = imCommonEventManager->SubscribeEvent();
     if (isSuccess) {
         IMSA_HILOGI("Initialize subscribe service event success");
         return;
     }
 
     IMSA_HILOGE("failed. Try again 10s later");
-    auto callback = [this]() { StartUserIdListener(); };
+    auto callback = [this]() { SubscribeCommonEvent(); };
     serviceHandler_->PostTask(callback, INIT_INTERVAL);
 }
 
@@ -734,7 +737,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
         return ret;
     }
     IMSA_HILOGD("need to switch ime: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
-    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeByBundleName(userId_, switchInfo.bundleName);
+    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeProperty(userId_, switchInfo.bundleName);
     if (targetImeProperty == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
@@ -843,6 +846,15 @@ void InputMethodSystemAbility::WorkThread()
             }
             case MSG_ID_BUNDLE_SCAN_FINISHED: {
                 RegisterDataShareObserver();
+                OnBundleScanFinished(msg);
+                break;
+            }
+            case MSG_ID_PACKAGE_ADDED: {
+                OnPackageAdded(msg);
+                break;
+            }
+            case MSG_ID_PACKAGE_CHANGED: {
+                OnPackageChanged(msg);
                 break;
             }
             default: {
@@ -891,6 +903,7 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
     auto userId = msg->msgContent_->ReadInt32();
     IMSA_HILOGI("Start: %{public}d", userId);
     ImeCfgManager::GetInstance().DeleteImeCfg(userId);
+    FullImeInfoManager::GetInstance().Delete(userId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -915,6 +928,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
+    FullImeInfoManager::GetInstance().Delete(userId, packageName);
     // if the app that doesn't belong to current user is removed, ignore it
     if (userId != userId_) {
         IMSA_HILOGD("userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
@@ -931,6 +945,52 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         int32_t ret = SwitchExtension(info);
         IMSA_HILOGI("switch ret = %{public}d", ret);
     }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::OnPackageAdded(const Message *msg)
+{
+    MessageParcel *data = msg->msgContent_;
+    if (data == nullptr) {
+        IMSA_HILOGD("data is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    int32_t userId = 0;
+    std::string packageName;
+    if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
+        IMSA_HILOGE("Failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    FullImeInfoManager::GetInstance().Add(userId, packageName);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::OnPackageChanged(const Message *msg)
+{
+    MessageParcel *data = msg->msgContent_;
+    if (data == nullptr) {
+        IMSA_HILOGD("data is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    int32_t userId = 0;
+    std::string packageName;
+    if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
+        IMSA_HILOGE("Failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    FullImeInfoManager::GetInstance().update(userId, packageName);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::OnBundleScanFinished(const Message *msg)
+{
+    if (msg->msgContent_ == nullptr) {
+        IMSA_HILOGE("Aborted! Message is nullptr.");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto userId = msg->msgContent_->ReadInt32();
+    IMSA_HILOGI("Start: %{public}d", userId);
+    FullImeInfoManager::GetInstance().Init();
     return ErrorCode::NO_ERROR;
 }
 
@@ -1109,7 +1169,7 @@ void InputMethodSystemAbility::InitMonitors()
 {
     int32_t ret = InitAccountMonitor();
     IMSA_HILOGI("init account monitor, ret: %{public}d", ret);
-    StartUserIdListener();
+    SubscribeCommonEvent();
     ret = InitMemMgrMonitor();
     IMSA_HILOGI("init MemMgr monitor, ret: %{public}d", ret);
     ret = InitKeyEventMonitor();
@@ -1145,6 +1205,7 @@ int32_t InputMethodSystemAbility::InitAccountMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor");
     return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() {
+        FullImeInfoManager::GetInstance().Init();
         auto userId = GetCurrentUserIdFromOsAccount();
         if (userId_ == userId) {
             return;
@@ -1193,8 +1254,10 @@ void InputMethodSystemAbility::InitWmsConnectionMonitor()
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()
 {
-    SystemLanguageObserver::GetInstance().Watch(
-        [this]() { ImeInfoInquirer::GetInstance().RefreshCurrentImeInfo(userId_); });
+    SystemLanguageObserver::GetInstance().Watch([this]() {
+        FullImeInfoManager::GetInstance().UpdateAllLabel(userId_);
+        ImeInfoInquirer::GetInstance().RefreshCurrentImeInfo(userId_);
+    });
 }
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
