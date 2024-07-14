@@ -16,6 +16,8 @@
 #include "system_language_observer.h"
 
 #include "global.h"
+#include "message.h"
+#include "message_handler.h"
 #include "parameter.h"
 
 namespace OHOS {
@@ -44,6 +46,11 @@ void SystemLanguageObserver::OnChange(const char *key, const char *value, void *
     if (handler_ != nullptr) {
         handler_();
     }
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SYS_LANGUAGE_CHANGED, nullptr);
+    if (msg == nullptr) {
+        return;
+    }
+    MessageHandler::Instance()->SendMessage(msg);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace AccountSA;
+constexpr uint32_t GET_TIME_OUT = 100;
 FullImeInfoManager &FullImeInfoManager::GetInstance()
 {
     static FullImeInfoManager instance;
@@ -34,8 +35,9 @@ int32_t FullImeInfoManager::Init()
 {
     lock_.Lock();
     std::vector<OsAccountInfo> accountInfos;
-    auto ret = OsAccountManager::QueryAllCreatedOsAccounts(accountInfos);
+    auto ret = OsAccountManager::QueryAllCreatedOsAccounts(accountInfos);   //查询所有创建的用户会不会太慢，是否需要只获取激活的当前用户，切户的时候再获取新激活用户的
     if (ret != 0) {
+        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     for (auto &acInfo : accountInfos) {
@@ -64,16 +66,19 @@ int32_t FullImeInfoManager::Add(int32_t userId, const std::string &bundleName)
     lock_.Lock();
     auto imeInfo = ImeInfoInquirer::GetInstance().GetFullImeInfo(userId, bundleName);
     if (imeInfo == nullptr) {
+        lock_.UnLock();
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
     auto it = fullImeInfos_.find(userId);
     if (it == fullImeInfos_.end()) {
         fullImeInfos_.insert({ userId, { imeInfo } });
+        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     auto iter = std::find_if(it->second.begin(), it->second.end(),
         [bundleName](const std::shared_ptr<FullImeInfo> &info) { return bundleName == info->prop.name; });
     if (iter != it->second.end()) {
+        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     it->second.push_back(imeInfo);
@@ -86,11 +91,13 @@ int32_t FullImeInfoManager::Delete(int32_t userId, const std::string &bundleName
     lock_.Lock();
     auto it = fullImeInfos_.find(userId);
     if (it == fullImeInfos_.end()) {
+        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     auto iter = std::find_if(it->second.begin(), it->second.end(),
         [bundleName](const std::shared_ptr<FullImeInfo> &info) { return bundleName == info->prop.name; });
     if (iter == it->second.end()) {
+        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     it->second.erase(iter);
@@ -103,11 +110,13 @@ int32_t FullImeInfoManager::update(int32_t userId, const std::string &bundleName
     lock_.Lock();
     auto imeInfo = ImeInfoInquirer::GetInstance().GetFullImeInfo(userId, bundleName);
     if (imeInfo == nullptr) {
+        lock_.UnLock();
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
     auto it = fullImeInfos_.find(userId);
     if (it == fullImeInfos_.end()) {
         fullImeInfos_.insert({ userId, { imeInfo } });
+        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     auto iter = std::find_if(it->second.begin(), it->second.end(),
@@ -129,6 +138,7 @@ int32_t FullImeInfoManager::UpdateAllLabel(int32_t userId)
         if (!infos.empty()) {
             fullImeInfos_.insert_or_assign(userId, infos);
         }
+        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     for (auto &imeInfo : it->second) {
@@ -141,7 +151,11 @@ int32_t FullImeInfoManager::UpdateAllLabel(int32_t userId)
 
 std::vector<FullImeInfo> FullImeInfoManager::Get(int32_t userId)
 {
-    lock_.Lock();
+    auto ret = lock_.Lock(GET_TIME_OUT);
+    if (!ret) {
+        IMSA_HILOGD("timeout.");
+        return {};
+    }
     std::vector<FullImeInfo> imeInfos;
     auto it = fullImeInfos_.find(userId);
     if (it == fullImeInfos_.end()) {

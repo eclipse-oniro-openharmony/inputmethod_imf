@@ -26,7 +26,7 @@ namespace MiscServices {
 class FullImeInfoManager {
 public:
     static FullImeInfoManager &GetInstance();
-    int32_t Init();                                                // osaccount服务启动/包浏览完成通知
+    int32_t Init();                                                // osaccount服务启动/包浏览完成,手機啓動和框架服務異常都會有osaccount服务通知，手機啓動和添加用戶都會有包浏览完成通知
     int32_t Delete(int32_t userId);                                // 用戶移除
     int32_t Add(int32_t userId, const std::string &bundleName);    // 包安装
     int32_t Delete(int32_t userId, const std::string &bundleName); // 包移除

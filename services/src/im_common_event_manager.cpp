@@ -178,6 +178,11 @@ bool ImCommonEventManager::SubscribeAccountManagerService(Handler handler)
         if (handler != nullptr) {
             handler();
         }
+        Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_OS_ACCOUNT_STARTED, nullptr);
+        if (msg == nullptr) {
+            return;
+        }
+        MessageHandler::Instance()->SendMessage(msg);
     });
     if (listener == nullptr) {
         IMSA_HILOGE("failed to create listener!");
@@ -277,7 +282,7 @@ void ImCommonEventManager::EventSubscriber::RemovePackage(const CommonEventData 
         delete parcel;
         return;
     }
-    if (!ImeInfoInquirer::GetInstance().IsInputMethod(userId, bundleName)) {
+    if (!ImeInfoInquirer::GetInstance().IsInputMethod(userId, bundleName, true)) {
         return;
     }
     Message *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, parcel);

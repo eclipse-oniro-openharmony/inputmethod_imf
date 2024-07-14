@@ -896,6 +896,14 @@ void InputMethodSystemAbility::WorkThread()
                 OnPackageChanged(msg);
                 break;
             }
+            case MSG_ID_SYS_LANGUAGE_CHANGED: {
+                FullImeInfoManager::GetInstance().UpdateAllLabel(userId_);
+                break;
+            }
+            case MSG_ID_OS_ACCOUNT_STARTED: {
+                FullImeInfoManager::GetInstance().Init();
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -1241,7 +1249,6 @@ int32_t InputMethodSystemAbility::InitAccountMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor start.");
     return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() {
-        FullImeInfoManager::GetInstance().Init();
         auto userId = GetCurrentUserIdFromOsAccount();
         if (userId_ == userId) {
             return;
@@ -1291,10 +1298,8 @@ void InputMethodSystemAbility::InitWmsConnectionMonitor()
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()
 {
-    SystemLanguageObserver::GetInstance().Watch([this]() {
-        FullImeInfoManager::GetInstance().UpdateAllLabel(userId_);
-        ImeInfoInquirer::GetInstance().RefreshCurrentImeInfo(userId_);
-    });
+    SystemLanguageObserver::GetInstance().Watch(
+        [this]() { ImeInfoInquirer::GetInstance().RefreshCurrentImeInfo(userId_); });
 }
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()

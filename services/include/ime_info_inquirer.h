@@ -107,7 +107,7 @@ public:
         int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
     std::shared_ptr<FullImeInfo> GetFullImeInfo(int32_t userId, const std::string &bundleName);
     int32_t UpdateLabel(int32_t userId, const std::shared_ptr<FullImeInfo> &fullImeInfo);
-    bool IsInputMethod(int32_t userId, const std::string &bundleName);
+    bool IsInputMethod(int32_t userId, const std::string &bundleName, bool isRemoved = false);
 
 private:
     ImeInfoInquirer() = default;
