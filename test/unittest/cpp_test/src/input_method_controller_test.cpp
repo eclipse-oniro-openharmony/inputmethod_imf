@@ -932,6 +932,30 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange08, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testIMCOnSelectionChange09
+ * @tc.desc: Attach with range(0, 0) -> OnSelectionChange("", 0, 0) -> Get 'textChange' and 'selectionChange' Callback
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange09, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange09 Test START");
+    InputMethodControllerTest::inputMethodController_->Close();
+    TextConfig textConfig;
+    textConfig.range = { 0, 0 };
+    auto ret = inputMethodController_->Attach(textListener_, false, textConfig);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    InputMethodControllerTest::text_ = "test";
+    std::u16string text = Str8ToStr16("");
+    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 0, 0);
+    EXPECT_EQ(InputMethodControllerTest::text_, "");
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, 0);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, 0);
+}
+
+/**
  * @tc.name: testShowTextInput
  * @tc.desc: IMC ShowTextInput
  * @tc.type: FUNC

@@ -1065,6 +1065,19 @@ int64_t PerUserSession::GetCurrentClientPid()
     return clientInfo->pid;
 }
 
+int64_t PerUserSession::GetInactiveClientPid()
+{
+    auto client = GetInactiveClient();
+    if (client == nullptr) {
+        return INVALID_PID;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        return INVALID_PID;
+    }
+    return clientInfo->pid;
+}
+
 int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     auto clientMap = GetClientMap();
