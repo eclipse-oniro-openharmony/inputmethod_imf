@@ -17,41 +17,38 @@
 #define OHOS_INPUTMETHOD_FAIR_LOCK_H
 #include <algorithm>
 #include <condition_variable>
+#include <list>
 #include <mutex>
-#include <vector>
+#include <thread>
 
 namespace OHOS {
 namespace MiscServices {
 class FairLock {
 public:
-    FairLock() : nextThreadId_(0)
-    {
-    }
-
+    FairLock() = default;
     ~FairLock() = default;
 
     bool Lock(uint32_t timeout)
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        auto threadId = nextThreadId_++;
+        auto threadId = std::this_thread::get_id();
         threadId_.push_back(threadId);
         auto ret = cv_.wait_for(
             lock, std::chrono::milliseconds(timeout), [this, threadId]() { return threadId_.front() == threadId; });
         if (!ret) {
-            auto it =
-                std::find_if(threadId_.begin(), threadId_.end(), [threadId](uint32_t id) { return id == threadId; });
+            auto it = std::find(threadId_.begin(), threadId_.end(), threadId);
             if (it != threadId_.end()) {
                 threadId_.erase(it);
             }
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     void Lock()
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        auto threadId = nextThreadId_++;
+        auto threadId = std::this_thread::get_id();
         threadId_.push_back(threadId);
         cv_.wait(lock, [this, threadId]() { return threadId_.front() == threadId; });
     }
@@ -66,8 +63,7 @@ public:
 private:
     std::mutex mutex_;
     std::condition_variable cv_;
-    uint32_t nextThreadId_;
-    std::vector<uint32_t> threadId_;
+    std::list<std::thread::id> threadId_;
 };
 } // namespace MiscServices
 } // namespace OHOS

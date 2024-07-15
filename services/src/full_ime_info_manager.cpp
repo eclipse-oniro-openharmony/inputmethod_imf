@@ -18,6 +18,7 @@
 #include <algorithm>
 
 #include "common_timer_errors.h"
+#include "fair_lock_guard.h"
 #include "ime_info_inquirer.h"
 #include "os_account_info.h"
 #include "os_account_manager.h"
@@ -25,7 +26,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace AccountSA;
 constexpr uint32_t GET_TIME_OUT = 100;
-constexpr uint32_t TIMER_TASK_INTERNAL = 3600000;
+constexpr uint32_t TIMER_TASK_INTERNAL = 3600000; //多长时间合适
 FullImeInfoManager::~FullImeInfoManager()
 {
     timer_.Unregister(timerId_);
@@ -53,11 +54,10 @@ FullImeInfoManager &FullImeInfoManager::GetInstance()
 
 int32_t FullImeInfoManager::Init()
 {
-    lock_.Lock();
+    FairLockGuard lock(lock_);
     std::vector<int32_t> userIds;
     auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
     if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-        lock_.UnLock();
         return ret;
     }
     fullImeInfos_.clear();
@@ -69,90 +69,77 @@ int32_t FullImeInfoManager::Init()
         fullImeInfos_.insert_or_assign(userId, infos);
     }
     Print();
-    lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
 
 int32_t FullImeInfoManager::Add(int32_t userId)
 {
-    lock_.Lock();
+    FairLockGuard lock(lock_);
     auto infos = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId);
     if (infos.empty()) {
-        lock_.UnLock();
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
     fullImeInfos_.insert_or_assign(userId, infos);
-    lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
 
 int32_t FullImeInfoManager::Delete(int32_t userId)
 {
-    lock_.Lock();
+    FairLockGuard lock(lock_);
     fullImeInfos_.erase(userId);
-    lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
 
 int32_t FullImeInfoManager::Add(int32_t userId, const std::string &bundleName)
 {
-    lock_.Lock();
+    FairLockGuard lock(lock_);
     auto imeInfo = ImeInfoInquirer::GetInstance().GetFullImeInfo(userId, bundleName);
     if (imeInfo == nullptr) {
-        lock_.UnLock();
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
     auto it = fullImeInfos_.find(userId);
     if (it == fullImeInfos_.end()) {
         fullImeInfos_.insert({ userId, { imeInfo } });
-        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     auto iter = std::find_if(it->second.begin(), it->second.end(),
         [bundleName](const std::shared_ptr<FullImeInfo> &info) { return bundleName == info->prop.name; });
     if (iter != it->second.end()) {
-        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     it->second.push_back(imeInfo);
-    lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
 
 int32_t FullImeInfoManager::Delete(int32_t userId, const std::string &bundleName)
 {
-    lock_.Lock();
+    FairLockGuard lock(lock_);
     auto it = fullImeInfos_.find(userId);
     if (it == fullImeInfos_.end()) {
-        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     auto iter = std::find_if(it->second.begin(), it->second.end(),
         [bundleName](const std::shared_ptr<FullImeInfo> &info) { return bundleName == info->prop.name; });
     if (iter == it->second.end()) {
-        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     it->second.erase(iter);
     if (it->second.empty()) {
         fullImeInfos_.erase(it->first);
     }
-    lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
 
 int32_t FullImeInfoManager::update(int32_t userId, const std::string &bundleName)
 {
-    lock_.Lock();
+    FairLockGuard lock(lock_);
     auto imeInfo = ImeInfoInquirer::GetInstance().GetFullImeInfo(userId, bundleName);
     if (imeInfo == nullptr) {
-        lock_.UnLock();
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
     auto it = fullImeInfos_.find(userId);
     if (it == fullImeInfos_.end()) {
         fullImeInfos_.insert({ userId, { imeInfo } });
-        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     auto iter = std::find_if(it->second.begin(), it->second.end(),
@@ -161,34 +148,32 @@ int32_t FullImeInfoManager::update(int32_t userId, const std::string &bundleName
         it->second.erase(iter);
     }
     it->second.push_back(imeInfo);
-    lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
 
 int32_t FullImeInfoManager::UpdateAllLabel(int32_t userId)
 {
-    lock_.Lock();
+    FairLockGuard lock(lock_);
     auto it = fullImeInfos_.find(userId);
     if (it == fullImeInfos_.end()) {
         auto infos = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId);
         if (!infos.empty()) {
             fullImeInfos_.insert_or_assign(userId, infos);
         }
-        lock_.UnLock();
         return ErrorCode::NO_ERROR;
     }
     for (auto &imeInfo : it->second) {
         ImeInfoInquirer::GetInstance().UpdateLabel(userId, imeInfo);
     }
     fullImeInfos_.insert_or_assign(userId, it->second);
-    lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
 
 std::vector<FullImeInfo> FullImeInfoManager::Get(int32_t userId)
 {
-    auto ret = lock_.Lock(GET_TIME_OUT);
-    if (!ret) {
+    auto isTimeout = false;
+    FairLockGuard lock(lock_, GET_TIME_OUT, isTimeout);
+    if (isTimeout) {
         IMSA_HILOGD("timeout.");
         return {};
     }
@@ -200,7 +185,6 @@ std::vector<FullImeInfo> FullImeInfoManager::Get(int32_t userId)
     for (auto &info : it->second) {
         imeInfos.push_back(*info);
     }
-    lock_.UnLock();
     return imeInfos;
 }
 
