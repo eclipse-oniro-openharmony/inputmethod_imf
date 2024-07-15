@@ -85,7 +85,7 @@ ohos_shared_library("inputmethodengine") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "input:libmmi-client",
-    "input:libmmi-util",
+    "input:libmmi-napi",
     "ipc:ipc_core",
     "napi:ace_napi",
     "window_manager:libwm_lite",
