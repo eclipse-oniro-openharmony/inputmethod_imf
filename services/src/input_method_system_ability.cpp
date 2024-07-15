@@ -723,7 +723,17 @@ bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const
 int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const std::shared_ptr<ImeInfo> &info)
 {
     auto currentImeBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-    return bundleName != currentImeBundleName ? SwitchExtension(info) : SwitchSubType(info);
+    if (bundleName != currentImeBundleName) {
+        IMSA_HILOGI("switch input method to: %{public}s", bundleName.c_str());
+        return SwitchExtension(info);
+    }
+    auto currentInputType = InputTypeManager::GetInstance().GetCurrentIme();
+    auto isInputTypeStarted = InputTypeManager::GetInstance().IsStarted();
+    if (isInputTypeStarted && bundleName != currentInputType.bundleName) {
+        IMSA_HILOGI("right click on state, switch input method to: %{public}s", bundleName.c_str());
+        return SwitchExtension(info);
+    }
+    return SwitchSubType(info);
 }
 
 // Switch the current InputMethodExtension to the new InputMethodExtension

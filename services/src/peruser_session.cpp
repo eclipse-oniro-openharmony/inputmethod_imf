@@ -995,19 +995,38 @@ int32_t PerUserSession::ForceStopCurrentIme()
         StopClientInput(clientInfo);
     }
     // stop current inputmethod extension
-    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    if (currentImeCfg == nullptr) {
+    ImeIdentification imeId;
+    if (!GetCurrentUsingImeId(imeId)) {
         IMSA_HILOGE("currentImeCfg is nullptr");
+        RemoveImeData(ImeType::IME, true);
         return ErrorCode::ERROR_NULL_POINTER;
     }
     AAFwk::Want want;
-    want.SetElementName(currentImeCfg->bundleName, currentImeCfg->extName);
+    want.SetElementName(imeId.bundleName, imeId.subName);
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(want, nullptr, userId_,
         AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("StopExtensionAbility failed, ret: %{public}d!", ret);
     }
     return ret;
+}
+
+bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
+{
+    if (InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGI("get right click on state current ime.");
+        auto currentIme = InputTypeManager::GetInstance().GetCurrentIme();
+        imeId = currentIme;
+        return true;
+    }
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentImeCfg == nullptr) {
+        IMSA_HILOGE("currentImeCfg is nullptr");
+        return false;
+    }
+    imeId.bundleName = currentImeCfg->bundleName;
+    imeId.subName = currentImeCfg->extName;
+    return true;
 }
 
 bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
