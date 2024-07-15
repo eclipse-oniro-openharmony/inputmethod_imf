@@ -107,7 +107,6 @@ private:
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnPackageAdded(const Message *msg);
     int32_t OnPackageChanged(const Message *msg);
-    int32_t OnBundleScanFinished(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
     void SubscribeCommonEvent();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);

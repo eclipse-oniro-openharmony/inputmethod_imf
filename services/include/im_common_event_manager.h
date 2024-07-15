@@ -57,10 +57,12 @@ public:
         void OnBundleScanFinished(const EventFwk::CommonEventData &data);
         void AddPackage(const EventFwk::CommonEventData &data);
         void ChangePackage(const EventFwk::CommonEventData &data);
+        void HandleBootCompleted(const EventFwk::CommonEventData &data);
 
     private:
         using EventListenerFunc = void (EventSubscriber::*)(const EventFwk::CommonEventData &data);
         std::map<std::string, EventListenerFunc> EventManagerFunc_;
+        void HandlePackageEvent(int32_t messageId, const EventFwk::CommonEventData &data);
     };
 
 private:

@@ -17,8 +17,6 @@
 
 #include <unistd.h>
 
-#include <algorithm>
-
 #include "ability_manager_client.h"
 #include "application_info.h"
 #include "combination_key.h"
@@ -885,7 +883,7 @@ void InputMethodSystemAbility::WorkThread()
             }
             case MSG_ID_BUNDLE_SCAN_FINISHED: {
                 RegisterDataShareObserver();
-                OnBundleScanFinished(msg);
+                FullImeInfoManager::GetInstance().Init();
                 break;
             }
             case MSG_ID_PACKAGE_ADDED: {
@@ -897,10 +895,14 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_SYS_LANGUAGE_CHANGED: {
-                FullImeInfoManager::GetInstance().UpdateAllLabel(userId_);
+                FullImeInfoManager::GetInstance().Update(userId_);
                 break;
             }
             case MSG_ID_OS_ACCOUNT_STARTED: {
+                FullImeInfoManager::GetInstance().Init();
+                break;
+            }
+            case MSG_ID_BOOT_COMPLETED: {
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
@@ -929,6 +931,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     if (newUserId == userId_) {
         return ErrorCode::NO_ERROR;
     }
+    userId_ = newUserId;
     FullImeInfoManager::GetInstance().Add(newUserId);
     // if scb enable, deal when receive wmsConnected.
     if (isScbEnable_) {
@@ -1023,19 +1026,7 @@ int32_t InputMethodSystemAbility::OnPackageChanged(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    FullImeInfoManager::GetInstance().update(userId, packageName);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodSystemAbility::OnBundleScanFinished(const Message *msg)
-{
-    if (msg->msgContent_ == nullptr) {
-        IMSA_HILOGE("Aborted! Message is nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    auto userId = msg->msgContent_->ReadInt32();
-    IMSA_HILOGI("Start: %{public}d", userId);
-    FullImeInfoManager::GetInstance().Init();
+    FullImeInfoManager::GetInstance().Update(userId, packageName);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1364,8 +1355,13 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
         security = static_cast<int32_t>(SecurityMode::FULL);
         return ErrorCode::NO_ERROR;
     }
-    auto callBundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
-    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName, userId_);
+    std::string bundleName;
+    bundleName = FullImeInfoManager::GetInstance().Get(userId_, IPCSkeleton::GetCallingTokenID());
+    if (bundleName.empty()) {
+        bundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
+        IMSA_HILOGW("%{public}s tokenId not find.", bundleName.c_str());
+    }
+    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(bundleName, userId_);
     security = static_cast<int32_t>(mode);
     return ErrorCode::NO_ERROR;
 }

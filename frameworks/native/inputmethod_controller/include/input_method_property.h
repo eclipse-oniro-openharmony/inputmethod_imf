@@ -44,10 +44,9 @@ struct SubProperty {
 };
 
 struct FullImeInfo {
-    std::string resPath; //更新label用
+    uint32_t tokenId{ 0 };
     Property prop;
     std::vector<SubProperty> subProps;
-    bool isNewIme{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS
