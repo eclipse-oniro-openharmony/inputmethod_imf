@@ -40,6 +40,7 @@
 #include "input_death_recipient.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
+#include "input_type_manager.h"
 #include "input_window_info.h"
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
@@ -186,6 +187,7 @@ private:
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
+    bool GetCurrentUsingImeId(ImeIdentification &imeId);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;
