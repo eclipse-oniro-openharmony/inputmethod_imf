@@ -17,6 +17,7 @@
 
 #include <algorithm>
 
+#include "common_timer_errors.h"
 #include "ime_info_inquirer.h"
 #include "os_account_info.h"
 #include "os_account_manager.h"
@@ -24,24 +25,43 @@ namespace OHOS {
 namespace MiscServices {
 using namespace AccountSA;
 constexpr uint32_t GET_TIME_OUT = 100;
+constexpr uint32_t TIMER_TASK_INTERNAL = 3600000;
+FullImeInfoManager::~FullImeInfoManager()
+{
+    timer_.Unregister(timerId_);
+    timer_.Shutdown(false);
+    fullImeInfos_.clear();
+}
+
+FullImeInfoManager::FullImeInfoManager()
+{
+    IMSA_HILOGD("start.");
+    uint32_t ret = timer_.Setup();
+    if (ret != Utils::TIMER_ERR_OK) {
+        IMSA_HILOGE("failed to create timer");
+        return;
+    }
+    timerId_ = timer_.Register([this]() { Init(); }, TIMER_TASK_INTERNAL, false);
+    IMSA_HILOGD("end.");
+}
+
 FullImeInfoManager &FullImeInfoManager::GetInstance()
 {
     static FullImeInfoManager instance;
-    // 此处是否起定时器，过一段时间调用Init()自动更新下
     return instance;
 }
 
 int32_t FullImeInfoManager::Init()
 {
     lock_.Lock();
-    std::vector<OsAccountInfo> accountInfos;
-    auto ret = OsAccountManager::QueryAllCreatedOsAccounts(accountInfos);   //查询所有创建的用户会不会太慢，是否需要只获取激活的当前用户，切户的时候再获取新激活用户的
-    if (ret != 0) {
+    std::vector<int32_t> userIds;
+    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
+    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
         lock_.UnLock();
-        return ErrorCode::NO_ERROR;
+        return ret;
     }
-    for (auto &acInfo : accountInfos) {
-        auto userId = acInfo.GetLocalId();
+    fullImeInfos_.clear();
+    for (auto &userId : userIds) {
         auto infos = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId);
         if (infos.empty()) {
             continue;
@@ -49,6 +69,19 @@ int32_t FullImeInfoManager::Init()
         fullImeInfos_.insert_or_assign(userId, infos);
     }
     Print();
+    lock_.UnLock();
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t FullImeInfoManager::Add(int32_t userId)
+{
+    lock_.Lock();
+    auto infos = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId);
+    if (infos.empty()) {
+        lock_.UnLock();
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    }
+    fullImeInfos_.insert_or_assign(userId, infos);
     lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }
@@ -101,6 +134,9 @@ int32_t FullImeInfoManager::Delete(int32_t userId, const std::string &bundleName
         return ErrorCode::NO_ERROR;
     }
     it->second.erase(iter);
+    if (it->second.empty()) {
+        fullImeInfos_.erase(it->first);
+    }
     lock_.UnLock();
     return ErrorCode::NO_ERROR;
 }

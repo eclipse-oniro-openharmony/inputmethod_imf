@@ -16,17 +16,20 @@
 #ifndef SERVICES_INCLUDE_FULL_IME_INFO_MANAGER_H
 #define SERVICES_INCLUDE_FULL_IME_INFO_MANAGER_H
 
+#include <chrono>
 #include <map>
 
 #include "fair_lock.h"
 #include "input_method_property.h"
+#include "timer.h"
 namespace OHOS {
 namespace MiscServices {
 
 class FullImeInfoManager {
 public:
     static FullImeInfoManager &GetInstance();
-    int32_t Init();                                                // osaccount服务启动/包浏览完成,手機啓動和框架服務異常都會有osaccount服务通知，手機啓動和添加用戶都會有包浏览完成通知
+    int32_t Init();    // osaccount服务启动/包浏览完成/定时刷新,手機啓動和框架服務異常都會有osaccount服务通知，手機啓動和添加用戶都會有包浏览完成通知
+    int32_t Add(int32_t userId);                                   // 用户切换
     int32_t Delete(int32_t userId);                                // 用戶移除
     int32_t Add(int32_t userId, const std::string &bundleName);    // 包安装
     int32_t Delete(int32_t userId, const std::string &bundleName); // 包移除
@@ -37,10 +40,12 @@ public:
     void PrintSubProp(const std::vector<SubProperty> &subProps);
 
 private:
-    FullImeInfoManager() = default;
-    ~FullImeInfoManager() = default;
+    FullImeInfoManager();
+    ~FullImeInfoManager();
     FairLock lock_;
     std::map<int32_t, std::vector<std::shared_ptr<FullImeInfo>>> fullImeInfos_;
+    Utils::Timer timer_{ "imeInfoCacheInitTimer" };
+    uint32_t timerId_{ 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS

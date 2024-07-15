@@ -921,16 +921,17 @@ void InputMethodSystemAbility::WorkThread()
  */
 int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 {
-    // if scb enable, deal when receive wmsConnected.
-    if (isScbEnable_) {
-        return ErrorCode::NO_ERROR;
-    }
     if (msg->msgContent_ == nullptr) {
         IMSA_HILOGE("msgContent_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto newUserId = msg->msgContent_->ReadInt32();
     if (newUserId == userId_) {
+        return ErrorCode::NO_ERROR;
+    }
+    FullImeInfoManager::GetInstance().Add(newUserId);
+    // if scb enable, deal when receive wmsConnected.
+    if (isScbEnable_) {
         return ErrorCode::NO_ERROR;
     }
     HandleUserChanged(newUserId);
