@@ -348,17 +348,17 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
-    if (userSession_->GetCurrentClientPid() != IPCSkeleton::GetCallingPid()) {
-        //进程变化时需要通知inputstart
-        inputClientInfo.isNotifyInputStart = true;
-    }
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
         if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-
+    if (userSession_->GetCurrentClientPid() != IPCSkeleton::GetCallingPid()
+        && userSession_->GetInactiveClientPid() != IPCSkeleton::GetCallingPid()) {
+        // notify inputStart when caller pid different from both current client and inactive client
+        inputClientInfo.isNotifyInputStart = true;
+    }
     if (!userSession_->IsProxyImeEnable()) {
         CheckInputTypeOption(inputClientInfo);
     }

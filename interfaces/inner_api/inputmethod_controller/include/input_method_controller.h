@@ -803,6 +803,7 @@ private:
     std::mutex cursorInfoMutex_;
     CursorInfo cursorInfo_;
 
+    std::atomic_bool isTextNotified_{ false };
     std::mutex editorContentLock_;
     std::u16string textString_;
     int selectOldBegin_ = 0;
