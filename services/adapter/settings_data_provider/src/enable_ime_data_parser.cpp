@@ -127,12 +127,10 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
     } else {
         auto iter = std::find_if(
             tempVec.begin(), tempVec.end(), [&info](const std::string &ime) { return info.bundleName == ime; });
-
         if (iter != tempVec.end()) {
             IMSA_HILOGD("In tempVec list.");
             return true;
         }
-
     }
     std::vector<std::string> enableVec;
     int32_t ret = GetEnableData(ENABLE_IME, enableVec, userId);
