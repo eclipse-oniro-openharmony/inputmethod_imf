@@ -43,7 +43,8 @@ public:
 private:
     static inline BrokerDelegator<KeyEventConsumerProxy> delegator_;
     using ParcelHandler = std::function<bool(MessageParcel &)>;
-    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
+    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr,
+        MessageOption option = MessageOption::TF_SYNC);
     bool keyEventConsume_ = false;
     bool keyCodeConsume_ = false;
     bool keyEventResult_ = false;
