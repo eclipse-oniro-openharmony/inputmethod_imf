@@ -314,7 +314,7 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
             [](const Metadata &metadata) {
                 return metadata.name == TEMPORARY_INPUT_METHOD_METADATA_NAME;
             });
-        if (iter != extension.metaData.end()) {
+        if (iter != extension.metadata.end()) {
             continue;
         }
         props.push_back({ .name = extension.bundleName,
