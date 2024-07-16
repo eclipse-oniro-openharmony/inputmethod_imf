@@ -226,7 +226,7 @@ int32_t EnableImeDataParser::GetEnableData(const std::string &key, std::vector<s
 bool EnableImeDataParser::ParseTempIme(const std::string &valueStr, int32_t userId,
     std::vector<std::string> &tempVector)
 {
-    EnableImeCfg tempIme;
+    TempImeCfg tempIme;
     tempIme.tempImeList.userId = std::to_string(userId);
     auto ret = tempIme.Unmarshall(valueStr);
     if (!ret) {
