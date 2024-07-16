@@ -30,8 +30,9 @@ KeyEventConsumerProxy::KeyEventConsumerProxy(const sptr<IRemoteObject> &object)
 
 int32_t KeyEventConsumerProxy::OnKeyEventResult(bool isConsumed)
 {
-    return SendRequest(KEY_EVENT_RESULT,
-        [isConsumed](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, isConsumed); });
+    return SendRequest(
+        KEY_EVENT_RESULT, [isConsumed](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, isConsumed); },
+        nullptr, MessageOption::TF_ASYNC);
 }
 
 void KeyEventConsumerProxy::OnKeyEventConsumeResult(bool isConsumed)
@@ -54,12 +55,11 @@ void KeyEventConsumerProxy::OnKeyCodeConsumeResult(bool isConsumed)
     }
 }
 
-int32_t KeyEventConsumerProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
+int32_t KeyEventConsumerProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)
 {
     IMSA_HILOGD("KeyEventConsumerProxy run in, code = %{public}d.", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option = MessageOption::TF_SYNC;
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("write interface token failed!");
