@@ -121,7 +121,7 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
     }
     IMSA_HILOGD("check ime.");
     std::vector<std::string> tempVec;
-    int32_t tempRet = GetEnableData(Temp_IME, tempVec, userId);
+    int32_t tempRet = GetEnableData(TEMP_IME, tempVec, userId);
     if (tempRet != ErrorCode::NO_ERROR || tempVec.empty()) {
         IMSA_HILOGD("get tempVec list failed, or tempVec list is empty.");
     } else {
