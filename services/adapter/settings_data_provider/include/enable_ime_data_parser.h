@@ -59,6 +59,15 @@ struct EnableImeCfg : public Serializable {
     }
 };
 
+struct TempImeCfg : public Serializable {
+    UserImeConfig tempImeList;
+    bool Unmarshal(cJSON *node) override
+    {
+        GetValue(node, GET_NAME(tempImeList), tempImeList);
+        return true;
+    }
+};
+
 class EnableImeDataParser : public RefBase {
 public:
     static sptr<EnableImeDataParser> GetInstance();
@@ -72,6 +81,7 @@ public:
 
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *ENABLE_KEYBOARD = "settings.inputmethod.enable_keyboard";
+    static constexpr const char *TEMP_IME = "settings.inputmethod.temp_ime";
 
 private:
     EnableImeDataParser() = default;
@@ -79,6 +89,7 @@ private:
 
     bool ParseEnableIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool ParseEnableKeyboard(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
+    bool ParseTempIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &tempVector);
     bool CheckTargetEnableName(const std::string &key, const std::string &targetName, std::string &nextIme,
         const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();

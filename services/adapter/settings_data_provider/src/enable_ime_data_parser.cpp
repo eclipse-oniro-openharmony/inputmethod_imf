@@ -120,6 +120,20 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
         return true;
     }
     IMSA_HILOGD("check ime.");
+    std::vector<std::string> tempVec;
+    int32_t tempRet = GetEnableData(Temp_IME, tempVec, userId);
+    if (tempRet != ErrorCode::NO_ERROR || tempVec.empty()) {
+        IMSA_HILOGD("get tempVec list failed, or tempVec list is empty.");
+    } else {
+        auto iter = std::find_if(
+            tempVec.begin(), tempVec.end(), [&info](const std::string &ime) { return info.bundleName == ime; });
+
+        if (iter != tempVec.end()) {
+            IMSA_HILOGD("In tempVec list.");
+            return true;
+        }
+
+    }
     std::vector<std::string> enableVec;
     int32_t ret = GetEnableData(ENABLE_IME, enableVec, userId);
     if (ret != ErrorCode::NO_ERROR || enableVec.empty()) {
@@ -181,7 +195,7 @@ bool EnableImeDataParser::CheckTargetEnableName(const std::string &key, const st
 int32_t EnableImeDataParser::GetEnableData(const std::string &key, std::vector<std::string> &enableVec,
     const int32_t userId)
 {
-    if (key != std::string(ENABLE_IME) && key != std::string(ENABLE_KEYBOARD)) {
+    if (key != std::string(ENABLE_IME) && key != std::string(ENABLE_KEYBOARD) && key != std::string(TEMP_IME)) {
         IMSA_HILOGD("invalid key: %{public}s.", key.c_str());
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -205,7 +219,23 @@ int32_t EnableImeDataParser::GetEnableData(const std::string &key, std::vector<s
     if (key == ENABLE_KEYBOARD) {
         parseRet = ParseEnableKeyboard(valueStr, userId, enableVec);
     }
+    if (key == TEMP_IME) {
+        parseRet = ParseTempIme(valueStr, userId, enableVec);
+    }
     return parseRet ? ErrorCode::NO_ERROR : ErrorCode::ERROR_ENABLE_IME;
+}
+
+bool EnableImeDataParser::ParseTempIme(const std::string &valueStr, int32_t userId,
+    std::vector<std::string> &tempVector)
+{
+    EnableImeCfg tempIme;
+    tempIme.tempImeList.userId = std::to_string(userId);
+    auto ret = tempIme.Unmarshall(valueStr);
+    if (!ret) {
+        return ret;
+    }
+    tempVector = tempIme.tempImeList.identities;
+    return true;
 }
 
 bool EnableImeDataParser::ParseEnableIme(const std::string &valueStr, int32_t userId,
