@@ -76,7 +76,7 @@ int32_t SystemCmdChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &data
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(SYSTEM_CMD_LAST)) {
-        return (this->*HANDLERS.at(code))(data, reply);
+        return (this->*HANDLERS[code])(data, reply);
     } else {
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }

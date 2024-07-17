@@ -57,7 +57,7 @@ public:
         void OnBundleScanFinished(const EventFwk::CommonEventData &data);
 
     private:
-        using EventListenerFunc = void (EventSubscriber::*)(const EventFwk::CommonEventData &data);
+        using EventListenerFunc = std::function<void(EventSubscriber *that, const EventFwk::CommonEventData &data)>;
         std::map<std::string, EventListenerFunc> EventManagerFunc_;
     };
 

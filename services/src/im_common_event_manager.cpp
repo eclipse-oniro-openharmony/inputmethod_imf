@@ -197,10 +197,22 @@ bool ImCommonEventManager::UnsubscribeEvent()
 ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
     : EventFwk::CommonEventSubscriber(subscribeInfo)
 {
-    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_SWITCHED] = &EventSubscriber::StartUser;
-    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_REMOVED] = &EventSubscriber::RemoveUser;
-    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED] = &EventSubscriber::RemovePackage;
-    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED] = &EventSubscriber::OnBundleScanFinished;
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_SWITCHED] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->StartUser(data);
+        };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_REMOVED] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->RemoveUser(data);
+        };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->RemovePackage(data);
+        };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->OnBundleScanFinished(data);
+        };
 }
 
 void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
@@ -209,12 +221,8 @@ void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::Commo
     std::string action = want.GetAction();
     IMSA_HILOGI("ImCommonEventManager::action: %{public}s!", action.c_str());
     auto iter = EventManagerFunc_.find(action);
-    if (iter == EventManagerFunc_.end()) {
-        return;
-    }
-    auto EventListenerFunc = iter->second;
-    if (EventListenerFunc != nullptr) {
-        (this->*EventListenerFunc)(data);
+    if (iter != EventManagerFunc_.end()) {
+        EventManagerFunc_[action] (this, data);
     }
 }
 

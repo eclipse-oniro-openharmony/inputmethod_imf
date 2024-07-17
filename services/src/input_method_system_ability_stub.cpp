@@ -51,7 +51,7 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParc
         auto id = XCollie::GetInstance().SetTimer("IMSA_API[" + std::to_string(code) + "]", FATAL_TIMEOUT, nullptr,
             nullptr, XCOLLIE_FLAG_DEFAULT);
         int64_t startPoint = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-        auto ret = (this->*HANDLERS.at(code))(data, reply);
+        auto ret = (this->*HANDLERS[code])(data, reply);
         int64_t costTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() - startPoint;
         // log warning when timeout 5s
         if (costTime > WARNING_TIMEOUT) {

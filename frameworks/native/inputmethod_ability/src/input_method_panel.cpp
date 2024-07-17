@@ -23,7 +23,6 @@
 #include "inputmethod_trace.h"
 #include "input_method_ability.h"
 #include "input_method_ability_utils.h"
-#include "inputmethod_trace.h"
 #include "scene_board_judgement.h"
 #include "sys_cfg_parser.h"
 #include "ui/rs_surface_node.h"
@@ -340,7 +339,7 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
     }
     auto densityDpi = displayInfo->GetDensityInCurResolution();
     IMSA_HILOGI("densityDpi: %{public}f", densityDpi);
-    if (densityDpi < 0) {
+    if (densityDpi <= 0) {
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     if (panelFlag == PanelFlag::FLG_FIXED) {

@@ -274,7 +274,7 @@ void InputMethodSystemAbility::Initialize()
 {
     IMSA_HILOGI("InputMethodSystemAbility::Initialize.");
     // init work thread to handle the messages
-    workThreadHandler = std::thread([this] { WorkThread(); });
+    workThreadHandler = std::thread([this] { this->WorkThread(); });
     identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = MAIN_USER_ID;
     userSession_ = std::make_shared<PerUserSession>(userId_);
