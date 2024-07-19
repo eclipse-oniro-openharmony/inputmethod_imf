@@ -42,11 +42,6 @@ config("inputmethod_client_native_public_config") {
 
 ohos_shared_library("inputmethod_client") {
   branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/ime_event_monitor_manager.cpp",
