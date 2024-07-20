@@ -874,7 +874,7 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
         int32_t code = InputMethodAbility::GetInstance()->SetPreviewText(ctxt->text, ctxt->range);
         editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("exec setPreviewText success");
+            IMSA_HILOGD("exec setPreviewText success");
             ctxt->SetState(napi_ok);
         } else if (code == ErrorCode::ERROR_INVALID_RANGE) {
             ctxt->SetErrorCode(code);

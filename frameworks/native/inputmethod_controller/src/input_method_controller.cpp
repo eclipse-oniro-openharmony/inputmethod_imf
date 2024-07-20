@@ -1191,7 +1191,7 @@ int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &is
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGI("type: %{public}d, flag: %{public}d.", static_cast<int32_t>(panelInfo.panelType),
+    IMSA_HILOGD("type: %{public}d, flag: %{public}d.", static_cast<int32_t>(panelInfo.panelType),
         static_cast<int32_t>(panelInfo.panelFlag));
     return proxy->IsPanelShown(panelInfo, isShown);
 }
