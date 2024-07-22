@@ -39,12 +39,17 @@ public:
     int32_t NotifyPanelStatus(const SysPanelStatus &sysPanelStatus) override;
 
 private:
+    int32_t InvalidRequest(MessageParcel &data, MessageParcel &reply)
+    {
+        return ERR_UNKNOWN_TRANSACTION;
+    };
     int32_t NotifyPanelStatusOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (SystemCmdChannelStub::*)(MessageParcel &, MessageParcel &);
-    static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
-        { static_cast<uint32_t>(SEND_PRIVATE_COMMAND), &SystemCmdChannelStub::SendPrivateCommandOnRemote },
-        { static_cast<uint32_t>(SHOULD_SYSTEM_PANEL_SHOW), &SystemCmdChannelStub::NotifyPanelStatusOnRemote },
+    const RequestHandler HANDLERS[SYSTEM_CMD_LAST] = {
+        &SystemCmdChannelStub::InvalidRequest,
+        &SystemCmdChannelStub::SendPrivateCommandOnRemote,
+        &SystemCmdChannelStub::NotifyPanelStatusOnRemote,
     };
 };
 } // namespace MiscServices

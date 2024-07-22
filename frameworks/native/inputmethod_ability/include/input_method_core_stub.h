@@ -51,6 +51,10 @@ public:
 
 private:
     MessageHandler *msgHandler_;
+    int32_t InvalidRequest(MessageParcel &data, MessageParcel &reply)
+    {
+        return ERR_UNKNOWN_TRANSACTION;
+    };
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -66,19 +70,20 @@ private:
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
     using RequestHandler = int32_t (InputMethodCoreStub::*)(MessageParcel &, MessageParcel &);
-    static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
-        { static_cast<uint32_t>(SHOW_KEYBOARD), &InputMethodCoreStub::ShowKeyboardOnRemote },
-        { static_cast<uint32_t>(STOP_INPUT_SERVICE), &InputMethodCoreStub::StopInputServiceOnRemote },
-        { static_cast<uint32_t>(HIDE_KEYBOARD), &InputMethodCoreStub::HideKeyboardOnRemote },
-        { static_cast<uint32_t>(INIT_INPUT_CONTROL_CHANNEL), &InputMethodCoreStub::InitInputControlChannelOnRemote },
-        { static_cast<uint32_t>(SET_SUBTYPE), &InputMethodCoreStub::SetSubtypeOnRemote },
-        { static_cast<uint32_t>(START_INPUT), &InputMethodCoreStub::StartInputOnRemote },
-        { static_cast<uint32_t>(STOP_INPUT), &InputMethodCoreStub::StopInputOnRemote },
-        { static_cast<uint32_t>(IS_ENABLE), &InputMethodCoreStub::IsEnableOnRemote },
-        { static_cast<uint32_t>(IS_PANEL_SHOWN), &InputMethodCoreStub::IsPanelShownOnRemote },
-        { static_cast<uint32_t>(SECURITY_CHANGE), &InputMethodCoreStub::SecurityChangeOnRemote },
-        { static_cast<uint32_t>(ON_CLIENT_INACTIVE), &InputMethodCoreStub::OnClientInactiveOnRemote },
-        { static_cast<uint32_t>(ON_CONNECT_SYSTEM_CMD), &InputMethodCoreStub::OnConnectSystemCmdOnRemote },
+    const RequestHandler HANDLERS[CORE_CMD_LAST] = {
+        &InputMethodCoreStub::InvalidRequest,
+        &InputMethodCoreStub::ShowKeyboardOnRemote,
+        &InputMethodCoreStub::StopInputServiceOnRemote,
+        &InputMethodCoreStub::HideKeyboardOnRemote,
+        &InputMethodCoreStub::InitInputControlChannelOnRemote,
+        &InputMethodCoreStub::SetSubtypeOnRemote,
+        &InputMethodCoreStub::StartInputOnRemote,
+        &InputMethodCoreStub::StopInputOnRemote,
+        &InputMethodCoreStub::IsEnableOnRemote,
+        &InputMethodCoreStub::IsPanelShownOnRemote,
+        &InputMethodCoreStub::SecurityChangeOnRemote,
+        &InputMethodCoreStub::OnClientInactiveOnRemote,
+        &InputMethodCoreStub::OnConnectSystemCmdOnRemote,
     };
 };
 } // namespace MiscServices

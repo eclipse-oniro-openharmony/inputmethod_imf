@@ -40,6 +40,7 @@
 #include "input_death_recipient.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
+#include "input_type_manager.h"
 #include "input_window_info.h"
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
@@ -92,6 +93,7 @@ public:
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
     int64_t GetCurrentClientPid();
+    int64_t GetInactiveClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
@@ -186,6 +188,7 @@ private:
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
+    bool GetCurrentUsingImeId(ImeIdentification &imeId);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;

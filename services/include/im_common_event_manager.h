@@ -60,7 +60,7 @@ public:
         void HandleBootCompleted(const EventFwk::CommonEventData &data);
 
     private:
-        using EventListenerFunc = void (EventSubscriber::*)(const EventFwk::CommonEventData &data);
+        using EventListenerFunc = std::function<void(EventSubscriber *that, const EventFwk::CommonEventData &data)>;
         std::map<std::string, EventListenerFunc> EventManagerFunc_;
         void HandlePackageEvent(int32_t messageId, const EventFwk::CommonEventData &data);
     };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,18 +13,9 @@
  * limitations under the License.
  */
 
-#include "stopinput_fuzzer.h"
+#ifndef TEST_FUZZTEST_STARTINPUT_FUZZER_H
+#define TEST_FUZZTEST_STARTINPUT_FUZZER_H
 
-#include "imf_sa_stub_fuzz_util.h"
-#include "inputmethod_service_ipc_interface_code.h"
+#define FUZZ_PROJECT_NAME "imscmdlast_fuzzer"
 
-using namespace OHOS::MiscServices;
-namespace OHOS {
-} // namespace OHOS
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-    /* Run your code on data */
-    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(data, size, InputMethodInterfaceCode::HIDE_INPUT);
-    return 0;
-}
+#endif // TEST_FUZZTEST_STARTINPUT_FUZZER_H
