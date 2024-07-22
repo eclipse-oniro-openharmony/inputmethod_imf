@@ -44,6 +44,7 @@ using namespace OHOS::AppExecFwk;
 using namespace Global::Resource;
 using namespace AccountSA;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
+constexpr const char *TEMPORARY_INPUT_METHOD_METADATA_NAME = "ohos.extension.temporary_input_method";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
@@ -323,6 +324,13 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
         auto it = std::find_if(props.begin(), props.end(),
             [&extension](const Property &prop) { return prop.name == extension.bundleName; });
         if (it != props.end()) {
+            continue;
+        }
+        auto iter = std::find_if(extension.metadata.begin(), extension.metadata.end(),
+            [](const Metadata &metadata) {
+                return metadata.name == TEMPORARY_INPUT_METHOD_METADATA_NAME;
+            });
+        if (iter != extension.metadata.end()) {
             continue;
         }
         std::string label;
