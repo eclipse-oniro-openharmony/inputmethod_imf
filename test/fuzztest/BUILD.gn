@@ -26,8 +26,10 @@ group("fuzztest") {
     "inputclientstub_fuzzer:fuzztest",
     "inputmethodability_fuzzer:fuzztest",
     "inputmethodcontroller_fuzzer:fuzztest",
+    "inputmethodsystemability_fuzzer:fuzztest",
     "perusersession_fuzzer:fuzztest",
     "securitymodeparser_fuzzer:fuzztest",
+    "settingsdatautils_fuzzer:fuzztest",
     "systemabilitystub_fuzzer:fuzztest",
     "systemabilitystubfuzztest:system_ability_stub_fuzztest",
   ]
