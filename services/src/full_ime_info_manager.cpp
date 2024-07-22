@@ -56,7 +56,7 @@ int32_t FullImeInfoManager::Init()
     std::lock_guard<std::mutex> lock(lock_);
     fullImeInfos_.clear();
     for (const auto &infos : fullImeInfos) {
-        fullImeInfos_.insert_or_assign(infos);
+        fullImeInfos_.insert_or_assign(infos.first, infos.second);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -70,21 +70,17 @@ int32_t FullImeInfoManager::Add(int32_t userId)
         return ret;
     }
     std::lock_guard<std::mutex> lock(lock_);
-    fullImeInfos_.insert({ userId, infos });
+    fullImeInfos_.insert_or_assign(userId, infos);
     return ErrorCode::NO_ERROR;
 }
 
-int32_t FullImeInfoManager::Update(int32_t userId)
+int32_t FullImeInfoManager::Update()
 {
-    std::vector<FullImeInfo> infos;
-    auto ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId, infos);
-    std::lock_guard<std::mutex> lock(lock_);
+    auto ret = Init();
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to QueryFullImeInfo, userId:%{public}d, ret:%{public}d", userId, ret);
-        fullImeInfos_.erase(userId);
-        return ret;
+        std::lock_guard<std::mutex> lock(lock_);
+        fullImeInfos_.clear();
     }
-    fullImeInfos_.insert_or_assign(userId, infos);
     return ErrorCode::NO_ERROR;
 }
 

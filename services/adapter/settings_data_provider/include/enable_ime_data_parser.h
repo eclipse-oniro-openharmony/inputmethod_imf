@@ -81,12 +81,15 @@ private:
     bool ParseEnableKeyboard(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool CheckTargetEnableName(const std::string &key, const std::string &targetName, std::string &nextIme,
         const int32_t userId);
+    std::shared_ptr<Property> GetDefaultIme();
 
 private:
     static std::mutex instanceMutex_;
     static sptr<EnableImeDataParser> instance_;
     std::mutex listMutex_;
     std::unordered_map<std::string, std::vector<std::string>> enableList_;
+    std::mutex defaultImeMutex_;
+    std::shared_ptr<Property> defaultImeInfo_{ nullptr };
     int32_t currentUserId_ = 0;
 };
 } // namespace MiscServices

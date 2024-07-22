@@ -29,7 +29,7 @@ public:
     static FullImeInfoManager &GetInstance();
     int32_t Init();                                             // osAccount start/bundle scan finished/regular update
     int32_t Add(int32_t userId);                                // user switched
-    int32_t Update(int32_t userId);                             // language change
+    int32_t Update();                                           // language change
     int32_t Delete(int32_t userId);                             // user removed
     int32_t Add(int32_t userId, const std::string &bundleName); // package added
     int32_t Delete(int32_t userId, const std::string &bundleName); // package removed

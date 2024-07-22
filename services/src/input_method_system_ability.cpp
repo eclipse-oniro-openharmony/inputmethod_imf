@@ -873,10 +873,6 @@ void InputMethodSystemAbility::WorkThread()
                 OnUserRemoved(msg);
                 break;
             }
-            case MSG_ID_PACKAGE_REMOVED: {
-                OnPackageRemoved(msg);
-                break;
-            }
             case MSG_ID_HIDE_KEYBOARD_SELF: {
                 userSession_->OnHideSoftKeyBoardSelf();
                 break;
@@ -886,23 +882,18 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
-            case MSG_ID_PACKAGE_ADDED: {
-                OnPackageAdded(msg);
-                break;
-            }
-            case MSG_ID_PACKAGE_CHANGED: {
-                OnPackageChanged(msg);
+            case MSG_ID_PACKAGE_ADDED:
+            case MSG_ID_PACKAGE_CHANGED:
+            case MSG_ID_PACKAGE_REMOVED: {
+                HandlePackageEvent(msg);
                 break;
             }
             case MSG_ID_SYS_LANGUAGE_CHANGED: {
-                FullImeInfoManager::GetInstance().Update(userId_);
+                FullImeInfoManager::GetInstance().Update();
                 break;
             }
+            case MSG_ID_BOOT_COMPLETED:
             case MSG_ID_OS_ACCOUNT_STARTED: {
-                FullImeInfoManager::GetInstance().Init();
-                break;
-            }
-            case MSG_ID_BOOT_COMPLETED: {
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
@@ -928,13 +919,12 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto newUserId = msg->msgContent_->ReadInt32();
-    if (newUserId == userId_) {
-        return ErrorCode::NO_ERROR;
-    }
-    userId_ = newUserId;
     FullImeInfoManager::GetInstance().Add(newUserId);
     // if scb enable, deal when receive wmsConnected.
     if (isScbEnable_) {
+        return ErrorCode::NO_ERROR;
+    }
+    if (newUserId == userId_) {
         return ErrorCode::NO_ERROR;
     }
     HandleUserChanged(newUserId);
@@ -955,6 +945,31 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodSystemAbility::HandlePackageEvent(const Message *msg)
+{
+    MessageParcel *data = msg->msgContent_;
+    if (data == nullptr) {
+        IMSA_HILOGD("data is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    int32_t userId = 0;
+    std::string packageName;
+    if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
+        IMSA_HILOGE("Failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    if (msg->msgId_ == MSG_ID_PACKAGE_CHANGED) {
+        return FullImeInfoManager::GetInstance().Update(userId, packageName);
+    }
+    if (msg->msgId_ == MSG_ID_PACKAGE_ADDED) {
+        return FullImeInfoManager::GetInstance().Add(userId, packageName);
+    }
+    if (msg->msgId_ == MSG_ID_PACKAGE_REMOVED) {
+        return OnPackageRemoved(userId, packageName);
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 /**
  *  Called when a package is removed.
  *  \n Run in work thread of input method management service
@@ -963,19 +978,8 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
  *  \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
  *  \return ErrorCode::ERROR_BAD_PARAMETERS bad parameter
  */
-int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
+int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::string &packageName)
 {
-    MessageParcel *data = msg->msgContent_;
-    if (data == nullptr) {
-        IMSA_HILOGD("data is nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    int32_t userId = 0;
-    std::string packageName;
-    if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
-        IMSA_HILOGE("failed to read message parcel");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
     FullImeInfoManager::GetInstance().Delete(userId, packageName);
     // if the app that doesn't belong to current user is removed, ignore it
     if (userId != userId_) {
@@ -993,40 +997,6 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         int32_t ret = SwitchExtension(info);
         IMSA_HILOGI("switch ret: %{public}d", ret);
     }
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodSystemAbility::OnPackageAdded(const Message *msg)
-{
-    MessageParcel *data = msg->msgContent_;
-    if (data == nullptr) {
-        IMSA_HILOGD("data is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    int32_t userId = 0;
-    std::string packageName;
-    if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
-        IMSA_HILOGE("Failed to read message parcel");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    FullImeInfoManager::GetInstance().Add(userId, packageName);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodSystemAbility::OnPackageChanged(const Message *msg)
-{
-    MessageParcel *data = msg->msgContent_;
-    if (data == nullptr) {
-        IMSA_HILOGD("data is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    int32_t userId = 0;
-    std::string packageName;
-    if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
-        IMSA_HILOGE("Failed to read message parcel");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    FullImeInfoManager::GetInstance().Update(userId, packageName);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1355,8 +1325,7 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
         security = static_cast<int32_t>(SecurityMode::FULL);
         return ErrorCode::NO_ERROR;
     }
-    std::string bundleName;
-    bundleName = FullImeInfoManager::GetInstance().Get(userId_, IPCSkeleton::GetCallingTokenID());
+    auto bundleName = FullImeInfoManager::GetInstance().Get(userId_, IPCSkeleton::GetCallingTokenID());
     if (bundleName.empty()) {
         bundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
         IMSA_HILOGW("%{public}s tokenId not find.", bundleName.c_str());

@@ -122,49 +122,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetExtends, TestSize.Level0)
 }
 
 /**
-* @tc.name: SA_TestOnPackageRemoved
-* @tc.desc: SA_TestOnPackageRemoved
-* @tc.type: FUNC
-* @tc.require:
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnPackageRemoved, TestSize.Level0)
-{
-    // msg is nullptr
-    auto *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, nullptr);
-    auto ret = service_->OnPackageRemoved(msg);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-    MessageHandler::Instance()->SendMessage(msg);
-
-    // PARCELABLE failed
-    MessageParcel *parcel1 = new (std::nothrow) MessageParcel();
-    auto bundleName = "testBundleName1";
-    parcel1->WriteString(bundleName);
-    auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel1);
-    auto ret1 = service_->OnPackageRemoved(msg1.get());
-    EXPECT_EQ(ret1, ErrorCode::ERROR_EX_PARCELABLE);
-
-    // userId is not same
-    auto parcel2 = new (std::nothrow) MessageParcel();
-    auto userId = 50;
-    service_->userId_ = 60;
-    parcel2->WriteInt32(userId);
-    parcel2->WriteString(bundleName);
-    auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel2);
-    auto ret2 = service_->OnPackageRemoved(msg2.get());
-    EXPECT_EQ(ret2, ErrorCode::NO_ERROR);
-
-    //remove bundle not current ime
-    auto parcel3 = new (std::nothrow) MessageParcel();
-    service_->userId_ = userId;
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 60, "testBundleName/testExtName", "testSubName" });
-    parcel3->WriteInt32(userId);
-    parcel3->WriteString(bundleName);
-    auto msg3 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel3);
-    auto ret3 = service_->OnPackageRemoved(msg3.get());
-    EXPECT_EQ(ret3, ErrorCode::NO_ERROR);
-}
-
-/**
 * @tc.name: SA_TestOnUserStarted
 * @tc.desc: SA_TestOnUserStarted.
 * @tc.type: FUNC
@@ -177,7 +134,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
     MessageParcel *parcel = nullptr;
     auto msg = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel);
     auto ret = service_->OnUserStarted(msg.get());
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
     // msg is nullptr
     service_->isScbEnable_ = false;

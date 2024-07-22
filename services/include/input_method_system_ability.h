@@ -104,9 +104,8 @@ private:
     void StopInputService();
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
-    int32_t OnPackageRemoved(const Message *msg);
-    int32_t OnPackageAdded(const Message *msg);
-    int32_t OnPackageChanged(const Message *msg);
+    int32_t HandlePackageEvent(const Message *msg);
+    int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
     int32_t OnDisplayOptionalInputMethod();
     void SubscribeCommonEvent();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);

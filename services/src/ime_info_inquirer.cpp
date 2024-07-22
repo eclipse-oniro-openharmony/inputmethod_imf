@@ -587,13 +587,12 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
         auto pos = subProp.label.find(':');
         if (pos != std::string::npos && pos + 1 < subProp.label.size()) {
             subProp.labelId = atoi(subProp.label.substr(pos + 1).c_str());
-            if (resMgr != nullptr) {
-                auto errValue = resMgr->GetStringById(subProp.labelId, subProp.label);
-                IMSA_HILOGI("label:%{public}s.", subProp.label.c_str());
-                if (errValue != RState::SUCCESS) {
-                    IMSA_HILOGE("GetStringById failed, bundleName:%{public}s, id:%{public}d.",
-                        extInfo.bundleName.c_str(), subProp.labelId);
-                }
+        }
+        if (resMgr != nullptr) {
+            auto errValue = resMgr->GetStringById(subProp.labelId, subProp.label);
+            if (errValue != RState::SUCCESS) {
+                IMSA_HILOGE("GetStringById failed, bundleName:%{public}s, id:%{public}d.", extInfo.bundleName.c_str(),
+                    subProp.labelId);
             }
         }
         pos = subProp.icon.find(':');
@@ -734,7 +733,7 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
         return std::make_shared<SubProperty>(it->subProps[0]);
     }
 
-    IMSA_HILOGI("%{public}d get [%{public}s, %{public}s] form bms.", userId, currentIme->bundleName.c_str(),
+    IMSA_HILOGD("%{public}d get [%{public}s, %{public}s] form bms.", userId, currentIme->bundleName.c_str(),
         currentIme->subName.c_str());
     std::vector<ExtensionAbilityInfo> extInfos;
     auto ret = GetExtInfosByBundleName(userId, currentIme->bundleName, extInfos);
@@ -838,7 +837,7 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
         return ErrorCode::NO_ERROR;
     }
 
-    IMSA_HILOGI("%{public}d get %{public}s form bms.", userId, defaultIme->name.c_str());
+    IMSA_HILOGD("%{public}d get %{public}s form bms.", userId, defaultIme->name.c_str());
     if (isBrief) {
         IMSA_HILOGD("get brief info.");
         if (prop == nullptr) {
