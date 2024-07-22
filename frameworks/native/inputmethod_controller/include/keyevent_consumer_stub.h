@@ -40,10 +40,15 @@ public:
     int32_t OnKeyEventResult(bool isConsumed) override;
 
 private:
+    int32_t InvalidRequest(MessageParcel &data, MessageParcel &reply)
+    {
+        return ERR_UNKNOWN_TRANSACTION;
+    };
     int32_t OnKeyEventResultOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (KeyEventConsumerStub::*)(MessageParcel &, MessageParcel &);
-    static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
-        { static_cast<uint32_t>(KEY_EVENT_RESULT), &KeyEventConsumerStub::OnKeyEventResultOnRemote },
+    const RequestHandler HANDLERS[KEY_EVENT_CONSUMER_CMD_LAST] = {
+        &KeyEventConsumerStub::InvalidRequest,
+        &KeyEventConsumerStub::OnKeyEventResultOnRemote,
     };
     KeyEventCallback callback_;
     std::shared_ptr<MMI::KeyEvent> keyEvent_;

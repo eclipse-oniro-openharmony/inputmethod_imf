@@ -162,7 +162,7 @@ void InputMethodAbility::Initialize()
     agentStub->SetMessageHandler(msgHandler_);
     agentStub_ = agentStub;
     coreStub_ = coreStub;
-    workThreadHandler = std::thread([this] { WorkThread(); });
+    workThreadHandler = std::thread([this] { this->WorkThread(); });
 }
 
 void InputMethodAbility::SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)

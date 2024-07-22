@@ -1564,5 +1564,23 @@ HWTEST_F(InputMethodControllerTest, testFinishTextPreviewAfterDetach_002, TestSi
     inputMethodController_->DeactivateClient();
     EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
 }
+
+/**
+ * @tc.name: testOnInputReady
+ * @tc.desc: IMC testOnInputReady
+ * @tc.type: IMC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testOnInputReady, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC OnInputReady Test START");
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    inputMethodController_->Attach(textListener_, false, inputAttribute);
+    sptr<IRemoteObject> agentObject = nullptr;
+    inputMethodController_->OnInputReady(agentObject);
+    TextListener::ResetParam();
+    inputMethodController_->DeactivateClient();
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+}
 } // namespace MiscServices
 } // namespace OHOS
