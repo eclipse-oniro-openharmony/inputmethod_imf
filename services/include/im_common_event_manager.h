@@ -39,7 +39,7 @@ public:
     ImCommonEventManager();
     ~ImCommonEventManager();
     static sptr<ImCommonEventManager> GetInstance();
-    bool SubscribeEvent(const std::string &event);
+    bool SubscribeEvent();
     bool SubscribeKeyboardEvent(KeyHandle handle);
     bool SubscribeWindowManagerService(FocusHandle handle, Handler inputHandler);
     bool SubscribeMemMgrService(const Handler &handler);
@@ -55,10 +55,14 @@ public:
         void StartUser(const EventFwk::CommonEventData &data);
         void RemoveUser(const EventFwk::CommonEventData &data);
         void OnBundleScanFinished(const EventFwk::CommonEventData &data);
+        void AddPackage(const EventFwk::CommonEventData &data);
+        void ChangePackage(const EventFwk::CommonEventData &data);
+        void HandleBootCompleted(const EventFwk::CommonEventData &data);
 
     private:
         using EventListenerFunc = std::function<void(EventSubscriber *that, const EventFwk::CommonEventData &data)>;
         std::map<std::string, EventListenerFunc> EventManagerFunc_;
+        void HandlePackageEvent(int32_t messageId, const EventFwk::CommonEventData &data);
     };
 
 private:

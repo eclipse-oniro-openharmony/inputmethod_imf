@@ -21,7 +21,6 @@
 #include <mutex>
 #include <string>
 #include <vector>
-
 #include "bundle_mgr_proxy.h"
 #include "element_name.h"
 #include "enable_ime_data_parser.h"
@@ -30,6 +29,7 @@
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "refbase.h"
+#include "resource_manager.h"
 #include "sys_cfg_parser.h"
 namespace OHOS {
 namespace MiscServices {
@@ -80,7 +80,8 @@ public:
     static ImeInfoInquirer &GetInstance();
     std::string GetDumpInfo(int32_t userId);
     std::shared_ptr<ImeNativeCfg> GetImeToStart(int32_t userId);
-    std::shared_ptr<Property> GetImeByBundleName(int32_t userId, const std::string &bundleName);
+    std::shared_ptr<Property> GetImeProperty(
+        int32_t userId, const std::string &bundleName, const std::string &extName = "");
     std::shared_ptr<Property> GetCurrentInputMethod(int32_t userId);
     std::shared_ptr<SubProperty> GetCurrentSubtype(int32_t userId);
     std::shared_ptr<ImeInfo> GetImeInfo(int32_t userId, const std::string &bundleName, const std::string &subName);
@@ -100,6 +101,11 @@ public:
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
     void InitSystemConfig();
+    ImeNativeCfg GetDefaultIme();
+    int32_t QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &imeInfos);
+    int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos);
+    int32_t GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo);
+    bool IsInputMethod(int32_t userId, const std::string &bundleName);
 
 private:
     ImeInfoInquirer() = default;
@@ -107,7 +113,6 @@ private:
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
     void InitCache(int32_t userId);
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
-    ImeNativeCfg GetDefaultIme();
     std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const int32_t labelId,
         const int32_t userId);
     std::shared_ptr<ImeInfo> GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
@@ -134,6 +139,9 @@ private:
     bool ParseSubtypeProfile(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg);
     void CovertToLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
+    std::shared_ptr<Global::Resource::ResourceManager> GetResMgr(const std::string &resourcePath);
+    int32_t GetFullImeInfo(
+        int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo);
 
     SystemConfig systemConfig_;
     std::mutex currentImeInfoLock_;

@@ -22,6 +22,7 @@
 #include "combination_key.h"
 #include "common_event_support.h"
 #include "errors.h"
+#include "full_ime_info_manager.h"
 #include "global.h"
 #include "im_common_event_manager.h"
 #include "ime_cfg_manager.h"
@@ -282,17 +283,17 @@ void InputMethodSystemAbility::Initialize()
     isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
 }
 
-void InputMethodSystemAbility::StartUserIdListener()
+void InputMethodSystemAbility::SubscribeCommonEvent()
 {
     sptr<ImCommonEventManager> imCommonEventManager = ImCommonEventManager::GetInstance();
-    bool isSuccess = imCommonEventManager->SubscribeEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
+    bool isSuccess = imCommonEventManager->SubscribeEvent();
     if (isSuccess) {
         IMSA_HILOGI("initialize subscribe service event success.");
         return;
     }
 
     IMSA_HILOGE("failed, try again 10s later");
-    auto callback = [this]() { StartUserIdListener(); };
+    auto callback = [this]() { SubscribeCommonEvent(); };
     serviceHandler_->PostTask(callback, INIT_INTERVAL);
 }
 
@@ -783,7 +784,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
     }
     IMSA_HILOGD("need to switch ime: %{public}s|%{public}s.", switchInfo.bundleName.c_str(),
         switchInfo.subName.c_str());
-    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeByBundleName(userId_, switchInfo.bundleName);
+    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeProperty(userId_, switchInfo.bundleName);
     if (targetImeProperty == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
@@ -882,16 +883,28 @@ void InputMethodSystemAbility::WorkThread()
                 OnUserRemoved(msg);
                 break;
             }
-            case MSG_ID_PACKAGE_REMOVED: {
-                OnPackageRemoved(msg);
-                break;
-            }
             case MSG_ID_HIDE_KEYBOARD_SELF: {
                 userSession_->OnHideSoftKeyBoardSelf();
                 break;
             }
             case MSG_ID_BUNDLE_SCAN_FINISHED: {
                 RegisterDataShareObserver();
+                FullImeInfoManager::GetInstance().Init();
+                break;
+            }
+            case MSG_ID_PACKAGE_ADDED:
+            case MSG_ID_PACKAGE_CHANGED:
+            case MSG_ID_PACKAGE_REMOVED: {
+                HandlePackageEvent(msg);
+                break;
+            }
+            case MSG_ID_SYS_LANGUAGE_CHANGED: {
+                FullImeInfoManager::GetInstance().Update();
+                break;
+            }
+            case MSG_ID_BOOT_COMPLETED:
+            case MSG_ID_OS_ACCOUNT_STARTED: {
+                FullImeInfoManager::GetInstance().Init();
                 break;
             }
             default: {
@@ -911,15 +924,16 @@ void InputMethodSystemAbility::WorkThread()
  */
 int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 {
-    // if scb enable, deal when receive wmsConnected.
-    if (isScbEnable_) {
-        return ErrorCode::NO_ERROR;
-    }
     if (msg->msgContent_ == nullptr) {
         IMSA_HILOGE("msgContent_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto newUserId = msg->msgContent_->ReadInt32();
+    FullImeInfoManager::GetInstance().Add(newUserId);
+    // if scb enable, deal when receive wmsConnected.
+    if (isScbEnable_) {
+        return ErrorCode::NO_ERROR;
+    }
     if (newUserId == userId_) {
         return ErrorCode::NO_ERROR;
     }
@@ -937,6 +951,32 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
     auto userId = msg->msgContent_->ReadInt32();
     IMSA_HILOGI("start: %{public}d", userId);
     ImeCfgManager::GetInstance().DeleteImeCfg(userId);
+    FullImeInfoManager::GetInstance().Delete(userId);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::HandlePackageEvent(const Message *msg)
+{
+    MessageParcel *data = msg->msgContent_;
+    if (data == nullptr) {
+        IMSA_HILOGD("data is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    int32_t userId = 0;
+    std::string packageName;
+    if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
+        IMSA_HILOGE("Failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    if (msg->msgId_ == MSG_ID_PACKAGE_CHANGED) {
+        return FullImeInfoManager::GetInstance().Update(userId, packageName);
+    }
+    if (msg->msgId_ == MSG_ID_PACKAGE_ADDED) {
+        return FullImeInfoManager::GetInstance().Add(userId, packageName);
+    }
+    if (msg->msgId_ == MSG_ID_PACKAGE_REMOVED) {
+        return OnPackageRemoved(userId, packageName);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -948,19 +988,9 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
  *  \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
  *  \return ErrorCode::ERROR_BAD_PARAMETERS bad parameter
  */
-int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
+int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::string &packageName)
 {
-    MessageParcel *data = msg->msgContent_;
-    if (data == nullptr) {
-        IMSA_HILOGD("data is nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    int32_t userId = 0;
-    std::string packageName;
-    if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
-        IMSA_HILOGE("failed to read message parcel");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
+    FullImeInfoManager::GetInstance().Delete(userId, packageName);
     // if the app that doesn't belong to current user is removed, ignore it
     if (userId != userId_) {
         IMSA_HILOGD("userId: %{public}d, currentUserId: %{public}d.", userId, userId_);
@@ -1155,7 +1185,7 @@ void InputMethodSystemAbility::InitMonitors()
 {
     int32_t ret = InitAccountMonitor();
     IMSA_HILOGI("init account monitor, ret: %{public}d.", ret);
-    StartUserIdListener();
+    SubscribeCommonEvent();
     ret = InitMemMgrMonitor();
     IMSA_HILOGI("init MemMgr monitor, ret: %{public}d.", ret);
     ret = InitKeyEventMonitor();
@@ -1305,8 +1335,12 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
         security = static_cast<int32_t>(SecurityMode::FULL);
         return ErrorCode::NO_ERROR;
     }
-    auto callBundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
-    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName, userId_);
+    auto bundleName = FullImeInfoManager::GetInstance().Get(userId_, IPCSkeleton::GetCallingTokenID());
+    if (bundleName.empty()) {
+        bundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
+        IMSA_HILOGW("%{public}s tokenId not find.", bundleName.c_str());
+    }
+    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(bundleName, userId_);
     security = static_cast<int32_t>(mode);
     return ErrorCode::NO_ERROR;
 }

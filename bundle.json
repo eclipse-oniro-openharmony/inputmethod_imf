@@ -51,7 +51,8 @@
               "data_share",
               "resource_schedule_service",
               "memmgr",
-              "hicollie"
+              "hicollie",
+              "resource_management"
           ], 
           "third_party": [
               "cJSON"

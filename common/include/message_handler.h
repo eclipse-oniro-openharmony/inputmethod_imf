@@ -33,6 +33,11 @@ enum {
     MSG_ID_USER_REMOVED,    // a user removed
     MSG_ID_PACKAGE_REMOVED, // a package is removed
     MSG_ID_BUNDLE_SCAN_FINISHED, // bundle scan finished, ready to create data share helper
+    MSG_ID_PACKAGE_ADDED,
+    MSG_ID_PACKAGE_CHANGED,
+    MSG_ID_SYS_LANGUAGE_CHANGED,
+    MSG_ID_OS_ACCOUNT_STARTED,
+    MSG_ID_BOOT_COMPLETED,
     MSG_ID_SELECT_BY_RANGE,
     MSG_ID_SELECT_BY_MOVEMENT,
     MSG_ID_HANDLE_EXTEND_ACTION,
