@@ -75,6 +75,7 @@ public:
     static sptr<JsKeyboardPanelManager> GetInstance();
     static napi_value SendPrivateCommand(napi_env env, napi_callback_info info);
     static napi_value GetSmartMenuCfg(napi_env env, napi_callback_info info);
+    static napi_value ConnectSystemCmd(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static napi_value GetDefaultInputMethod(napi_env env, napi_callback_info info);

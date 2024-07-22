@@ -1084,6 +1084,19 @@ int64_t PerUserSession::GetCurrentClientPid()
     return clientInfo->pid;
 }
 
+int64_t PerUserSession::GetInactiveClientPid()
+{
+    auto client = GetInactiveClient();
+    if (client == nullptr) {
+        return INVALID_PID;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        return INVALID_PID;
+    }
+    return clientInfo->pid;
+}
+
 int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     auto clientMap = GetClientMap();
@@ -1218,7 +1231,7 @@ int32_t PerUserSession::ExitCurrentInputType()
 int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     if (GetCurrentClient() == nullptr) {
-        IMSA_HILOGI("not in bound state.");
+        IMSA_HILOGD("not in bound state.");
         isShown = false;
         return ErrorCode::NO_ERROR;
     }

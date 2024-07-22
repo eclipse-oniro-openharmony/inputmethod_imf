@@ -42,6 +42,7 @@ napi_value JsKeyboardPanelManager::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
         DECLARE_NAPI_FUNCTION("getDefaultInputMethod", GetDefaultInputMethod),
+        DECLARE_NAPI_FUNCTION("connectSystemCmd", ConnectSystemCmd),
     };
     NAPI_CALL(env,
         napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -57,6 +58,33 @@ sptr<JsKeyboardPanelManager> JsKeyboardPanelManager::GetInstance()
         }
     }
     return keyboardPanelManager_;
+}
+
+struct PanelManagerContext : public AsyncCall::Context {
+    PanelManagerContext() : Context(nullptr, nullptr){};
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status_ != napi_ok) {
+            output_ = nullptr;
+            return status_;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
+napi_value JsKeyboardPanelManager::ConnectSystemCmd(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<PanelManagerContext>();
+    auto manager = JsKeyboardPanelManager::GetInstance();
+    auto exec = [ctxt, env, manager](AsyncCall::Context *ctx) {
+        auto ret = ImeSystemCmdChannel::GetInstance()->ConnectSystemCmd(manager);
+        ctxt->SetErrorCode(ret);
+        CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "ConnectSystemCmd return error!");
+        ctxt->SetState(napi_ok);
+    };
+    // 0 means JsAPI:ConnectSystemCmd has 0 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 0);
+    return asyncCall.Call(env, exec, "ConnectSystemCmd");
 }
 
 napi_value JsKeyboardPanelManager::Subscribe(napi_env env, napi_callback_info info)
@@ -75,11 +103,6 @@ napi_value JsKeyboardPanelManager::Subscribe(napi_env env, napi_callback_info in
         return nullptr;
     }
     auto manager = JsKeyboardPanelManager::GetInstance();
-    auto ret = ImeSystemCmdChannel::GetInstance()->ConnectSystemCmd(manager);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("subscribe failed, type: %{public}s!", type.c_str());
-        return nullptr;
-    }
     IMSA_HILOGD("subscribe type: %{public}s.", type.c_str());
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id());
@@ -102,11 +125,6 @@ napi_value JsKeyboardPanelManager::UnSubscribe(napi_env env, napi_callback_info 
         return nullptr;
     }
     auto manager = JsKeyboardPanelManager::GetInstance();
-    auto ret = ImeSystemCmdChannel::GetInstance()->ConnectSystemCmd(manager);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
-        return nullptr;
-    }
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {

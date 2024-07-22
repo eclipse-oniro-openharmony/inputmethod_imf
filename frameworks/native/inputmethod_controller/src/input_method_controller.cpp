@@ -621,7 +621,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_.range = { start, end };
     }
-    if (textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
+    if (isTextNotified_.exchange(true) && textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
         IMSA_HILOGD("same to last update.");
         return ErrorCode::NO_ERROR;
     }
@@ -934,9 +934,10 @@ void InputMethodController::ClearEditorCache(bool isNewEditor)
     IMSA_HILOGD("isNewEditor: %{public}d.", isNewEditor);
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
-        textString_ = Str8ToStr16("");
         // reset old range when editor changes or first attach
         if (isNewEditor || !isBound_.load()) {
+            isTextNotified_.store(false);
+            textString_ = Str8ToStr16("");
             selectOldBegin_ = INVALID_VALUE;
             selectOldEnd_ = INVALID_VALUE;
             selectNewBegin_ = INVALID_VALUE;
@@ -1190,7 +1191,7 @@ int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &is
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGI("type: %{public}d, flag: %{public}d.", static_cast<int32_t>(panelInfo.panelType),
+    IMSA_HILOGD("type: %{public}d, flag: %{public}d.", static_cast<int32_t>(panelInfo.panelType),
         static_cast<int32_t>(panelInfo.panelFlag));
     return proxy->IsPanelShown(panelInfo, isShown);
 }
