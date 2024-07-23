@@ -1169,7 +1169,7 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_004, TestSize.Level0)
     InputMethodAbilityTest::imc_->clientInfo_.config.windowId = INVALID_WINDOW_ID;
     CallingWindowInfo windowInfo;
     int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
-    EXPECT_EQ(ret, ErrorCode::ERROR_GET_TEXT_CONFIG);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodAbilityTest::inputMethodAbility_->DestroyPanel(inputMethodPanel);
     InputMethodAbilityTest::GetIMCDetachIMA();
 }

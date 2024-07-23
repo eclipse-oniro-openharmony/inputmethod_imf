@@ -52,8 +52,7 @@ struct PanelAdjustInfo {
 
 class InputMethodPanel {
 public:
-    static constexpr uint32_t INIT_WINDOW_ID = 0;
-    static constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
+    static constexpr uint32_t INVALID_WINDOW_ID = 0;
     using CallbackFunc = std::function<void(uint32_t, PanelFlag)>;
     InputMethodPanel() = default;
     ~InputMethodPanel();
