@@ -326,11 +326,7 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
         if (it != props.end()) {
             continue;
         }
-        auto iter = std::find_if(extension.metadata.begin(), extension.metadata.end(),
-            [](const Metadata &metadata) {
-                return metadata.name == TEMPORARY_INPUT_METHOD_METADATA_NAME;
-            });
-        if (iter != extension.metadata.end()) {
+        if (IsTempInputMethod(extension)) {
             continue;
         }
         std::string label;
@@ -1032,6 +1028,9 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInf
     }
     std::map<std::string, std::vector<ExtensionAbilityInfo>> tempExtInfos;
     for (const auto &extInfo : extInfos) {
+        if (IsTempInputMethod(extInfo)) {
+            continue;
+        }
         auto it = tempExtInfos.find(extInfo.bundleName);
         if (it != tempExtInfos.end()) {
             it->second.push_back(extInfo);
@@ -1060,6 +1059,9 @@ int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId, const std::string &bundl
     }
     std::vector<ExtensionAbilityInfo> tempExtInfos;
     for (const auto &extInfo : extInfos) {
+        if (IsTempInputMethod(extInfo)) {
+            continue;
+        }
         if (extInfo.bundleName == bundleName) {
             tempExtInfos.push_back(extInfo);
         }
@@ -1107,6 +1109,15 @@ bool ImeInfoInquirer::IsInputMethod(int32_t userId, const std::string &bundleNam
         }
     }
     return false;
+}
+ 
+bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
+{
+    auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
+        [](const Metadata &metadata) {
+            return metadata.name == TEMPORARY_INPUT_METHOD_METADATA_NAME;
+        });
+    return iter != extInfo.metadata.end();
 }
 } // namespace MiscServices
 } // namespace OHOS

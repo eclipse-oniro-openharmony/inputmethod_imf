@@ -146,6 +146,7 @@ private:
     SystemConfig systemConfig_;
     std::mutex currentImeInfoLock_;
     std::shared_ptr<ImeInfo> currentImeInfo_{ nullptr }; // current imeInfo of current user
+    bool IsTempInputMethod(const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo);
 };
 } // namespace MiscServices
 } // namespace OHOS
