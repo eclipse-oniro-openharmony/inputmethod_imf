@@ -1052,27 +1052,21 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInf
 
 int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo)
 {
-    auto bmg = GetBundleMgr();
-    if (bmg == nullptr) {
+    std::vector<ExtensionAbilityInfo> extInfos;
+    auto ret = ImeInfoInquirer::GetInstance().QueryImeExtInfos(userId, extInfos);
+    if (!ret || extInfos.empty()) {
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    BundleInfo bundleInfo;
-    auto ret = bmg->GetBundleInfo(bundleName, BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO, bundleInfo, userId);
-    if (!ret) {
-        IMSA_HILOGE("[%{public}d,%{public}s] GetBundleInfo failed.", userId, bundleName.c_str());
-        return ErrorCode::ERROR_PACKAGE_MANAGER;
-    }
-    std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> extInfos;
-    for (const auto &extInfo : bundleInfo.extensionInfos) {
+    std::vector<ExtensionAbilityInfo> tempExtInfos;
+    for (const auto &extInfo : extInfos) {
         if (IsTempInputMethod(extInfo)) {
             continue;
         }
-        if (extInfo.type != ExtensionAbilityType::INPUTMETHOD) {
-            continue;
+        if (extInfo.bundleName == bundleName) {
+            tempExtInfos.push_back(extInfo);
         }
-        extInfos.push_back(extInfo);
     }
-    return GetFullImeInfo(userId, extInfos, imeInfo);
+    return GetFullImeInfo(userId, tempExtInfos, imeInfo);
 }
 
 int32_t ImeInfoInquirer::GetFullImeInfo(
