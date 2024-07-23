@@ -18,33 +18,35 @@ group("unittest") {
   testonly = true
   deps = []
 
-  deps += [
-    "cpp_test:EnableImeDataParseTest",
-    "cpp_test:IdentityCheckerTest",
-    "cpp_test:ImeFreezeManagerTest",
-    "cpp_test:ImeProxyTest",
-    "cpp_test:ImeSystemChannelTest",
-    "cpp_test:InputMethodAbilityTest",
-    "cpp_test:InputMethodAttachTest",
-    "cpp_test:InputMethodControllerTest",
-    "cpp_test:InputMethodDfxTest",
-    "cpp_test:InputMethodEditorTest",
-    "cpp_test:InputMethodPanelTest",
-    "cpp_test:InputMethodPrivateMemberTest",
-    "cpp_test:InputMethodSeccompTest",
-    "cpp_test:InputMethodServiceTest",
-    "cpp_test:InputMethodSwitchTest",
-    "cpp_test:JsonOperateTest",
-    "cpp_test:NewImeSwitchTest",
-    "cpp_test:SecurityModeParseTest",
-    "cpp_test:TextListenerInnerApiTest",
-    "cpp_test:VirtualListenerTest",
-    "cpp_test/common:inputmethod_tdd_util",
-    "napi_test/src:GetInputMethodJsTest",
-    "resource/bundle_dependencies/editorBox:editorBox",
-    "resource/bundle_dependencies/extImfBundle:extImf",
-    "resource/bundle_dependencies/newTestIme:newTestIme",
-    "resource/ohos_test:copy_ohos_test",
-  ]
+  if (!use_libfuzzer) {
+    deps += [
+      "cpp_test:EnableImeDataParseTest",
+      "cpp_test:IdentityCheckerTest",
+      "cpp_test:ImeFreezeManagerTest",
+      "cpp_test:ImeProxyTest",
+      "cpp_test:ImeSystemChannelTest",
+      "cpp_test:InputMethodAbilityTest",
+      "cpp_test:InputMethodAttachTest",
+      "cpp_test:InputMethodControllerTest",
+      "cpp_test:InputMethodDfxTest",
+      "cpp_test:InputMethodEditorTest",
+      "cpp_test:InputMethodPanelTest",
+      "cpp_test:InputMethodPrivateMemberTest",
+      "cpp_test:InputMethodSeccompTest",
+      "cpp_test:InputMethodServiceTest",
+      "cpp_test:InputMethodSwitchTest",
+      "cpp_test:JsonOperateTest",
+      "cpp_test:NewImeSwitchTest",
+      "cpp_test:SecurityModeParseTest",
+      "cpp_test:TextListenerInnerApiTest",
+      "cpp_test:VirtualListenerTest",
+      "cpp_test/common:inputmethod_tdd_util",
+      "napi_test/src:GetInputMethodJsTest",
+      "resource/bundle_dependencies/editorBox:editorBox",
+      "resource/bundle_dependencies/extImfBundle:extImf",
+      "resource/bundle_dependencies/newTestIme:newTestIme",
+      "resource/ohos_test:copy_ohos_test",
+    ]
+  }
 }
 ###############################################################################
