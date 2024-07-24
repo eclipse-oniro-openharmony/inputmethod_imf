@@ -97,8 +97,7 @@ void InputMethodSystemAbility::OnStart()
     }
     InitHiTrace();
     InputMethodSyncTrace tracer("InputMethodController Attach trace.");
-    InputmethodDump::GetInstance().AddDumpAllMethod(
-        std::bind(&InputMethodSystemAbility::DumpAllMethod, this, std::placeholders::_1));
+    InputmethodDump::GetInstance().AddDumpAllMethod([this](int fd) { this->DumpAllMethod(fd); });
     IMSA_HILOGI("start imsa service success.");
     return;
 }

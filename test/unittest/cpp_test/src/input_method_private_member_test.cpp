@@ -735,5 +735,124 @@ HWTEST_F(InputMethodPrivateMemberTest, testIsPanelShown, TestSize.Level0)
     auto ret = userSession->IsPanelShown(panelInfo, flag);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: TestGetDefaultInputMethod_001
+ * @tc.desc: TestGetDefaultInputMethod
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestGetDefaultInputMethod_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestGetDefaultInputMethod_001 TEST START");
+    // currentIme is empty
+    std::shared_ptr<Property> prop;
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    auto ret = ImeInfoInquirer::GetInstance().GetDefaultInputMethod(currentUserId, prop, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestGetDefaultInputMethod_002
+ * @tc.desc: TestGetDefaultInputMethod
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestGetDefaultInputMethod_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestGetDefaultInputMethod_002 TEST START");
+    // currentIme is empty
+    std::shared_ptr<Property> prop;
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    auto ret = ImeInfoInquirer::GetInstance().GetDefaultInputMethod(currentUserId, prop, true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestGetResMgr
+ * @tc.desc: GetResMgr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestGetResMgr, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestGetResMgr TEST START");
+    // currentIme is empty
+    auto ret = ImeInfoInquirer::GetInstance().GetResMgr("/test");
+    EXPECT_TRUE(ret != nullptr);
+}
+
+/**
+ * @tc.name: TestQueryFullImeInfo
+ * @tc.desc: QueryFullImeInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestQueryFullImeInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestQueryFullImeInfo TEST START");
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    std::vector<FullImeInfo> infos;
+    auto ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(currentUserId, infos);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestIsInputMethod
+ * @tc.desc: IsInputMethod
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestIsInputMethod, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestIsInputMethod TEST START");
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    auto bundleName = "testBundleName1";
+    auto ret = ImeInfoInquirer::GetInstance().IsInputMethod(currentUserId, bundleName);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+ /**
+ @tc.name: TestHandlePackageEvent
+ @tc.desc: TestHandlePackageEvent
+ @tc.type: FUNC
+ @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestHandlePackageEvent, TestSize.Level0)
+{
+// msg is nullptr
+    auto *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, nullptr);
+    auto ret = service_->HandlePackageEvent(msg);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    MessageHandler::Instance()->SendMessage(msg);
+
+    // PARCELABLE failed
+    MessageParcel *parcel1 = new (std::nothrow) MessageParcel();
+    auto bundleName = "testBundleName1";
+    parcel1->WriteString(bundleName);
+    auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel1);
+    auto ret1 = service_->HandlePackageEvent(msg1.get());
+    EXPECT_EQ(ret1, ErrorCode::ERROR_EX_PARCELABLE);
+
+    // userId is not same
+    auto parcel2 = new (std::nothrow) MessageParcel();
+    auto userId = 50;
+    service_->userId_ = 60;
+    parcel2->WriteInt32(userId);
+    parcel2->WriteString(bundleName);
+    auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel2);
+    auto ret2 = service_->HandlePackageEvent(msg2.get());
+    EXPECT_EQ(ret2, ErrorCode::NO_ERROR);
+
+    //remove bundle not current ime
+    auto parcel3 = new (std::nothrow) MessageParcel();
+    service_->userId_ = userId;
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 60, "testBundleName/testExtName", "testSubName" });
+    parcel3->WriteInt32(userId);
+    parcel3->WriteString(bundleName);
+    auto msg3 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel3);
+    auto ret3 = service_->HandlePackageEvent(msg3.get());
+    EXPECT_EQ(ret3, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS
