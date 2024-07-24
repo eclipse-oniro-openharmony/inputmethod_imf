@@ -25,7 +25,7 @@ namespace OHOS {
 namespace MiscServices {
 std::mutex SecurityModeParser::instanceMutex_;
 sptr<SecurityModeParser> SecurityModeParser::instance_ = nullptr;
-
+constexpr const char *SYSTEM_SPECIAL_IME = "";
 SecurityModeParser::~SecurityModeParser()
 {
 }
@@ -84,6 +84,9 @@ bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const in
 
 SecurityMode SecurityModeParser::GetSecurityMode(const std::string &bundleName, int32_t userId)
 {
+    if (bundleName == SYSTEM_SPECIAL_IME) {
+        return SecurityMode::FULL;
+    }
     // always set default ime to full mode, remove this rule when default ime finishes adaptation.
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
     if (defaultIme != nullptr && bundleName == defaultIme->name) {
