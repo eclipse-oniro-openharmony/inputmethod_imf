@@ -12,6 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define private public
+#define protected public
+#include "input_method_controller.h"
+#include "input_method_system_ability_proxy.h"
+#undef private
 
 #include "inputmethodcontroller_fuzzer.h"
 
@@ -20,7 +25,6 @@
 
 #include "global.h"
 #include "input_attribute.h"
-#include "input_method_controller.h"
 #include "key_event.h"
 #include "message_parcel.h"
 #include "text_listener.h"
@@ -142,6 +146,47 @@ void TestAttach(sptr<InputMethodController> imc, int32_t fuzzedInt32)
     imc->Attach(textListener, true, inputAttribute);
     imc->Attach(textListener, false, inputAttribute);
 }
+
+void FUZZHideInput(sptr<InputMethodController> imc)
+{
+    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
+    imc->HideInput(client);
+    imc->RequestHideInput();
+}
+
+void FUZZShowInput(sptr<InputMethodController> imc)
+{
+    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
+    imc->ShowInput(client);
+    imc->RequestShowInput();
+}
+
+void FUZZRestore(sptr<InputMethodController> imc)
+{
+    imc->RestoreListenEventFlag();
+    imc->RestoreListenInfoInSaDied();
+    imc->RestoreAttachInfoInSaDied();
+}
+
+void InputType(sptr<InputMethodController> imc)
+{
+    imc->IsInputTypeSupported(InputType::CAMERA_INPUT);
+    imc->IsInputTypeSupported(InputType::SECURITY_INPUT);
+    imc->StartInputType(InputType::CAMERA_INPUT);
+    imc->StartInputType(InputType::SECURITY_INPUT);
+}
+
+void FUZZIsPanelShown(sptr<InputMethodController> imc, const uint8_t *data)
+{
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    bool flag = static_cast<bool>(data[0] % 2);
+    imc->IsPanelShown(panelInfo, flag);
+}
+
+void FUZZPrintLogIfAceTimeout(sptr<InputMethodController> imc, int64_t start)
+{
+    imc->PrintLogIfAceTimeout(start);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -154,6 +199,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     auto fuzzedInt = static_cast<int>(size);
     auto fuzzedInt32 = static_cast<int32_t>(size);
     auto fuzzedUint32 = static_cast<uint32_t>(size);
+    auto fuzzedint64 = static_cast<int64_t>(size);
     auto fuzzedDouble = static_cast<double>(size);
     auto fuzzedTrigger = static_cast<SwitchTrigger>(size);
 
@@ -167,6 +213,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestSetCallingWindow(imc, fuzzedUint32);
     OHOS::TestDispatchKeyEvent(imc, fuzzedInt32);
     OHOS::TestShowSomething(imc);
+    OHOS::FUZZHideInput(imc);
+    OHOS::FUZZShowInput(imc);
+    OHOS::FUZZRestore(imc);
+    OHOS::InputType(imc);
+    OHOS::FUZZIsPanelShown(imc, data);
+    OHOS::FUZZPrintLogIfAceTimeout(imc, fuzzedint64);
     OHOS::TestUpdateListenEventFlag(imc, fuzzedUint32);
     return 0;
 }
