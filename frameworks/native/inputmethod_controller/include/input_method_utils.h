@@ -25,8 +25,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t INIT_WINDOW_ID = 0;
-constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
+constexpr uint32_t INVALID_WINDOW_ID = 0;
 constexpr int32_t INVALID_VALUE = -1;
 constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
 constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
