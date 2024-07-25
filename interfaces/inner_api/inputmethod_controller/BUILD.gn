@@ -71,7 +71,6 @@ ohos_shared_library("inputmethod_client") {
   deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
   external_deps = [
-    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -81,6 +80,7 @@ ohos_shared_library("inputmethod_client") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
+  public_external_deps = [ "ability_base:want" ]
 
   configs = [ ":inputmethod_client_native_config" ]
 
@@ -117,7 +117,6 @@ ohos_static_library("inputmethod_client_static") {
   deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
   external_deps = [
-    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -127,6 +126,8 @@ ohos_static_library("inputmethod_client_static") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
+
+  public_external_deps = [ "ability_base:want" ]
 
   subsystem_name = "inputmethod"
   part_name = "imf"
