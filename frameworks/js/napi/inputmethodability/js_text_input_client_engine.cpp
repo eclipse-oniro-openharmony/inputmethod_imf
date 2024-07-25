@@ -222,14 +222,18 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
         PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_generic_failure);
         napi_status ret = JsUtils::GetValue(env, argv[0], ctxt->action);
         PARAM_CHECK_RETURN(env, ret == napi_ok, "action type must be number!", TYPE_NONE, napi_generic_failure);
-        return ret;
+        ctxt->info = { std::chrono::system_clock::now(), EditorEvent::SEND_KEY_FUNCTION };
+        editorQueue_.Push(ctxt->info);
+        return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isSendKeyFunction, result);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->SendFunctionKey(ctxt->action);
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);

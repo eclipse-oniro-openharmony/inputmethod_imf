@@ -42,6 +42,7 @@ enum class EditorEvent : uint32_t {
     GET_TEXT_INDEX_AT_CURSOR,
     SET_PREVIEW_TEXT,
     FINISH_TEXT_PREVIEW,
+    SEND_KEY_FUNCTION,
     EVENT_END,
 };
 struct EditorEventInfo {
@@ -83,6 +84,7 @@ struct JsInputAttribute {
 };
 
 struct SendKeyFunctionContext : public AsyncCall::Context {
+    EditorEventInfo info;
     bool isSendKeyFunction = false;
     int32_t action = 0;
     napi_status status = napi_generic_failure;
