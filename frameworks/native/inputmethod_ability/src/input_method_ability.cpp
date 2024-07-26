@@ -944,10 +944,16 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = inputMethodPanel->HidePanel();
-    if (ret == ErrorCode::NO_ERROR) {
-        NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGD("failed, ret: %{public}d", ret);
+        return ret;
     }
-    return ret;
+    NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
+    // finish previewing text when soft keyboard hides
+    if (inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+        FinishTextPreview(true);
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::NotifyPanelStatus(
@@ -1127,16 +1133,16 @@ int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isSho
 void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
 {
     IMSA_HILOGI("client inactive.");
-    ClearDataChannel(channel);
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
-    panels_.ForEach([](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+    panels_.ForEach([this](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
-            panel->HidePanel();
+            HidePanel(panel);
         }
         return false;
     });
+    ClearDataChannel(channel);
 }
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)
@@ -1207,7 +1213,7 @@ int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range 
     return dataChannel->SetPreviewText(text, range);
 }
 
-int32_t InputMethodAbility::FinishTextPreview()
+int32_t InputMethodAbility::FinishTextPreview(bool isAsync)
 {
     InputMethodSyncTrace tracer("IMA_FinishTextPreview");
     auto dataChannel = GetInputDataChannelProxy();
@@ -1215,7 +1221,7 @@ int32_t InputMethodAbility::FinishTextPreview()
         IMSA_HILOGE("dataChannel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return dataChannel->FinishTextPreview();
+    return dataChannel->FinishTextPreview(isAsync);
 }
 
 int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)

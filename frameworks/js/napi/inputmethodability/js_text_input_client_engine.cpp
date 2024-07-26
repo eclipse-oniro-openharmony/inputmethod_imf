@@ -937,7 +937,7 @@ napi_value JsTextInputClientEngine::FinishTextPreview(napi_env env, napi_callbac
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
         InputMethodSyncTrace tracer("JS_FinishTextPreview_Exec", traceId);
         editorQueue_.Wait(ctxt->info);
-        int32_t code = InputMethodAbility::GetInstance()->FinishTextPreview();
+        int32_t code = InputMethodAbility::GetInstance()->FinishTextPreview(false);
         editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec finishTextPreview success.");
@@ -959,7 +959,7 @@ napi_value JsTextInputClientEngine::FinishTextPreviewSync(napi_env env, napi_cal
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SET_PREVIEW_TEXT };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
-    int32_t ret = InputMethodAbility::GetInstance()->FinishTextPreview();
+    int32_t ret = InputMethodAbility::GetInstance()->FinishTextPreview(false);
     editorQueue_.Pop();
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to finish text preview!", TYPE_NONE);

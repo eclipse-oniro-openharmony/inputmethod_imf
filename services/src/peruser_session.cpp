@@ -382,6 +382,10 @@ int32_t PerUserSession::OnRequestHideInput()
     if (currentClient != nullptr) {
         UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, false } });
     }
+    auto inactiveClient = GetInactiveClient();
+    if (inactiveClient != nullptr) {
+        RemoveClient(inactiveClient, false);
+    }
     ExitCurrentInputType();
     return ErrorCode::NO_ERROR;
 }
@@ -760,10 +764,9 @@ void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
         auto inactiveClientInfo = GetClientInfo(inactiveClient->AsObject());
         if (inactiveClientInfo != nullptr && inactiveClientInfo->pid != clientInfo->pid) {
             IMSA_HILOGI("remove inactive client: [%{public}d]", inactiveClientInfo->pid);
-            RemoveClientInfo(inactiveClient->AsObject());
+            RemoveClient(inactiveClient, false);
         }
     }
-    SetInactiveClient(nullptr);
 }
 
 void PerUserSession::SetInactiveClient(sptr<IInputClient> client)

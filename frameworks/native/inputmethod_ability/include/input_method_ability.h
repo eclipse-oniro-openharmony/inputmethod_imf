@@ -92,7 +92,7 @@ public:
     bool IsDefaultIme();
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range);
-    int32_t FinishTextPreview();
+    int32_t FinishTextPreview(bool isAsync);
     int32_t NotifyPanelStatus(const std::shared_ptr<InputMethodPanel> &inputMethodPanel,
         SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();

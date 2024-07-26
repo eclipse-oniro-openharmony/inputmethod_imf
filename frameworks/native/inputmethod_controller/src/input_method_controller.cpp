@@ -166,19 +166,9 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
 
 void InputMethodController::DeactivateClient()
 {
-    auto textListener = GetTextListener();
-    if (textListener != nullptr && textConfig_.inputAttribute.isTextPreviewSupported) {
-        IMSA_HILOGD("finish text preview.");
-        textListener->FinishTextPreview();
-    }
     {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
         clientInfo_.state = ClientState::INACTIVE;
-    }
-    {
-        std::lock_guard<std::mutex> autoLock(agentLock_);
-        agent_ = nullptr;
-        agentObject_ = nullptr;
     }
     SendKeyboardStatus(KeyboardStatus::NONE);
 }
@@ -225,8 +215,9 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
 {
     IMSA_HILOGI("isShowKeyboard %{public}d.", isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
-    clientInfo_.isNotifyInputStart = GetTextListener() != listener;
-    ClearEditorCache(clientInfo_.isNotifyInputStart);
+    auto lastListener = GetTextListener();
+    clientInfo_.isNotifyInputStart = lastListener != listener;
+    ClearEditorCache(clientInfo_.isNotifyInputStart, lastListener);
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
     SaveTextConfig(textConfig);
@@ -929,9 +920,14 @@ void InputMethodController::OnInputStop()
     isEditable_.store(false);
 }
 
-void InputMethodController::ClearEditorCache(bool isNewEditor)
+void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChangedListener> lastListener)
 {
     IMSA_HILOGD("isNewEditor: %{public}d.", isNewEditor);
+    if (isNewEditor && isBound_.load() && lastListener != nullptr
+        && textConfig_.inputAttribute.isTextPreviewSupported) {
+        IMSA_HILOGD("last editor FinishTextPreview");
+        lastListener->FinishTextPreview();
+    }
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
         // reset old range when editor changes or first attach
@@ -1294,12 +1290,12 @@ int32_t InputMethodController::FinishTextPreview()
     InputMethodSyncTrace tracer("IMC_FinishTextPreview");
     IMSA_HILOGD("IMC start.");
     if (!textConfig_.inputAttribute.isTextPreviewSupported) {
-        IMSA_HILOGE("text preview do not supported!");
+        IMSA_HILOGD("text preview do not supported!");
         return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
     }
     auto listener = GetTextListener();
-    if (!IsEditable() || listener == nullptr) {
-        IMSA_HILOGE("not editable or listener is nullptr!");
+    if (!isBound_.load() || listener == nullptr) {
+        IMSA_HILOGW("not bound or listener is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     {
