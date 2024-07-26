@@ -53,6 +53,30 @@ extern "C" {
         int64_t size;
         CInputMethodProperty *head;
     };
+
+    struct InputAttrbute {
+        int8_t textInputType;
+        int8_t enterKeyType;
+    };
+
+    struct CursorInfo {
+        double left;
+        double top;
+        double width;
+        double height;
+    };
+
+    struct Range {
+        int32_t start;
+        int32_t end;
+    };
+
+    struct CTextConfig {
+        InputAttrbute inputAttrbute;
+        CursorInfo cursorInfo;
+        Range range;
+        uint32_t windowId;
+    };
 }
 
 
