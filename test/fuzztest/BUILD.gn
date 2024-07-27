@@ -23,6 +23,7 @@ group("fuzztest") {
     "datachannelstub_fuzzer:fuzztest",
     "enableimedataparse_fuzzer:fuzztest",
     "imeeventmonitormanager_fuzzer:fuzztest",
+    "imesystemchannel_fuzzer:fuzztest",
     "inputclientstub_fuzzer:fuzztest",
     "inputmethodability_fuzzer:fuzztest",
     "inputmethodcontroller_fuzzer:fuzztest",
