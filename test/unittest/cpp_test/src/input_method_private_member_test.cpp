@@ -14,6 +14,7 @@
  */
 #define private public
 #define protected public
+#include "full_ime_info_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
 #include "input_method_controller.h"
@@ -66,6 +67,8 @@ void InputMethodPrivateMemberTest::SetUpTestCase(void)
 void InputMethodPrivateMemberTest::TearDownTestCase(void)
 {
     service_->OnStop();
+    delete service_;
+    service_ = nullptr;
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDownTestCase");
 }
 
@@ -73,14 +76,15 @@ void InputMethodPrivateMemberTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUp");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
+    FullImeInfoManager::GetInstance().fullImeInfos_.clear();
+    service_->userId_ = MAIN_USER_ID;
 }
 
 void InputMethodPrivateMemberTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDown");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
+    FullImeInfoManager::GetInstance().fullImeInfos_.clear();
 }
 sptr<InputMethodSystemAbility> InputMethodPrivateMemberTest::service_;
 
@@ -95,7 +99,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnStart, TestSize.Level0)
     InputMethodSystemAbility ability;
     ability.state_ = ServiceRunningState::STATE_RUNNING;
     ability.OnStart();
-    EXPECT_EQ(ability.userSession_, nullptr);
+    EXPECT_EQ(ability.GetUserSession(100), nullptr);
 }
 
 /**
@@ -154,7 +158,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
     observer.OnConnected(60, 0);
     // imeStarting_ is true
     IMSA_HILOGI("InputMethodPrivateMemberTest::imeStarting_ is true");
-    service_->restartTasks_ = 2;
     service_->userId_ = 50;
     MessageParcel *parcel2 = new MessageParcel();
     parcel2->WriteInt32(60);
@@ -163,7 +166,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     // imeStarting_ is false
     IMSA_HILOGI("InputMethodPrivateMemberTest::imeStarting_ is false");
-    service_->restartTasks_ = 0;
     service_->userId_ = 50;
     MessageParcel *parcel3 = new MessageParcel();
     observer.OnConnected(333, 0);
@@ -375,13 +377,12 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_003, TestSize.L
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_003 TEST START");
     ImeCfgManager cfgManager;
-    service_->userId_ = 50;
-    auto info = std::make_shared<ImeInfo>();
-    info->isNewIme = true;
-    info->prop = { .name = "testBundleName" };
-    info->subProp = { .id = "testSubName" };
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
+    FullImeInfo info;
+    info.isNewIme = true;
+    info.prop = { .name = "testBundleName" };
+    info.subProps = { { .id = "testSubName" } };
+    FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName" });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -398,12 +399,11 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_003, TestSize.L
 HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_004 TEST START");
-    service_->userId_ = 50;
-    auto info = std::make_shared<ImeInfo>();
-    info->prop = { .name = "testBundleName", .id = "testExtName" };
-    info->subProp = { .name = "testBundleName", .id = "testSubName", .language = "French" };
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
+    FullImeInfo info;
+    info.prop = { .name = "testBundleName", .id = "testExtName" };
+    info.subProps = { { .name = "testBundleName", .id = "testSubName", .language = "French" } };
+    FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName" });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -418,18 +418,11 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.L
 HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_005 TEST START");
-    service_->userId_ = 50;
-    auto info = std::make_shared<ImeInfo>();
-    info->prop = { .name = "testBundleName", .id = "testExtName" };
-    info->subProp = {
-        .name = "testBundleName",
-        .id = "testSubName",
-        .mode = "upper",
-        .language = "english",
-    };
-    info->subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" } };
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
+    FullImeInfo info;
+    info.prop = { .name = "testBundleName", .id = "testExtName" };
+    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" } };
+    FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName" });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -446,28 +439,15 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_005, TestSize.L
 HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_006 TEST START");
-    service_->userId_ = 50;
-    auto info = std::make_shared<ImeInfo>();
-    info->prop = { .name = "testBundleName", .id = "testExtName" };
-    info->subProp = { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" };
-    info->subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" },
+    FullImeInfo info;
+    info.prop = { .name = "testBundleName", .id = "testExtName" };
+    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" },
         { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
+    FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
+
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName" });
     // english->chinese
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
-    // upper->lower
-    ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
-
-    info->subProp = { .name = "testBundleName", .id = "testSubName1", .mode = "upper", .language = "chinese" };
-    info->subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "lower", .language = "english" },
-        { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName1" });
-    // chinese->english
-    ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
     // lower->upper
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);

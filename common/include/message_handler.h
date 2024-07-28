@@ -41,6 +41,7 @@ enum {
     MSG_ID_SELECT_BY_RANGE,
     MSG_ID_SELECT_BY_MOVEMENT,
     MSG_ID_HANDLE_EXTEND_ACTION,
+    MSG_ID_USER_STOP,
 
     MSG_ID_HIDE_KEYBOARD_SELF, // hide the current keyboard
 

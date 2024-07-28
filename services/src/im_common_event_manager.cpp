@@ -33,6 +33,7 @@ sptr<ImCommonEventManager> ImCommonEventManager::instance_;
 std::mutex ImCommonEventManager::instanceLock_;
 using namespace OHOS::EventFwk;
 constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf.input_panel_status_changed";
+constexpr const char *COMMON_EVENT_PARAM_USER_ID = "userId";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_RECT = "panelRect";
 constexpr int32_t INVALID_USER_ID = -1;
@@ -65,6 +66,7 @@ bool ImCommonEventManager::SubscribeEvent()
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_CHANGED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_STOPPED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
@@ -211,6 +213,10 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
             return that->StartUser(data);
         };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_STOPPED] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->StopUser(data);
+        };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_REMOVED] =
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
             return that->RemoveUser(data);
@@ -246,6 +252,16 @@ void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::Commo
     if (iter != EventManagerFunc_.end()) {
         EventManagerFunc_[action] (this, data);
     }
+}
+
+void ImCommonEventManager::EventSubscriber::StopUser(const CommonEventData &data)
+{
+    auto userId = data.GetCode();
+    IMSA_HILOGI("ImCommonEventManager, userId: %{public}d", userId);
+    MessageParcel *parcel = new MessageParcel();
+    parcel->WriteInt32(userId);
+    Message *msg = new Message(MessageID::MSG_ID_USER_STOP, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
 }
 
 void ImCommonEventManager::EventSubscriber::StartUser(const CommonEventData &data)
@@ -368,12 +384,13 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility
     }
 }
 
-void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(int32_t systemAbilityId,
-    const std::string &deviceId)
+void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(
+    int32_t systemAbilityId, const std::string &deviceId)
 {
 }
 
-int32_t ImCommonEventManager::PublishPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info)
+int32_t ImCommonEventManager::PublishPanelStatusChangeEvent(
+    int32_t userId, const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     EventFwk::CommonEventPublishInfo publicInfo;
     publicInfo.SetOrdered(false);
@@ -382,6 +399,7 @@ int32_t ImCommonEventManager::PublishPanelStatusChangeEvent(const InputWindowSta
     bool visible = (status == InputWindowStatus::SHOW);
     std::vector<int32_t> panelRect = { info.windowInfo.left, info.windowInfo.top,
         static_cast<int32_t>(info.windowInfo.width), static_cast<int32_t>(info.windowInfo.height) };
+    want.SetParam(COMMON_EVENT_PARAM_USER_ID, userId);
     want.SetParam(COMMON_EVENT_PARAM_PANEL_STATE, visible);
     want.SetParam(COMMON_EVENT_PARAM_PANEL_RECT, panelRect);
     EventFwk::CommonEventData data;

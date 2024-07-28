@@ -18,7 +18,7 @@
 #include <functional>
 namespace OHOS {
 namespace MiscServices {
-using ChangeHandler = std::function<void(int32_t userId, int32_t screenId)>;
+using ChangeHandler = std::function<void(bool isConnected, int32_t userId, int32_t screenId)>;
 class WmsConnectionMonitorManager {
 public:
     static WmsConnectionMonitorManager &GetInstance();

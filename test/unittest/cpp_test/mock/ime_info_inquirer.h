@@ -26,13 +26,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-struct ImeInfo {
-    std::string moduleName;
-    Property prop;
-    SubProperty subProp;
-    std::vector<SubProperty> subProps;
-    bool isNewIme{ false };
-};
 class ImeInfoInquirer {
 public:
     static ImeInfoInquirer &GetInstance();

@@ -84,7 +84,6 @@ void ImfSaStubFuzzUtil::Initialize()
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->InitServiceHandler();
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->userSession_->UpdateCurrentUserId(USER_ID);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->SubscribeCommonEvent();
     int32_t ret = DelayedSingleton<InputMethodSystemAbility>::GetInstance()->InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
