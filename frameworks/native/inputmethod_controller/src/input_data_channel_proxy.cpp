@@ -142,9 +142,13 @@ int32_t InputDataChannelProxy::SetPreviewText(const std::string &text, const Ran
         [&text, &range](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text, range); });
 }
 
-int32_t InputDataChannelProxy::FinishTextPreview()
+int32_t InputDataChannelProxy::FinishTextPreview(bool isAsync)
 {
-    return SendRequest(FINISH_TEXT_PREVIEW);
+    if (isAsync) {
+        return SendRequest(FINISH_TEXT_PREVIEW, nullptr, nullptr, MessageOption::TF_ASYNC);
+    } else {
+        return SendRequest(FINISH_TEXT_PREVIEW);
+    }
 }
 
 void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option)
@@ -162,12 +166,11 @@ void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option
     }
 }
 
-int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
+int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)
 {
     IMSA_HILOGD("InputDataChannelProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
     GetMessageOption(code, option);
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {

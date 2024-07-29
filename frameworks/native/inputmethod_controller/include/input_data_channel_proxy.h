@@ -54,12 +54,13 @@ public:
     void NotifyKeyboardHeight(uint32_t height) override;
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t SetPreviewText(const std::string &text, const Range &range) override;
-    int32_t FinishTextPreview() override;
+    int32_t FinishTextPreview(bool isAsync) override;
 
 private:
     static inline BrokerDelegator<InputDataChannelProxy> delegator_;
     using ParcelHandler = std::function<bool(MessageParcel &)>;
-    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
+    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr,
+        MessageOption option = MessageOption::TF_SYNC);
     void GetMessageOption(int32_t code, MessageOption &option);
 };
 } // namespace MiscServices

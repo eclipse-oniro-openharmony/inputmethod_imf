@@ -1279,7 +1279,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_001, TestSize.Level0)
     TextListener::ResetParam();
     InputMethodAbilityTest::GetIMCAttachIMA();
     InputMethodAbilityTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
-    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview();
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
     InputMethodAbilityTest::GetIMCDetachIMA();
@@ -1298,7 +1298,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_002, TestSize.Level0)
     TextListener::ResetParam();
     InputMethodAbilityTest::inputMethodAbility_->ClearDataChannel(
         InputMethodAbilityTest::inputMethodAbility_->dataChannelObject_);
-    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview();
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview(false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
@@ -1316,7 +1316,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_003, TestSize.Level0)
     TextListener::ResetParam();
     InputMethodAbilityTest::GetIMCAttachIMA();
     InputMethodAbilityTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = false;
-    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview();
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview(false);
     EXPECT_EQ(ret, ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED);
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
     InputMethodAbilityTest::GetIMCDetachIMA();

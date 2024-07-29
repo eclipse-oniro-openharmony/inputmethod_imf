@@ -56,7 +56,7 @@ public:
     void NotifyKeyboardHeight(uint32_t height) override;
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t SetPreviewText(const std::string &text, const Range &range) override;
-    int32_t FinishTextPreview() override;
+    int32_t FinishTextPreview(bool isAsync) override;
 
 private:
     int32_t InvalidRequest(MessageParcel &data, MessageParcel &reply)

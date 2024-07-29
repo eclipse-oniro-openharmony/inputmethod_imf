@@ -239,7 +239,8 @@ int32_t InputDataChannelStub::SetPreviewTextOnRemote(MessageParcel &data, Messag
 
 int32_t InputDataChannelStub::FinishTextPreviewOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    return reply.WriteInt32(FinishTextPreview()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    bool isAsync = false;
+    return reply.WriteInt32(FinishTextPreview(isAsync)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
@@ -340,7 +341,7 @@ int32_t InputDataChannelStub::SetPreviewText(const std::string &text, const Rang
     return InputMethodController::GetInstance()->SetPreviewText(text, range);
 }
 
-int32_t InputDataChannelStub::FinishTextPreview()
+int32_t InputDataChannelStub::FinishTextPreview(bool isAsync)
 {
     return InputMethodController::GetInstance()->FinishTextPreview();
 }

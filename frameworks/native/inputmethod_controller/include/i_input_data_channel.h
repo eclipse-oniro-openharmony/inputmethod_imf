@@ -75,7 +75,7 @@ public:
     virtual void NotifyKeyboardHeight(uint32_t height) = 0;
     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
     virtual int32_t SetPreviewText(const std::string &text, const Range &range) = 0;
-    virtual int32_t FinishTextPreview() = 0;
+    virtual int32_t FinishTextPreview(bool isAsync) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
