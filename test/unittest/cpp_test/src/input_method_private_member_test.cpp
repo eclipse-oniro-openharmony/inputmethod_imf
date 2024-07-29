@@ -40,6 +40,7 @@
 #include "keyboard_event.h"
 #include "os_account_manager.h"
 #include "tdd_util.h"
+#include "user_session_manager.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -67,8 +68,6 @@ void InputMethodPrivateMemberTest::SetUpTestCase(void)
 void InputMethodPrivateMemberTest::TearDownTestCase(void)
 {
     service_->OnStop();
-    delete service_;
-    service_ = nullptr;
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDownTestCase");
 }
 
@@ -99,7 +98,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnStart, TestSize.Level0)
     InputMethodSystemAbility ability;
     ability.state_ = ServiceRunningState::STATE_RUNNING;
     ability.OnStart();
-    EXPECT_EQ(ability.GetUserSession(100), nullptr);
+    EXPECT_EQ(ability.identityChecker_, nullptr);
 }
 
 /**

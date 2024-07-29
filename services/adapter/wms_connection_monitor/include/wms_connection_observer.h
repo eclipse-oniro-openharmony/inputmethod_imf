@@ -30,14 +30,14 @@ namespace OHOS {
 namespace MiscServices {
 class WmsConnectionObserver : public Rosen::IWMSConnectionChangedListener {
 public:
-    explicit WmsConnectionObserver(ChangeHandler handler) : handler_(std::move(handler)){};
+    explicit WmsConnectionObserver(ChangeHandler handler) : changeHandler_(std::move(handler)){};
     ~WmsConnectionObserver() = default;
     void OnConnected(int32_t userId, int32_t screenId) override;
     void OnDisconnected(int32_t userId, int32_t screenId) override;
     static bool IsWmsConnected(int32_t userId);
 
 private:
-    ChangeHandler handler_ = nullptr;
+    ChangeHandler changeHandler_ = nullptr;
     static void Add(int32_t userId);
     static void Remove(int32_t userId);
     static std::mutex lock_;

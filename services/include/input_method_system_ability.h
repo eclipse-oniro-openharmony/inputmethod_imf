@@ -23,10 +23,8 @@
 #include "application_info.h"
 #include "block_queue.h"
 #include "bundle_mgr_proxy.h"
-#include "enable_ime_data_parser.h"
-#include "settings_data_utils.h"
-#include "security_mode_parser.h"
 #include "element_name.h"
+#include "enable_ime_data_parser.h"
 #include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
@@ -34,7 +32,9 @@
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
-#include "peruser_session.h"
+#include "message.h"
+#include "security_mode_parser.h"
+#include "settings_data_utils.h"
 #include "system_ability.h"
 #include "unRegistered_type.h"
 
@@ -96,16 +96,8 @@ private:
     void Initialize();
 
     std::thread workThreadHandler; /*!< thread handler of the WorkThread */
-    std::mutex userSessionsLock_;
-    std::unordered_map<int32_t, std::shared_ptr<PerUserSession>> userSessions_;
-    std::unordered_map<int32_t, std::shared_ptr<PerUserSession>> &GetUserSessions();
-    std::shared_ptr<PerUserSession> GetUserSession(int32_t userId);
-    void AddUserSession(int32_t userId);
-    void RemoveUserSession(int32_t userId);
     int32_t GetUserId(int32_t uid);
     int32_t GetCallingUserId();
-    void OnFocused(int32_t pid, int32_t uid);
-    void OnUnFocused(int32_t pid, int32_t uid);
     std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;
     int32_t PrepareInput(int32_t userId, InputClientInfo &clientInfo);
     void WorkThread();
@@ -128,7 +120,6 @@ private:
     int32_t SwitchInputType(int32_t userId, const SwitchInfo &switchInfo);
     ServiceRunningState state_;
     void InitServiceHandler();
-    int32_t GetCurrentUserIdFromOsAccount();
     void UpdateUserInfo(int32_t userId);
     void HandleWmsConnected(int32_t userId, int32_t screenId);
     void HandleWmsDisconnected(int32_t userId, int32_t screenId);
@@ -137,6 +128,7 @@ private:
     void HandleWmsStarted();
     void HandleMemStarted();
     void HandleOsAccountStarted();
+    void HandleFocusChanged(bool isFocused, int32_t pid, int32_t uid);
     void StopImeInBackground();
     int32_t InitAccountMonitor();
     int32_t RegisterDataShareObserver();
@@ -152,6 +144,7 @@ private:
     void InitSystemLanguageMonitor();
     bool InitMemMgrMonitor();
     void InitWmsConnectionMonitor();
+    void InitFocusChangedMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();

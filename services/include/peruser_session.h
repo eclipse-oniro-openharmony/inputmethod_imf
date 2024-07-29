@@ -75,6 +75,7 @@ struct ImeData {
 class PerUserSession {
 public:
     explicit PerUserSession(int userId);
+    PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
@@ -115,7 +116,6 @@ public:
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
     int32_t RemoveCurrentClient();
     std::shared_ptr<ImeData> GetImeData(ImeType type);
-    void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
     BlockQueue<SwitchInfo>& GetSwitchQueue();
 
 private:
@@ -214,7 +214,7 @@ private:
 
     std::mutex restartMutex_;
     int32_t restartTasks_ = 0;
-    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_{ nullptr };
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -63,6 +63,13 @@ int32_t FullImeInfoManager::Init()
 
 int32_t FullImeInfoManager::Add(int32_t userId)
 {
+    {
+        std::lock_guard<std::mutex> lock(lock_);
+        auto it = fullImeInfos_.find(userId);
+        if (it != fullImeInfos_.end()) {
+            return ErrorCode::NO_ERROR;
+        }
+    }
     std::vector<FullImeInfo> infos;
     auto ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId, infos);
     if (ret != ErrorCode::NO_ERROR) {

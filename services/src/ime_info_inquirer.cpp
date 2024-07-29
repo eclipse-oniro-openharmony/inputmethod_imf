@@ -30,8 +30,7 @@
 #include "iservice_registry.h"
 #include "locale_config.h"
 #include "locale_info.h"
-#include "os_account_info.h"
-#include "os_account_manager.h"
+#include "os_account_adapter.h"
 #include "parameter.h"
 #include "string_ex.h"
 #include "system_ability.h"
@@ -42,7 +41,6 @@ namespace MiscServices {
 namespace {
 using namespace OHOS::AppExecFwk;
 using namespace Global::Resource;
-using namespace AccountSA;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
 constexpr const char *TEMPORARY_INPUT_METHOD_METADATA_NAME = "ohos.extension.temporary_input_method";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
@@ -920,9 +918,8 @@ std::shared_ptr<ResourceManager> ImeInfoInquirer::GetResMgr(const std::string &r
 
 int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos)
 {
-    std::vector<int32_t> userIds;
-    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
+    auto userIds = OsAccountAdapter::QueryActiveOsAccountIds();
+    if (userIds.empty()) {
         return ErrorCode::ERROR_OS_ACCOUNT;
     }
     for (auto &userId : userIds) {

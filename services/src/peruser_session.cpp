@@ -29,7 +29,7 @@
 #include "iservice_registry.h"
 #include "mem_mgr_client.h"
 #include "message_parcel.h"
-#include "os_account_manager.h"
+#include "os_account_adapter.h"
 #include "parcel.h"
 #include "scene_board_judgement.h"
 #include "security_mode_parser.h"
@@ -45,7 +45,12 @@ using namespace MessageID;
 constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
 constexpr const char *STRICT_MODE = "strictMode";
-PerUserSession::PerUserSession(int32_t userId) : userId_(userId)
+PerUserSession::PerUserSession(int userId) : userId_(userId)
+{
+}
+
+PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
+    : userId_(userId), eventHandler_(eventHandler)
 {
 }
 
@@ -241,10 +246,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     IMSA_HILOGI("type: %{public}d.", type);
     RemoveImeData(type, true);
     InputTypeManager::GetInstance().Set(false);
-    bool isForeground = false;
-    auto errCode = OHOS::AccountSA::OsAccountManager::IsOsAccountForeground(userId_, isForeground);
-    IMSA_HILOGD("userId:%{public}d, foreground:%{public}d, errCode:%{public}d.", userId_, isForeground, errCode);
-    if (!isForeground) {
+    if (!OsAccountAdapter::IsOsAccountForeground(userId_)) {
         IMSA_HILOGW("userId:%{public}d in background, no need to restart ime.", userId_);
         return;
     }
@@ -1319,12 +1321,12 @@ bool PerUserSession::IsReadyStartIme()
         return false;
     }
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        return WmsConnectionObserver::IsWmsConnected(userId_)
-               && saMgr->CheckSystemAbility(MEMORY_MANAGER_SA_ID) != nullptr;
+        return WmsConnectionObserver::IsWmsConnected(userId_) &&
+               saMgr->CheckSystemAbility(MEMORY_MANAGER_SA_ID) != nullptr;
     }
 
-    return saMgr->CheckSystemAbility(WINDOW_MANAGER_SERVICE_ID) != nullptr
-           && saMgr->CheckSystemAbility(MEMORY_MANAGER_SA_ID) != nullptr;
+    return saMgr->CheckSystemAbility(WINDOW_MANAGER_SERVICE_ID) != nullptr &&
+           saMgr->CheckSystemAbility(MEMORY_MANAGER_SA_ID) != nullptr;
 }
 
 bool PerUserSession::RestartCurrentIme()
@@ -1366,12 +1368,11 @@ bool PerUserSession::RestartIme()
             restartTasks_ = 0;
         }
     };
+    if (eventHandler_ == nullptr) {
+        IMSA_HILOGE("eventHandler_ is nullptr!");
+        return false;
+    }
     return eventHandler_->PostTask(task, "RestartCurrentImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-}
-
-void PerUserSession::SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
-{
-    eventHandler_ = eventHandler;
 }
 
 BlockQueue<SwitchInfo>& PerUserSession::GetSwitchQueue()

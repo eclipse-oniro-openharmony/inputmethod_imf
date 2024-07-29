@@ -41,7 +41,7 @@ public:
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent();
     bool SubscribeKeyboardEvent(KeyHandle handle);
-    bool SubscribeWindowManagerService(FocusHandle handle, Handler inputHandler);
+    bool SubscribeWindowManagerService(const Handler &handler);
     bool SubscribeMemMgrService(const Handler &handler);
     bool SubscribeAccountManagerService(Handler handle);
     bool UnsubscribeEvent();
@@ -64,6 +64,7 @@ public:
         using EventListenerFunc = std::function<void(EventSubscriber *that, const EventFwk::CommonEventData &data)>;
         std::map<std::string, EventListenerFunc> EventManagerFunc_;
         void HandlePackageEvent(int32_t messageId, const EventFwk::CommonEventData &data);
+        void HandleUserEvent(int32_t messageId, const EventFwk::CommonEventData &data);
     };
 
 private:
@@ -81,9 +82,6 @@ private:
 private:
     static std::mutex instanceLock_;
     static sptr<ImCommonEventManager> instance_;
-    sptr<ISystemAbilityStatusChange> statusChangeListener_ = nullptr;
-    sptr<ISystemAbilityStatusChange> keyboardEventListener_ = nullptr;
-    sptr<ISystemAbilityStatusChange> focusChangeEventListener_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS
