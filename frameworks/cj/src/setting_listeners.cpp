@@ -22,8 +22,6 @@
 namespace OHOS::MiscServices {
 
 std::mutex CJGetInputMethodSetting::msMutex_;
-std::shared_ptr<AppExecFwk::EventHandler> CJGetInputMethodSetting::handler_{ nullptr };
-std::mutex CJGetInputMethodSetting::eventHandlerMutex_;
 std::shared_ptr<CJGetInputMethodSetting> CJGetInputMethodSetting::inputMethod_{ nullptr };
 
 std::shared_ptr<CJGetInputMethodSetting> CJGetInputMethodSetting::GetIMSInstance()
@@ -70,29 +68,11 @@ int32_t CJGetInputMethodSetting::UnSubscribe(uint32_t type)
 void CJGetInputMethodSetting::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
     std::string type = "imeChange";
-    auto eventHandler = CJGetInputMethodSetting::GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
-    IMSA_HILOGI("start");
-    auto task = [property, subProperty, this]() {
-        CInputMethodProperty prop;
-        CInputMethodSubtype subProp;
-        Utils::InputMethodSubProperty2C(&subProp, subProperty);
-        Utils::InputMethodProperty2C(&prop, property);
-        callback(prop, subProp);
-    };
-    eventHandler->PostTask(task, type);
-}
-
-std::shared_ptr<AppExecFwk::EventHandler> CJGetInputMethodSetting::GetEventHandler()
-{
-    if (handler_ == nullptr) {
-        std::lock_guard<std::mutex> lock(eventHandlerMutex_);
-        handler_ = AppExecFwk::EventHandler::Current();
-    }
-    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
-    return handler_;
+    IMSA_HILOGD("start");
+    CInputMethodProperty prop;
+    CInputMethodSubtype subProp;
+    Utils::InputMethodSubProperty2C(subProp, subProperty);
+    Utils::InputMethodProperty2C(prop, property);
+    callback(prop, subProp);
 }
 }

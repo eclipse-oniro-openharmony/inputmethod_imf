@@ -32,12 +32,9 @@ namespace OHOS::MiscServices {
         void OnImeChange(const Property &property, const SubProperty &subProperty) override;
 
     private:
-        static std::mutex eventHandlerMutex_;
-        static std::shared_ptr<AppExecFwk::EventHandler> handler_;
         static std::mutex msMutex_;
         static std::shared_ptr<CJGetInputMethodSetting> inputMethod_;
         std::function<void(CInputMethodProperty, CInputMethodSubtype)> callback = nullptr;
-        static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     };
 }
 

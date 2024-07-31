@@ -26,7 +26,7 @@ namespace OHOS::MiscServices
 {
     extern "C"
     {
-        int32_t CJ_GetDefaultInputMethod(CInputMethodProperty *props)
+        int32_t CJ_GetDefaultInputMethod(CInputMethodProperty &props)
         {
             std::shared_ptr<Property> property;
             int32_t ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
@@ -39,7 +39,7 @@ namespace OHOS::MiscServices
             return ret;
         }
 
-        int32_t CJ_GetCurrentInputMethod(CInputMethodProperty *props)
+        int32_t CJ_GetCurrentInputMethod(CInputMethodProperty &props)
         {
             std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
             if (property == nullptr)
@@ -74,7 +74,7 @@ namespace OHOS::MiscServices
             return errCode;
         }
 
-        int32_t CJ_GetCurrentInputMethodSubtype(CInputMethodSubtype *props)
+        int32_t CJ_GetCurrentInputMethodSubtype(CInputMethodSubtype &props)
         {
             std::shared_ptr<SubProperty> subProperty = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
             if (subProperty == nullptr) {
@@ -111,7 +111,7 @@ namespace OHOS::MiscServices
             IMSA_HILOGI("exec ListInputMethodSubtype success");
             ret.size = subProps.size();
             if (ret.size > 0) {
-                ret.head = static_cast<CInputMethodSubtype *>(malloc(sizeof(CInputMethodSubtype*) * ret.size));
+                ret.head = static_cast<CInputMethodSubtype *>(malloc(sizeof(CInputMethodSubtype) * ret.size));
             }
             if (ret.head == nullptr) {
                 ret.size = 0;
@@ -119,7 +119,7 @@ namespace OHOS::MiscServices
             }
             for (unsigned int i = 0; i < ret.size; i++) {
                 CInputMethodSubtype props;
-                Utils::InputMethodSubProperty2C(&props, subProps[i]);
+                Utils::InputMethodSubProperty2C(props, subProps[i]);
                 ret.head[i] = props;
             }
             return ret;
@@ -138,7 +138,7 @@ namespace OHOS::MiscServices
             IMSA_HILOGI("exec ListCurrentInputMethodSubtype success.");
             ret.size = subProps.size();
             if (ret.size > 0) {
-                ret.head = static_cast<CInputMethodSubtype *>(malloc(sizeof(CInputMethodSubtype*) * ret.size));
+                ret.head = static_cast<CInputMethodSubtype *>(malloc(sizeof(CInputMethodSubtype) * ret.size));
             }
             if (ret.head == nullptr) {
                 ret.size = 0;
@@ -146,7 +146,7 @@ namespace OHOS::MiscServices
             }
             for (unsigned int i = 0; i < ret.size; i++) {
                 CInputMethodSubtype props;
-                Utils::InputMethodSubProperty2C(&props, subProps[i]);
+                Utils::InputMethodSubProperty2C(props, subProps[i]);
                 ret.head[i] = props;
             }
             return ret;
@@ -164,7 +164,7 @@ namespace OHOS::MiscServices
             }
             ret.size = properties.size();
             if (ret.size > 0) {
-                ret.head = static_cast<CInputMethodProperty *>(malloc(sizeof(CInputMethodProperty*) * ret.size));
+                ret.head = static_cast<CInputMethodProperty *>(malloc(sizeof(CInputMethodProperty) * ret.size));
             }
             if (ret.head == nullptr) {
                 ret.size = 0;
@@ -172,7 +172,7 @@ namespace OHOS::MiscServices
             }
             for (unsigned int i = 0; i < ret.size; i++) {
                 CInputMethodProperty props;
-                Utils::InputMethodProperty2C(&props, properties[i]);
+                Utils::InputMethodProperty2C(props, properties[i]);
                 ret.head[i] = props;
             }
             return ret;
@@ -190,7 +190,7 @@ namespace OHOS::MiscServices
             }
             ret.size = properties.size();
             if (ret.size > 0) {
-                ret.head = static_cast<CInputMethodProperty *>(malloc(sizeof(CInputMethodProperty*) * ret.size));
+                ret.head = static_cast<CInputMethodProperty *>(malloc(sizeof(CInputMethodProperty) * ret.size));
             }
             if (ret.head == nullptr) {
                 ret.size = 0;
@@ -198,7 +198,7 @@ namespace OHOS::MiscServices
             }
             for (unsigned int i = 0; i < ret.size; i++) {
                 CInputMethodProperty props;
-                Utils::InputMethodProperty2C(&props, properties[i]);
+                Utils::InputMethodProperty2C(props, properties[i]);
                 ret.head[i] = props;
             }
             return ret;
@@ -223,6 +223,16 @@ namespace OHOS::MiscServices
                 result = true;
             }
             return errCode;
+        }
+
+        int32_t CJ_InputMethodCOntrollerOn(char* type, int64_t id)
+        {
+            return 0;
+        }
+
+        int32_t CJ_InputMethodCOntrollerOff(char* type)
+        {
+            return 0;
         }
     }
 }

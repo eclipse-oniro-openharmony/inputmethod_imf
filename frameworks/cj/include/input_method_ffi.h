@@ -19,11 +19,11 @@
 #include "input_method_ffi_structs.h"
 
 extern "C" {
-    FFI_EXPORT int32_t CJ_GetDefaultInputMethod(CInputMethodProperty* props);
-    FFI_EXPORT int32_t CJ_GetCurrentInputMethod(CInputMethodProperty* props);
+    FFI_EXPORT int32_t CJ_GetDefaultInputMethod(CInputMethodProperty &props);
+    FFI_EXPORT int32_t CJ_GetCurrentInputMethod(CInputMethodProperty &props);
     FFI_EXPORT int32_t CJ_SwitchInputMethod(bool &result, CInputMethodProperty props);
     FFI_EXPORT int32_t CJ_SwitchCurrentInputMethodSubtype(bool &result, CInputMethodSubtype target);
-    FFI_EXPORT int32_t CJ_GetCurrentInputMethodSubtype(CInputMethodSubtype* props);
+    FFI_EXPORT int32_t CJ_GetCurrentInputMethodSubtype(CInputMethodSubtype &props);
     FFI_EXPORT int32_t CJ_SwitchCurrentInputMethodAndSubtype(bool &result, CInputMethodProperty target, CInputMethodSubtype subtype);
     FFI_EXPORT RetInputMethodSubtype CJ_ListInputMethodSubtype(CInputMethodProperty props);
     FFI_EXPORT RetInputMethodSubtype CJ_ListCurrentInputMethodSubtype();
@@ -32,6 +32,8 @@ extern "C" {
     FFI_EXPORT int32_t CJ_InputMethodSettingOn(uint32_t type, void (*func)(CInputMethodProperty, CInputMethodSubtype));
     FFI_EXPORT int32_t CJ_InputMethodSettingOff(uint32_t type);
     FFI_EXPORT int32_t CJ_ShowOptionalInputMethods(bool& result);
+    FFI_EXPORT int32_t CJ_InputMethodCOntrollerOn(char* type, int64_t id);
+    FFI_EXPORT int32_t CJ_InputMethodCOntrollerOff(char* type);
 }
 
 #endif // INPUT_METHOD_FFI_H

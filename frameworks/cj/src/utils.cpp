@@ -30,14 +30,14 @@ char* Utils::MallocCString(const std::string &origin)
     return std::char_traits<char>::copy(res, origin.c_str(), len);
 }
 
-void Utils::InputMethodProperty2C(CInputMethodProperty *props, const Property &property)
+void Utils::InputMethodProperty2C(CInputMethodProperty &props, const Property &property)
 {
-    props->name = Utils::MallocCString(property.name);
-    props->id = Utils::MallocCString(property.id);
-    props->label = Utils::MallocCString(property.label);
-    props->labelId = property.labelId;
-    props->icon = Utils::MallocCString(property.icon);
-    props->iconId = property.iconId;
+    props.name = Utils::MallocCString(property.name);
+    props.id = Utils::MallocCString(property.id);
+    props.label = Utils::MallocCString(property.label);
+    props.labelId = property.labelId;
+    props.icon = Utils::MallocCString(property.icon);
+    props.iconId = property.iconId;
 }
 
 Property Utils::C2InputMethodProperty(CInputMethodProperty props)
@@ -52,16 +52,16 @@ Property Utils::C2InputMethodProperty(CInputMethodProperty props)
     return property;
 }
 
-void Utils::InputMethodSubProperty2C(CInputMethodSubtype *props, const SubProperty &property)
+void Utils::InputMethodSubProperty2C(CInputMethodSubtype &props, const SubProperty &property)
 {
-    props->name = Utils::MallocCString(property.name);
-    props->id = Utils::MallocCString(property.id);
-    props->label = Utils::MallocCString(property.label);
-    props->labelId = property.labelId;
-    props->icon = Utils::MallocCString(property.icon);
-    props->iconId = property.iconId;
-    props->mode = Utils::MallocCString(property.mode);
-    props->locale = Utils::MallocCString(property.locale);
-    props->language = Utils::MallocCString(property.language);
+    props.name = Utils::MallocCString(property.name);
+    props.id = Utils::MallocCString(property.id);
+    props.label = Utils::MallocCString(property.label);
+    props.labelId = property.labelId;
+    props.icon = Utils::MallocCString(property.icon);
+    props.iconId = property.iconId;
+    props.mode = Utils::MallocCString(property.mode);
+    props.locale = Utils::MallocCString(property.locale);
+    props.language = Utils::MallocCString(property.language);
 }
 }
