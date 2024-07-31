@@ -86,13 +86,13 @@ int32_t TddUtil::GetCurrentUserId()
     if (userID_ != INVALID_USER_ID) {
         return userID_;
     }
-    std::vector<int32_t> userIds;
-    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-        IMSA_HILOGE("query active os account id failed");
+    int32_t userId = -1;
+    auto ret = OsAccountManager::GetForegroundOsAccountLocalId(userId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetForegroundOsAccountLocalId failed");
         return MAIN_USER_ID;
     }
-    return userIds[0];
+    return userId;
 }
 void TddUtil::StorageSelfTokenID()
 {

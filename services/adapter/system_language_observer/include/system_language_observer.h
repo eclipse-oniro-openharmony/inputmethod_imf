@@ -23,15 +23,13 @@ namespace OHOS {
 namespace MiscServices {
 class SystemLanguageObserver {
 public:
-    using ChangeHandler = std::function<void()>;
     static SystemLanguageObserver &GetInstance();
-    void Watch(ChangeHandler handler);
+    void Watch();
 
 private:
     static constexpr const char *SYSTEM_LANGUAGE_KEY = "persist.global.language";
     SystemLanguageObserver() = default;
     static void OnChange(const char *key, const char *value, void *context);
-    static ChangeHandler handler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

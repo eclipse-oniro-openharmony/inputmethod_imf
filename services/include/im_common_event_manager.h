@@ -41,12 +41,12 @@ public:
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent();
     bool SubscribeKeyboardEvent(KeyHandle handle);
-    bool SubscribeWindowManagerService(FocusHandle handle, Handler inputHandler);
+    bool SubscribeWindowManagerService(const Handler &handler);
     bool SubscribeMemMgrService(const Handler &handler);
     bool SubscribeAccountManagerService(Handler handle);
     bool UnsubscribeEvent();
     // only public the status change of softKeyboard in FLG_FIXED or FLG_FLOATING
-    int32_t PublishPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info);
+    int32_t PublishPanelStatusChangeEvent(int32_t userId, const InputWindowStatus &status, const ImeWindowInfo &info);
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
     public:
         EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo);
@@ -54,6 +54,7 @@ public:
         void RemovePackage(const EventFwk::CommonEventData &data);
         void StartUser(const EventFwk::CommonEventData &data);
         void RemoveUser(const EventFwk::CommonEventData &data);
+        void StopUser(const EventFwk::CommonEventData &data);
         void OnBundleScanFinished(const EventFwk::CommonEventData &data);
         void AddPackage(const EventFwk::CommonEventData &data);
         void ChangePackage(const EventFwk::CommonEventData &data);
@@ -63,6 +64,7 @@ public:
         using EventListenerFunc = std::function<void(EventSubscriber *that, const EventFwk::CommonEventData &data)>;
         std::map<std::string, EventListenerFunc> EventManagerFunc_;
         void HandlePackageEvent(int32_t messageId, const EventFwk::CommonEventData &data);
+        void HandleUserEvent(int32_t messageId, const EventFwk::CommonEventData &data);
     };
 
 private:
@@ -80,9 +82,6 @@ private:
 private:
     static std::mutex instanceLock_;
     static sptr<ImCommonEventManager> instance_;
-    sptr<ISystemAbilityStatusChange> statusChangeListener_ = nullptr;
-    sptr<ISystemAbilityStatusChange> keyboardEventListener_ = nullptr;
-    sptr<ISystemAbilityStatusChange> focusChangeEventListener_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

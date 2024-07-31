@@ -73,7 +73,7 @@ public:
         static bool isBroker_;
         static bool isNativeSa_;
     };
-    static constexpr uint32_t CURRENT_USERID = 101;
+    static constexpr uint32_t MAIN_USER_ID = 100;
     static const constexpr char *CURRENT_IME = "testBundleName/testExtname";
     static const constexpr char *CURRENT_SUBNAME = "testSubName";
     static const constexpr char *CURRENT_BUNDLENAME = "testBundleName";
@@ -100,8 +100,7 @@ void IdentityCheckerTest::SetUpTestCase(void)
         return;
     }
     service_->OnStart();
-    service_->userId_ = CURRENT_USERID;
-    ImeCfgManager::GetInstance().imeConfigs_ = { { CURRENT_USERID, CURRENT_IME, CURRENT_SUBNAME } };
+    ImeCfgManager::GetInstance().imeConfigs_ = { { MAIN_USER_ID, CURRENT_IME, CURRENT_SUBNAME } };
     identityCheckerImpl_ = std::make_shared<IdentityCheckerImpl>();
 }
 

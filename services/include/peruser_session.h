@@ -24,6 +24,8 @@
 #include <variant>
 
 #include "block_data.h"
+#include "block_queue.h"
+#include "enable_ime_data_parser.h"
 #include "event_handler.h"
 #include "event_status_manager.h"
 #include "freeze_manager.h"
@@ -73,6 +75,7 @@ struct ImeData {
 class PerUserSession {
 public:
     explicit PerUserSession(int userId);
+    PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
@@ -89,7 +92,6 @@ public:
     void OnHideSoftKeyBoardSelf();
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
     int32_t SwitchSubtype(const SubProperty &subProperty);
-    void UpdateCurrentUserId(int32_t userId);
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
     int64_t GetCurrentClientPid();
@@ -98,17 +100,23 @@ public:
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
-    bool StartCurrentIme(int32_t userId, bool isRetry);
+
+    bool StartCurrentIme();
     void StopCurrentIme();
+    bool RestartCurrentIme();
     bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
+    bool RestartIme();
+    void AddRestartIme();
+
     bool IsProxyImeEnable();
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
-    bool IsWmsReady();
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
     int32_t RemoveCurrentClient();
+    std::shared_ptr<ImeData> GetImeData(ImeType type);
+    BlockQueue<SwitchInfo>& GetSwitchQueue();
 
 private:
     struct ResetManager {
@@ -125,6 +133,7 @@ private:
     static const int MAX_RESTART_NUM = 3;
     static const int IME_RESET_TIME_OUT = 3;
     static const int MAX_IME_START_TIME = 1000;
+    static constexpr int32_t MAX_RESTART_TASKS = 2;
     std::mutex clientLock_;
     sptr<IInputClient> currentClient_; // the current input client
     std::mutex resetLock;
@@ -135,6 +144,9 @@ private:
     PerUserSession &operator=(const PerUserSession &);
     PerUserSession(const PerUserSession &&);
     PerUserSession &operator=(const PerUserSession &&);
+
+    static constexpr int32_t MAX_WAIT_TIME = 5000;
+    BlockQueue<SwitchInfo> switchQueue_{ MAX_WAIT_TIME };
 
     void OnClientDied(sptr<IInputClient> remote);
     void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
@@ -153,7 +165,6 @@ private:
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     void RemoveImeData(ImeType type, bool isImeDied);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
-    std::shared_ptr<ImeData> GetImeData(ImeType type);
     std::shared_ptr<ImeData> GetValidIme(ImeType type);
 
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
@@ -167,8 +178,7 @@ private:
     int32_t ShowKeyboard(const sptr<IInputClient> &currentClient);
 
     int32_t InitInputControlChannel();
-    bool IsRestartIme();
-    void RestartIme();
+    void StartImeInImeDied();
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
     void ReplaceCurrentClient(const sptr<IInputClient> &client);
@@ -189,6 +199,7 @@ private:
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
+    bool IsReadyStartIme();
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;
@@ -200,6 +211,10 @@ private:
     std::atomic<bool> isSwitching_ = false;
     std::mutex imeStopMutex_;
     std::condition_variable imeStopCv_;
+
+    std::mutex restartMutex_;
+    int32_t restartTasks_ = 0;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_{ nullptr };
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -25,7 +25,7 @@ void WmsConnectionObserver::OnConnected(int32_t userId, int32_t screenId)
     IMSA_HILOGI("WMS connect, userId: %{public}d, screenId: %{public}d.", userId, screenId);
     Add(userId);
     if (changeHandler_ != nullptr) {
-        changeHandler_(userId, screenId);
+        changeHandler_(true, userId, screenId);
     }
 }
 
@@ -33,6 +33,9 @@ void WmsConnectionObserver::OnDisconnected(int32_t userId, int32_t screenId)
 {
     IMSA_HILOGI("WMS disconnect, userId: %{public}d, screenId: %{public}d.", userId, screenId);
     Remove(userId);
+    if (changeHandler_ != nullptr) {
+        changeHandler_(false, userId, screenId);
+    }
 }
 
 void WmsConnectionObserver::Add(int32_t userId)

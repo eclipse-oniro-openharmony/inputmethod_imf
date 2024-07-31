@@ -18,6 +18,7 @@
 #include "ipc_skeleton.h"
 #include "message_handler.h"
 #include "message_parcel.h"
+#include "os_account_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -53,8 +54,18 @@ int32_t InputControlChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &d
 
 int32_t InputControlChannelStub::HideKeyboardSelf()
 {
-    auto msg = new (std::nothrow) Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, nullptr);
+    auto userId = OsAccountAdapter::GetOsAccountLocalIdFromUid(IPCSkeleton::GetCallingUid());
+    if (userId == OsAccountAdapter::INVALID_USER_ID) {
+        return ErrorCode::ERROR_EX_ILLEGAL_STATE;
+    }
+    MessageParcel *parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    parcel->WriteInt32(userId);
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);
     if (msg == nullptr) {
+        delete parcel;
         return ErrorCode::ERROR_NULL_POINTER;
     }
     MessageHandler::Instance()->SendMessage(msg);

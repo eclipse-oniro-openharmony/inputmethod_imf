@@ -33,15 +33,6 @@
 #include "sys_cfg_parser.h"
 namespace OHOS {
 namespace MiscServices {
-
-struct ImeInfo {
-    std::string moduleName;
-    Property prop;
-    SubProperty subProp;
-    std::vector<SubProperty> subProps;
-    bool isNewIme{ false };
-};
-
 enum class Condition {
     UPPER = 0,
     LOWER,
@@ -86,10 +77,7 @@ public:
     std::shared_ptr<SubProperty> GetCurrentSubtype(int32_t userId);
     std::shared_ptr<ImeInfo> GetImeInfo(int32_t userId, const std::string &bundleName, const std::string &subName);
     std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
-    std::shared_ptr<ImeInfo> GetCurrentImeInfo();
     std::shared_ptr<Property> GetDefaultImeCfgProp();
-    void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
-    void RefreshCurrentImeInfo(int32_t userId);
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(const std::vector<SubProperty> &subProps,
         const Condition &condition);
     int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief = false);
@@ -111,13 +99,10 @@ private:
     ImeInfoInquirer() = default;
     ~ImeInfoInquirer() = default;
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
-    void InitCache(int32_t userId);
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
     std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const int32_t labelId,
         const int32_t userId);
     std::shared_ptr<ImeInfo> GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
-        const std::string &subName);
-    std::shared_ptr<ImeInfo> GetImeInfoFromBundleMgr(const int32_t userId, const std::string &bundleName,
         const std::string &subName);
     int32_t GetExtInfosByBundleName(const int32_t userId, const std::string &bundleName,
         std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
@@ -144,8 +129,6 @@ private:
         int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo);
 
     SystemConfig systemConfig_;
-    std::mutex currentImeInfoLock_;
-    std::shared_ptr<ImeInfo> currentImeInfo_{ nullptr }; // current imeInfo of current user
     bool IsTempInputMethod(const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo);
 };
 } // namespace MiscServices

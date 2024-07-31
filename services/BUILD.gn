@@ -27,6 +27,7 @@ config("inputmethod_services_native_config") {
     "${inputmethod_path}/services/adapter/focus_monitor/include",
     "${inputmethod_path}/services/adapter/ime_connection_manager/include",
     "${inputmethod_path}/services/adapter/keyboard/include",
+    "${inputmethod_path}/services/adapter/os_account_adapter/include",
     "${inputmethod_path}/services/adapter/system_language_observer/include",
     "${inputmethod_path}/services/adapter/wms_connection_monitor/include",
     "${inputmethod_path}/services/identity_checker/include",
@@ -58,6 +59,7 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/services/adapter/wms_connection_monitor/src/wms_connection_monitor_manager.cpp",
     "${inputmethod_path}/services/adapter/wms_connection_monitor/src/wms_connection_observer.cpp",
     "${inputmethod_path}/services/identity_checker/src/identity_checker_impl.cpp",
+    "adapter/os_account_adapter/src/os_account_adapter.cpp",
     "src/freeze_manager.cpp",
     "src/full_ime_info_manager.cpp",
     "src/im_common_event_manager.cpp",
@@ -69,6 +71,7 @@ ohos_shared_library("inputmethod_service") {
     "src/input_type_manager.cpp",
     "src/peruser_session.cpp",
     "src/sys_cfg_parser.cpp",
+    "src/user_session_manager.cpp",
   ]
 
   configs = [ ":inputmethod_services_native_config" ]
@@ -143,6 +146,7 @@ ohos_static_library("inputmethod_service_static") {
     "adapter/focus_monitor/src/focus_change_listener.cpp",
     "adapter/focus_monitor/src/focus_monitor_manager.cpp",
     "adapter/ime_connection_manager/src/ime_connection.cpp",
+    "adapter/os_account_adapter/src/os_account_adapter.cpp",
     "adapter/system_language_observer/src/system_language_observer.cpp",
     "adapter/wms_connection_monitor/src/wms_connection_monitor_manager.cpp",
     "adapter/wms_connection_monitor/src/wms_connection_observer.cpp",
@@ -158,6 +162,7 @@ ohos_static_library("inputmethod_service_static") {
     "src/input_type_manager.cpp",
     "src/peruser_session.cpp",
     "src/sys_cfg_parser.cpp",
+    "src/user_session_manager.cpp",
   ]
 
   public_configs = [ ":inputmethod_services_native_config" ]

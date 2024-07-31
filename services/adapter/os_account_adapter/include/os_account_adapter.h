@@ -13,21 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef IMF_WMS_CONNECTION_MONITOR_MANAGER_H
-#define IMF_WMS_CONNECTION_MONITOR_MANAGER_H
-#include <functional>
+#ifndef SERVICES_INCLUDE_OS_ACCOUNT_ADAPTER_H
+#define SERVICES_INCLUDE_OS_ACCOUNT_ADAPTER_H
+
+#include <cstdint>
+#include <vector>
+
 namespace OHOS {
 namespace MiscServices {
-using ChangeHandler = std::function<void(bool isConnected, int32_t userId, int32_t screenId)>;
-class WmsConnectionMonitorManager {
+class OsAccountAdapter {
 public:
-    static WmsConnectionMonitorManager &GetInstance();
-    void RegisterWMSConnectionChangedListener(const ChangeHandler &handler);
+    static constexpr int32_t MAIN_USER_ID = 100;
+    static constexpr int32_t INVALID_USER_ID = -1;
+    static int32_t GetOsAccountLocalIdFromUid(int32_t uid);
+    static int32_t GetForegroundOsAccountLocalId();
+    static std::vector<int32_t> QueryActiveOsAccountIds();
+    static bool IsOsAccountForeground(int32_t userId);
 
 private:
-    WmsConnectionMonitorManager() = default;
+    static constexpr uint32_t RETRY_INTERVAL = 100;
+    static constexpr uint32_t BLOCK_RETRY_TIMES = 10;
 };
 } // namespace MiscServices
 } // namespace OHOS
-
-#endif // IMF_WMS_CONNECTION_MONITOR_MANAGER_H
+#endif // SERVICES_INCLUDE_OS_ACCOUNT_ADAPTER_H

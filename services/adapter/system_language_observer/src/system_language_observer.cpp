@@ -22,16 +22,14 @@
 
 namespace OHOS {
 namespace MiscServices {
-SystemLanguageObserver::ChangeHandler SystemLanguageObserver::handler_;
 SystemLanguageObserver &SystemLanguageObserver::GetInstance()
 {
     static SystemLanguageObserver observer;
     return observer;
 }
 
-void SystemLanguageObserver::Watch(ChangeHandler handler)
+void SystemLanguageObserver::Watch()
 {
-    handler_ = std::move(handler);
     auto errNo = WatchParameter(SYSTEM_LANGUAGE_KEY, OnChange, nullptr);
     IMSA_HILOGD("ret: %{public}d.", errNo);
 }
@@ -43,9 +41,6 @@ void SystemLanguageObserver::OnChange(const char *key, const char *value, void *
         return;
     }
     IMSA_HILOGD("value: %{public}s.", value);
-    if (handler_ != nullptr) {
-        handler_();
-    }
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SYS_LANGUAGE_CHANGED, nullptr);
     if (msg == nullptr) {
         return;

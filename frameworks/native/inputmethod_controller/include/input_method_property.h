@@ -44,9 +44,14 @@ struct SubProperty {
 };
 
 struct FullImeInfo {
+    bool isNewIme{ false };
     uint32_t tokenId{ 0 };
     Property prop;
     std::vector<SubProperty> subProps;
+};
+
+struct ImeInfo : public FullImeInfo {
+    SubProperty subProp;
 };
 } // namespace MiscServices
 } // namespace OHOS
