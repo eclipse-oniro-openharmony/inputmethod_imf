@@ -20,7 +20,7 @@
 
 #include "calling_window_info.h"
 #include "concurrent_map.h"
-#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
+#include "context.h"
 #include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
@@ -38,7 +38,7 @@
 #include "message_handler.h"
 #include "private_command_interface.h"
 #include "system_cmd_channel_proxy.h"
-#include "unRegistered_type.h"
+#include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {

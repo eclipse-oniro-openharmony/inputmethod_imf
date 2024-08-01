@@ -17,27 +17,24 @@
 
 namespace OHOS {
 namespace MiscServices {
-const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> EventChecker::EVENT_TYPES{
-    { EventSubscribeModule::INPUT_METHOD_CONTROLLER,
-        { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
-            "handleExtendAction", "selectByRange", "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor",
-            "getTextIndexAtCursor" } },
-    { EventSubscribeModule::INPUT_METHOD_SETTING, { "imeChange", "imeShow", "imeHide" } },
-    { EventSubscribeModule::INPUT_METHOD_ABILITY,
-        { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype",
-            "securityModeChange", "privateCommand" } },
-    { EventSubscribeModule::KEYBOARD_DELEGATE, { "editorAttributeChanged", "keyDown", "keyUp", "keyEvent",
-                                                   "cursorContextChange", "selectionChange", "textChange" } },
-    { EventSubscribeModule::PANEL, { "show", "hide", "sizeChange" } },
-    { EventSubscribeModule::KEYBOARD_PANEL_MANAGER, { "panelPrivateCommand", "isPanelShow" } }
+const std::unordered_set<std::string> EventChecker::EVENT_TYPES[static_cast<uint32_t>(EventSubscribeModule::MODULE_END)] = {
+    { { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
+        "handleExtendAction", "selectByRange", "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor",
+        "getTextIndexAtCursor" } },
+    { { "imeChange", "imeShow", "imeHide" } },
+    { { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype",
+        "securityModeChange", "privateCommand" } },
+    { { "editorAttributeChanged", "keyDown", "keyUp", "keyEvent", "cursorContextChange", "selectionChange",
+        "textChange" } },
+    { { "show", "hide", "sizeChange" } }, { { "panelPrivateCommand", "isPanelShow" } }
 };
+
 bool EventChecker::IsValidEventType(EventSubscribeModule module, const std::string &type)
 {
-    auto it = EVENT_TYPES.find(module);
-    if (it == EVENT_TYPES.end()) {
+    if (module < EventSubscribeModule::MODULE_BEGIN || module >= EventSubscribeModule::MODULE_END) {
         return false;
     }
-    return it->second.find(type) != it->second.end();
+    return EVENT_TYPES[static_cast<uint32_t>(module)].find(type) != EVENT_TYPES[static_cast<uint32_t>(module)].end();
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -33,7 +33,6 @@
 #include "parcel.h"
 #include "scene_board_judgement.h"
 #include "security_mode_parser.h"
-#include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "unistd.h"
 #include "want.h"

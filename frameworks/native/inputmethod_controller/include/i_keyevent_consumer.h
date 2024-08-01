@@ -29,7 +29,10 @@ namespace OHOS {
 namespace MiscServices {
 class IKeyEventConsumer : public IRemoteBroker {
 public:
-    enum { KEY_EVENT_RESULT = FIRST_CALL_TRANSACTION, KEY_EVENT_CONSUMER_CMD_LAST };
+    enum {
+        KEY_EVENT_CONSUMER_BEGIN,
+        KEY_EVENT_RESULT = KEY_EVENT_CONSUMER_BEGIN,
+        KEY_EVENT_CONSUMER_CMD_END };
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IKeyEventConsumer");
     virtual int32_t OnKeyEventResult(bool isConsumed) = 0;
 };

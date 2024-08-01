@@ -46,7 +46,8 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParc
         IMSA_HILOGE("%{public}s descriptor failed!", __func__);
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
-    if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)) {
+    if (code >= static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_BEGIN) &&
+        code < static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_END)) {
         // service reboot when timeout 30s
         auto id = XCollie::GetInstance().SetTimer("IMSA_API[" + std::to_string(code) + "]", FATAL_TIMEOUT, nullptr,
             nullptr, XCOLLIE_FLAG_DEFAULT);
@@ -61,6 +62,8 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParc
         XCollie::GetInstance().CancelTimer(id);
         return ret;
     } else {
+        IMSA_HILOGE("code error, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
+            IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
 }

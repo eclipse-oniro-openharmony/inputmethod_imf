@@ -107,7 +107,7 @@
                           "input_method_ability_interface.h",
                           "input_method_engine_listener.h",
                           "keyboard_listener.h",
-                          "unRegistered_type.h"
+                          "input_method_types.h"
                       ],
                       "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_ability/include"
                   }

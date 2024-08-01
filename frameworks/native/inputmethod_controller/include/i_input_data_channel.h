@@ -31,7 +31,8 @@ namespace MiscServices {
 class IInputDataChannel : public IRemoteBroker {
 public:
     enum {
-        INSERT_TEXT = FIRST_CALL_TRANSACTION,
+        DATA_CHANNEL_CMD_BEGIN,
+        INSERT_TEXT = DATA_CHANNEL_CMD_BEGIN,
         DELETE_FORWARD,
         DELETE_BACKWARD,
         GET_TEXT_BEFORE_CURSOR,
@@ -51,7 +52,7 @@ public:
         SEND_PRIVATE_COMMAND,
         SET_PREVIEW_TEXT,
         FINISH_TEXT_PREVIEW,
-        DATA_CHANNEL_CMD_LAST
+        DATA_CHANNEL_CMD_END
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");

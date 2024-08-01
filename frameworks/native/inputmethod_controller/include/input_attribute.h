@@ -43,7 +43,7 @@ struct InputAttribute {
         return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) && data.ReadInt32(out.inputOption);
     }
 
-    bool GetSecurityFlag()
+    bool GetSecurityFlag() const
     {
         return inputPattern == PATTERN_PASSWORD || inputPattern == PATTERN_PASSWORD_SCREEN_LOCK ||
                PATTERN_PASSWORD_NUMBER == inputPattern || PATTERN_NEWPASSWORD == inputPattern;

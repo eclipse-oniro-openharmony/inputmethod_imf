@@ -312,7 +312,9 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     // 1 means the second param callback.
-    observer->SaveInfo(env, type, argv[1], inputMethodPanel->windowId_);
+    std::shared_ptr<JSCallbackObject> cbObject =
+        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id());
+    observer->Subscribe(inputMethodPanel->windowId_, type, cbObject);
     bool ret = inputMethodPanel->SetPanelStatusListener(observer, type);
     if (!ret) {
         IMSA_HILOGE("failed to subscribe %{public}s!", type.c_str());

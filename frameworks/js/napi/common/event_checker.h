@@ -22,19 +22,21 @@
 namespace OHOS {
 namespace MiscServices {
 enum class EventSubscribeModule : uint32_t {
-    INPUT_METHOD_CONTROLLER = 0,
+    MODULE_BEGIN = 0,
+    INPUT_METHOD_CONTROLLER = MODULE_BEGIN,
     INPUT_METHOD_SETTING,
     INPUT_METHOD_ABILITY,
     KEYBOARD_DELEGATE,
     KEYBOARD_PANEL_MANAGER,
     PANEL,
+    MODULE_END,
 };
 class EventChecker {
 public:
     static bool IsValidEventType(EventSubscribeModule module, const std::string &type);
 
 private:
-    static const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> EVENT_TYPES;
+    static const std::unordered_set<std::string> EVENT_TYPES[static_cast<uint32_t>(EventSubscribeModule::MODULE_END)];
 };
 } // namespace MiscServices
 } // namespace OHOS

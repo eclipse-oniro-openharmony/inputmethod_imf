@@ -22,7 +22,7 @@
 
 #include "input_method_engine_listener.h"
 #include "keyboard_listener.h"
-#include "unRegistered_type.h"
+#include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {
