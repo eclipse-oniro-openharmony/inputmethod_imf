@@ -21,6 +21,7 @@
 #include "cj_ffi/cj_common_ffi.h"
 
 extern "C" {
+    const int32_t ERR_NO_MEMORY = -2;
     struct CInputMethodProperty {
         char* name;
         char* id;
@@ -54,12 +55,12 @@ extern "C" {
         CInputMethodProperty *head;
     };
 
-    struct InputAttrbute {
+    struct CInputAttribute {
         int8_t textInputType;
         int8_t enterKeyType;
     };
 
-    struct CursorInfo {
+    struct CCursorInfo {
         double left;
         double top;
         double width;
@@ -72,8 +73,8 @@ extern "C" {
     };
 
     struct CTextConfig {
-        InputAttrbute inputAttrbute;
-        CursorInfo cursorInfo;
+        CInputAttribute inputAttrbute;
+        CCursorInfo cursor;
         Range range;
         uint32_t windowId;
     };

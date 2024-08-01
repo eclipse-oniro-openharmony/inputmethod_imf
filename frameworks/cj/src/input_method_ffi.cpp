@@ -234,5 +234,60 @@ namespace OHOS::MiscServices
         {
             return 0;
         }
+
+        int32_t OHOSFfiAttach(bool showKeyboard, CTextConfig txtCfg)
+        {
+            return CjInputMethodController::Attach(showKeyboard, txtCfg);
+        }
+
+        int32_t OHOSFfiDetach()
+        {
+            return CjInputMethodController::Detach()
+        }
+
+        int32_t OHOSFfiShowTextInput()
+        {
+            return CjInputMethodController::ShowTextInput();
+        }
+
+        int32_t OHOSFfiHideTextInput()
+        {
+            return CjInputMethodController::HideTextInput();
+        }
+
+        int32_t OHOSFfiSetCallingWindow(uint32_t windowId)
+        {
+            return CjInputMethodController::SetCallingWindow(windowId);
+        }
+
+        int32_t OHOSFfiUpdateCursor(CCursorInfo cursor)
+        {
+            return CjInputMethodController::UpdateCursor(cursor);
+        }
+
+        int32_t OHOSFfiChangeSelection(char *text, int32_t start, int32_t end)
+        {
+            return CjInputMethodController::ChangeSelection(std::string(text), start, end);
+        }
+
+        int32_t OHOSFfiUpdateAttribute(CInputAttribute inputAttribute)
+        {
+            return CjInputMethodController::UpdateAttribute(inputAttribute);
+        }
+
+        int32_t OHOSFfiShowSoftKeyboard()
+        {
+            return CjInputMethodController::ShowSoftKeyboard();
+        }
+
+        int32_t OHOSFfiHideSoftKeyboard()
+        {
+            return CjInputMethodController::HideSoftKeyboard();
+        }
+
+        int32_t OHOSFfiStopInputSession()
+        {
+            return CjInputMethodController::StopInputSession();
+        }
     }
 }

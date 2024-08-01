@@ -34,6 +34,18 @@ extern "C" {
     FFI_EXPORT int32_t CJ_ShowOptionalInputMethods(bool& result);
     FFI_EXPORT int32_t CJ_InputMethodCOntrollerOn(char* type, int64_t id);
     FFI_EXPORT int32_t CJ_InputMethodCOntrollerOff(char* type);
+
+    FFI_EXPORT int32_t OHOSFfiAttach(bool showKeyboard, CTextConfig txtCfg);
+    FFI_EXPORT int32_t OHOSFfiDetach();
+    FFI_EXPORT int32_t OHOSFfiShowTextInput();
+    FFI_EXPORT int32_t OHOSFfiHideTextInput();
+    FFI_EXPORT int32_t OHOSFfiSetCallingWindow(uint32_t windowId);
+    FFI_EXPORT int32_t OHOSFfiUpdateCursor(CCursorInfo cursor);
+    FFI_EXPORT int32_t OHOSFfiChangeSelection(char *text, int32_t start, int32_t end);
+    FFI_EXPORT int32_t OHOSFfiUpdateAttribute(CInputAttribute inputAttribute);
+    FFI_EXPORT int32_t OHOSFfiShowSoftKeyboard();
+    FFI_EXPORT int32_t OHOSFfiHideSoftKeyboard();
+    FFI_EXPORT int32_t OHOSFfiStopInputSession();
 }
 
 #endif // INPUT_METHOD_FFI_H
