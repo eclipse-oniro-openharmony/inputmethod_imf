@@ -17,24 +17,23 @@
 
 namespace OHOS {
 namespace MiscServices {
-const std::unordered_set<std::string> EventChecker::EVENT_TYPES[static_cast<uint32_t>(EventSubscribeModule::MODULE_END)] = {
-    { { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
-        "handleExtendAction", "selectByRange", "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor",
-        "getTextIndexAtCursor" } },
-    { { "imeChange", "imeShow", "imeHide" } },
-    { { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype",
-        "securityModeChange", "privateCommand" } },
-    { { "editorAttributeChanged", "keyDown", "keyUp", "keyEvent", "cursorContextChange", "selectionChange",
-        "textChange" } },
-    { { "show", "hide", "sizeChange" } }, { { "panelPrivateCommand", "isPanelShow" } }
+const std::unordered_set<std::string> EVENT_TYPES[static_cast<uint32_t>(EventSubscribeModule::MODULE_END)] = {
+   { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
+       "handleExtendAction", "selectByRange", "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor",
+       "getTextIndexAtCursor" },
+   { "imeChange", "imeShow", "imeHide" },
+   { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype",
+       "securityModeChange", "privateCommand" },
+   { "editorAttributeChanged", "keyDown", "keyUp", "keyEvent", "cursorContextChange", "selectionChange", "textChange" },
+   { "show", "hide", "sizeChange" }, { "panelPrivateCommand", "isPanelShow" }
 };
 
 bool EventChecker::IsValidEventType(EventSubscribeModule module, const std::string &type)
 {
-    if (module < EventSubscribeModule::MODULE_BEGIN || module >= EventSubscribeModule::MODULE_END) {
-        return false;
-    }
-    return EVENT_TYPES[static_cast<uint32_t>(module)].find(type) != EVENT_TYPES[static_cast<uint32_t>(module)].end();
+   if (module < EventSubscribeModule::MODULE_BEGIN || module >= EventSubscribeModule::MODULE_END) {
+       return false;
+   }
+   return EVENT_TYPES[static_cast<uint32_t>(module)].find(type) != EVENT_TYPES[static_cast<uint32_t>(module)].end();
 }
 } // namespace MiscServices
 } // namespace OHOS

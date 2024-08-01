@@ -32,7 +32,8 @@ public:
     enum {
         KEY_EVENT_CONSUMER_BEGIN,
         KEY_EVENT_RESULT = KEY_EVENT_CONSUMER_BEGIN,
-        KEY_EVENT_CONSUMER_CMD_END };
+        KEY_EVENT_CONSUMER_CMD_END
+    };
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IKeyEventConsumer");
     virtual int32_t OnKeyEventResult(bool isConsumed) = 0;
 };

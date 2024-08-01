@@ -34,9 +34,6 @@ enum class EventSubscribeModule : uint32_t {
 class EventChecker {
 public:
     static bool IsValidEventType(EventSubscribeModule module, const std::string &type);
-
-private:
-    static const std::unordered_set<std::string> EVENT_TYPES[static_cast<uint32_t>(EventSubscribeModule::MODULE_END)];
 };
 } // namespace MiscServices
 } // namespace OHOS

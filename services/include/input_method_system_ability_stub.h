@@ -104,8 +104,10 @@ private:
             &InputMethodSystemAbilityStub::ShowCurrentInputOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT)] =
             &InputMethodSystemAbilityStub::HideCurrentInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT)] = &InputMethodSystemAbilityStub::ShowInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_INPUT)] = &InputMethodSystemAbilityStub::HideInputOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT)] =
+            &InputMethodSystemAbilityStub::ShowInputOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_INPUT)] =
+            &InputMethodSystemAbilityStub::HideInputOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION)] =
             &InputMethodSystemAbilityStub::StopInputSessionOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT)] =

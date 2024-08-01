@@ -35,17 +35,18 @@ std::shared_ptr<PanelListenerImpl> PanelListenerImpl::GetInstance()
 
 PanelListenerImpl::~PanelListenerImpl() {}
 
-void PanelListenerImpl::Subscribe(uint32_t windowId, const std::string &type, std::shared_ptr<JSCallbackObject> cbObject)
+void PanelListenerImpl::Subscribe(uint32_t windowId, const std::string &type,
+    std::shared_ptr<JSCallbackObject> cbObject)
 {
     callbacks_.Compute(windowId,
         [cbObject, &type](auto windowId, std::map<std::string, std::shared_ptr<JSCallbackObject>> &cbs) {
             auto [it, insert] = cbs.try_emplace(type, cbObject);
             if (insert) {
-                IMSA_HILOGD("type: %{public}s of windowId: %{public}u already subscribed.", type.c_str(), windowId);
-            } else {
                 IMSA_HILOGI("start to subscribe type: %{public}s of windowId: %{public}u.", type.c_str(), windowId);
+            } else {
+                IMSA_HILOGD("type: %{public}s of windowId: %{public}u already subscribed.", type.c_str(), windowId);
             }
-            return cbs.empty();
+            return !cbs.empty();
         });
 }
 
@@ -76,6 +77,10 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
         callBack = it->second;
         return !callbacks.empty();
     });
+    if (callBack == nullptr) {
+        IMSA_HILOGE("callBack is nullptr!");
+        return;
+    }
     auto entry = std::make_shared<UvEntry>(callBack);
     IMSA_HILOGI("windowId = %{public}u, type = %{public}s", windowId, type.c_str());
     auto task = [entry]() {
