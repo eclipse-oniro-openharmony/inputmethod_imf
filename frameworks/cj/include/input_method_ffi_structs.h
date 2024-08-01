@@ -55,6 +55,13 @@ extern "C" {
         CInputMethodProperty *head;
     };
 
+    struct CElementName {
+        char* deviceId;
+        char* bundleName;
+        char* abilityName;
+        char* moduleName;
+    };
+
     struct CInputAttribute {
         int8_t textInputType;
         int8_t enterKeyType;

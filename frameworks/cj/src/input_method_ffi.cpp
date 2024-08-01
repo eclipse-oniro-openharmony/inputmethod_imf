@@ -96,6 +96,19 @@ namespace OHOS::MiscServices
             return errCode;
         }
 
+        int32_t CJ_GetSystemInputMethodConfigAbility(CElementName &elem)
+        {
+            OHOS::AppExecFwk::ElementName inputMethodConfig;
+            int32_t ret = InputMethodController::GetInstance()->GetInputMethodConfig(inputMethodConfig);
+            if (ret == ErrorCode::NO_ERROR) {
+                elem.deviceId = Utils::MallocCString(inputMethodConfig.GetDeviceID());
+                elem.bundleName = Utils::MallocCString(inputMethodConfig.GetBundleName());
+                elem.abilityName = Utils::MallocCString(inputMethodConfig.GetAbilityName());
+                elem.moduleName = Utils::MallocCString(inputMethodConfig.GetModuleName());
+            }
+            return ret;
+        }
+
         RetInputMethodSubtype CJ_ListInputMethodSubtype(CInputMethodProperty props)
         {
             IMSA_HILOGD("run in ListInputMethodSubtype");
@@ -225,12 +238,12 @@ namespace OHOS::MiscServices
             return errCode;
         }
 
-        int32_t CJ_InputMethodCOntrollerOn(char* type, int64_t id)
+        int32_t CJ_InputMethodControllerOn(char* type, int64_t id)
         {
             return 0;
         }
 
-        int32_t CJ_InputMethodCOntrollerOff(char* type)
+        int32_t CJ_InputMethodControllerOff(char* type)
         {
             return 0;
         }
