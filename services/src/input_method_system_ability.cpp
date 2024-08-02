@@ -1360,15 +1360,16 @@ void InputMethodSystemAbility::RegisterSecurityModeObserver()
 void InputMethodSystemAbility::DatashareCallback(const std::string &key)
 {
     IMSA_HILOGI("start.");
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr", userId_);
-        return;
-    }
     if (key == EnableImeDataParser::ENABLE_KEYBOARD || key == EnableImeDataParser::ENABLE_IME) {
+        EnableImeDataParser::GetInstance()->OnConfigChanged(userId_, key);
         std::lock_guard<std::mutex> autoLock(checkMutex_);
         SwitchInfo switchInfo;
         if (EnableImeDataParser::GetInstance()->CheckNeedSwitch(key, switchInfo, userId_)) {
+            auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+            if (session == nullptr) {
+                IMSA_HILOGE("%{public}d session is nullptr", userId_);
+                return;
+            }
             switchInfo.timestamp = std::chrono::system_clock::now();
             session->GetSwitchQueue().Push(switchInfo);
             OnSwitchInputMethod(userId_, switchInfo, SwitchTrigger::IMSA);
