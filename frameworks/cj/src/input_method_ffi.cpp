@@ -16,7 +16,7 @@
 #include "input_method_ffi.h"
 
 #include "inputmethod_trace.h"
-#include "input_method_controller.h"
+#include "cj_input_method_controller.h"
 #include "input_method_property.h"
 #include "setting_listeners.h"
 #include "global.h"
@@ -255,7 +255,7 @@ namespace OHOS::MiscServices
 
         int32_t OHOSFfiDetach()
         {
-            return CjInputMethodController::Detach()
+            return CjInputMethodController::Detach();
         }
 
         int32_t OHOSFfiShowTextInput()

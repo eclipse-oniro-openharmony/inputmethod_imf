@@ -44,7 +44,9 @@ ohos_shared_library("cj_inputmethod_ffi") {
   sources = [
     "src/input_method_ffi.cpp",
     "src/setting_listeners.cpp",
-    "src/utils.cpp"
+    "src/utils.cpp",
+    "src/cj_input_method_controller.cpp",
+    "src/cj_input_method_textchanged_listener.cpp"
   ]
 
   configs = [ ":imf_config" ]

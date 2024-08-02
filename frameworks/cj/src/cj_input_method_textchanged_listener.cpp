@@ -14,8 +14,7 @@
  */
 
 #include "cj_input_method_textchanged_listener.h"
-#include "textchange_listener.h"
-
+#include "cj_input_method_controller.h"
 namespace OHOS {
 namespace MiscServices {
 std::mutex CjInputMethodTextChangedListener::listenerMutex_;

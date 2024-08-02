@@ -18,10 +18,14 @@
 #include <codecvt>
 
 #include "cj_input_method_controller.h"
+#include "cj_input_method_textchanged_listener.h"
 #include "input_method_utils.h"
+#include "input_method_controller.h"
 
 namespace OHOS {
 namespace MiscServices {
+std::mutex CjInputMethodController::controllerMutex_;
+std::shared_ptr<CjInputMethodController> CjInputMethodController::controller_{ nullptr };
 std::shared_ptr<CjInputMethodController> CjInputMethodController::GetInstance()
 {
     if (controller_ == nullptr) {
@@ -35,7 +39,7 @@ std::shared_ptr<CjInputMethodController> CjInputMethodController::GetInstance()
     return controller_;
 }
 
-int32_t CjInputMethodController::Attach(const bool &showKeyboard, CTextConfig &txtCfg)
+int32_t CjInputMethodController::Attach(bool showKeyboard, const CTextConfig &txtCfg)
 {
     auto textListener = CjInputMethodTextChangedListener::GetInstance();
     if (!textListener) {
@@ -176,6 +180,53 @@ void CjInputMethodController::OnSelectByRange(int32_t start, int32_t end)
 void CjInputMethodController::OnSelectByMovement(int32_t direction)
 {
     return;
+}
+
+void CjInputMethodController::InsertText(const std::u16string &text)
+{
+    return;
+}
+
+void CjInputMethodController::DeleteRight(int32_t length)
+{
+    return;
+}
+
+void CjInputMethodController::DeleteLeft(int32_t length)
+{
+    return;
+}
+
+void CjInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
+{
+    return;
+}
+
+void CjInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
+{
+    return;
+}
+
+void CjInputMethodController::MoveCursor(const Direction direction)
+{
+    return;
+}
+
+void CjInputMethodController::HandleExtendAction(int32_t action)
+{
+    return;
+}
+
+std::u16string CjInputMethodController::GetText(const std::string &type, int32_t number)
+{
+    std::u16string str;
+    str.push_back(u'1');
+    return str;
+}
+
+int32_t CjInputMethodController::GetTextIndexAtCursor()
+{
+    return 0;
 }
 } // namespace MiscServices
 } // namespace OHOS

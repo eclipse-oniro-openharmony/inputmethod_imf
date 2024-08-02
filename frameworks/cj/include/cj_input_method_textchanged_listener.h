@@ -16,7 +16,6 @@
 #define INPUT_METHOD_TEXTCHANGE_LISTENER_H
 
 #include "input_method_controller.h"
-
 namespace OHOS {
 namespace MiscServices {
 class CjInputMethodTextChangedListener : public OnTextChangedListener {
