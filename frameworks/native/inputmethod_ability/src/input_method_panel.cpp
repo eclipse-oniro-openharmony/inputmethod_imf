@@ -123,7 +123,6 @@ int32_t InputMethodPanel::DestroyPanel()
     auto ret = HidePanel();
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputMethodPanel, hide panel failed, ret: %{public}d!", ret);
-        return ret;
     }
     if (panelType_ == SOFT_KEYBOARD) {
         UnregisterKeyboardPanelInfoChangeListener();
