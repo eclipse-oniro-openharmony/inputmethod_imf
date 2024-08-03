@@ -879,7 +879,6 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
 
 int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     IMSA_HILOGI("InputMethodAbility start.");
     if (inputMethodPanel == nullptr) {
         IMSA_HILOGE("panel is nullptr!");
