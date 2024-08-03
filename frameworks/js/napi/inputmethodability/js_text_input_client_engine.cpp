@@ -569,7 +569,7 @@ napi_value JsTextInputClientEngine::GetBackwardSync(napi_env env, napi_callback_
     int32_t length = 0;
     // 1 means least param num.
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "length must be string!", TYPE_NUMBER,
+    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "length must be number!", TYPE_NUMBER,
         HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed!", TYPE_NONE,
         HandleParamCheckFailure(env));
