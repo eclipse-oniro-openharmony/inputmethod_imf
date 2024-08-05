@@ -104,6 +104,8 @@ private:
         const int32_t userId);
     std::shared_ptr<ImeInfo> GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
         const std::string &subName);
+    std::shared_ptr<ImeInfo> GetImeInfoFromBundleMgr(
+        const int32_t userId, const std::string &bundleName, const std::string &subName);
     int32_t GetExtInfosByBundleName(const int32_t userId, const std::string &bundleName,
         std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
     bool IsNewExtInfos(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
