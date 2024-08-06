@@ -21,6 +21,7 @@ group("unittest") {
   if (!use_libfuzzer) {
     deps += [
       "cpp_test:EnableImeDataParseTest",
+      "cpp_test:ITypesUtilTest",
       "cpp_test:IdentityCheckerTest",
       "cpp_test:ImeFreezeManagerTest",
       "cpp_test:ImeProxyTest",

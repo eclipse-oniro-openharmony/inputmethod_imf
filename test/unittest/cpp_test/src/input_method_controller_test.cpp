@@ -1582,5 +1582,22 @@ HWTEST_F(InputMethodControllerTest, testOnInputReady, TestSize.Level0)
     inputMethodController_->DeactivateClient();
     EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
 }
+
+ /**
+ * @tc.name: testIsPanelShown
+ * @tc.desc: IMC testIsPanelShown
+ * @tc.type: IMC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIsPanelShown, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIsPanelShown Test START");
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    inputMethodController_->Attach(textListener_, false, inputAttribute);
+    const PanelInfo panelInfo;
+    bool isShown = false;
+    auto ret = inputMethodController_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
+}
 } // namespace MiscServices
 } // namespace OHOS

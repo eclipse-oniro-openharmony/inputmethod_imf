@@ -833,5 +833,247 @@ HWTEST_F(InputMethodPrivateMemberTest, TestHandlePackageEvent, TestSize.Level0)
     auto ret3 = service_->HandlePackageEvent(msg3.get());
     EXPECT_EQ(ret3, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: testGetSubProperty001
+ * @tc.desc: Test testGetSubProperty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, testGetSubProperty001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest testGetSubProperty001 START");
+    int32_t userId = 100;
+    const std::string subName = "defaultImeId";
+    SubProperty subProp;
+    const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> extInfos;
+    auto ret = ImeInfoInquirer::GetInstance().GetSubProperty(userId, subName, extInfos, subProp);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
+}
+
+/**
+ * @tc.name: testGetSubProperty002
+ * @tc.desc: Test testGetSubProperty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, testGetSubProperty002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest testGetSubProperty002 START");
+    int32_t userId = 100;
+    const std::string subName = "defaultImeId";
+    SubProperty subProp;
+    ExtensionAbilityInfo extInfo;
+    extInfo.name = "test";
+    const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> extInfos = { extInfo };
+    auto ret = ImeInfoInquirer::GetInstance().GetSubProperty(userId, subName, extInfos, subProp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testListInputMethodSubtype
+ * @tc.desc: Test ListInputMethodSubtype
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, testListInputMethodSubtype, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest testListInputMethodSubtype START");
+    int32_t userId = 100;
+    const std::string subName = "defaultImeId";
+    std::vector<SubProperty> subProps;
+    const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> extInfos;
+    auto ret = ImeInfoInquirer::GetInstance().ListInputMethodSubtype(userId, extInfos, subProps);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testGetInputMethodConfig
+ * @tc.desc: Test GetInputMethodConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, testGetInputMethodConfig, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest testGetInputMethodConfig START");
+    int32_t userId = 100;
+    AppExecFwk::ElementName inputMethodConfig;
+    auto ret = ImeInfoInquirer::GetInstance().GetInputMethodConfig(userId, inputMethodConfig);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestOnSecurityChange
+ * @tc.desc: Test OnSecurityChange
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestOnSecurityChange, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestOnSecurityChange TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    auto imc = InputMethodController::GetInstance();
+    int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.client);
+    userSession->OnSecurityChange(10);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+}
+
+/**
+* @tc.name: TestServiceStartInputType
+* @tc.desc: Test ServiceStartInputType
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodPrivateMemberTest, TestServiceStartInputType, TestSize.Level0)
+{
+    auto ret = service_->ExitCurrentInputType();
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    ret = service_->StartInputType(InputType::NONE);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    const PanelInfo panelInfo;
+    bool isShown = false;
+    ret = service_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
+}
+
+/**
+* @tc.name: TestIsSupported
+* @tc.desc: Test IsSupported
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodPrivateMemberTest, TestIsSupported, TestSize.Level0)
+{
+    auto ret = InputTypeManager::GetInstance().IsSupported(InputType::NONE);
+    EXPECT_FALSE(ret);
+}
+
+/**
+* @tc.name: TestGetImeByInputType
+* @tc.desc: Test GetImeByInputType
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodPrivateMemberTest, TestGetImeByInputType, TestSize.Level0)
+{
+    ImeIdentification ime;
+    auto ret = InputTypeManager::GetInstance().GetImeByInputType(InputType::NONE, ime);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARSE_CONFIG_FILE);
+}
+
+/**
+ * @tc.name: TestOnUnRegisteredProxyIme
+ * @tc.desc: Test OnUnRegisteredProxyIme
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestOnUnRegisteredProxyIme, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestOnUnRegisteredProxyIme TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    UnRegisteredType type = UnRegisteredType::REMOVE_PROXY_IME;
+    const sptr<IInputMethodCore> core;
+    auto ret = userSession->OnUnRegisteredProxyIme(type, core);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    type = UnRegisteredType::SWITCH_PROXY_IME_TO_IME;
+    ret = userSession->OnUnRegisteredProxyIme(type, core);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = userSession->RemoveCurrentClient();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: TestIsInputTypeSupported
+ * @tc.desc: Test IsInputTypeSupported
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestIsInputTypeSupported, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestIsInputTypeSupported TEST START");
+    InputType type = InputType::SECURITY_INPUT;
+    auto ret = service_->IsInputTypeSupported(type);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: TestStartInputType
+ * @tc.desc: Test StartInputType
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestStartInputType, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestStartInputType TEST START");
+    InputType type = InputType::NONE;
+    auto ret = service_->StartInputType(type);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestFullImeInfoManager_Update001
+ * @tc.desc: Test FullImeInfoManager_Update
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestFullImeInfoManager_Update001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestFullImeInfoManager_Update001 TEST START");
+    std::string bundleName = "ttttttttt";
+    auto ret = FullImeInfoManager::GetInstance().Update(MAIN_USER_ID, bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
+}
+
+/**
+ * @tc.name: TestFullImeInfoManager_Update002
+ * @tc.desc: Test FullImeInfoManager_Update
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestFullImeInfoManager_Update002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestFullImeInfoManager_Update002 TEST START");
+    std::string bundleName = "testBundleName";
+    auto ret = FullImeInfoManager::GetInstance().Update(MAIN_USER_ID, bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
+}
+
+/**
+ * @tc.name: TestFullImeInfoManager_Has
+ * @tc.desc: Test FullImeInfoManager_Has
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestFullImeInfoManager_Has, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestFullImeInfoManager_Has TEST START");
+    int32_t userId = 1234567890;
+    std::string bundleName = "ttttttttttt";
+    auto ret = FullImeInfoManager::GetInstance().Has(userId, bundleName);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: TestFullImeInfoManager_Get
+ * @tc.desc: Test FullImeInfoManager_Get
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestFullImeInfoManager_Get, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestFullImeInfoManager_Get TEST START");
+    FullImeInfo info;
+    info.isNewIme = true;
+    info.prop = { .name = "testBundleName" };
+    info.subProps = { { .id = "testSubName" } };
+    FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
+    uint32_t invalidTokenId = 4294967295;
+    auto ret = FullImeInfoManager::GetInstance().Get(MAIN_USER_ID, invalidTokenId);
+    EXPECT_EQ(ret, "");
+}
 } // namespace MiscServices
 } // namespace OHOS

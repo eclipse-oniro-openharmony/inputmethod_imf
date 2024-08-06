@@ -1586,6 +1586,5 @@ HWTEST_F(InputMethodPanelTest, testSetPrivacyMode, TestSize.Level0)
     InputMethodPanelTest::imc_->Close();
     TddUtil::DestroyWindow();
 }
-
 } // namespace MiscServices
 } // namespace OHOS

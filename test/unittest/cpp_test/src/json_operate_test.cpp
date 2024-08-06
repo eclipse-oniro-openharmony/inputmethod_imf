@@ -344,5 +344,118 @@ HWTEST_F(JsonOperateTest, testParseSysPanelAdjust001, TestSize.Level0)
     EXPECT_EQ(panelAdjust[0].right, 3);
     EXPECT_EQ(panelAdjust[0].bottom, 4);
 }
+
+/**
+* @tc.name: testGetDumpInfo
+* @tc.desc: parse GetDumpInfo
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(JsonOperateTest, testGetDumpInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("JsonOperateTest testGetDumpInfo START");
+    int32_t userId = 1234567890;
+    auto ret = ImeInfoInquirer::GetInstance().GetDumpInfo(userId);
+    ASSERT_EQ(ret, "");
+}
+
+/**
+* @tc.name: testListDisabledInputMethod
+* @tc.desc: ListDisabledInputMethod
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(JsonOperateTest, testListDisabledInputMethod, TestSize.Level0)
+{
+    IMSA_HILOGI("JsonOperateTest testListDisabledInputMethod START");
+    int32_t userId = 1234567890;
+    std::vector<Property> props;
+    bool enableOn = false;
+    auto ret = ImeInfoInquirer::GetInstance().ListDisabledInputMethod(userId, props, enableOn);
+    ASSERT_EQ(ret, ErrorCode::NO_ERROR);
+    enableOn = true;
+    ret = ImeInfoInquirer::GetInstance().ListDisabledInputMethod(userId, props, enableOn);
+    ASSERT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testGetSwitchInfoBySwitchCount
+* @tc.desc: test GetSwitchInfoBySwitchCount
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(JsonOperateTest, testGetSwitchInfoBySwitchCount, TestSize.Level0)
+{
+    IMSA_HILOGI("JsonOperateTest testGetSwitchInfoBySwitchCount START");
+    SwitchInfo switchInfo;
+    uint32_t cacheCount = 987654321;
+    int32_t userId = 1234567890;
+    bool enableOn = false;
+    auto ret = ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId, enableOn, cacheCount);
+    ASSERT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testGetInputMethodConfig
+* @tc.desc: test GetInputMethodConfig
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(JsonOperateTest, testGetInputMethodConfig, TestSize.Level0)
+{
+    IMSA_HILOGI("JsonOperateTest testGetInputMethodConfig START");
+    AppExecFwk::ElementName inputMethodConfig;
+    int32_t userId = 100;
+    auto ret = ImeInfoInquirer::GetInstance().GetInputMethodConfig(userId, inputMethodConfig);
+    ASSERT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testFindTargetSubtypeByCondition
+* @tc.desc: test FindTargetSubtypeByCondition
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(JsonOperateTest, testFindTargetSubtypeByCondition, TestSize.Level0)
+{
+    IMSA_HILOGI("JsonOperateTest testFindTargetSubtypeByCondition START");
+    std::vector<SubProperty> subProps;
+    Condition condition = Condition::ENGLISH;
+    auto ret = ImeInfoInquirer::GetInstance().FindTargetSubtypeByCondition(subProps, condition);
+    ASSERT_EQ(ret, nullptr);
+    int32_t invalidNum = 5;
+    condition = static_cast<Condition>(invalidNum);
+    ret = ImeInfoInquirer::GetInstance().FindTargetSubtypeByCondition(subProps, condition);
+    ASSERT_EQ(ret, nullptr);
+}
+
+/**
+* @tc.name: testParseSubtypeProfile
+* @tc.desc: test ParseSubtypeProfile
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(JsonOperateTest, testParseSubtypeProfile, TestSize.Level0)
+{
+    IMSA_HILOGI("JsonOperateTest testParseSubtypeProfile START");
+    std::vector<std::string> profiles;
+    SubtypeCfg subtypeCfg;
+    auto ret = ImeInfoInquirer::GetInstance().ParseSubtypeProfile(profiles, subtypeCfg);
+    ASSERT_FALSE(ret);
+}
+
+/**
+* @tc.name: testGetResMgr
+* @tc.desc: test GetResMgr
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(JsonOperateTest, testGetResMgr, TestSize.Level0)
+{
+    IMSA_HILOGI("JsonOperateTest testGetResMgr START");
+    std::string resourcePath = "";
+    auto ret = ImeInfoInquirer::GetInstance().GetResMgr(resourcePath);
+    ASSERT_FALSE(ret);
+}
 } // namespace MiscServices
 } // namespace OHOS
