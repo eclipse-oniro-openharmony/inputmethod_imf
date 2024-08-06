@@ -16,8 +16,6 @@
 #ifndef OHOS_PARAM_CHECK_H
 #define OHOS_PARAM_CHECK_H
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 
 namespace OHOS {
 namespace MiscServices {

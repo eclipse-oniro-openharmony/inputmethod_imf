@@ -67,16 +67,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    std::shared_ptr<JSCallbackObject> callBack = nullptr;
-    callbacks_.ComputeIfPresent(windowId, [&type, eventHandler, &callBack](uint32_t id,
-                                              std::map<std::string, std::shared_ptr<JSCallbackObject>> callbacks) {
-        auto it = callbacks.find(type);
-        if (it == callbacks.end()) {
-            return !callbacks.empty();
-        }
-        callBack = it->second;
-        return !callbacks.empty();
-    });
+    std::shared_ptr<JSCallbackObject> callBack = GetCallback(windowId, type);
     if (callBack == nullptr) {
         IMSA_HILOGE("callBack is nullptr!");
         return;
@@ -97,15 +88,7 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    std::shared_ptr<JSCallbackObject> callBack = nullptr;
-    callbacks_.ComputeIfPresent(windowId, [&type, eventHandler, &callBack](uint32_t id, auto callbacks) {
-        auto it = callbacks.find(type);
-        if (it == callbacks.end()) {
-            return !callbacks.empty();
-        }
-        callBack = it->second;
-        return !callbacks.empty();
-    });
+    std::shared_ptr<JSCallbackObject> callBack = GetCallback(windowId, type);
     if (callBack == nullptr) {
         return;
     }
@@ -138,6 +121,20 @@ std::shared_ptr<AppExecFwk::EventHandler> PanelListenerImpl::GetEventHandler()
 {
     std::shared_lock<decltype(eventHandlerMutex_)> lock(eventHandlerMutex_);
     return handler_;
+}
+
+std::shared_ptr<JSCallbackObject> PanelListenerImpl::GetCallback(uint32_t windowId, const std::string &type)
+{
+    std::shared_ptr<JSCallbackObject> callBack = nullptr;
+    callbacks_.ComputeIfPresent(windowId, [&type, &callBack](uint32_t id, auto callbacks) {
+        auto it = callbacks.find(type);
+        if (it == callbacks.end()) {
+            return !callbacks.empty();
+        }
+        callBack = it->second;
+        return !callbacks.empty();
+    });
+    return callBack;
 }
 
 napi_value JsWindowSize::Write(napi_env env, const WindowSize &nativeObject)

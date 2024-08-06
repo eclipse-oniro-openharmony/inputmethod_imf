@@ -52,6 +52,7 @@ public:
     void Subscribe(uint32_t windowId, const std::string &type, std::shared_ptr<JSCallbackObject> cbObject);
     void RemoveInfo(const std::string &type, uint32_t windowId);
     void SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler);
+    std::shared_ptr<JSCallbackObject> GetCallback(uint32_t windowId, const std::string &type);
     std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
 
     ConcurrentMap<uint32_t, std::map<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;
