@@ -723,6 +723,10 @@ void PerUserSession::StartImeInImeDied()
             return;
         }
     }
+    if (!IsReadyStartIme()) {
+        IMSA_HILOGW("not ready to start ime.");
+        return;
+    }
     StartCurrentIme();
 }
 
@@ -1358,8 +1362,10 @@ void PerUserSession::AddRestartIme()
 bool PerUserSession::RestartIme()
 {
     auto task = [this]() {
-        if (!RestartCurrentIme()) {
-            IMSA_HILOGE("start ime failed");
+        if (IsReadyStartIme()) {
+            if (!RestartCurrentIme()) {
+                IMSA_HILOGE("start ime failed");
+            }
         }
         int32_t tasks = 0;
         {
