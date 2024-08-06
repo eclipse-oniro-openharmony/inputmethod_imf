@@ -67,12 +67,12 @@ void CjInputMethodTextChangedListener::HandleExtendAction(int32_t action)
 
 std::u16string CjInputMethodTextChangedListener::GetLeftTextOfCursor(int32_t number)
 {
-    return CjInputMethodController::GetInstance()->GetText("getLeftTextOfCursor", number);
+    return CjInputMethodController::GetInstance()->GetLeftText(number);
 }
 
 std::u16string CjInputMethodTextChangedListener::GetRightTextOfCursor(int32_t number)
 {
-    return CjInputMethodController::GetInstance()->GetText("getRightTextOfCursor", number);
+    return CjInputMethodController::GetInstance()->GetRightText(number);
 }
 
 int32_t CjInputMethodTextChangedListener::GetTextIndexAtCursor()

@@ -238,19 +238,19 @@ namespace OHOS::MiscServices
             return errCode;
         }
 
-        int32_t CJ_InputMethodControllerOn(char* type, int64_t id)
+        int32_t CJ_InputMethodControllerOn(int8_t type, int64_t id)
         {
-            return 0;
+            return CjInputMethodController::Subscribe(type, id);
         }
 
-        int32_t CJ_InputMethodControllerOff(char* type)
+        int32_t CJ_InputMethodControllerOff(int8_t type)
         {
-            return 0;
+            return CjInputMethodController::Unsubscribe(type);
         }
 
         int32_t OHOSFfiAttach(bool showKeyboard, CTextConfig txtCfg)
         {
-            return CjInputMethodController::Attach(showKeyboard, txtCfg);
+            return CjInputMethodController::Attach(txtCfg, showKeyboard);
         }
 
         int32_t OHOSFfiDetach()

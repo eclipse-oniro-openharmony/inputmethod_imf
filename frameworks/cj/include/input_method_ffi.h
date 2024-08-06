@@ -33,8 +33,8 @@ extern "C" {
     FFI_EXPORT int32_t CJ_InputMethodSettingOn(uint32_t type, void (*func)(CInputMethodProperty, CInputMethodSubtype));
     FFI_EXPORT int32_t CJ_InputMethodSettingOff(uint32_t type);
     FFI_EXPORT int32_t CJ_ShowOptionalInputMethods(bool& result);
-    FFI_EXPORT int32_t CJ_InputMethodControllerOn(char* type, int64_t id);
-    FFI_EXPORT int32_t CJ_InputMethodControllerOff(char* type);
+    FFI_EXPORT int32_t CJ_InputMethodControllerOn(int8_t type, int64_t id);
+    FFI_EXPORT int32_t CJ_InputMethodControllerOff(int8_t type);
 
     FFI_EXPORT int32_t OHOSFfiAttach(bool showKeyboard, CTextConfig txtCfg);
     FFI_EXPORT int32_t OHOSFfiDetach();
