@@ -879,7 +879,6 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
 
 int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     IMSA_HILOGI("InputMethodAbility start.");
     if (inputMethodPanel == nullptr) {
         IMSA_HILOGE("panel is nullptr!");
@@ -1138,7 +1137,16 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
     }
     panels_.ForEach([this](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
-            HidePanel(panel);
+            auto ret = panel->HidePanel();
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("failed, ret: %{public}d", ret);
+                return false;
+            }
+            NotifyPanelStatusInfo({ { panel->GetPanelType(), panel->GetPanelFlag() }, false, Trigger::IME_APP });
+            // finish previewing text when soft keyboard hides
+            if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+                FinishTextPreview(true);
+            }
         }
         return false;
     });
