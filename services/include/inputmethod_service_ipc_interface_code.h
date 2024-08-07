@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace MiscServices {
 enum class InputMethodInterfaceCode {
-    IMS_CMD_BEGIN,
+    IMS_CMD_BEGIN = FIRST_CALL_TRANSACTION,
     START_INPUT = IMS_CMD_BEGIN,
     SHOW_CURRENT_INPUT,
     HIDE_CURRENT_INPUT,
