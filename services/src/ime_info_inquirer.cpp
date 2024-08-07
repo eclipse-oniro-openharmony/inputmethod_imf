@@ -114,14 +114,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfo(int32_t userId, const std::
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s.", userId, bundleName.c_str(),
         subName.c_str());
     auto info = GetImeInfoFromCache(userId, bundleName, subName);
-    if (info != nullptr) {
-        return info;
-    }
-    auto ret = FullImeInfoManager::GetInstance().Add(userId, bundleName);
-    if (ret != ErrorCode::NO_ERROR) {
-        return nullptr;
-    }
-    return GetImeInfoFromCache(userId, bundleName, subName);
+    return info == nullptr ? GetImeInfoFromBundleMgr(userId, bundleName, subName) : info;
 }
 
 std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
@@ -151,6 +144,52 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
     info->prop = it->prop;
     if (!info->isNewIme) {
         // old ime, make the id of prop same with the id of subProp.
+        info->prop.id = info->subProp.id;
+    }
+    return info;
+}
+
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
+    const int32_t userId, const std::string &bundleName, const std::string &subName)
+{
+    IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s.", userId, bundleName.c_str(),
+        subName.c_str());
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extInfos;
+    auto ret = ImeInfoInquirer::GetInstance().GetExtInfosByBundleName(userId, bundleName, extInfos);
+    if (ret != ErrorCode::NO_ERROR || extInfos.empty()) {
+        IMSA_HILOGE("userId: %{public}d getExtInfosByBundleName %{public}s failed!", userId, bundleName.c_str());
+        return nullptr;
+    }
+    auto info = std::make_shared<ImeInfo>();
+    info->prop.name = extInfos[0].bundleName;
+    info->prop.id = extInfos[0].name;
+    info->prop.label =
+        GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId);
+    info->prop.labelId = extInfos[0].applicationInfo.labelId;
+    info->prop.iconId = extInfos[0].applicationInfo.iconId;
+
+    std::vector<SubProperty> subProps;
+    info->isNewIme = IsNewExtInfos(extInfos);
+    ret = info->isNewIme ? ListInputMethodSubtype(userId, extInfos[0], subProps)
+                         : ListInputMethodSubtype(userId, extInfos, subProps);
+    if (ret != ErrorCode::NO_ERROR || subProps.empty()) {
+        IMSA_HILOGE("userId: %{public}d listInputMethodSubtype failed!", userId);
+        return nullptr;
+    }
+    info->subProps = subProps;
+    if (subName.empty()) {
+        info->subProp = subProps[0];
+    } else {
+        auto it = std::find_if(subProps.begin(), subProps.end(),
+            [&subName](const SubProperty &subProp) { return subProp.id == subName; });
+        if (it == subProps.end()) {
+            IMSA_HILOGE("find subName: %{public}s failed", subName.c_str());
+            return nullptr;
+        }
+        info->subProp = *it;
+    }
+    // old ime, make the id of prop same with the id of subProp.
+    if (!info->isNewIme) {
         info->prop.id = info->subProp.id;
     }
     return info;
@@ -280,7 +319,7 @@ int32_t ImeInfoInquirer::ListEnabledInputMethod(const int32_t userId, std::vecto
     if (enableOn) {
         IMSA_HILOGD("enable on.");
         std::vector<std::string> enableVec;
-        ret = EnableImeDataParser::GetInstance()->GetEnableData(EnableImeDataParser::ENABLE_IME, enableVec, userId);
+        ret = EnableImeDataParser::GetInstance()->GetEnableIme(userId, enableVec);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("get enable data failed");
             return ret;
@@ -311,7 +350,7 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
     }
 
     std::vector<std::string> enableVec;
-    ret = EnableImeDataParser::GetInstance()->GetEnableData(EnableImeDataParser::ENABLE_IME, enableVec, userId);
+    ret = EnableImeDataParser::GetInstance()->GetEnableIme(userId, enableVec);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get enable data failed");
         return ret;

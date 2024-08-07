@@ -742,7 +742,7 @@ int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::sha
     }
     session->StopCurrentIme();
     std::string targetImeName = info->prop.name + "/" + info->prop.id;
-    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetImeName, info->subProp.id });
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id });
     ImeNativeCfg targetIme = { targetImeName, info->prop.name, info->subProp.id, info->prop.id };
     if (!session->StartInputService(std::make_shared<ImeNativeCfg>(targetIme))) {
         IMSA_HILOGE("start input method failed!");
@@ -755,9 +755,9 @@ int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::sha
 // Inform current InputMethodExtension to switch subtype
 int32_t InputMethodSystemAbility::SwitchSubType(int32_t userId, const std::shared_ptr<ImeInfo> &info)
 {
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr", userId_);
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto ret = session->SwitchSubtype(info->subProp);
@@ -765,8 +765,8 @@ int32_t InputMethodSystemAbility::SwitchSubType(int32_t userId, const std::share
         IMSA_HILOGE("failed to inform ime to switch subtype, ret: %{public}d!", ret);
         return ret;
     }
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
-    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, currentIme, info->subProp.id });
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->imeId;
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId, currentIme, info->subProp.id });
     session->NotifyImeChangeToClients(info->prop, info->subProp);
     return ErrorCode::NO_ERROR;
 }
@@ -1359,15 +1359,16 @@ void InputMethodSystemAbility::RegisterSecurityModeObserver()
 void InputMethodSystemAbility::DatashareCallback(const std::string &key)
 {
     IMSA_HILOGI("start.");
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr", userId_);
-        return;
-    }
     if (key == EnableImeDataParser::ENABLE_KEYBOARD || key == EnableImeDataParser::ENABLE_IME) {
+        EnableImeDataParser::GetInstance()->OnConfigChanged(userId_, key);
         std::lock_guard<std::mutex> autoLock(checkMutex_);
         SwitchInfo switchInfo;
         if (EnableImeDataParser::GetInstance()->CheckNeedSwitch(key, switchInfo, userId_)) {
+            auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+            if (session == nullptr) {
+                IMSA_HILOGE("%{public}d session is nullptr", userId_);
+                return;
+            }
             switchInfo.timestamp = std::chrono::system_clock::now();
             session->GetSwitchQueue().Push(switchInfo);
             OnSwitchInputMethod(userId_, switchInfo, SwitchTrigger::IMSA);
