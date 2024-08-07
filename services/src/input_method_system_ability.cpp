@@ -890,7 +890,7 @@ int32_t InputMethodSystemAbility::ListInputMethodSubtype(const std::string &bund
  */
 void InputMethodSystemAbility::WorkThread()
 {
-    pthread_setname_np(pthread_self(), "OS_IMAWorkThread");
+    pthread_setname_np(pthread_self(), "OS_IMSAWorkThread");
     while (!stop_) {
         Message *msg = MessageHandler::Instance()->GetMessage();
         switch (msg->msgId_) {
