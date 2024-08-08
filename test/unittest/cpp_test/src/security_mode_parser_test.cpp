@@ -187,5 +187,34 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(securityMode, 0);
 }
+
+/**
+ * @tc.name: testRegisterObserver
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SecurityModeParserTest, testRegisterObserver, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testRegisterObserver Test START");
+    sptr<SettingsDataObserver> observer = nullptr;
+    auto ret = SettingsDataUtils::GetInstance()->RegisterObserver(observer);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testReleaseDataShareHelper
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SecurityModeParserTest, testReleaseDataShareHelper, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testReleaseDataShareHelper Test START");
+    std::shared_ptr<DataShare::DataShareHelper> helper;
+    auto ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    EXPECT_TRUE(ret);
+    helper = nullptr;
+    ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    EXPECT_TRUE(ret);
+}
 } // namespace MiscServices
 } // namespace OHOS

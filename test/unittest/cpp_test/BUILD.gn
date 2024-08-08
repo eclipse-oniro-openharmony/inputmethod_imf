@@ -365,6 +365,44 @@ ohos_unittest("InputMethodSwitchTest") {
   }
 }
 
+ohos_unittest("ITypesUtilTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+    "src/input_method_ability_exception_test.cpp",
+    "src/itypes_util_test.cpp",
+  ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+  ]
+}
+
 ohos_unittest("InputMethodPrivateMemberTest") {
   branch_protector_ret = "pac_ret"
   sanitize = {
