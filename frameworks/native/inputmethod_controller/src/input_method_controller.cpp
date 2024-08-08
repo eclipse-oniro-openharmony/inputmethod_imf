@@ -1294,7 +1294,7 @@ int32_t InputMethodController::FinishTextPreview()
         return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
     }
     auto listener = GetTextListener();
-    if (!isBound_.load() || listener == nullptr) {
+    if (!isBound_.load() || !isEditable_.load() || listener == nullptr) {
         IMSA_HILOGW("not bound or listener is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }

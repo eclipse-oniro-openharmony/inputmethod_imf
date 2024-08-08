@@ -47,7 +47,7 @@ using namespace Rosen;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr int32_t PERMISSION_NUM = 3;
+constexpr int32_t PERMISSION_NUM = 4;
 constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
 constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
@@ -186,6 +186,7 @@ bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
     std::stringstream output;
     FILE *ptr = popen(cmd.c_str(), "r");
     if (ptr != nullptr) {
+        IMSA_HILOGI("Execute cmd: %{public}s", cmd.c_str());
         while (fgets(buff, sizeof(buff), ptr) != nullptr) {
             output << buff;
         }
@@ -267,6 +268,7 @@ void TddUtil::GrantNativePermission()
     perms[0] = "ohos.permission.MANAGE_SECURE_SETTINGS";
     perms[1] = "ohos.permission.CONNECT_IME_ABILITY";
     perms[2] = "ohos.permission.MANAGE_SETTINGS";
+    perms[3] = "ohos.permission.INJECT_INPUT_EVENT";
     TokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = PERMISSION_NUM,
