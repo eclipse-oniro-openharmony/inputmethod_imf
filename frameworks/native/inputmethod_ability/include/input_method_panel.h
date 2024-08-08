@@ -84,6 +84,7 @@ public:
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
+    bool IsDisplayPortrait();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
     void SetPanelHeightCallback(CallbackFunc heightCallback);
     uint32_t windowId_ = INVALID_WINDOW_ID;
@@ -149,6 +150,8 @@ private:
     std::mutex windowListenerLock_;
     sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
     CallbackFunc panelHeightCallback_ = nullptr;
+
+    LayoutParams adjustPanelRectLayoutParams_;
 };
 } // namespace MiscServices
 } // namespace OHOS
