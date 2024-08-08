@@ -36,7 +36,7 @@
 #include "security_mode_parser.h"
 #include "settings_data_utils.h"
 #include "system_ability.h"
-#include "unRegistered_type.h"
+#include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {

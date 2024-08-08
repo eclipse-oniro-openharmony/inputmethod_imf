@@ -29,7 +29,7 @@
 #include "keyboard_listener_test_impl.h"
 #include "tdd_util.h"
 #include "text_listener.h"
-#include "unRegistered_type.h"
+#include "input_method_types.h"
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {

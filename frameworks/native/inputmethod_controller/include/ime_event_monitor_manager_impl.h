@@ -18,6 +18,7 @@
 
 #include <map>
 #include <set>
+#include <memory>
 
 #include "ime_event_listener.h"
 #include "visibility.h"

@@ -32,7 +32,7 @@ public:
     }
 
 public:
-    void SetValue(T &data)
+    void SetValue(const T &data)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         data_ = data;

@@ -59,10 +59,6 @@ public:
     int32_t FinishTextPreview(bool isAsync) override;
 
 private:
-    int32_t InvalidRequest(MessageParcel &data, MessageParcel &reply)
-    {
-        return ERR_UNKNOWN_TRANSACTION;
-    };
     int32_t InsertTextOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeleteForwardOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeleteBackwardOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -84,28 +80,27 @@ private:
     int32_t SetPreviewTextOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t FinishTextPreviewOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (InputDataChannelStub::*)(MessageParcel &, MessageParcel &);
-    const RequestHandler HANDLERS[DATA_CHANNEL_CMD_LAST] = {
-        &InputDataChannelStub::InvalidRequest,
-        &InputDataChannelStub::InsertTextOnRemote,
-        &InputDataChannelStub::DeleteForwardOnRemote,
-        &InputDataChannelStub::DeleteBackwardOnRemote,
-        &InputDataChannelStub::GetTextBeforeCursorOnRemote,
-        &InputDataChannelStub::GetTextAfterCursorOnRemote,
-        &InputDataChannelStub::GetEnterKeyTypeOnRemote,
-        &InputDataChannelStub::GetInputPatternOnRemote,
-        &InputDataChannelStub::SendKeyboardStatusOnRemote,
-        &InputDataChannelStub::SendFunctionKeyOnRemote,
-        &InputDataChannelStub::MoveCursorOnRemote,
-        &InputDataChannelStub::SelectByRangeOnRemote,
-        &InputDataChannelStub::SelectByMovementOnRemote,
-        &InputDataChannelStub::HandleExtendActionOnRemote,
-        &InputDataChannelStub::GetTextIndexAtCursorOnRemote,
-        &InputDataChannelStub::GetTextConfigOnRemote,
-        &InputDataChannelStub::NotifyPanelStatusInfoOnRemote,
-        &InputDataChannelStub::NotifyKeyboardHeightOnRemote,
-        &InputDataChannelStub::SendPrivateCommandOnRemote,
-        &InputDataChannelStub::SetPreviewTextOnRemote,
-        &InputDataChannelStub::FinishTextPreviewOnRemote,
+    static inline constexpr RequestHandler HANDLERS[DATA_CHANNEL_CMD_END] = {
+        [static_cast<uint32_t>(INSERT_TEXT)] = &InputDataChannelStub::InsertTextOnRemote,
+        [static_cast<uint32_t>(DELETE_FORWARD)] = &InputDataChannelStub::DeleteForwardOnRemote,
+        [static_cast<uint32_t>(DELETE_BACKWARD)] = &InputDataChannelStub::DeleteBackwardOnRemote,
+        [static_cast<uint32_t>(GET_TEXT_BEFORE_CURSOR)] = &InputDataChannelStub::GetTextBeforeCursorOnRemote,
+        [static_cast<uint32_t>(GET_TEXT_AFTER_CURSOR)] = &InputDataChannelStub::GetTextAfterCursorOnRemote,
+        [static_cast<uint32_t>(GET_ENTER_KEY_TYPE)] = &InputDataChannelStub::GetEnterKeyTypeOnRemote,
+        [static_cast<uint32_t>(GET_INPUT_PATTERN)] = &InputDataChannelStub::GetInputPatternOnRemote,
+        [static_cast<uint32_t>(SEND_KEYBOARD_STATUS)] = &InputDataChannelStub::SendKeyboardStatusOnRemote,
+        [static_cast<uint32_t>(SEND_FUNCTION_KEY)] = &InputDataChannelStub::SendFunctionKeyOnRemote,
+        [static_cast<uint32_t>(MOVE_CURSOR)] = &InputDataChannelStub::MoveCursorOnRemote,
+        [static_cast<uint32_t>(SELECT_BY_RANGE)] = &InputDataChannelStub::SelectByRangeOnRemote,
+        [static_cast<uint32_t>(SELECT_BY_MOVEMENT)] = &InputDataChannelStub::SelectByMovementOnRemote,
+        [static_cast<uint32_t>(HANDLE_EXTEND_ACTION)] = &InputDataChannelStub::HandleExtendActionOnRemote,
+        [static_cast<uint32_t>(GET_TEXT_INDEX_AT_CURSOR)] = &InputDataChannelStub::GetTextIndexAtCursorOnRemote,
+        [static_cast<uint32_t>(GET_TEXT_CONFIG)] = &InputDataChannelStub::GetTextConfigOnRemote,
+        [static_cast<uint32_t>(NOTIFY_PANEL_STATUS_INFO)] = &InputDataChannelStub::NotifyPanelStatusInfoOnRemote,
+        [static_cast<uint32_t>(NOTIFY_KEYBOARD_HEIGHT)] = &InputDataChannelStub::NotifyKeyboardHeightOnRemote,
+        [static_cast<uint32_t>(SEND_PRIVATE_COMMAND)] = &InputDataChannelStub::SendPrivateCommandOnRemote,
+        [static_cast<uint32_t>(SET_PREVIEW_TEXT)] = &InputDataChannelStub::SetPreviewTextOnRemote,
+        [static_cast<uint32_t>(FINISH_TEXT_PREVIEW)] = &InputDataChannelStub::FinishTextPreviewOnRemote,
     };
 };
 } // namespace MiscServices

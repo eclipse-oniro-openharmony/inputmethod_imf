@@ -34,7 +34,8 @@ namespace MiscServices {
 class IInputMethodCore : public IRemoteBroker {
 public:
     enum {
-        SHOW_KEYBOARD = FIRST_CALL_TRANSACTION,
+        CORE_CMD_BEGIN,
+        SHOW_KEYBOARD = CORE_CMD_BEGIN,
         STOP_INPUT_SERVICE,
         HIDE_KEYBOARD,
         INIT_INPUT_CONTROL_CHANNEL,
@@ -46,7 +47,7 @@ public:
         SECURITY_CHANGE,
         ON_CLIENT_INACTIVE,
         ON_CONNECT_SYSTEM_CMD,
-        CORE_CMD_LAST,
+        CORE_CMD_END,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");

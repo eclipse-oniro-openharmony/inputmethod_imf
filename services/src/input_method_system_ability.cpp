@@ -39,7 +39,6 @@
 #include "native_token_info.h"
 #include "os_account_adapter.h"
 #include "scene_board_judgement.h"
-#include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_language_observer.h"
 #include "user_session_manager.h"
@@ -891,7 +890,7 @@ int32_t InputMethodSystemAbility::ListInputMethodSubtype(const std::string &bund
  */
 void InputMethodSystemAbility::WorkThread()
 {
-    prctl(PR_SET_NAME, "OS_IMSAWorkThread");
+    pthread_setname_np(pthread_self(), "OS_IMSAWorkThread");
     while (!stop_) {
         Message *msg = MessageHandler::Instance()->GetMessage();
         switch (msg->msgId_) {

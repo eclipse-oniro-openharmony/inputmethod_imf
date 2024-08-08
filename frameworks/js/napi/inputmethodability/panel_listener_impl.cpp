@@ -33,91 +33,69 @@ std::shared_ptr<PanelListenerImpl> PanelListenerImpl::GetInstance()
     return instance_;
 }
 
-PanelListenerImpl::~PanelListenerImpl()
-{
-}
+PanelListenerImpl::~PanelListenerImpl() {}
 
-void PanelListenerImpl::SaveInfo(napi_env env, const std::string &type, napi_value callback, uint32_t windowId)
+void PanelListenerImpl::Subscribe(uint32_t windowId, const std::string &type,
+    std::shared_ptr<JSCallbackObject> cbObject)
 {
-    std::shared_ptr<JSCallbackObject> cbObject =
-        std::make_shared<JSCallbackObject>(env, callback, std::this_thread::get_id());
-    auto result = callbacks_.Find(windowId);
-    if (!result.first) {
-        IMSA_HILOGI("start to subscribe, type: %{public}s, windowId: %{public}u.", type.c_str(), windowId);
-        ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>> cbs{};
-        cbs.Insert(type, cbObject);
-        callbacks_.Insert(windowId, cbs);
-    } else {
-        auto res = result.second.Find(type);
-        if (res.first) {
-            IMSA_HILOGD("type: %{public}s of windowId: %{public}u already subscribed.", type.c_str(), windowId);
-            return;
-        }
-        IMSA_HILOGI("start to subscribe type: %{public}s of windowId: %{public}u.", type.c_str(), windowId);
-        result.second.Insert(type, cbObject);
-        callbacks_.InsertOrAssign(windowId, result.second);
-    }
+    callbacks_.Compute(windowId,
+        [cbObject, &type](auto windowId, std::map<std::string, std::shared_ptr<JSCallbackObject>> &cbs) {
+            auto [it, insert] = cbs.try_emplace(type, cbObject);
+            if (insert) {
+                IMSA_HILOGI("start to subscribe type: %{public}s of windowId: %{public}u.", type.c_str(), windowId);
+            } else {
+                IMSA_HILOGD("type: %{public}s of windowId: %{public}u already subscribed.", type.c_str(), windowId);
+            }
+            return !cbs.empty();
+        });
 }
 
 void PanelListenerImpl::RemoveInfo(const std::string &type, uint32_t windowId)
 {
-    auto result = callbacks_.Find(windowId);
-    if (result.first) {
-        result.second.Erase(type);
-        if (result.second.Empty()) {
-            callbacks_.Erase(windowId);
-        }
-    }
+    callbacks_.ComputeIfPresent(windowId,
+        [&type](auto windowId, std::map<std::string, std::shared_ptr<JSCallbackObject>> &cbs) {
+            cbs.erase(type);
+            return !cbs.empty();
+        });
 }
 
 void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
 {
     std::string type = isShow ? "show" : "hide";
-    auto result = callbacks_.Find(windowId);
-    if (!result.first) {
-        IMSA_HILOGE("no callback of windowId = %{public}d!", windowId);
-        return;
-    }
-    auto callback = result.second.Find(type);
-    if (!callback.first) {
-        IMSA_HILOGE("no callback in map!");
-        return;
-    }
-    auto entry = std::make_shared<UvEntry>(callback.second);
-    if (entry == nullptr) {
-        IMSA_HILOGE("entry is nullptr!");
-        return;
-    }
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
+    std::shared_ptr<JSCallbackObject> callBack = GetCallback(windowId, type);
+    if (callBack == nullptr) {
+        IMSA_HILOGE("callBack is nullptr!");
+        return;
+    }
+    auto entry = std::make_shared<UvEntry>(callBack);
     IMSA_HILOGI("windowId = %{public}u, type = %{public}s", windowId, type.c_str());
-    auto task = [entry]() { JsCallbackHandler::Traverse({ entry->cbCopy }); };
+    auto task = [entry]() {
+        JsCallbackHandler::Traverse({ entry->cbCopy });
+    };
     eventHandler->PostTask(task, type);
 }
 
 void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
 {
     std::string type = "sizeChange";
-    auto callback = GetCallback(type, windowId);
-    if (callback == nullptr) {
-        IMSA_HILOGE("callback not found! type: %{public}s", type.c_str());
-        return;
-    }
-    auto entry = GetEntry(callback, [&size](UvEntry &entry) { entry.size = size; });
-    if (entry == nullptr) {
-        IMSA_HILOGD("entry is nullptr!");
-        return;
-    }
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-
-    IMSA_HILOGI("start.");
+    std::shared_ptr<JSCallbackObject> callBack = GetCallback(windowId, type);
+    if (callBack == nullptr) {
+        return;
+    }
+    auto entry = std::make_shared<UvEntry>(callBack);
+    entry->size = size;
+    IMSA_HILOGI("OnSizeChange start. windowId:%{public}u, w:%{public}u, h:%{public}u", windowId, size.width,
+        size.height);
     auto task = [entry]() {
         auto gitWindowSizeParams = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc == 0) {
@@ -133,42 +111,30 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
     eventHandler->PostTask(task, type);
 }
 
-std::shared_ptr<PanelListenerImpl::UvEntry> PanelListenerImpl::GetEntry(
-    const std::shared_ptr<JSCallbackObject> &callback, EntrySetter entrySetter)
-{
-    std::shared_ptr<UvEntry> entry = std::make_shared<UvEntry>(callback);
-    if (entrySetter != nullptr) {
-        entrySetter(*entry);
-    }
-    return entry;
-}
-
-std::shared_ptr<JSCallbackObject> PanelListenerImpl::GetCallback(const std::string &type, uint32_t windowId)
-{
-    IMSA_HILOGD("start, type: %{public}s, windowId: %{public}d", type.c_str(), windowId);
-    auto result = callbacks_.Find(windowId);
-    if (!result.first) {
-        IMSA_HILOGE("no callback of windowId: %{public}d!", windowId);
-        return nullptr;
-    }
-    auto callback = result.second.Find(type);
-    if (!callback.first) {
-        IMSA_HILOGE("no callback in map, type: %{public}s", type.c_str());
-        return nullptr;
-    }
-    return callback.second;
-}
-
 void PanelListenerImpl::SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
-    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+    std::unique_lock<decltype(eventHandlerMutex_)> lock(eventHandlerMutex_);
     handler_ = handler;
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> PanelListenerImpl::GetEventHandler()
 {
-    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+    std::shared_lock<decltype(eventHandlerMutex_)> lock(eventHandlerMutex_);
     return handler_;
+}
+
+std::shared_ptr<JSCallbackObject> PanelListenerImpl::GetCallback(uint32_t windowId, const std::string &type)
+{
+    std::shared_ptr<JSCallbackObject> callBack = nullptr;
+    callbacks_.ComputeIfPresent(windowId, [&type, &callBack](uint32_t id, auto callbacks) {
+        auto it = callbacks.find(type);
+        if (it == callbacks.end()) {
+            return !callbacks.empty();
+        }
+        callBack = it->second;
+        return !callbacks.empty();
+    });
+    return callBack;
 }
 
 napi_value JsWindowSize::Write(napi_env env, const WindowSize &nativeObject)

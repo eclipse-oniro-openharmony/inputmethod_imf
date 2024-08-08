@@ -49,18 +49,16 @@ public:
     ~PanelListenerImpl();
     void OnPanelStatus(uint32_t windowId, bool isShow) override;
     void OnSizeChange(uint32_t windowId, const WindowSize &size) override;
-    void SaveInfo(napi_env env, const std::string &type, napi_value callback, uint32_t windowId);
+    void Subscribe(uint32_t windowId, const std::string &type, std::shared_ptr<JSCallbackObject> cbObject);
     void RemoveInfo(const std::string &type, uint32_t windowId);
     void SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler);
+    std::shared_ptr<JSCallbackObject> GetCallback(uint32_t windowId, const std::string &type);
     std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
-    std::shared_ptr<PanelListenerImpl::UvEntry> GetEntry(const std::shared_ptr<JSCallbackObject> &callback,
-        EntrySetter entrySetter);
-    std::shared_ptr<JSCallbackObject> GetCallback(const std::string &type, uint32_t windowId);
 
-    ConcurrentMap<uint32_t, ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;
+    ConcurrentMap<uint32_t, std::map<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;
     static std::mutex listenerMutex_;
     static std::shared_ptr<PanelListenerImpl> instance_;
-    std::mutex eventHandlerMutex_;
+    mutable std::shared_mutex eventHandlerMutex_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace MiscServices

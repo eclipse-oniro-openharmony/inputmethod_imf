@@ -29,9 +29,7 @@ KeyEventConsumerStub::KeyEventConsumerStub(KeyEventCallback callback, std::share
 {
 }
 
-KeyEventConsumerStub::~KeyEventConsumerStub()
-{
-}
+KeyEventConsumerStub::~KeyEventConsumerStub() {}
 
 int32_t KeyEventConsumerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
@@ -43,11 +41,12 @@ int32_t KeyEventConsumerStub::OnRemoteRequest(uint32_t code, MessageParcel &data
         IMSA_HILOGE("KeyEventConsumerStub descriptor error!");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
-    if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(KEY_EVENT_CONSUMER_CMD_LAST)) {
-        return (this->*HANDLERS[code])(data, reply);
-    } else {
+    if (code < KEY_EVENT_CONSUMER_BEGIN || code >= KEY_EVENT_CONSUMER_CMD_END) {
+        IMSA_HILOGE("code error, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
+            IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
+    return (this->*HANDLERS[code])(data, reply);
 }
 
 int32_t KeyEventConsumerStub::OnKeyEventResultOnRemote(MessageParcel &data, MessageParcel &reply)

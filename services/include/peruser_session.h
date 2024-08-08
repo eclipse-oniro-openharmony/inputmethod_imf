@@ -49,7 +49,7 @@
 #include "message.h"
 #include "message_handler.h"
 #include "panel_info.h"
-#include "unRegistered_type.h"
+#include "input_method_types.h"
 #include "want.h"
 
 namespace OHOS {
