@@ -26,10 +26,13 @@
 
 namespace OHOS {
 namespace MiscServices {
+using namespace std::chrono;
 using WMError = OHOS::Rosen::WMError;
 const std::string JsPanel::CLASS_NAME = "Panel";
 thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
 std::mutex JsPanel::panelConstructorMutex_;
+constexpr int32_t MAX_WAIT_TIME = 10;
+FFRTBlockQueue<JsEventInfo> JsPanel::jsQueue_{ MAX_WAIT_TIME };
 
 napi_value JsPanel::Init(napi_env env)
 {
@@ -164,14 +167,22 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
         // 1 means the second param height<uint32_t>
         PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[1], ctxt->height) == napi_ok,
             "height type must be number!", TYPE_NONE, status);
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::RESIZE };
+        jsQueue_.Push(ctxt->info);
         return napi_ok;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel_ is nullptr.");
+            jsQueue_.Pop();
+            return;
+        }
         SysPanelStatus sysPanelStatus = { false, ctxt->inputMethodPanel->GetPanelFlag(), ctxt->width, ctxt->height };
         InputMethodAbility::GetInstance()->NotifyPanelStatus(ctxt->inputMethodPanel, sysPanelStatus);
         auto code = ctxt->inputMethodPanel->Resize(ctxt->width, ctxt->height);
+        jsQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;
@@ -196,12 +207,22 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
         // 1 means the second param y<int32_t>
         PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[1], ctxt->y) == napi_ok, "y type must be number",
             TYPE_NONE, status);
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::MOVE_TO };
+        jsQueue_.Push(ctxt->info);
         return napi_ok;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+        jsQueue_.Wait(ctxt->info);
+        PrintEditorQueueInfoIfTimeout(start, ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel_ is nullptr.");
+            jsQueue_.Pop();
+            return;
+        }
         auto code = ctxt->inputMethodPanel->MoveTo(ctxt->x, ctxt->y);
+        jsQueue_.Pop();
         if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
             ctxt->SetErrorCode(code);
             return;
@@ -212,6 +233,19 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     // 3 means JsAPI:moveTo has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec, "moveTo");
+}
+
+void JsPanel::PrintEditorQueueInfoIfTimeout(int64_t start, const JsEventInfo &currentInfo)
+{
+    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    if (end - start >= MAX_WAIT_TIME) {
+        JsEventInfo frontInfo;
+        auto ret = jsQueue_.GetFront(frontInfo);
+        int64_t frontTime = duration_cast<microseconds>(frontInfo.timestamp.time_since_epoch()).count();
+        int64_t currentTime = duration_cast<microseconds>(currentInfo.timestamp.time_since_epoch()).count();
+        IMSA_HILOGI("ret:%{public}d,front[%{public}" PRId64 ",%{public}d],current[%{public}" PRId64 ",%{public}d]", ret,
+            frontTime, static_cast<int32_t>(frontInfo.event), currentTime, static_cast<int32_t>(currentInfo.event));
+    }
 }
 
 napi_value JsPanel::Show(napi_env env, napi_callback_info info)
@@ -266,7 +300,11 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
         (panelFlag == PanelFlag::FLG_FIXED || panelFlag == PanelFlag::FLG_FLOATING ||
             panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN),
         "flag type must be one of PanelFlag!", TYPE_NONE, nullptr);
+    JsEventInfo eventInfo = { std::chrono::system_clock::now(), JsEvent::CHANGE_FLAG };
+    jsQueue_.Push(eventInfo);
+    jsQueue_.Wait(eventInfo);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
+    jsQueue_.Pop();
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "failed to ChangePanelFlag!", nullptr);
     return nullptr;
 }
@@ -354,32 +392,65 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     return result;
 }
 
+napi_status JsPanel::CheckParam(napi_env env, size_t argc, napi_value *argv,
+    std::shared_ptr<PanelContentContext> ctxt)
+{
+    napi_status status = napi_generic_failure;
+    PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, status);
+    // 0 means the first param flag
+    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "flag",
+        TYPE_NUMBER, napi_generic_failure);
+    int32_t panelFlag = 0;
+    CHECK_RETURN(JsUtils::GetValue(env, argv[0], panelFlag) == napi_ok,
+        "js param flag covert failed", napi_generic_failure);
+    ctxt->panelFlag = PanelFlag(panelFlag);
+    if (InputMethodAbility::GetInstance()->IsDefaultIme()) {
+        PARAM_CHECK_RETURN(env, ctxt->panelFlag == 0 || ctxt->panelFlag == 1 ||
+            ctxt->panelFlag == FLG_CANDIDATE_COLUMN,
+            "param flag type shoule be FLG_FIXED or FLG_FLOATING or FLG_CANDIDATE_COLUMN", TYPE_NONE,
+            napi_generic_failure);
+    } else {
+        PARAM_CHECK_RETURN(env, ctxt->panelFlag == 0 || ctxt->panelFlag == 1,
+            "param flag type shoule be FLG_FIXED or FLG_FLOATING ", TYPE_NONE, napi_generic_failure);
+    }
+    // 1 means the second param rect
+    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "param rect type must be PanelRect",
+        TYPE_NONE, napi_generic_failure);
+    PARAM_CHECK_RETURN(env, JsPanelRect::Read(env, argv[1], ctxt->layoutParams), "js param rect covert failed",
+        TYPE_NONE, napi_generic_failure);
+    return napi_ok;
+}
+
 napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc > 1, "at least two parameters is required", TYPE_NONE, status);
-        // 0 means the first param flag
-        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "flag must be number!", TYPE_NUMBER,
-            napi_generic_failure);
-        int32_t panelFlag = 0;
-        CHECK_RETURN(JsUtils::GetValue(env, argv[0], panelFlag) == napi_ok, "flag covert failed!",
-            napi_generic_failure);
-        ctxt->panelFlag = PanelFlag(panelFlag);
-        PARAM_CHECK_RETURN(env, ctxt->panelFlag == 0 || ctxt->panelFlag == 1,
-            "flag type should be FLG_FIXED or FLG_FLOATING!", TYPE_NONE, napi_generic_failure);
-        // 1 means the second param rect
-        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "rect type must be PanelRect!",
-            TYPE_NONE, napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsPanelRect::Read(env, argv[1], ctxt->layoutParams), "rect covert failed!",
-            TYPE_NONE, napi_generic_failure);
+        if (CheckParam(env, argc, argv, ctxt) != napi_ok) {
+            return napi_generic_failure;
+        }
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::ADJUST_PANEL_RECT };
+        jsQueue_.Push(ctxt->info);
         return napi_ok;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel_ is nullptr.");
+            jsQueue_.Pop();
+            return;
+        }
+        SysPanelStatus sysPanelStatus;
+        if (ctxt->inputMethodPanel->IsDisplayPortrait()) {
+            sysPanelStatus = { false, ctxt->inputMethodPanel->GetPanelFlag(), ctxt->layoutParams.portraitRect.width_,
+                ctxt->layoutParams.portraitRect.height_ };
+        } else {
+            sysPanelStatus = { false, ctxt->inputMethodPanel->GetPanelFlag(), ctxt->layoutParams.landscapeRect.width_,
+                ctxt->layoutParams.landscapeRect.height_ };
+        }
+        InputMethodAbility::GetInstance()->NotifyPanelStatus(ctxt->inputMethodPanel, sysPanelStatus);
         auto code = ctxt->inputMethodPanel->AdjustPanelRect(ctxt->panelFlag, ctxt->layoutParams);
+        jsQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;
