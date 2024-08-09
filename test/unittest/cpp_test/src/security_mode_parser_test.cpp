@@ -15,7 +15,6 @@
 
 #define private public
 #define protected public
-#include "full_ime_info_manager.h"
 #include "security_mode_parser.h"
 
 #include "input_method_system_ability.h"
@@ -47,7 +46,6 @@ sptr<InputMethodSystemAbility> SecurityModeParserTest::service_{ nullptr };
 void SecurityModeParserTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("SecurityModeParserTest::SetUpTestCase");
-    FullImeInfoManager::GetInstance().Init();
     std::vector<std::string> columns = { "VALUE" };
     helper_ = DataShare::DataShareHelper::Creator(nullptr, "tsetUri", "tsetUri");
     DataSharePredicates predicates;
