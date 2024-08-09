@@ -61,6 +61,7 @@ private:
     static sptr<SettingsDataUtils> instance_;
     std::mutex tokenMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
+    std::mutex observerListMutex_;
     std::vector<sptr<SettingsDataObserver>> observerList_;
 };
 } // namespace MiscServices
