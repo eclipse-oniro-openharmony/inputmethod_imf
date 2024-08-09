@@ -686,7 +686,7 @@ HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview02, TestSize.Level0)
     TextListenerInnerApiTest::imc_->isEditable_.store(false);
     ret = TextListenerInnerApiTest::imc_->FinishTextPreview();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
     // ClientState: INACTIVE
     TextListener::ResetParam();
     TextListenerInnerApiTest::GetIMCAttached();
