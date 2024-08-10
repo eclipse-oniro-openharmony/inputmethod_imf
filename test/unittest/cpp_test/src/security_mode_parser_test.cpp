@@ -15,9 +15,11 @@
 
 #define private public
 #define protected public
-#include "security_mode_parser.h"
 
+#include "security_mode_parser.h"
+#include "settings_data_utils.h"
 #include "input_method_system_ability.h"
+
 #undef private
 
 #include <gtest/gtest.h>

@@ -31,7 +31,6 @@ constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdat
 SettingsDataUtils::~SettingsDataUtils()
 {
     remoteObj_ = nullptr;
-    std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_); 
     if (!observerList_.empty()) {
         for (auto &iter : observerList_) {
             UnregisterObserver(iter);
