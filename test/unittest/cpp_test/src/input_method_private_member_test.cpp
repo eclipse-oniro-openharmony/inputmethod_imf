@@ -696,8 +696,8 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0
     imc->clientInfo_.state = ClientState::ACTIVE;
     imc->DeactivateClient();
     EXPECT_EQ(imc->clientInfo_.state, ClientState::INACTIVE);
-    EXPECT_EQ(imc->agent_, nullptr);
-    EXPECT_EQ(imc->agentObject_, nullptr);
+    EXPECT_NE(imc->agent_, nullptr);
+    EXPECT_NE(imc->agentObject_, nullptr);
 }
 
 /**

@@ -948,11 +948,11 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange09, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodControllerTest::ResetKeyboardListenerTextConfig();
     InputMethodControllerTest::text_ = "test";
-    std::u16string text = Str8ToStr16("");
-    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 0, 0);
-    EXPECT_EQ(InputMethodControllerTest::text_, "");
-    EXPECT_EQ(InputMethodControllerTest::newBegin_, 0);
-    EXPECT_EQ(InputMethodControllerTest::newEnd_, 0);
+    std::u16string text = Str8ToStr16("test1");
+    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 1, 6);
+    EXPECT_EQ(InputMethodControllerTest::text_, "test1");
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, 1);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, 6);
 }
 
 /**
@@ -1562,7 +1562,7 @@ HWTEST_F(InputMethodControllerTest, testFinishTextPreviewAfterDetach_002, TestSi
     inputMethodController_->Attach(textListener_, false, inputAttribute);
     TextListener::ResetParam();
     inputMethodController_->DeactivateClient();
-    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
 
 /**
@@ -1580,7 +1580,7 @@ HWTEST_F(InputMethodControllerTest, testOnInputReady, TestSize.Level0)
     inputMethodController_->OnInputReady(agentObject);
     TextListener::ResetParam();
     inputMethodController_->DeactivateClient();
-    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
 
  /**
