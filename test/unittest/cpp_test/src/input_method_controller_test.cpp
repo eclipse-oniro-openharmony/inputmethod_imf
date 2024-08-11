@@ -18,6 +18,7 @@
 
 #include "input_method_ability.h"
 #include "input_method_system_ability.h"
+#include "input_data_channel_stub.h"
 #undef private
 
 #include <event_handler.h>
@@ -42,7 +43,6 @@
 #include "i_input_method_system_ability.h"
 #include "if_system_ability_manager.h"
 #include "input_client_stub.h"
-#include "input_data_channel_stub.h"
 #include "input_death_recipient.h"
 #include "input_method_ability.h"
 #include "input_method_engine_listener_impl.h"
@@ -1598,6 +1598,81 @@ HWTEST_F(InputMethodControllerTest, testIsPanelShown, TestSize.Level0)
     bool isShown = false;
     auto ret = inputMethodController_->IsPanelShown(panelInfo, isShown);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
+}
+
+/**
+ * @tc.name: testOnKeyEventConsumeResult
+ * @tc.desc: IMC OnKeyEventConsumeResult
+ * @tc.type: IMC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testOnKeyEventConsumeResult, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testOnKeyEventConsumeResult Test START");
+    bool isConsumed = true;
+    sptr<IRemoteObject> object;
+    std::shared_ptr<KeyEventConsumerProxy> keyEventConsumerProxy = std::make_shared<KeyEventConsumerProxy>(object);
+    keyEventConsumerProxy->OnKeyEventConsumeResult(isConsumed);
+    keyEventConsumerProxy->OnKeyCodeConsumeResult(isConsumed);
+    EXPECT_TRUE(isConsumed);
+}
+
+/**
+ * @tc.name: test_InputDataChannelStub_OnRemote
+ * @tc.desc: Checkout InputDataChannelStub_OnRemote.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, InputDataChannelStub_OnRemote, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC InputDataChannelStub_OnRemote Test START");
+    sptr<InputDataChannelStub> mInputDataChannel = new InputDataChannelStub();
+    MessageParcel data;
+    MessageParcel reply;
+    auto ret = mInputDataChannel->InsertTextOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->DeleteForwardOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->DeleteBackwardOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->GetTextBeforeCursorOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->GetTextAfterCursorOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->SendKeyboardStatusOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->SendFunctionKeyOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->MoveCursorOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->SelectByRangeOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->SelectByMovementOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->HandleExtendActionOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->NotifyPanelStatusInfoOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->NotifyKeyboardHeightOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->SendPrivateCommandOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+    ret = mInputDataChannel->SetPreviewTextOnRemote(data, reply);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+}
+
+/**
+ * @tc.name: testIMCDispatchKeyEvent_null
+ * @tc.desc: test IMC DispatchKeyEvent with keyEvent null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent_null, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCDispatchKeyEvent_null Test START");
+    std::shared_ptr<MMI::KeyEvent> keyEvent = nullptr;
+    KeyEventCallback callback;
+    auto ret = inputMethodController_->DispatchKeyEvent(keyEvent, callback);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
 }
 } // namespace MiscServices
 } // namespace OHOS

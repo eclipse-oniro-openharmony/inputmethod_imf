@@ -41,6 +41,8 @@
 #include "os_account_manager.h"
 #include "tdd_util.h"
 #include "user_session_manager.h"
+#include "combination_key.h"
+#include "focus_change_listener.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -1074,6 +1076,68 @@ HWTEST_F(InputMethodPrivateMemberTest, TestFullImeInfoManager_Get, TestSize.Leve
     uint32_t invalidTokenId = 4294967295;
     auto ret = FullImeInfoManager::GetInstance().Get(MAIN_USER_ID, invalidTokenId);
     EXPECT_EQ(ret, "");
+}
+
+/**
+ * @tc.name: TestIsMatch
+ * @tc.desc: CombinationKey IsMatch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestIsMatch, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest CombinationKey::IsMatch TEST START");
+    uint32_t state = 50; // Assuming 50 is a valid state for this combination key.
+    int32_t value = 100;
+    CombinationKeyFunction invliadCombinationKey = static_cast<CombinationKeyFunction>(value);
+    auto ret = CombinationKey::IsMatch(invliadCombinationKey, state);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: test_OnFocusedAndOnUnfocused001
+ * @tc.desc: test OnFocusedAndOnUnfocused
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, test_OnFocusedAndOnUnfocused001, TestSize.Level0)
+{
+    IMSA_HILOGI("test_OnFocusedAndOnUnfocused001 TEST START");
+    const sptr<Rosen::FocusChangeInfo> focusChangeInfo = nullptr;
+    FocusHandle handle;
+    FocusChangedListener focusChangedListener(handle);
+    focusChangedListener.OnFocused(focusChangeInfo);
+    focusChangedListener.OnUnfocused(focusChangeInfo);
+    EXPECT_EQ(focusChangeInfo, nullptr);
+}
+
+/**
+ * @tc.name: test_OnFocusedAndOnUnfocused002
+ * @tc.desc: test KeyEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, test_OnFocusedAndOnUnfocused002, TestSize.Level0)
+{
+    IMSA_HILOGI("test_OnFocusedAndOnUnfocused002 TEST START");
+    const sptr<Rosen::FocusChangeInfo> focusChangeInfo = new Rosen::FocusChangeInfo();;
+    FocusHandle handle = nullptr;
+    FocusChangedListener focusChangedListener(handle);
+    focusChangedListener.OnFocused(focusChangeInfo);
+    focusChangedListener.OnUnfocused(focusChangeInfo);
+    EXPECT_EQ(handle, nullptr);
+}
+
+/**
+ * @tc.name: test_WmsConnectionObserver
+ * @tc.desc: test KeyEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, test_WmsConnectionObserver, TestSize.Level0)
+{
+    IMSA_HILOGI("test_WmsConnectionObserver TEST START");
+    WmsConnectionObserver observer(nullptr);
+    int32_t invalidUserId = 1234567890;
+    observer.Remove(invalidUserId);
+    ASSERT_EQ(observer.connectedUserId_.find(invalidUserId), observer.connectedUserId_.end());
 }
 } // namespace MiscServices
 } // namespace OHOS
