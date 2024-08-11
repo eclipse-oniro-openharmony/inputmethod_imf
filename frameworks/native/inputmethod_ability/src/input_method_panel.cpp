@@ -168,10 +168,14 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
     } else {
         LayoutParams params = adjustPanelRectLayoutParams_;
         if (IsDisplayPortrait()) {
+            params.landscapeRect.height_ = 0;
+            params.landscapeRect.width_ = 0;
             params.portraitRect.height_ = height;
             params.portraitRect.width_ = width;
             IMSA_HILOGI("isPortrait now, updata portrait size");
         } else {
+            params.portraitRect.height_ = 0;
+            params.portraitRect.width_ = 0;
             params.landscapeRect.height_ = height;
             params.landscapeRect.width_ = width;
             IMSA_HILOGI("isLandscapeRect now, updata landscape size");
