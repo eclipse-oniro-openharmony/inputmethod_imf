@@ -125,6 +125,8 @@ private:
     int32_t CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
         PanelAdjustInfo &porIterValue, float densityDpi);
     int32_t CalculateNoConfigRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
+    void SetResizeParams(uint32_t width, uint32_t height);
+    LayoutParams GetResizeParams();
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
@@ -152,6 +154,14 @@ private:
     CallbackFunc panelHeightCallback_ = nullptr;
 
     LayoutParams adjustPanelRectLayoutParams_;
+    LayoutParams resizePanelFoldParams_ { // FoldDefaultValue
+        {0, 0, 0, 606},
+        {0, 0, 0, 809}
+    };
+    LayoutParams resizePanelUnfoldParams_ { // UnfoldDefaultValue
+        {0, 0, 0, 822},
+        {0, 0, 0, 809}
+    };
 };
 } // namespace MiscServices
 } // namespace OHOS
