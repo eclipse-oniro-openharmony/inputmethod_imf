@@ -740,11 +740,10 @@ int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::sha
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    session->StopCurrentIme();
     std::string targetImeName = info->prop.name + "/" + info->prop.id;
     ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id });
     ImeNativeCfg targetIme = { targetImeName, info->prop.name, info->subProp.id, info->prop.id };
-    if (!session->StartInputService(std::make_shared<ImeNativeCfg>(targetIme))) {
+    if (!session->StartIme(std::make_shared<ImeNativeCfg>(targetIme))) {
         IMSA_HILOGE("start input method failed!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
@@ -796,11 +795,10 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
     if (targetImeProperty == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    session->StopCurrentIme();
     std::string targetName = switchInfo.bundleName + "/" + targetImeProperty->id;
     ImeNativeCfg targetIme = { targetName, switchInfo.bundleName, switchInfo.subName, targetImeProperty->id };
     InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
-    if (!session->StartInputService(std::make_shared<ImeNativeCfg>(targetIme))) {
+    if (!session->StartIme(std::make_shared<ImeNativeCfg>(targetIme))) {
         IMSA_HILOGE("start input method failed!");
         InputTypeManager::GetInstance().Set(false);
         return ErrorCode::ERROR_IME_START_FAILED;

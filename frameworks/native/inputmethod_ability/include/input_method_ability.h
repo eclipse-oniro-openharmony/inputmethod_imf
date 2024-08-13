@@ -144,7 +144,7 @@ private:
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnAttributeChange(Message *msg);
-    void OnStopInputService(Message *msg);
+    int32_t OnStopInputService(bool isTerminateIme);
 
     int32_t HideKeyboard(Trigger trigger);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();

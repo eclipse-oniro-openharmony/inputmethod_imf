@@ -54,12 +54,17 @@
 
 namespace OHOS {
 namespace MiscServices {
+enum ImeStatus : uint32_t { STARTING, READY, EXITING };
 struct ImeData {
+    static constexpr int64_t START_TIME_OUT = 8000;
     sptr<IInputMethodCore> core{ nullptr };
     sptr<IRemoteObject> agent{ nullptr };
     sptr<InputDeathRecipient> deathRecipient{ nullptr };
     pid_t pid;
     std::shared_ptr<FreezeManager> freezeMgr;
+    ImeStatus imeStatus{ STARTING };
+    std::pair<std::string, std::string> ime; // first: bundleName  second:extName
+    int64_t startTime{ 0 };
     ImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, sptr<InputDeathRecipient> deathRecipient,
         pid_t imePid)
         : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient)), pid(imePid),
@@ -103,9 +108,8 @@ public:
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
 
     bool StartCurrentIme();
-    void StopCurrentIme();
-    bool RestartCurrentIme();
-    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
+    bool StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme = false);
+    bool StopCurrentIme();
     bool RestartIme();
     void AddRestartIme();
 
@@ -163,6 +167,8 @@ private:
         const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>>
             &updateInfos);
 
+    int32_t InitImeData(const std::pair<std::string, std::string> &ime);
+    int32_t UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     void RemoveImeData(ImeType type, bool isImeDied);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
@@ -195,13 +201,22 @@ private:
     bool IsImeBindChanged(ImeType bindImeType);
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
-    int32_t ForceStopCurrentIme();
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
     bool IsReadyStartIme();
     AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
+    bool StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
+    bool ReStartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
+    bool HandleCurrentImeWhenRestart();
+    bool StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime);
+    bool HandleCurrentImeWhenNewImeStart();
+    bool HandleExitingCurrentIme();
+    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
+    bool StopCurrentImeWithImeData();
+    bool ForceStopCurrentIme(bool isNeedWait);
+    std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;

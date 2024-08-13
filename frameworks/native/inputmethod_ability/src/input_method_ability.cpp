@@ -203,10 +203,6 @@ void InputMethodAbility::WorkThread()
                 OnAttributeChange(msg);
                 break;
             }
-            case MSG_ID_STOP_INPUT_SERVICE: {
-                OnStopInputService(msg);
-                break;
-            }
             case MSG_ID_SET_SUBTYPE: {
                 OnSetSubtype(msg);
                 break;
@@ -396,15 +392,17 @@ void InputMethodAbility::OnAttributeChange(Message *msg)
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
-void InputMethodAbility::OnStopInputService(Message *msg)
+int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
 {
-    MessageParcel *data = msg->msgContent_;
-    bool isTerminateIme = data->ReadBool();
     IMSA_HILOGI("isTerminateIme: %{public}d.", isTerminateIme);
-    if (isTerminateIme && imeListener_ != nullptr) {
-        imeListener_->OnInputStop();
-    }
     isBound_.store(false);
+    if (imeListener_ == nullptr) {
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    if (isTerminateIme) {
+        return imeListener_->OnInputStop();
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::HideKeyboard()

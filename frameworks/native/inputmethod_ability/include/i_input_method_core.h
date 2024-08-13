@@ -36,7 +36,6 @@ public:
     enum {
         CORE_CMD_BEGIN,
         SHOW_KEYBOARD = CORE_CMD_BEGIN,
-        STOP_INPUT_SERVICE,
         HIDE_KEYBOARD,
         INIT_INPUT_CONTROL_CHANNEL,
         SET_SUBTYPE,
@@ -57,7 +56,7 @@ public:
     virtual int32_t ShowKeyboard() = 0;
     virtual int32_t HideKeyboard() = 0;
     virtual int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) = 0;
-    virtual void StopInputService(bool isTerminateIme) = 0;
+    virtual int32_t StopInputService(bool isTerminateIme) = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
     virtual bool IsEnable() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;

@@ -15,6 +15,7 @@
 
 #include "peruser_session.h"
 
+#include <chrono>
 #include <vector>
 
 #include "ability_manager_client.h"
@@ -39,6 +40,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+using namespace std::chrono;
 using namespace MessageID;
 constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
@@ -237,12 +239,14 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     if (remote == nullptr) {
         return;
     }
+    IMSA_HILOGI("type: %{public}d.", type);
     auto imeData = GetImeData(type);
-    if (imeData != nullptr && imeData->core != nullptr && imeData->core->AsObject() != remote->AsObject()) {
+    if (imeData != nullptr && imeData->imeStatus == EXITING) {
+        RemoveImeData(type, true);
+        NotifyImeStopFinished();
         IMSA_HILOGI("%{public}d not current imeData.", type);
         return;
     }
-    IMSA_HILOGI("type: %{public}d.", type);
     RemoveImeData(type, true);
     InputTypeManager::GetInstance().Set(false);
     if (!OsAccountAdapter::IsOsAccountForeground(userId_)) {
@@ -251,11 +255,6 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     }
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
-    if (isSwitching_.load()) {
-        StopClientInput(clientInfo);
-        NotifyImeStopFinished();
-        return;
-    }
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
         StopClientInput(clientInfo);
         if (type == ImeType::IME) {
@@ -628,15 +627,14 @@ void PerUserSession::OnSecurityChange(int32_t security)
 
 int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
-    IMSA_HILOGI("start.");
-    auto imeType = ImeType::IME;
-    auto ret = AddImeData(imeType, core, agent, IPCSkeleton::GetCallingPid());
+    IMSA_HILOGI("start.");;
+    auto ret = UpdateImeData(core, agent, IPCSkeleton::GetCallingPid());
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
     ret = InitInputControlChannel();
     IMSA_HILOGI("init input control channel ret: %{public}d.", ret);
-
+    auto imeType = ImeType::IME;
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && IsImeStartInBind(clientInfo->bindImeType, imeType)) {
@@ -833,6 +831,9 @@ std::shared_ptr<ImeData> PerUserSession::GetImeData(ImeType type)
     if (it == imeData_.end()) {
         return nullptr;
     }
+    if (it->second->core == nullptr || it->second->agent == nullptr) {
+        return nullptr;
+    }
     return it->second;
 }
 
@@ -956,7 +957,7 @@ bool PerUserSession::StartCurrentIme()
     auto imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
     IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
         imeToStart->imeId.c_str());
-    if (!StartInputService(imeToStart)) {
+    if (!StartIme(imeToStart)) {
         IMSA_HILOGE("failed to start ime!");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED,
             imeToStart->imeId, "start ime failed!");
@@ -969,53 +970,6 @@ bool PerUserSession::StartCurrentIme()
         NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
     }
     return true;
-}
-
-void PerUserSession::StopCurrentIme()
-{
-    auto data = GetImeData(ImeType::IME);
-    if (data != nullptr) {
-        RequestIme(data, RequestType::NORMAL, [&data] {
-            data->core->StopInputService(true);
-            return ErrorCode::NO_ERROR;
-        });
-        if (WaitForCurrentImeStop()) {
-            IMSA_HILOGI("success.");
-            return;
-        }
-    }
-    IMSA_HILOGI("force stop current ime.");
-    auto ret = ForceStopCurrentIme();
-    if (ret == ErrorCode::NO_ERROR) {
-        WaitForCurrentImeStop();
-    } else {
-        RemoveImeData(ImeType::IME, true);
-    }
-}
-
-int32_t PerUserSession::ForceStopCurrentIme()
-{
-    // unbind current client if exists
-    auto client = GetCurrentClient();
-    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
-    if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
-        StopClientInput(clientInfo);
-    }
-    // stop current inputmethod extension
-    ImeIdentification imeId;
-    if (!GetCurrentUsingImeId(imeId)) {
-        IMSA_HILOGE("currentImeCfg is nullptr");
-        RemoveImeData(ImeType::IME, true);
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    AAFwk::Want want;
-    want.SetElementName(imeId.bundleName, imeId.subName);
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(want, nullptr, userId_,
-        AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("StopExtensionAbility failed, ret: %{public}d!", ret);
-    }
-    return ret;
 }
 
 bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
@@ -1075,6 +1029,7 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
             "failed to start ability.");
         return false;
     }
+    InitImeData({ ime->bundleName, ime->extName });
     if (!isImeStarted_.GetValue()) {
         IMSA_HILOGE("start %{public}s timeout!", ime->imeId.c_str());
         return false;
@@ -1224,9 +1179,8 @@ int32_t PerUserSession::ExitCurrentInputType()
         return ret;
     }
     IMSA_HILOGI("need to switch ime to: %{public}.s", cfgIme->imeId.c_str());
-    StopCurrentIme();
     InputTypeManager::GetInstance().Set(false);
-    if (!StartInputService(cfgIme)) {
+    if (!StartIme(cfgIme)) {
         IMSA_HILOGE("failed to start ime!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
@@ -1344,12 +1298,6 @@ bool PerUserSession::IsReadyStartIme()
            saMgr->CheckSystemAbility(MEMORY_MANAGER_SA_ID) != nullptr;
 }
 
-bool PerUserSession::RestartCurrentIme()
-{
-    StopCurrentIme();
-    return StartCurrentIme();
-}
-
 void PerUserSession::AddRestartIme()
 {
     int32_t tasks = 0;
@@ -1371,7 +1319,9 @@ bool PerUserSession::RestartIme()
 {
     auto task = [this]() {
         if (IsReadyStartIme()) {
-            if (!RestartCurrentIme()) {
+            auto imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+            auto ret = StartIme(imeToStart, true);
+            if (!ret) {
                 IMSA_HILOGE("start ime failed");
             }
         }
@@ -1395,6 +1345,204 @@ bool PerUserSession::RestartIme()
 BlockQueue<SwitchInfo>& PerUserSession::GetSwitchQueue()
 {
     return switchQueue_;
+}
+
+int32_t PerUserSession::InitImeData(const std::pair<std::string, std::string> &ime)
+{
+    auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, -1);
+    imeData->startTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    imeData->ime = std::make_pair(ime.first, ime.second);
+    std::lock_guard<std::mutex> lock(imeDataLock_);
+    imeData_.insert({ ImeType::IME, imeData });
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid)
+{
+    if (core == nullptr || agent == nullptr) {
+        IMSA_HILOGE("core or agent is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    sptr<InputDeathRecipient> deathRecipient = new (std::nothrow) InputDeathRecipient();
+    if (deathRecipient == nullptr) {
+        IMSA_HILOGE("failed to new deathRecipient!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto type = ImeType::IME;
+    deathRecipient->SetDeathRecipient([this, core, type](const wptr<IRemoteObject> &) { this->OnImeDied(core, type); });
+    auto coreObject = core->AsObject();
+    if (coreObject == nullptr || (coreObject->IsProxyObject() && !coreObject->AddDeathRecipient(deathRecipient))) {
+        IMSA_HILOGE("failed to add death recipient!");
+        return ErrorCode::ERROR_ADD_DEATH_RECIPIENT_FAILED;
+    }
+    std::lock_guard<std::mutex> lock(imeDataLock_);
+    auto it = imeData_.find(ImeType::IME);
+    if (it == imeData_.end()) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    it->second->core = core;
+    it->second->agent = agent;
+    it->second->deathRecipient = deathRecipient;
+    it->second->pid = pid;
+    it->second->imeStatus = ImeStatus::READY;
+    return ErrorCode::NO_ERROR;
+}
+
+bool PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme)
+{
+    std::lock_guard<std::mutex> lock(imeStartLock_);
+    if (ime == nullptr) {
+        return false;
+    }
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        return StartCurrentIme(ime);
+    }
+    if (imeData->ime.first == ime->bundleName && imeData->ime.second == ime->extName) {
+        if (isStopCurrentIme) {
+            return StartNewIme(ime);
+        }
+        return ReStartCurrentIme(ime);
+    }
+    return StartNewIme(ime);
+}
+
+bool PerUserSession::StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime)
+{
+    return StartInputService(ime);
+}
+
+bool PerUserSession::ReStartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime)
+{
+    if (!HandleCurrentImeWhenRestart()) {
+        return false;
+    }
+    return StartInputService(ime);
+}
+
+bool PerUserSession::HandleCurrentImeWhenRestart()
+{
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        return true;
+    }
+    if (imeData->imeStatus == ImeStatus::READY) {
+        return true;
+    }
+    if (imeData->imeStatus == ImeStatus::STARTING) {
+        int64_t time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+        if (time - imeData->startTime > ImeData::START_TIME_OUT) {
+            ForceStopCurrentIme(false);
+            return false;
+        }
+        return true;
+    }
+    return HandleExitingCurrentIme();
+}
+
+bool PerUserSession::StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime)
+{
+    if (!HandleCurrentImeWhenNewImeStart()) {
+        return false;
+    }
+    return StartInputService(ime);
+}
+
+bool PerUserSession::HandleCurrentImeWhenNewImeStart()
+{
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        return false;
+    }
+    IMSA_HILOGD("status: %{public}d.", imeData->imeStatus);
+    if (imeData->imeStatus == ImeStatus::READY) {
+        return StopCurrentImeWithImeData();
+    }
+    if (imeData->imeStatus == ImeStatus::STARTING) {
+        return ForceStopCurrentIme(true);
+    }
+    return HandleExitingCurrentIme();
+}
+
+bool PerUserSession::HandleExitingCurrentIme()
+{
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        return true;
+    }
+    if (!ImeInfoInquirer::GetInstance().IsRunningExtension(imeData->ime)) {
+        RemoveImeData(ImeType::IME, true);
+        return true;
+    }
+    return ForceStopCurrentIme(true);
+}
+
+bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
+{
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
+        StopClientInput(clientInfo);
+    }
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        return true;
+    }
+    imeData->imeStatus = ImeStatus::EXITING;
+    AAFwk::Want want;
+    want.SetElementName(imeData->ime.first, imeData->ime.second);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+        want, nullptr, userId_, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("StopExtensionAbility [%{public}s, %{public}s] failed, ret: %{public}d!",
+            imeData->ime.first.c_str(), imeData->ime.second.c_str(), ret);
+        return false;
+    }
+    if (!isNeedWait) {
+        return true;
+    }
+    WaitForCurrentImeStop();
+    if (ImeInfoInquirer::GetInstance().IsRunningExtension(imeData->ime)) {
+        IMSA_HILOGI("force stop timeout.");
+        return false;
+    }
+    RemoveImeData(ImeType::IME, true);
+    return true;
+}
+
+bool PerUserSession::StopCurrentImeWithImeData()
+{
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
+        StopClientInput(clientInfo);
+    }
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        return true;
+    }
+    imeData->imeStatus = ImeStatus::EXITING;
+    auto ret = RequestIme(imeData, RequestType::NORMAL, [&imeData] {
+        // failed when register onInputStop after SetcoreAndAgent
+        return imeData->core->StopInputService(true);
+    });
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("StopInputService failed.");
+        return ForceStopCurrentIme(true);
+    }
+    if (!WaitForCurrentImeStop()) {
+        IMSA_HILOGI("stop timeout.");
+        return false;
+    }
+    return true;
+}
+
+bool PerUserSession::StopCurrentIme()
+{
+    if (StopCurrentImeWithImeData()) {
+        return true;
+    }
+    return ForceStopCurrentIme(false);
 }
 } // namespace MiscServices
 } // namespace OHOS
