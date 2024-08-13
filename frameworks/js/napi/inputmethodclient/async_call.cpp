@@ -22,11 +22,18 @@
 
 namespace OHOS {
 namespace MiscServices {
+using namespace std::chrono;
 constexpr size_t ARGC_MAX = 6;
+constexpr int32_t MAX_WAIT_TIME = 100;
+static inline uint64_t GetTimeStamp()
+{
+    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
 AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount)
     : env_(env)
 {
     context_ = new AsyncContext();
+    NAPI_ASSERT_RETURN_VOID(env, context_ != nullptr, "context_ != nullptr");
     size_t argc = ARGC_MAX;
     napi_value self = nullptr;
     napi_value argv[ARGC_MAX] = { nullptr };
@@ -56,7 +63,7 @@ AsyncCall::~AsyncCall()
 
 napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec, const std::string &resourceName)
 {
-    if (context_ == nullptr) {
+    if (context_ == nullptr || context_->ctx == nullptr) {
         IMSA_HILOGE("context_ is nullptr!");
         return nullptr;
     }
@@ -82,6 +89,38 @@ napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec, const std::st
     return promise;
 }
 
+napi_value AsyncCall::Post(napi_env env, Context::ExecAction exec, std::shared_ptr<TaskQueue> queue, const char *func)
+{
+    if (context_ == nullptr || context_->ctx == nullptr || queue == nullptr) {
+        IMSA_HILOGE("context is nullptr!");
+        return nullptr;
+    }
+    context_->ctx->exec_ = std::move(exec);
+    napi_value promise = nullptr;
+    if (context_->callback == nullptr) {
+        napi_create_promise(env, &context_->defer, &promise);
+    } else {
+        napi_get_undefined(env, &promise);
+    }
+    napi_async_work work = context_->work;
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, func, NAPI_AUTO_LENGTH, &resource);
+    napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecuteSeq, AsyncCall::OnComplete, context_, &work);
+    context_->work = work;
+    std::unique_lock<ffrt::mutex> lock(queue->queuesMutex_);
+    queue->taskQueue_.emplace(env, work, func);
+    if (!queue->isRunning) {
+        auto status = napi_queue_async_work_with_qos(env, work, napi_qos_user_initiated);
+        queue->isRunning = status == napi_ok;
+        if (status != napi_ok) {
+            IMSA_HILOGE("async work failed.status:%{public}d, func:%{public}s!", status, func);
+        }
+    }
+    context_->queue = queue;
+    context_ = nullptr;
+    return promise;
+}
+
 napi_value AsyncCall::SyncCall(napi_env env, AsyncCall::Context::ExecAction exec)
 {
     if ((context_ == nullptr) || (context_->ctx == nullptr)) {
@@ -104,6 +143,23 @@ void AsyncCall::OnExecute(napi_env env, void *data)
 {
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
     context->ctx->Exec();
+}
+
+void AsyncCall::OnExecuteSeq(napi_env env, void *data)
+{
+    OnExecute(env, data);
+    AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
+    auto queue = context->queue;
+    if (queue == nullptr) {
+        return;
+    }
+    std::unique_lock<ffrt::mutex> lock(queue->queuesMutex_);
+    if (!queue->taskQueue_.empty()) {
+        queue->taskQueue_.pop();
+    }
+    queue->isRunning = !queue->taskQueue_.empty() &&
+                       napi_queue_async_work_with_qos(queue->taskQueue_.front().env,
+                           queue->taskQueue_.front().work, napi_qos_user_initiated) == napi_ok;
 }
 
 void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
@@ -149,6 +205,25 @@ void AsyncCall::DeleteContext(napi_env env, AsyncContext *context)
         napi_delete_async_work(env, context->work);
     }
     delete context;
+}
+
+AsyncCall::InnerTask::InnerTask(napi_env env, napi_async_work work, const char *name)
+    : env(env), work(work), name(name), startTime(GetTimeStamp())
+{
+}
+
+AsyncCall::InnerTask::~InnerTask()
+{
+    auto endTime = GetTimeStamp();
+    if (endTime - startTime > MAX_WAIT_TIME) {
+        IMSA_HILOGW("async work timeout! func:%{public}s, startTime:%{public}" PRIu64 ", endTime:%{public}" PRIu64
+                    ", cost:%{public}" PRIu64 "ms",
+            name, startTime, endTime, endTime - startTime);
+    } else {
+        IMSA_HILOGD("async work finished! func:%{public}s, startTime:%{public}" PRIu64 ", endTime:%{public}" PRIu64
+                    ", cost:%{public}" PRIu64 "ms",
+            name, startTime, endTime, endTime - startTime);
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
