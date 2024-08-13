@@ -526,6 +526,7 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
     InputClientInfo infoTemp = *clientInfo;
     infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
     infoTemp.isNotifyInputStart = inputClientInfo.isNotifyInputStart;
+    infoTemp.needHide = inputClientInfo.needHide;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     if (ret != ErrorCode::NO_ERROR) {
@@ -1398,6 +1399,21 @@ bool PerUserSession::RestartIme()
 BlockQueue<SwitchInfo>& PerUserSession::GetSwitchQueue()
 {
     return switchQueue_;
+}
+
+bool PerUserSession::CheckPwdInputPatternConv(InputClientInfo &newClientInfo)
+{
+    auto client = GetCurrentClient();
+    auto curClientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (curClientInfo == nullptr) {
+        return false;
+    }
+    if (newClientInfo.config.inputAttribute.GetSecurityFlag()) {
+        IMSA_HILOGI("new input pattern is pwd.");
+        return !curClientInfo->config.inputAttribute.GetSecurityFlag();
+    }
+    IMSA_HILOGI("new input pattern is normal.");
+    return curClientInfo->config.inputAttribute.GetSecurityFlag();
 }
 } // namespace MiscServices
 } // namespace OHOS
