@@ -722,7 +722,7 @@ void PerUserSession::StartImeInImeDied()
             return;
         }
     }
-    if (!IsReadyStartIme()) {
+    if (!IsWmsReady()) {
         IMSA_HILOGW("not ready to start ime.");
         return;
     }
@@ -1057,10 +1057,6 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 
 bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
 {
-    if (!IsReadyStartIme()) {
-        IMSA_HILOGW("not ready to start ime.");
-        return false;
-    }
     isImeStarted_.Clear(false);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
@@ -1328,20 +1324,27 @@ int32_t PerUserSession::RemoveCurrentClient()
     return RemoveClient(currentClient, false);
 }
 
-bool PerUserSession::IsReadyStartIme()
+bool PerUserSession::IsWmsReady()
+{
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        IMSA_HILOGD("scb enable");
+        return WmsConnectionObserver::IsWmsConnected(userId_);
+    }
+    return IsReady(WINDOW_MANAGER_SERVICE_ID);
+}
+
+bool PerUserSession::IsReady(int32_t saId)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (saMgr == nullptr) {
         IMSA_HILOGE("get saMgr failed!");
         return false;
     }
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        return WmsConnectionObserver::IsWmsConnected(userId_) &&
-               saMgr->CheckSystemAbility(MEMORY_MANAGER_SA_ID) != nullptr;
+    if (saMgr->CheckSystemAbility(saId) == nullptr) {
+        IMSA_HILOGE("sa:%{public}d not ready!", saId);
+        return false;
     }
-
-    return saMgr->CheckSystemAbility(WINDOW_MANAGER_SERVICE_ID) != nullptr &&
-           saMgr->CheckSystemAbility(MEMORY_MANAGER_SA_ID) != nullptr;
+    return true;
 }
 
 bool PerUserSession::RestartCurrentIme()
@@ -1370,7 +1373,7 @@ void PerUserSession::AddRestartIme()
 bool PerUserSession::RestartIme()
 {
     auto task = [this]() {
-        if (IsReadyStartIme()) {
+        if (IsReady(MEMORY_MANAGER_SA_ID) && IsWmsReady()) {
             if (!RestartCurrentIme()) {
                 IMSA_HILOGE("start ime failed");
             }

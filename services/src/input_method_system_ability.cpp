@@ -1550,7 +1550,7 @@ void InputMethodSystemAbility::HandleUserSwitched(int32_t userId)
         return;
     }
     auto imeData = session->GetImeData(ImeType::IME);
-    if (imeData == nullptr) {
+    if (imeData == nullptr && session->IsWmsReady()) {
         session->StartCurrentIme();
     }
 }

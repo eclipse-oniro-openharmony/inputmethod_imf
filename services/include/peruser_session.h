@@ -118,6 +118,7 @@ public:
     int32_t RemoveCurrentClient();
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     BlockQueue<SwitchInfo>& GetSwitchQueue();
+    bool IsWmsReady();
 
 private:
     struct ResetManager {
@@ -200,7 +201,7 @@ private:
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
-    bool IsReadyStartIme();
+    bool IsReady(int32_t saId);
     AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
