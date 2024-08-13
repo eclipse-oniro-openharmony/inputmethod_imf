@@ -36,6 +36,7 @@ public:
     enum {
         CORE_CMD_BEGIN,
         SHOW_KEYBOARD = CORE_CMD_BEGIN,
+        STOP_INPUT_SERVICE,
         HIDE_KEYBOARD,
         INIT_INPUT_CONTROL_CHANNEL,
         SET_SUBTYPE,

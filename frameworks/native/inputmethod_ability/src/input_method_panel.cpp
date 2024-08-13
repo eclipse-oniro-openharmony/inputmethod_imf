@@ -149,6 +149,43 @@ int32_t InputMethodPanel::DestroyPanel()
     return ErrorCode::NO_ERROR;
 }
 
+LayoutParams InputMethodPanel::GetResizeParams()
+{
+    if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
+        Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
+        IMSA_HILOGI("is fold device and unfold state");
+        return resizePanelUnfoldParams_;
+    }
+    IMSA_HILOGI("is fold device and fold state or other");
+    return resizePanelFoldParams_;
+}
+ 
+void InputMethodPanel::SetResizeParams(uint32_t width, uint32_t height)
+{
+    if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
+        Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
+        IMSA_HILOGI("set fold device and unfold state resize params, width/height: %{public}u/%{public}u.",
+            width, height);
+        if (IsDisplayPortrait()) {
+            resizePanelUnfoldParams_.portraitRect.height_ = height;
+            resizePanelUnfoldParams_.portraitRect.width_ = width;
+        } else {
+            resizePanelUnfoldParams_.landscapeRect.height_ = height;
+            resizePanelUnfoldParams_.landscapeRect.width_ = width;
+        }
+    } else {
+        IMSA_HILOGI("set fold device and fold state or other resize params, width/height: %{public}u/%{public}u.",
+            width, height);
+        if (IsDisplayPortrait()) {
+            resizePanelFoldParams_.portraitRect.height_ = height;
+            resizePanelFoldParams_.portraitRect.width_ = width;
+        } else {
+            resizePanelFoldParams_.landscapeRect.height_ = height;
+            resizePanelFoldParams_.landscapeRect.width_ = width;
+        }
+    }
+}
+
 int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
 {
     if (window_ == nullptr) {
@@ -167,15 +204,16 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         }
     } else {
         LayoutParams params = adjustPanelRectLayoutParams_;
+        LayoutParams deviceParams = GetResizeParams();
         if (IsDisplayPortrait()) {
-            params.landscapeRect.height_ = 0;
-            params.landscapeRect.width_ = 0;
+            params.landscapeRect.height_ = deviceParams.landscapeRect.height_;
+            params.landscapeRect.width_ = deviceParams.landscapeRect.width_;
             params.portraitRect.height_ = height;
             params.portraitRect.width_ = width;
             IMSA_HILOGI("isPortrait now, updata portrait size");
         } else {
-            params.portraitRect.height_ = 0;
-            params.portraitRect.width_ = 0;
+            params.portraitRect.height_ = deviceParams.portraitRect.height_;
+            params.portraitRect.width_ = deviceParams.portraitRect.width_;
             params.landscapeRect.height_ = height;
             params.landscapeRect.width_ = width;
             IMSA_HILOGI("isLandscapeRect now, updata landscape size");
@@ -185,6 +223,7 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
             IMSA_HILOGE("failed to resize, ret: %{public}d", ret);
             return ErrorCode::ERROR_OPERATE_PANEL;
         }
+        SetResizeParams(width, height);
     }
     std::lock_guard<std::mutex> lock(keyboardSizeLock_);
     keyboardSize_ = { width, height };

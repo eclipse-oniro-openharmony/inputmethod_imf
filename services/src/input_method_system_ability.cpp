@@ -282,8 +282,14 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         // notify inputStart when caller pid different from both current client and inactive client
         inputClientInfo.isNotifyInputStart = true;
     }
+    if (inputClientInfo.isNotifyInputStart) {
+        inputClientInfo.needHide = session->CheckPwdInputPatternConv(inputClientInfo);
+    }
     if (!session->IsProxyImeEnable()) {
-        CheckInputTypeOption(userId, inputClientInfo);
+        auto ret = CheckInputTypeOption(userId, inputClientInfo);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
     }
     int32_t ret = PrepareInput(userId, inputClientInfo);
     if (ret != ErrorCode::NO_ERROR) {
@@ -293,7 +299,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     return session->OnStartInput(inputClientInfo, agent);
 };
 
-void InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo)
+int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo)
 {
     IMSA_HILOGI("SecurityFlag: %{public}d, IsSameTextInput: %{public}d, IsStarted: %{public}d, "
                 "IsSecurityImeStarted: %{public}d.",
@@ -301,28 +307,36 @@ void InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClientI
         InputTypeManager::GetInstance().IsStarted(), InputTypeManager::GetInstance().IsSecurityImeStarted());
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
         if (!InputTypeManager::GetInstance().IsStarted()) {
-            StartInputType(userId, InputType::SECURITY_INPUT);
             IMSA_HILOGI("SecurityFlag, input type is not started.");
-            return;
+            return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         if (!inputClientInfo.isNotifyInputStart) {
             IMSA_HILOGI("SecurityFlag, same text input.");
-            return;
+            return ErrorCode::NO_ERROR;
         }
         if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
-            StartInputType(userId, InputType::SECURITY_INPUT);
             IMSA_HILOGI("SecurityFlag, input type is started, but not security.");
-            return;
+            return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         IMSA_HILOGI("SecurityFlag others.");
-        return;
+        return ErrorCode::NO_ERROR;
     }
     if (inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
         IMSA_HILOGI("NormalFlag diff text input, input type started.");
-        StartInputType(userId, InputType::NONE);
-        return;
+        return StartInputType(userId, InputType::NONE);
     }
     IMSA_HILOGI("NormalFlag success.");
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    auto imeData = session->GetReadyImeData(ImeType::IME);
+    if (imeData != nullptr && imeData->ime.first == cfgIme->bundleName && imeData->ime.second == cfgIme->extName) {
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGI("need to switch to current ime.");
+    return session->StartIme(cfgIme) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME_START_FAILED;
 }
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
@@ -425,13 +439,14 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (IsCurrentIme(userId)) {
-        return session->OnSetCoreAndAgent(core, agent);
-    }
     if (identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
         return session->OnRegisterProxyIme(core, agent);
     }
-    return ErrorCode::ERROR_NOT_CURRENT_IME;
+    // TODO
+    if (!IsCurrentIme(userId)) {
+        return ErrorCode::ERROR_NOT_CURRENT_IME;
+    }
+    return session->OnSetCoreAndAgent(core, agent);
 }
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
@@ -473,8 +488,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
 int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     auto userId = GetCallingUserId();
-    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    if (!identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
+    if (!IsCurrentIme(userId)) {
         IMSA_HILOGE("not current ime!");
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
@@ -1284,10 +1298,10 @@ void InputMethodSystemAbility::InitMonitors()
 int32_t InputMethodSystemAbility::RegisterDataShareObserver()
 {
     IMSA_HILOGD("start.");
-    if (enableImeOn_) {
+    if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         RegisterEnableImeObserver();
     }
-    if (enableSecurityMode_) {
+    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         RegisterSecurityModeObserver();
     }
     return ErrorCode::NO_ERROR;
@@ -1547,8 +1561,8 @@ void InputMethodSystemAbility::HandleUserSwitched(int32_t userId)
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return;
     }
-    auto imeData = session->GetImeData(ImeType::IME);
-    if (imeData == nullptr) {
+    auto imeData = session->GetReadyImeData(ImeType::IME);
+    if (imeData == nullptr && session->IsWmsReady()) {
         session->StartCurrentIme();
     }
 }
@@ -1674,12 +1688,27 @@ int32_t InputMethodSystemAbility::GetCallingUserId()
 
 bool InputMethodSystemAbility::IsCurrentIme(int32_t userId)
 {
-    if (InputTypeManager::GetInstance().IsStarted()) {
-        auto currentTypeIme = InputTypeManager::GetInstance().GetCurrentIme();
-        return identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentTypeIme.bundleName);
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return false;
     }
-    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    return identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName);
+    auto bundleName = FullImeInfoManager::GetInstance().Get(userId, IPCSkeleton::GetCallingTokenID());
+    if (bundleName.empty()) {
+        IMSA_HILOGW("%{public}s tokenId not find.", bundleName.c_str());
+        bundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
+    }
+    auto imeData = session->GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        return false;
+    }
+    if (imeData->imeStatus != ImeStatus::STARTING) {
+        return false;
+    }
+    if (bundleName != imeData->ime.first) {
+        return false;
+    }
+    return true;
 }
 
 int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)

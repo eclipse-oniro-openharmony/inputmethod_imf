@@ -107,7 +107,7 @@ public:
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
 
-    bool StartCurrentIme();
+    bool StartCurrentIme(bool isStopCurrentIme = false);
     bool StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme = false);
     bool StopCurrentIme();
     bool RestartIme();
@@ -120,8 +120,11 @@ public:
     bool CheckSecurityMode();
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
     int32_t RemoveCurrentClient();
+    std::shared_ptr<ImeData> GetReadyImeData(ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     BlockQueue<SwitchInfo>& GetSwitchQueue();
+    bool IsWmsReady();
+    bool CheckPwdInputPatternConv(InputClientInfo &clientInfo);
 
 private:
     struct ResetManager {
@@ -137,7 +140,7 @@ private:
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
     static const int MAX_RESTART_NUM = 3;
     static const int IME_RESET_TIME_OUT = 3;
-    static const int MAX_IME_START_TIME = 1000;
+    static const int MAX_IME_START_TIME = 1000;   // TODO
     static constexpr int32_t MAX_RESTART_TASKS = 2;
     std::mutex clientLock_;
     sptr<IInputClient> currentClient_; // the current input client
@@ -205,17 +208,14 @@ private:
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
-    bool IsReadyStartIme();
+    bool IsReady(int32_t saId);
     AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool ReStartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool HandleCurrentImeWhenRestart();
     bool StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool HandleCurrentImeWhenNewImeStart();
-    bool HandleExitingCurrentIme();
     bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool StopCurrentImeWithImeData();
     bool ForceStopCurrentIme(bool isNeedWait);
+    bool StopReadyCurrentIme();
+    bool StopExitingCurrentIme();
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };

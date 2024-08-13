@@ -1093,7 +1093,7 @@ bool ImeInfoInquirer::IsRunningExtension(const std::pair<std::string, std::strin
         return ime.first == info.extension.GetBundleName() && ime.second == info.extension.GetAbilityName();
     });
     if (it == infos.end()) {
-        IMSA_HILOGE("[%{public}s, %{public}s]not running!", ime.first.c_str(), ime.second.c_str());
+        IMSA_HILOGE("[%{public}s, %{public}s] not running!", ime.first.c_str(), ime.second.c_str());
         return false;
     }
     return true;

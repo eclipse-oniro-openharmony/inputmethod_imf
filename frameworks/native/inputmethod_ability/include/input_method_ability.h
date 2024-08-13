@@ -96,6 +96,7 @@ public:
     int32_t NotifyPanelStatus(const std::shared_ptr<InputMethodPanel> &inputMethodPanel,
         SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
+    int32_t OnStopInputService(bool isTerminateIme);
 
 private:
     std::thread workThreadHandler;
@@ -144,7 +145,6 @@ private:
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnAttributeChange(Message *msg);
-    int32_t OnStopInputService(bool isTerminateIme);
 
     int32_t HideKeyboard(Trigger trigger);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
