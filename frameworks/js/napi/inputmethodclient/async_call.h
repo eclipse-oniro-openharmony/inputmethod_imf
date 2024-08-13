@@ -15,9 +15,10 @@
 #ifndef ASYN_CALL_H
 #define ASYN_CALL_H
 
+#include "cpp/mutex.h"
 #include "global.h"
-#include "input_method_info.h"
 #include "js_utils.h"
+#include "ffrt.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
@@ -98,14 +99,32 @@ public:
         int32_t errorCode_ = 0;
         std::string errMessage_;
     };
+
+    struct InnerTask {
+        InnerTask(napi_env env, napi_async_work work, const char *name);
+        ~InnerTask();
+        napi_env env = nullptr;
+        napi_async_work work = nullptr;
+        const char *name = nullptr;
+        uint64_t startTime = 0;
+    };
+
+    struct TaskQueue {
+        ffrt::mutex queuesMutex_;
+        std::queue<InnerTask> taskQueue_;
+        bool isRunning = false;
+    };
+
     AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount);
     ~AsyncCall();
     napi_value Call(napi_env env, Context::ExecAction exec = nullptr, const std::string &resourceName = "AsyncCall");
+    napi_value Post(napi_env env, Context::ExecAction exec, std::shared_ptr<TaskQueue> queue, const char *func);
     napi_value SyncCall(napi_env env, Context::ExecAction exec = nullptr);
 
 private:
     enum Arg : int { ARG_ERROR, ARG_DATA, ARG_BUTT };
     static void OnExecute(napi_env env, void *data);
+    static void OnExecuteSeq(napi_env env, void *data);
     static void OnComplete(napi_env env, napi_status status, void *data);
     struct AsyncContext {
         std::shared_ptr<Context> ctx = nullptr;
@@ -113,8 +132,10 @@ private:
         napi_ref self = nullptr;
         napi_deferred defer = nullptr;
         napi_async_work work = nullptr;
+        std::shared_ptr<TaskQueue> queue = nullptr;
     };
     static void DeleteContext(napi_env env, AsyncContext *context);
+
     AsyncContext *context_ = nullptr;
     napi_env env_ = nullptr;
 };
