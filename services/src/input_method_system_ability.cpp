@@ -1286,10 +1286,10 @@ void InputMethodSystemAbility::InitMonitors()
 int32_t InputMethodSystemAbility::RegisterDataShareObserver()
 {
     IMSA_HILOGD("start.");
-    if (enableImeOn_) {
+    if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         RegisterEnableImeObserver();
     }
-    if (enableSecurityMode_) {
+    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         RegisterSecurityModeObserver();
     }
     return ErrorCode::NO_ERROR;
