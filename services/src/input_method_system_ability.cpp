@@ -354,6 +354,8 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
+    } else {
+        inputClientInfo.config.windowId = ANCO_INVALID_WINDOW_ID;
     }
     if (userSession_->GetCurrentClientPid() != IPCSkeleton::GetCallingPid()
         && userSession_->GetInactiveClientPid() != IPCSkeleton::GetCallingPid()) {
