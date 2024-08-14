@@ -26,6 +26,7 @@
 #include "scene_board_judgement.h"
 #include "sys_cfg_parser.h"
 #include "ui/rs_surface_node.h"
+#include "inputmethod_sysevent.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -133,7 +134,7 @@ int32_t InputMethodPanel::SetPanelProperties()
 
 int32_t InputMethodPanel::DestroyPanel()
 {
-    auto ret = HidePanel();
+    auto ret = HidePanel(false);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputMethodPanel, hide panel failed, ret: %{public}d!", ret);
     }
@@ -637,9 +638,9 @@ int32_t InputMethodPanel::SetTextFieldAvoidInfo(double positionY, double height)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodPanel::HidePanel()
+int32_t InputMethodPanel::HidePanel(bool isForce)
 {
-    IMSA_HILOGD("InputMethodPanel start.");
+    IMSA_HILOGD("InputMethodPanel start. isForce=%{public}d", isForce);
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -647,6 +648,10 @@ int32_t InputMethodPanel::HidePanel()
     if (IsHidden()) {
         IMSA_HILOGI("panel already hidden.");
         return ErrorCode::NO_ERROR;
+    }
+    if (isForce) {
+        IMSA_HILOGI("force hide");
+        InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_FORCE);
     }
     auto ret = WMError::WM_OK;
     {

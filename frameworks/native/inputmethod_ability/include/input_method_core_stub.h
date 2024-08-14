@@ -38,7 +38,7 @@ public:
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient) override;
     int32_t StopInput(const sptr<IRemoteObject> &channel) override;
     int32_t ShowKeyboard() override;
-    int32_t HideKeyboard() override;
+    int32_t HideKeyboard(bool isForce) override;
     int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) override;
     void StopInputService(bool isTerminateIme) override;
     int32_t SetSubtype(const SubProperty &property) override;
