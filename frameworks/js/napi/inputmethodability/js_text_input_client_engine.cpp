@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-#define ASYNC_POST(env, ctx) asyncCall.Post(env, ctx, taskQueue_, __FUNCTION__)
+#define ASYNC_POST(env, ctx) asyncCall.Post((env), (ctx), taskQueue_, __FUNCTION__)
 using namespace std::chrono;
 thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";

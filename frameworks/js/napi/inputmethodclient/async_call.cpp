@@ -24,7 +24,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
 constexpr size_t ARGC_MAX = 6;
-constexpr int32_t MAX_WAIT_TIME = 100;
+constexpr int32_t MAX_WAIT_TIME = 500; // ms
 static inline uint64_t GetTimeStamp()
 {
     return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -142,6 +142,10 @@ napi_value AsyncCall::SyncCall(napi_env env, AsyncCall::Context::ExecAction exec
 void AsyncCall::OnExecute(napi_env env, void *data)
 {
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
+    if (context == nullptr || context->ctx == nullptr) {
+        IMSA_HILOGE("context or context->ctx is nullptr!");
+        return;
+    }
     context->ctx->Exec();
 }
 
@@ -149,10 +153,11 @@ void AsyncCall::OnExecuteSeq(napi_env env, void *data)
 {
     OnExecute(env, data);
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
-    auto queue = context->queue;
-    if (queue == nullptr) {
+    if (context == nullptr || context->queue == nullptr) {
+        IMSA_HILOGE("context or context->queue is nullptr!");
         return;
     }
+    auto queue = context->queue;
     std::unique_lock<ffrt::mutex> lock(queue->queuesMutex_);
     if (!queue->taskQueue_.empty()) {
         queue->taskQueue_.pop();
@@ -166,6 +171,10 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
 {
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
     napi_value output = nullptr;
+    if (context == nullptr || context->ctx == nullptr) {
+        IMSA_HILOGE("context or context->ctx is nullptr!");
+        return;
+    }
     napi_status runStatus = (*context->ctx)(env, &output);
     napi_value result[ARG_BUTT] = { 0 };
     if (status == napi_ok && runStatus == napi_ok) {
