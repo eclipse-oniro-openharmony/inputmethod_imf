@@ -120,6 +120,7 @@ napi_value JsGetInputMethodController::GetJsEnterKeyTypeProperty(napi_env env)
     napi_value typeNext = nullptr;
     napi_value typeDone = nullptr;
     napi_value typePrevious = nullptr;
+    napi_value typeNewline = nullptr;
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::UNSPECIFIED), &typeUnspecified));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::NONE), &typeNone));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::GO), &typeGo));
@@ -128,6 +129,7 @@ napi_value JsGetInputMethodController::GetJsEnterKeyTypeProperty(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::NEXT), &typeNext));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::DONE), &typeDone));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::PREVIOUS), &typePrevious));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::NEW_LINE), &typeNewline));
     NAPI_CALL(env, napi_create_object(env, &enterKeyType));
     NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "UNSPECIFIED", typeUnspecified));
     NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "NONE", typeNone));
@@ -137,6 +139,7 @@ napi_value JsGetInputMethodController::GetJsEnterKeyTypeProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "NEXT", typeNext));
     NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "DONE", typeDone));
     NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "PREVIOUS", typePrevious));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "NEWLINE", typeNewline));
     return enterKeyType;
 }
 
