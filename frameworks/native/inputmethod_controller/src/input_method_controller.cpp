@@ -916,6 +916,7 @@ void InputMethodController::OnInputStop()
         }
         listener->SendKeyboardStatus(KeyboardStatus::HIDE);
     }
+    SetTextListener(nullptr);
     isBound_.store(false);
     isEditable_.store(false);
 }
