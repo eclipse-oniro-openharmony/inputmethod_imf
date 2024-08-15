@@ -276,6 +276,7 @@ void CjInputMethodController::RegisterListener(int8_t type, int64_t id)
         }
     }
 }
+
 void CjInputMethodController::UnRegisterListener(int8_t type)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -341,11 +342,21 @@ int32_t CjInputMethodController::Unsubscribe(int8_t type)
 
 void CjInputMethodController::OnSelectByRange(int32_t start, int32_t end)
 {
+    if (onSelelctByRange == nullptr) {
+        IMSA_HILOGI("onSelelctByRange null");
+        return;
+    }
+    IMSA_HILOGI("onSelelctByRange runs");
     return onSelectByRange(start, end);
 }
 
 void CjInputMethodController::OnSelectByMovement(int32_t direction)
 {
+    if (onSelectByMovement == nullptr) {
+        IMSA_HILOGI("onSelectByMovement null");
+        return;
+    }
+    IMSA_HILOGI("onSelectByMovement runs");
     return onSelectByMovement(direction);
 }
 
@@ -356,6 +367,10 @@ void CjInputMethodController::InsertText(const std::u16string &text)
         IMSA_HILOGE("Failed to excute InsertText callback: out of memory.");
         return;
     }
+    if (insertText == nullptr) {
+        IMSA_HILOGI("insertText null");
+        return;
+    }
     IMSA_HILOGI("insertText runs");
     insertText(insertTxt);
     free(insertTxt);
@@ -364,6 +379,10 @@ void CjInputMethodController::InsertText(const std::u16string &text)
 
 void CjInputMethodController::DeleteRight(int32_t length)
 {
+    if (deleteRight == nullptr) {
+        IMSA_HILOGI("deleteRight null");
+        return;
+    }
     IMSA_HILOGI("deleteRight runs");
     deleteRight(length);
     return;
@@ -371,6 +390,10 @@ void CjInputMethodController::DeleteRight(int32_t length)
 
 void CjInputMethodController::DeleteLeft(int32_t length)
 {
+    if (deleteLeft == nullptr) {
+        IMSA_HILOGI("deleteLeft null");
+        return;
+    }
     IMSA_HILOGI("deleteLeft runs");
     deleteLeft(length);
     return;
@@ -378,6 +401,10 @@ void CjInputMethodController::DeleteLeft(int32_t length)
 
 void CjInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
 {
+    if (sendKeyboardStatus == nullptr) {
+        IMSA_HILOGI("sendKeyboardStatus null");
+        return;
+    }
     IMSA_HILOGI("sendKeyboardStatus runs");
     auto statusNum = static_cast<int64_t>(status);
     sendKeyboardStatus(statusNum);
@@ -386,6 +413,10 @@ void CjInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
 
 void CjInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
 {
+    if (sendFunctionKey == nullptr) {
+        IMSA_HILOGI("sendFunctionKey null");
+        return;
+    }
     IMSA_HILOGI("sendFunctionKey runs");
     auto type = static_cast<int64_t>(functionKey.GetEnterKeyType());
     sendFunctionKey(type);
@@ -394,6 +425,10 @@ void CjInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
 
 void CjInputMethodController::MoveCursor(const Direction direction)
 {
+    if (moveCursor == nullptr) {
+        IMSA_HILOGI("moveCursor null");
+        return;
+    }
     IMSA_HILOGI("moveCursor runs");
     auto dir = static_cast<int64_t>(direction);
     moveCursor(dir);
@@ -402,6 +437,10 @@ void CjInputMethodController::MoveCursor(const Direction direction)
 
 void CjInputMethodController::HandleExtendAction(int32_t action)
 {
+    if (handleExtendAction == nullptr) {
+        IMSA_HILOGI("handleExtendAction null");
+        return;
+    }
     IMSA_HILOGI("handleExtendAction runs");
     handleExtendAction(action);
     return;
@@ -409,6 +448,10 @@ void CjInputMethodController::HandleExtendAction(int32_t action)
 
 std::u16string CjInputMethodController::GetLeftText(int32_t number)
 {
+    if (getLeftText == nullptr) {
+        IMSA_HILOGI("getLeftText null");
+        return u"";
+    }
     IMSA_HILOGI("getLeftText runs");
     char *text = getLeftText(number);
     auto ret = Str8ToStr16(std::string(text));
@@ -418,6 +461,10 @@ std::u16string CjInputMethodController::GetLeftText(int32_t number)
 
 std::u16string CjInputMethodController::GetRightText(int32_t number)
 {
+    if (getRightText == nullptr) {
+        IMSA_HILOGI("getRightText null");
+        return u"";
+    }
     IMSA_HILOGI("getRightText runs");
     char *text = getRightText(number);
     auto ret = Str8ToStr16(std::string(text));
@@ -427,6 +474,10 @@ std::u16string CjInputMethodController::GetRightText(int32_t number)
 
 int32_t CjInputMethodController::GetTextIndexAtCursor()
 {
+    if (getTextIndexAtCursor == nullptr) {
+        IMSA_HILOGI("getTextIndexAtCursor null");
+        return -1;
+    }
     IMSA_HILOGI("getTextIndexAtCursor runs");
     return getTextIndexAtCursor();
 }

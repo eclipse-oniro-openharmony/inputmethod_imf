@@ -75,13 +75,6 @@ private:
     std::function<int32_t(void)> getTextIndexAtCursor;
     static std::mutex controllerMutex_;
     static std::shared_ptr<CjInputMethodController> controller_;
-    static const std::string IMC_CLASS_NAME;
-    static std::mutex eventHandlerMutex_;
-    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
-    static constexpr size_t PARAM_POS_ZERO = 0;
-    static constexpr size_t PARAM_POS_ONE = 1;
-    static constexpr size_t PARAM_POS_TWO = 2;
-    static constexpr size_t PARAM_POS_THREE = 3;
 };
 } // namespace MiscServices
 } // namespace OHOS
