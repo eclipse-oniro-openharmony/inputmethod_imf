@@ -131,6 +131,9 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
     }
     auto info = std::make_shared<ImeInfo>();
     auto subProps = it->subProps;
+    if (subName.empty()) {
+        info->isSpecificSubName = false;
+    }
     if (subName.empty() && !subProps.empty()) {
         info->subProp = subProps[0];
     } else {
@@ -181,6 +184,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
     }
     info->subProps = subProps;
     if (subName.empty()) {
+        info->isSpecificSubName = false;
         info->subProp = subProps[0];
     } else {
         auto it = std::find_if(subProps.begin(), subProps.end(),

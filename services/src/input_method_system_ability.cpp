@@ -307,36 +307,25 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         InputTypeManager::GetInstance().IsStarted(), InputTypeManager::GetInstance().IsSecurityImeStarted());
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
         if (!InputTypeManager::GetInstance().IsStarted()) {
-            IMSA_HILOGI("SecurityFlag, input type is not started.");
+            IMSA_HILOGI("SecurityFlag, input type is not started, start.");
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         if (!inputClientInfo.isNotifyInputStart) {
-            IMSA_HILOGI("SecurityFlag, same text input.");
+            IMSA_HILOGI("SecurityFlag, same textFiled, input type is started, not deal.");
             return ErrorCode::NO_ERROR;
         }
         if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
-            IMSA_HILOGI("SecurityFlag, input type is started, but not security.");
+            IMSA_HILOGI("SecurityFlag, new textFiled, input type is started, but it is not security, switch.");
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
-        IMSA_HILOGI("SecurityFlag others.");
+        IMSA_HILOGI("SecurityFlag, other condition, not deal.");
         return ErrorCode::NO_ERROR;
     }
-    if (inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
-        IMSA_HILOGI("NormalFlag diff text input, input type started.");
-        return StartInputType(userId, InputType::NONE);
-    }
-    IMSA_HILOGI("NormalFlag success.");
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
-    if (session == nullptr) {
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    auto imeData = session->GetReadyImeData(ImeType::IME);
-    if (imeData != nullptr && imeData->ime.first == cfgIme->bundleName && imeData->ime.second == cfgIme->extName) {
+    if (!inputClientInfo.isNotifyInputStart) {
+        IMSA_HILOGI("NormalFlag, same textFiled, not deal.");
         return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGI("need to switch to current ime.");
-    return session->StartIme(cfgIme) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME_START_FAILED;
+    return StartInputType(userId, InputType::NONE);
 }
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
@@ -650,23 +639,27 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
         session->GetSwitchQueue().Pop();
         return ret;
     }
-
-    if (!InputTypeManager::GetInstance().IsStarted()
-        && !IsNeedSwitch(userId, switchInfo.bundleName, switchInfo.subName)) {
-        session->GetSwitchQueue().Pop();
-        return ErrorCode::NO_ERROR;
-    }
     auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId, switchInfo.bundleName, switchInfo.subName);
     if (info == nullptr) {
         session->GetSwitchQueue().Pop();
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
+    InputTypeManager::GetInstance().Set(false);
     {
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
-        ret = info->isNewIme ? Switch(userId, switchInfo.bundleName, info) : SwitchExtension(userId, info);
-    }
-    if (InputTypeManager::GetInstance().IsStarted()) {
-        InputTypeManager::GetInstance().Set(false);
+        // ret = info->isNewIme ? Switch(userId, switchInfo.bundleName, info) : SwitchExtension(userId, info);
+        std::string targetImeName = info->prop.name + "/" + info->prop.id;
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id });
+        ImeNativeCfg targetIme = { targetImeName, info->prop.name, info->subProp.id, info->prop.id };
+        if (!session->StartIme(std::make_shared<ImeNativeCfg>(targetIme))) {
+            IMSA_HILOGE("start input method failed!");
+            ret = ErrorCode::ERROR_IME_START_FAILED;
+        }
+        session->NotifyImeChangeToClients(info->prop, info->subProp);
+        if (info->isSpecificSubName) {
+            IMSA_HILOGD("specific subName");
+            ret = session->SwitchSubtype(info->subProp);
+        }
     }
     session->GetSwitchQueue().Pop();
     if (ret != ErrorCode::NO_ERROR) {
@@ -688,23 +681,11 @@ int32_t InputMethodSystemAbility::OnStartInputType(int32_t userId, const SwitchI
         IMSA_HILOGD("start wait.");
         session->GetSwitchQueue().Wait(switchInfo);
     }
-    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    if (switchInfo.bundleName == cfgIme->bundleName && switchInfo.subName == cfgIme->subName) {
-        IMSA_HILOGD("input type is current ime, exit input type.");
-        int32_t ret = session->ExitCurrentInputType();
-        session->GetSwitchQueue().Pop();
-        return ret;
-    }
     IMSA_HILOGD("start switch %{public}s|%{public}s.", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     if (isCheckPermission && !IsStartInputTypePermitted(userId)) {
         IMSA_HILOGE("not permitted to start input type!");
         session->GetSwitchQueue().Pop();
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
-    if (!IsNeedSwitch(userId, switchInfo.bundleName, switchInfo.subName)) {
-        IMSA_HILOGI("no need to switch.");
-        session->GetSwitchQueue().Pop();
-        return ErrorCode::NO_ERROR;
     }
     int32_t ret = SwitchInputType(userId, switchInfo);
     session->GetSwitchQueue().Pop();
@@ -786,27 +767,14 @@ int32_t InputMethodSystemAbility::SwitchSubType(int32_t userId, const std::share
 
 int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchInfo &switchInfo)
 {
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    bool checkSameIme = InputTypeManager::GetInstance().IsStarted()
-                            ? switchInfo.bundleName == InputTypeManager::GetInstance().GetCurrentIme().bundleName
-                            : switchInfo.bundleName == currentIme->bundleName;
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (checkSameIme) {
-        IMSA_HILOGD("only need to switch subtype: %{public}s.", switchInfo.subName.c_str());
-        auto ret = session->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
-        if (ret == ErrorCode::NO_ERROR) {
-            InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
-        }
-        return ret;
-    }
-    IMSA_HILOGD("need to switch ime: %{public}s|%{public}s.", switchInfo.bundleName.c_str(),
-        switchInfo.subName.c_str());
     auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeProperty(userId, switchInfo.bundleName);
     if (targetImeProperty == nullptr) {
+        IMSA_HILOGE("GetImeProperty [%{public}d, %{public}s] failed", userId, switchInfo.bundleName.c_str());
         return ErrorCode::ERROR_NULL_POINTER;
     }
     std::string targetName = switchInfo.bundleName + "/" + targetImeProperty->id;
@@ -820,6 +788,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
     int32_t ret = session->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
     if (ret != ErrorCode::NO_ERROR) {
         InputTypeManager::GetInstance().Set(false);
+        IMSA_HILOGE("switch subtype failed!");
         return ret;
     }
     return ErrorCode::NO_ERROR;
@@ -1718,10 +1687,16 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
+    // need start temp ime
     if (type != InputType::NONE) {
         ImeIdentification ime;
         int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
         if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("not find input type: %{public}d.", type);
+            // add for not adapter for SECURITY_INPUT
+            if (type == InputType::SECURITY_INPUT) {
+                return StartInputType(userId, InputType::NONE);
+            }
             return ret;
         }
         SwitchInfo switchInfo = { std::chrono::system_clock::now(), ime.bundleName, ime.subName };
@@ -1730,10 +1705,13 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
         return type == InputType::SECURITY_INPUT ? OnStartInputType(userId, switchInfo, false)
                                                  : OnStartInputType(userId, switchInfo, true);
     }
+    // need start current ime
     auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), cfgIme->bundleName, cfgIme->subName };
     session->GetSwitchQueue().Push(switchInfo);
-    return OnStartInputType(userId, switchInfo, false);
+    auto ret = OnStartInputType(userId, switchInfo, false);
+    InputTypeManager::GetInstance().Set(false);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

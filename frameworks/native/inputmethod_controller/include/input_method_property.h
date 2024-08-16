@@ -52,6 +52,7 @@ struct FullImeInfo {
 
 struct ImeInfo : public FullImeInfo {
     SubProperty subProp;
+    bool isSpecificSubName{ true };
 };
 } // namespace MiscServices
 } // namespace OHOS

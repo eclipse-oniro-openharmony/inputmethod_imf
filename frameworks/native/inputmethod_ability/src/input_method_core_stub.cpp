@@ -70,7 +70,7 @@ int32_t InputMethodCoreStub::ShowKeyboard()
 
 int32_t InputMethodCoreStub::HideKeyboard()
 {
-    return InputMethodAbility::GetInstance()->HideKeyboard();
+    return InputMethodAbility::GetInstance()->HideKeyboard(a);
 }
 
 int32_t InputMethodCoreStub::StopInputService(bool isTerminateIme)

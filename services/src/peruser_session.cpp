@@ -1161,26 +1161,7 @@ bool PerUserSession::IsBoundToClient()
 
 int32_t PerUserSession::ExitCurrentInputType()
 {
-    if (!InputTypeManager::GetInstance().IsStarted()) {
-        IMSA_HILOGD("already exit.");
-        return ErrorCode::NO_ERROR;
-    }
-    auto typeIme = InputTypeManager::GetInstance().GetCurrentIme();
-    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    if (cfgIme->bundleName == typeIme.bundleName) {
-        IMSA_HILOGI("only need to switch subtype: %{public}s.", cfgIme->subName.c_str());
-        int32_t ret = SwitchSubtype({ .name = cfgIme->bundleName, .id = cfgIme->subName });
-        if (ret == ErrorCode::NO_ERROR) {
-            InputTypeManager::GetInstance().Set(false);
-        }
-        return ret;
-    }
-    IMSA_HILOGI("need to switch ime to: %{public}.s", cfgIme->imeId.c_str());
     InputTypeManager::GetInstance().Set(false);
-    if (!StartIme(cfgIme)) {
-        IMSA_HILOGE("failed to start ime!");
-        return ErrorCode::ERROR_IME_START_FAILED;
-    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1426,7 +1407,7 @@ bool PerUserSession::StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
-        return true;
+        return StartInputService(ime);
     }
     if (imeData->imeStatus == ImeStatus::READY) {
         return true;
@@ -1450,7 +1431,7 @@ bool PerUserSession::StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
-        return false;
+        return StartInputService(ime);
     }
     IMSA_HILOGD("status: %{public}d.", imeData->imeStatus);
     if (!StopCurrentIme()) {
