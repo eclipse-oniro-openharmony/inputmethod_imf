@@ -442,10 +442,10 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
         }
         SysPanelStatus sysPanelStatus;
         if (ctxt->inputMethodPanel->IsDisplayPortrait()) {
-            sysPanelStatus = { false, ctxt->inputMethodPanel->GetPanelFlag(), ctxt->layoutParams.portraitRect.width_,
+            sysPanelStatus = { false, ctxt->panelFlag, ctxt->layoutParams.portraitRect.width_,
                 ctxt->layoutParams.portraitRect.height_ };
         } else {
-            sysPanelStatus = { false, ctxt->inputMethodPanel->GetPanelFlag(), ctxt->layoutParams.landscapeRect.width_,
+            sysPanelStatus = { false, ctxt->panelFlag, ctxt->layoutParams.landscapeRect.width_,
                 ctxt->layoutParams.landscapeRect.height_ };
         }
         InputMethodAbility::GetInstance()->NotifyPanelStatus(ctxt->inputMethodPanel, sysPanelStatus);
