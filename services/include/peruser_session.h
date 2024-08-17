@@ -50,6 +50,7 @@
 #include "message_handler.h"
 #include "panel_info.h"
 #include "unRegistered_type.h"
+#include "want.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -200,6 +201,7 @@ private:
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
     bool IsReadyStartIme();
+    AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;

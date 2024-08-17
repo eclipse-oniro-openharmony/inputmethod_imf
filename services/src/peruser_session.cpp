@@ -36,7 +36,6 @@
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "unistd.h"
-#include "want.h"
 #include "wms_connection_observer.h"
 
 namespace OHOS {
@@ -45,6 +44,7 @@ using namespace MessageID;
 constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
 constexpr const char *STRICT_MODE = "strictMode";
+constexpr const char *ISOLATED_SANDBOX = "isolatedSandbox";
 PerUserSession::PerUserSession(int userId) : userId_(userId)
 {
 }
@@ -1033,29 +1033,38 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
     return true;
 }
 
-bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
+AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 {
-    if (!IsReadyStartIme()) {
-        IMSA_HILOGW("not ready to start ime.");
-        return false;
-    }
     SecurityMode mode;
     if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         mode = SecurityModeParser::GetInstance()->GetSecurityMode(ime->bundleName, userId_);
     } else {
         mode = SecurityMode::FULL;
     }
-    IMSA_HILOGI("userId: %{public}d, ime: %{public}s, mode: %{public}d", userId_, ime->imeId.c_str(),
-        static_cast<int32_t>(mode));
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
+    auto isolatedSandBox = (defaultIme != nullptr && defaultIme->name != ime->bundleName);
+    want.SetParam(ISOLATED_SANDBOX, isolatedSandBox);
+    IMSA_HILOGI("userId: %{public}d, ime: %{public}s, mode: %{public}d, isolatedSandbox: %{public}d", userId_,
+        ime->imeId.c_str(), static_cast<int32_t>(mode), isolatedSandBox);
+    return want;
+}
+
+bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
+{
+    if (!IsReadyStartIme()) {
+        IMSA_HILOGW("not ready to start ime.");
+        return false;
+    }
     isImeStarted_.Clear(false);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
         IMSA_HILOGE("failed to create connection!");
         return false;
     }
+    auto want = GetWant(ime);
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("connect %{public}s failed, ret: %{public}d!", ime->imeId.c_str(), ret);
