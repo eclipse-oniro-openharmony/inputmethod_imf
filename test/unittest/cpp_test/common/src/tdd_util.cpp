@@ -15,7 +15,9 @@
 #define private public
 #define protected public
 #include "enable_ime_data_parser.h"
+#include "full_ime_info_manager.h"
 #include "settings_data_utils.h"
+#include "user_session_manager.h"
 #undef private
 
 #include <unistd.h>
@@ -362,6 +364,23 @@ bool TddUtil::GetUnfocused()
     bool unFocused = FocusChangedListenerTestImpl::unFocused_->GetValue();
     IMSA_HILOGI("unFocused end, unFocused = %{public}d", unFocused);
     return unFocused;
+}
+
+void TddUtil::InitCurrentImePermissionInfo()
+{
+    auto userId = GetCurrentUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("session is nullptr.");
+        return;
+    }
+    session->InitImeData({ CURRENT_BUNDLENAME, CURRENT_EXTNAME });
+    ImeCfgManager::GetInstance().imeConfigs_ = { { userId,
+        std::string(CURRENT_BUNDLENAME) + "/" + std::string(CURRENT_EXTNAME), CURRENT_SUBNAME } };
 }
 
 void TddUtil::WindowManager::CreateWindow()

@@ -173,6 +173,11 @@ void InputMethodAbility::SetImeListener(std::shared_ptr<InputMethodEngineListene
     }
 }
 
+std::shared_ptr<InputMethodEngineListener> InputMethodAbility::GetImeListener()
+{
+    return imeListener_;
+}
+
 void InputMethodAbility::SetKdListener(std::shared_ptr<KeyboardListener> kdListener)
 {
     IMSA_HILOGD("InputMethodAbility start.");
@@ -244,7 +249,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
         auto panel = GetSoftKeyboardPanel();
         if (panel != nullptr) {
-            panel->HidePanel();
+            panel->HidePanel(false);
         }
     }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
@@ -300,7 +305,7 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     int32_t cmdCount = ++cmdId_;
     IMSA_HILOGI("IMA");
-    HideKeyboardImplWithoutLock(cmdCount);
+    HideKeyboardImplWithoutLock(cmdCount, false);
     ClearDataChannel(channelObject);
     ClearInputAttribute();
     if (imeListener_ != nullptr) {
@@ -403,29 +408,30 @@ int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
 {
     IMSA_HILOGI("isTerminateIme: %{public}d.", isTerminateIme);
     isBound_.store(false);
-    if (imeListener_ == nullptr) {
+    auto imeListener = GetImeListener();
+    if (imeListener == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     if (isTerminateIme) {
-        return imeListener_->OnInputStop();
+        return imeListener->OnInputStop();
     }
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::HideKeyboard()
+int32_t InputMethodAbility::HideKeyboard(bool isForce)
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     int32_t cmdCount = ++cmdId_;
-    return HideKeyboardImplWithoutLock(cmdCount);
+    return HideKeyboardImplWithoutLock(cmdCount, isForce);
 }
 
-int32_t InputMethodAbility::HideKeyboardImplWithoutLock(int32_t cmdId)
+int32_t InputMethodAbility::HideKeyboardImplWithoutLock(int32_t cmdId, bool isForce)
 {
     if (cmdId != cmdId_) {
         IMSA_HILOGE("current is not last cmd cur: %{public}d, cmdId_: %{public}d!", cmdId, cmdId_);
         return ErrorCode::NO_ERROR;
     }
-    return HideKeyboard(Trigger::IMF);
+    return HideKeyboard(Trigger::IMF, isForce);
 }
 
 int32_t InputMethodAbility::ShowKeyboard()
@@ -544,6 +550,9 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
                 textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
     }
+    if (textConfig.windowId == ANCO_INVALID_WINDOW_ID) {
+        return ErrorCode::NO_ERROR;
+    }
     auto task = [this, textConfig]() {
         panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
             panel->SetCallingWindow(textConfig.windowId);
@@ -605,7 +614,7 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey)
 int32_t InputMethodAbility::HideKeyboardSelf()
 {
     InputMethodSyncTrace tracer("IMA_HideKeyboardSelf start.");
-    auto ret = HideKeyboard(Trigger::IME_APP);
+    auto ret = HideKeyboard(Trigger::IME_APP, false);
     if (ret == ErrorCode::NO_ERROR) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_SELF);
     }
@@ -912,7 +921,7 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
+    return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP, false);
 }
 
 int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag,
@@ -942,12 +951,12 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
 }
 
 int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag,
-    Trigger trigger)
+                                      Trigger trigger, bool isForce)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    auto ret = inputMethodPanel->HidePanel();
+    auto ret = inputMethodPanel->HidePanel(isForce);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGD("failed, ret: %{public}d", ret);
         return ret;
@@ -999,7 +1008,7 @@ InputAttribute InputMethodAbility::GetInputAttribute()
     return inputAttribute_;
 }
 
-int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
+int32_t InputMethodAbility::HideKeyboard(Trigger trigger, bool isForce)
 {
     InputMethodSyncTrace tracer("IMA_HideKeyboard");
     if (imeListener_ == nullptr) {
@@ -1019,7 +1028,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
             IMSA_HILOGI("panel flag is candidate, no need to hide.");
             return ErrorCode::NO_ERROR;
         }
-        return HidePanel(panel, flag, trigger);
+        return HidePanel(panel, flag, trigger, isForce);
     }
     IMSA_HILOGI("panel is not created.");
     imeListener_->OnKeyboardStatus(false);
@@ -1142,7 +1151,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
     }
     panels_.ForEach([this](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
-            auto ret = panel->HidePanel();
+            auto ret = panel->HidePanel(false);
             if (ret != ErrorCode::NO_ERROR) {
                 IMSA_HILOGE("failed, ret: %{public}d", ret);
                 return false;
@@ -1252,7 +1261,7 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
     }
     TextTotalConfig textConfig;
     int32_t ret = GetTextConfig(textConfig);
-    if (ret != ErrorCode::NO_ERROR) {
+    if (ret != ErrorCode::NO_ERROR || textConfig.windowId == ANCO_INVALID_WINDOW_ID) {
         IMSA_HILOGE("failed to get window id, ret: %{public}d!", ret);
         return ErrorCode::ERROR_GET_TEXT_CONFIG;
     }

@@ -53,6 +53,7 @@ struct PanelAdjustInfo {
 class InputMethodPanel {
 public:
     static constexpr uint32_t INVALID_WINDOW_ID = 0;
+    static constexpr uint32_t ANCO_INVALID_WINDOW_ID = INVALID_WINDOW_ID - 1;
     using CallbackFunc = std::function<void(uint32_t, PanelFlag)>;
     InputMethodPanel() = default;
     ~InputMethodPanel();
@@ -75,7 +76,7 @@ public:
     PanelType GetPanelType();
     PanelFlag GetPanelFlag();
     int32_t ShowPanel();
-    int32_t HidePanel();
+    int32_t HidePanel(bool isForce);
     int32_t SizeChange(const WindowSize &size);
     WindowSize GetKeyboardSize();
     bool SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);

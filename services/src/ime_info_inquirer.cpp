@@ -131,9 +131,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
     }
     auto info = std::make_shared<ImeInfo>();
     auto subProps = it->subProps;
-    if (subName.empty()) {
-        info->isSpecificSubName = false;
-    }
+    info->isSpecificSubName = !subName.empty();
     if (subName.empty() && !subProps.empty()) {
         info->subProp = subProps[0];
     } else {
@@ -1088,7 +1086,7 @@ bool ImeInfoInquirer::IsRunningExtension(const std::pair<std::string, std::strin
 {
     std::vector<ExtensionRunningInfo> infos;
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetExtensionRunningInfos(
-        std::numeric_limits<uint32_t>::max(), infos); // todo该接口是否合适
+        std::numeric_limits<uint32_t>::max(), infos);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("GetExtensionRunningInfos failed, ret: %{public}d!", ret);
         return false;
@@ -1097,9 +1095,9 @@ bool ImeInfoInquirer::IsRunningExtension(const std::pair<std::string, std::strin
         return ime.first == info.extension.GetBundleName() && ime.second == info.extension.GetAbilityName();
     });
     if (it == infos.end()) {
-        IMSA_HILOGE("[%{public}s, %{public}s] not running!", ime.first.c_str(), ime.second.c_str());
         return false;
     }
+    IMSA_HILOGW("[%{public}s, %{public}s] is running!", ime.first.c_str(), ime.second.c_str());
     return true;
 }
 } // namespace MiscServices

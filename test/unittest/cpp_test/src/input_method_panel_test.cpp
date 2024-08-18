@@ -223,9 +223,8 @@ void InputMethodPanelTest::SetUpTestCase(void)
 
     ima_ = InputMethodAbility::GetInstance();
     ima_->abilityManager_ = imsa_;
-    IdentityCheckerMock::SetBundleNameValid(true);
+    TddUtil::InitCurrentImePermissionInfo();
     ima_->SetCoreAndAgent();
-    IdentityCheckerMock::SetBundleNameValid(false);
     InputMethodPanelTest::ima_->SetImeListener(imeListener_);
 
     ImaUtils::abilityManager_ = imsa_;
@@ -387,7 +386,7 @@ void InputMethodPanelTest::TestHidePanel(const std::shared_ptr<InputMethodPanel>
     ASSERT_NE(panel, nullptr);
     // set tokenId and uid as current ime
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    auto ret = panel->HidePanel();
+    auto ret = panel->HidePanel(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -607,7 +606,7 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = inputMethodPanel->HidePanel();
+    ret = inputMethodPanel->HidePanel(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

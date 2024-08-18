@@ -60,6 +60,8 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
             "ENTER_KEY_TYPE_DONE", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::DONE))),
         DECLARE_NAPI_PROPERTY(
             "ENTER_KEY_TYPE_PREVIOUS", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
+        DECLARE_NAPI_PROPERTY(
+            "ENTER_KEY_TYPE_NEWLINE", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::NEW_LINE))),
         DECLARE_NAPI_PROPERTY("PATTERN_NULL", GetIntJsConstProperty(env, static_cast<int32_t>(TextInputType::NONE))),
         DECLARE_NAPI_PROPERTY("PATTERN_TEXT", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::TEXT))),
         DECLARE_NAPI_PROPERTY("PATTERN_NUMBER", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER))),
@@ -630,11 +632,10 @@ int32_t JsInputMethodEngineSetting::OnInputStop()
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     auto task = [entry]() { JsCallbackHandler::Traverse(entry->vecCopy); };
-    handler_->PostTask(task, type);  // TODO 返回值待确认
-    return ErrorCode::NO_ERROR;
+    return handler_->PostTask(task, type) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME;
 }
 
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)

@@ -52,6 +52,7 @@ public:
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
+    std::shared_ptr<InputMethodEngineListener> GetImeListener();
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
@@ -59,7 +60,7 @@ public:
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
     int32_t StopInput(const sptr<IRemoteObject> &channelObject);
     int32_t ShowKeyboard();
-    int32_t HideKeyboard();
+    int32_t HideKeyboard(bool isForce);
     int32_t SendExtendAction(int32_t action);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
@@ -146,16 +147,17 @@ private:
     void OnSelectionChange(Message *msg);
     void OnAttributeChange(Message *msg);
 
-    int32_t HideKeyboard(Trigger trigger);
+    int32_t HideKeyboard(Trigger trigger, bool isForce);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
     /* param flag: ShowPanel is async, show/hide softkeyboard in alphabet keyboard attached,
        flag will be changed before finishing show/hide */
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
-    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
+    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger,
+        bool isForce);
     void SetInputAttribute(const InputAttribute &inputAttribute);
     void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
-    int32_t HideKeyboardImplWithoutLock(int32_t cmdId);
+    int32_t HideKeyboardImplWithoutLock(int32_t cmdId, bool isForce);
     int32_t ShowKeyboardImplWithLock(int32_t cmdId);
     int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
 

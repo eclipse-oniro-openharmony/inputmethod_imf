@@ -54,7 +54,23 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum ImeStatus : uint32_t { STARTING, READY, EXITING };
+enum class ImeStatus : uint32_t { STARTING, READY, EXITING };
+enum class ImeEvent : uint32_t {
+    START_IME,
+    START_IME_TIMEOUT,
+    STOP_IME,
+    SET_CORE_AND_AGENT,
+};
+enum class ImeAction : uint32_t {
+    DO_NOTHING,
+    HANDLE_STARTING_IME,
+    STOP_EXITING_IME,
+    STOP_READY_IME,
+    STOP_STARTING_IME,
+    DO_SET_CORE_AND_AGENT,
+    DO_ACTION_IN_NULL_IME_DATA,
+    DO_ACTION_IN_IME_EVENT_CONVERT_FAILED,
+};
 struct ImeData {
     static constexpr int64_t START_TIME_OUT = 8000;
     sptr<IInputMethodCore> core{ nullptr };
@@ -62,7 +78,7 @@ struct ImeData {
     sptr<InputDeathRecipient> deathRecipient{ nullptr };
     pid_t pid;
     std::shared_ptr<FreezeManager> freezeMgr;
-    ImeStatus imeStatus{ STARTING };
+    ImeStatus imeStatus{ ImeStatus::STARTING };
     std::pair<std::string, std::string> ime; // first: bundleName  second:extName
     int64_t startTime{ 0 };
     ImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, sptr<InputDeathRecipient> deathRecipient,
@@ -115,7 +131,7 @@ public:
 
     bool IsProxyImeEnable();
     bool IsBoundToClient();
-    int32_t ExitCurrentInputType();
+    int32_t RestoreCurrentImeSubType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
@@ -125,6 +141,7 @@ public:
     BlockQueue<SwitchInfo>& GetSwitchQueue();
     bool IsWmsReady();
     bool CheckPwdInputPatternConv(InputClientInfo &clientInfo);
+    int32_t RestoreCurrentIme();
 
 private:
     struct ResetManager {
@@ -140,7 +157,7 @@ private:
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
     static const int MAX_RESTART_NUM = 3;
     static const int IME_RESET_TIME_OUT = 3;
-    static const int MAX_IME_START_TIME = 1000;   // TODO
+    static const int MAX_IME_START_TIME = 1000;
     static constexpr int32_t MAX_RESTART_TASKS = 2;
     std::mutex clientLock_;
     sptr<IInputClient> currentClient_; // the current input client
@@ -213,9 +230,10 @@ private:
     bool StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool ForceStopCurrentIme(bool isNeedWait);
+    bool ForceStopCurrentIme(bool isNeedWait = true);
     bool StopReadyCurrentIme();
     bool StopExitingCurrentIme();
+    bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
@@ -232,6 +250,22 @@ private:
     std::mutex restartMutex_;
     int32_t restartTasks_ = 0;
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_{ nullptr };
+    ImeAction GetImeAction(ImeEvent action);
+    static inline const std::map<std::pair<ImeStatus, ImeEvent>, std::pair<ImeStatus, ImeAction>> imeEventConverter_ = {
+        { { ImeStatus::READY, ImeEvent::START_IME }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
+        { { ImeStatus::STARTING, ImeEvent::START_IME }, { ImeStatus::STARTING, ImeAction::HANDLE_STARTING_IME } },
+        { { ImeStatus::EXITING, ImeEvent::START_IME }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::READY, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
+        { { ImeStatus::STARTING, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::EXITING, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::READY, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_READY_IME } },
+        { { ImeStatus::STARTING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_STARTING_IME } },
+        { { ImeStatus::EXITING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::READY, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
+        { { ImeStatus::STARTING, ImeEvent::SET_CORE_AND_AGENT },
+            { ImeStatus::READY, ImeAction::DO_SET_CORE_AND_AGENT } },
+        { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
+    };
 };
 } // namespace MiscServices
 } // namespace OHOS
