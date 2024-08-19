@@ -19,7 +19,7 @@
  * @addtogroup InputMethod
  * @{
  *
- * @brief InputMethod Controller API.
+ * @brief InputMethod provides functions to use input methods and develop input methods.
  *
  * @since 12
  */
@@ -27,7 +27,7 @@
 /**
  * @file inputmethod_controller_capi.h
  *
- * @brief xxxx
+ * @brief Provides the functions for using input method.
  *
  * @library libohinputmethod.so
  * @kit IMEKit
@@ -42,87 +42,324 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+/**
+ * @brief Keyboard status.
+ *
+ * @since 12
+ */
 typedef enum {
+    /**
+     * The keyboard status is none.
+     */
     KEYBOARD_STATUS_NONE = 0,
+    /**
+     * The keyboard status is hide.
+     */
     KEYBOARD_STATUS_HIDE = 1,
+    /**
+     * The keyboard status is show.
+     */
     KEYBOARD_STATUS_SHOW = 2,
 } InputMethod_KeyboardStatus;
 
+/**
+ * @brief Enter key type.
+ *
+ * @since 12
+ */
 typedef enum {
+    /**
+     * The enter key type is UNSPECIFIED.
+     */
     ENTER_KEY_UNSPECIFIED = 0,
+    /**
+     * The enter key type is NONE.
+     */
     ENTER_KEY_NONE = 1,
+    /**
+     * The enter key type is GO.
+     */
     ENTER_KEY_GO = 2,
+    /**
+     * The enter key type is SEARCH.
+     */
     ENTER_KEY_SEARCH = 3,
+    /**
+     * The enter key type is SEND.
+     */
     ENTER_KEY_SEND = 4,
+    /**
+     * The enter key type is NEXT.
+     */
     ENTER_KEY_NEXT = 5,
+    /**
+     * The enter key type is DONE.
+     */
     ENTER_KEY_DONE = 6,
+    /**
+     * The enter key type is PREVIOUS.
+     */
     ENTER_KEY_PREVIOUS = 7,
+    /**
+     * The enter key type is NEWLINE.
+     */
     ENTER_KEY_NEWLINE = 8,
 } InputMethod_EnterKeyType;
 
+/**
+ * @brief Direction.
+ *
+ * @since 12
+ */
 typedef enum {
+    /**
+     * The direction is NONE.
+     */
     DIRECTION_NONE = 0,
+    /**
+     * The direction is UP.
+     */
     DIRECTION_UP = 1,
+    /**
+     * The direction is DOWN.
+     */
     DIRECTION_DOWN = 2,
+    /**
+     * The direction is LEFT.
+     */
     DIRECTION_LEFT = 3,
+    /**
+     * The direction is RIGHT.
+     */
     DIRECTION_RIGHT = 4,
 } InputMethod_Direction;
 
+/**
+ * @brief The extend action.
+ *
+ * @since 12
+ */
 typedef enum {
+    /**
+     * Select all text.
+     */
     EXTEND_ACTION_SELECT_ALL = 0,
+    /**
+     * Cut selected text.
+     */
     EXTEND_ACTION_CUT = 3,
+    /**
+     * Copy selected text.
+     */
     EXTEND_ACTION_COPY = 4,
+    /**
+     * Paste from paste board.
+     */
     EXTEND_ACTION_PASTE = 5,
 } InputMethod_ExtendAction;
 
+/**
+ * @brief The text input type.
+ *
+ * @since 12
+ */
 typedef enum {
+    /**
+     * The text input type is NONE.
+     */
     TEXT_INPUT_TYPE_NONE = -1,
+    /**
+     * The text input type is TEXT.
+     */
     TEXT_INPUT_TYPE_TEXT = 0,
+    /**
+     * The text input type is MULTILINE.
+     */
     TEXT_INPUT_TYPE_MULTILINE = 1,
+    /**
+     * The text input type is NUMBER.
+     */
     TEXT_INPUT_TYPE_NUMBER = 2,
+    /**
+     * The text input type is PHONE.
+     */
     TEXT_INPUT_TYPE_PHONE = 3,
+    /**
+     * The text input type is DATETIME.
+     */
     TEXT_INPUT_TYPE_DATETIME = 4,
+    /**
+     * The text input type is EMAIL ADDRESS.
+     */
     TEXT_INPUT_TYPE_EMAIL_ADDRESS = 5,
+    /**
+     * The text input type is URL.
+     */
     TEXT_INPUT_TYPE_URL = 6,
+    /**
+     * The text input type is VISIBLE PASSWORD.
+     */
     TEXT_INPUT_TYPE_VISIBLE_PASSWORD = 7,
+    /**
+     * The text input type is NUMBER PASSWORD.
+     */
     TEXT_INPUT_TYPE_NUMBER_PASSWORD = 8,
+    /**
+     * The text input type is SCREEN LOCK PASSWORD.
+     */
     TEXT_INPUT_TYPE_SCREEN_LOCK_PASSWORD = 9,
+    /**
+     * The text input type is USER NAME.
+     */
     TEXT_INPUT_TYPE_USER_NAME = 10,
+    /**
+     * The text input type is NEW PASSWORD.
+     */
     TEXT_INPUT_TYPE_NEW_PASSWORD = 11,
+    /**
+     * The text input type is NUMBER DECIMAL.
+     */
     TEXT_INPUT_TYPE_NUMBER_DECIMAL = 12,
 } InputMethod_TextInputType;
 
+/**
+ * @brief The value type of command data.
+ *
+ * @since 12
+ */
 typedef enum {
+    /**
+     * Value type is NONE.
+     */
     COMMAND_VALUE_TYPE_NONE = 0,
+    /**
+     * Value type is STRING.
+     */
     COMMAND_VALUE_TYPE_STRING = 1,
+    /**
+     * Value type is BOOL.
+     */
     COMMAND_VALUE_TYPE_BOOL = 2,
+    /**
+     * Value type is INT32.
+     */
     COMMAND_VALUE_TYPE_INT32 = 3,
 } InputMethod_CommandValueType;
 
+/**
+ * @brief The value type of command data.
+ *
+ * @since 12
+ */
 typedef enum {
+    /**
+     * The error code in the correct case.
+     */
     INPUT_METHOD_ERR_OK = 0,
-    INPUT_METHOD_ERR_PERMISSION = 201,
-    INPUT_METHOD_ERR_SYSTEM_PERMISSION = 202,
+    /**
+     * The error code when parameter check failed.
+     */
     INPUT_METHOD_ERR_PARAMCHECK = 401,
-    INPUT_METHOD_ERR_UNSUPPORTED = 801,
+    /**
+     * The error code when the package manager error.
+     */
     INPUT_METHOD_ERR_PACKAGEMANAGER = 12800001,
+    /**
+     * The error code when input method engine error.
+     */
     INPUT_METHOD_ERR_IMENGINE = 12800002,
+    /**
+     * The error code when input method client error.
+     */
     INPUT_METHOD_ERR_IMCLIENT = 12800003,
-    INPUT_METHOD_ERR_IME = 12800004,
-    INPUT_METHOD_ERR_CONFPERSIST = 12800005,
+    /**
+     * The error code when configuration persisting error.
+     */
+    INPUT_METHOD_ERR_CONFIG_PERSIST = 12800005,
+    /**
+     * The error code when input method controller error.
+     */
     INPUT_METHOD_ERR_CONTROLLER = 12800006,
+    /**
+     * The error code when input method setting error.
+     */
     INPUT_METHOD_ERR_SETTINGS = 12800007,
+    /**
+     * The error code when input method manager service error.
+     */
     INPUT_METHOD_ERR_IMMS = 12800008,
+    /**
+     * The error code when input method client is detached.
+     */
     INPUT_METHOD_ERR_DETACHED = 12800009,
+    /**
+     * The error code when unexpected null pointer.
+     */
     INPUT_METHOD_ERR_NULL_POINTER = 12800010,
 } InputMethod_ErrorCode;
 
+/**
+ * @brief Define the OH_InputMethod_CursorInfo structure type.
+ *
+ * The coordinates and width and height information of the cursor.
+ *
+ * @since 12
+ */
 typedef struct OH_InputMethod_CursorInfo OH_InputMethod_CursorInfo;
+
+/**
+ * @brief Define the OH_InputMethod_TextConfig structure type.
+ *
+ * The configuration of the text editor.
+ *
+ * @since 12
+ */
 typedef struct OH_InputMethod_TextConfig OH_InputMethod_TextConfig;
+
+/**
+ * @brief Define the OH_InputMethod_TextEditorProxy structure type.
+ *
+ * Provides methods for getting requests and notifications from input method.\n
+ * When input method sends request or notification to editor, the methods will be called.\n
+ *
+ * @since 12
+ */
 typedef struct OH_InputMethod_TextEditorProxy OH_InputMethod_TextEditorProxy;
+
+/**
+ * @brief Define the OH_InputMethod_InputMethodProxy structure type.
+ *
+ * Provides methods for controlling input method.
+ *
+ * @since 12
+ */
 typedef struct OH_InputMethod_InputMethodProxy OH_InputMethod_InputMethodProxy;
+
+/**
+ * @brief Define the OH_InputMethod_AttachOptions structure type.
+ *
+ * The options when attaching input method.
+ *
+ * @since 12
+ */
 typedef struct OH_InputMethod_AttachOptions OH_InputMethod_AttachOptions;
+
+/**
+ * @brief Define the OH_InputMethod_TextAvoidInfo structure type.
+ *
+ * Information for text editor to avoid the keyboard.
+ *
+ * @since 12
+ */
 typedef struct OH_InputMethod_TextAvoidInfo OH_InputMethod_TextAvoidInfo;
+
+/**
+ * @brief Define the OH_InputMethod_PrivateCommand structure type.
+ *
+ * The private command between text editor and input method.
+ *
+ * @since 12
+ */
 typedef struct OH_InputMethod_PrivateCommand OH_InputMethod_PrivateCommand;
 
 int32_t OH_InputMethodController_Attach(OH_InputMethod_TextEditorProxy *textEditorProxy,
