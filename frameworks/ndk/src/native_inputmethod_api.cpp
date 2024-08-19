@@ -26,33 +26,33 @@ using namespace OHOS::MiscServices;
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-struct OH_InputMethod_AttachOptions {
+struct InputMethod_AttachOptions {
     bool showKeyboard;
 };
 
-struct OH_InputMethod_InputMethodProxy {
-    OH_InputMethod_TextEditorProxy *textEditor = nullptr;
+struct InputMethod_InputMethodProxy {
+    InputMethod_TextEditorProxy *textEditor = nullptr;
     OHOS::sptr<NativeTextChangedListener> listener = nullptr;
 };
 
-OH_InputMethod_InputMethodProxy *g_inputMethodProxy = nullptr;
+InputMethod_InputMethodProxy *g_inputMethodProxy = nullptr;
 std::mutex g_textEditorProxyMapMutex;
 
-int32_t OH_InputMethodProxy_ShowKeyboard(OH_InputMethod_InputMethodProxy *inputMethodProxy)
+InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
     return ErrorCodeConvert(InputMethodController::GetInstance()->ShowCurrentInput());
 }
-int32_t OH_InputMethodProxy_HideKeyboard(OH_InputMethod_InputMethodProxy *inputMethodProxy)
+InputMethod_ErrorCode OH_InputMethodProxy_HideKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
     return ErrorCodeConvert(InputMethodController::GetInstance()->HideCurrentInput());
 }
-int32_t OH_InputMethodProxy_NotifySelectionChange(
-    OH_InputMethod_InputMethodProxy *inputMethodProxy, char16_t text[], size_t length, int start, int end)
+InputMethod_ErrorCode OH_InputMethodProxy_NotifySelectionChange(
+    InputMethod_InputMethodProxy *inputMethodProxy, char16_t text[], size_t length, int start, int end)
 {
     return ErrorCodeConvert(
         InputMethodController::GetInstance()->OnSelectionChange(std::u16string(text, length), start, end));
 }
-int32_t OH_InputMethodProxy_NotifyConfigurationChange(OH_InputMethod_InputMethodProxy *inputMethodProxy,
+InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_InputMethodProxy *inputMethodProxy,
     InputMethod_EnterKeyType enterKey, InputMethod_TextInputType textType)
 {
     Configuration info;
@@ -61,11 +61,11 @@ int32_t OH_InputMethodProxy_NotifyConfigurationChange(OH_InputMethod_InputMethod
     return ErrorCodeConvert(InputMethodController::GetInstance()->OnConfigurationChange(info));
 }
 
-OH_InputMethod_CursorInfo *OH_CursorInfo_New(double left, double top, double width, double height)
+InputMethod_CursorInfo *OH_CursorInfo_New(double left, double top, double width, double height)
 {
-    return new OH_InputMethod_CursorInfo({ left, top, width, height });
+    return new InputMethod_CursorInfo({ left, top, width, height });
 }
-void OH_CursorInfo_Delete(OH_InputMethod_CursorInfo *cursorInfo)
+void OH_CursorInfo_Delete(InputMethod_CursorInfo *cursorInfo)
 {
     if (cursorInfo == nullptr) {
         return;
@@ -73,53 +73,53 @@ void OH_CursorInfo_Delete(OH_InputMethod_CursorInfo *cursorInfo)
     delete cursorInfo;
 }
 
-int32_t OH_CursorInfo_SetRect(
-    OH_InputMethod_CursorInfo *cursorInfo, double left, double top, double width, double height)
+InputMethod_ErrorCode OH_CursorInfo_SetRect(
+    InputMethod_CursorInfo *cursorInfo, double left, double top, double width, double height)
 {
     if (cursorInfo == nullptr) {
         IMSA_HILOGE("cursorInfo is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     cursorInfo->left = left;
     cursorInfo->top = top;
     cursorInfo->width = width;
     cursorInfo->height = height;
-    return INPUT_METHOD_ERR_OK;
+    return IME_ERR_OK;
 }
 
-int32_t OH_CursorInfo_GetRect(
-    OH_InputMethod_CursorInfo *cursorInfo, double *left, double *top, double *width, double *height)
+InputMethod_ErrorCode OH_CursorInfo_GetRect(
+    InputMethod_CursorInfo *cursorInfo, double *left, double *top, double *width, double *height)
 {
     if (cursorInfo == nullptr) {
         IMSA_HILOGE("cursorInfo is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     if (left == nullptr || top == nullptr || width == nullptr || height == nullptr) {
         IMSA_HILOGE("invalid parameter");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     *left = cursorInfo->left;
     *top = cursorInfo->top;
     *width = cursorInfo->width;
     *height = cursorInfo->height;
-    return INPUT_METHOD_ERR_OK;
+    return IME_ERR_OK;
 }
-int32_t OH_InputMethodProxy_NotifyCursorUpdate(
-    OH_InputMethod_InputMethodProxy *inputMethodProxy, OH_InputMethod_CursorInfo *cursorInfo)
+InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
+    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_CursorInfo *cursorInfo)
 {
     if (cursorInfo == nullptr) {
         IMSA_HILOGE("cursorInfo is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     return ErrorCodeConvert(InputMethodController::GetInstance()->OnCursorUpdate(
         CursorInfo({ cursorInfo->left, cursorInfo->top, cursorInfo->width, cursorInfo->height })));
 }
 
-int32_t OH_InputMethodProxy_SendPrivateCommand(OH_InputMethod_PrivateCommand *privateCommand[], size_t size)
+InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(InputMethod_PrivateCommand *privateCommand[], size_t size)
 {
     if (privateCommand == nullptr) {
         IMSA_HILOGE("privateCommand is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     std::unordered_map<std::string, PrivateDataValue> command;
@@ -127,55 +127,46 @@ int32_t OH_InputMethodProxy_SendPrivateCommand(OH_InputMethod_PrivateCommand *pr
     for (size_t i = 0; i < size; i++) {
         if (privateCommand[i] == nullptr) {
             IMSA_HILOGE("privateCommand[%zu] is nullptr", i);
-            return INPUT_METHOD_ERR_NULL_POINTER;
+            return IME_ERR_NULL_POINTER;
         }
         command.emplace(privateCommand[i]->key, privateCommand[i]->value);
     }
     return ErrorCodeConvert(InputMethodController::GetInstance()->SendPrivateCommand(command));
 }
 
-OH_InputMethod_AttachOptions *OH_AttachOptions_New(bool showKeyboard)
+InputMethod_AttachOptions *OH_AttachOptions_New(bool showKeyboard)
 {
-    return new OH_InputMethod_AttachOptions({ showKeyboard });
+    return new InputMethod_AttachOptions({ showKeyboard });
 }
-void OH_AttachOptions_Delete(OH_InputMethod_AttachOptions *options)
+void OH_AttachOptions_Delete(InputMethod_AttachOptions *options)
 {
     if (options == nullptr) {
         return;
     }
     delete options;
 }
-int32_t OH_AttachOptions_SetShowKeyboard(OH_InputMethod_AttachOptions *options, bool showKeyboard)
-{
-    if (options == nullptr) {
-        IMSA_HILOGE("options is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
-    }
-    options->showKeyboard = showKeyboard;
-    return INPUT_METHOD_ERR_OK;
-}
 
-int32_t OH_AttachOptions_IsShowKeyboard(OH_InputMethod_AttachOptions *options, bool *showKeyboard)
+InputMethod_ErrorCode OH_AttachOptions_IsShowKeyboard(InputMethod_AttachOptions *options, bool *showKeyboard)
 {
     if (options == nullptr) {
         IMSA_HILOGE("options is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (showKeyboard == nullptr) {
         IMSA_HILOGE("showKeyboard is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     *showKeyboard = options->showKeyboard;
-    return INPUT_METHOD_ERR_OK;
+    return IME_ERR_OK;
 }
 
-static int32_t GetInputMethodProxy(OH_InputMethod_TextEditorProxy *textEditor)
+static InputMethod_ErrorCode GetInputMethodProxy(InputMethod_TextEditorProxy *textEditor)
 {
     std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
     if (g_inputMethodProxy != nullptr && textEditor == g_inputMethodProxy->textEditor) {
-        return INPUT_METHOD_ERR_OK;
+        return IME_ERR_OK;
     }
 
     if (g_inputMethodProxy != nullptr && textEditor != g_inputMethodProxy->textEditor) {
@@ -186,114 +177,113 @@ static int32_t GetInputMethodProxy(OH_InputMethod_TextEditorProxy *textEditor)
     OHOS::sptr<NativeTextChangedListener> listener = new NativeTextChangedListener(textEditor);
     if (listener == nullptr) {
         IMSA_HILOGE("new NativeTextChangedListener failed");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
-    g_inputMethodProxy = new OH_InputMethod_InputMethodProxy({ textEditor, listener });
+    g_inputMethodProxy = new InputMethod_InputMethodProxy({ textEditor, listener });
     if (g_inputMethodProxy == nullptr) {
-        IMSA_HILOGE("new OH_InputMethod_InputMethodProxy failed");
+        IMSA_HILOGE("new InputMethod_InputMethodProxy failed");
         listener = nullptr;
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
-    return INPUT_METHOD_ERR_OK;
+    return IME_ERR_OK;
 }
 
-static int32_t IsValidTextEditorProxy(OH_InputMethod_TextEditorProxy *textEditor)
+static int32_t IsValidTextEditorProxy(InputMethod_TextEditorProxy *textEditor)
 {
     if (textEditor == nullptr) {
         IMSA_HILOGE("textEditor is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->getTextConfigFunc == nullptr) {
         IMSA_HILOGE("textEditor->getTextConfigFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->insertTextFunc == nullptr) {
         IMSA_HILOGE("textEditor->insertTextFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->deleteForwardFunc == nullptr) {
         IMSA_HILOGE("textEditor->deleteForwardFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->deleteBackwardFunc == nullptr) {
         IMSA_HILOGE("textEditor->deleteBackwardFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->sendKeyboardStatusFunc == nullptr) {
         IMSA_HILOGE("textEditor->sendKeyboardStatusFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     if (textEditor->sendEnterKeyFunc == nullptr) {
         IMSA_HILOGE("textEditor->sendEnterKeyFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->moveCursorFunc == nullptr) {
         IMSA_HILOGE("textEditor->moveCursorFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->handleSetSelectionFunc == nullptr) {
         IMSA_HILOGE("textEditor->handleSetSelectionFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->handleExtendActionFunc == nullptr) {
         IMSA_HILOGE("textEditor->handleExtendActionFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->getLeftTextOfCursorFunc == nullptr) {
         IMSA_HILOGE("textEditor->getLeftTextOfCursorFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
     if (textEditor->getRightTextOfCursorFunc == nullptr) {
         IMSA_HILOGE("textEditor->getRightTextOfCursorFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     if (textEditor->getTextIndexAtCursorFunc == nullptr) {
         IMSA_HILOGE("textEditor->getTextIndexAtCursorFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     if (textEditor->receivePrivateCommandFunc == nullptr) {
         IMSA_HILOGE("textEditor->receivePrivateCommandFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     if (textEditor->setPreviewTextFunc == nullptr) {
         IMSA_HILOGE("textEditor->setPreviewTextFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
-    if (textEditor->finishTextPreviewFunc) {
+    if (textEditor->finishTextPreviewFunc == nullptr) {
         IMSA_HILOGE("textEditor->finishTextPreviewFunc is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
-    return INPUT_METHOD_ERR_OK;
+    return IME_ERR_OK;
 }
 
-int32_t OH_InputMethodController_Attach(OH_InputMethod_TextEditorProxy *textEditor,
-    OH_InputMethod_AttachOptions *options, OH_InputMethod_InputMethodProxy **inputMethodProxy)
+InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProxy *textEditor,
+    InputMethod_AttachOptions *options, InputMethod_InputMethodProxy **inputMethodProxy)
 {
-    if ((IsValidTextEditorProxy(textEditor) != INPUT_METHOD_ERR_OK) || options == nullptr ||
-        inputMethodProxy == nullptr) {
+    if ((IsValidTextEditorProxy(textEditor) != IME_ERR_OK) || options == nullptr || inputMethodProxy == nullptr) {
         IMSA_HILOGE("invalid parameter");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
 
-    int32_t errCode = GetInputMethodProxy(textEditor);
-    if (errCode != INPUT_METHOD_ERR_OK) {
+    InputMethod_ErrorCode errCode = GetInputMethodProxy(textEditor);
+    if (errCode != IME_ERR_OK) {
         return errCode;
     }
 
-    OH_InputMethod_TextConfig config;
+    InputMethod_TextConfig config;
     textEditor->getTextConfigFunc(textEditor, &config);
 
     TextConfig textConfig = {
@@ -323,22 +313,24 @@ int32_t OH_InputMethodController_Attach(OH_InputMethod_TextEditorProxy *textEdit
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
         listener = g_inputMethodProxy->listener;
     }
-    errCode = controller->Attach(listener, options->showKeyboard, textConfig);
-    if (errCode == ErrorCode::NO_ERROR) {
+
+    int32_t err = controller->Attach(listener, options->showKeyboard, textConfig);
+    if (err == ErrorCode::NO_ERROR) {
+        errCode = IME_ERR_OK;
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
         *inputMethodProxy = g_inputMethodProxy;
     } else {
-        errCode = ErrorCodeConvert(errCode);
+        errCode = ErrorCodeConvert(err);
     }
 
     return errCode;
 }
 
-int32_t OH_InputMethodController_Detach(OH_InputMethod_InputMethodProxy *inputMethodProxy)
+InputMethod_ErrorCode OH_InputMethodController_Detach(InputMethod_InputMethodProxy *inputMethodProxy)
 {
     if (inputMethodProxy == nullptr) {
         IMSA_HILOGE("inputMethodProxy is nullptr");
-        return INPUT_METHOD_ERR_NULL_POINTER;
+        return IME_ERR_NULL_POINTER;
     }
     {
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);

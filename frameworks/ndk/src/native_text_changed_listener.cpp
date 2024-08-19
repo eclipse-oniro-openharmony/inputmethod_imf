@@ -228,7 +228,7 @@ int32_t NativeTextChangedListener::ReceivePrivateCommand(
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    OH_InputMethod_PrivateCommand **command = new OH_InputMethod_PrivateCommand *[privateCommand.size()];
+    InputMethod_PrivateCommand **command = new InputMethod_PrivateCommand *[privateCommand.size()];
     if (command == nullptr) {
         IMSA_HILOGE("command is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -236,7 +236,7 @@ int32_t NativeTextChangedListener::ReceivePrivateCommand(
 
     size_t index = 0;
     for (auto &item : privateCommand) {
-        command[index] = new OH_InputMethod_PrivateCommand();
+        command[index] = new InputMethod_PrivateCommand();
         command[index]->key = item.first;
         command[index]->value = item.second;
         ++index;
@@ -286,11 +286,11 @@ InputMethod_KeyboardStatus NativeTextChangedListener::ConvertToCKeyboardStatus(
 {
     switch (status) {
         case OHOS::MiscServices::KeyboardStatus::HIDE:
-            return KEYBOARD_STATUS_HIDE;
+            return IME_KEYBOARD_STATUS_HIDE;
         case OHOS::MiscServices::KeyboardStatus::SHOW:
-            return KEYBOARD_STATUS_SHOW;
+            return IME_KEYBOARD_STATUS_SHOW;
         default:
-            return KEYBOARD_STATUS_NONE;
+            return IME_KEYBOARD_STATUS_NONE;
     }
 }
 
@@ -299,23 +299,23 @@ InputMethod_EnterKeyType NativeTextChangedListener::ConvertToCEnterKeyType(
 {
     switch (enterKeyType) {
         case OHOS::MiscServices::EnterKeyType::NONE:
-            return ENTER_KEY_NONE;
+            return IME_ENTER_KEY_NONE;
         case OHOS::MiscServices::EnterKeyType::GO:
-            return ENTER_KEY_GO;
+            return IME_ENTER_KEY_GO;
         case OHOS::MiscServices::EnterKeyType::SEARCH:
-            return ENTER_KEY_SEARCH;
+            return IME_ENTER_KEY_SEARCH;
         case OHOS::MiscServices::EnterKeyType::SEND:
-            return ENTER_KEY_SEND;
+            return IME_ENTER_KEY_SEND;
         case OHOS::MiscServices::EnterKeyType::NEXT:
-            return ENTER_KEY_NEXT;
+            return IME_ENTER_KEY_NEXT;
         case OHOS::MiscServices::EnterKeyType::DONE:
-            return ENTER_KEY_DONE;
+            return IME_ENTER_KEY_DONE;
         case OHOS::MiscServices::EnterKeyType::PREVIOUS:
-            return ENTER_KEY_PREVIOUS;
+            return IME_ENTER_KEY_PREVIOUS;
         case OHOS::MiscServices::EnterKeyType::NEW_LINE:
-            return ENTER_KEY_NEWLINE;
+            return IME_ENTER_KEY_NEWLINE;
         default:
-            return ENTER_KEY_UNSPECIFIED;
+            return IME_ENTER_KEY_UNSPECIFIED;
     }
 }
 
@@ -323,17 +323,17 @@ InputMethod_Direction NativeTextChangedListener::ConvertToCDirection(OHOS::MiscS
 {
     switch (direction) {
         case OHOS::MiscServices::Direction::NONE:
-            return DIRECTION_NONE;
+            return IME_DIRECTION_NONE;
         case OHOS::MiscServices::Direction::UP:
-            return DIRECTION_UP;
+            return IME_DIRECTION_UP;
         case OHOS::MiscServices::Direction::DOWN:
-            return DIRECTION_DOWN;
+            return IME_DIRECTION_DOWN;
         case OHOS::MiscServices::Direction::LEFT:
-            return DIRECTION_LEFT;
+            return IME_DIRECTION_LEFT;
         case OHOS::MiscServices::Direction::RIGHT:
-            return DIRECTION_RIGHT;
+            return IME_DIRECTION_RIGHT;
         default:
-            return DIRECTION_NONE;
+            return IME_DIRECTION_NONE;
     }
 }
 
@@ -341,16 +341,16 @@ InputMethod_ExtendAction NativeTextChangedListener::ConvertToCExtendAction(int32
 {
     switch (action) {
         case static_cast<int32_t>(OHOS::MiscServices::ExtendAction::SELECT_ALL):
-            return EXTEND_ACTION_SELECT_ALL;
+            return IME_EXTEND_ACTION_SELECT_ALL;
         case static_cast<int32_t>(OHOS::MiscServices::ExtendAction::CUT):
-            return EXTEND_ACTION_CUT;
+            return IME_EXTEND_ACTION_CUT;
         case static_cast<int32_t>(OHOS::MiscServices::ExtendAction::COPY):
-            return EXTEND_ACTION_COPY;
+            return IME_EXTEND_ACTION_COPY;
         case static_cast<int32_t>(OHOS::MiscServices::ExtendAction::PASTE):
-            return EXTEND_ACTION_PASTE;
+            return IME_EXTEND_ACTION_PASTE;
         default:
             IMSA_HILOGE("invalid action:%{public}d", action);
-            return EXTEND_ACTION_SELECT_ALL;
+            return IME_EXTEND_ACTION_SELECT_ALL;
     }
 }
 } // namespace MiscServices

@@ -17,57 +17,57 @@
 #include "input_method_controller.h"
 #include "inputmethod_controller_capi.h"
 
-struct OH_InputMethod_PrivateCommand {
+struct InputMethod_PrivateCommand {
     std::string key;
     std::variant<std::string, bool, int32_t> value;
 };
 
-struct OH_InputMethod_CursorInfo {
+struct InputMethod_CursorInfo {
     double left = -1.0;
     double top = -1.0;
     double width = -1.0;
     double height = -1.0;
 };
 
-struct OH_InputMethod_TextAvoidInfo {
+struct InputMethod_TextAvoidInfo {
     double positionY;
     double height;
 };
-struct OH_InputMethod_TextConfig {
+struct InputMethod_TextConfig {
     InputMethod_TextInputType inputType;
     InputMethod_EnterKeyType enterKeyType;
     bool previewTextSupported;
-    OH_InputMethod_CursorInfo cursorInfo;
-    OH_InputMethod_TextAvoidInfo avoidInfo;
+    InputMethod_CursorInfo cursorInfo;
+    InputMethod_TextAvoidInfo avoidInfo;
     int32_t selectionStart;
     int32_t selectionEnd;
     int32_t windowId;
 };
 
-struct OH_InputMethod_TextEditorProxy {
+struct InputMethod_TextEditorProxy {
     OH_TextEditorProxy_GetTextConfigFunc getTextConfigFunc;
     OH_TextEditorProxy_InsertTextFunc insertTextFunc;
     OH_TextEditorProxy_DeleteForwardFunc deleteForwardFunc;
     OH_TextEditorProxy_DeleteBackwardFunc deleteBackwardFunc;
     OH_TextEditorProxy_SendKeyboardStatusFunc sendKeyboardStatusFunc;
-    OH_TextEditorProxy_SendEnterKeyTypeFunc sendEnterKeyFunc;
-    OH_TextEditorProxy_MoveCursor moveCursorFunc;
+    OH_TextEditorProxy_SendEnterKeyFunc sendEnterKeyFunc;
+    OH_TextEditorProxy_MoveCursorFunc moveCursorFunc;
     OH_TextEditorProxy_HandleSetSelectionFunc handleSetSelectionFunc;
     OH_TextEditorProxy_HandleExtendActionFunc handleExtendActionFunc;
     OH_TextEditorProxy_GetLeftTextOfCursorFunc getLeftTextOfCursorFunc;
     OH_TextEditorProxy_GetRightTextOfCursorFunc getRightTextOfCursorFunc;
     OH_TextEditorProxy_GetTextIndexAtCursorFunc getTextIndexAtCursorFunc;
-    OH_TextEditorProxy_ReceivePrivateCommand receivePrivateCommandFunc;
+    OH_TextEditorProxy_ReceivePrivateCommandFunc receivePrivateCommandFunc;
     OH_TextEditorProxy_SetPreviewTextFunc setPreviewTextFunc;
     OH_TextEditorProxy_FinishTextPreview finishTextPreviewFunc;
 };
 
-int32_t ErrorCodeConvert(int32_t code);
+InputMethod_ErrorCode ErrorCodeConvert(int32_t code);
 namespace OHOS {
 namespace MiscServices {
 class NativeTextChangedListener : public OHOS::MiscServices::OnTextChangedListener {
 public:
-    explicit NativeTextChangedListener(OH_InputMethod_TextEditorProxy *textEditor) : textEditor_(textEditor) {};
+    explicit NativeTextChangedListener(InputMethod_TextEditorProxy *textEditor) : textEditor_(textEditor) {};
     ~NativeTextChangedListener() {};
     void InsertText(const std::u16string &text) override;
     void DeleteForward(int32_t length) override;
@@ -97,7 +97,7 @@ private:
 
     constexpr static int32_t MAX_TEXT_LENGTH = 8 * 1024;
 
-    OH_InputMethod_TextEditorProxy *textEditor_;
+    InputMethod_TextEditorProxy *textEditor_;
 };
 } // namespace MiscServices
 } // namespace OHOS
