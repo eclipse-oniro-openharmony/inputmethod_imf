@@ -164,6 +164,16 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
     return abilityManager_;
 }
 
+void InputMethodController::RemoveDeathRecipient()
+{
+    std::lock_guard<std::mutex> lock(abilityLock_);
+    if (abilityManager_ == nullptr || deathRecipient_ == nullptr) {
+        return;
+    }
+    abilityManager_->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    deathRecipient_ = nullptr;
+}
+
 void InputMethodController::DeactivateClient()
 {
     {
@@ -461,6 +471,8 @@ int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     if (ret == ErrorCode::NO_ERROR) {
         OnInputStop();
     }
+    RemoveDeathRecipient();
+    SetTextListener(nullptr);
     return ret;
 }
 
@@ -916,7 +928,6 @@ void InputMethodController::OnInputStop()
         }
         listener->SendKeyboardStatus(KeyboardStatus::HIDE);
     }
-    SetTextListener(nullptr);
     isBound_.store(false);
     isEditable_.store(false);
 }
