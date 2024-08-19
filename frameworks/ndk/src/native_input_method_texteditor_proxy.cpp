@@ -262,7 +262,7 @@ InputMethod_ErrorCode OH_TextEditorProxy_SetSetPreviewTextFunc(
     return IME_ERR_OK;
 }
 InputMethod_ErrorCode OH_TextEditorProxy_SetFinishTextPreviewFunc(
-    InputMethod_TextEditorProxy *proxy, OH_TextEditorProxy_FinishTextPreview finishTextPreviewFunc)
+    InputMethod_TextEditorProxy *proxy, OH_TextEditorProxy_FinishTextPreviewFunc finishTextPreviewFunc)
 {
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
@@ -491,7 +491,7 @@ InputMethod_ErrorCode OH_TextEditorProxy_GetSetPreviewTextFunc(
 }
 
 InputMethod_ErrorCode OH_TextEditorProxy_GetFinishTextPreviewFunc(
-    InputMethod_TextEditorProxy *proxy, OH_TextEditorProxy_FinishTextPreview *finishTextPreviewFunc)
+    InputMethod_TextEditorProxy *proxy, OH_TextEditorProxy_FinishTextPreviewFunc *finishTextPreviewFunc)
 {
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
@@ -620,6 +620,21 @@ InputMethod_ErrorCode OH_TextConfig_GetCursorInfo(InputMethod_TextConfig *config
         return IME_ERR_NULL_POINTER;
     }
     *cursorInfo = &config->cursorInfo;
+    return IME_ERR_OK;
+}
+
+InputMethod_ErrorCode OH_TextConfig_GetTextAvoidInfo(
+    InputMethod_TextConfig *config, InputMethod_TextAvoidInfo **avoidInfo)
+{
+    if (config == nullptr) {
+        IMSA_HILOGE("config is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (avoidInfo == nullptr) {
+        IMSA_HILOGE("avoidInfo is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    *avoidInfo = &config->avoidInfo;
     return IME_ERR_OK;
 }
 InputMethod_ErrorCode OH_TextConfig_GetSelection(InputMethod_TextConfig *config, int32_t *start, int32_t *end)
@@ -828,7 +843,7 @@ InputMethod_ErrorCode OH_PrivateCommand_GetIntValue(InputMethod_PrivateCommand *
     return IME_ERR_OK;
 }
 InputMethod_ErrorCode OH_PrivateCommand_GetStrValue(
-    InputMethod_PrivateCommand *command, char **value, size_t valueLength)
+    InputMethod_PrivateCommand *command, char **value, size_t *valueLength)
 {
     if (command == nullptr) {
         IMSA_HILOGE("command is nullptr");
@@ -845,6 +860,7 @@ InputMethod_ErrorCode OH_PrivateCommand_GetStrValue(
     }
 
     *value = const_cast<char *>(std::get<std::string>(command->value).c_str());
+    *valueLength = std::get<std::string>(command->value).length();
     return IME_ERR_OK;
 }
 

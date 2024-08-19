@@ -59,7 +59,7 @@ struct InputMethod_TextEditorProxy {
     OH_TextEditorProxy_GetTextIndexAtCursorFunc getTextIndexAtCursorFunc;
     OH_TextEditorProxy_ReceivePrivateCommandFunc receivePrivateCommandFunc;
     OH_TextEditorProxy_SetPreviewTextFunc setPreviewTextFunc;
-    OH_TextEditorProxy_FinishTextPreview finishTextPreviewFunc;
+    OH_TextEditorProxy_FinishTextPreviewFunc finishTextPreviewFunc;
 };
 
 InputMethod_ErrorCode ErrorCodeConvert(int32_t code);

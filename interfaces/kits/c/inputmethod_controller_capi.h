@@ -890,7 +890,7 @@ typedef int32_t (*OH_TextEditorProxy_SetPreviewTextFunc)(
  * @param textEditorProxy Represents a pointer to an {@link InputMethod_TextEditorProxy} instance whitch will be set in.
  * @since 12
  */
-typedef void (*OH_TextEditorProxy_FinishTextPreview)(InputMethod_TextEditorProxy *textEditorProxy);
+typedef void (*OH_TextEditorProxy_FinishTextPreviewFunc)(InputMethod_TextEditorProxy *textEditorProxy);
 
 /**
  * @brief Create a new {@link InputMethod_TextEditorProxy} instance.
@@ -1101,7 +1101,7 @@ InputMethod_ErrorCode OH_TextEditorProxy_SetSetPreviewTextFunc(
  * @since 12
  */
 InputMethod_ErrorCode OH_TextEditorProxy_SetFinishTextPreviewFunc(
-    InputMethod_TextEditorProxy *proxy, OH_TextEditorProxy_FinishTextPreview finishTextPreviewFunc);
+    InputMethod_TextEditorProxy *proxy, OH_TextEditorProxy_FinishTextPreviewFunc finishTextPreviewFunc);
 
 /**
  * @brief Get function {@link OH_TextEditorProxy_GetGetTextConfigFunc} from {@link InputMethod_TextEditorProxy}.
@@ -1297,7 +1297,7 @@ InputMethod_ErrorCode OH_TextEditorProxy_GetSetPreviewTextFunc(
  * @since 12
  */
 InputMethod_ErrorCode OH_TextEditorProxy_GetFinishTextPreviewFunc(
-    InputMethod_TextEditorProxy *proxy, OH_TextEditorProxy_FinishTextPreview *finishTextPreviewFunc);
+    InputMethod_TextEditorProxy *proxy, OH_TextEditorProxy_FinishTextPreviewFunc *finishTextPreviewFunc);
 
 /**
  * @brief Create a new {@link InputMethod_AttachOptions} instance.
@@ -1521,7 +1521,7 @@ InputMethod_ErrorCode OH_PrivateCommand_GetIntValue(InputMethod_PrivateCommand *
  * @since 12
  */
 InputMethod_ErrorCode OH_PrivateCommand_GetStrValue(
-    InputMethod_PrivateCommand *command, char **value, size_t valueLength);
+    InputMethod_PrivateCommand *command, char **value, size_t *valueLength);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
