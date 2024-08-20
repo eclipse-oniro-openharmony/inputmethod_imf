@@ -161,8 +161,8 @@ typedef void (*OH_TextEditorProxy_HandleExtendActionFunc)(
  *
  * @param textEditorProxy Represents a pointer to an {@link InputMethod_TextEditorProxy} instance which will be set in.
  * @param number Represents the number of characters to be get.
- * @param text Represents the left text of cursor, you need to assing this parameter.
- * @param length Represents the length of the left text of cursor, you need to assing this parameter.
+ * @param text Represents the left text of cursor, you need to assign this parameter.
+ * @param length Represents the length of the left text of cursor, you need to assign this parameter.
  * @since 12
  */
 typedef void (*OH_TextEditorProxy_GetLeftTextOfCursorFunc)(
@@ -176,7 +176,7 @@ typedef void (*OH_TextEditorProxy_GetLeftTextOfCursorFunc)(
  *
  * @param textEditorProxy Represents a pointer to an {@link InputMethod_TextEditorProxy} instance which will be set in.
  * @param number Represents the number of characters to be get.
- * @param text Represents the right text of cursor, you need to assing this parameter.
+ * @param text Represents the right text of cursor, you need to assign this parameter.
  * @param length Represents the length of the right text of cursor.
  * @since 12
  */
@@ -217,7 +217,7 @@ typedef int32_t (*OH_TextEditorProxy_ReceivePrivateCommandFunc)(
  * registration.\n
  *
  * @param textEditorProxy Represents a pointer to an {@link InputMethod_TextEditorProxy} instance which will be set in.
- * @param text Represents text to be previewd.
+ * @param text Represents text to be previewed.
  * @param length Length of preview text.
  * @param start Start position of preview text.
  * @param end End position of preview text.
