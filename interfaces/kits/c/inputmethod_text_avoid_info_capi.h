@@ -1,22 +1,22 @@
 /*
-* Copyright (c) 2024 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #ifndef OHOS_INPUTMETHOD_TEXT_AVOID_INFO_CAPI_H
 #define OHOS_INPUTMETHOD_TEXT_AVOID_INFO_CAPI_H
 #include "inputmethod_types_capi.h"
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif /* __cplusplus */
 
 /**
@@ -40,14 +40,14 @@ InputMethod_TextAvoidInfo *OH_TextAvoidInfo_New(double positionY, double height)
 /**
  * @brief Delete a {@link InputMethod_TextAvoidInfo} instance.
  *
- * @param options Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance whitch will be deleted.
+ * @param options Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance which will be deleted.
  * @since 12
  */
 void OH_TextAvoidInfo_Delete(InputMethod_TextAvoidInfo *info);
 /**
  * @brief Set positionY value into {@link InputMethod_TextAvoidInfo}.
  *
- * @param info Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance whitch will be set value.
+ * @param info Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance which will be set value.
  * @param positionY Represents positionY value.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
@@ -59,8 +59,8 @@ InputMethod_ErrorCode OH_TextAvoidInfo_SetPositionY(InputMethod_TextAvoidInfo *i
 /**
  * @brief Set height value into {@link InputMethod_TextAvoidInfo}.
  *
- * @param info Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance whitch will be set value.
- * @param positionY Represents height value.
+ * @param info Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance which will be set value.
+ * @param height Represents height value.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
@@ -71,7 +71,7 @@ InputMethod_ErrorCode OH_TextAvoidInfo_SetHeight(InputMethod_TextAvoidInfo *info
 /**
  * @brief Get positionY value from {@link InputMethod_TextAvoidInfo}.
  *
- * @param info Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance whitch will be get value from.
+ * @param info Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance which will be get value from.
  * @param positionY Represents positionY value.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
@@ -83,7 +83,7 @@ InputMethod_ErrorCode OH_TextAvoidInfo_GetPositionY(InputMethod_TextAvoidInfo *i
 /**
  * @brief Get height value into {@link InputMethod_TextAvoidInfo}.
  *
- * @param info Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance whitch will be get value from.
+ * @param info Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance which will be get value from.
  * @param height Represents height value.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.

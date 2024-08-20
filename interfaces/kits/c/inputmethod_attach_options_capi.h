@@ -1,22 +1,22 @@
 /*
-* Copyright (c) 2024 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #ifndef OHOS_INPUTMETHOD_ATTACH_OPTIONS_CAPI_H
 #define OHOS_INPUTMETHOD_ATTACH_OPTIONS_CAPI_H
 #include "inputmethod_types_capi.h"
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif /* __cplusplus */
 /**
  * @brief Define the InputMethod_AttachOptions structure type.
@@ -38,14 +38,14 @@ InputMethod_AttachOptions *OH_AttachOptions_New(bool showKeyboard);
 /**
  * @brief Delete a {@link InputMethod_AttachOptions} instance.
  *
- * @param options Represents a pointer to an {@link InputMethod_AttachOptions} instance whitch will be deleted.
+ * @param options Represents a pointer to an {@link InputMethod_AttachOptions} instance which will be deleted.
  * @since 12
  */
 void OH_AttachOptions_Delete(InputMethod_AttachOptions *options);
 /**
  * @brief Get showKeyboard value from {@link InputMethod_AttachOptions}.
  *
- * @param options Represents a pointer to an {@link InputMethod_AttachOptions} instance whitch will be get value from.
+ * @param options Represents a pointer to an {@link InputMethod_AttachOptions} instance which will be get value from.
  * @param showKeyboard  Represents showKeyboard value.
  *     true - need to show keyboard.
  *     false - no need to show keyboard.
