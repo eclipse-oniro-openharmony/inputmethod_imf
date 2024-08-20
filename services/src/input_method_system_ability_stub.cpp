@@ -176,7 +176,6 @@ int32_t InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote(MessageParce
     }
     ret = GetDefaultInputMethod(prop, isBrief);
     if (prop == nullptr) {
-        IMSA_HILOGE("prop is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ITypesUtil::Marshal(reply, ret, *prop) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
