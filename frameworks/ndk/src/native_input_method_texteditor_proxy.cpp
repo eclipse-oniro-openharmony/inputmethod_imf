@@ -643,6 +643,14 @@ InputMethod_ErrorCode OH_TextConfig_GetSelection(InputMethod_TextConfig *config,
         IMSA_HILOGE("config is nullptr");
         return IME_ERR_NULL_POINTER;
     }
+    if (start == nullptr) {
+        IMSA_HILOGE("start is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (end == nullptr) {
+        IMSA_HILOGE("end is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     *start = config->selectionStart;
     *end = config->selectionEnd;
     return IME_ERR_OK;
@@ -651,6 +659,10 @@ InputMethod_ErrorCode OH_TextConfig_GetWindowId(InputMethod_TextConfig *config, 
 {
     if (config == nullptr) {
         IMSA_HILOGE("config is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (windowId == nullptr) {
+        IMSA_HILOGE("windowId is nullptr");
         return IME_ERR_NULL_POINTER;
     }
     *windowId = config->windowId;
@@ -693,6 +705,10 @@ InputMethod_ErrorCode OH_TextAvoidInfo_GetPositionY(InputMethod_TextAvoidInfo *i
         IMSA_HILOGE("info is nullptr");
         return IME_ERR_NULL_POINTER;
     }
+    if (positionY == nullptr) {
+        IMSA_HILOGE("positionY is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     *positionY = info->positionY;
     return IME_ERR_OK;
 }
@@ -700,6 +716,10 @@ InputMethod_ErrorCode OH_TextAvoidInfo_GetHeight(InputMethod_TextAvoidInfo *info
 {
     if (info == nullptr) {
         IMSA_HILOGE("info is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (height == nullptr) {
+        IMSA_HILOGE("height is nullptr");
         return IME_ERR_NULL_POINTER;
     }
     *height = info->height;
@@ -764,7 +784,7 @@ InputMethod_ErrorCode OH_PrivateCommand_SetStrValue(
     return IME_ERR_OK;
 }
 
-InputMethod_ErrorCode OH_PrivateCommand_GetKey(InputMethod_PrivateCommand *command, char **key, size_t keyLength)
+InputMethod_ErrorCode OH_PrivateCommand_GetKey(InputMethod_PrivateCommand *command, const char **key, size_t *keyLength)
 {
     if (command == nullptr) {
         IMSA_HILOGE("command is nullptr");
@@ -774,7 +794,12 @@ InputMethod_ErrorCode OH_PrivateCommand_GetKey(InputMethod_PrivateCommand *comma
         IMSA_HILOGE("key is nullptr");
         return IME_ERR_NULL_POINTER;
     }
-    *key = const_cast<char *>(command->key.c_str());
+    if (keyLength == nullptr) {
+        IMSA_HILOGE("keyLength is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    *key = command->key.c_str();
+    *keyLength = command->key.length();
     return IME_ERR_OK;
 }
 
@@ -843,7 +868,7 @@ InputMethod_ErrorCode OH_PrivateCommand_GetIntValue(InputMethod_PrivateCommand *
     return IME_ERR_OK;
 }
 InputMethod_ErrorCode OH_PrivateCommand_GetStrValue(
-    InputMethod_PrivateCommand *command, char **value, size_t *valueLength)
+    InputMethod_PrivateCommand *command, const char **value, size_t *valueLength)
 {
     if (command == nullptr) {
         IMSA_HILOGE("command is nullptr");
@@ -854,12 +879,17 @@ InputMethod_ErrorCode OH_PrivateCommand_GetStrValue(
         return IME_ERR_NULL_POINTER;
     }
 
+    if (valueLength == nullptr) {
+        IMSA_HILOGE("valueLength is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+
     if (!std::holds_alternative<std::string>(command->value)) {
         IMSA_HILOGE("value is not string");
         return IME_ERR_QUERY_FAILED;
     }
 
-    *value = const_cast<char *>(std::get<std::string>(command->value).c_str());
+    *value = std::get<std::string>(command->value).c_str();
     *valueLength = std::get<std::string>(command->value).length();
     return IME_ERR_OK;
 }
