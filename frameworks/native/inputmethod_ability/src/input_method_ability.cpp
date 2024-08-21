@@ -958,10 +958,6 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         return ret;
     }
     NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
-    // finish previewing text when soft keyboard hides
-    if (inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-        FinishTextPreview(true);
-    }
     return ErrorCode::NO_ERROR;
 }
 
