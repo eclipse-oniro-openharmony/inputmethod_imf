@@ -107,6 +107,7 @@ napi_value AsyncCall::Post(napi_env env, Context::ExecAction exec, std::shared_p
     napi_create_string_utf8(env, func, NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecuteSeq, AsyncCall::OnComplete, context_, &work);
     context_->work = work;
+    context_->queue = queue;
     std::unique_lock<ffrt::mutex> lock(queue->queuesMutex_);
     queue->taskQueue_.emplace(env, work, func);
     if (!queue->isRunning) {
@@ -116,7 +117,6 @@ napi_value AsyncCall::Post(napi_env env, Context::ExecAction exec, std::shared_p
             IMSA_HILOGE("async work failed.status:%{public}d, func:%{public}s!", status, func);
         }
     }
-    context_->queue = queue;
     context_ = nullptr;
     return promise;
 }
