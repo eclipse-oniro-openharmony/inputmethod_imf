@@ -160,7 +160,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level0)
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
     int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
 }
 
 /**
@@ -178,7 +178,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level0)
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
     int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
 }
 
 /**
@@ -196,7 +196,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level0)
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
     int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
 }
 
 /**
@@ -346,7 +346,7 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_001, TestSize.Level0)
 
 /**
  * @tc.name: testSetCoreAndAgent_002
- * @tc.desc: current ime
+ * @tc.desc: not current ime
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -356,7 +356,7 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
 
 /**
@@ -422,7 +422,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level0)
 
 /**
  * @tc.name: testIsCurrentIme_002
- * @tc.desc: current ime
+ * @tc.desc: not current ime
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -432,7 +432,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     bool ret = IdentityCheckerTest::service_->IsCurrentIme();
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -550,7 +550,7 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_001, TestSize.Level0)
 
 /**
  * @tc.name: testPanelStatusChange_002
- * @tc.desc: current ime
+ * @tc.desc: not current ime
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -562,7 +562,7 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level0)
     InputWindowStatus status = InputWindowStatus::SHOW;
     ImeWindowInfo info{};
     int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, info);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
 
 /**
@@ -678,7 +678,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
         CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
 /**
@@ -695,7 +695,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
         CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
 /**

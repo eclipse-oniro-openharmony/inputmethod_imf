@@ -144,9 +144,8 @@ void InputMethodEditorTest::SetUpTestCase(void)
 
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     inputMethodAbility_->abilityManager_ = imsa_;
-    IdentityCheckerMock::SetBundleNameValid(true);
+    TddUtil::InitCurrentImePermissionInfo();
     inputMethodAbility_->SetCoreAndAgent();
-    IdentityCheckerMock::SetBundleNameValid(false);
     kbListener_ = std::make_shared<KeyboardListenerImpl>();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetKdListener(kbListener_);

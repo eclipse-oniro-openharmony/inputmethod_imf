@@ -931,7 +931,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestServiceStartInputType, TestSize.Level
     auto ret = service_->ExitCurrentInputType();
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
     ret = service_->StartInputType(InputType::NONE);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
     const PanelInfo panelInfo;
     bool isShown = false;
     ret = service_->IsPanelShown(panelInfo, isShown);
@@ -1009,7 +1009,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestStartInputType, TestSize.Level0)
     IMSA_HILOGI("InputMethodPrivateMemberTest TestStartInputType TEST START");
     InputType type = InputType::NONE;
     auto ret = service_->StartInputType(type);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 
 /**

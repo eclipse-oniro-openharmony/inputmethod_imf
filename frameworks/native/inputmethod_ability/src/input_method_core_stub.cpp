@@ -73,10 +73,9 @@ int32_t InputMethodCoreStub::HideKeyboard(bool isForce)
     return InputMethodAbility::GetInstance()->HideKeyboard(isForce);
 }
 
-void InputMethodCoreStub::StopInputService(bool isTerminateIme)
+int32_t InputMethodCoreStub::StopInputService(bool isTerminateIme)
 {
-    SendMessage(MessageID::MSG_ID_STOP_INPUT_SERVICE,
-        [isTerminateIme](MessageParcel &data) { return ITypesUtil::Marshal(data, isTerminateIme); });
+    return InputMethodAbility::GetInstance()->OnStopInputService(isTerminateIme);
 }
 
 void InputMethodCoreStub::SetMessageHandler(MessageHandler *msgHandler)
@@ -195,8 +194,8 @@ int32_t InputMethodCoreStub::StopInputServiceOnRemote(MessageParcel &data, Messa
         IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    StopInputService(isTerminateIme);
-    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    auto ret = StopInputService(isTerminateIme);
+    return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply)

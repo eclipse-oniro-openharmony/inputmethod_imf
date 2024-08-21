@@ -18,8 +18,10 @@
 #include <algorithm>
 #include <string>
 
+#include "ability_manager_client.h"
 #include "application_info.h"
 #include "bundle_mgr_client_impl.h"
+#include "extension_running_info.h"
 #include "file_operator.h"
 #include "full_ime_info_manager.h"
 #include "global.h"
@@ -41,6 +43,7 @@ namespace MiscServices {
 namespace {
 using namespace OHOS::AppExecFwk;
 using namespace Global::Resource;
+using namespace OHOS::AAFwk;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
 constexpr const char *TEMPORARY_INPUT_METHOD_METADATA_NAME = "ohos.extension.temporary_input_method";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
@@ -128,6 +131,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
     }
     auto info = std::make_shared<ImeInfo>();
     auto subProps = it->subProps;
+    info->isSpecificSubName = !subName.empty();
     if (subName.empty() && !subProps.empty()) {
         info->subProp = subProps[0];
     } else {
@@ -178,6 +182,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
     }
     info->subProps = subProps;
     if (subName.empty()) {
+        info->isSpecificSubName = false;
         info->subProp = subProps[0];
     } else {
         auto it = std::find_if(subProps.begin(), subProps.end(),
@@ -1075,6 +1080,25 @@ bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
             return metadata.name == TEMPORARY_INPUT_METHOD_METADATA_NAME;
         });
     return iter != extInfo.metadata.end();
+}
+
+bool ImeInfoInquirer::IsRunningExtension(const std::pair<std::string, std::string> &ime)
+{
+    std::vector<ExtensionRunningInfo> infos;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetExtensionRunningInfos(
+        std::numeric_limits<uint32_t>::max(), infos);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetExtensionRunningInfos failed, ret: %{public}d!", ret);
+        return false;
+    }
+    auto it = std::find_if(infos.begin(), infos.end(), [&ime](const ExtensionRunningInfo &info) {
+        return ime.first == info.extension.GetBundleName() && ime.second == info.extension.GetAbilityName();
+    });
+    if (it == infos.end()) {
+        return false;
+    }
+    IMSA_HILOGW("[%{public}s, %{public}s] is running!", ime.first.c_str(), ime.second.c_str());
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -48,9 +48,10 @@ public:
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStart");
         }
 
-        void OnInputStop()
+        int32_t OnInputStop()
         {
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStop");
+            return ErrorCode::NO_ERROR;
         }
 
         void OnSetCallingWindow(uint32_t windowId)

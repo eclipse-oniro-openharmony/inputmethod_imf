@@ -223,9 +223,8 @@ void InputMethodPanelTest::SetUpTestCase(void)
 
     ima_ = InputMethodAbility::GetInstance();
     ima_->abilityManager_ = imsa_;
-    IdentityCheckerMock::SetBundleNameValid(true);
+    TddUtil::InitCurrentImePermissionInfo();
     ima_->SetCoreAndAgent();
-    IdentityCheckerMock::SetBundleNameValid(false);
     InputMethodPanelTest::ima_->SetImeListener(imeListener_);
 
     ImaUtils::abilityManager_ = imsa_;

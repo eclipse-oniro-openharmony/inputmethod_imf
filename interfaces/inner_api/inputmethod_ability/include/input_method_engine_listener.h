@@ -26,7 +26,7 @@ public:
     virtual ~InputMethodEngineListener() = default;
     virtual void OnKeyboardStatus(bool isShow) = 0;
     virtual void OnInputStart() = 0;
-    virtual void OnInputStop() = 0;
+    virtual int32_t OnInputStop() = 0;
     virtual void OnSecurityChange(int32_t security)
     {
     };
