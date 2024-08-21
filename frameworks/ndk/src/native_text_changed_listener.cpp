@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "input_method_utils.h"
-#include "native_text_editor.h"
+#include "native_text_changed_listener.h"
 
 namespace OHOS {
 namespace MiscServices {

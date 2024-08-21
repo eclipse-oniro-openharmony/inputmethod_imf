@@ -19,16 +19,13 @@
 #include "input_method_controller.h"
 #include "input_method_utils.h"
 #include "inputmethod_controller_capi.h"
-#include "native_text_editor.h"
-
+#include "native_inputmethod_types.h"
+#include "native_inputmethod_utils.h"
+#include "native_text_changed_listener.h"
 using namespace OHOS::MiscServices;
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-struct InputMethod_AttachOptions {
-    bool showKeyboard;
-};
 
 struct InputMethod_InputMethodProxy {
     InputMethod_TextEditorProxy *textEditor = nullptr;
@@ -37,130 +34,6 @@ struct InputMethod_InputMethodProxy {
 
 InputMethod_InputMethodProxy *g_inputMethodProxy = nullptr;
 std::mutex g_textEditorProxyMapMutex;
-
-InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
-{
-    return ErrorCodeConvert(InputMethodController::GetInstance()->ShowCurrentInput());
-}
-InputMethod_ErrorCode OH_InputMethodProxy_HideKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
-{
-    return ErrorCodeConvert(InputMethodController::GetInstance()->HideCurrentInput());
-}
-InputMethod_ErrorCode OH_InputMethodProxy_NotifySelectionChange(
-    InputMethod_InputMethodProxy *inputMethodProxy, char16_t text[], size_t length, int start, int end)
-{
-    return ErrorCodeConvert(
-        InputMethodController::GetInstance()->OnSelectionChange(std::u16string(text, length), start, end));
-}
-InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_InputMethodProxy *inputMethodProxy,
-    InputMethod_EnterKeyType enterKey, InputMethod_TextInputType textType)
-{
-    Configuration info;
-    info.SetEnterKeyType(static_cast<EnterKeyType>(enterKey));
-    info.SetTextInputType(static_cast<TextInputType>(textType));
-    return ErrorCodeConvert(InputMethodController::GetInstance()->OnConfigurationChange(info));
-}
-
-InputMethod_CursorInfo *OH_CursorInfo_New(double left, double top, double width, double height)
-{
-    return new InputMethod_CursorInfo({ left, top, width, height });
-}
-void OH_CursorInfo_Delete(InputMethod_CursorInfo *cursorInfo)
-{
-    if (cursorInfo == nullptr) {
-        return;
-    }
-    delete cursorInfo;
-}
-
-InputMethod_ErrorCode OH_CursorInfo_SetRect(
-    InputMethod_CursorInfo *cursorInfo, double left, double top, double width, double height)
-{
-    if (cursorInfo == nullptr) {
-        IMSA_HILOGE("cursorInfo is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-    cursorInfo->left = left;
-    cursorInfo->top = top;
-    cursorInfo->width = width;
-    cursorInfo->height = height;
-    return IME_ERR_OK;
-}
-
-InputMethod_ErrorCode OH_CursorInfo_GetRect(
-    InputMethod_CursorInfo *cursorInfo, double *left, double *top, double *width, double *height)
-{
-    if (cursorInfo == nullptr) {
-        IMSA_HILOGE("cursorInfo is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-    if (left == nullptr || top == nullptr || width == nullptr || height == nullptr) {
-        IMSA_HILOGE("invalid parameter");
-        return IME_ERR_NULL_POINTER;
-    }
-    *left = cursorInfo->left;
-    *top = cursorInfo->top;
-    *width = cursorInfo->width;
-    *height = cursorInfo->height;
-    return IME_ERR_OK;
-}
-InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
-    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_CursorInfo *cursorInfo)
-{
-    if (cursorInfo == nullptr) {
-        IMSA_HILOGE("cursorInfo is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-    return ErrorCodeConvert(InputMethodController::GetInstance()->OnCursorUpdate(
-        CursorInfo({ cursorInfo->left, cursorInfo->top, cursorInfo->width, cursorInfo->height })));
-}
-
-InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(InputMethod_PrivateCommand *privateCommand[], size_t size)
-{
-    if (privateCommand == nullptr) {
-        IMSA_HILOGE("privateCommand is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    std::unordered_map<std::string, PrivateDataValue> command;
-
-    for (size_t i = 0; i < size; i++) {
-        if (privateCommand[i] == nullptr) {
-            IMSA_HILOGE("privateCommand[%zu] is nullptr", i);
-            return IME_ERR_NULL_POINTER;
-        }
-        command.emplace(privateCommand[i]->key, privateCommand[i]->value);
-    }
-    return ErrorCodeConvert(InputMethodController::GetInstance()->SendPrivateCommand(command));
-}
-
-InputMethod_AttachOptions *OH_AttachOptions_New(bool showKeyboard)
-{
-    return new InputMethod_AttachOptions({ showKeyboard });
-}
-void OH_AttachOptions_Delete(InputMethod_AttachOptions *options)
-{
-    if (options == nullptr) {
-        return;
-    }
-    delete options;
-}
-
-InputMethod_ErrorCode OH_AttachOptions_IsShowKeyboard(InputMethod_AttachOptions *options, bool *showKeyboard)
-{
-    if (options == nullptr) {
-        IMSA_HILOGE("options is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (showKeyboard == nullptr) {
-        IMSA_HILOGE("showKeyboard is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    *showKeyboard = options->showKeyboard;
-    return IME_ERR_OK;
-}
 
 static InputMethod_ErrorCode GetInputMethodProxy(InputMethod_TextEditorProxy *textEditor)
 {
