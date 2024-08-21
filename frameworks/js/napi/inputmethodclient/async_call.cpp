@@ -107,9 +107,9 @@ napi_value AsyncCall::Post(napi_env env, Context::ExecAction exec, std::shared_p
     napi_create_string_utf8(env, func, NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecuteSeq, AsyncCall::OnComplete, context_, &work);
     context_->work = work;
+    context_->queue = queue;
     std::unique_lock<ffrt::mutex> lock(queue->queuesMutex_);
     queue->taskQueue_.emplace(env, work, func);
-    context_->queue = queue;
     if (!queue->isRunning) {
         auto status = napi_queue_async_work_with_qos(env, work, napi_qos_user_initiated);
         queue->isRunning = status == napi_ok;
