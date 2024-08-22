@@ -64,6 +64,7 @@ ohos_shared_library("inputmethod_ability") {
     "-fdata-sections",
     "-ffunction-sections",
     "-Os",
+    "-Wno-c99-designator",
   ]
   version_script = "inputmethod_ability.versionscript"
 

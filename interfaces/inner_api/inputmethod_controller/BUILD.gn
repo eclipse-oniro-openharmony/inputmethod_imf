@@ -62,6 +62,7 @@ ohos_shared_library("inputmethod_client") {
     "-fdata-sections",
     "-ffunction-sections",
     "-Os",
+    "-Wno-c99-designator",
   ]
 
   version_script = "inputmethod_client.versionscript"
