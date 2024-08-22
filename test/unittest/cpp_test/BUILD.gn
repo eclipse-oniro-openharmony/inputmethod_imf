@@ -951,3 +951,20 @@ if (defined(build_seccomp) && build_seccomp) {
   group("InputMethodSeccompTest") {
   }
 }
+
+ohos_unittest("ImeControllerCpaiTest") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./inputmethod_blocklist.txt"
+  }
+  module_out_path = module_output_path
+
+  sources = [ "src/inputmethod_controller_capi_test.cpp" ]
+  include_dirs = [ "${inputmethod_path}/interfaces/kits/c" ]
+
+  deps = [ "${inputmethod_path}/frameworks/ndk:ohinputmethod" ]
+
+  external_deps = [ "googletest:gtest_main" ]
+}
