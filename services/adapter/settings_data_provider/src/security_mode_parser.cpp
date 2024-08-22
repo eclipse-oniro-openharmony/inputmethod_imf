@@ -15,11 +15,19 @@
 
 #include "security_mode_parser.h"
 
+#include <algorithm>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
+#include "full_ime_info_manager.h"
 #include "ime_info_inquirer.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
 #include "serializable.h"
 #include "settings_data_utils.h"
+#include "sys_cfg_parser.h"
 #include "system_ability_definition.h"
 namespace OHOS {
 namespace MiscServices {
@@ -87,11 +95,6 @@ SecurityMode SecurityModeParser::GetSecurityMode(const std::string &bundleName, 
     if (bundleName == SYSTEM_SPECIAL_IME) {
         return SecurityMode::FULL;
     }
-    // always set default ime to full mode, remove this rule when default ime finishes adaptation.
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
-    if (defaultIme != nullptr && bundleName == defaultIme->name) {
-        return SecurityMode::FULL;
-    }
     if (!initialized_) {
         std::lock_guard<std::mutex> lock(initLock_);
         if (!initialized_) {
@@ -112,6 +115,47 @@ bool SecurityModeParser::IsFullMode(std::string bundleName)
     auto it = std::find_if(fullModeList_.begin(), fullModeList_.end(),
         [&bundleName](const std::string &bundle) { return bundle == bundleName; });
     return it != fullModeList_.end();
+}
+
+bool SecurityModeParser::IsDefaultFullMode(const std::string &bundleName, int32_t userId)
+{
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
+    if (defaultIme != nullptr && bundleName == defaultIme->name) {
+        return true;
+    }
+    std::string appId;
+    if (!ImeInfoInquirer::GetInstance().GetImeAppId(userId, bundleName, appId)) {
+        IMSA_HILOGE("%{public}s failed to get app id", bundleName.c_str());
+        return false;
+    }
+    std::vector<DefaultFullImeInfo> defaultFullImeList;
+    if (!SysCfgParser::ParseDefaultFullIme(defaultFullImeList)) {
+        IMSA_HILOGE("failed to parse config");
+        return false;
+    }
+    auto ime = std::find_if(defaultFullImeList.begin(), defaultFullImeList.end(),
+        [&appId](const auto &ime) { return ime.appId == appId; });
+    if (ime == defaultFullImeList.end()) {
+        IMSA_HILOGD("not default FULL");
+        return false;
+    }
+    bool isDefaultFull = !IsExpired(ime->expirationTime);
+    IMSA_HILOGI("ime: %{public}s, isDefaultFull: %{public}d", bundleName.c_str(), isDefaultFull);
+    return isDefaultFull;
+}
+
+bool SecurityModeParser::IsExpired(const std::string &expirationTime)
+{
+    std::istringstream expirationTimeStr(expirationTime);
+    std::tm expTime = {};
+    expirationTimeStr >> std::get_time(&expTime, "%Y-%m-%d %H:%M:%S");
+    if (expirationTimeStr.fail()) {
+        IMSA_HILOGE("get time error, expirationTime: %{public}s", expirationTime.c_str());
+        return false;
+    }
+    auto expTimePoint = std::chrono::system_clock::from_time_t(std::mktime(&expTime));
+    auto now = std::chrono::system_clock::now();
+    return expTimePoint < now;
 }
 } // namespace MiscServices
 } // namespace OHOS

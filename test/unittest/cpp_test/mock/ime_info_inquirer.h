@@ -32,6 +32,7 @@ public:
     std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
     std::shared_ptr<Property> GetCurrentInputMethod(int32_t userId);
     std::shared_ptr<Property> GetDefaultImeCfgProp();
+    bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId);
 
 private:
     static std::shared_ptr<ImeInfo> defaultIme_;

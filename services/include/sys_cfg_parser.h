@@ -97,11 +97,31 @@ struct SysPanelAdjustCfg : public Serializable {
     }
 };
 
+struct DefaultFullImeInfo : public Serializable {
+    std::string appId;
+    std::string expirationTime;
+    bool Unmarshal(cJSON *node) override
+    {
+        bool ret = GetValue(node, GET_NAME(appId), appId);
+        ret &= GetValue(node, GET_NAME(expirationTime), expirationTime);
+        return ret;
+    }
+};
+
+struct DefaultFullImeCfg : Serializable {
+    std::vector<DefaultFullImeInfo> defaultFullImeList;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(defaultFullImeList), defaultFullImeList);
+    }
+};
+
 class SysCfgParser {
 public:
     static bool ParseSystemConfig(SystemConfig &systemConfig);
     static bool ParseInputType(std::vector<InputTypeInfo> &inputType);
     static bool ParsePanelAdjust(std::vector<SysPanelAdjust> &sysPanelAdjust);
+    static bool ParseDefaultFullIme(std::vector<DefaultFullImeInfo> &defaultFullImeList);
 
 private:
     static constexpr const char *SYS_CFG_FILE_PATH = "etc/inputmethod/inputmethod_framework_config.json";

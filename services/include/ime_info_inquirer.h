@@ -80,6 +80,7 @@ public:
     std::shared_ptr<Property> GetDefaultImeCfgProp();
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(const std::vector<SubProperty> &subProps,
         const Condition &condition);
+    bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId);
     int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief = false);
     int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
@@ -103,6 +104,7 @@ private:
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
     std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const int32_t labelId,
         const int32_t userId);
+    bool GetAppIdByBundleName(int32_t userId, const std::string &bundleName, std::string &appId);
     std::shared_ptr<ImeInfo> GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
         const std::string &subName);
     std::shared_ptr<ImeInfo> GetImeInfoFromBundleMgr(
