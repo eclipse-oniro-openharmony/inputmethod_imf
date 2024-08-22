@@ -79,6 +79,7 @@ public:
     void SendMessage(Message *msg);
     Message *GetMessage();
     static MessageHandler *Instance();
+    static std::mutex handlerMutex_;
 
 private:
     std::mutex mMutex;            // a mutex to guard message queue

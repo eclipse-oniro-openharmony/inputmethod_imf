@@ -162,10 +162,10 @@ private:
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
-    bool enableImeOn_ = false;
-    bool enableSecurityMode_ = false;
+    std::atomic<bool> enableImeOn_ = false;
+    std::atomic<bool> enableSecurityMode_ = false;
 
-    bool isScbEnable_ = false;
+    std::atomic<bool> isScbEnable_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
