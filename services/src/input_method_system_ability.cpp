@@ -1281,6 +1281,7 @@ void InputMethodSystemAbility::InitMonitors()
         IMSA_HILOGW("Enter security mode.");
         enableSecurityMode_ = true;
     }
+    RegisterDataShareObserver();
 }
 
 int32_t InputMethodSystemAbility::RegisterDataShareObserver()
