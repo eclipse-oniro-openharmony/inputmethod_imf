@@ -261,7 +261,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnReleaseInput(client);
-};
+}
 
 int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
@@ -299,7 +299,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         return ret;
     }
     return session->OnStartInput(inputClientInfo, agent);
-};
+}
 
 int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo)
 {
@@ -375,7 +375,7 @@ int32_t InputMethodSystemAbility::HideInput(sptr<IInputClient> client)
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return session->OnHideInput(client);
-};
+}
 
 int32_t InputMethodSystemAbility::StopInputSession()
 {
@@ -460,7 +460,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return session->OnHideCurrentInput();
-};
+}
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
@@ -478,7 +478,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return session->OnShowCurrentInput();
-};
+}
 
 int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
@@ -829,7 +829,7 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
         }
     }
     return session->OnHideCurrentInput();
-};
+}
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
@@ -846,7 +846,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
         }
     }
     return session->OnShowCurrentInput();
-};
+}
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
