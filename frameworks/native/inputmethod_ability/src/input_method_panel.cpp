@@ -48,6 +48,10 @@ int32_t InputMethodPanel::CreatePanel(const std::shared_ptr<AbilityRuntime::Cont
         static_cast<int32_t>(panelFlag_));
     panelType_ = panelInfo.panelType;
     panelFlag_ = panelInfo.panelFlag;
+    adjustPanelRectLayoutParams_ = {
+        {0, 0, 0, 0},
+        {0, 0, 0, 0}
+    };
     winOption_ = new (std::nothrow) OHOS::Rosen::WindowOption();
     if (winOption_ == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
@@ -110,9 +114,18 @@ int32_t InputMethodPanel::SetPanelProperties()
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         return ErrorCode::NO_ERROR;
     }
-    WMError wmError = window_->SetWindowGravity(gravity, invalidGravityPercent);
-    if (wmError != WMError::WM_OK) {
-        IMSA_HILOGE("failed to set window gravity, wmError is %{public}d, start destroy window!", wmError);
+    if (!isScbEnable_) {
+        WMError wmError = window_->SetWindowGravity(gravity, invalidGravityPercent);
+        if (wmError != WMError::WM_OK) {
+            IMSA_HILOGE("failed to set window gravity, wmError is %{public}d, start destroy window!", wmError);
+            return ErrorCode::ERROR_OPERATE_PANEL;
+        }
+        return ErrorCode::NO_ERROR;
+    }
+    keyboardLayoutParams_.gravity_ = gravity;
+    auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window.", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     return ErrorCode::NO_ERROR;
@@ -133,6 +146,43 @@ int32_t InputMethodPanel::DestroyPanel()
     return ErrorCode::NO_ERROR;
 }
 
+LayoutParams InputMethodPanel::GetResizeParams()
+{
+    if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
+        Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
+        IMSA_HILOGI("is fold device and unfold state");
+        return resizePanelUnfoldParams_;
+    }
+    IMSA_HILOGI("is fold device and fold state or other");
+    return resizePanelFoldParams_;
+}
+ 
+void InputMethodPanel::SetResizeParams(uint32_t width, uint32_t height)
+{
+    if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
+        Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
+        IMSA_HILOGI("set fold device and unfold state resize params, width/height: %{public}u/%{public}u.",
+            width, height);
+        if (IsDisplayPortrait()) {
+            resizePanelUnfoldParams_.portraitRect.height_ = height;
+            resizePanelUnfoldParams_.portraitRect.width_ = width;
+        } else {
+            resizePanelUnfoldParams_.landscapeRect.height_ = height;
+            resizePanelUnfoldParams_.landscapeRect.width_ = width;
+        }
+    } else {
+        IMSA_HILOGI("set fold device and fold state or other resize params, width/height: %{public}u/%{public}u.",
+            width, height);
+        if (IsDisplayPortrait()) {
+            resizePanelFoldParams_.portraitRect.height_ = height;
+            resizePanelFoldParams_.portraitRect.width_ = width;
+        } else {
+            resizePanelFoldParams_.landscapeRect.height_ = height;
+            resizePanelFoldParams_.landscapeRect.width_ = width;
+        }
+    }
+}
+
 int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
 {
     if (window_ == nullptr) {
@@ -143,10 +193,34 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         IMSA_HILOGE("size is invalid!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    auto ret = window_->Resize(width, height);
-    if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("failed to resize, ret: %{public}d!", ret);
-        return ErrorCode::ERROR_OPERATE_PANEL;
+    if (!isScbEnable_ || window_->GetType() != WindowType::WINDOW_TYPE_INPUT_METHOD_FLOAT) {
+        auto ret = window_->Resize(width, height);
+        if (ret != WMError::WM_OK) {
+            IMSA_HILOGE("failed to resize, ret: %{public}d", ret);
+            return ErrorCode::ERROR_OPERATE_PANEL;
+        }
+    } else {
+        LayoutParams params = adjustPanelRectLayoutParams_;
+        LayoutParams deviceParams = GetResizeParams();
+        if (IsDisplayPortrait()) {
+            params.landscapeRect.height_ = deviceParams.landscapeRect.height_;
+            params.landscapeRect.width_ = deviceParams.landscapeRect.width_;
+            params.portraitRect.height_ = height;
+            params.portraitRect.width_ = width;
+            IMSA_HILOGI("isPortrait now, updata portrait size");
+        } else {
+            params.portraitRect.height_ = deviceParams.portraitRect.height_;
+            params.portraitRect.width_ = deviceParams.portraitRect.width_;
+            params.landscapeRect.height_ = height;
+            params.landscapeRect.width_ = width;
+            IMSA_HILOGI("isLandscapeRect now, updata landscape size");
+        }
+        auto ret = AdjustPanelRect(panelFlag_, params);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to resize, ret: %{public}d", ret);
+            return ErrorCode::ERROR_OPERATE_PANEL;
+        }
+        SetResizeParams(width, height);
     }
     std::lock_guard<std::mutex> lock(keyboardSizeLock_);
     keyboardSize_ = { width, height };
@@ -164,9 +238,25 @@ int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
         IMSA_HILOGE("FLG_FIXED panel can not moveTo!");
         return ErrorCode::NO_ERROR;
     }
-    auto ret = window_->MoveTo(x, y);
-    IMSA_HILOGI("x/y: %{public}d/%{public}d, ret = %{public}d.", x, y, ret);
-    return ret == WMError::WM_ERROR_INVALID_PARAM ? ErrorCode::ERROR_PARAMETER_CHECK_FAILED : ErrorCode::NO_ERROR;
+    if (!isScbEnable_ || window_->GetType() != WindowType::WINDOW_TYPE_INPUT_METHOD_FLOAT) {
+        auto ret = window_->MoveTo(x, y);
+        IMSA_HILOGI("x/y: %{public}d/%{public}d, ret = %{public}d", x, y, ret);
+        return ret == WMError::WM_ERROR_INVALID_PARAM ? ErrorCode::ERROR_PARAMETER_CHECK_FAILED : ErrorCode::NO_ERROR;
+    } else {
+        LayoutParams params = adjustPanelRectLayoutParams_;
+        if (IsDisplayPortrait()) {
+            params.portraitRect.posX_ = x;
+            params.portraitRect.posY_ = y;
+            IMSA_HILOGI("isPortrait now, updata portrait size");
+        } else {
+            params.landscapeRect.posX_ = x;
+            params.landscapeRect.posY_ = y;
+            IMSA_HILOGI("isLandscapeRect now, updata landscape size");
+        }
+        auto ret = AdjustPanelRect(panelFlag_, params);
+        IMSA_HILOGI("x/y: %{public}d/%{public}d, ret = %{public}d", x, y, ret);
+        return ret == ErrorCode::NO_ERROR ? ErrorCode::NO_ERROR : ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
 }
 
 int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
@@ -193,6 +283,8 @@ int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const Layou
         IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+    panelFlag_ = panelFlag;
+    adjustPanelRectLayoutParams_ = layoutParams;
     auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("AdjustPanelRect error, err: %{public}d!", ret);
@@ -472,7 +564,16 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
         window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     }
-    auto ret = window_->SetWindowGravity(gravity, invalidGravityPercent);
+    if (!isScbEnable_) {
+        auto ret = window_->SetWindowGravity(gravity, invalidGravityPercent);
+        if (ret == WMError::WM_OK) {
+            panelFlag_ = panelFlag;
+        }
+        IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
+        return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    keyboardLayoutParams_.gravity_ = gravity;
+    auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
     if (ret == WMError::WM_OK) {
         panelFlag_ = panelFlag;
     }
@@ -876,6 +977,18 @@ bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
         size = { .width = width, .height = height };
     }
     return true;
+}
+
+bool InputMethodPanel::IsDisplayPortrait()
+{
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    if (defaultDisplay == nullptr) {
+    IMSA_HILOGE("GetDefaultDisplay failed.");
+        return false;
+    }
+    auto width = defaultDisplay->GetWidth();
+    auto height = defaultDisplay->GetHeight();
+    return width < height;
 }
 
 bool InputMethodPanel::CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t height, bool isDataPortrait)
