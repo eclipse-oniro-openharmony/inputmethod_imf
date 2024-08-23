@@ -17,14 +17,12 @@
 namespace OHOS::MiscServices {
 char* Utils::MallocCString(const std::string &origin)
 {
-    if (origin.empty())
-    {
+    if (origin.empty()) {
         return nullptr;
     }
     auto len = origin.length() + 1;
     char *res = static_cast<char *>(malloc(sizeof(char) * len));
-    if (res == nullptr)
-    {
+    if (res == nullptr) {
         return nullptr;
     }
     return std::char_traits<char>::copy(res, origin.c_str(), len);

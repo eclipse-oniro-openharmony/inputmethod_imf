@@ -19,34 +19,35 @@
 #include "input_method_ffi_structs.h"
 
 extern "C" {
-    FFI_EXPORT int32_t CJ_GetDefaultInputMethod(CInputMethodProperty &props);
-    FFI_EXPORT int32_t CJ_GetCurrentInputMethod(CInputMethodProperty &props);
-    FFI_EXPORT int32_t CJ_SwitchInputMethod(bool &result, CInputMethodProperty props);
-    FFI_EXPORT int32_t CJ_SwitchCurrentInputMethodSubtype(bool &result, CInputMethodSubtype target);
-    FFI_EXPORT int32_t CJ_GetCurrentInputMethodSubtype(CInputMethodSubtype &props);
-    FFI_EXPORT int32_t CJ_SwitchCurrentInputMethodAndSubtype(bool &result, CInputMethodProperty target, CInputMethodSubtype subtype);
-    FFI_EXPORT int32_t CJ_GetSystemInputMethodConfigAbility(CElementName &elem);
-    FFI_EXPORT RetInputMethodSubtype CJ_ListInputMethodSubtype(CInputMethodProperty props);
-    FFI_EXPORT RetInputMethodSubtype CJ_ListCurrentInputMethodSubtype();
-    FFI_EXPORT RetInputMethodProperty CJ_GetInputMethods(bool enable);
-    FFI_EXPORT RetInputMethodProperty CJ_GetAllInputMethods();
-    FFI_EXPORT int32_t CJ_InputMethodSettingOn(uint32_t type, void (*func)(CInputMethodProperty, CInputMethodSubtype));
-    FFI_EXPORT int32_t CJ_InputMethodSettingOff(uint32_t type);
-    FFI_EXPORT int32_t CJ_ShowOptionalInputMethods(bool& result);
-    FFI_EXPORT int32_t CJ_InputMethodControllerOn(int8_t type, int64_t id);
-    FFI_EXPORT int32_t CJ_InputMethodControllerOff(int8_t type);
+    FFI_EXPORT int32_t FfiInputMethodGetDefaultInputMethod(CInputMethodProperty &props);
+    FFI_EXPORT int32_t FfiInputMethodGetCurrentInputMethod(CInputMethodProperty &props);
+    FFI_EXPORT int32_t FfiInputMethodSwitchInputMethod(bool &result, CInputMethodProperty props);
+    FFI_EXPORT int32_t FfiInputMethodSwitchCurrentInputMethodSubtype(bool &result, CInputMethodSubtype target);
+    FFI_EXPORT int32_t FfiInputMethodGetCurrentInputMethodSubtype(CInputMethodSubtype &props);
+    FFI_EXPORT int32_t FfiInputMethodSwitchCurrentInputMethodAndSubtype(bool &result, CInputMethodProperty target,
+        CInputMethodSubtype subtype);
+    FFI_EXPORT int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName &elem);
+    FFI_EXPORT RetInputMethodSubtype FfiInputMethodSettingListInputMethodSubtype(CInputMethodProperty props);
+    FFI_EXPORT RetInputMethodSubtype FfiInputMethodSettingListCurrentInputMethodSubtype();
+    FFI_EXPORT RetInputMethodProperty FfiInputMethodSettingGetInputMethods(bool enable);
+    FFI_EXPORT RetInputMethodProperty FfiInputMethodSettingGetAllInputMethods();
+    FFI_EXPORT int32_t FfiInputMethodSettingOn(uint32_t type, void (*func)(CInputMethodProperty, CInputMethodSubtype));
+    FFI_EXPORT int32_t FfiInputMethodSettingOff(uint32_t type);
+    FFI_EXPORT int32_t FfiInputMethodSettingShowOptionalInputMethods(bool& result);
+    FFI_EXPORT int32_t FfiInputMethodControllerOn(int8_t type, int64_t id);
+    FFI_EXPORT int32_t FfiInputMethodControllerOff(int8_t type);
 
-    FFI_EXPORT int32_t OHOSFfiAttach(bool showKeyboard, CTextConfig txtCfg);
-    FFI_EXPORT int32_t OHOSFfiDetach();
-    FFI_EXPORT int32_t OHOSFfiShowTextInput();
-    FFI_EXPORT int32_t OHOSFfiHideTextInput();
-    FFI_EXPORT int32_t OHOSFfiSetCallingWindow(uint32_t windowId);
-    FFI_EXPORT int32_t OHOSFfiUpdateCursor(CCursorInfo cursor);
-    FFI_EXPORT int32_t OHOSFfiChangeSelection(char *text, int32_t start, int32_t end);
-    FFI_EXPORT int32_t OHOSFfiUpdateAttribute(CInputAttribute inputAttribute);
-    FFI_EXPORT int32_t OHOSFfiShowSoftKeyboard();
-    FFI_EXPORT int32_t OHOSFfiHideSoftKeyboard();
-    FFI_EXPORT int32_t OHOSFfiStopInputSession();
+    FFI_EXPORT int32_t FfiInputMethodControllerAttach(bool showKeyboard, CTextConfig txtCfg);
+    FFI_EXPORT int32_t FfiInputMethodControllerDetach();
+    FFI_EXPORT int32_t FfiInputMethodControllerShowTextInput();
+    FFI_EXPORT int32_t FfiInputMethodControllerHideTextInput();
+    FFI_EXPORT int32_t FfiInputMethodControllerSetCallingWindow(uint32_t windowId);
+    FFI_EXPORT int32_t FfiInputMethodControllerUpdateCursor(CCursorInfo cursor);
+    FFI_EXPORT int32_t FfiInputMethodControllerChangeSelection(char *text, int32_t start, int32_t end);
+    FFI_EXPORT int32_t FfiInputMethodControllerUpdateAttribute(CInputAttribute inputAttribute);
+    FFI_EXPORT int32_t FfiInputMethodControllerShowSoftKeyboard();
+    FFI_EXPORT int32_t FfiInputMethodControllerHideSoftKeyboard();
+    FFI_EXPORT int32_t FfiInputMethodControllerStopInputSession();
 }
 
 #endif // INPUT_METHOD_FFI_H

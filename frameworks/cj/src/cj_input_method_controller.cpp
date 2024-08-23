@@ -39,6 +39,7 @@ const int8_t GET_LEFT_TEXT = 7;
 const int8_t GET_RIGHT_TEXT = 8;
 const int8_t GET_TEXT_INDEX = 9;
 const int8_t SELECT_BY_MOVEMENT = 10;
+const int8_t SELECT_BY_RANGE = 11;
 
 std::shared_ptr<CjInputMethodController> CjInputMethodController::GetInstance()
 {
@@ -56,7 +57,7 @@ std::shared_ptr<CjInputMethodController> CjInputMethodController::GetInstance()
 int32_t CjInputMethodController::Attach(const CTextConfig &txtCfg, bool showKeyboard)
 {
     auto textListener = CjInputMethodTextChangedListener::GetInstance();
-    if (!textListener) {
+    if (textListener == nullptr) {
         IMSA_HILOGE("failed to create CjInputMethodTextChangedListener!");
         return ERR_NO_MEMORY;
     }
@@ -79,7 +80,7 @@ int32_t CjInputMethodController::Attach(const CTextConfig &txtCfg, bool showKeyb
     };
 
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     return controller->Attach(textListener, showKeyboard, textCfg);
@@ -88,7 +89,7 @@ int32_t CjInputMethodController::Attach(const CTextConfig &txtCfg, bool showKeyb
 int32_t CjInputMethodController::Detach()
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     return controller->Close();
@@ -97,7 +98,7 @@ int32_t CjInputMethodController::Detach()
 int32_t CjInputMethodController::ShowTextInput()
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     return controller->ShowTextInput();
@@ -106,7 +107,7 @@ int32_t CjInputMethodController::ShowTextInput()
 int32_t CjInputMethodController::HideTextInput()
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     return controller->HideTextInput();
@@ -115,7 +116,7 @@ int32_t CjInputMethodController::HideTextInput()
 int32_t CjInputMethodController::SetCallingWindow(uint32_t windowId)
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     return controller->SetCallingWindow(windowId);
@@ -124,7 +125,7 @@ int32_t CjInputMethodController::SetCallingWindow(uint32_t windowId)
 int32_t CjInputMethodController::UpdateCursor(const CCursorInfo &cursor)
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     CursorInfo cursorInfo = {
@@ -139,7 +140,7 @@ int32_t CjInputMethodController::UpdateCursor(const CCursorInfo &cursor)
 int32_t CjInputMethodController::ChangeSelection(const std::string &text, int32_t start, int32_t end)
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
@@ -150,7 +151,7 @@ int32_t CjInputMethodController::ChangeSelection(const std::string &text, int32_
 int32_t CjInputMethodController::UpdateAttribute(const CInputAttribute &inputAttribute)
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     Configuration config = Configuration();
@@ -162,7 +163,7 @@ int32_t CjInputMethodController::UpdateAttribute(const CInputAttribute &inputAtt
 int32_t CjInputMethodController::ShowSoftKeyboard()
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     return controller->ShowSoftKeyboard();
@@ -171,7 +172,7 @@ int32_t CjInputMethodController::ShowSoftKeyboard()
 int32_t CjInputMethodController::HideSoftKeyboard()
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     return controller->HideSoftKeyboard();
@@ -180,7 +181,7 @@ int32_t CjInputMethodController::HideSoftKeyboard()
 int32_t CjInputMethodController::StopInputSession()
 {
     auto controller = InputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     return controller->StopInputSession();
@@ -190,90 +191,44 @@ void CjInputMethodController::RegisterListener(int8_t type, int64_t id)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     switch (type) {
-        case INSERT_TEXT: {
-            auto callback = reinterpret_cast<void(*)(const char*)>(id);
-            insertText = [lambda = CJLambda::Create(callback)](const char* text) -> void {
-                lambda(text);
-            };
+        case INSERT_TEXT:
+            InitInsertText(id);
             break;
-        }
-        case DELETE_LEFT: {
-            auto callback = reinterpret_cast<void(*)(int32_t)>(id);
-            deleteLeft = [lambda = CJLambda::Create(callback)](int32_t length) -> void {
-                lambda(length);
-            };
+        case DELETE_LEFT:
+            InitDeleteRight(id);
             break;
-        }
-        case DELETE_RIGHT: {
-            auto callback = reinterpret_cast<void(*)(int32_t)>(id);
-            deleteRight = [lambda = CJLambda::Create(callback)](int32_t length) -> void {
-                lambda(length);
-            };
+        case DELETE_RIGHT:
+            InitDeleteLeft(id);
             break;
-        }
-        case SEND_KEYBOARD_STATUS: {
-            auto callback = reinterpret_cast<void(*)(int64_t)>(id);
-            sendKeyboardStatus = [lambda = CJLambda::Create(callback)](int64_t status) -> void {
-                lambda(status);
-            };
+        case SEND_KEYBOARD_STATUS:
+            InitSendKeyboardStatus(id);
             break;
-        }
-        case SEND_FUNCTION_KEY: {
-            auto callback = reinterpret_cast<void(*)(int64_t)>(id);
-            sendFunctionKey = [lambda = CJLambda::Create(callback)](int64_t functionKey) -> void {
-                lambda(functionKey);
-            };
+        case SEND_FUNCTION_KEY:
+            InitSendFunctionKey(id);
             break;
-        }
-        case MOVE_CURSOR: {
-            auto callback = reinterpret_cast<void(*)(int64_t)>(id);
-            moveCursor = [lambda = CJLambda::Create(callback)](int64_t direction) -> void {
-                lambda(direction);
-            };
+        case MOVE_CURSOR:
+            InitMoveCursor(id);
             break;
-        }
-        case HANDLE_EXTEND_ACTION: {
-            auto callback = reinterpret_cast<void(*)(int32_t)>(id);
-            handleExtendAction = [lambda = CJLambda::Create(callback)](int32_t action) -> void {
-                lambda(action);
-            };
+        case HANDLE_EXTEND_ACTION:
+            InitHandleExtendAction(id);
             break;
-        }
-        case GET_LEFT_TEXT: {
-            auto callback = reinterpret_cast<char*(*)(int32_t)>(id);
-            getLeftText = [lambda = CJLambda::Create(callback)](int32_t number) -> char* {
-                return lambda(number);
-            };
+        case GET_LEFT_TEXT:
+            InitGetLeftText(id);
             break;
-        }
-        case GET_RIGHT_TEXT: {
-            auto callback = reinterpret_cast<char*(*)(int32_t)>(id);
-            getRightText = [lambda = CJLambda::Create(callback)](int32_t number) -> char* {
-                return lambda(number);
-            };
+        case GET_RIGHT_TEXT:
+            InitGetRightText(id);
             break;
-        }
-        case GET_TEXT_INDEX: {
-            auto callback = reinterpret_cast<int32_t(*)()>(id);
-            getTextIndexAtCursor = [lambda = CJLambda::Create(callback)](void) -> int32_t {
-                return lambda();
-            };
+        case GET_TEXT_INDEX:
+            InitGetTextIndexAtCursor(id);
             break;
-        }
-        case SELECT_BY_MOVEMENT: {
-            auto callback = reinterpret_cast<void(*)(int32_t)>(id);
-            onSelectByMovement = [lambda = CJLambda::Create(callback)](int32_t direction) -> void {
-                lambda(direction);
-            };
+        case SELECT_BY_MOVEMENT:
+            InitSelectByMovement(id);
             break;
-        }
-        default: {
-            auto callback = reinterpret_cast<void(*)(int32_t, int32_t)>(id);
-            onSelectByRange = [lambda = CJLambda::Create(callback)](int32_t start, int32_t end) -> void {
-                lambda(start, end);
-            };
+        case SELECT_BY_RANGE:
+            InitSelectByRange(id);
             break;
-        }
+        default:
+            return;
     }
 }
 
@@ -314,16 +269,18 @@ void CjInputMethodController::UnRegisterListener(int8_t type)
         case SELECT_BY_MOVEMENT:
             onSelectByMovement = nullptr;
             break;
-        default:
+        case SELECT_BY_RANGE:
             onSelectByRange = nullptr;
             break;
+        default:
+            return;
     }
 }
 
 int32_t CjInputMethodController::Subscribe(int8_t type, int64_t id)
 {
     auto controller = CjInputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     controller->RegisterListener(type, id);
@@ -333,7 +290,7 @@ int32_t CjInputMethodController::Subscribe(int8_t type, int64_t id)
 int32_t CjInputMethodController::Unsubscribe(int8_t type)
 {
     auto controller = CjInputMethodController::GetInstance();
-    if (!controller) {
+    if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
     controller->UnRegisterListener(type);
@@ -342,21 +299,22 @@ int32_t CjInputMethodController::Unsubscribe(int8_t type)
 
 void CjInputMethodController::OnSelectByRange(int32_t start, int32_t end)
 {
-    if (onSelelctByRange == nullptr) {
-        IMSA_HILOGI("onSelelctByRange null");
+    if (onSelectByRange == nullptr) {
+        IMSA_HILOGD("onSelelctByRange null");
         return;
     }
-    IMSA_HILOGI("onSelelctByRange runs");
-    return onSelectByRange(start, end);
+    IMSA_HILOGD("onSelelctByRange runs");
+    Range range = { .start = start, .end = end };
+    return onSelectByRange(range);
 }
 
 void CjInputMethodController::OnSelectByMovement(int32_t direction)
 {
     if (onSelectByMovement == nullptr) {
-        IMSA_HILOGI("onSelectByMovement null");
+        IMSA_HILOGD("onSelectByMovement null");
         return;
     }
-    IMSA_HILOGI("onSelectByMovement runs");
+    IMSA_HILOGD("onSelectByMovement runs");
     return onSelectByMovement(direction);
 }
 
@@ -368,10 +326,11 @@ void CjInputMethodController::InsertText(const std::u16string &text)
         return;
     }
     if (insertText == nullptr) {
-        IMSA_HILOGI("insertText null");
+        IMSA_HILOGD("insertText null");
+        free(insertTxt);
         return;
     }
-    IMSA_HILOGI("insertText runs");
+    IMSA_HILOGD("insertText runs");
     insertText(insertTxt);
     free(insertTxt);
     return;
@@ -380,10 +339,10 @@ void CjInputMethodController::InsertText(const std::u16string &text)
 void CjInputMethodController::DeleteRight(int32_t length)
 {
     if (deleteRight == nullptr) {
-        IMSA_HILOGI("deleteRight null");
+        IMSA_HILOGD("deleteRight null");
         return;
     }
-    IMSA_HILOGI("deleteRight runs");
+    IMSA_HILOGD("deleteRight runs");
     deleteRight(length);
     return;
 }
@@ -391,10 +350,10 @@ void CjInputMethodController::DeleteRight(int32_t length)
 void CjInputMethodController::DeleteLeft(int32_t length)
 {
     if (deleteLeft == nullptr) {
-        IMSA_HILOGI("deleteLeft null");
+        IMSA_HILOGD("deleteLeft null");
         return;
     }
-    IMSA_HILOGI("deleteLeft runs");
+    IMSA_HILOGD("deleteLeft runs");
     deleteLeft(length);
     return;
 }
@@ -402,11 +361,11 @@ void CjInputMethodController::DeleteLeft(int32_t length)
 void CjInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
 {
     if (sendKeyboardStatus == nullptr) {
-        IMSA_HILOGI("sendKeyboardStatus null");
+        IMSA_HILOGD("sendKeyboardStatus null");
         return;
     }
-    IMSA_HILOGI("sendKeyboardStatus runs");
-    auto statusNum = static_cast<int64_t>(status);
+    IMSA_HILOGD("sendKeyboardStatus runs");
+    auto statusNum = static_cast<int32_t>(status);
     sendKeyboardStatus(statusNum);
     return;
 }
@@ -414,11 +373,11 @@ void CjInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
 void CjInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
 {
     if (sendFunctionKey == nullptr) {
-        IMSA_HILOGI("sendFunctionKey null");
+        IMSA_HILOGD("sendFunctionKey null");
         return;
     }
-    IMSA_HILOGI("sendFunctionKey runs");
-    auto type = static_cast<int64_t>(functionKey.GetEnterKeyType());
+    IMSA_HILOGD("sendFunctionKey runs");
+    auto type = static_cast<int32_t>(functionKey.GetEnterKeyType());
     sendFunctionKey(type);
     return;
 }
@@ -426,11 +385,11 @@ void CjInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
 void CjInputMethodController::MoveCursor(const Direction direction)
 {
     if (moveCursor == nullptr) {
-        IMSA_HILOGI("moveCursor null");
+        IMSA_HILOGD("moveCursor null");
         return;
     }
-    IMSA_HILOGI("moveCursor runs");
-    auto dir = static_cast<int64_t>(direction);
+    IMSA_HILOGD("moveCursor runs");
+    auto dir = static_cast<int32_t>(direction);
     moveCursor(dir);
     return;
 }
@@ -438,10 +397,10 @@ void CjInputMethodController::MoveCursor(const Direction direction)
 void CjInputMethodController::HandleExtendAction(int32_t action)
 {
     if (handleExtendAction == nullptr) {
-        IMSA_HILOGI("handleExtendAction null");
+        IMSA_HILOGD("handleExtendAction null");
         return;
     }
-    IMSA_HILOGI("handleExtendAction runs");
+    IMSA_HILOGD("handleExtendAction runs");
     handleExtendAction(action);
     return;
 }
@@ -449,10 +408,10 @@ void CjInputMethodController::HandleExtendAction(int32_t action)
 std::u16string CjInputMethodController::GetLeftText(int32_t number)
 {
     if (getLeftText == nullptr) {
-        IMSA_HILOGI("getLeftText null");
+        IMSA_HILOGD("getLeftText null");
         return u"";
     }
-    IMSA_HILOGI("getLeftText runs");
+    IMSA_HILOGD("getLeftText runs");
     char *text = getLeftText(number);
     auto ret = Str8ToStr16(std::string(text));
     free(text);
@@ -462,10 +421,10 @@ std::u16string CjInputMethodController::GetLeftText(int32_t number)
 std::u16string CjInputMethodController::GetRightText(int32_t number)
 {
     if (getRightText == nullptr) {
-        IMSA_HILOGI("getRightText null");
+        IMSA_HILOGD("getRightText null");
         return u"";
     }
-    IMSA_HILOGI("getRightText runs");
+    IMSA_HILOGD("getRightText runs");
     char *text = getRightText(number);
     auto ret = Str8ToStr16(std::string(text));
     free(text);
@@ -475,11 +434,108 @@ std::u16string CjInputMethodController::GetRightText(int32_t number)
 int32_t CjInputMethodController::GetTextIndexAtCursor()
 {
     if (getTextIndexAtCursor == nullptr) {
-        IMSA_HILOGI("getTextIndexAtCursor null");
+        IMSA_HILOGD("getTextIndexAtCursor null");
         return -1;
     }
-    IMSA_HILOGI("getTextIndexAtCursor runs");
+    IMSA_HILOGD("getTextIndexAtCursor runs");
     return getTextIndexAtCursor();
 }
+
+void CjInputMethodController::InitInsertText(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(const char*)>(id);
+    insertText = [lambda = CJLambda::Create(callback)](const char* text) -> void {
+        lambda(text);
+    };
+}
+
+void CjInputMethodController::InitDeleteRight(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(int32_t)>(id);
+    deleteLeft = [lambda = CJLambda::Create(callback)](int32_t length) -> void {
+        lambda(length);
+    };
+}
+
+void CjInputMethodController::InitDeleteLeft(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(int32_t)>(id);
+    deleteRight = [lambda = CJLambda::Create(callback)](int32_t length) -> void {
+        lambda(length);
+    };
+}
+
+void CjInputMethodController::InitSendKeyboardStatus(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(int32_t)>(id);
+    sendKeyboardStatus = [lambda = CJLambda::Create(callback)](int32_t status) -> void {
+        lambda(status);
+    };
+}
+
+void CjInputMethodController::InitSendFunctionKey(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(int32_t)>(id);
+    sendFunctionKey = [lambda = CJLambda::Create(callback)](int32_t functionKey) -> void {
+        lambda(functionKey);
+    };
+}
+
+void CjInputMethodController::InitMoveCursor(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(int32_t)>(id);
+    moveCursor = [lambda = CJLambda::Create(callback)](int32_t direction) -> void {
+        lambda(direction);
+    };
+}
+
+void CjInputMethodController::InitHandleExtendAction(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(int32_t)>(id);
+    handleExtendAction = [lambda = CJLambda::Create(callback)](int32_t action) -> void {
+        lambda(action);
+    };
+}
+
+void CjInputMethodController::InitGetLeftText(int64_t id)
+{
+    auto callback = reinterpret_cast<char*(*)(int32_t)>(id);
+    getLeftText = [lambda = CJLambda::Create(callback)](int32_t number) -> char* {
+        return lambda(number);
+    };
+}
+
+void CjInputMethodController::InitGetRightText(int64_t id)
+{
+    auto callback = reinterpret_cast<char*(*)(int32_t)>(id);
+    getRightText = [lambda = CJLambda::Create(callback)](int32_t number) -> char* {
+        return lambda(number);
+    };
+}
+
+void CjInputMethodController::InitGetTextIndexAtCursor(int64_t id)
+{
+    auto callback = reinterpret_cast<int32_t(*)()>(id);
+    getTextIndexAtCursor = [lambda = CJLambda::Create(callback)](void) -> int32_t {
+        return lambda();
+    };
+}
+
+void CjInputMethodController::InitSelectByMovement(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(int32_t)>(id);
+    onSelectByMovement = [lambda = CJLambda::Create(callback)](int32_t direction) -> void {
+        lambda(direction);
+    };
+}
+
+void CjInputMethodController::InitSelectByRange(int64_t id)
+{
+    auto callback = reinterpret_cast<void(*)(Range)>(id);
+    onSelectByRange = [lambda = CJLambda::Create(callback)](Range range) -> void {
+        lambda(range);
+    };
+}
+
 } // namespace MiscServices
 } // namespace OHOS

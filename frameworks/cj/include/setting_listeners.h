@@ -23,7 +23,7 @@
 
 namespace OHOS::MiscServices {
     class CJGetInputMethodSetting : public ImeEventListener {
-    public :
+    public:
         CJGetInputMethodSetting() = default;
         ~CJGetInputMethodSetting() = default;
         static std::shared_ptr<CJGetInputMethodSetting> GetIMSInstance();
