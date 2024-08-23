@@ -47,9 +47,6 @@ private:
     InputMethod_EnterKeyType ConvertToCEnterKeyType(OHOS::MiscServices::EnterKeyType enterKeyType);
     InputMethod_Direction ConvertToCDirection(OHOS::MiscServices::Direction direction);
     InputMethod_ExtendAction ConvertToCExtendAction(int32_t action);
-
-    constexpr static int32_t MAX_TEXT_LENGTH = 8 * 1024;
-
     InputMethod_TextEditorProxy *textEditor_;
 };
 } // namespace MiscServices

@@ -17,11 +17,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-InputMethod_CursorInfo *OH_CursorInfo_New(double left, double top, double width, double height)
+InputMethod_CursorInfo *OH_CursorInfo_Create(double left, double top, double width, double height)
 {
     return new InputMethod_CursorInfo({ left, top, width, height });
 }
-void OH_CursorInfo_Delete(InputMethod_CursorInfo *cursorInfo)
+void OH_CursorInfo_Destroy(InputMethod_CursorInfo *cursorInfo)
 {
     if (cursorInfo == nullptr) {
         return;

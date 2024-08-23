@@ -21,21 +21,46 @@ extern "C" {
 using namespace OHOS::MiscServices;
 InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
+    if (inputMethodProxy == nullptr) {
+        IMSA_HILOGE("inputMethodProxy is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     return ErrorCodeConvert(InputMethodController::GetInstance()->ShowCurrentInput());
 }
 InputMethod_ErrorCode OH_InputMethodProxy_HideKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
+    if (inputMethodProxy == nullptr) {
+        IMSA_HILOGE("inputMethodProxy is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     return ErrorCodeConvert(InputMethodController::GetInstance()->HideCurrentInput());
 }
 InputMethod_ErrorCode OH_InputMethodProxy_NotifySelectionChange(
     InputMethod_InputMethodProxy *inputMethodProxy, char16_t text[], size_t length, int start, int end)
 {
+    if (inputMethodProxy == nullptr) {
+        IMSA_HILOGE("inputMethodProxy is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (text == nullptr) {
+        IMSA_HILOGE("text is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+
+    if (length > MAX_TEXT_LENGTH) {
+        IMSA_HILOGE("text length is too long length=%{public}zu", length);
+        return IME_ERR_PARAMCHECK;
+    }
     return ErrorCodeConvert(
         InputMethodController::GetInstance()->OnSelectionChange(std::u16string(text, length), start, end));
 }
 InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_InputMethodProxy *inputMethodProxy,
     InputMethod_EnterKeyType enterKey, InputMethod_TextInputType textType)
 {
+    if (inputMethodProxy == nullptr) {
+        IMSA_HILOGE("inputMethodProxy is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     Configuration info;
     info.SetEnterKeyType(static_cast<EnterKeyType>(enterKey));
     info.SetTextInputType(static_cast<TextInputType>(textType));
@@ -45,6 +70,10 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_
 InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
     InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_CursorInfo *cursorInfo)
 {
+    if (inputMethodProxy == nullptr) {
+        IMSA_HILOGE("inputMethodProxy is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     if (cursorInfo == nullptr) {
         IMSA_HILOGE("cursorInfo is nullptr");
         return IME_ERR_NULL_POINTER;
@@ -53,8 +82,13 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
         CursorInfo({ cursorInfo->left, cursorInfo->top, cursorInfo->width, cursorInfo->height })));
 }
 
-InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(InputMethod_PrivateCommand *privateCommand[], size_t size)
+InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
+    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_PrivateCommand *privateCommand[], size_t size)
 {
+    if (inputMethodProxy == nullptr) {
+        IMSA_HILOGE("inputMethodProxy is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     if (privateCommand == nullptr) {
         IMSA_HILOGE("privateCommand is nullptr");
         return IME_ERR_NULL_POINTER;

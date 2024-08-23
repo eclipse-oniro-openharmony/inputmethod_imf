@@ -57,7 +57,10 @@ extern "C" {
  *     Lifecycle is mantianed until the next attach or detach call.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
- *     {@link IME_ERR_PARAMCHECK} - The error code for common invalid args.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 12
  */
@@ -71,7 +74,9 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
  *     The inputMethodProxy is obtained from {@link OH_InputMethodController_Attach}.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
- *     {@link IME_ERR_PARAMCHECK} - The error code for common invalid args.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 12
  */
@@ -79,4 +84,5 @@ InputMethod_ErrorCode OH_InputMethodController_Detach(InputMethod_InputMethodPro
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // OHOS_INPUTMETHOD_CONTROLLER_CAPI_H

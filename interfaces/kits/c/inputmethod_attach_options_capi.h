@@ -14,6 +14,26 @@
  */
 #ifndef OHOS_INPUTMETHOD_ATTACH_OPTIONS_CAPI_H
 #define OHOS_INPUTMETHOD_ATTACH_OPTIONS_CAPI_H
+/**
+ * @addtogroup InputMethod
+ * @{
+ *
+ * @brief InputMethod provides functions to use input methods and develop input methods.
+ *
+ * @since 12
+ */
+
+/**
+ * @file inputmethod_attach_options_capi.h
+ *
+ * @brief Provides the input method attach options.
+ *
+ * @library libohinputmethod.so
+ * @kit IMEKit
+ * @syscap SystemCapability.MiscServices.InputMethodFramework
+ * @since 12
+ * @version 1.0
+ */
 #include "inputmethod_types_capi.h"
 #ifdef __cplusplus
 extern "C" {
@@ -31,17 +51,18 @@ typedef struct InputMethod_AttachOptions InputMethod_AttachOptions;
  * @brief Create a new {@link InputMethod_AttachOptions} instance.
  *
  * @param showKeyboard Represents whether to show the keyboard.
- * @return Returns a pointer to the newly created {@link InputMethod_AttachOptions} instance.
+ * @return If the creation succeeds, a pointer to the newly created {@link InputMethod_AttachOptions}
+ * instance is returned. If the creation fails, NULL is returned, possible cause is insufficient memory.
  * @since 12
  */
-InputMethod_AttachOptions *OH_AttachOptions_New(bool showKeyboard);
+InputMethod_AttachOptions *OH_AttachOptions_Create(bool showKeyboard);
 /**
  * @brief Delete a {@link InputMethod_AttachOptions} instance.
  *
- * @param options Represents a pointer to an {@link InputMethod_AttachOptions} instance which will be deleted.
+ * @param options Represents a pointer to an {@link InputMethod_AttachOptions} instance which will be destroyed.
  * @since 12
  */
-void OH_AttachOptions_Delete(InputMethod_AttachOptions *options);
+void OH_AttachOptions_Destroy(InputMethod_AttachOptions *options);
 /**
  * @brief Get showKeyboard value from {@link InputMethod_AttachOptions}.
  *
@@ -59,4 +80,5 @@ InputMethod_ErrorCode OH_AttachOptions_IsShowKeyboard(InputMethod_AttachOptions 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // OHOS_INPUTMETHOD_ATTACH_OPTIONS_CAPI_H

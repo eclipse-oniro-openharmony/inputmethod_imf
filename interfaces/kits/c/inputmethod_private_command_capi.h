@@ -14,6 +14,26 @@
  */
 #ifndef OHOS_INPUTMETHOD_PRIVATE_COMMAND_CAPI_H
 #define OHOS_INPUTMETHOD_PRIVATE_COMMAND_CAPI_H
+/**
+ * @addtogroup InputMethod
+ * @{
+ *
+ * @brief InputMethod provides functions to use input methods and develop input methods.
+ *
+ * @since 12
+ */
+
+/**
+ * @file inputmethod_private_command_capi.h
+ *
+ * @brief Provides functions to manage private commands.
+ *
+ * @library libohinputmethod.so
+ * @kit IMEKit
+ * @syscap SystemCapability.MiscServices.InputMethodFramework
+ * @since 12
+ * @version 1.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 
@@ -35,17 +55,18 @@ typedef struct InputMethod_PrivateCommand InputMethod_PrivateCommand;
  *
  * @param key The key of the private command.
  * @param keyLength The length of the key.
- * @return Returns a pointer to the newly created {@link InputMethod_PrivateCommand} instance.
+ * @return If the creation succeeds, a pointer to the newly created {@link InputMethod_PrivateCommand}
+ * instance is returned. If the creation fails, NULL is returned, possible cause is insufficient memory.
  * @since 12
  */
-InputMethod_PrivateCommand *OH_PrivateCommand_New(char key[], size_t keyLength);
+InputMethod_PrivateCommand *OH_PrivateCommand_Create(char key[], size_t keyLength);
 /**
- * @brief Delete a {@link InputMethod_PrivateCommand} instance.
+ * @brief Destroy a {@link InputMethod_PrivateCommand} instance.
  *
- * @param command Represents a pointer to an {@link InputMethod_PrivateCommand} instance which will be deleted.
+ * @param command Represents a pointer to an {@link InputMethod_PrivateCommand} instance which will be destroyed.
  * @since 12
  */
-void OH_PrivateCommand_Delete(InputMethod_PrivateCommand *command);
+void OH_PrivateCommand_Destroy(InputMethod_PrivateCommand *command);
 /**
  * @brief Set key value into {@link InputMethod_PrivateCommand}.
  *
@@ -134,6 +155,7 @@ InputMethod_ErrorCode OH_PrivateCommand_GetValueType(
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ *     {@link IME_ERR_QUERY_FAILED} - query failed, no bool value in command.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 12
  */
@@ -146,6 +168,7 @@ InputMethod_ErrorCode OH_PrivateCommand_GetBoolValue(InputMethod_PrivateCommand 
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ *     {@link IME_ERR_QUERY_FAILED} - query failed, no integer value in command.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 12
  */
@@ -159,6 +182,7 @@ InputMethod_ErrorCode OH_PrivateCommand_GetIntValue(InputMethod_PrivateCommand *
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ *     {@link IME_ERR_QUERY_FAILED} - query failed, no string value in command.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 12
  */
@@ -167,4 +191,5 @@ InputMethod_ErrorCode OH_PrivateCommand_GetStrValue(
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // OHOS_INPUTMETHOD_PRIVATE_COMMAND_CAPI_H

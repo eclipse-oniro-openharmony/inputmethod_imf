@@ -14,6 +14,26 @@
  */
 #ifndef OHOS_INPUTMETHOD_TEXT_EDITOR_PROXY_CAPI_H
 #define OHOS_INPUTMETHOD_TEXT_EDITOR_PROXY_CAPI_H
+/**
+ * @addtogroup InputMethod
+ * @{
+ *
+ * @brief InputMethod provides functions to use input methods and develop input methods.
+ *
+ * @since 12
+ */
+
+/**
+ * @file inputmethod_text_editor_proxy_capi.h
+ *
+ * @brief Provides functions for getting requests and notifications from input method.
+ *
+ * @library libohinputmethod.so
+ * @kit IMEKit
+ * @syscap SystemCapability.MiscServices.InputMethodFramework
+ * @since 12
+ * @version 1.0
+ */
 #include <stddef.h>
 
 #include "inputmethod_private_command_capi.h"
@@ -161,8 +181,8 @@ typedef void (*OH_TextEditorProxy_HandleExtendActionFunc)(
  *
  * @param textEditorProxy Represents a pointer to an {@link InputMethod_TextEditorProxy} instance which will be set in.
  * @param number Represents the number of characters to be get.
- * @param text Represents the left text of cursor, you need to assign this parameter.
- * @param length Represents the length of the left text of cursor, you need to assign this parameter.
+ * @param text Represents the left text of cursor, you need to assing this parameter.
+ * @param length Represents the length of the left text of cursor, you need to assing this parameter.
  * @since 12
  */
 typedef void (*OH_TextEditorProxy_GetLeftTextOfCursorFunc)(
@@ -176,7 +196,7 @@ typedef void (*OH_TextEditorProxy_GetLeftTextOfCursorFunc)(
  *
  * @param textEditorProxy Represents a pointer to an {@link InputMethod_TextEditorProxy} instance which will be set in.
  * @param number Represents the number of characters to be get.
- * @param text Represents the right text of cursor, you need to assign this parameter.
+ * @param text Represents the right text of cursor, you need to assing this parameter.
  * @param length Represents the length of the right text of cursor.
  * @since 12
  */
@@ -217,7 +237,7 @@ typedef int32_t (*OH_TextEditorProxy_ReceivePrivateCommandFunc)(
  * registration.\n
  *
  * @param textEditorProxy Represents a pointer to an {@link InputMethod_TextEditorProxy} instance which will be set in.
- * @param text Represents text to be previewed.
+ * @param text Represents text to be previewd.
  * @param length Length of preview text.
  * @param start Start position of preview text.
  * @param end End position of preview text.
@@ -241,17 +261,18 @@ typedef void (*OH_TextEditorProxy_FinishTextPreviewFunc)(InputMethod_TextEditorP
 /**
  * @brief Create a new {@link InputMethod_TextEditorProxy} instance.
  *
- * @return Returns a pointer to the newly created {@link InputMethod_TextEditorProxy} instance.
+ * @return If the creation succeeds, a pointer to the newly created {@link InputMethod_TextEditorProxy}
+ * instance is returned. If the creation fails, NULL is returned, possible cause is insufficient memory.
  * @since 12
  */
-InputMethod_TextEditorProxy *OH_TextEditorProxy_New();
+InputMethod_TextEditorProxy *OH_TextEditorProxy_Create();
 /**
- * @brief Delete a {@link InputMethod_TextEditorProxy} instance.
+ * @brief Destroy a {@link InputMethod_TextEditorProxy} instance.
  *
- * @param proxy The {@link InputMethod_TextEditorProxy} instance to be deleted.
+ * @param proxy The {@link InputMethod_TextEditorProxy} instance to be destroyed.
  * @since 12
  */
-void OH_TextEditorProxy_Delete(InputMethod_TextEditorProxy *proxy);
+void OH_TextEditorProxy_Destroy(InputMethod_TextEditorProxy *proxy);
 /**
  * @brief Set function {@link OH_TextEditorProxy_GetTextConfigFunc} into {@link InputMethod_TextEditorProxy}.
  *
@@ -677,4 +698,5 @@ InputMethod_ErrorCode OH_TextEditorProxy_GetFinishTextPreviewFunc(
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // OHOS_INPUTMETHOD_TEXT_EDITOR_PROXY_CAP_H
