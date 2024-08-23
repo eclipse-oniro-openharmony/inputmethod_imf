@@ -29,7 +29,7 @@ HWTEST_F(InputMethodControllerCapiTest, TestCursorInfo_001, TestSize.Level0)
     double expTop = 2.2;
     double expWidth = 3.3;
     double expHeight = 4.4;
-    auto cursorInfo = OH_CursorInfo_New(expLeft, expTop, expWidth, expHeight);
+    auto cursorInfo = OH_CursorInfo_Create(expLeft, expTop, expWidth, expHeight);
     ASSERT_NE(nullptr, cursorInfo);
 
     double actLeft = 0;
@@ -54,7 +54,7 @@ HWTEST_F(InputMethodControllerCapiTest, TestCursorInfo_001, TestSize.Level0)
     EXPECT_EQ(expWidth, actWidth);
     EXPECT_EQ(expHeight, actHeight);
 
-    OH_CursorInfo_Delete(cursorInfo);
+    OH_CursorInfo_Destroy(cursorInfo);
 }
 
 static void TestCursorInfoOfTextConfig(InputMethod_TextConfig *config)
@@ -85,7 +85,7 @@ static void TestCursorInfoOfTextConfig(InputMethod_TextConfig *config)
  */
 HWTEST_F(InputMethodControllerCapiTest, TestTextConfig_001, TestSize.Level0)
 {
-    auto config = OH_TextConfig_New();
+    auto config = OH_TextConfig_Create();
     ASSERT_NE(nullptr, config);
 
     // test set and get inputType
@@ -103,7 +103,7 @@ HWTEST_F(InputMethodControllerCapiTest, TestTextConfig_001, TestSize.Level0)
     EXPECT_EQ(expEnterKeyType, actEnterKeyType);
 
     // test set and get isPreviewTextSupported
-    EXPECT_EQ(IME_ERR_OK, OH_TextConfig_SetIsPreviewTextSupported(config, true));
+    EXPECT_EQ(IME_ERR_OK, OH_TextConfig_SetPreviewTextSupport(config, true));
     bool isPreviewTextSupported = false;
     EXPECT_EQ(IME_ERR_OK, OH_TextConfig_IsPreviewTextSupported(config, &isPreviewTextSupported));
     EXPECT_TRUE(isPreviewTextSupported);
@@ -142,7 +142,7 @@ HWTEST_F(InputMethodControllerCapiTest, TestTextConfig_001, TestSize.Level0)
     EXPECT_EQ(expPositionY, actPositionY);
     EXPECT_EQ(expHeight, actHeight);
 
-    OH_TextConfig_Delete(config);
+    OH_TextConfig_Destroy(config);
 }
 void GetTextConfigFunc(InputMethod_TextEditorProxy *proxy, InputMethod_TextConfig *config) { }
 void InsertTextFunc(InputMethod_TextEditorProxy *proxy, const char16_t *text, size_t length) { }
@@ -259,11 +259,11 @@ static void TestGetTextEditorProxyMember(InputMethod_TextEditorProxy *textEditor
  */
 HWTEST_F(InputMethodControllerCapiTest, TextEditorProxy_001, TestSize.Level0)
 {
-    auto textEditorProxy = OH_TextEditorProxy_New();
+    auto textEditorProxy = OH_TextEditorProxy_Create();
     ASSERT_NE(nullptr, textEditorProxy);
     ConstructTextEditorProxy(textEditorProxy);
     TestGetTextEditorProxyMember(textEditorProxy);
-    OH_TextEditorProxy_Delete(textEditorProxy);
+    OH_TextEditorProxy_Destroy(textEditorProxy);
 }
 
 /**
@@ -273,13 +273,13 @@ HWTEST_F(InputMethodControllerCapiTest, TextEditorProxy_001, TestSize.Level0)
  */
 HWTEST_F(InputMethodControllerCapiTest, AttachOptions_001, TestSize.Level0)
 {
-    auto options = OH_AttachOptions_New(true);
+    auto options = OH_AttachOptions_Create(true);
     ASSERT_NE(nullptr, options);
 
     bool showKeyboard = false;
     EXPECT_EQ(IME_ERR_OK, OH_AttachOptions_IsShowKeyboard(options, &showKeyboard));
     EXPECT_TRUE(showKeyboard);
-    OH_AttachOptions_Delete(options);
+    OH_AttachOptions_Destroy(options);
 }
 
 /**
@@ -291,7 +291,7 @@ HWTEST_F(InputMethodControllerCapiTest, TextAvoidInfo_001, TestSize.Level0)
 {
     double expPositionY = 1.1;
     double expHeight = 1.2;
-    auto avoidInfo = OH_TextAvoidInfo_New(expPositionY, expHeight);
+    auto avoidInfo = OH_TextAvoidInfo_Create(expPositionY, expHeight);
     ASSERT_NE(nullptr, avoidInfo);
 
     double actPositionY = 0.0;
@@ -311,7 +311,7 @@ HWTEST_F(InputMethodControllerCapiTest, TextAvoidInfo_001, TestSize.Level0)
     EXPECT_EQ(expPositionY, actPositionY);
     EXPECT_EQ(expHeight, actHeight);
 
-    OH_TextAvoidInfo_Delete(avoidInfo);
+    OH_TextAvoidInfo_Destroy(avoidInfo);
 }
 
 /**
@@ -322,7 +322,7 @@ HWTEST_F(InputMethodControllerCapiTest, TextAvoidInfo_001, TestSize.Level0)
 HWTEST_F(InputMethodControllerCapiTest, PrivateCommand_001, TestSize.Level0)
 {
     std::string key = "key";
-    auto privateCommand = OH_PrivateCommand_New(const_cast<char *>(key.c_str()), key.length());
+    auto privateCommand = OH_PrivateCommand_Create(const_cast<char *>(key.c_str()), key.length());
     ASSERT_NE(nullptr, privateCommand);
 
     // test set bool value
@@ -362,9 +362,8 @@ HWTEST_F(InputMethodControllerCapiTest, PrivateCommand_001, TestSize.Level0)
         IME_ERR_OK, OH_PrivateCommand_SetKey(privateCommand, const_cast<char *>(newKey.c_str()), newKey.length()));
     EXPECT_EQ(IME_ERR_OK, OH_PrivateCommand_GetKey(privateCommand, &actStrKey, &actStrKeyLength));
     EXPECT_EQ(newKey, std::string(actStrKey, actStrKeyLength));
-    OH_PrivateCommand_Delete(privateCommand);
+    OH_PrivateCommand_Destroy(privateCommand);
 }
-
 /**
  * @tc.name: OH_CursorInfo_SetRect_001
  * @tc.desc: input parameters is nullptr
@@ -393,7 +392,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_CursorInfo_GetRect_001, TestSize.Leve
     double height = 0;
     auto ret = OH_CursorInfo_GetRect(nullptr, nullptr, nullptr, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    auto info = OH_CursorInfo_New(left, top, width, height);
+    auto info = OH_CursorInfo_Create(left, top, width, height);
     ret = OH_CursorInfo_GetRect(info, nullptr, nullptr, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_CursorInfo_GetRect(info, &left, nullptr, nullptr, nullptr);
@@ -402,7 +401,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_CursorInfo_GetRect_001, TestSize.Leve
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_CursorInfo_GetRect(info, &left, &top, &width, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_CursorInfo_Delete(info);
+    OH_CursorInfo_Destroy(info);
 }
 
 /**
@@ -430,14 +429,14 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetEnterKeyType_001, TestS
 }
 
 /**
- * @tc.name: OH_TextConfig_SetIsPreviewTextSupported_001
+ * @tc.name: OH_TextConfig_SetPreviewTextSupport_001
  * @tc.desc: input parameters is nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetIsPreviewTextSupported_001, TestSize.Level0)
+HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPreviewTextSupport_001, TestSize.Level0)
 {
     bool supported = false;
-    auto ret = OH_TextConfig_SetIsPreviewTextSupported(nullptr, supported);
+    auto ret = OH_TextConfig_SetPreviewTextSupport(nullptr, supported);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }
 
@@ -475,11 +474,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_GetInputType_001, TestSize
 {
     auto ret = OH_TextConfig_GetInputType(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextConfig *config = OH_TextConfig_New();
+    InputMethod_TextConfig *config = OH_TextConfig_Create();
     ASSERT_NE(config, nullptr);
     ret = OH_TextConfig_GetInputType(config, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextConfig_Delete(config);
+    OH_TextConfig_Destroy(config);
 }
 
 /**
@@ -491,11 +490,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_GetEnterKeyType_001, TestS
 {
     auto ret = OH_TextConfig_GetEnterKeyType(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextConfig *config = OH_TextConfig_New();
+    InputMethod_TextConfig *config = OH_TextConfig_Create();
     ASSERT_NE(config, nullptr);
     ret = OH_TextConfig_GetEnterKeyType(config, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextConfig_Delete(config);
+    OH_TextConfig_Destroy(config);
 }
 
 /**
@@ -507,11 +506,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_IsPreviewTextSupported_001
 {
     auto ret = OH_TextConfig_IsPreviewTextSupported(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextConfig *config = OH_TextConfig_New();
+    InputMethod_TextConfig *config = OH_TextConfig_Create();
     ASSERT_NE(config, nullptr);
     ret = OH_TextConfig_IsPreviewTextSupported(config, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextConfig_Delete(config);
+    OH_TextConfig_Destroy(config);
 }
 
 /**
@@ -523,11 +522,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_GetCursorInfo_001, TestSiz
 {
     auto ret = OH_TextConfig_GetCursorInfo(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextConfig *config = OH_TextConfig_New();
+    InputMethod_TextConfig *config = OH_TextConfig_Create();
     ASSERT_NE(config, nullptr);
     ret = OH_TextConfig_GetCursorInfo(config, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextConfig_Delete(config);
+    OH_TextConfig_Destroy(config);
 }
 
 /**
@@ -539,11 +538,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_GetTextAvoidInfo_001, Test
 {
     auto ret = OH_TextConfig_GetTextAvoidInfo(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextConfig *config = OH_TextConfig_New();
+    InputMethod_TextConfig *config = OH_TextConfig_Create();
     ASSERT_NE(config, nullptr);
     ret = OH_TextConfig_GetTextAvoidInfo(config, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextConfig_Delete(config);
+    OH_TextConfig_Destroy(config);
 }
 
 /**
@@ -555,13 +554,13 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_GetSelection_001, TestSize
 {
     auto ret = OH_TextConfig_GetSelection(nullptr, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextConfig *config = OH_TextConfig_New();
+    InputMethod_TextConfig *config = OH_TextConfig_Create();
     ASSERT_NE(config, nullptr);
     ret = OH_TextConfig_GetSelection(config, nullptr, nullptr);
     int32_t start = 0;
     ret = OH_TextConfig_GetSelection(config, &start, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextConfig_Delete(config);
+    OH_TextConfig_Destroy(config);
 }
 
 /**
@@ -573,11 +572,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_GetWindowId_001, TestSize.
 {
     auto ret = OH_TextConfig_GetWindowId(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextConfig *config = OH_TextConfig_New();
+    InputMethod_TextConfig *config = OH_TextConfig_Create();
     ASSERT_NE(config, nullptr);
     ret = OH_TextConfig_GetWindowId(config, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextConfig_Delete(config);
+    OH_TextConfig_Destroy(config);
 }
 
 /**
@@ -589,11 +588,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetGetTextConfigFunc_
 {
     auto ret = OH_TextEditorProxy_SetGetTextConfigFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetGetTextConfigFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -605,11 +604,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetInsertTextFunc_001
 {
     auto ret = OH_TextEditorProxy_SetInsertTextFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetInsertTextFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -621,11 +620,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetDeleteForwardFunc_
 {
     auto ret = OH_TextEditorProxy_SetDeleteForwardFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetDeleteForwardFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -637,11 +636,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetDeleteBackwardFunc
 {
     auto ret = OH_TextEditorProxy_SetDeleteBackwardFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetDeleteBackwardFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -653,11 +652,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetSendKeyboardStatus
 {
     auto ret = OH_TextEditorProxy_SetSendKeyboardStatusFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetSendKeyboardStatusFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -669,11 +668,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetSendEnterKeyFunc_0
 {
     auto ret = OH_TextEditorProxy_SetSendEnterKeyFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetSendEnterKeyFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -685,11 +684,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetMoveCursorFunc_001
 {
     auto ret = OH_TextEditorProxy_SetMoveCursorFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetMoveCursorFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -701,11 +700,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetHandleSetSelection
 {
     auto ret = OH_TextEditorProxy_SetHandleSetSelectionFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetHandleSetSelectionFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -717,11 +716,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetHandleExtendAction
 {
     auto ret = OH_TextEditorProxy_SetHandleExtendActionFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetHandleExtendActionFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -733,11 +732,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetGetLeftTextOfCurso
 {
     auto ret = OH_TextEditorProxy_SetGetLeftTextOfCursorFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetGetLeftTextOfCursorFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -749,11 +748,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetGetRightTextOfCurs
 {
     auto ret = OH_TextEditorProxy_SetGetRightTextOfCursorFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetGetRightTextOfCursorFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -765,11 +764,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetGetTextIndexAtCurs
 {
     auto ret = OH_TextEditorProxy_SetGetTextIndexAtCursorFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetGetTextIndexAtCursorFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -781,11 +780,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetReceivePrivateComm
 {
     auto ret = OH_TextEditorProxy_SetReceivePrivateCommandFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetReceivePrivateCommandFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -797,11 +796,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetSetPreviewTextFunc
 {
     auto ret = OH_TextEditorProxy_SetSetPreviewTextFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetSetPreviewTextFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -813,11 +812,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_SetFinishTextPreviewF
 {
     auto ret = OH_TextEditorProxy_SetFinishTextPreviewFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_SetFinishTextPreviewFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -829,11 +828,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetGetTextConfigFunc_
 {
     auto ret = OH_TextEditorProxy_GetGetTextConfigFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetGetTextConfigFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -845,11 +844,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetInsertTextFunc_001
 {
     auto ret = OH_TextEditorProxy_GetInsertTextFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetInsertTextFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -861,11 +860,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetDeleteForwardFunc_
 {
     auto ret = OH_TextEditorProxy_GetDeleteForwardFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetDeleteForwardFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -877,11 +876,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetDeleteBackwardFunc
 {
     auto ret = OH_TextEditorProxy_GetDeleteBackwardFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetDeleteBackwardFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -893,11 +892,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetSendKeyboardStatus
 {
     auto ret = OH_TextEditorProxy_GetSendKeyboardStatusFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetSendKeyboardStatusFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -909,11 +908,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetSendEnterKeyFunc_0
 {
     auto ret = OH_TextEditorProxy_GetSendEnterKeyFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetSendEnterKeyFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -925,11 +924,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetMoveCursorFunc_001
 {
     auto ret = OH_TextEditorProxy_GetMoveCursorFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetMoveCursorFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -941,11 +940,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetHandleSetSelection
 {
     auto ret = OH_TextEditorProxy_GetHandleSetSelectionFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetHandleSetSelectionFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -957,11 +956,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetHandleExtendAction
 {
     auto ret = OH_TextEditorProxy_GetHandleExtendActionFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetHandleExtendActionFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -973,11 +972,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetGetLeftTextOfCurso
 {
     auto ret = OH_TextEditorProxy_GetGetLeftTextOfCursorFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetGetLeftTextOfCursorFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -989,11 +988,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetGetRightTextOfCurs
 {
     auto ret = OH_TextEditorProxy_GetGetRightTextOfCursorFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetGetRightTextOfCursorFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -1005,11 +1004,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetGetTextIndexAtCurs
 {
     auto ret = OH_TextEditorProxy_GetGetTextIndexAtCursorFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetGetTextIndexAtCursorFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -1021,11 +1020,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetReceivePrivateComm
 {
     auto ret = OH_TextEditorProxy_GetReceivePrivateCommandFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetReceivePrivateCommandFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -1037,11 +1036,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetSetPreviewTextFunc
 {
     auto ret = OH_TextEditorProxy_GetSetPreviewTextFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetSetPreviewTextFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -1053,11 +1052,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextEditorProxy_GetFinishTextPreviewF
 {
     auto ret = OH_TextEditorProxy_GetFinishTextPreviewFunc(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_New();
+    InputMethod_TextEditorProxy *proxy = OH_TextEditorProxy_Create();
     ASSERT_NE(proxy, nullptr);
     ret = OH_TextEditorProxy_GetFinishTextPreviewFunc(proxy, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextEditorProxy_Delete(proxy);
+    OH_TextEditorProxy_Destroy(proxy);
 }
 
 /**
@@ -1069,11 +1068,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_AttachOptions_IsShowKeyboard_001, Tes
 {
     auto ret = OH_AttachOptions_IsShowKeyboard(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_AttachOptions *options = OH_AttachOptions_New(true);
+    InputMethod_AttachOptions *options = OH_AttachOptions_Create(true);
     ASSERT_NE(options, nullptr);
     ret = OH_AttachOptions_IsShowKeyboard(options, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_AttachOptions_Delete(options);
+    OH_AttachOptions_Destroy(options);
 }
 
 /**
@@ -1111,11 +1110,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextAvoidInfo_GetPositionY_001, TestS
     double height = 0.0;
     auto ret = OH_TextAvoidInfo_GetPositionY(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextAvoidInfo *info = OH_TextAvoidInfo_New(positionY, height);
+    InputMethod_TextAvoidInfo *info = OH_TextAvoidInfo_Create(positionY, height);
     ASSERT_NE(info, nullptr);
     ret = OH_TextAvoidInfo_GetPositionY(info, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextAvoidInfo_Delete(info);
+    OH_TextAvoidInfo_Destroy(info);
 }
 
 /**
@@ -1129,11 +1128,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextAvoidInfo_GetHeight_001, TestSize
     double height = 0.0;
     auto ret = OH_TextAvoidInfo_GetHeight(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_TextAvoidInfo *info = OH_TextAvoidInfo_New(positionY, height);
+    InputMethod_TextAvoidInfo *info = OH_TextAvoidInfo_Create(positionY, height);
     ASSERT_NE(info, nullptr);
     ret = OH_TextAvoidInfo_GetHeight(info, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_TextAvoidInfo_Delete(info);
+    OH_TextAvoidInfo_Destroy(info);
 }
 
 /**
@@ -1147,11 +1146,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_SetKey_001, TestSize.L
     size_t keyLength = strlen(key);
     auto ret = OH_PrivateCommand_SetKey(nullptr, nullptr, keyLength);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_PrivateCommand *command = OH_PrivateCommand_New(key, keyLength);
+    InputMethod_PrivateCommand *command = OH_PrivateCommand_Create(key, keyLength);
     ASSERT_NE(command, nullptr);
     ret = OH_PrivateCommand_SetKey(command, nullptr, keyLength);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_PrivateCommand_Delete(command);
+    OH_PrivateCommand_Destroy(command);
 }
 
 /**
@@ -1191,11 +1190,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_SetStrValue_001, TestS
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     char key[] = "example key";
     size_t keyLength = strlen(key);
-    InputMethod_PrivateCommand *command = OH_PrivateCommand_New(key, keyLength);
+    InputMethod_PrivateCommand *command = OH_PrivateCommand_Create(key, keyLength);
     ASSERT_NE(command, nullptr);
     ret = OH_PrivateCommand_SetStrValue(command, nullptr, valueLength);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_PrivateCommand_Delete(command);
+    OH_PrivateCommand_Destroy(command);
 }
 
 /**
@@ -1209,14 +1208,14 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_GetKey_001, TestSize.L
     size_t keyLength = strlen(key);
     auto ret = OH_PrivateCommand_GetKey(nullptr, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_PrivateCommand *command = OH_PrivateCommand_New(key, keyLength);
+    InputMethod_PrivateCommand *command = OH_PrivateCommand_Create(key, keyLength);
     ASSERT_NE(command, nullptr);
     ret = OH_PrivateCommand_GetKey(command, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     const char *actStrKey = nullptr;
     ret = OH_PrivateCommand_GetKey(command, &actStrKey, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_PrivateCommand_Delete(command);
+    OH_PrivateCommand_Destroy(command);
 }
 
 /**
@@ -1230,10 +1229,10 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_GetValueType_001, Test
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     char key[] = "example key";
     size_t keyLength = strlen(key);
-    InputMethod_PrivateCommand *command = OH_PrivateCommand_New(key, keyLength);
+    InputMethod_PrivateCommand *command = OH_PrivateCommand_Create(key, keyLength);
     ret = OH_PrivateCommand_GetValueType(command, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_PrivateCommand_Delete(command);
+    OH_PrivateCommand_Destroy(command);
 }
 
 /**
@@ -1247,7 +1246,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_GetBoolValue_001, Test
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     char key[] = "example key";
     size_t keyLength = strlen(key);
-    InputMethod_PrivateCommand *command = OH_PrivateCommand_New(key, keyLength);
+    InputMethod_PrivateCommand *command = OH_PrivateCommand_Create(key, keyLength);
     ret = OH_PrivateCommand_GetBoolValue(command, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_PrivateCommand_GetBoolValue(command, nullptr);
@@ -1257,7 +1256,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_GetBoolValue_001, Test
     bool value = false;
     ret = OH_PrivateCommand_GetBoolValue(command, &value);
     EXPECT_EQ(ret, IME_ERR_QUERY_FAILED);
-    OH_PrivateCommand_Delete(command);
+    OH_PrivateCommand_Destroy(command);
 }
 
 /**
@@ -1271,7 +1270,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_GetIntValue_001, TestS
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     char key[] = "example key";
     size_t keyLength = strlen(key);
-    InputMethod_PrivateCommand *command = OH_PrivateCommand_New(key, keyLength);
+    InputMethod_PrivateCommand *command = OH_PrivateCommand_Create(key, keyLength);
     ret = OH_PrivateCommand_GetIntValue(command, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     bool expBoolValue = false;
@@ -1279,7 +1278,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_GetIntValue_001, TestS
     int32_t value = 0;
     ret = OH_PrivateCommand_GetIntValue(command, &value);
     EXPECT_EQ(ret, IME_ERR_QUERY_FAILED);
-    OH_PrivateCommand_Delete(command);
+    OH_PrivateCommand_Destroy(command);
 }
 
 /**
@@ -1295,7 +1294,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_GetStrValue_001, TestS
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     char key[] = "example key";
     size_t keyLength = strlen(key);
-    InputMethod_PrivateCommand *command = OH_PrivateCommand_New(key, keyLength);
+    InputMethod_PrivateCommand *command = OH_PrivateCommand_Create(key, keyLength);
     ret = OH_PrivateCommand_GetStrValue(command, nullptr, &valueLength);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_PrivateCommand_GetStrValue(command, &value, nullptr);
@@ -1304,7 +1303,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_PrivateCommand_GetStrValue_001, TestS
     EXPECT_EQ(IME_ERR_OK, OH_PrivateCommand_SetBoolValue(command, expBoolValue));
     ret = OH_PrivateCommand_GetStrValue(command, &value, &valueLength);
     EXPECT_EQ(ret, IME_ERR_QUERY_FAILED);
-    OH_PrivateCommand_Delete(command);
+    OH_PrivateCommand_Destroy(command);
 }
 
 /**
@@ -1316,17 +1315,17 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodController_Attach_001, Tes
 {
     auto ret = OH_InputMethodController_Attach(nullptr, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    auto textEditorProxy = OH_TextEditorProxy_New();
+    auto textEditorProxy = OH_TextEditorProxy_Create();
     ret = OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ConstructTextEditorProxy(textEditorProxy);
     ret = OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    InputMethod_AttachOptions *options = OH_AttachOptions_New(true);
+    InputMethod_AttachOptions *options = OH_AttachOptions_Create(true);
     ret = OH_InputMethodController_Attach(textEditorProxy, options, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    OH_AttachOptions_Delete(options);
-    OH_TextEditorProxy_Delete(textEditorProxy);
+    OH_AttachOptions_Destroy(options);
+    OH_TextEditorProxy_Destroy(textEditorProxy);
 }
 
 /**
@@ -1348,7 +1347,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodController_Detach_001, Tes
 HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_ShowKeyboard_001, TestSize.Level0)
 {
     auto ret = OH_InputMethodProxy_ShowKeyboard(nullptr);
-    EXPECT_EQ(ret, IME_ERR_IMCLIENT);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }
 
 /**
@@ -1359,7 +1358,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_ShowKeyboard_001, Te
 HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_HideKeyboard_001, TestSize.Level0)
 {
     auto ret = OH_InputMethodProxy_HideKeyboard(nullptr);
-    EXPECT_EQ(ret, IME_ERR_IMCLIENT);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }
 
 /**
@@ -1373,7 +1372,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_NotifySelectionChang
     int start = 0;
     int end = 0;
     auto ret = OH_InputMethodProxy_NotifySelectionChange(nullptr, nullptr, length, start, end);
-    EXPECT_EQ(ret, IME_ERR_DETACHED);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }
 
 /**
@@ -1386,7 +1385,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_NotifyConfigurationC
     InputMethod_EnterKeyType enterKey = IME_ENTER_KEY_UNSPECIFIED;
     InputMethod_TextInputType expInput = IME_TEXT_INPUT_TYPE_NUMBER_DECIMAL;
     auto ret = OH_InputMethodProxy_NotifyConfigurationChange(nullptr, enterKey, expInput);
-    EXPECT_EQ(ret, IME_ERR_DETACHED);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }
 
 /**
@@ -1400,11 +1399,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_NotifyCursorUpdate_0
     double top = 1.0;
     double width = 2.0;
     double height = 3.0;
-    InputMethod_CursorInfo *cursorInfo = OH_CursorInfo_New(left, top, width, height);
+    InputMethod_CursorInfo *cursorInfo = OH_CursorInfo_Create(left, top, width, height);
     auto ret = OH_InputMethodProxy_NotifyCursorUpdate(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_InputMethodProxy_NotifyCursorUpdate(nullptr, cursorInfo);
-    EXPECT_EQ(ret, IME_ERR_DETACHED);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }
 
 /**
@@ -1418,11 +1417,11 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_SendPrivateCommand_0
     size_t keyLength = strlen(key);
     char key1[] = "example key";
     size_t keyLength1 = strlen(key);
-    InputMethod_PrivateCommand *privateCommand[] = { OH_PrivateCommand_New(key, keyLength),
-        OH_PrivateCommand_New(key1, keyLength1), nullptr };
+    InputMethod_PrivateCommand *privateCommand[] = { OH_PrivateCommand_Create(key, keyLength),
+        OH_PrivateCommand_Create(key1, keyLength1), nullptr };
     size_t size = 3;
-    auto ret = OH_InputMethodProxy_SendPrivateCommand(nullptr, size);
+    auto ret = OH_InputMethodProxy_SendPrivateCommand(nullptr, nullptr, size);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-    ret = OH_InputMethodProxy_SendPrivateCommand(privateCommand, size);
+    ret = OH_InputMethodProxy_SendPrivateCommand(nullptr, privateCommand, size);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }

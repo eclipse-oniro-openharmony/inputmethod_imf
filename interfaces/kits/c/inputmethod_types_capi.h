@@ -14,6 +14,26 @@
 */
 #ifndef OHOS_INPUTMETHOD_TYPES_CAPI_H
 #define OHOS_INPUTMETHOD_TYPES_CAPI_H
+/**
+ * @addtogroup InputMethod
+ * @{
+ *
+ * @brief InputMethod provides functions to use input methods and develop input methods.
+ *
+ * @since 12
+ */
+
+/**
+ * @file inputmethod_types_capi.h
+ *
+ * @brief Provides the input method types.
+ *
+ * @library libohinputmethod.so
+ * @kit IMEKit
+ * @syscap SystemCapability.MiscServices.InputMethodFramework
+ * @since 12
+ * @version 1.0
+ */
 #ifdef __cplusplus
 extern "C"{
 #endif /* __cplusplus */
@@ -22,7 +42,7 @@ extern "C"{
  *
  * @since 12
  */
-typedef enum {
+typedef enum InputMethod_KeyboardStatus {
     /**
      * The keyboard status is none.
      */
@@ -42,7 +62,7 @@ typedef enum {
  *
  * @since 12
  */
-typedef enum {
+typedef enum InputMethod_EnterKeyType {
     /**
      * The enter key type is UNSPECIFIED.
      */
@@ -86,7 +106,7 @@ typedef enum {
  *
  * @since 12
  */
-typedef enum {
+typedef enum InputMethod_Direction {
     /**
      * The direction is NONE.
      */
@@ -114,7 +134,7 @@ typedef enum {
  *
  * @since 12
  */
-typedef enum {
+typedef enum InputMethod_ExtendAction {
     /**
      * Select all text.
      */
@@ -138,7 +158,7 @@ typedef enum {
  *
  * @since 12
  */
-typedef enum {
+typedef enum InputMethod_TextInputType {
     /**
      * The text input type is NONE.
      */
@@ -202,7 +222,7 @@ typedef enum {
  *
  * @since 12
  */
-typedef enum {
+typedef enum InputMethod_CommandValueType {
     /**
      * Value type is NONE.
      */
@@ -226,58 +246,63 @@ typedef enum {
  *
  * @since 12
  */
-typedef enum {
+typedef enum InputMethod_ErrorCode {
     /**
-     * The error code in the correct case.
+     * @error The error code in the correct case.
      */
     IME_ERR_OK = 0,
 
     /**
-     * The error code when query failed.
+     * @error The error code when error is undefined.
      */
-    IME_ERR_QUERY_FAILED = 1,
+    IME_ERR_UNDEFINED = 1,
     /**
-     * The error code when parameter check failed.
+     * @error The error code when parameter check failed.
      */
     IME_ERR_PARAMCHECK = 401,
     /**
-     * The error code when the package manager error.
+     * @error The error code when the package manager error.
      */
     IME_ERR_PACKAGEMANAGER = 12800001,
     /**
-     * The error code when input method engine error.
+     * @error The error code when input method engine error.
      */
     IME_ERR_IMENGINE = 12800002,
     /**
-     * The error code when input method client error.
+     * @error The error code when input method client error.
      */
     IME_ERR_IMCLIENT = 12800003,
     /**
-     * The error code when configuration persisting error.
+     * @error The error code when configuration persisting error.
      */
     IME_ERR_CONFIG_PERSIST = 12800005,
     /**
-     * The error code when input method controller error.
+     * @error The error code when input method controller error.
      */
     IME_ERR_CONTROLLER = 12800006,
     /**
-     * The error code when input method setting error.
+     * @error The error code when input method setting error.
      */
     IME_ERR_SETTINGS = 12800007,
     /**
-     * The error code when input method manager service error.
+     * @error The error code when input method manager service error.
      */
     IME_ERR_IMMS = 12800008,
     /**
-     * The error code when input method client is detached.
+     * @error The error code when input method client is detached.
      */
     IME_ERR_DETACHED = 12800009,
     /**
-     * The error code when unexpected null pointer.
+     * @error The error code when unexpected null pointer.
      */
-    IME_ERR_NULL_POINTER = 12800010,
+    IME_ERR_NULL_POINTER = 12802000,
+    /**
+     * @error The error code when query failed.
+     */
+    IME_ERR_QUERY_FAILED = 12802001,
 } InputMethod_ErrorCode;
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // OHOS_INPUTMETHOD_TYPES_CAPI_H

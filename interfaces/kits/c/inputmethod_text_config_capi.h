@@ -14,6 +14,26 @@
  */
 #ifndef OHOS_INPUTMETHOD_TEXT_CONFIG_CAPI_H
 #define OHOS_INPUTMETHOD_TEXT_CONFIG_CAPI_H
+/**
+ * @addtogroup InputMethod
+ * @{
+ *
+ * @brief InputMethod provides functions to use input methods and develop input methods.
+ *
+ * @since 12
+ */
+
+/**
+ * @file inputmethod_text_config_capi.h
+ *
+ * @brief Provides functions to manage the text configuration.
+ *
+ * @library libohinputmethod.so
+ * @kit IMEKit
+ * @syscap SystemCapability.MiscServices.InputMethodFramework
+ * @since 12
+ * @version 1.0
+ */
 #include <stdint.h>
 
 #include "inputmethod_cursor_info_capi.h"
@@ -35,17 +55,18 @@ typedef struct InputMethod_TextConfig InputMethod_TextConfig;
 /**
  * @brief Create a new {@link InputMethod_TextConfig} instance.
  *
- * @return Returns a pointer to the newly created {@link InputMethod_TextConfig} instance.
+ * @return If the creation succeeds, a pointer to the newly created {@link InputMethod_TextConfig}
+ * instance is returned. If the creation fails, NULL is returned, possible cause is insufficient memory.
  * @since 12
  */
-InputMethod_TextConfig *OH_TextConfig_New();
+InputMethod_TextConfig *OH_TextConfig_Create();
 /**
- * @brief Delete a {@link InputMethod_TextConfig} instance.
+ * @brief Destroy a {@link InputMethod_TextConfig} instance.
  *
- * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be deleted.
+ * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be destroyed.
  * @since 12
  */
-void OH_TextConfig_Delete(InputMethod_TextConfig *config);
+void OH_TextConfig_Destroy(InputMethod_TextConfig *config);
 
 /**
  * @brief Set input type into TextConfig.
@@ -73,7 +94,7 @@ InputMethod_ErrorCode OH_TextConfig_SetInputType(InputMethod_TextConfig *config,
 InputMethod_ErrorCode OH_TextConfig_SetEnterKeyType(
     InputMethod_TextConfig *config, InputMethod_EnterKeyType enterKeyType);
 /**
- * @brief Set is preview text supported into TextConfig.
+ * @brief Set preview text support into TextConfig.
  *
  * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
  * @param supported Indicates whether the preview text is supported.
@@ -83,7 +104,7 @@ InputMethod_ErrorCode OH_TextConfig_SetEnterKeyType(
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 12
  */
-InputMethod_ErrorCode OH_TextConfig_SetIsPreviewTextSupported(InputMethod_TextConfig *config, bool supported);
+InputMethod_ErrorCode OH_TextConfig_SetPreviewTextSupport(InputMethod_TextConfig *config, bool supported);
 /**
  * @brief Set selection into TextConfig.
  *
@@ -204,4 +225,5 @@ InputMethod_ErrorCode OH_TextConfig_GetWindowId(InputMethod_TextConfig *config, 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // OHOS_INPUTMETHOD_TEXT_CONFIG_CAPI_H

@@ -14,6 +14,26 @@
  */
 #ifndef OHOS_INPUTMETHOD_TEXT_AVOID_INFO_CAPI_H
 #define OHOS_INPUTMETHOD_TEXT_AVOID_INFO_CAPI_H
+/**
+ * @addtogroup InputMethod
+ * @{
+ *
+ * @brief InputMethod provides functions to use input methods and develop input methods.
+ *
+ * @since 12
+ */
+
+/**
+ * @file inputmethod_text_avoid_info_capi.h
+ *
+ * @brief Provides functions to manage text editor to avoid the keyboard.
+ *
+ * @library libohinputmethod.so
+ * @kit IMEKit
+ * @syscap SystemCapability.MiscServices.InputMethodFramework
+ * @since 12
+ * @version 1.0
+ */
 #include "inputmethod_types_capi.h"
 #ifdef __cplusplus
 extern "C" {
@@ -33,17 +53,18 @@ typedef struct InputMethod_TextAvoidInfo InputMethod_TextAvoidInfo;
  *
  * @param positionY The y-coordinate of the avoid area.
  * @param height The height of the avoid area.
- * @return Returns a pointer to the newly created {@link InputMethod_TextAvoidInfo} instance.
+ * @return If the creation succeeds, a pointer to the newly created {@link InputMethod_TextAvoidInfo}
+ * instance is returned. If the creation fails, NULL is returned, possible cause is insufficient memory.
  * @since 12
  */
-InputMethod_TextAvoidInfo *OH_TextAvoidInfo_New(double positionY, double height);
+InputMethod_TextAvoidInfo *OH_TextAvoidInfo_Create(double positionY, double height);
 /**
- * @brief Delete a {@link InputMethod_TextAvoidInfo} instance.
+ * @brief Destroy a {@link InputMethod_TextAvoidInfo} instance.
  *
- * @param options Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance which will be deleted.
+ * @param options Represents a pointer to an {@link InputMethod_TextAvoidInfo} instance which will be destroyed.
  * @since 12
  */
-void OH_TextAvoidInfo_Delete(InputMethod_TextAvoidInfo *info);
+void OH_TextAvoidInfo_Destroy(InputMethod_TextAvoidInfo *info);
 /**
  * @brief Set positionY value into {@link InputMethod_TextAvoidInfo}.
  *
@@ -95,4 +116,5 @@ InputMethod_ErrorCode OH_TextAvoidInfo_GetHeight(InputMethod_TextAvoidInfo *info
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // OHOS_INPUTMETHOD_TEXT_AVOID_INFO_CAP_H

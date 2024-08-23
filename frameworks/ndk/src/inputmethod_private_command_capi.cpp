@@ -18,11 +18,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
-InputMethod_PrivateCommand *OH_PrivateCommand_New(char key[], size_t keyLength)
+InputMethod_PrivateCommand *OH_PrivateCommand_Create(char key[], size_t keyLength)
 {
     return new InputMethod_PrivateCommand({ std::string(key, keyLength), false });
 }
-void OH_PrivateCommand_Delete(InputMethod_PrivateCommand *command)
+void OH_PrivateCommand_Destroy(InputMethod_PrivateCommand *command)
 {
     if (command == nullptr) {
         IMSA_HILOGE("command is nullptr");

@@ -18,11 +18,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
-InputMethod_TextAvoidInfo *OH_TextAvoidInfo_New(double positionY, double height)
+InputMethod_TextAvoidInfo *OH_TextAvoidInfo_Create(double positionY, double height)
 {
     return new InputMethod_TextAvoidInfo({ positionY, height });
 }
-void OH_TextAvoidInfo_Delete(InputMethod_TextAvoidInfo *info)
+void OH_TextAvoidInfo_Destroy(InputMethod_TextAvoidInfo *info)
 {
     if (info == nullptr) {
         IMSA_HILOGE("info is nullptr");

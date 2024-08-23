@@ -19,11 +19,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
-InputMethod_AttachOptions *OH_AttachOptions_New(bool showKeyboard)
+InputMethod_AttachOptions *OH_AttachOptions_Create(bool showKeyboard)
 {
     return new InputMethod_AttachOptions({ showKeyboard });
 }
-void OH_AttachOptions_Delete(InputMethod_AttachOptions *options)
+void OH_AttachOptions_Destroy(InputMethod_AttachOptions *options)
 {
     if (options == nullptr) {
         return;

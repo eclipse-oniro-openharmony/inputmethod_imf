@@ -16,11 +16,11 @@
 #include "native_inputmethod_types.h"
 
 using namespace OHOS::MiscServices;
-InputMethod_TextEditorProxy *OH_TextEditorProxy_New()
+InputMethod_TextEditorProxy *OH_TextEditorProxy_Create()
 {
     return new InputMethod_TextEditorProxy();
 }
-void OH_TextEditorProxy_Delete(InputMethod_TextEditorProxy *proxy)
+void OH_TextEditorProxy_Destroy(InputMethod_TextEditorProxy *proxy)
 {
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");

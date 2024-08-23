@@ -14,6 +14,26 @@
 */
 #ifndef OHOS_INPUTMETHOD_CURSOR_INFO_CAPI_H
 #define OHOS_INPUTMETHOD_CURSOR_INFO_CAPI_H
+/**
+ * @addtogroup InputMethod
+ * @{
+ *
+ * @brief InputMethod provides functions to use input methods and develop input methods.
+ *
+ * @since 12
+ */
+
+/**
+ * @file inputmethod_cursor_info_capi.h
+ *
+ * @brief Provides interfaces to manage the cursor information.
+ *
+ * @library libohinputmethod.so
+ * @kit IMEKit
+ * @syscap SystemCapability.MiscServices.InputMethodFramework
+ * @since 12
+ * @version 1.0
+ */
 #include "inputmethod_types_capi.h"
 #ifdef __cplusplus
 extern "C"{
@@ -34,18 +54,19 @@ typedef struct InputMethod_CursorInfo InputMethod_CursorInfo;
  * @param top The top point of the cursor and must be absolute coordinate of the physical screen.
  * @param width The width of the cursor.
  * @param height The height of the cursor.
- * @return Returns a pointer to the newly created {@link InputMethod_CursorInfo} instance.
+ * @return If the creation succeeds, a pointer to the newly created {@link InputMethod_CursorInfo}
+ * instance is returned. If the creation fails, NULL is returned, possible cause is insufficient memory.
  * @since 12
  */
-InputMethod_CursorInfo *OH_CursorInfo_New(double left, double top, double width, double height);
+InputMethod_CursorInfo *OH_CursorInfo_Create(double left, double top, double width, double height);
 
 /**
- * @brief Delete a {@link InputMethod_CursorInfo} instance.
+ * @brief Destroy a {@link InputMethod_CursorInfo} instance.
  *
- * @param cursorInfo Represents a pointer to an {@link InputMethod_CursorInfo} instance which will be deleted.
+ * @param cursorInfo Represents a pointer to an {@link InputMethod_CursorInfo} instance which will be destroyed.
  * @since 12
  */
-void OH_CursorInfo_Delete(InputMethod_CursorInfo *cursorInfo);
+void OH_CursorInfo_Destroy(InputMethod_CursorInfo *cursorInfo);
 
 /**
  * @brief Set cursor info.
@@ -83,4 +104,5 @@ InputMethod_ErrorCode OH_CursorInfo_GetRect(
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // OHOS_INPUTMETHOD_CURSOR_INFO_CAPI_H

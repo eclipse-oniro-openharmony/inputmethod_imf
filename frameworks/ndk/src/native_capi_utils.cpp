@@ -18,6 +18,7 @@
 #include "global.h"
 using namespace OHOS::MiscServices;
 static const std::map<int32_t, InputMethod_ErrorCode> ERROR_CODE_MAP = {
+    { ErrorCode::NO_ERROR,                           IME_ERR_OK             },
     { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED,   IME_ERR_CONTROLLER     },
     { ErrorCode::ERROR_REMOTE_CLIENT_DIED,           IME_ERR_IMCLIENT       },
     { ErrorCode::ERROR_CLIENT_NOT_FOUND,             IME_ERR_IMCLIENT       },
@@ -60,5 +61,5 @@ InputMethod_ErrorCode ErrorCodeConvert(int32_t code)
         return iter->second;
     }
     IMSA_HILOGD("Convert end.");
-    return IME_ERR_QUERY_FAILED;
+    return IME_ERR_UNDEFINED;
 }

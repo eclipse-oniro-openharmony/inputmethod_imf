@@ -14,6 +14,26 @@
 */
 #ifndef OHOS_INPUTMETHOD_INPUTMETHOD_PROXY_CAPI_H
 #define OHOS_INPUTMETHOD_INPUTMETHOD_PROXY_CAPI_H
+/**
+ * @addtogroup InputMethod
+ * @{
+ *
+ * @brief InputMethod provides functions to use input methods and develop input methods.
+ *
+ * @since 12
+ */
+
+/**
+ * @file inputmethod_inputmethod_proxy_capi.h
+ *
+ * @brief Provides functions to use input methods.
+ *
+ * @library libohinputmethod.so
+ * @kit IMEKit
+ * @syscap SystemCapability.MiscServices.InputMethodFramework
+ * @since 12
+ * @version 1.0
+ */
 #include <stddef.h>
 
 #include "inputmethod_types_capi.h"
@@ -38,6 +58,8 @@ typedef struct InputMethod_InputMethodProxy InputMethod_InputMethodProxy;
  *     The inputMethodProxy is obtained from {@link OH_InputMethodController_Attach}.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
  *     {@link IME_ERR_DETACHED} - input method client is detached.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
@@ -52,6 +74,8 @@ InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodPr
  *     The inputMethodProxy is obtained from {@link OH_InputMethodController_Attach}.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
  *     {@link IME_ERR_DETACHED} - input method client is detached.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
@@ -67,11 +91,14 @@ InputMethod_ErrorCode OH_InputMethodProxy_HideKeyboard(InputMethod_InputMethodPr
  * @param inputMethodProxy Represents a pointer to an {@link InputMethod_InputMethodProxy} instance.
  *     The inputMethodProxy is obtained from {@link OH_InputMethodController_Attach}.
  * @param text The whole input text.
- * @param length The length of text. Max 8K bytes.
+ * @param length The length of text. Max length is 8K.
  * @param start The start position of selected text.
  * @param end The end position of selected text.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
  *     {@link IME_ERR_DETACHED} - input method client is detached.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
@@ -89,6 +116,9 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifySelectionChange(
  * @param textType The text input type.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
  *     {@link IME_ERR_DETACHED} - input method client is detached.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
@@ -106,6 +136,9 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_
  *     The cursor information.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
  *     {@link IME_ERR_DETACHED} - input method client is detached.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
@@ -124,13 +157,17 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
  *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
  *     {@link IME_ERR_DETACHED} - input method client is detached.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 12
  */
-InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(InputMethod_PrivateCommand *privateCommand[], size_t size);
+InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
+    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_PrivateCommand *privateCommand[], size_t size);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+/** @} */
 #endif // INPUTMETHOD_INPUTMETHOD_PROXY_CAP_H

@@ -18,11 +18,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
-InputMethod_TextConfig *OH_TextConfig_New()
+InputMethod_TextConfig *OH_TextConfig_Create()
 {
     return new InputMethod_TextConfig();
 }
-void OH_TextConfig_Delete(InputMethod_TextConfig *config)
+void OH_TextConfig_Destroy(InputMethod_TextConfig *config)
 {
     if (config == nullptr) {
         IMSA_HILOGE("config is nullptr");
@@ -51,7 +51,7 @@ InputMethod_ErrorCode OH_TextConfig_SetEnterKeyType(
     config->enterKeyType = enterKeyType;
     return IME_ERR_OK;
 }
-InputMethod_ErrorCode OH_TextConfig_SetIsPreviewTextSupported(InputMethod_TextConfig *config, bool supported)
+InputMethod_ErrorCode OH_TextConfig_SetPreviewTextSupport(InputMethod_TextConfig *config, bool supported)
 {
     if (config == nullptr) {
         IMSA_HILOGE("config is nullptr");
