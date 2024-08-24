@@ -227,6 +227,9 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     auto lastListener = GetTextListener();
     clientInfo_.isNotifyInputStart = lastListener != listener;
+    if (clientInfo_.isNotifyInputStart && lastListener != nullptr) {
+        lastListener->OnDetach();
+    }
     ClearEditorCache(clientInfo_.isNotifyInputStart, lastListener);
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;

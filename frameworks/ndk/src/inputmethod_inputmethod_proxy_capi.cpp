@@ -21,26 +21,29 @@ extern "C" {
 using namespace OHOS::MiscServices;
 InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
-    if (inputMethodProxy == nullptr) {
-        IMSA_HILOGE("inputMethodProxy is nullptr");
-        return IME_ERR_NULL_POINTER;
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
     }
     return ErrorCodeConvert(InputMethodController::GetInstance()->ShowCurrentInput());
 }
 InputMethod_ErrorCode OH_InputMethodProxy_HideKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
-    if (inputMethodProxy == nullptr) {
-        IMSA_HILOGE("inputMethodProxy is nullptr");
-        return IME_ERR_NULL_POINTER;
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
     }
     return ErrorCodeConvert(InputMethodController::GetInstance()->HideCurrentInput());
 }
 InputMethod_ErrorCode OH_InputMethodProxy_NotifySelectionChange(
     InputMethod_InputMethodProxy *inputMethodProxy, char16_t text[], size_t length, int start, int end)
 {
-    if (inputMethodProxy == nullptr) {
-        IMSA_HILOGE("inputMethodProxy is nullptr");
-        return IME_ERR_NULL_POINTER;
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
     }
     if (text == nullptr) {
         IMSA_HILOGE("text is nullptr");
@@ -57,9 +60,10 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifySelectionChange(
 InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_InputMethodProxy *inputMethodProxy,
     InputMethod_EnterKeyType enterKey, InputMethod_TextInputType textType)
 {
-    if (inputMethodProxy == nullptr) {
-        IMSA_HILOGE("inputMethodProxy is nullptr");
-        return IME_ERR_NULL_POINTER;
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
     }
     Configuration info;
     info.SetEnterKeyType(static_cast<EnterKeyType>(enterKey));
@@ -70,9 +74,10 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_
 InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
     InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_CursorInfo *cursorInfo)
 {
-    if (inputMethodProxy == nullptr) {
-        IMSA_HILOGE("inputMethodProxy is nullptr");
-        return IME_ERR_NULL_POINTER;
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
     }
     if (cursorInfo == nullptr) {
         IMSA_HILOGE("cursorInfo is nullptr");
@@ -85,9 +90,10 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
 InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
     InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_PrivateCommand *privateCommand[], size_t size)
 {
-    if (inputMethodProxy == nullptr) {
-        IMSA_HILOGE("inputMethodProxy is nullptr");
-        return IME_ERR_NULL_POINTER;
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
     }
     if (privateCommand == nullptr) {
         IMSA_HILOGE("privateCommand is nullptr");

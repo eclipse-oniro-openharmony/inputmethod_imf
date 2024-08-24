@@ -18,4 +18,12 @@
 
 #include "inputmethod_controller_capi.h"
 InputMethod_ErrorCode ErrorCodeConvert(int32_t code);
+#ifdef __cplusplus
+extern "C"{
+#endif /* __cplusplus */
+InputMethod_ErrorCode IsValidInputMethodProxy(InputMethod_InputMethodProxy *inputMethodProxy);
+void ClearInputMethodProxy();
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif // NATIVE_INPUTMETHOD_UTILS_H
