@@ -42,7 +42,11 @@ using namespace std::chrono;
 sptr<InputMethodController> InputMethodController::instance_;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_{ nullptr };
 std::mutex InputMethodController::instanceLock_;
+std::mutex InputMethodController::logLock_;
+int InputMethodController::keyEventCountInPeriod_ = 0;
+std::chrono::system_clock::time_point InputMethodController::startLogTime_ = system_clock::now();
 constexpr int32_t LOOP_COUNT = 5;
+constexpr int32_t LOG_MAX_TIME = 20;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
 InputMethodController::InputMethodController()
@@ -714,8 +718,26 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
     return ErrorCode::NO_ERROR;
 }
 
+void InputMethodController::PrintKeyEventLog()
+{
+    std::lock_guard<std::mutex> lock(logLock_);
+    auto now = system_clock::now();
+    if (keyEventCountInPeriod_ == 0) {
+        startLogTime_ = now;
+    }
+    keyEventCountInPeriod_++;
+    if (std::chrono::duration_cast<seconds>(now - startLogTime_).count() >= LOG_MAX_TIME) {
+        auto start = std::chrono::duration_cast<seconds>(startLogTime_.time_since_epoch()).count();
+        auto end = std::chrono::duration_cast<seconds>(now.time_since_epoch()).count();
+        IMSA_HILOGI("KeyEventCountInPeriod: %{public}d, startTime: %{public}lld, endTime: %{public}lld",
+            keyEventCountInPeriod_, start, end);
+        keyEventCountInPeriod_ = 0;
+    }
+}
+
 int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback)
 {
+    PrintKeyEventLog();
     KeyEventInfo keyEventInfo = { std::chrono::system_clock::now(), keyEvent };
     keyEventQueue_.Push(keyEventInfo);
     InputMethodSyncTrace tracer("DispatchKeyEvent trace");
