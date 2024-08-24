@@ -18,10 +18,9 @@
 #include <algorithm>
 #include <string>
 
-#include "ability_manager_client.h"
+#include "app_mgr_client.h"
 #include "application_info.h"
 #include "bundle_mgr_client_impl.h"
-#include "extension_running_info.h"
 #include "file_operator.h"
 #include "full_ime_info_manager.h"
 #include "global.h"
@@ -34,6 +33,7 @@
 #include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
+#include "running_process_info.h"
 #include "string_ex.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
@@ -1082,23 +1082,49 @@ bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
     return iter != extInfo.metadata.end();
 }
 
-bool ImeInfoInquirer::IsRunningExtension(const std::pair<std::string, std::string> &ime)
+bool ImeInfoInquirer::IsRunningIme(const std::pair<std::string, std::string> &ime)
 {
-    std::vector<ExtensionRunningInfo> infos;
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetExtensionRunningInfos(
-        std::numeric_limits<uint32_t>::max(), infos);
+    std::vector<RunningProcessInfo> infos;
+    AppMgrClient client;
+    auto ret = client.GetAllRunningProcesses(infos);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("GetExtensionRunningInfos failed, ret: %{public}d!", ret);
+        IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
         return false;
     }
-    auto it = std::find_if(infos.begin(), infos.end(), [&ime](const ExtensionRunningInfo &info) {
-        return ime.first == info.extension.GetBundleName() && ime.second == info.extension.GetAbilityName();
+    auto it = std::find_if(infos.begin(), infos.end(), [&ime](const RunningProcessInfo &info) {
+        return !info.bundleNames.empty() && info.bundleNames[0] == ime.first
+               && info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
     });
     if (it == infos.end()) {
         return false;
     }
     IMSA_HILOGW("[%{public}s, %{public}s] is running!", ime.first.c_str(), ime.second.c_str());
     return true;
+}
+
+std::pair<int32_t, std::string> ImeInfoInquirer::GetRunningImeInfo()
+{
+    // -1 represent invalid pid
+    std::pair<int32_t, std::string> result{ -1, "" };
+    std::vector<RunningProcessInfo> infos;
+    AppMgrClient client;
+    auto ret = client.GetAllRunningProcesses(infos);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
+        return result;
+    }
+    auto it = std::find_if(infos.begin(), infos.end(),
+        [](const RunningProcessInfo &info) { return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD; });
+    if (it == infos.end()) {
+        IMSA_HILOGD("not has running ime!");
+        return result;
+    }
+    if (it->bundleNames.empty()) {
+        IMSA_HILOGE("bundleNames is empty!");
+        return result;
+    }
+    result = std::make_pair(it->pid_, it->bundleNames[0]);
+    return result;
 }
 } // namespace MiscServices
 } // namespace OHOS

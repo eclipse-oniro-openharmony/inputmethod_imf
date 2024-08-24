@@ -332,6 +332,10 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
+    if (InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGD("NormalFlag, diff textFiled, input type started, restore.");
+        session->RestoreCurrentImeSubType();
+    }
     return session->RestoreCurrentIme();
 }
 
@@ -439,6 +443,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
         return session->OnRegisterProxyIme(core, agent);
     }
     if (!IsCurrentIme(userId)) {
+        IMSA_HILOGE("not current ime, userId:%{public}d", userId);
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     return session->OnSetCoreAndAgent(core, agent);

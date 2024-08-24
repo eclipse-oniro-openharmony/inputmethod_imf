@@ -233,6 +233,7 @@ private:
     bool ForceStopCurrentIme(bool isNeedWait = true);
     bool StopReadyCurrentIme();
     bool StopExitingCurrentIme();
+    bool ForceStopRunningIme();
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     std::mutex imeStartLock_;
 
