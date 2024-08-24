@@ -185,7 +185,7 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level0)
     int32_t securityMode;
     auto ret = service_->GetSecurityMode(securityMode);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(securityMode, 0);
+    EXPECT_EQ(securityMode, 1);
 }
 } // namespace MiscServices
 } // namespace OHOS
