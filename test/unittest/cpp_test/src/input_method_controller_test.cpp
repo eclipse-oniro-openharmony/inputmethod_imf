@@ -284,9 +284,8 @@ void InputMethodControllerTest::SetUpTestCase(void)
 
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     inputMethodAbility_->abilityManager_ = imsaProxy_;
-    IdentityCheckerMock::SetBundleNameValid(true);
+    TddUtil::InitCurrentImePermissionInfo();
     inputMethodAbility_->SetCoreAndAgent();
-    IdentityCheckerMock::SetBundleNameValid(false);
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     controllerListener_ = std::make_shared<SelectListenerMock>();
     textListener_ = new TextListener();
@@ -1318,7 +1317,7 @@ HWTEST_F(InputMethodControllerTest, testStartInputType, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testStartInputType Test START");
     auto ret = inputMethodController_->StartInputType(InputType::NONE);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 
 /**

@@ -94,6 +94,8 @@ public:
     int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos);
     int32_t GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo);
     bool IsInputMethod(int32_t userId, const std::string &bundleName);
+    bool IsRunningIme(int32_t userId, const std::string &bundleName);
+    std::vector<std::string> GetRunningIme(int32_t userId);
 
 private:
     ImeInfoInquirer() = default;

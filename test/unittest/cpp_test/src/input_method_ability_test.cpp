@@ -84,9 +84,10 @@ public:
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStart");
         }
 
-        void OnInputStop()
+        int32_t OnInputStop()
         {
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStop");
+            return ErrorCode::NO_ERROR;
         }
 
         void OnSetCallingWindow(uint32_t windowId)
@@ -138,9 +139,8 @@ public:
 
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->abilityManager_ = imsaProxy_;
-        IdentityCheckerMock::SetBundleNameValid(true);
+        TddUtil::InitCurrentImePermissionInfo();
         inputMethodAbility_->SetCoreAndAgent();
-        IdentityCheckerMock::SetBundleNameValid(false);
 
         TextListener::ResetParam();
         imc_ = InputMethodController::GetInstance();

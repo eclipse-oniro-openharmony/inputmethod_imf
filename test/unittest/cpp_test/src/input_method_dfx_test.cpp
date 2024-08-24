@@ -151,14 +151,12 @@ public:
     static sptr<InputMethodAbility> inputMethodAbility_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static sptr<InputMethodSystemAbility> imsa_;
-    static std::string currentImeBundleName_;
 };
 sptr<InputMethodController> InputMethodDfxTest::inputMethodController_;
 sptr<OnTextChangedListener> InputMethodDfxTest::textListener_;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
 sptr<InputMethodSystemAbility> InputMethodDfxTest::imsa_;
-std::string InputMethodDfxTest::currentImeBundleName_;
 
 bool InputMethodDfxTest::WriteAndWatch(
     const std::shared_ptr<Watcher> &watcher, const InputMethodDfxTest::ExecFunc &exec)
@@ -209,12 +207,6 @@ bool InputMethodDfxTest::WriteAndWatchImeChange(
 void InputMethodDfxTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::SetUpTestCase");
-    auto prop = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    std::string currentImeExtName;
-    if (prop != nullptr) {
-        currentImeBundleName_ = prop->name;
-        currentImeExtName = prop->id;
-    }
     IdentityCheckerMock::ResetParam();
     imsa_ = new (std::nothrow) InputMethodSystemAbility();
     if (imsa_ == nullptr) {
@@ -228,17 +220,13 @@ void InputMethodDfxTest::SetUpTestCase(void)
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->abilityManager_ = imsa_;
-    IdentityCheckerMock::SetBundleNameValid(true);
+    TddUtil::InitCurrentImePermissionInfo();
     inputMethodAbility_->SetCoreAndAgent();
-    IdentityCheckerMock::SetBundleNameValid(false);
     inputMethodAbility_->SetImeListener(imeListener_);
 
     inputMethodController_ = InputMethodController::GetInstance();
     inputMethodController_->abilityManager_ = imsa_;
     textListener_ = new TextListener();
-
-    std::string currentIme = currentImeBundleName_ + "/" + currentImeExtName;
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ imsa_->userId_, currentIme, "" });
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
@@ -447,7 +435,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_UnBind, TestSize.Leve
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_UnBind");
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::UNBIND)),
-        std::to_string(static_cast<int32_t>(getpid())), currentImeBundleName_);
+        std::to_string(static_cast<int32_t>(getpid())), TddUtil::CURRENT_BUNDLENAME);
     auto imeStateUnBind = []() {
         inputMethodController_->Attach(textListener_, true);
         inputMethodController_->Close();
@@ -464,7 +452,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Bind, TestSize.Level0
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_Bind");
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::BIND)),
-        std::to_string(static_cast<int32_t>(getpid())), currentImeBundleName_);
+        std::to_string(static_cast<int32_t>(getpid())), TddUtil::CURRENT_BUNDLENAME);
     auto imeStateBind = []() { inputMethodController_->RequestShowInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatchImeChange(watcherImeChange, imeStateBind));
 }

@@ -51,7 +51,7 @@ public:
     static napi_value GetSecurityMode(napi_env env, napi_callback_info info);
     void OnInputStart() override;
     void OnKeyboardStatus(bool isShow) override;
-    void OnInputStop() override;
+    int32_t OnInputStop() override;
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
     void OnSecurityChange(int32_t security) override;

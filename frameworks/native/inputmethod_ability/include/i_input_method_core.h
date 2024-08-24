@@ -56,7 +56,7 @@ public:
     virtual int32_t ShowKeyboard() = 0;
     virtual int32_t HideKeyboard() = 0;
     virtual int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) = 0;
-    virtual void StopInputService(bool isTerminateIme) = 0;
+    virtual int32_t StopInputService(bool isTerminateIme) = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
     virtual bool IsEnable() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;

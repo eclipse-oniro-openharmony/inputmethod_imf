@@ -59,9 +59,9 @@ int32_t InputMethodCoreProxy::OnConnectSystemCmd(const sptr<IRemoteObject> &chan
         [&agent](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, agent); });
 }
 
-void InputMethodCoreProxy::StopInputService(bool isTerminateIme)
+int32_t InputMethodCoreProxy::StopInputService(bool isTerminateIme)
 {
-    SendRequest(STOP_INPUT_SERVICE,
+    return SendRequest(STOP_INPUT_SERVICE,
         [isTerminateIme](MessageParcel &data) { return ITypesUtil::Marshal(data, isTerminateIme); });
 }
 
