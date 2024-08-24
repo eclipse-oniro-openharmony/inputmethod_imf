@@ -33,6 +33,18 @@
 namespace OHOS {
 namespace MiscServices {
 
+constexpr int FOLD_TOP = 0;
+constexpr int FOLD_LEFT = 0;
+constexpr int FOLD_RIGHT = 0;
+constexpr int FOLD_BOTTOM = 606;
+
+constexpr int UNFOLD_TOP = 0;
+constexpr int UNFOLD_LEFT = 0;
+constexpr int UNFOLD_RIGHT = 0;
+constexpr int UNFOLD_BOTTOM = 822;
+
+constexpr int COMMON_BOTTOM = 809;
+
 struct LayoutParams {
     Rosen::Rect landscapeRect;
     Rosen::Rect portraitRect;
@@ -155,13 +167,15 @@ private:
     CallbackFunc panelHeightCallback_ = nullptr;
 
     LayoutParams adjustPanelRectLayoutParams_;
+
     LayoutParams resizePanelFoldParams_ { // FoldDefaultValue
-        {0, 0, 0, 606},
-        {0, 0, 0, 809}
+        {FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, FOLD_BOTTOM},
+        {FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, COMMON_BOTTOM}
     };
+
     LayoutParams resizePanelUnfoldParams_ { // UnfoldDefaultValue
-        {0, 0, 0, 822},
-        {0, 0, 0, 809}
+        {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, UNFOLD_BOTTOM},
+        {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, COMMON_BOTTOM}
     };
 };
 } // namespace MiscServices
