@@ -98,6 +98,7 @@ public:
     virtual void FinishTextPreview()
     {
     }
+    virtual void OnDetach() { }
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;

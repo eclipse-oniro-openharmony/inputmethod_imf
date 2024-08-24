@@ -35,6 +35,25 @@ struct InputMethod_InputMethodProxy {
 InputMethod_InputMethodProxy *g_inputMethodProxy = nullptr;
 std::mutex g_textEditorProxyMapMutex;
 
+InputMethod_ErrorCode IsValidInputMethodProxy(InputMethod_InputMethodProxy *inputMethodProxy)
+{
+    if (inputMethodProxy == nullptr) {
+        IMSA_HILOGE("inputMethodProxy is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
+    if (g_inputMethodProxy == nullptr) {
+        IMSA_HILOGE("g_inputMethodProxy is nullptr");
+        return IME_ERR_DETACHED;
+    }
+
+    if (g_inputMethodProxy != inputMethodProxy) {
+        IMSA_HILOGE("g_inputMethodProxy is not equal to inputMethodProxy");
+        return IME_ERR_PARAMCHECK;
+    }
+
+    return IME_ERR_OK;
+}
 static InputMethod_ErrorCode GetInputMethodProxy(InputMethod_TextEditorProxy *textEditor)
 {
     std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
@@ -199,6 +218,17 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
     return errCode;
 }
 
+void ClearInputMethodProxy()
+{
+    std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
+    if (g_inputMethodProxy != nullptr) {
+        IMSA_HILOGI("g_inputMethodProxy is cleared");
+        g_inputMethodProxy->listener = nullptr;
+        delete g_inputMethodProxy;
+        g_inputMethodProxy = nullptr;
+    }
+}
+
 InputMethod_ErrorCode OH_InputMethodController_Detach(InputMethod_InputMethodProxy *inputMethodProxy)
 {
     if (inputMethodProxy == nullptr) {
@@ -207,11 +237,20 @@ InputMethod_ErrorCode OH_InputMethodController_Detach(InputMethod_InputMethodPro
     }
     {
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
-        if (g_inputMethodProxy != nullptr && inputMethodProxy == g_inputMethodProxy) {
-            g_inputMethodProxy->listener = nullptr;
-            delete g_inputMethodProxy;
-            g_inputMethodProxy = nullptr;
+        if (g_inputMethodProxy == nullptr) {
+            IMSA_HILOGE("g_inputMethodProxy is nullptr");
+            return IME_ERR_DETACHED;
         }
+
+        if (g_inputMethodProxy != inputMethodProxy) {
+            IMSA_HILOGE("g_inputMethodProxy is not equal to inputMethodProxy");
+            return IME_ERR_PARAMCHECK;
+        }
+
+        IMSA_HILOGI("detach g_inputMethodProxy");
+        g_inputMethodProxy->listener = nullptr;
+        delete g_inputMethodProxy;
+        g_inputMethodProxy = nullptr;
     }
     return ErrorCodeConvert(InputMethodController::GetInstance()->Close());
 }
