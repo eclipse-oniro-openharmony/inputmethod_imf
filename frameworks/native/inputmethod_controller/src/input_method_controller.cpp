@@ -164,6 +164,16 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
     return abilityManager_;
 }
 
+void InputMethodController::RemoveDeathRecipient()
+{
+    std::lock_guard<std::mutex> lock(abilityLock_);
+    if (abilityManager_ == nullptr || deathRecipient_ == nullptr) {
+        return;
+    }
+    abilityManager_->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    deathRecipient_ = nullptr;
+}
+
 void InputMethodController::DeactivateClient()
 {
     {
@@ -217,6 +227,9 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     auto lastListener = GetTextListener();
     clientInfo_.isNotifyInputStart = lastListener != listener;
+    if (clientInfo_.isNotifyInputStart && lastListener != nullptr) {
+        lastListener->OnDetach();
+    }
     ClearEditorCache(clientInfo_.isNotifyInputStart, lastListener);
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
@@ -312,6 +325,11 @@ int32_t InputMethodController::Close()
     if (IsBound()) {
         IMSA_HILOGI("start.");
     }
+    auto listener = GetTextListener();
+    if (listener != nullptr) {
+        listener->OnDetach();
+    }
+
     bool isReportHide = clientInfo_.isShowKeyboard;
     InputMethodSyncTrace tracer("InputMethodController Close trace.");
     isReportHide ? InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
@@ -461,6 +479,8 @@ int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     if (ret == ErrorCode::NO_ERROR) {
         OnInputStop();
     }
+    RemoveDeathRecipient();
+    SetTextListener(nullptr);
     return ret;
 }
 

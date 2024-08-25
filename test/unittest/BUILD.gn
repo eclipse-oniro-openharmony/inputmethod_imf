@@ -22,6 +22,7 @@ group("unittest") {
     deps += [
       "cpp_test:EnableImeDataParseTest",
       "cpp_test:IdentityCheckerTest",
+      "cpp_test:ImeControllerCpaiTest",
       "cpp_test:ImeFreezeManagerTest",
       "cpp_test:ImeProxyTest",
       "cpp_test:ImeSystemChannelTest",
