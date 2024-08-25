@@ -325,6 +325,11 @@ int32_t InputMethodController::Close()
     if (IsBound()) {
         IMSA_HILOGI("start.");
     }
+    auto listener = GetTextListener();
+    if (listener != nullptr) {
+        listener->OnDetach();
+    }
+
     bool isReportHide = clientInfo_.isShowKeyboard;
     InputMethodSyncTrace tracer("InputMethodController Close trace.");
     isReportHide ? InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
