@@ -46,6 +46,7 @@ struct SubProperty {
 struct FullImeInfo {
     bool isNewIme{ false };
     uint32_t tokenId{ 0 };
+    std::string appId;
     Property prop;
     std::vector<SubProperty> subProps;
 };

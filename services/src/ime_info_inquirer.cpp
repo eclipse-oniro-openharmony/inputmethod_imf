@@ -1051,6 +1051,9 @@ int32_t ImeInfoInquirer::GetFullImeInfo(
         GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId);
     imeInfo.prop.labelId = extInfos[0].applicationInfo.labelId;
     imeInfo.prop.iconId = extInfos[0].applicationInfo.iconId;
+    if (!GetAppIdByBundleName(userId, imeInfo.prop.name, imeInfo.appId)) {
+        IMSA_HILOGE("%{public}s failed to get app id", imeInfo.prop.name.c_str());
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1099,6 +1102,27 @@ bool ImeInfoInquirer::IsRunningExtension(const std::pair<std::string, std::strin
     }
     IMSA_HILOGW("[%{public}s, %{public}s] is running!", ime.first.c_str(), ime.second.c_str());
     return true;
+}
+
+bool ImeInfoInquirer::GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId)
+{
+    FullImeInfo imeInfo;
+    if (FullImeInfoManager::GetInstance().Get(bundleName, userId, imeInfo) && !imeInfo.appId.empty()) {
+        appId = imeInfo.appId;
+        return true;
+    }
+    return GetAppIdByBundleName(userId, bundleName, appId);
+}
+
+bool ImeInfoInquirer::GetAppIdByBundleName(int32_t userId, const std::string &bundleName, std::string &appId)
+{
+    auto bundleMgr = GetBundleMgr();
+    if (bundleMgr == nullptr) {
+        IMSA_HILOGE("failed to get bundleMgr");
+        return false;
+    }
+    appId = bundleMgr->GetAppIdByBundleName(bundleName, userId);
+    return !appId.empty();
 }
 } // namespace MiscServices
 } // namespace OHOS
