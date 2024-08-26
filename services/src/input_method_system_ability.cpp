@@ -150,10 +150,10 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     userId_ = userId;
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
-    if (enableImeOn_) {
+    if (enableImeOn_.load()) {
         EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
     }
-    if (enableSecurityMode_) {
+    if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
 }
@@ -195,7 +195,7 @@ void InputMethodSystemAbility::Initialize()
     UserSessionManager::GetInstance().SetEventHandler(serviceHandler_);
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
-    isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+    isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
 }
 
 void InputMethodSystemAbility::SubscribeCommonEvent()
@@ -617,7 +617,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (enableImeOn_ && !EnableImeDataParser::GetInstance()->CheckNeedSwitch(switchInfo, userId)) {
+    if (enableImeOn_.load() && !EnableImeDataParser::GetInstance()->CheckNeedSwitch(switchInfo, userId)) {
         IMSA_HILOGW("Enable mode off or switch is not enable, stopped!");
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -870,7 +870,7 @@ int32_t InputMethodSystemAbility::GetInputMethodConfig(OHOS::AppExecFwk::Element
 
 int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
-    return ImeInfoInquirer::GetInstance().ListInputMethod(GetCallingUserId(), status, props, enableImeOn_);
+    return ImeInfoInquirer::GetInstance().ListInputMethod(GetCallingUserId(), status, props, enableImeOn_.load());
 }
 
 int32_t InputMethodSystemAbility::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
@@ -954,7 +954,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     auto newUserId = msg->msgContent_->ReadInt32();
     FullImeInfoManager::GetInstance().Add(newUserId);
     // if scb enable, deal when receive wmsConnected.
-    if (isScbEnable_) {
+    if (isScbEnable_.load()) {
         return ErrorCode::NO_ERROR;
     }
     if (newUserId == userId_) {
@@ -1244,7 +1244,7 @@ int32_t InputMethodSystemAbility::SwitchType()
         cacheCount = targetSwitchCount_.exchange(0);
     }
     int32_t ret =
-        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_, cacheCount);
+        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_.load(), cacheCount);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get next SwitchInfo failed, stop switching ime.");
         return ret;
@@ -1275,11 +1275,11 @@ void InputMethodSystemAbility::InitMonitors()
     if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         IMSA_HILOGW("Enter enable mode.");
         EnableImeDataParser::GetInstance()->Initialize(userId_);
-        enableImeOn_ = true;
+        enableImeOn_.store(true);
     }
     if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         IMSA_HILOGW("Enter security mode.");
-        enableSecurityMode_ = true;
+        enableSecurityMode_.store(true);
     }
     RegisterDataShareObserver();
 }
@@ -1407,7 +1407,7 @@ void InputMethodSystemAbility::OnSecurityModeChange()
 int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
 {
     IMSA_HILOGD("InputMethodSystemAbility start.");
-    if (!enableSecurityMode_) {
+    if (!enableSecurityMode_.load()) {
         security = static_cast<int32_t>(SecurityMode::FULL);
         return ErrorCode::NO_ERROR;
     }
@@ -1591,7 +1591,7 @@ void InputMethodSystemAbility::HandleWmsStarted()
     // singleton, device boot, wms reboot
     IMSA_HILOGI("Wms start.");
     InitFocusChangedMonitor();
-    if (isScbEnable_) {
+    if (isScbEnable_.load()) {
         IMSA_HILOGI("scb enable, register WMS connection listener.");
         InitWmsConnectionMonitor();
         return;
