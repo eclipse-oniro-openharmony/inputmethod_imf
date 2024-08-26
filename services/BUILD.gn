@@ -119,7 +119,7 @@ ohos_shared_library("inputmethod_service") {
   ]
 
   defines = []
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
     defines += [ "SCENE_BOARD_ENABLE" ]
   } else {
@@ -206,7 +206,7 @@ ohos_static_library("inputmethod_service_static") {
   ]
 
   defines = []
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
     defines += [ "SCENE_BOARD_ENABLE" ]
   } else {
