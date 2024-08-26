@@ -157,7 +157,7 @@ std::u16string NativeTextChangedListener::GetLeftTextOfCursor(int32_t number)
         return u"";
     }
 
-    size_t length = number + 1;
+    size_t length = static_cast<size_t>(number + 1);
     char16_t *text = new char16_t[length];
     if (text == nullptr) {
         IMSA_HILOGE("text is nullptr");
@@ -188,7 +188,7 @@ std::u16string NativeTextChangedListener::GetRightTextOfCursor(int32_t number)
         return u"";
     }
 
-    size_t length = number + 1;
+    size_t length = static_cast<size_t>(number + 1);
     char16_t *text = new char16_t[length];
     if (text == nullptr) {
         IMSA_HILOGE("text is nullptr");
