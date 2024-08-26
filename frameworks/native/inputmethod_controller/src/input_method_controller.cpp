@@ -227,6 +227,9 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     auto lastListener = GetTextListener();
     clientInfo_.isNotifyInputStart = lastListener != listener;
+    if (clientInfo_.isNotifyInputStart && lastListener != nullptr) {
+        lastListener->OnDetach();
+    }
     ClearEditorCache(clientInfo_.isNotifyInputStart, lastListener);
     SetTextListener(listener);
     {
@@ -333,6 +336,11 @@ int32_t InputMethodController::Close()
 {
     if (IsBound()) {
         IMSA_HILOGI("start.");
+    }
+    
+    auto listener = GetTextListener();
+    if (listener != nullptr) {
+        listener->OnDetach();
     }
     OperateIMEInfoCode infoCode = OperateIMEInfoCode::IME_UNBIND;
     {

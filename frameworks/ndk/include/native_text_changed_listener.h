@@ -36,6 +36,7 @@ public:
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t SetPreviewText(const std::u16string &text, const OHOS::MiscServices::Range &range) override;
     void FinishTextPreview() override;
+    void OnDetach() override;
 
     // empty impl
     void SendKeyEventFromInputMethod(const KeyEvent &event) override {};

@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "input_method_utils.h"
 #include "native_text_changed_listener.h"
+#include "input_method_utils.h"
+#include "native_inputmethod_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -279,6 +280,11 @@ void NativeTextChangedListener::FinishTextPreview()
     }
 
     textEditor_->finishTextPreviewFunc(textEditor_);
+}
+
+void NativeTextChangedListener::OnDetach()
+{
+    ClearInputMethodProxy();
 }
 
 InputMethod_KeyboardStatus NativeTextChangedListener::ConvertToCKeyboardStatus(

@@ -1011,7 +1011,11 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     SecurityMode mode;
-    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
+    bool isolatedSandBox = true;
+    if (SecurityModeParser::GetInstance()->IsDefaultFullMode(ime->bundleName, userId_)) {
+        mode = SecurityMode::FULL;
+        isolatedSandBox = false;
+    } else if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         mode = SecurityModeParser::GetInstance()->GetSecurityMode(ime->bundleName, userId_);
     } else {
         mode = SecurityMode::FULL;
@@ -1019,8 +1023,6 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
-    auto isolatedSandBox = (defaultIme != nullptr && defaultIme->name != ime->bundleName);
     want.SetParam(ISOLATED_SANDBOX, isolatedSandBox);
     IMSA_HILOGI("userId: %{public}d, ime: %{public}s, mode: %{public}d, isolatedSandbox: %{public}d", userId_,
         ime->imeId.c_str(), static_cast<int32_t>(mode), isolatedSandBox);
