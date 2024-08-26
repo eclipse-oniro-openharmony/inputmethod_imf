@@ -1051,6 +1051,9 @@ int32_t ImeInfoInquirer::GetFullImeInfo(
         GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId);
     imeInfo.prop.labelId = extInfos[0].applicationInfo.labelId;
     imeInfo.prop.iconId = extInfos[0].applicationInfo.iconId;
+    if (!GetAppIdByBundleName(userId, imeInfo.prop.name, imeInfo.appId)) {
+        IMSA_HILOGE("%{public}s failed to get app id", imeInfo.prop.name.c_str());
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1082,49 +1085,55 @@ bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
     return iter != extInfo.metadata.end();
 }
 
-bool ImeInfoInquirer::IsRunningIme(const std::pair<std::string, std::string> &ime)
+std::string ImeInfoInquirer::GetRunningIme(int32_t userId)
 {
+    std::string bundleName;
     std::vector<RunningProcessInfo> infos;
     AppMgrClient client;
-    auto ret = client.GetAllRunningProcesses(infos);
+    auto ret = client.GetProcessRunningInfosByUserId(infos, userId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
-        return false;
-    }
-    auto it = std::find_if(infos.begin(), infos.end(), [&ime](const RunningProcessInfo &info) {
-        return !info.bundleNames.empty() && info.bundleNames[0] == ime.first
-               && info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
-    });
-    if (it == infos.end()) {
-        return false;
-    }
-    IMSA_HILOGW("[%{public}s, %{public}s] is running!", ime.first.c_str(), ime.second.c_str());
-    return true;
-}
-
-std::pair<int32_t, std::string> ImeInfoInquirer::GetRunningImeInfo()
-{
-    // -1 represent invalid pid
-    std::pair<int32_t, std::string> result{ -1, "" };
-    std::vector<RunningProcessInfo> infos;
-    AppMgrClient client;
-    auto ret = client.GetAllRunningProcesses(infos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
-        return result;
+        return bundleName;
     }
     auto it = std::find_if(infos.begin(), infos.end(),
         [](const RunningProcessInfo &info) { return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD; });
     if (it == infos.end()) {
-        IMSA_HILOGD("not has running ime!");
-        return result;
+        IMSA_HILOGD("userId:%{public}d not has running ime!", userId);
+        return bundleName;
     }
     if (it->bundleNames.empty()) {
-        IMSA_HILOGE("bundleNames is empty!");
-        return result;
+        IMSA_HILOGE("userId:%{public}d bundleNames is empty!", userId);
+        return bundleName;
     }
-    result = std::make_pair(it->pid_, it->bundleNames[0]);
-    return result;
+    bundleName = it->bundleNames[0];
+    return bundleName;
+}
+
+bool ImeInfoInquirer::IsRunningIme(int32_t userId, const std::string &bundleName)
+{
+    auto imeBundleName = GetRunningIme(userId);
+    return bundleName == imeBundleName;
+}
+
+bool ImeInfoInquirer::GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId)
+{
+    FullImeInfo imeInfo;
+    if (FullImeInfoManager::GetInstance().Get(bundleName, userId, imeInfo) && !imeInfo.appId.empty()) {
+        appId = imeInfo.appId;
+        return true;
+    }
+    return GetAppIdByBundleName(userId, bundleName, appId);
+}
+
+bool ImeInfoInquirer::GetAppIdByBundleName(int32_t userId, const std::string &bundleName, std::string &appId)
+{
+    auto bundleMgr = GetBundleMgr();
+    if (bundleMgr == nullptr) {
+        IMSA_HILOGE("failed to get bundleMgr");
+        return false;
+    }
+    appId = bundleMgr->GetAppIdByBundleName(bundleName, userId);
+    return !appId.empty();
 }
 } // namespace MiscServices
 } // namespace OHOS

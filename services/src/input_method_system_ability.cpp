@@ -150,10 +150,10 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     userId_ = userId;
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
-    if (enableImeOn_) {
+    if (enableImeOn_.load()) {
         EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
     }
-    if (enableSecurityMode_) {
+    if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
 }
@@ -195,7 +195,7 @@ void InputMethodSystemAbility::Initialize()
     UserSessionManager::GetInstance().SetEventHandler(serviceHandler_);
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
-    isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+    isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
 }
 
 void InputMethodSystemAbility::SubscribeCommonEvent()
@@ -261,7 +261,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnReleaseInput(client);
-};
+}
 
 int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
@@ -290,6 +290,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     if (!session->IsProxyImeEnable()) {
         auto ret = CheckInputTypeOption(userId, inputClientInfo);
         if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("%{public}d failed to CheckInputTypeOption.", userId);
             return ret;
         }
     }
@@ -299,7 +300,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         return ret;
     }
     return session->OnStartInput(inputClientInfo, agent);
-};
+}
 
 int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo)
 {
@@ -313,18 +314,18 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         if (!inputClientInfo.isNotifyInputStart) {
-            IMSA_HILOGD("SecurityFlag, same textFiled, input type is started, not deal.");
+            IMSA_HILOGD("SecurityFlag, same textField, input type is started, not deal.");
             return ErrorCode::NO_ERROR;
         }
         if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
-            IMSA_HILOGD("SecurityFlag, new textFiled, input type is started, but it is not security, switch.");
+            IMSA_HILOGD("SecurityFlag, new textField, input type is started, but it is not security, switch.");
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         IMSA_HILOGD("SecurityFlag, other condition, not deal.");
         return ErrorCode::NO_ERROR;
     }
     if (!inputClientInfo.isNotifyInputStart) {
-        IMSA_HILOGD("NormalFlag, same textFiled, not deal.");
+        IMSA_HILOGD("NormalFlag, same textField, not deal.");
         return ErrorCode::NO_ERROR;
     }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
@@ -333,7 +334,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (InputTypeManager::GetInstance().IsStarted()) {
-        IMSA_HILOGD("NormalFlag, diff textFiled, input type started, restore.");
+        IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
         session->RestoreCurrentImeSubType();
     }
     return session->RestoreCurrentIme();
@@ -379,7 +380,7 @@ int32_t InputMethodSystemAbility::HideInput(sptr<IInputClient> client)
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return session->OnHideInput(client);
-};
+}
 
 int32_t InputMethodSystemAbility::StopInputSession()
 {
@@ -465,7 +466,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return session->OnHideCurrentInput();
-};
+}
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
@@ -483,7 +484,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return session->OnShowCurrentInput();
-};
+}
 
 int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
@@ -576,7 +577,7 @@ int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(int32_t userId, uint32
 {
     auto prop = std::make_shared<Property>();
     auto ret = ImeInfoInquirer::GetInstance().GetDefaultInputMethod(userId, prop);
-    if (ret != ErrorCode::NO_ERROR) {
+    if (ret != ErrorCode::NO_ERROR || prop == nullptr) {
         IMSA_HILOGE("failed to get default ime!");
         return ErrorCode::ERROR_PERSIST_CONFIG;
     }
@@ -622,7 +623,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (enableImeOn_ && !EnableImeDataParser::GetInstance()->CheckNeedSwitch(switchInfo, userId)) {
+    if (enableImeOn_.load() && !EnableImeDataParser::GetInstance()->CheckNeedSwitch(switchInfo, userId)) {
         IMSA_HILOGW("Enable mode off or switch is not enable, stopped!");
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -834,7 +835,7 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
         }
     }
     return session->OnHideCurrentInput();
-};
+}
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
@@ -851,7 +852,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
         }
     }
     return session->OnShowCurrentInput();
-};
+}
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
@@ -875,7 +876,7 @@ int32_t InputMethodSystemAbility::GetInputMethodConfig(OHOS::AppExecFwk::Element
 
 int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
-    return ImeInfoInquirer::GetInstance().ListInputMethod(GetCallingUserId(), status, props, enableImeOn_);
+    return ImeInfoInquirer::GetInstance().ListInputMethod(GetCallingUserId(), status, props, enableImeOn_.load());
 }
 
 int32_t InputMethodSystemAbility::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
@@ -959,7 +960,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     auto newUserId = msg->msgContent_->ReadInt32();
     FullImeInfoManager::GetInstance().Add(newUserId);
     // if scb enable, deal when receive wmsConnected.
-    if (isScbEnable_) {
+    if (isScbEnable_.load()) {
         return ErrorCode::NO_ERROR;
     }
     if (newUserId == userId_) {
@@ -1249,7 +1250,7 @@ int32_t InputMethodSystemAbility::SwitchType()
         cacheCount = targetSwitchCount_.exchange(0);
     }
     int32_t ret =
-        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_, cacheCount);
+        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_.load(), cacheCount);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get next SwitchInfo failed, stop switching ime.");
         return ret;
@@ -1280,12 +1281,13 @@ void InputMethodSystemAbility::InitMonitors()
     if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         IMSA_HILOGW("Enter enable mode.");
         EnableImeDataParser::GetInstance()->Initialize(userId_);
-        enableImeOn_ = true;
+        enableImeOn_.store(true);
     }
     if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         IMSA_HILOGW("Enter security mode.");
-        enableSecurityMode_ = true;
+        enableSecurityMode_.store(true);
     }
+    RegisterDataShareObserver();
 }
 
 int32_t InputMethodSystemAbility::RegisterDataShareObserver()
@@ -1411,7 +1413,7 @@ void InputMethodSystemAbility::OnSecurityModeChange()
 int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
 {
     IMSA_HILOGD("InputMethodSystemAbility start.");
-    if (!enableSecurityMode_) {
+    if (!enableSecurityMode_.load()) {
         security = static_cast<int32_t>(SecurityMode::FULL);
         return ErrorCode::NO_ERROR;
     }
@@ -1595,7 +1597,7 @@ void InputMethodSystemAbility::HandleWmsStarted()
     // singleton, device boot, wms reboot
     IMSA_HILOGI("Wms start.");
     InitFocusChangedMonitor();
-    if (isScbEnable_) {
+    if (isScbEnable_.load()) {
         IMSA_HILOGI("scb enable, register WMS connection listener.");
         InitWmsConnectionMonitor();
         return;

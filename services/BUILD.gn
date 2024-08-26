@@ -48,6 +48,7 @@ ohos_shared_library("inputmethod_service") {
     "-fdata-sections",
     "-ffunction-sections",
     "-Os",
+    "-Wno-c99-designator",
   ]
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_proxy.cpp",

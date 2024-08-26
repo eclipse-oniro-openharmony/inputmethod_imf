@@ -49,8 +49,8 @@ constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
 constexpr const char *STRICT_MODE = "strictMode";
 constexpr const char *ISOLATED_SANDBOX = "isolatedSandbox";
-constexpr uint32_t CHECK_IME_RUNNING_RETRY_INTERVAL = 6;
-constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 100;
+constexpr uint32_t CHECK_IME_RUNNING_RETRY_INTERVAL = 60;
+constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
 PerUserSession::PerUserSession(int userId) : userId_(userId)
 {
 }
@@ -58,6 +58,7 @@ PerUserSession::PerUserSession(int userId) : userId_(userId)
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
     : userId_(userId), eventHandler_(eventHandler)
 {
+    runningIme_ = ImeInfoInquirer::GetInstance().GetRunningIme(userId_);
 }
 
 PerUserSession::~PerUserSession()
@@ -228,7 +229,9 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     IMSA_HILOGI("userId: %{public}d.", userId_);
     if (IsSameClient(remote, GetCurrentClient())) {
         auto clientInfo = GetClientInfo(remote->AsObject());
-        StopImeInput(clientInfo->bindImeType, clientInfo->channel);
+        if (clientInfo != nullptr) {
+            StopImeInput(clientInfo->bindImeType, clientInfo->channel);
+        }
         SetCurrentClient(nullptr);
         RestoreCurrentImeSubType();
     }
@@ -1016,7 +1019,11 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     SecurityMode mode;
-    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
+    bool isolatedSandBox = true;
+    if (SecurityModeParser::GetInstance()->IsDefaultFullMode(ime->bundleName, userId_)) {
+        mode = SecurityMode::FULL;
+        isolatedSandBox = false;
+    } else if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         mode = SecurityModeParser::GetInstance()->GetSecurityMode(ime->bundleName, userId_);
     } else {
         mode = SecurityMode::FULL;
@@ -1024,8 +1031,6 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
-    auto isolatedSandBox = (defaultIme != nullptr && defaultIme->name != ime->bundleName);
     want.SetParam(ISOLATED_SANDBOX, isolatedSandBox);
     IMSA_HILOGI("userId: %{public}d, ime: %{public}s, mode: %{public}d, isolatedSandbox: %{public}d", userId_,
         ime->imeId.c_str(), static_cast<int32_t>(mode), isolatedSandBox);
@@ -1435,11 +1440,7 @@ bool PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isS
     }
     auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
-        auto ret = ForceStopRunningIme(); // add for imsa service abnormal
-        if (!ret) {
-            return ret;
-        }
-        return StartInputService(ime);
+        return HandleFirstStart(ime, isStopCurrentIme);
     }
     if (imeData->ime.first == ime->bundleName && imeData->ime.second == ime->extName) {
         if (isStopCurrentIme) {
@@ -1576,7 +1577,7 @@ bool PerUserSession::StopExitingCurrentIme()
     if (imeData == nullptr) {
         return true;
     }
-    if (!ImeInfoInquirer::GetInstance().IsRunningIme(imeData->ime)) {
+    if (!ImeInfoInquirer::GetInstance().IsRunningIme(userId_, imeData->ime.first)) {
         IMSA_HILOGD("already stop!");
         RemoveImeData(ImeType::IME, true);
         return true;
@@ -1608,7 +1609,7 @@ bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
         return true;
     }
     WaitForCurrentImeStop();
-    if (ImeInfoInquirer::GetInstance().IsRunningIme(imeData->ime)) {
+    if (ImeInfoInquirer::GetInstance().IsRunningIme(userId_, imeData->ime.first)) {
         IMSA_HILOGW("stop [%{public}s, %{public}s] timeout.", imeData->ime.first.c_str(), imeData->ime.second.c_str());
         return false;
     }
@@ -1616,24 +1617,22 @@ bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
     return true;
 }
 
-bool PerUserSession::ForceStopRunningIme()
+bool PerUserSession::HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme)
 {
-    auto imeInfo = ImeInfoInquirer::GetInstance().GetRunningImeInfo();
-    auto bundleName = imeInfo.second;
-    if (bundleName.empty()) {
+    if (runningIme_.empty()) {
+        return StartInputService(ime);
+    }
+    IMSA_HILOGW("imsa abnormal restore.");
+    if (isStopCurrentIme) {
         return true;
     }
-    if (BlockRetry(CHECK_IME_RUNNING_RETRY_INTERVAL, CHECK_IME_RUNNING_RETRY_TIMES, [&bundleName]() -> bool {
-            return !ImeInfoInquirer::GetInstance().IsRunningIme({ bundleName, "" });
-        })) {
-        IMSA_HILOGI("%{public}s stop complete", bundleName.c_str());
-        return true;
+    if (BlockRetry(CHECK_IME_RUNNING_RETRY_INTERVAL, CHECK_IME_RUNNING_RETRY_TIMES,
+                   [this]() -> bool { return !ImeInfoInquirer::GetInstance().IsRunningIme(userId_, runningIme_); })) {
+        IMSA_HILOGI("[%{public}d, %{public}s] stop completely", userId_, runningIme_.c_str());
+        runningIme_.clear();
+        return StartInputService(ime);
     }
-    AppMgrClient client;
-    std::vector<int32_t> pids;
-    pids.push_back(imeInfo.first);
-    auto ret = client.KillProcessesByPids(pids);
-    IMSA_HILOGI("kill [%{public}d, %{public}s] ret:%{public}d", imeInfo.first, bundleName.c_str(), ret);
+    IMSA_HILOGW("[%{public}d, %{public}s] stop timeout", userId_, runningIme_.c_str());
     return false;
 }
 

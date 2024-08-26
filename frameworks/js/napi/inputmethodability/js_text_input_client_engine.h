@@ -20,7 +20,6 @@
 #include "async_call.h"
 #include "block_queue.h"
 #include "calling_window_info.h"
-#include "ffrt_block_queue.h"
 #include "global.h"
 #include "js_util.h"
 #include "native_engine/native_engine.h"
@@ -29,31 +28,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum class EditorEvent : uint32_t {
-    INSERT_TEXT = 0,
-    DELETE_FORWARD,
-    DELETE_BACKWARD,
-    MOVE_CURSOR,
-    SELECT_BY_RANGE,
-    SELECT_BY_MOVEMENT,
-    SEND_EXTEND_ACTION,
-    GET_FORWARD,
-    GET_BACKWARD,
-    GET_TEXT_INDEX_AT_CURSOR,
-    SET_PREVIEW_TEXT,
-    FINISH_TEXT_PREVIEW,
-    SEND_KEY_FUNCTION,
-    EVENT_END,
-};
-struct EditorEventInfo {
-    std::chrono::system_clock::time_point timestamp{};
-    EditorEvent event{ EditorEvent::EVENT_END };
-    bool operator==(const EditorEventInfo &info) const
-    {
-        return (timestamp == info.timestamp && event == info.event);
-    }
-};
-
 struct PrivateCommandInfo {
     std::chrono::system_clock::time_point timestamp{};
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
@@ -84,7 +58,6 @@ struct JsInputAttribute {
 };
 
 struct SendKeyFunctionContext : public AsyncCall::Context {
-    EditorEventInfo info;
     bool isSendKeyFunction = false;
     int32_t action = 0;
     napi_status status = napi_generic_failure;
@@ -109,7 +82,6 @@ struct SendKeyFunctionContext : public AsyncCall::Context {
 
 struct MoveCursorContext : public AsyncCall::Context {
     int32_t num = 0;
-    EditorEventInfo info;
     napi_status status = napi_generic_failure;
     MoveCursorContext() : Context(nullptr, nullptr){};
     MoveCursorContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -132,7 +104,6 @@ struct MoveCursorContext : public AsyncCall::Context {
 struct DeleteForwardContext : public AsyncCall::Context {
     bool isDeleteForward = false;
     int32_t length = 0;
-    EditorEventInfo info;
     napi_status status = napi_generic_failure;
     DeleteForwardContext() : Context(nullptr, nullptr){};
     DeleteForwardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -155,7 +126,6 @@ struct DeleteForwardContext : public AsyncCall::Context {
 struct DeleteBackwardContext : public AsyncCall::Context {
     bool isDeleteBackward = false;
     int32_t length = 0;
-    EditorEventInfo info;
     napi_status status = napi_generic_failure;
     DeleteBackwardContext() : Context(nullptr, nullptr){};
     DeleteBackwardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -178,7 +148,6 @@ struct DeleteBackwardContext : public AsyncCall::Context {
 struct InsertTextContext : public AsyncCall::Context {
     bool isInsertText = false;
     std::string text;
-    EditorEventInfo info;
     napi_status status = napi_generic_failure;
     InsertTextContext() : Context(nullptr, nullptr){};
     InsertTextContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -201,7 +170,6 @@ struct InsertTextContext : public AsyncCall::Context {
 struct GetForwardContext : public AsyncCall::Context {
     int32_t length = 0;
     std::string text;
-    EditorEventInfo info;
     napi_status status = napi_generic_failure;
     GetForwardContext() : Context(nullptr, nullptr){};
     GetForwardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -224,7 +192,6 @@ struct GetForwardContext : public AsyncCall::Context {
 struct GetBackwardContext : public AsyncCall::Context {
     int32_t length = 0;
     std::string text;
-    EditorEventInfo info;
     napi_status status = napi_generic_failure;
     GetBackwardContext() : Context(nullptr, nullptr){};
     GetBackwardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -262,7 +229,6 @@ struct SelectContext : public AsyncCall::Context {
     int32_t start = 0;
     int32_t end = 0;
     int32_t direction = 0;
-    EditorEventInfo info;
     napi_status status = napi_generic_failure;
     SelectContext() : Context(nullptr, nullptr){};
     SelectContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -283,7 +249,6 @@ struct SelectContext : public AsyncCall::Context {
 
 struct GetTextIndexAtCursorContext : public AsyncCall::Context {
     int32_t index = 0;
-    EditorEventInfo info;
     napi_status status = napi_generic_failure;
     GetTextIndexAtCursorContext() : Context(nullptr, nullptr){};
     GetTextIndexAtCursorContext(InputAction input, OutputAction output)
@@ -306,7 +271,6 @@ struct GetTextIndexAtCursorContext : public AsyncCall::Context {
 
 struct SendExtendActionContext : public AsyncCall::Context {
     int32_t action = 0;
-    EditorEventInfo info;
     SendExtendActionContext() : Context(nullptr, nullptr){};
     SendExtendActionContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
@@ -363,7 +327,6 @@ struct GetCallingWindowInfoContext : public AsyncCall::Context {
 struct SetPreviewTextContext : public AsyncCall::Context {
     std::string text;
     Range range;
-    EditorEventInfo info;
     SetPreviewTextContext() : Context(nullptr, nullptr){};
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -381,7 +344,6 @@ struct SetPreviewTextContext : public AsyncCall::Context {
 };
 
 struct FinishTextPreviewContext : public AsyncCall::Context {
-    EditorEventInfo info;
     FinishTextPreviewContext() : Context(nullptr, nullptr){};
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -442,14 +404,12 @@ private:
     static napi_value GetResultEditorAttribute(napi_env env,
         std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
     static napi_value HandleParamCheckFailure(napi_env env);
-    static void PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo);
     static napi_status GetPreviewTextParam(napi_env env, size_t argc, napi_value *argv, std::string &text,
         Range &range);
 
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;
-    static constexpr std::int32_t MAX_VALUE_LEN = 4096;
-    static FFRTBlockQueue<EditorEventInfo> editorQueue_;
+    static std::shared_ptr<AsyncCall::TaskQueue> taskQueue_;
     static BlockQueue<PrivateCommandInfo> privateCommandQueue_;
     static std::string GenerateTraceId()
     {
