@@ -40,10 +40,11 @@ public:
     void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
     void SetJsConnectionObject(napi_value jsConnectionObject);
     void CallJsFailed(int32_t errorCode);
+    void CleanUpJsObject();
 
 private:
     napi_env env_;
-    std::unique_ptr<NativeReference> jsConnectionObject_ = nullptr;
+    napi_ref jsConnectionObject_ = nullptr;
 };
 
 struct ConnectionKey {

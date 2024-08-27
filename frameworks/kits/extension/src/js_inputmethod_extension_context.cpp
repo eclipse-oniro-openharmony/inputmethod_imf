@@ -517,7 +517,11 @@ void JSInputMethodExtensionConnection::HandleOnAbilityConnectDone(const AppExecF
         return;
     }
 
-    napi_value obj = jsConnectionObject_->GetNapiValue();
+    napi_value obj = nullptr;
+    if (napi_get_reference_value(env_, jsConnectionObject_, &obj) != napi_ok) {
+        IMSA_HILOGE("failed to get jsConnectionObject_!");
+        return;
+    }
     if (obj == nullptr) {
         IMSA_HILOGE("failed to get object!");
         return;
@@ -563,7 +567,11 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(const AppEx
         IMSA_HILOGE("jsConnectionObject_ is nullptr!");
         return;
     }
-    napi_value obj = jsConnectionObject_->GetNapiValue();
+    napi_value obj = nullptr;
+    if (napi_get_reference_value(env_, jsConnectionObject_, &obj) != napi_ok) {
+        IMSA_HILOGE("failed to get jsConnectionObject_!");
+        return;
+    }
     if (obj == nullptr) {
         IMSA_HILOGE("failed to get object!");
         return;
@@ -588,6 +596,9 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(const AppEx
             });
         if (item != connects_.end()) {
             // match bundleName && abilityName
+            if (item->second != nullptr) {
+                item->second->CleanUpJsObject()
+            }
             connects_.erase(item);
             IMSA_HILOGI("OnAbilityDisconnectDone erase connects_.size: %{public}zu.", connects_.size());
         }
@@ -599,9 +610,7 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(const AppEx
 
 void JSInputMethodExtensionConnection::SetJsConnectionObject(napi_value jsConnectionObject)
 {
-    napi_ref value = nullptr;
-    napi_create_reference(env_, jsConnectionObject, 1, &value);
-    jsConnectionObject_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference *>(value));
+    napi_create_reference(env_, jsConnectionObject, 1, &jsConnectionObject_);
 }
 
 void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
@@ -611,7 +620,11 @@ void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
         IMSA_HILOGE("jsConnectionObject_ is nullptr!");
         return;
     }
-    napi_value obj = jsConnectionObject_->GetNapiValue();
+    napi_value obj = nullptr;
+    if (napi_get_reference_value(env_, jsConnectionObject_, &obj) != napi_ok) {
+        IMSA_HILOGE("failed to get jsConnectionObject_!");
+        return;
+    }
     if (obj == nullptr) {
         IMSA_HILOGE("failed to get object.");
         return;
@@ -630,6 +643,14 @@ void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
     napi_value callResult = nullptr;
     napi_call_function(env_, obj, method, ARGC_ONE, argv, &callResult);
     IMSA_HILOGI("CallJsFailed end.");
+}
+
+void JSInputMethodExtensionConnection::CleanUpJsObject()
+{
+    IMSA_HILOGD("CleanUpJsObject");
+    if (jsConnectionObject_ != nullptr) {
+        napi_delete_reference(env_, jsConnectionObject_);
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
