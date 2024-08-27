@@ -40,6 +40,8 @@ constexpr int32_t NUMBER_ZERO = 0;
 constexpr int32_t NUMBER_TWO = 2;
 constexpr int32_t CUTOUTINFO = 100;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
+constexpr int32_t MAXWAITTIME = 30;
+constexpr int32_t WAITTIME = 10;
 InputMethodPanel::~InputMethodPanel() = default;
 
 int32_t InputMethodPanel::CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context,
@@ -613,6 +615,12 @@ PanelFlag InputMethodPanel::GetPanelFlag()
 int32_t InputMethodPanel::ShowPanel()
 {
     IMSA_HILOGD("InputMethodPanel start.");
+    int32_t waitTime = 0;
+    while (isWaitSetUiContent_ && waitTime < MAXWAITTIME) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAITTIME));
+        waitTime += WAITTIME;
+        IMSA_HILOGI("InputMethodPanel show pannel waitTime %{public}d.", waitTime);
+    }
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -804,6 +812,9 @@ int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, napi_env 
         ret = window_->NapiSetUIContent(contentInfo, env, storage->GetNapiValue());
     }
     WMError wmError = window_->SetTransparent(true);
+    if (isWaitSetUiContent_) {
+        isWaitSetUiContent_ = false;
+    }
     IMSA_HILOGI("SetTransparent ret: %{public}u.", wmError);
     IMSA_HILOGI("NapiSetUIContent ret: %{public}d.", ret);
     return ret == WMError::WM_ERROR_INVALID_PARAM ? ErrorCode::ERROR_PARAMETER_CHECK_FAILED : ErrorCode::NO_ERROR;

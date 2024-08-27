@@ -107,6 +107,17 @@ sptr<IInputMethodSystemAbility> InputMethodAbility::GetImsaProxy()
     return abilityManager_;
 }
 
+void InputMethodAbility::SetCoreAndAgentAsync()
+{
+    if (msgHandler_ == nullptr) {
+        IMSA_HILOGE("msgHandler_ is nullptr");
+        SetCoreAndAgent();
+        return;
+    }
+    Message *msg = new Message(MessageID::MSG_ID_SET_COREANDANGENT, nullptr);
+    msgHandler_->SendMessage(msg);
+}
+
 int32_t InputMethodAbility::SetCoreAndAgent()
 {
     IMSA_HILOGD("InputMethodAbility, start.");
@@ -210,6 +221,10 @@ void InputMethodAbility::WorkThread()
             }
             case MSG_ID_SET_SUBTYPE: {
                 OnSetSubtype(msg);
+                break;
+            }
+            case MSG_ID_SET_COREANDANGENT: {
+                SetCoreAndAgent();
                 break;
             }
             default: {
