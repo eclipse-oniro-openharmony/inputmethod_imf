@@ -55,6 +55,7 @@ ohos_shared_library("keyboardpanelmanager") {
     "ability_runtime:abilitykit_native",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",

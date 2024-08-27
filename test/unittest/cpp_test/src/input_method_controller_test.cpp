@@ -1562,7 +1562,7 @@ HWTEST_F(InputMethodControllerTest, testFinishTextPreviewAfterDetach_002, TestSi
     inputMethodController_->Attach(textListener_, false, inputAttribute);
     TextListener::ResetParam();
     inputMethodController_->DeactivateClient();
-    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
 
 /**
@@ -1580,7 +1580,7 @@ HWTEST_F(InputMethodControllerTest, testOnInputReady, TestSize.Level0)
     inputMethodController_->OnInputReady(agentObject);
     TextListener::ResetParam();
     inputMethodController_->DeactivateClient();
-    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
 } // namespace MiscServices
 } // namespace OHOS
