@@ -172,6 +172,9 @@ int32_t InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote(MessageParce
         IMSA_HILOGE("read isBrief failed!");
     }
     ret = GetDefaultInputMethod(prop, isBrief);
+    if (prop == nullptr) {
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
     return ITypesUtil::Marshal(reply, ret, *prop) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
