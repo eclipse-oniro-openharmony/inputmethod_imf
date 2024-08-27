@@ -194,7 +194,7 @@ HWTEST_F(NativeTextChangedListenerTest, ConvertToCEnterKeyTypeTest_001, TestSize
  * @tc.desc: Test ConvertToCDirection.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, ConvertToCDirectionTest_001, TestSize.Level1)
+HWTEST_F(NativeTextChangedListenerTest, ConvertToCDirectionTest_001, TestSize.Level0)
 {
     auto textEditor = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditor);
@@ -211,7 +211,7 @@ HWTEST_F(NativeTextChangedListenerTest, ConvertToCDirectionTest_001, TestSize.Le
  * @tc.desc: Test ConvertToCExtendAction.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, ConvertToCExtendActionTest_001, TestSize.Level1)
+HWTEST_F(NativeTextChangedListenerTest, ConvertToCExtendActionTest_001, TestSize.Level0)
 {
     auto textEditor = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditor);
