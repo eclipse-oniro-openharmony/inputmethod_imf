@@ -597,7 +597,7 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(const AppEx
         if (item != connects_.end()) {
             // match bundleName && abilityName
             if (item->second != nullptr) {
-                item->second->CleanUpJsObject()
+                item->second->CleanUpJsObject();
             }
             connects_.erase(item);
             IMSA_HILOGI("OnAbilityDisconnectDone erase connects_.size: %{public}zu.", connects_.size());
