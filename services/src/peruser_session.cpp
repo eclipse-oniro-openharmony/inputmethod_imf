@@ -1635,17 +1635,21 @@ int32_t PerUserSession::RestoreCurrentIme()
 
 bool PerUserSession::CheckPwdInputPatternConv(InputClientInfo &newClientInfo)
 {
-    auto client = GetCurrentClient();
-    auto curClientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
-    if (curClientInfo == nullptr) {
+    auto exClient = GetCurrentClient();
+    if (exClient == nullptr) {
+        exClient = GetInactiveClient();
+    }
+    auto exClientInfo = exClient != nullptr ? GetClientInfo(exClient->AsObject()) : nullptr;
+    if (exClientInfo == nullptr) {
+        IMSA_HILOGE("exClientInfo is nullptr!");
         return false;
     }
     if (newClientInfo.config.inputAttribute.GetSecurityFlag()) {
         IMSA_HILOGI("new input pattern is pwd.");
-        return !curClientInfo->config.inputAttribute.GetSecurityFlag();
+        return !exClientInfo->config.inputAttribute.GetSecurityFlag();
     }
     IMSA_HILOGI("new input pattern is normal.");
-    return curClientInfo->config.inputAttribute.GetSecurityFlag();
+    return exClientInfo->config.inputAttribute.GetSecurityFlag();
 }
 } // namespace MiscServices
 } // namespace OHOS
