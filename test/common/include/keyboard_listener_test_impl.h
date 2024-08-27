@@ -44,7 +44,7 @@ public:
     static bool WaitTextChange(const std::string &text);
     static bool WaitEditorAttributeChange(const InputAttribute &inputAttribute);
 
-private:
+public:
     static std::mutex kdListenerLock_;
     static std::condition_variable kdListenerCv_;
     static int32_t keyCode_;

@@ -18,7 +18,6 @@
 
 #include "i_input_method_agent.h"
 #include "iremote_stub.h"
-#include "message_handler.h"
 #include "message_option.h"
 #include "message_parcel.h"
 
@@ -36,14 +35,12 @@ public:
         int32_t newEnd) override;
     void SetCallingWindow(uint32_t windowId) override;
     void OnAttributeChange(const InputAttribute &attribute) override;
-    void SetMessageHandler(MessageHandler *msgHandler);
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:
     int32_t DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnAttributeChangeOnRemote(MessageParcel &data, MessageParcel &reply);
-    MessageHandler *msgHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -19,8 +19,8 @@
 #include "input_method_ability.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
-#include "message.h"
-#include "message_handler.h"
+#include "task_manager.h"
+#include "tasks/task_imsa.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -28,15 +28,12 @@ using namespace MessageID;
 
 InputMethodAgentStub::InputMethodAgentStub()
 {
-    msgHandler_ = nullptr;
 }
 
-InputMethodAgentStub::~InputMethodAgentStub()
-{
-}
+InputMethodAgentStub::~InputMethodAgentStub() { }
 
-int32_t InputMethodAgentStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputMethodAgentStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGD("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
@@ -128,8 +125,8 @@ int32_t InputMethodAgentStub::OnAttributeChangeOnRemote(MessageParcel &data, Mes
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAgentStub::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-    sptr<IKeyEventConsumer> &consumer)
+int32_t InputMethodAgentStub::DispatchKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer)
 {
     return false;
 }
@@ -141,31 +138,15 @@ void InputMethodAgentStub::SetCallingWindow(uint32_t windowId)
 
 void InputMethodAgentStub::OnCursorUpdate(int32_t positionX, int32_t positionY, int height)
 {
-    if (msgHandler_ == nullptr) {
-        return;
-    }
-    MessageParcel *data = new MessageParcel();
-    data->WriteInt32(positionX);
-    data->WriteInt32(positionY);
-    data->WriteInt32(height);
-    Message *message = new Message(MessageID::MSG_ID_ON_CURSOR_UPDATE, data);
-    msgHandler_->SendMessage(message);
+    auto task = std::make_shared<TaskImsaOnCursorUpdate>(positionX, positionY, height);
+    TaskManager::GetInstance().PostTask(task);
 }
 
-void InputMethodAgentStub::OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin,
-    int32_t newEnd)
+void InputMethodAgentStub::OnSelectionChange(
+    std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    if (msgHandler_ == nullptr) {
-        return;
-    }
-    MessageParcel *data = new MessageParcel();
-    data->WriteString16(text);
-    data->WriteInt32(oldBegin);
-    data->WriteInt32(oldEnd);
-    data->WriteInt32(newBegin);
-    data->WriteInt32(newEnd);
-    Message *message = new Message(MessageID::MSG_ID_ON_SELECTION_CHANGE, data);
-    msgHandler_->SendMessage(message);
+    auto task = std::make_shared<TaskImsaOnSelectionChange>(text, oldBegin, oldEnd, newBegin, newEnd);
+    TaskManager::GetInstance().PostTask(task);
 }
 
 int32_t InputMethodAgentStub::SendPrivateCommand(
@@ -176,32 +157,9 @@ int32_t InputMethodAgentStub::SendPrivateCommand(
 
 void InputMethodAgentStub::OnAttributeChange(const InputAttribute &attribute)
 {
-    if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("msgHandler_ is nullptr!");
-        return;
-    }
-    auto data = new (std::nothrow) MessageParcel();
-    if (data == nullptr) {
-        IMSA_HILOGE("failed to create message parcel!");
-        return;
-    }
-    if (!ITypesUtil::Marshal(*data, attribute)) {
-        IMSA_HILOGE("failed to write attribute!");
-        delete data;
-        return;
-    }
-    auto message = new (std::nothrow) Message(MessageID::MSG_ID_ON_ATTRIBUTE_CHANGE, data);
-    if (message == nullptr) {
-        IMSA_HILOGE("failed to create Message!");
-        delete data;
-        return;
-    }
-    msgHandler_->SendMessage(message);
+    auto task = std::make_shared<TaskImsaAttributeChange>(attribute);
+    TaskManager::GetInstance().PostTask(task);
 }
 
-void InputMethodAgentStub::SetMessageHandler(MessageHandler *msgHandler)
-{
-    msgHandler_ = msgHandler;
-}
 } // namespace MiscServices
 } // namespace OHOS

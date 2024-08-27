@@ -24,7 +24,6 @@
 #include "input_attribute.h"
 #include "iremote_broker.h"
 #include "iremote_stub.h"
-#include "message_handler.h"
 #include "message_parcel.h"
 
 namespace OHOS {
@@ -47,10 +46,8 @@ public:
     int32_t OnSecurityChange(int32_t security) override;
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
     void OnClientInactive(const sptr<IRemoteObject> &channel) override;
-    void SetMessageHandler(MessageHandler *msgHandler);
 
 private:
-    MessageHandler *msgHandler_;
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);

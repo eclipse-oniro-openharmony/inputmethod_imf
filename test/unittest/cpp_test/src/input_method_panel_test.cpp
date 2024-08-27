@@ -20,6 +20,7 @@
 #include "input_method_ability_utils.h"
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
+#include "task_manager.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -242,12 +243,15 @@ void InputMethodPanelTest::TearDownTestCase(void)
 void InputMethodPanelTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::SetUp");
+    TaskManager::GetInstance().SetInited(true);
 }
 
 void InputMethodPanelTest::TearDown(void)
 {
     TddUtil::RestoreSelfTokenID();
     IMSA_HILOGI("InputMethodPanelTest::TearDown");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    TaskManager::GetInstance().Reset();
 }
 
 std::shared_ptr<InputMethodPanel> InputMethodPanelTest::CreatePanel()
@@ -287,6 +291,7 @@ void InputMethodPanelTest::Attach()
     IdentityCheckerMock::SetFocused(true);
     auto ret = imc_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     IdentityCheckerMock::SetFocused(false);
 }
 
