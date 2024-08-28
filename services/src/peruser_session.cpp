@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "ability_manager_client.h"
+#include "app_mgr_client.h"
 #include "element_name.h"
 #include "identity_checker_impl.h"
 #include "ime_cfg_manager.h"
@@ -32,6 +33,7 @@
 #include "message_parcel.h"
 #include "os_account_adapter.h"
 #include "parcel.h"
+#include "running_process_info.h"
 #include "scene_board_judgement.h"
 #include "security_mode_parser.h"
 #include "system_ability_definition.h"
@@ -42,10 +44,13 @@ namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
 using namespace MessageID;
+using namespace OHOS::AppExecFwk;
 constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
 constexpr const char *STRICT_MODE = "strictMode";
 constexpr const char *ISOLATED_SANDBOX = "isolatedSandbox";
+constexpr uint32_t CHECK_IME_RUNNING_RETRY_INTERVAL = 60;
+constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
 PerUserSession::PerUserSession(int userId) : userId_(userId)
 {
 }
@@ -53,6 +58,10 @@ PerUserSession::PerUserSession(int userId) : userId_(userId)
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
     : userId_(userId), eventHandler_(eventHandler)
 {
+    auto bundleNames = ImeInfoInquirer::GetInstance().GetRunningIme(userId_);
+    if (!bundleNames.empty()) {
+        runningIme_ = bundleNames[0]; // one user only has one ime at present
+    }
 }
 
 PerUserSession::~PerUserSession()
@@ -1434,7 +1443,7 @@ bool PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isS
     }
     auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
-        return StartInputService(ime);
+        return HandleFirstStart(ime, isStopCurrentIme);
     }
     if (imeData->ime.first == ime->bundleName && imeData->ime.second == ime->extName) {
         if (isStopCurrentIme) {
@@ -1571,7 +1580,7 @@ bool PerUserSession::StopExitingCurrentIme()
     if (imeData == nullptr) {
         return true;
     }
-    if (!ImeInfoInquirer::GetInstance().IsRunningExtension(imeData->ime)) {
+    if (!ImeInfoInquirer::GetInstance().IsRunningIme(userId_, imeData->ime.first)) {
         IMSA_HILOGD("already stop!");
         RemoveImeData(ImeType::IME, true);
         return true;
@@ -1603,12 +1612,31 @@ bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
         return true;
     }
     WaitForCurrentImeStop();
-    if (ImeInfoInquirer::GetInstance().IsRunningExtension(imeData->ime)) {
+    if (ImeInfoInquirer::GetInstance().IsRunningIme(userId_, imeData->ime.first)) {
         IMSA_HILOGW("stop [%{public}s, %{public}s] timeout.", imeData->ime.first.c_str(), imeData->ime.second.c_str());
         return false;
     }
     RemoveImeData(ImeType::IME, true);
     return true;
+}
+
+bool PerUserSession::HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme)
+{
+    if (runningIme_.empty()) {
+        return StartInputService(ime);
+    }
+    IMSA_HILOGW("imsa abnormal restore.");
+    if (isStopCurrentIme) {
+        return true;
+    }
+    if (BlockRetry(CHECK_IME_RUNNING_RETRY_INTERVAL, CHECK_IME_RUNNING_RETRY_TIMES,
+                   [this]() -> bool { return !ImeInfoInquirer::GetInstance().IsRunningIme(userId_, runningIme_); })) {
+        IMSA_HILOGI("[%{public}d, %{public}s] stop completely", userId_, runningIme_.c_str());
+        runningIme_.clear();
+        return StartInputService(ime);
+    }
+    IMSA_HILOGW("[%{public}d, %{public}s] stop timeout", userId_, runningIme_.c_str());
+    return false;
 }
 
 int32_t PerUserSession::RestoreCurrentIme()

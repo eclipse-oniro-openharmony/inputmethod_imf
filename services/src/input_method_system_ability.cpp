@@ -290,6 +290,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     if (!session->IsProxyImeEnable()) {
         auto ret = CheckInputTypeOption(userId, inputClientInfo);
         if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("%{public}d failed to CheckInputTypeOption.", userId);
             return ret;
         }
     }
@@ -314,11 +315,11 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         if (!inputClientInfo.isNotifyInputStart) {
-            IMSA_HILOGD("SecurityFlag, same textFiled, input type is started, not deal.");
+            IMSA_HILOGD("SecurityFlag, same textField, input type is started, not deal.");
             return ErrorCode::NO_ERROR;
         }
         if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
-            IMSA_HILOGD("SecurityFlag, new textFiled, input type is started, but it is not security, switch.");
+            IMSA_HILOGD("SecurityFlag, new textField, input type is started, but it is not security, switch.");
             inputClientInfo.needHide = false;
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
@@ -326,13 +327,17 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         return ErrorCode::NO_ERROR;
     }
     if (!inputClientInfo.isNotifyInputStart) {
-        IMSA_HILOGD("NormalFlag, same textFiled, not deal.");
+        IMSA_HILOGD("NormalFlag, same textField, not deal.");
         return ErrorCode::NO_ERROR;
     }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
+        session->RestoreCurrentImeSubType();
     }
     return session->RestoreCurrentIme();
 }
@@ -441,6 +446,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
         return session->OnRegisterProxyIme(core, agent);
     }
     if (!IsCurrentIme(userId)) {
+        IMSA_HILOGE("not current ime, userId:%{public}d", userId);
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     return session->OnSetCoreAndAgent(core, agent);
