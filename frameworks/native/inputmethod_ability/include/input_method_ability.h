@@ -49,6 +49,7 @@ public:
     ~InputMethodAbility();
     static sptr<InputMethodAbility> GetInstance();
     int32_t SetCoreAndAgent();
+    void SetCoreAndAgentAsync();
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);

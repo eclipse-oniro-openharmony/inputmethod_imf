@@ -18,7 +18,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-InputMethod_TextConfig *OH_TextConfig_Create()
+InputMethod_TextConfig *OH_TextConfig_Create(void)
 {
     return new InputMethod_TextConfig();
 }

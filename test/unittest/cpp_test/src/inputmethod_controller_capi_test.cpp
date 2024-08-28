@@ -1425,3 +1425,90 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_SendPrivateCommand_0
     ret = OH_InputMethodProxy_SendPrivateCommand(nullptr, privateCommand, size);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }
+
+/**
+ * @tc.name: TestAttachWithNullParam_001
+ * @tc.desc: input parameters is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, TestAttachWithNullParam_001, TestSize.Level0)
+{
+    auto ret = OH_InputMethodController_Attach(nullptr, nullptr, nullptr);
+    EXPECT_EQ(IME_ERR_NULL_POINTER, ret);
+
+    auto textEditorProxy = OH_TextEditorProxy_Create();
+    EXPECT_NE(nullptr, textEditorProxy);
+
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetTextConfigFunc(textEditorProxy, GetTextConfigFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetInsertTextFunc(textEditorProxy, InsertTextFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetDeleteForwardFunc(textEditorProxy, DeleteForwardFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetDeleteBackwardFunc(textEditorProxy, DeleteBackwardFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetSendKeyboardStatusFunc(textEditorProxy, SendKeyboardStatusFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetSendEnterKeyFunc(textEditorProxy, SendEnterKeyFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetMoveCursorFunc(textEditorProxy, MoveCursorFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetHandleSetSelectionFunc(textEditorProxy, HandleSetSelectionFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetHandleExtendActionFunc(textEditorProxy, HandleExtendActionFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetLeftTextOfCursorFunc(textEditorProxy, GetleftTextOfCursorFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetRightTextOfCursorFunc(textEditorProxy, GetRightTextOfCursorFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetTextIndexAtCursorFunc(textEditorProxy, GetTextIndexAtCursorFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetReceivePrivateCommandFunc(textEditorProxy, ReceivePrivateCommandFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetSetPreviewTextFunc(textEditorProxy, SetPreviewTextFunc));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_InputMethodController_Attach(textEditorProxy, nullptr, nullptr));
+
+    OH_TextEditorProxy_Destroy(textEditorProxy);
+}
+
+/**
+ * @tc.name: TestAttachWithNorrmalParam_001
+ * @tc.desc: input parameters is normal
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, TestAttachWithNorrmalParam_001, TestSize.Level0)
+{
+    auto textEditorProxy = OH_TextEditorProxy_Create();
+    EXPECT_NE(nullptr, textEditorProxy);
+    ConstructTextEditorProxy(textEditorProxy);
+
+    auto options = OH_AttachOptions_Create(true);
+    EXPECT_NE(nullptr, options);
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_IMCLIENT, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
+    EXPECT_EQ(IME_ERR_IMCLIENT, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
+
+    auto textEditorProxy2 = OH_TextEditorProxy_Create();
+    EXPECT_NE(nullptr, textEditorProxy2);
+    ConstructTextEditorProxy(textEditorProxy2);
+    EXPECT_EQ(IME_ERR_IMCLIENT, OH_InputMethodController_Attach(textEditorProxy2, options, &inputMethodProxy));
+    OH_TextEditorProxy_Destroy(textEditorProxy2);
+
+    OH_AttachOptions_Destroy(options);
+    OH_TextEditorProxy_Destroy(textEditorProxy);
+}
