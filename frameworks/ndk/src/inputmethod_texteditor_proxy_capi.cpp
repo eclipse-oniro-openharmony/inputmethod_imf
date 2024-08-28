@@ -16,7 +16,7 @@
 #include "native_inputmethod_types.h"
 
 using namespace OHOS::MiscServices;
-InputMethod_TextEditorProxy *OH_TextEditorProxy_Create()
+InputMethod_TextEditorProxy *OH_TextEditorProxy_Create(void)
 {
     return new InputMethod_TextEditorProxy();
 }

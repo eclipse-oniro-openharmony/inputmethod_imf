@@ -80,7 +80,13 @@ static InputMethod_ErrorCode GetInputMethodProxy(InputMethod_TextEditorProxy *te
     }
     return IME_ERR_OK;
 }
-
+#define CHECK_MEMBER_NULL(textEditor, member)   \
+    do {                                        \
+        if ((textEditor)->member == nullptr) {  \
+            IMSA_HILOGE(#member " is nullptr"); \
+            return IME_ERR_NULL_POINTER;        \
+        }                                       \
+    } while (0)
 static int32_t IsValidTextEditorProxy(InputMethod_TextEditorProxy *textEditor)
 {
     if (textEditor == nullptr) {
@@ -88,77 +94,21 @@ static int32_t IsValidTextEditorProxy(InputMethod_TextEditorProxy *textEditor)
         return IME_ERR_NULL_POINTER;
     }
 
-    if (textEditor->getTextConfigFunc == nullptr) {
-        IMSA_HILOGE("textEditor->getTextConfigFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->insertTextFunc == nullptr) {
-        IMSA_HILOGE("textEditor->insertTextFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->deleteForwardFunc == nullptr) {
-        IMSA_HILOGE("textEditor->deleteForwardFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->deleteBackwardFunc == nullptr) {
-        IMSA_HILOGE("textEditor->deleteBackwardFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->sendKeyboardStatusFunc == nullptr) {
-        IMSA_HILOGE("textEditor->sendKeyboardStatusFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-    if (textEditor->sendEnterKeyFunc == nullptr) {
-        IMSA_HILOGE("textEditor->sendEnterKeyFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->moveCursorFunc == nullptr) {
-        IMSA_HILOGE("textEditor->moveCursorFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->handleSetSelectionFunc == nullptr) {
-        IMSA_HILOGE("textEditor->handleSetSelectionFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->handleExtendActionFunc == nullptr) {
-        IMSA_HILOGE("textEditor->handleExtendActionFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->getLeftTextOfCursorFunc == nullptr) {
-        IMSA_HILOGE("textEditor->getLeftTextOfCursorFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->getRightTextOfCursorFunc == nullptr) {
-        IMSA_HILOGE("textEditor->getRightTextOfCursorFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-    if (textEditor->getTextIndexAtCursorFunc == nullptr) {
-        IMSA_HILOGE("textEditor->getTextIndexAtCursorFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-    if (textEditor->receivePrivateCommandFunc == nullptr) {
-        IMSA_HILOGE("textEditor->receivePrivateCommandFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-    if (textEditor->setPreviewTextFunc == nullptr) {
-        IMSA_HILOGE("textEditor->setPreviewTextFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    if (textEditor->finishTextPreviewFunc == nullptr) {
-        IMSA_HILOGE("textEditor->finishTextPreviewFunc is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
-
+    CHECK_MEMBER_NULL(textEditor, getTextConfigFunc);
+    CHECK_MEMBER_NULL(textEditor, insertTextFunc);
+    CHECK_MEMBER_NULL(textEditor, deleteForwardFunc);
+    CHECK_MEMBER_NULL(textEditor, deleteBackwardFunc);
+    CHECK_MEMBER_NULL(textEditor, sendKeyboardStatusFunc);
+    CHECK_MEMBER_NULL(textEditor, sendEnterKeyFunc);
+    CHECK_MEMBER_NULL(textEditor, moveCursorFunc);
+    CHECK_MEMBER_NULL(textEditor, handleSetSelectionFunc);
+    CHECK_MEMBER_NULL(textEditor, handleExtendActionFunc);
+    CHECK_MEMBER_NULL(textEditor, getLeftTextOfCursorFunc);
+    CHECK_MEMBER_NULL(textEditor, getRightTextOfCursorFunc);
+    CHECK_MEMBER_NULL(textEditor, getTextIndexAtCursorFunc);
+    CHECK_MEMBER_NULL(textEditor, receivePrivateCommandFunc);
+    CHECK_MEMBER_NULL(textEditor, setPreviewTextFunc);
+    CHECK_MEMBER_NULL(textEditor, finishTextPreviewFunc);
     return IME_ERR_OK;
 }
 
@@ -218,7 +168,7 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
     return errCode;
 }
 
-void ClearInputMethodProxy()
+void ClearInputMethodProxy(void)
 {
     std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
     if (g_inputMethodProxy != nullptr) {

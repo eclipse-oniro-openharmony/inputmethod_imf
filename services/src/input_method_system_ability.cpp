@@ -311,6 +311,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
         if (!InputTypeManager::GetInstance().IsStarted()) {
             IMSA_HILOGD("SecurityFlag, input type is not started, start.");
+            inputClientInfo.needHide = false;
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         if (!inputClientInfo.isNotifyInputStart) {
@@ -319,6 +320,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         }
         if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
             IMSA_HILOGD("SecurityFlag, new textField, input type is started, but it is not security, switch.");
+            inputClientInfo.needHide = false;
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         IMSA_HILOGD("SecurityFlag, other condition, not deal.");

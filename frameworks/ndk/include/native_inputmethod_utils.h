@@ -22,7 +22,7 @@ InputMethod_ErrorCode ErrorCodeConvert(int32_t code);
 extern "C"{
 #endif /* __cplusplus */
 InputMethod_ErrorCode IsValidInputMethodProxy(InputMethod_InputMethodProxy *inputMethodProxy);
-void ClearInputMethodProxy();
+void ClearInputMethodProxy(void);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

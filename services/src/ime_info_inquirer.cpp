@@ -1085,34 +1085,30 @@ bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
     return iter != extInfo.metadata.end();
 }
 
-std::string ImeInfoInquirer::GetRunningIme(int32_t userId)
+std::vector<std::string> ImeInfoInquirer::GetRunningIme(int32_t userId)
 {
-    std::string bundleName;
+    std::vector<std::string> bundleNames;
     std::vector<RunningProcessInfo> infos;
     AppMgrClient client;
     auto ret = client.GetProcessRunningInfosByUserId(infos, userId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
-        return bundleName;
+        return bundleNames;
     }
-    auto it = std::find_if(infos.begin(), infos.end(),
-        [](const RunningProcessInfo &info) { return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD; });
-    if (it == infos.end()) {
-        IMSA_HILOGD("userId:%{public}d not has running ime!", userId);
-        return bundleName;
+    for (const auto &info : infos) {
+        if (info.extensionType_ == ExtensionAbilityType::INPUTMETHOD && !info.bundleNames.empty()) {
+            bundleNames.push_back(info.bundleNames[0]);
+        }
     }
-    if (it->bundleNames.empty()) {
-        IMSA_HILOGE("userId:%{public}d bundleNames is empty!", userId);
-        return bundleName;
-    }
-    bundleName = it->bundleNames[0];
-    return bundleName;
+    return bundleNames;
 }
 
 bool ImeInfoInquirer::IsRunningIme(int32_t userId, const std::string &bundleName)
 {
-    auto imeBundleName = GetRunningIme(userId);
-    return bundleName == imeBundleName;
+    auto bundleNames = GetRunningIme(userId);
+    auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
+        [&bundleName](const std::string &bundleNameTemp) { return bundleName == bundleNameTemp; });
+    return it != bundleNames.end();
 }
 
 bool ImeInfoInquirer::GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId)

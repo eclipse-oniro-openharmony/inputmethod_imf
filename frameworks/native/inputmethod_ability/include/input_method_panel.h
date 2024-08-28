@@ -177,6 +177,7 @@ private:
         {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, UNFOLD_BOTTOM},
         {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, COMMON_BOTTOM}
     };
+    std::atomic<bool> isWaitSetUiContent_{true};
 };
 } // namespace MiscServices
 } // namespace OHOS
