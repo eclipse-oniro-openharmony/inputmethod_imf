@@ -98,6 +98,7 @@ public:
     virtual void FinishTextPreview()
     {
     }
+    virtual void OnDetach() { }
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
@@ -770,6 +771,7 @@ private:
 
     int32_t Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
+    void RemoveDeathRecipient();
     int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
     int32_t ShowInput(sptr<IInputClient> &client);
     int32_t HideInput(sptr<IInputClient> &client);
