@@ -49,8 +49,6 @@ bool FuzzCoreStub(const uint8_t *rawData, size_t size)
     MessageOption option;
 
     sptr<InputMethodCoreStub> stub = new InputMethodCoreStub();
-    MessageHandler *handler = MessageHandler::Instance();
-    stub->SetMessageHandler(handler);
     stub->OnRemoteRequest(code, data, reply, option);
 
     return true;

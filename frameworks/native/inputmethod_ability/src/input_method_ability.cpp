@@ -31,10 +31,11 @@
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
+#include "tasks/task.h"
+#include "task_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
-class MessageHandler;
 using namespace MessageID;
 sptr<InputMethodAbility> InputMethodAbility::instance_;
 std::mutex InputMethodAbility::instanceLock_;
@@ -42,18 +43,15 @@ constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
 constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
-InputMethodAbility::InputMethodAbility() : msgHandler_(nullptr), stop_(false)
+constexpr uint32_t START_INPUT_CALLBACK_TIMEOUT_MS = 1000;
+
+InputMethodAbility::InputMethodAbility()
 {
 }
 
 InputMethodAbility::~InputMethodAbility()
 {
     IMSA_HILOGI("InputMethodAbility::~InputMethodAbility.");
-    QuitWorkThread();
-    if (msgHandler_ != nullptr) {
-        delete msgHandler_;
-        msgHandler_ = nullptr;
-    }
 }
 
 sptr<InputMethodAbility> InputMethodAbility::GetInstance()
@@ -107,17 +105,6 @@ sptr<IInputMethodSystemAbility> InputMethodAbility::GetImsaProxy()
     return abilityManager_;
 }
 
-void InputMethodAbility::SetCoreAndAgentAsync()
-{
-    if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("msgHandler_ is nullptr");
-        SetCoreAndAgent();
-        return;
-    }
-    Message *msg = new Message(MessageID::MSG_ID_SET_COREANDANGENT, nullptr);
-    msgHandler_->SendMessage(msg);
-}
-
 int32_t InputMethodAbility::SetCoreAndAgent()
 {
     IMSA_HILOGD("InputMethodAbility, start.");
@@ -164,16 +151,8 @@ void InputMethodAbility::Initialize()
         IMSA_HILOGE("failed to create agent!");
         return;
     }
-    msgHandler_ = new (std::nothrow) MessageHandler();
-    if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("failed to create message handler!");
-        return;
-    }
-    coreStub->SetMessageHandler(msgHandler_);
-    agentStub->SetMessageHandler(msgHandler_);
     agentStub_ = agentStub;
     coreStub_ = coreStub;
-    workThreadHandler = std::thread([this] { this->WorkThread(); });
 }
 
 void InputMethodAbility::SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)
@@ -197,62 +176,14 @@ void InputMethodAbility::SetKdListener(std::shared_ptr<KeyboardListener> kdListe
     }
 }
 
-void InputMethodAbility::WorkThread()
-{
-    prctl(PR_SET_NAME, "OS_IMAWorkThread start.");
-    while (!stop_) {
-        Message *msg = msgHandler_->GetMessage();
-        switch (msg->msgId_) {
-            case MSG_ID_INIT_INPUT_CONTROL_CHANNEL: {
-                OnInitInputControlChannel(msg);
-                break;
-            }
-            case MSG_ID_ON_CURSOR_UPDATE: {
-                OnCursorUpdate(msg);
-                break;
-            }
-            case MSG_ID_ON_SELECTION_CHANGE: {
-                OnSelectionChange(msg);
-                break;
-            }
-            case MSG_ID_ON_ATTRIBUTE_CHANGE: {
-                OnAttributeChange(msg);
-                break;
-            }
-            case MSG_ID_SET_SUBTYPE: {
-                OnSetSubtype(msg);
-                break;
-            }
-            case MSG_ID_SET_COREANDANGENT: {
-                SetCoreAndAgent();
-                break;
-            }
-            default: {
-                IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
-                break;
-            }
-        }
-        delete msg;
-        msg = nullptr;
-    }
-}
-
-void InputMethodAbility::OnInitInputControlChannel(Message *msg)
+void InputMethodAbility::OnInitInputControlChannel(sptr<IRemoteObject> channelObj)
 {
     IMSA_HILOGD("InputMethodAbility::OnInitInputControlChannel start.");
-    MessageParcel *data = msg->msgContent_;
-    sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-    if (channelObject == nullptr) {
-        IMSA_HILOGE("channelObject is nullptr!");
-        return;
-    }
-    SetInputControlChannel(channelObject);
+    SetInputControlChannel(channelObj);
 }
 
 int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
-    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
-    int32_t cmdCount = ++cmdId_;
     if (clientInfo.channel == nullptr) {
         IMSA_HILOGE("channelObject is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -273,31 +204,32 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d!", ret);
         return ret;
     }
+
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
-    if (clientInfo.isShowKeyboard) {
-        auto task = [this, cmdCount]() {
-            std::thread([this, cmdCount]() { ShowKeyboardImplWithLock(cmdCount); }).detach();
-        };
-        if (imeListener_ == nullptr || !imeListener_->PostTaskToEventHandler(task, "ShowKeyboard")) {
-            IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
-            ShowKeyboardImplWithoutLock(cmdCount);
+    auto showPanel = [&, needShow = clientInfo.isShowKeyboard] {
+        if (needShow) {
+            ShowKeyboardImplWithoutLock(cmdId_);
         }
+    };
+
+    if (!imeListener_) {
+        showPanel();
+        return ErrorCode::NO_ERROR;
     }
+
+    uint64_t seqId = Task::GetNextSeqId();
+    imeListener_->PostTaskToEventHandler(
+        [seqId] {
+            TaskManager::GetInstance().Complete(seqId);
+        },
+        "task_manager_complete");
+
+    TaskManager::GetInstance().WaitExec(seqId, START_INPUT_CALLBACK_TIMEOUT_MS, showPanel);
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodAbility::OnSetSubtype(Message *msg)
+void InputMethodAbility::OnSetSubtype(SubProperty subProperty)
 {
-    auto data = msg->msgContent_;
-    SubProperty subProperty;
-    if (!ITypesUtil::Unmarshal(*data, subProperty)) {
-        IMSA_HILOGE("read message parcel failed!");
-        return;
-    }
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr!");
-        return;
-    }
     imeListener_->OnSetSubtype(subProperty);
 }
 
@@ -315,7 +247,7 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
     }
 }
 
-int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
+int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject)
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     int32_t cmdCount = ++cmdId_;
@@ -363,12 +295,8 @@ void InputMethodAbility::SetCallingWindow(uint32_t windowId)
     imeListener_->OnSetCallingWindow(windowId);
 }
 
-void InputMethodAbility::OnCursorUpdate(Message *msg)
+void InputMethodAbility::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
-    MessageParcel *data = msg->msgContent_;
-    int32_t positionX = data->ReadInt32();
-    int32_t positionY = data->ReadInt32();
-    int32_t height = data->ReadInt32();
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("kdListener_ is nullptr!");
         return;
@@ -377,33 +305,21 @@ void InputMethodAbility::OnCursorUpdate(Message *msg)
     kdListener_->OnCursorUpdate(positionX, positionY, height);
 }
 
-void InputMethodAbility::OnSelectionChange(Message *msg)
+void InputMethodAbility::OnSelectionChange(
+    std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    MessageParcel *data = msg->msgContent_;
-    std::string text = Str16ToStr8(data->ReadString16());
-    int32_t oldBegin = data->ReadInt32();
-    int32_t oldEnd = data->ReadInt32();
-    int32_t newBegin = data->ReadInt32();
-    int32_t newEnd = data->ReadInt32();
-
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("kdListener_ is nullptr!");
         return;
     }
-    kdListener_->OnTextChange(text);
+    kdListener_->OnTextChange(Str16ToStr8(text));
     kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
 }
 
-void InputMethodAbility::OnAttributeChange(Message *msg)
+void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
 {
-    if (kdListener_ == nullptr || msg == nullptr) {
-        IMSA_HILOGE("kdListener_ or msg is nullptr!");
-        return;
-    }
-    MessageParcel *data = msg->msgContent_;
-    InputAttribute attribute;
-    if (!ITypesUtil::Unmarshal(*data, attribute)) {
-        IMSA_HILOGE("failed to read attribute!");
+    if (kdListener_ == nullptr) {
+        IMSA_HILOGE("kdListener_ is nullptr!");
         return;
     }
     IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d.", attribute.enterKeyType,
@@ -807,16 +723,6 @@ void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
     }
     if (imeListener_ != nullptr) {
         imeListener_->OnInputStop();
-    }
-}
-
-void InputMethodAbility::QuitWorkThread()
-{
-    stop_ = true;
-    Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
-    msgHandler_->SendMessage(msg);
-    if (workThreadHandler.joinable()) {
-        workThreadHandler.join();
     }
 }
 

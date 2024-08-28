@@ -22,16 +22,16 @@
 #include "input_method_ability.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
-#include "message_handler.h"
 #include "message_parcel.h"
 #include "system_cmd_channel_proxy.h"
+#include "tasks/task_imsa.h"
+#include "task_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 InputMethodCoreStub::InputMethodCoreStub()
 {
-    msgHandler_ = nullptr;
 }
 
 InputMethodCoreStub::~InputMethodCoreStub()
@@ -58,29 +58,30 @@ int32_t InputMethodCoreStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
 int32_t InputMethodCoreStub::InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel)
 {
-    return SendMessage(MessageID::MSG_ID_INIT_INPUT_CONTROL_CHANNEL, [inputControlChannel](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, inputControlChannel->AsObject());
-    });
+    auto task = std::make_shared<TaskImsaInitInputCtrlChannel>(inputControlChannel->AsObject());
+    TaskManager::GetInstance().PostTask(task);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodCoreStub::ShowKeyboard()
 {
-    return InputMethodAbility::GetInstance()->ShowKeyboard();
+    auto task = std::make_shared<TaskImsaShowKeyboard>();
+    TaskManager::GetInstance().PostTask(task);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodCoreStub::HideKeyboard(bool isForce)
 {
-    return InputMethodAbility::GetInstance()->HideKeyboard(isForce);
+    auto task = std::make_shared<TaskImsaHideKeyboard>(isForce);
+    TaskManager::GetInstance().PostTask(task);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodCoreStub::StopInputService(bool isTerminateIme)
 {
-    return InputMethodAbility::GetInstance()->OnStopInputService(isTerminateIme);
-}
-
-void InputMethodCoreStub::SetMessageHandler(MessageHandler *msgHandler)
-{
-    msgHandler_ = msgHandler;
+    auto task = std::make_shared<TaskImsaStopInputService>(isTerminateIme);
+    TaskManager::GetInstance().PostTask(task);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -146,10 +147,14 @@ int32_t InputMethodCoreStub::OnConnectSystemCmdOnRemote(MessageParcel &data, Mes
 int32_t InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     SubProperty property;
-    int32_t ret = SendMessage(MessageID::MSG_ID_SET_SUBTYPE, [&data, &property](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, property) && ITypesUtil::Marshal(parcel, property);
-    });
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    if (!ITypesUtil::Unmarshal(data, property)) {
+        IMSA_HILOGE("failed to read message parcel!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+
+    auto task = std::make_shared<TaskImsaOnSetSubProperty>(property);
+    TaskManager::GetInstance().PostTask(task);
+    return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -159,8 +164,10 @@ int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParce
         IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto ret = InputMethodAbility::GetInstance()->StopInput(channel);
-    return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+
+    auto task = std::make_shared<TaskImsaStopInput>(channel);
+    TaskManager::GetInstance().PostTask(task);
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::IsEnableOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -217,13 +224,17 @@ int32_t InputMethodCoreStub::OnClientInactiveOnRemote(MessageParcel &data, Messa
         IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    InputMethodAbility::GetInstance()->OnClientInactive(channel);
+
+    auto task = std::make_shared<TaskImsaOnClientInactive>(channel);
+    TaskManager::GetInstance().PostTask(task);
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
-    return InputMethodAbility::GetInstance()->StartInput(clientInfo, isBindFromClient);
+    auto task = std::make_shared<TaskImsaStartInput>(clientInfo, isBindFromClient);
+    TaskManager::GetInstance().PostTask(task);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodCoreStub::SetSubtype(const SubProperty &property)
@@ -255,31 +266,5 @@ void InputMethodCoreStub::OnClientInactive(const sptr<IRemoteObject> &channel)
 {
 }
 
-int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)
-{
-    IMSA_HILOGD("InputMethodCoreStub::SendMessage start.");
-    if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    auto *parcel = new (std::nothrow) MessageParcel();
-    if (parcel == nullptr) {
-        IMSA_HILOGE("parcel is nullptr!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    if (input != nullptr && (!input(*parcel))) {
-        IMSA_HILOGE("write data failed!");
-        delete parcel;
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    auto *msg = new (std::nothrow) Message(code, parcel);
-    if (msg == nullptr) {
-        IMSA_HILOGE("msg is nullptr!");
-        delete parcel;
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    msgHandler_->SendMessage(msg);
-    return ErrorCode::NO_ERROR;
-}
 } // namespace MiscServices
 } // namespace OHOS

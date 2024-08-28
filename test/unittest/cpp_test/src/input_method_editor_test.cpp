@@ -18,6 +18,7 @@
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
+#include "task_manager.h"
 #undef private
 #include <event_handler.h>
 #include <gtest/gtest.h>
@@ -180,11 +181,14 @@ void InputMethodEditorTest::TearDownTestCase(void)
 void InputMethodEditorTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodEditorTest::SetUp");
+    TaskManager::GetInstance().SetInited(true);
 }
 
 void InputMethodEditorTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodEditorTest::TearDown");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    TaskManager::GetInstance().Reset();
 }
 
 /**
@@ -279,20 +283,24 @@ HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 
     InputMethodEditorTest::imeListener_->isInputStart_ = false;
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_);
-    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-    EXPECT_TRUE(imeListener_->keyboardState_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::SHOW);
+    EXPECT_TRUE(InputMethodEngineListenerImpl::keyboardState_);
 
     InputMethodEditorTest::imeListener_->isInputStart_ = false;
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
-    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-    EXPECT_TRUE(imeListener_->keyboardState_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::SHOW);
+    EXPECT_TRUE(InputMethodEngineListenerImpl::keyboardState_);
+
     InputMethodEditorTest::inputMethodController_->Close();
     IdentityCheckerMock::SetFocused(false);
 }
@@ -311,8 +319,10 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
     TextListener::ResetParam();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     InputMethodEditorTest::inputMethodController_->Close();
     IdentityCheckerMock::SetFocused(false);
@@ -481,7 +491,7 @@ HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
     imeListener_->keyboardState_ = false;
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeListener_->keyboardState_);
+    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitKeyboardStatus(true));
     IdentityCheckerMock::SetFocused(false);
 }
 
@@ -511,9 +521,12 @@ HWTEST_F(InputMethodEditorTest, testRequestHideInput_002, TestSize.Level0)
     IdentityCheckerMock::SetFocused(true);
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
     imeListener_->keyboardState_ = true;
     ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     EXPECT_FALSE(imeListener_->keyboardState_);
     InputMethodEditorTest::inputMethodController_->Close();
     IdentityCheckerMock::SetFocused(false);
