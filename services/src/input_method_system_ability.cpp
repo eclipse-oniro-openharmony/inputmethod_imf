@@ -310,6 +310,8 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
         if (!InputTypeManager::GetInstance().IsStarted()) {
             IMSA_HILOGD("SecurityFlag, input type is not started, start.");
+            // if need to switch ime, no need to hide panel first.
+            NeedHideWhenSwitchInputType(userId, inputClientInfo.needHide);
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         if (!inputClientInfo.isNotifyInputStart) {
@@ -318,6 +320,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         }
         if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
             IMSA_HILOGD("SecurityFlag, new textFiled, input type is started, but it is not security, switch.");
+            NeedHideWhenSwitchInputType(userId, inputClientInfo.needHide);
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         IMSA_HILOGD("SecurityFlag, other condition, not deal.");
@@ -1724,6 +1727,18 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     IMSA_HILOGI("start input type: %{public}d.", type);
     return type == InputType::SECURITY_INPUT ? OnStartInputType(userId, switchInfo, false)
                                              : OnStartInputType(userId, switchInfo, true);
+}
+
+void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, bool &needHide)
+{
+    ImeIdentification ime;
+    InputTypeManager::GetInstance().GetImeByInputType(InputType::SECURITY_INPUT, ime);
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    if (currentImeCfg == nullptr) {
+        IMSA_HILOGI("currentImeCfg is nullptr");
+        return;
+    }
+    needHide = currentImeCfg->bundleName == ime.bundleName;
 }
 } // namespace MiscServices
 } // namespace OHOS

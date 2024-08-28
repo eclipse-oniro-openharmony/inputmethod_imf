@@ -159,6 +159,8 @@ private:
     void OnSecurityModeChange();
     bool IsCurrentIme(int32_t userId);
     int32_t StartInputType(int32_t userId, InputType type);
+    // if switch input type need to switch ime, then no need to hide panel first.
+    void NeedHideWhenSwitchInputType(int32_t userId, bool &needHide);
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
