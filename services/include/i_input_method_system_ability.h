@@ -58,6 +58,7 @@ public:
     virtual int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) = 0;
     virtual int32_t DisplayOptionalInputMethod() = 0;
     virtual int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) = 0;
+    virtual int32_t InitConnect() = 0;
     virtual int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) = 0;
     virtual int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) = 0;
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
@@ -67,6 +68,7 @@ public:
     virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) = 0;
     virtual bool IsCurrentIme() = 0;
     virtual bool IsInputTypeSupported(InputType type) = 0;
+    virtual bool IsCurrentImeByPid(int32_t pid) = 0;
     virtual int32_t StartInputType(InputType type) = 0;
     virtual int32_t ExitCurrentInputType() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;

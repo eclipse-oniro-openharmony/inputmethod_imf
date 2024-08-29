@@ -1218,6 +1218,17 @@ int32_t PerUserSession::RestoreCurrentImeSubType()
     return SwitchSubtype(subProp);
 }
 
+bool PerUserSession::IsCurrentImeByPid(int32_t pid)
+{
+    auto imeDate = GetReadyImeData(ImeType::IME);
+    if (imeDate == nullptr) {
+        IMSA_HILOGE("ime not started!");
+        return false;
+    }
+    IMSA_HILOGD("userId: %{public}d, pid: %{public}d, current pid: %{public}d.", userId_, pid, imeDate->pid);
+    return imeDate->pid == pid;
+}
+
 int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     if (GetCurrentClient() == nullptr) {
@@ -1422,6 +1433,17 @@ int32_t PerUserSession::UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteO
         return ErrorCode::ERROR_ADD_DEATH_RECIPIENT_FAILED;
     }
     it->second->deathRecipient = deathRecipient;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::InitConnect(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(imeDataLock_);
+    auto it = imeData_.find(ImeType::IME);
+    if (it == imeData_.end()) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    it->second->pid = pid;
     return ErrorCode::NO_ERROR;
 }
 
