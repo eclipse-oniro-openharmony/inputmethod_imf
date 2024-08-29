@@ -110,5 +110,25 @@ bool InputMethodEngineListenerImpl::WaitSendPrivateCommand(
 
     return privateCommand_ == privateCommand;
 }
+bool InputMethodEngineListenerImpl::WaitKeyboardStatus(bool state)
+{
+    std::unique_lock<std::mutex> lock(imeListenerMutex_);
+    imeListenerCv_.wait_for(lock, std::chrono::seconds(1), [state]() {
+        return keyboardState_ == state;
+    });
+    return keyboardState_ == state;
+}
+bool InputMethodEngineListenerImpl::PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)
+{
+    if (eventHandler_ == nullptr) {
+        return false;
+    }
+    eventHandler_->PostTask(
+        [task]() {
+            task();
+        },
+        taskName, 0);
+    return true;
+}
 } // namespace MiscServices
 } // namespace OHOS

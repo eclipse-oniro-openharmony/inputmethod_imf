@@ -18,6 +18,7 @@
 
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
+#include "task_manager.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -141,6 +142,7 @@ public:
         inputMethodAbility_->abilityManager_ = imsaProxy_;
         TddUtil::InitCurrentImePermissionInfo();
         inputMethodAbility_->SetCoreAndAgent();
+        TaskManager::GetInstance().SetInited(true);
 
         TextListener::ResetParam();
         imc_ = InputMethodController::GetInstance();
@@ -268,9 +270,8 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
     IMSA_HILOGI("testShowKeyboardInputMethodCoreProxy start.");
     sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub();
     sptr<IInputMethodCore> core = coreStub;
-    auto msgHandler = new (std::nothrow) MessageHandler();
-    coreStub->SetMessageHandler(msgHandler);
     sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
 
     MessageParcel data;
     data.WriteRemoteObject(core->AsObject());
@@ -281,8 +282,10 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
     sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
     sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
     auto ret = coreProxy->ShowKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
-    delete msgHandler;
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_EQ(showKeyboard_, true);
 }
 
 /**
@@ -295,7 +298,7 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardWithoutImeListener, TestSize.Le
 {
     IMSA_HILOGI("InputMethodAbilityTest testShowKeyboardWithoutImeListener start.");
     auto ret = inputMethodAbility_->ShowKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -308,7 +311,7 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Le
 {
     IMSA_HILOGI("InputMethodAbilityTest testHideKeyboardWithoutImeListener start.");
     auto ret = inputMethodAbility_->HideKeyboard(false);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**

@@ -18,14 +18,18 @@
 
 #include <condition_variable>
 
+#include "event_handler.h"
 #include "input_method_engine_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
 class InputMethodEngineListenerImpl : public InputMethodEngineListener {
 public:
-    InputMethodEngineListenerImpl(){};
-    ~InputMethodEngineListenerImpl(){};
+    InputMethodEngineListenerImpl() {};
+    ~InputMethodEngineListenerImpl() {};
+    explicit InputMethodEngineListenerImpl(std::shared_ptr<AppExecFwk::EventHandler> handler) : eventHandler_(handler)
+    {
+    }
     static bool keyboardState_;
     static bool isInputStart_;
     static uint32_t windowId_;
@@ -39,6 +43,7 @@ public:
     static bool WaitInputFinish();
     static bool WaitSetCallingWindow(uint32_t windowId);
     static bool WaitSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+    static bool WaitKeyboardStatus(bool state);
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStart() override;
     int32_t OnInputStop() override;
@@ -48,8 +53,12 @@ public:
     void OnInputFinish() override;
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsEnable() override;
+    bool PostTaskToEventHandler(std::function<void()> task, const std::string &taskName) override;
+
+private:
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_IMPL_H
+#endif // INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_IMPL_H

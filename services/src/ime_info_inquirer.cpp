@@ -18,10 +18,9 @@
 #include <algorithm>
 #include <string>
 
-#include "ability_manager_client.h"
+#include "app_mgr_client.h"
 #include "application_info.h"
 #include "bundle_mgr_client_impl.h"
-#include "extension_running_info.h"
 #include "file_operator.h"
 #include "full_ime_info_manager.h"
 #include "global.h"
@@ -34,6 +33,7 @@
 #include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
+#include "running_process_info.h"
 #include "string_ex.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
@@ -1085,23 +1085,30 @@ bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
     return iter != extInfo.metadata.end();
 }
 
-bool ImeInfoInquirer::IsRunningExtension(const std::pair<std::string, std::string> &ime)
+std::vector<std::string> ImeInfoInquirer::GetRunningIme(int32_t userId)
 {
-    std::vector<ExtensionRunningInfo> infos;
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetExtensionRunningInfos(
-        std::numeric_limits<uint32_t>::max(), infos);
+    std::vector<std::string> bundleNames;
+    std::vector<RunningProcessInfo> infos;
+    AppMgrClient client;
+    auto ret = client.GetProcessRunningInfosByUserId(infos, userId);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("GetExtensionRunningInfos failed, ret: %{public}d!", ret);
-        return false;
+        IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
+        return bundleNames;
     }
-    auto it = std::find_if(infos.begin(), infos.end(), [&ime](const ExtensionRunningInfo &info) {
-        return ime.first == info.extension.GetBundleName() && ime.second == info.extension.GetAbilityName();
-    });
-    if (it == infos.end()) {
-        return false;
+    for (const auto &info : infos) {
+        if (info.extensionType_ == ExtensionAbilityType::INPUTMETHOD && !info.bundleNames.empty()) {
+            bundleNames.push_back(info.bundleNames[0]);
+        }
     }
-    IMSA_HILOGW("[%{public}s, %{public}s] is running!", ime.first.c_str(), ime.second.c_str());
-    return true;
+    return bundleNames;
+}
+
+bool ImeInfoInquirer::IsRunningIme(int32_t userId, const std::string &bundleName)
+{
+    auto bundleNames = GetRunningIme(userId);
+    auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
+        [&bundleName](const std::string &bundleNameTemp) { return bundleName == bundleNameTemp; });
+    return it != bundleNames.end();
 }
 
 bool ImeInfoInquirer::GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId)

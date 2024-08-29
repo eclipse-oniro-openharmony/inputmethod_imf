@@ -18,6 +18,7 @@
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
+#include "task_manager.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -80,11 +81,14 @@ public:
     void SetUp()
     {
         IMSA_HILOGI("InputMethodAttachTest::SetUp");
+        TaskManager::GetInstance().SetInited(true);
     }
     void TearDown()
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDown");
         inputMethodController_->Close();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        TaskManager::GetInstance().Reset();
     }
 };
 sptr<InputMethodController> InputMethodAttachTest::inputMethodController_;
@@ -103,6 +107,7 @@ HWTEST_F(InputMethodAttachTest, testAttach001, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -254,6 +259,7 @@ HWTEST_F(InputMethodAttachTest, testAttach006, TestSize.Level0)
     auto ret = InputMethodAttachTest::inputMethodController_->Attach(textListener, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::NONE));
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 
     InputMethodAttachTest::inputMethodController_->Close();
     TextListener::ResetParam();

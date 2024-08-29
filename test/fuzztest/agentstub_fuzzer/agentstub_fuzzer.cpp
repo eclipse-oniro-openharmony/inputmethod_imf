@@ -49,8 +49,6 @@ bool FuzzAgentStub(const uint8_t *rawData, size_t size)
     MessageOption option;
 
     sptr<InputMethodAgentStub> stub = new InputMethodAgentStub();
-    MessageHandler *handler = MessageHandler::Instance();
-    stub->SetMessageHandler(handler);
     stub->OnRemoteRequest(code, data, reply, option);
 
     return true;

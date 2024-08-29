@@ -34,22 +34,18 @@
 #include "iremote_object.h"
 #include "keyboard_listener.h"
 #include "keyevent_consumer_proxy.h"
-#include "message.h"
-#include "message_handler.h"
 #include "private_command_interface.h"
 #include "system_cmd_channel_proxy.h"
 #include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {
-class MessageHandler;
 class InputMethodAbility : public RefBase, public PrivateCommandInterface {
 public:
     InputMethodAbility();
     ~InputMethodAbility();
     static sptr<InputMethodAbility> GetInstance();
     int32_t SetCoreAndAgent();
-    void SetCoreAndAgentAsync();
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
@@ -58,10 +54,7 @@ public:
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
-    int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
-    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
-    int32_t ShowKeyboard();
-    int32_t HideKeyboard(bool isForce);
+   
     int32_t SendExtendAction(int32_t action);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
@@ -98,13 +91,23 @@ public:
     int32_t NotifyPanelStatus(const std::shared_ptr<InputMethodPanel> &inputMethodPanel,
         SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
+
+public:
+    /* called from TaskManager worker thread */
+    int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
+    int32_t StopInput(sptr<IRemoteObject> channelObj);
+    int32_t ShowKeyboard();
+    int32_t HideKeyboard(bool isForce);
+
+    void OnInitInputControlChannel(sptr<IRemoteObject> channelObj);
+    void OnSetSubtype(SubProperty subProperty);
+    void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height);
+    void OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEndg);
+    void OnAttributeChange(InputAttribute attribute);
+    
     int32_t OnStopInputService(bool isTerminateIme);
 
 private:
-    std::thread workThreadHandler;
-    MessageHandler *msgHandler_;
-    bool stop_ = false;
-
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
 
@@ -137,16 +140,8 @@ private:
     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
 
     void Initialize();
-    void WorkThread();
-    void QuitWorkThread();
-
-    void OnInitInputControlChannel(Message *msg);
-    void OnSetSubtype(Message *msg);
     int32_t InvokeStartInputCallback(bool isNotifyInputStart);
     int32_t InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart);
-    void OnCursorUpdate(Message *msg);
-    void OnSelectionChange(Message *msg);
-    void OnAttributeChange(Message *msg);
 
     int32_t HideKeyboard(Trigger trigger, bool isForce);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();

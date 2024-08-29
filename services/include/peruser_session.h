@@ -233,6 +233,7 @@ private:
     bool ForceStopCurrentIme(bool isNeedWait = true);
     bool StopReadyCurrentIme();
     bool StopExitingCurrentIme();
+    bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     std::mutex imeStartLock_;
 
@@ -266,6 +267,7 @@ private:
             { ImeStatus::READY, ImeAction::DO_SET_CORE_AND_AGENT } },
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
+    std::string runningIme_;
 };
 } // namespace MiscServices
 } // namespace OHOS
