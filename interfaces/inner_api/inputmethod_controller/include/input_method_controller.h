@@ -767,6 +767,19 @@ public:
      */
     int32_t FinishTextPreview();
 
+     * @brief Query whether an process id current inputmethod.
+     *
+     * This function is used to query whether an process id is inputmethod.
+     * This interface only supports querying whether PID is the current input method application for process startup
+     * and initialization completion. If the current input method is in the initialization process, this interface can
+     * also return a failure.
+     *
+     * @param type Indicates current process id.
+     * @return Returns true for current ime process id, false for not current ime process id.
+     * @since 12
+     */
+    IMF_API bool IsCurrentImeByPid(int32_t pid);
+
     /**
      * @brief Release resource.
      *
@@ -774,7 +787,7 @@ public:
      *
      * @since 12
      */
-    void Release();
+    IMF_API void Release();
 
 private:
     InputMethodController();

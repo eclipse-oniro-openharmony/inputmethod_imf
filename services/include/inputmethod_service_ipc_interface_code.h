@@ -53,6 +53,8 @@ enum class InputMethodInterfaceCode {
     GET_SECURITY_MODE,
     IS_DEFAULT_IME,
     CONNECT_SYSTEM_CMD,
+    IS_CURRENT_IME_BY_PID,
+    INIT_CONNECT,
     IMS_CMD_END,
 };
 } // namespace MiscServices
