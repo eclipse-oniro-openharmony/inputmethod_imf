@@ -255,7 +255,7 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
 {
     auto task = std::make_shared<TaskAmsInit>();
     TaskManager::GetInstance().PostTask(task);
-
+    InputMethodAbility::GetInstance()->InitConnect();
     StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
     StartAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
     Extension::OnStart(want);
