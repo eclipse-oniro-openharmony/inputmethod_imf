@@ -191,6 +191,30 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testInitialize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SecurityModeParserTest, testInitialize, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testInitialize Test START");
+    auto ret = SecurityModeParser::GetInstance()->Initialize(SecurityModeParserTest::USER_ID);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIsExpired
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SecurityModeParserTest, testIsExpired, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testIsExpired Test START");
+    auto ret = SecurityModeParser::GetInstance()->IsExpired("test");
+    EXPECT_FALSE(ret);
+}
+
+/**
  * @tc.name: testRegisterObserver
  * @tc.type: FUNC
  * @tc.require:
