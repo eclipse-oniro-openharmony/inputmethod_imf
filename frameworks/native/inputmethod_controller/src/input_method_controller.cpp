@@ -171,11 +171,11 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
 void InputMethodController::RemoveDeathRecipient()
 {
     std::lock_guard<std::mutex> lock(abilityLock_);
-    if (abilityManager_ == nullptr || deathRecipient_ == nullptr) {
-        return;
+    if (abilityManager_ != nullptr && abilityManager_->AsObject() != nullptr && deathRecipient_ != nullptr) {
+        abilityManager_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
-    abilityManager_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     deathRecipient_ = nullptr;
+    abilityManager_ = nullptr;
 }
 
 void InputMethodController::DeactivateClient()
@@ -356,6 +356,12 @@ int32_t InputMethodController::Close()
     return ReleaseInput(clientInfo_.client);
 }
 
+void InputMethodController::Reset()
+{
+    Close();
+    RemoveDeathRecipient();
+}
+
 int32_t InputMethodController::RequestShowInput()
 {
     auto proxy = GetSystemAbilityProxy();
@@ -498,7 +504,6 @@ int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     if (ret == ErrorCode::NO_ERROR) {
         OnInputStop();
     }
-    RemoveDeathRecipient();
     SetTextListener(nullptr);
     return ret;
 }

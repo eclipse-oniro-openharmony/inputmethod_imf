@@ -778,6 +778,16 @@ public:
      */
     IMF_API bool IsCurrentImeByPid(int32_t pid);
 
+    /**
+     * @brief Reset controller.
+     *
+     * This function is used to reset controller.
+     * Do not call this interface unless you know what you are doing
+     *
+     * @since 12
+     */
+    IMF_API void Reset();
+
 private:
     InputMethodController();
     ~InputMethodController();
