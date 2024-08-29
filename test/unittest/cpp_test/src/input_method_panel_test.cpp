@@ -1590,5 +1590,164 @@ HWTEST_F(InputMethodPanelTest, testSetPrivacyMode, TestSize.Level0)
     InputMethodPanelTest::imc_->Close();
     TddUtil::DestroyWindow();
 }
+
+/**
+* @tc.name: testSetPanelProperties
+* @tc.desc: Test SetPanelProperties.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSetPanelProperties, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodPanel->SetPanelProperties();
+    EXPECT_EQ(ret, ErrorCode::ERROR_OPERATE_PANEL);
+    inputMethodPanel->UnregisterKeyboardPanelInfoChangeListener();
+    ret = inputMethodPanel->SetPrivacyMode(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+* @tc.name: testGetKeyboardSize
+* @tc.desc: Test GetKeyboardSize.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testGetKeyboardSize, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto boardSize = inputMethodPanel->GetKeyboardSize();
+    EXPECT_EQ(boardSize.width, 0);
+    EXPECT_EQ(boardSize.height, 0);
+}
+
+/**
+* @tc.name: testMarkListener
+* @tc.desc: Test MarkListener.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testMarkListener, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
+    auto ret = inputMethodPanel->SetPanelStatusListener(statusListener, "text");
+    EXPECT_FALSE(ret);
+    inputMethodPanel->ClearPanelListener("text");
+    ret = inputMethodPanel->MarkListener("contenInfo", true);
+    EXPECT_FALSE(ret);
+    ret = inputMethodPanel->MarkListener("sizeChange", true);
+    EXPECT_TRUE(ret);
+}
+
+/**
+* @tc.name: testSizeChange
+* @tc.desc: Test SizeChange.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSizeChange, TestSize.Level0)
+{
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodPanel->panelStatusListener_ = statusListener;
+    WindowSize windowSize;
+    ret = inputMethodPanel->SizeChange(windowSize);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testSetTextFieldAvoidInfo01
+* @tc.desc: Test SetTextFieldAvoidInfo.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSetTextFieldAvoidInfo01, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodPanel->SetTextFieldAvoidInfo(0, 0);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+* @tc.name: testSetTextFieldAvoidInfo02
+* @tc.desc: Test SetTextFieldAvoidInfo.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSetTextFieldAvoidInfo02, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto ret = inputMethodPanel->SetTextFieldAvoidInfo(0, 0);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testGetCallingWindowInfo01
+* @tc.desc: Test GetCallingWindowInfo.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testGetCallingWindowInfo01, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    CallingWindowInfo windowInfo;
+    auto ret = inputMethodPanel->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
+}
+
+/**
+* @tc.name: testGetCallingWindowInfo02
+* @tc.desc: Test GetCallingWindowInfo.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testGetCallingWindowInfo02, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    CallingWindowInfo windowInfo;
+    auto ret = inputMethodPanel->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_WINDOW_MANAGER);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testSetUiContent01
+* @tc.desc: Test SetUiContent.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSetUiContent01, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodPanel->SetUiContent("text", nullptr, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+* @tc.name: testSetUiContent02
+* @tc.desc: Test SetUiContent.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSetUiContent02, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto ret = inputMethodPanel->SetUiContent("text", nullptr, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
 } // namespace MiscServices
 } // namespace OHOS
