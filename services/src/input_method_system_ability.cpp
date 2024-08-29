@@ -607,7 +607,7 @@ int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(int32_t userId, uint32
 bool InputMethodSystemAbility::IsCurrentImeByPid(int32_t pid)
 {
     if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
-            !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
         IMSA_HILOGE("not system application or system ability!");
         return false;
     }
