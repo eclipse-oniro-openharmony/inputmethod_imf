@@ -173,7 +173,6 @@ void InputMethodController::RemoveDeathRecipient()
     std::lock_guard<std::mutex> lock(abilityLock_);
     if (abilityManager_ != nullptr && abilityManager_->AsObject() != nullptr && deathRecipient_ != nullptr) {
         abilityManager_->AsObject()->RemoveDeathRecipient(deathRecipient_);
-        return;
     }
     deathRecipient_ = nullptr;
     abilityManager_ = nullptr;
@@ -357,7 +356,7 @@ int32_t InputMethodController::Close()
     return ReleaseInput(clientInfo_.client);
 }
 
-void InputMethodController::Release()
+void InputMethodController::Reset()
 {
     Close();
     RemoveDeathRecipient();
