@@ -767,6 +767,15 @@ public:
      */
     int32_t FinishTextPreview();
 
+    /**
+     * @brief Release resource.
+     *
+     * This function is used to Release resource.
+     *
+     * @since 12
+     */
+    void Release();
+
 private:
     InputMethodController();
     ~InputMethodController();
