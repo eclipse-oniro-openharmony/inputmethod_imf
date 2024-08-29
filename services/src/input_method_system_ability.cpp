@@ -452,6 +452,21 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
     return session->OnSetCoreAndAgent(core, agent);
 }
 
+int32_t InputMethodSystemAbility::InitConnect()
+{
+    IMSA_HILOGD("InputMethodSystemAbility init connect.");
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (!IsCurrentIme(userId)) {
+        return ErrorCode::ERROR_NOT_CURRENT_IME;
+    }
+    return session->InitConnect(IPCSkeleton::GetCallingPid());
+}
+
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
@@ -587,6 +602,22 @@ int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(int32_t userId, uint32
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
     return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodSystemAbility::IsCurrentImeByPid(int32_t pid)
+{
+    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
+            !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not system application or system ability!");
+        return false;
+    }
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return false;
+    }
+    return session->IsCurrentImeByPid(pid);
 }
 
 int32_t InputMethodSystemAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)

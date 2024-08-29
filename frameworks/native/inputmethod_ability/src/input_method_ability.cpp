@@ -127,6 +127,22 @@ int32_t InputMethodAbility::SetCoreAndAgent()
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodAbility::InitConnect()
+{
+    IMSA_HILOGD("InputMethodAbility, init connect.");
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("imsa proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    int32_t ret = proxy->InitConnect();
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("set failed, ret: %{public}d!", ret);
+        return ret;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
 {
     isBound_.store(false);
