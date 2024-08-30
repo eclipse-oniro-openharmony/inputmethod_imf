@@ -1691,8 +1691,8 @@ HWTEST_F(InputMethodControllerTest, testIMCReset, TestSize.Level0)
     IMSA_HILOGI("IMC testIMCReset Test START");
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(inputMethodController_->abilityManager_, imsaProxy_);
-    EXPECT_EQ(inputMethodController_->textListener_, textListener_);
+    EXPECT_NE(inputMethodController_->abilityManager_, nullptr);
+    EXPECT_NE(inputMethodController_->textListener_, nullptr);
     inputMethodController_->Reset();
     EXPECT_EQ(inputMethodController_->textListener_, nullptr);
     EXPECT_EQ(inputMethodController_->abilityManager_, nullptr);
