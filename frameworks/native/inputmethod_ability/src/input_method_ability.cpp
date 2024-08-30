@@ -805,6 +805,10 @@ void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
     }
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
+        panel->HidePanel(false);
+    }
     if (imeListener_ != nullptr) {
         imeListener_->OnInputStop();
     }
