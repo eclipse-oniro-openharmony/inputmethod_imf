@@ -1679,5 +1679,24 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent_null, TestSize.Level
     EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
     std::this_thread::sleep_for(std::chrono::seconds(2)); // avoid EventHandler crash
 }
+
+/**
+ * @tc.name: testIMCReset
+ * @tc.desc: test IMC Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIMCReset, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCReset Test START");
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(inputMethodController_->abilityManager_, imsaProxy_);
+    EXPECT_EQ(inputMethodController_->textListener_, textListener_);
+    inputMethodController_->Reset();
+    EXPECT_EQ(inputMethodController_->textListener_, nullptr);
+    EXPECT_EQ(inputMethodController_->abilityManager_, nullptr);
+    inputMethodController_->abilityManager_ = imsaProxy_;
+}
 } // namespace MiscServices
 } // namespace OHOS
