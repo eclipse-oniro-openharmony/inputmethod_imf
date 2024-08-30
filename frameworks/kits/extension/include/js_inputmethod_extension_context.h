@@ -28,6 +28,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 napi_value CreateJsInputMethodExtensionContext(napi_env env, std::shared_ptr<InputMethodExtensionContext> context);
 
+// need create in main thread.
 class JSInputMethodExtensionConnection : public AbilityConnectCallback {
 public:
     explicit JSInputMethodExtensionConnection(napi_env env);
@@ -35,16 +36,20 @@ public:
     void OnAbilityConnectDone(const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject,
         int resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    // this function need to execute in main thread.
+    void CallJsFailed(int32_t errorCode);
+    void SetJsConnectionObject(napi_value jsConnectionObject);
+
+private:
     void HandleOnAbilityConnectDone(const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject,
         int resultCode);
     void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
-    void SetJsConnectionObject(napi_value jsConnectionObject);
-    void CallJsFailed(int32_t errorCode);
-    void CleanUpJsObject();
+    void ReleaseConnection();
 
 private:
     napi_env env_;
     napi_ref jsConnectionObject_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 
 struct ConnectionKey {
@@ -61,7 +66,6 @@ struct key_compare {
 
 static std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>, key_compare> connects_;
 static int64_t serialNumber_ = 0;
-static std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 static std::mutex g_connectMapMtx;
 } // namespace AbilityRuntime
 } // namespace OHOS

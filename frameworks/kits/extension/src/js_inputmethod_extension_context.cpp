@@ -457,8 +457,6 @@ napi_value CreateJsInputMethodExtensionContext(napi_env env, std::shared_ptr<Inp
     napi_value objValue = CreateJsExtensionContext(env, context);
     std::unique_ptr<JsInputMethodExtensionContext> jsContext = std::make_unique<JsInputMethodExtensionContext>(context);
     napi_wrap(env, objValue, jsContext.release(), JsInputMethodExtensionContext::Finalizer, nullptr, nullptr);
-    // make handler
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
 
     const char *moduleName = "JsInputMethodExtensionContext";
     BindNativeFunction(env, objValue, "startAbility", moduleName, JsInputMethodExtensionContext::StartAbility);
@@ -474,7 +472,8 @@ napi_value CreateJsInputMethodExtensionContext(napi_env env, std::shared_ptr<Inp
     return objValue;
 }
 
-JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(napi_env env) : env_(env)
+JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(napi_env env) :
+    env_(env), handler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner()))
 {
 }
 
@@ -597,7 +596,7 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(const AppEx
         if (item != connects_.end()) {
             // match bundleName && abilityName
             if (item->second != nullptr) {
-                item->second->CleanUpJsObject();
+                item->second->ReleaseConnection();
             }
             connects_.erase(item);
             IMSA_HILOGI("OnAbilityDisconnectDone erase connects_.size: %{public}zu.", connects_.size());
@@ -645,11 +644,13 @@ void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
     IMSA_HILOGI("CallJsFailed end.");
 }
 
-void JSInputMethodExtensionConnection::CleanUpJsObject()
+void JSInputMethodExtensionConnection::ReleaseConnection()
 {
-    IMSA_HILOGD("CleanUpJsObject");
+    IMSA_HILOGD("ReleaseConnection");
     if (jsConnectionObject_ != nullptr) {
         napi_delete_reference(env_, jsConnectionObject_);
+        env_ = nullptr;
+        jsConnectionObject_ == nullptr;
     }
 }
 } // namespace AbilityRuntime
