@@ -472,8 +472,8 @@ napi_value CreateJsInputMethodExtensionContext(napi_env env, std::shared_ptr<Inp
     return objValue;
 }
 
-JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(napi_env env) :
-    env_(env), handler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner()))
+JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(napi_env env) : env_(env),
+    handler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner()))
 {
 }
 
@@ -650,7 +650,7 @@ void JSInputMethodExtensionConnection::ReleaseConnection()
     if (jsConnectionObject_ != nullptr) {
         napi_delete_reference(env_, jsConnectionObject_);
         env_ = nullptr;
-        jsConnectionObject_ == nullptr;
+        jsConnectionObject_ = nullptr;
     }
 }
 } // namespace AbilityRuntime
