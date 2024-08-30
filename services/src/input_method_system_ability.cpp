@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -311,7 +311,8 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
         if (!InputTypeManager::GetInstance().IsStarted()) {
             IMSA_HILOGD("SecurityFlag, input type is not started, start.");
-            inputClientInfo.needHide = false;
+            // if need to switch ime, no need to hide panel first.
+            NeedHideWhenSwitchInputType(userId, inputClientInfo.needHide);
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         if (!inputClientInfo.isNotifyInputStart) {
@@ -320,7 +321,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         }
         if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
             IMSA_HILOGD("SecurityFlag, new textField, input type is started, but it is not security, switch.");
-            inputClientInfo.needHide = false;
+            NeedHideWhenSwitchInputType(userId, inputClientInfo.needHide);
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         IMSA_HILOGD("SecurityFlag, other condition, not deal.");
@@ -1763,6 +1764,18 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     IMSA_HILOGI("start input type: %{public}d.", type);
     return type == InputType::SECURITY_INPUT ? OnStartInputType(userId, switchInfo, false)
                                              : OnStartInputType(userId, switchInfo, true);
+}
+
+void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, bool &needHide)
+{
+    ImeIdentification ime;
+    InputTypeManager::GetInstance().GetImeByInputType(InputType::SECURITY_INPUT, ime);
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    if (currentImeCfg == nullptr) {
+        IMSA_HILOGI("currentImeCfg is nullptr");
+        return;
+    }
+    needHide = currentImeCfg->bundleName == ime.bundleName;
 }
 } // namespace MiscServices
 } // namespace OHOS
