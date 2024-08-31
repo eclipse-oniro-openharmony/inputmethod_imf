@@ -51,6 +51,7 @@ using namespace AppExecFwk;
 using namespace Security::AccessToken;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
+constexpr const char *UNDEFINED = "undefined";
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -703,14 +704,15 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
         std::string targetImeName = info->prop.name + "/" + info->prop.id;
         ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id });
-        auto targetIme = std::make_shared<ImeNativeCfg>(
-            ImeNativeCfg{ targetImeName, info->prop.name, info->subProp.id, info->prop.id });
+        auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg {
+            targetImeName, info->prop.name, switchInfo.subName.empty() ? "" : info->subProp.id, info->prop.id });
         if (!session->StartIme(targetIme)) {
             InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ret, switchInfo.bundleName,
                 "switch input method failed!");
             session->GetSwitchQueue().Pop();
             return ErrorCode::ERROR_IME_START_FAILED;
         }
+        GetValidSubtype(switchInfo.subName, info);
         session->NotifyImeChangeToClients(info->prop, info->subProp);
         ret = session->SwitchSubtype(info->subProp);
     }
@@ -721,6 +723,15 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
             "switch input method subtype failed!");
     }
     return ret;
+}
+
+void InputMethodSystemAbility::GetValidSubtype(const std::string &subName, const std::shared_ptr<ImeInfo> &info)
+{
+    if (subName.empty()) {
+        IMSA_HILOGW("undefined subtype");
+        info->subProp.id = UNDEFINED;
+        info->subProp.name = UNDEFINED;
+    }
 }
 
 int32_t InputMethodSystemAbility::OnStartInputType(int32_t userId, const SwitchInfo &switchInfo,
@@ -802,6 +813,8 @@ int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::sha
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     session->NotifyImeChangeToClients(info->prop, info->subProp);
+    GetValidSubtype("", info);
+    session->SwitchSubtype(info->subProp);
     return ErrorCode::NO_ERROR;
 }
 

@@ -997,6 +997,7 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
         ImeInfoInquirer::GetInstance().GetImeInfo(userId_, imeToStart->bundleName, imeToStart->subName);
     if (currentImeInfo != nullptr) {
         NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
+        SwitchSubtype(currentImeInfo->subProp);
     }
     return true;
 }
@@ -1066,18 +1067,6 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
     }
     IMSA_HILOGI("%{public}s started successfully.", ime->imeId.c_str());
     InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
-    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, ime->bundleName, ime->subName);
-    if (info == nullptr) {
-        IMSA_HILOGW("ime doesn't exist!");
-        return true;
-    }
-    auto subProp = info->subProp;
-    auto data = GetReadyImeData(ImeType::IME);
-    if (data == nullptr) {
-        IMSA_HILOGW("ime doesn't exist!");
-        return true;
-    }
-    RequestIme(data, RequestType::NORMAL, [&data, &subProp] { return data->core->SetSubtype(subProp); });
     return true;
 }
 
