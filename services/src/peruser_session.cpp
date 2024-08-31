@@ -1209,13 +1209,13 @@ int32_t PerUserSession::RestoreCurrentImeSubType()
 
 bool PerUserSession::IsCurrentImeByPid(int32_t pid)
 {
-    auto imeDate = GetReadyImeData(ImeType::IME);
-    if (imeDate == nullptr) {
+    auto imeData = GetReadyImeData(ImeType::IME);
+    if (imeData == nullptr) {
         IMSA_HILOGE("ime not started!");
         return false;
     }
-    IMSA_HILOGD("userId: %{public}d, pid: %{public}d, current pid: %{public}d.", userId_, pid, imeDate->pid);
-    return imeDate->pid == pid;
+    IMSA_HILOGD("userId: %{public}d, pid: %{public}d, current pid: %{public}d.", userId_, pid, imeData->pid);
+    return imeData->pid == pid;
 }
 
 int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
