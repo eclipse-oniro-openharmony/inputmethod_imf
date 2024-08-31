@@ -33,7 +33,7 @@ FullImeInfoManager::FullImeInfoManager()
 {
     uint32_t ret = timer_.Setup();
     if (ret != Utils::TIMER_ERR_OK) {
-        IMSA_HILOGE("failed to create timer");
+        IMSA_HILOGE("failed to create timer!");
         return;
     }
     timerId_ = timer_.Register([this]() { Init(); }, TIMER_TASK_INTERNAL, false);
