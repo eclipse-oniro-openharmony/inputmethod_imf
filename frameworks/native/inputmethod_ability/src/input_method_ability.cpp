@@ -221,9 +221,9 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         return ret;
     }
 
-    isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     auto showPanel = [&, needShow = clientInfo.isShowKeyboard] {
         if (needShow) {
+            isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
             ShowKeyboardImplWithoutLock(cmdId_);
         }
     };
@@ -1080,6 +1080,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
                 IMSA_HILOGE("failed, ret: %{public}d", ret);
                 return false;
             }
+            imeListener_->OnKeyboardStatus(false);
             NotifyPanelStatusInfo({ { panel->GetPanelType(), panel->GetPanelFlag() }, false, Trigger::IME_APP },
                 channelProxy);
             // finish previewing text when soft keyboard hides
