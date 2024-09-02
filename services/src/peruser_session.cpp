@@ -1653,7 +1653,7 @@ bool PerUserSession::HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, 
 int32_t PerUserSession::RestoreCurrentIme()
 {
     InputTypeManager::GetInstance().Set(false);
-    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    auto cfgIme = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
     auto imeData = GetReadyImeData(ImeType::IME);
     if (imeData != nullptr && imeData->ime.first == cfgIme->bundleName && imeData->ime.second == cfgIme->extName) {
         return ErrorCode::NO_ERROR;
