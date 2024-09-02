@@ -1582,5 +1582,24 @@ HWTEST_F(InputMethodControllerTest, testOnInputReady, TestSize.Level0)
     inputMethodController_->DeactivateClient();
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
+
+/**
+ * @tc.name: testIMCReset
+ * @tc.desc: test IMC Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIMCReset, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCReset Test START");
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_NE(inputMethodController_->abilityManager_, nullptr);
+    EXPECT_NE(inputMethodController_->textListener_, nullptr);
+    inputMethodController_->Reset();
+    EXPECT_EQ(inputMethodController_->textListener_, nullptr);
+    EXPECT_EQ(inputMethodController_->abilityManager_, nullptr);
+    inputMethodController_->abilityManager_ = imsaProxy_;
+}
 } // namespace MiscServices
 } // namespace OHOS
