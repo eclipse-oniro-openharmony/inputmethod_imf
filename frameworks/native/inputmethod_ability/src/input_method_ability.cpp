@@ -478,7 +478,11 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
             kdListener_->OnCursorUpdate(textConfig.cursorInfo.left, textConfig.cursorInfo.top,
                 textConfig.cursorInfo.height);
         }
-        if (textConfig.textSelection.newBegin != INVALID_SELECTION_VALUE) {
+        if (textConfig.textSelection.newBegin == INVALID_SELECTION_VALUE
+            || (textConfig.textSelection.newBegin == textConfig.textSelection.oldBegin
+                && textConfig.textSelection.newEnd == textConfig.textSelection.oldEnd)) {
+            IMSA_HILOGD("invalid selection or no selection change");
+        } else {
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
                 textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
