@@ -107,10 +107,20 @@ int32_t InputMethodPanel::SetPanelProperties()
     if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
         gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
     } else if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FLOATING) {
-        window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
+        auto surfaceNode = window_->GetSurfaceNode();
+        if (surfaceNode == nullptr) {
+            IMSA_HILOGE("surfaceNode is nullptr");
+            return ErrorCode::ERROR_OPERATE_PANEL;
+        }
+        surfaceNode->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     } else if (panelType_ == STATUS_BAR) {
-        window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
+        auto surfaceNo = window_->GetSurfaceNode();
+        if (surfaceNo == nullptr) {
+            IMSA_HILOGE("surfaceNo is nullptr");
+            return ErrorCode::ERROR_OPERATE_PANEL;
+        }
+        surfaceNo->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         return ErrorCode::NO_ERROR;
     }
@@ -561,7 +571,12 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     if (panelFlag == FLG_FIXED) {
         gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
     } else {
-        window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
+        auto surfaceNode = window_->GetSurfaceNode();
+        if (surfaceNode == nullptr) {
+            IMSA_HILOGE("surfaceNode is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        surfaceNode->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     }
     if (!isScbEnable_) {

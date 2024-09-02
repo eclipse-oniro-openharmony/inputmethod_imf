@@ -335,12 +335,11 @@ void JsKeyboardPanelManager::NotifyPanelStatus(const SysPanelStatus &sysPanelSta
 
 std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardPanelManager::GetEventHandler()
 {
-    if (handler_ != nullptr) {
-        return handler_;
-    }
-    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
     if (handler_ == nullptr) {
-        handler_ = AppExecFwk::EventHandler::Current();
+        std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+        if (handler_ == nullptr) {
+            handler_ = AppExecFwk::EventHandler::Current();
+        }
     }
     return handler_;
 }

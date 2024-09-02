@@ -87,6 +87,10 @@ int32_t InputMethodAgentStub::OnRemoteRequest(uint32_t code, MessageParcel &data
 int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+    if (keyEvent == nullptr) {
+        IMSA_HILOGE("keyEvent is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     if (!keyEvent->ReadFromParcel(data)) {
         IMSA_HILOGE("failed to read key event from parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;

@@ -219,6 +219,10 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
     IMSA_HILOGD("JsInputMethodExtension::Init CreateJsInputMethodExtensionContext.");
     napi_value contextObj = CreateJsInputMethodExtensionContext(env, context);
     auto shellContextRef = jsRuntime_.LoadSystemModule("InputMethodExtensionContext", &contextObj, ARGC_ONE);
+    if (shellContextRef == nullptr) {
+        IMSA_HILOGE("shellContextRef is nullptr!");
+        return;
+    }
     contextObj = shellContextRef->GetNapiValue();
     if (contextObj == nullptr) {
         IMSA_HILOGE("failed to get input method extension native object!");
