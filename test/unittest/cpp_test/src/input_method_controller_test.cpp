@@ -19,6 +19,7 @@
 #include "input_method_ability.h"
 #include "input_method_system_ability.h"
 #include "input_data_channel_stub.h"
+#include "task_manager.h"
 #undef private
 
 #include <event_handler.h>
@@ -114,7 +115,7 @@ public:
     static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
     static void CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
     static bool WaitRemoteDiedCallback();
-    static void WaitKeyboardStatusCallback(bool keyboardState);
+    static bool WaitKeyboardStatus(bool keyboardState);
     static void TriggerConfigurationChangeCallback(Configuration &info);
     static void TriggerCursorUpdateCallback(CursorInfo &info);
     static void TriggerSelectionChangeCallback(std::u16string &text, int start, int end);
@@ -286,10 +287,10 @@ void InputMethodControllerTest::SetUpTestCase(void)
     inputMethodAbility_->abilityManager_ = imsaProxy_;
     TddUtil::InitCurrentImePermissionInfo();
     inputMethodAbility_->SetCoreAndAgent();
-    imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     controllerListener_ = std::make_shared<SelectListenerMock>();
     textListener_ = new TextListener();
     inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
+    imeListener_ = std::make_shared<InputMethodEngineListenerImpl>(textConfigHandler_);
     inputMethodAbility_->SetImeListener(imeListener_);
 
     inputMethodController_ = InputMethodController::GetInstance();
@@ -316,11 +317,14 @@ void InputMethodControllerTest::TearDownTestCase(void)
 void InputMethodControllerTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::SetUp");
+    TaskManager::GetInstance().SetInited(true);
 }
 
 void InputMethodControllerTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::TearDown");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    TaskManager::GetInstance().Reset();
 }
 
 void InputMethodControllerTest::SetInputDeathRecipient()
@@ -415,12 +419,9 @@ void InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> key
     EXPECT_TRUE(ret);
 }
 
-void InputMethodControllerTest::WaitKeyboardStatusCallback(bool keyboardState)
+bool InputMethodControllerTest::WaitKeyboardStatus(bool keyboardState)
 {
-    std::unique_lock<std::mutex> lock(InputMethodEngineListenerImpl::imeListenerMutex_);
-    InputMethodEngineListenerImpl::imeListenerCv_.wait_for(lock,
-        std::chrono::seconds(InputMethodControllerTest::DELAY_TIME),
-        [keyboardState] { return InputMethodEngineListenerImpl::keyboardState_ == keyboardState; });
+    return InputMethodEngineListenerImpl::WaitKeyboardStatus(keyboardState);
 }
 
 void InputMethodControllerTest::TriggerConfigurationChangeCallback(Configuration &info)
@@ -471,6 +472,7 @@ void InputMethodControllerTest::TriggerSelectionChangeCallback(std::u16string &t
 
 void InputMethodControllerTest::CheckTextConfig(const TextConfig &config)
 {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(imeListener_->windowId_, config.windowId);
     EXPECT_EQ(cursorInfo_.left, config.cursorInfo.left);
     EXPECT_EQ(cursorInfo_.top, config.cursorInfo.top);
@@ -520,7 +522,8 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach001, TestSize.Level0)
     inputMethodController_->Attach(textListener_, false);
     inputMethodController_->Attach(textListener_);
     inputMethodController_->Attach(textListener_, true);
-    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::SHOW);
     EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
 }
 
@@ -838,6 +841,7 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange04, TestSize.Level0)
     textConfig.range = { 2, 2 };
     ret = inputMethodController_->Attach(textListener_, false, textConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     EXPECT_EQ(InputMethodControllerTest::oldBegin_, 1);
     EXPECT_EQ(InputMethodControllerTest::oldEnd_, 1);
     EXPECT_EQ(InputMethodControllerTest::newBegin_, 2);
@@ -899,8 +903,11 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange07, TestSize.Level0)
     TextConfig textConfig;
     textConfig.range = { 1, 1 };
     inputMethodController_->Attach(textListener_, false, textConfig);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
     InputMethodControllerTest::ResetKeyboardListenerTextConfig();
     inputMethodController_->Attach(textListener_, false);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     EXPECT_EQ(InputMethodControllerTest::oldBegin_, INVALID_VALUE);
     EXPECT_EQ(InputMethodControllerTest::oldEnd_, INVALID_VALUE);
     EXPECT_EQ(InputMethodControllerTest::newBegin_, INVALID_VALUE);
@@ -980,7 +987,7 @@ HWTEST_F(InputMethodControllerTest, testShowSoftKeyboard, TestSize.Level0)
     TextListener::ResetParam();
     int32_t ret = inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW) && WaitKeyboardStatus(true));
     IdentityCheckerMock::SetPermission(false);
 }
 
@@ -996,7 +1003,7 @@ HWTEST_F(InputMethodControllerTest, testShowCurrentInput, TestSize.Level0)
     TextListener::ResetParam();
     int32_t ret = inputMethodController_->ShowCurrentInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW) && WaitKeyboardStatus(true));
 }
 
 /**
@@ -1085,7 +1092,7 @@ HWTEST_F(InputMethodControllerTest, testHideSoftKeyboard, TestSize.Level0)
     TextListener::ResetParam();
     int32_t ret = inputMethodController_->HideSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE) && WaitKeyboardStatus(false));
     IdentityCheckerMock::SetPermission(false);
 }
 
@@ -1102,7 +1109,7 @@ HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
     TextListener::ResetParam();
     int32_t ret = inputMethodController_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE) && WaitKeyboardStatus(false));
 }
 
 /**
@@ -1118,8 +1125,7 @@ HWTEST_F(InputMethodControllerTest, testIMCInputStopSession, TestSize.Level0)
     imeListener_->keyboardState_ = true;
     int32_t ret = inputMethodController_->StopInputSession();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    WaitKeyboardStatusCallback(false);
-    EXPECT_TRUE(!imeListener_->keyboardState_);
+    EXPECT_TRUE(WaitKeyboardStatus(false));
 }
 
 /**
@@ -1132,8 +1138,7 @@ HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
     IMSA_HILOGI("IMC HideTextInput Test START");
     imeListener_->keyboardState_ = true;
     inputMethodController_->HideTextInput();
-    WaitKeyboardStatusCallback(false);
-    EXPECT_TRUE(!imeListener_->keyboardState_);
+    EXPECT_TRUE(WaitKeyboardStatus(false));
 }
 
 /**
@@ -1147,7 +1152,7 @@ HWTEST_F(InputMethodControllerTest, testIMCRequestShowInput, TestSize.Level0)
     imeListener_->keyboardState_ = false;
     int32_t ret = InputMethodControllerTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeListener_->keyboardState_);
+    EXPECT_TRUE(WaitKeyboardStatus(true));
 }
 
 /**
@@ -1161,7 +1166,7 @@ HWTEST_F(InputMethodControllerTest, testIMCRequestHideInput, TestSize.Level0)
     imeListener_->keyboardState_ = true;
     int32_t ret = InputMethodControllerTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(imeListener_->keyboardState_);
+    EXPECT_TRUE(WaitKeyboardStatus(true));
 }
 
 /**
@@ -1672,6 +1677,26 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent_null, TestSize.Level
     KeyEventCallback callback;
     auto ret = inputMethodController_->DispatchKeyEvent(keyEvent, callback);
     EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // avoid EventHandler crash
+}
+
+/**
+ * @tc.name: testIMCReset
+ * @tc.desc: test IMC Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIMCReset, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCReset Test START");
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_NE(inputMethodController_->abilityManager_, nullptr);
+    EXPECT_NE(inputMethodController_->textListener_, nullptr);
+    inputMethodController_->Reset();
+    EXPECT_EQ(inputMethodController_->textListener_, nullptr);
+    EXPECT_EQ(inputMethodController_->abilityManager_, nullptr);
+    inputMethodController_->abilityManager_ = imsaProxy_;
 }
 } // namespace MiscServices
 } // namespace OHOS

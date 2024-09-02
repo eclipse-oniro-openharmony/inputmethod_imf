@@ -20,6 +20,7 @@
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
 #include "inputmethod_sysevent.h"
+#include "task_manager.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -240,11 +241,14 @@ void InputMethodDfxTest::TearDownTestCase(void)
 void InputMethodDfxTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::SetUp");
+    TaskManager::GetInstance().SetInited(true);
 }
 
 void InputMethodDfxTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDown");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    TaskManager::GetInstance().Reset();
 }
 
 /**

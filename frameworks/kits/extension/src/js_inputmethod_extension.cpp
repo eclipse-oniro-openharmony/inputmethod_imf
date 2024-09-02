@@ -33,6 +33,9 @@
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
 #include "system_ability_definition.h"
+#include "tasks/task_ams.h"
+#include "tasks/task_imsa.h"
+#include "task_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -250,6 +253,12 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
 
 void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
 {
+    auto task = std::make_shared<TaskAmsInit>();
+    TaskManager::GetInstance().PostTask(task);
+    auto inputMethodAbility = InputMethodAbility::GetInstance();
+    if (inputMethodAbility != nullptr) {
+        inputMethodAbility->InitConnect();
+    }
     StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
     StartAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
     Extension::OnStart(want);
@@ -262,10 +271,11 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     StartAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     CallObjectMethod("onCreate", argv, ARGC_ONE);
     FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
-    auto ability = InputMethodAbility::GetInstance();
-    ability->SetCoreAndAgentAsync();
+    TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaSetCoreAndAgent>());
     IMSA_HILOGI("ime bind imf");
     FinishAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
+
+    TaskManager::GetInstance().Complete(task->GetSeqId());
 }
 
 void JsInputMethodExtension::OnStop()

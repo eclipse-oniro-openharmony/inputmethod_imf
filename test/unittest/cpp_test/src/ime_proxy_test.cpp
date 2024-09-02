@@ -15,6 +15,7 @@
 
 #define private public
 #include "input_method_ability.h"
+#include "task_manager.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -49,8 +50,6 @@ public:
         imc_ = InputMethodController::GetInstance();
         RegisterImeSettingListener();
         SwitchToTestIme();
-        InputMethodAbilityInterface::GetInstance().SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
-        InputMethodAbilityInterface::GetInstance().SetKdListener(std::make_shared<KeyboardListenerTestImpl>());
         // native sa permission
         TddUtil::GrantNativePermission();
     }
@@ -63,10 +62,15 @@ public:
     void SetUp()
     {
         IMSA_HILOGI("InputMethodAbilityTest::SetUp");
+        InputMethodAbilityInterface::GetInstance().SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+        InputMethodAbilityInterface::GetInstance().SetKdListener(std::make_shared<KeyboardListenerTestImpl>());
+        TaskManager::GetInstance().SetInited(true);
     }
     void TearDown()
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDown");
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        TaskManager::GetInstance().Reset();
     }
 
     static int32_t Attach(bool isPc)
@@ -321,6 +325,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 
     // mock click the edit box in pc, bind proxy
     InputMethodEngineListenerImpl::ResetParam();
@@ -529,28 +534,13 @@ HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
 HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::KeyboardListenerTest_015");
-    MessageParcel *data = new MessageParcel();
     // 1:positionX, 2: positionY, 5: height
-    data->WriteInt32(1);
-    data->WriteInt32(2);
-    data->WriteInt32(5);
-    Message *message = new Message(MessageID::MSG_ID_ON_CURSOR_UPDATE, data);
-    InputMethodAbility::GetInstance()->OnCursorUpdate(message);
+    InputMethodAbility::GetInstance()->OnCursorUpdate(1, 2, 5);
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
-    delete message;
 
-    MessageParcel *data1 = new MessageParcel();
-    // u"text": text, 1: oldBegin, 2: oldEnd, 4: newBegin, 6: newEnd
-    data1->WriteString16(u"text");
-    data1->WriteInt32(1);
-    data1->WriteInt32(2);
-    data1->WriteInt32(4);
-    data1->WriteInt32(6);
-    Message *message1 = new Message(MessageID::MSG_ID_ON_SELECTION_CHANGE, data1);
-    InputMethodAbility::GetInstance()->OnSelectionChange(message1);
+    InputMethodAbility::GetInstance()->OnSelectionChange(std::u16string(u"text"), 1, 2, 4, 6);
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(4));
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange("text"));
-    delete message1;
 }
 
 /**

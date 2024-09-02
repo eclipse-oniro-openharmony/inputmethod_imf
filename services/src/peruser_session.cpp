@@ -997,6 +997,7 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
         ImeInfoInquirer::GetInstance().GetImeInfo(userId_, imeToStart->bundleName, imeToStart->subName);
     if (currentImeInfo != nullptr) {
         NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
+        SwitchSubtype(currentImeInfo->subProp);
     }
     return true;
 }
@@ -1066,18 +1067,6 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
     }
     IMSA_HILOGI("%{public}s started successfully.", ime->imeId.c_str());
     InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
-    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, ime->bundleName, ime->subName);
-    if (info == nullptr) {
-        IMSA_HILOGW("ime doesn't exist!");
-        return true;
-    }
-    auto subProp = info->subProp;
-    auto data = GetReadyImeData(ImeType::IME);
-    if (data == nullptr) {
-        IMSA_HILOGW("ime doesn't exist!");
-        return true;
-    }
-    RequestIme(data, RequestType::NORMAL, [&data, &subProp] { return data->core->SetSubtype(subProp); });
     return true;
 }
 
@@ -1216,6 +1205,17 @@ int32_t PerUserSession::RestoreCurrentImeSubType()
     }
     IMSA_HILOGD("same ime, restore subtype: %{public}s.", cfgIme->subName.c_str());
     return SwitchSubtype(subProp);
+}
+
+bool PerUserSession::IsCurrentImeByPid(int32_t pid)
+{
+    auto imeData = GetReadyImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        IMSA_HILOGE("ime not started!");
+        return false;
+    }
+    IMSA_HILOGD("userId: %{public}d, pid: %{public}d, current pid: %{public}d.", userId_, pid, imeData->pid);
+    return imeData->pid == pid;
 }
 
 int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
@@ -1422,6 +1422,17 @@ int32_t PerUserSession::UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteO
         return ErrorCode::ERROR_ADD_DEATH_RECIPIENT_FAILED;
     }
     it->second->deathRecipient = deathRecipient;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::InitConnect(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(imeDataLock_);
+    auto it = imeData_.find(ImeType::IME);
+    if (it == imeData_.end()) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    it->second->pid = pid;
     return ErrorCode::NO_ERROR;
 }
 
@@ -1672,6 +1683,7 @@ bool PerUserSession::CheckPwdInputPatternConv(InputClientInfo &newClientInfo)
         IMSA_HILOGE("exClientInfo is nullptr!");
         return false;
     }
+    // if current input pattern differ from previous in pwd and normal, need hide panel first.
     if (newClientInfo.config.inputAttribute.GetSecurityFlag()) {
         IMSA_HILOGI("new input pattern is pwd.");
         return !exClientInfo->config.inputAttribute.GetSecurityFlag();

@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ using namespace AppExecFwk;
 using namespace Security::AccessToken;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
+constexpr const char *UNDEFINED = "undefined";
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -311,7 +312,8 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
         if (!InputTypeManager::GetInstance().IsStarted()) {
             IMSA_HILOGD("SecurityFlag, input type is not started, start.");
-            inputClientInfo.needHide = false;
+            // if need to switch ime, no need to hide panel first.
+            NeedHideWhenSwitchInputType(userId, inputClientInfo.needHide);
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         if (!inputClientInfo.isNotifyInputStart) {
@@ -320,7 +322,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         }
         if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
             IMSA_HILOGD("SecurityFlag, new textField, input type is started, but it is not security, switch.");
-            inputClientInfo.needHide = false;
+            NeedHideWhenSwitchInputType(userId, inputClientInfo.needHide);
             return StartInputType(userId, InputType::SECURITY_INPUT);
         }
         IMSA_HILOGD("SecurityFlag, other condition, not deal.");
@@ -450,6 +452,21 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     return session->OnSetCoreAndAgent(core, agent);
+}
+
+int32_t InputMethodSystemAbility::InitConnect()
+{
+    IMSA_HILOGD("InputMethodSystemAbility init connect.");
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (!IsCurrentIme(userId)) {
+        return ErrorCode::ERROR_NOT_CURRENT_IME;
+    }
+    return session->InitConnect(IPCSkeleton::GetCallingPid());
 }
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
@@ -589,6 +606,22 @@ int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(int32_t userId, uint32
     return ErrorCode::NO_ERROR;
 }
 
+bool InputMethodSystemAbility::IsCurrentImeByPid(int32_t pid)
+{
+    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
+        !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not system application or system ability!");
+        return false;
+    }
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return false;
+    }
+    return session->IsCurrentImeByPid(pid);
+}
+
 int32_t InputMethodSystemAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
@@ -671,14 +704,15 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
         std::string targetImeName = info->prop.name + "/" + info->prop.id;
         ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id });
-        auto targetIme = std::make_shared<ImeNativeCfg>(
-            ImeNativeCfg{ targetImeName, info->prop.name, info->subProp.id, info->prop.id });
+        auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg {
+            targetImeName, info->prop.name, switchInfo.subName.empty() ? "" : info->subProp.id, info->prop.id });
         if (!session->StartIme(targetIme)) {
             InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ret, switchInfo.bundleName,
                 "switch input method failed!");
             session->GetSwitchQueue().Pop();
             return ErrorCode::ERROR_IME_START_FAILED;
         }
+        GetValidSubtype(switchInfo.subName, info);
         session->NotifyImeChangeToClients(info->prop, info->subProp);
         ret = session->SwitchSubtype(info->subProp);
     }
@@ -689,6 +723,15 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
             "switch input method subtype failed!");
     }
     return ret;
+}
+
+void InputMethodSystemAbility::GetValidSubtype(const std::string &subName, const std::shared_ptr<ImeInfo> &info)
+{
+    if (subName.empty()) {
+        IMSA_HILOGW("undefined subtype");
+        info->subProp.id = UNDEFINED;
+        info->subProp.name = UNDEFINED;
+    }
 }
 
 int32_t InputMethodSystemAbility::OnStartInputType(int32_t userId, const SwitchInfo &switchInfo,
@@ -770,6 +813,8 @@ int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::sha
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     session->NotifyImeChangeToClients(info->prop, info->subProp);
+    GetValidSubtype("", info);
+    session->SwitchSubtype(info->subProp);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1732,6 +1777,18 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     IMSA_HILOGI("start input type: %{public}d.", type);
     return type == InputType::SECURITY_INPUT ? OnStartInputType(userId, switchInfo, false)
                                              : OnStartInputType(userId, switchInfo, true);
+}
+
+void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, bool &needHide)
+{
+    ImeIdentification ime;
+    InputTypeManager::GetInstance().GetImeByInputType(InputType::SECURITY_INPUT, ime);
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    if (currentImeCfg == nullptr) {
+        IMSA_HILOGI("currentImeCfg is nullptr");
+        return;
+    }
+    needHide = currentImeCfg->bundleName == ime.bundleName;
 }
 } // namespace MiscServices
 } // namespace OHOS

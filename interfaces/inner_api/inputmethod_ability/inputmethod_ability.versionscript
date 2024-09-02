@@ -19,6 +19,8 @@
     *InputMethodPanel*;
     *KeyEventConsumerProxy*;
     *SystemCmdChannelProxy*;
+    *Task*;
+    *TaskManager*;
   local:
     *;
 };

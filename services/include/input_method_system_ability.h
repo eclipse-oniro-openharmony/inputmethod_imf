@@ -70,11 +70,13 @@ public:
         const std::string &bundleName, const std::string &subName, SwitchTrigger trigger) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
+    int32_t InitConnect() override;
     int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) override;
     bool IsCurrentIme() override;
     bool IsInputTypeSupported(InputType type) override;
+    bool IsCurrentImeByPid(int32_t pid) override;
     int32_t StartInputType(InputType type) override;
     int32_t ExitCurrentInputType() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
@@ -118,6 +120,7 @@ private:
     int32_t SwitchExtension(int32_t userId, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchSubType(int32_t userId, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchInputType(int32_t userId, const SwitchInfo &switchInfo);
+    void GetValidSubtype(const std::string &subName, const std::shared_ptr<ImeInfo> &info);
     ServiceRunningState state_;
     void InitServiceHandler();
     void UpdateUserInfo(int32_t userId);
@@ -159,6 +162,8 @@ private:
     void OnSecurityModeChange();
     bool IsCurrentIme(int32_t userId);
     int32_t StartInputType(int32_t userId, InputType type);
+    // if switch input type need to switch ime, then no need to hide panel first.
+    void NeedHideWhenSwitchInputType(int32_t userId, bool &needHide);
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
