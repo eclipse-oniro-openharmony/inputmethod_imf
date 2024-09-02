@@ -123,7 +123,6 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
     if (clientInfo->deathRecipient != nullptr) {
         IMSA_HILOGD("deathRecipient remove.");
         client->RemoveDeathRecipient(clientInfo->deathRecipient);
-        clientInfo->deathRecipient = nullptr;
     }
     mapClients_.erase(client);
     IMSA_HILOGI("client[%{public}d] is removed.", clientInfo->pid);
@@ -890,7 +889,6 @@ void PerUserSession::RemoveImeData(ImeType type, bool isImeDied)
     auto data = it->second;
     if (isImeDied && data->core != nullptr && data->core->AsObject() != nullptr) {
         data->core->AsObject()->RemoveDeathRecipient(data->deathRecipient);
-        data->deathRecipient = nullptr;
     }
     imeData_.erase(type);
 }
