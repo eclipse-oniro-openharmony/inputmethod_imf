@@ -86,8 +86,15 @@ int PerUserSession::AddClientInfo(sptr<IRemoteObject> inputClient, const InputCl
         return ErrorCode::NO_ERROR;
     }
     auto info = std::make_shared<InputClientInfo>(clientInfo);
-    info->deathRecipient->SetDeathRecipient(
-        [this, info](const wptr<IRemoteObject> &) { this->OnClientDied(info->client); });
+    std::weak_ptr<InputClientInfo> weakClientInfo = info;
+    info->deathRecipient->SetDeathRecipient([this, weakClientInfo](const wptr<IRemoteObject> &) {
+        auto clientInfo = weakClientInfo.lock();
+        if (clientInfo == nullptr) {
+            IMSA_HILOGD("clientInfo is nullptr.");
+            return;
+        }
+        this->OnClientDied(clientInfo->client);
+    });
     auto obj = info->client->AsObject();
     if (obj == nullptr) {
         IMSA_HILOGE("client obj is nullptr!");
