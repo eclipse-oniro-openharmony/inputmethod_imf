@@ -1128,7 +1128,14 @@ bool ImeInfoInquirer::GetAppIdByBundleName(int32_t userId, const std::string &bu
         IMSA_HILOGE("failed to get bundleMgr");
         return false;
     }
-    appId = bundleMgr->GetAppIdByBundleName(bundleName, userId);
+    BundleInfo bundleInfo;
+    auto ret = bundleMgr->GetBundleInfo(
+        bundleName, static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_SIGNATURE_INFO), bundleInfo, userId);
+    if (!ret) {
+        IMSA_HILOGE("failed to get bundle info");
+        return false;
+    }
+    appId = bundleInfo.signatureInfo.appIdentifier;
     return !appId.empty();
 }
 } // namespace MiscServices

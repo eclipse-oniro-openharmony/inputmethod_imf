@@ -102,7 +102,7 @@ struct DefaultFullImeInfo : public Serializable {
     std::string expirationTime;
     bool Unmarshal(cJSON *node) override
     {
-        bool ret = GetValue(node, GET_NAME(appId), appId);
+        bool ret = GetValue(node, GET_NAME(appIdentifier), appId);
         ret &= GetValue(node, GET_NAME(expirationTime), expirationTime);
         return ret;
     }
