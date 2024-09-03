@@ -197,7 +197,7 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level0)
  */
 HWTEST_F(SecurityModeParserTest, testInitialize, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityTest testInitialize Test START");
+    IMSA_HILOGI("SecurityModeParserTest testInitialize START");
     auto ret = SecurityModeParser::GetInstance()->Initialize(SecurityModeParserTest::USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -209,7 +209,7 @@ HWTEST_F(SecurityModeParserTest, testInitialize, TestSize.Level0)
  */
 HWTEST_F(SecurityModeParserTest, testIsExpired, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityTest testIsExpired Test START");
+    IMSA_HILOGI("SecurityModeParserTest testIsExpired START");
     auto ret = SecurityModeParser::GetInstance()->IsExpired("test");
     EXPECT_FALSE(ret);
 }
@@ -221,7 +221,7 @@ HWTEST_F(SecurityModeParserTest, testIsExpired, TestSize.Level0)
  */
 HWTEST_F(SecurityModeParserTest, testRegisterObserver, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityTest testRegisterObserver Test START");
+    IMSA_HILOGI("SecurityModeParserTest testRegisterObserver START");
     sptr<SettingsDataObserver> observer = nullptr;
     auto ret = SettingsDataUtils::GetInstance()->RegisterObserver(observer);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
@@ -234,12 +234,37 @@ HWTEST_F(SecurityModeParserTest, testRegisterObserver, TestSize.Level0)
  */
 HWTEST_F(SecurityModeParserTest, testReleaseDataShareHelper, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityTest testReleaseDataShareHelper Test START");
+    IMSA_HILOGI("SecurityModeParserTest testReleaseDataShareHelper START");
     std::shared_ptr<DataShare::DataShareHelper> helper;
     auto ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
     EXPECT_TRUE(ret);
     helper = nullptr;
     ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: testParseSecurityMode_001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SecurityModeParserTest, testParseSecurityMode_001, TestSize.Level0)
+{
+    IMSA_HILOGI("SecurityModeParserTest testParseSecurityMode_001 START");
+    auto ret = SecurityModeParser::GetInstance()->ParseSecurityMode("", SecurityModeParserTest::USER_ID);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: testParseSecurityMode_002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SecurityModeParserTest, testParseSecurityMode_002, TestSize.Level0)
+{
+    IMSA_HILOGI("SecurityModeParserTest testParseSecurityMode_002 START");
+    auto ret = SecurityModeParser::GetInstance()->ParseSecurityMode("{\"fullExperienceList\" : {\"100\" : ["
+        "\"xiaoyiIme\", \"baiduIme\", \"sougouIme\"],\"101\" : [\"sougouIme\"]}}", SecurityModeParserTest::USER_ID);
     EXPECT_TRUE(ret);
 }
 } // namespace MiscServices
