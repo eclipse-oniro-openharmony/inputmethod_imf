@@ -140,8 +140,7 @@ public:
 
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->abilityManager_ = imsaProxy_;
-        TddUtil::InitCurrentImePermissionInfo();
-        inputMethodAbility_->SetCoreAndAgent();
+        TddUtil::SetCoreAndAgent(inputMethodAbility_);
         TaskManager::GetInstance().SetInited(true);
 
         TextListener::ResetParam();

@@ -32,6 +32,7 @@
 #include "datashare_helper.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
+#include "input_method_controller.h"
 #include "iservice_registry.h"
 #include "nativetoken_kit.h"
 #include "os_account_manager.h"
@@ -366,8 +367,14 @@ bool TddUtil::GetUnfocused()
     return unFocused;
 }
 
-void TddUtil::InitCurrentImePermissionInfo()
+void TddUtil::SetCoreAndAgent(const sptr<InputMethodAbility> &ima)
 {
+    std::shared_ptr<Property> property = nullptr;
+    InputMethodController::GetInstance()->GetDefaultInputMethod(property);
+    if (property == nullptr) {
+        IMSA_HILOGI("default ime is nullptr.");
+        return;
+    }
     auto userId = GetCurrentUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
@@ -378,9 +385,11 @@ void TddUtil::InitCurrentImePermissionInfo()
         IMSA_HILOGE("session is nullptr.");
         return;
     }
-    session->InitImeData({ CURRENT_BUNDLENAME, CURRENT_EXTNAME });
-    ImeCfgManager::GetInstance().imeConfigs_ = { { userId,
-        std::string(CURRENT_BUNDLENAME) + "/" + std::string(CURRENT_EXTNAME), CURRENT_SUBNAME } };
+    auto defaultImeTokenId = TddUtil::GetTestTokenID(property->name);
+    AccessScope scope(defaultImeTokenId, 0);
+    session->InitImeData({ property->name, property->id });
+    ImeCfgManager::GetInstance().imeConfigs_ = { { userId, property->name + "/" + property->id, "" } };
+    ima->SetCoreAndAgent();
 }
 
 void TddUtil::WindowManager::CreateWindow()

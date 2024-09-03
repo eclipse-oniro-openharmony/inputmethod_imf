@@ -21,6 +21,7 @@
 #include "block_data.h"
 #include "bundle_mgr_interface.h"
 #include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
+#include "input_method_ability.h"
 #include "window_manager.h"
 #include "window_option.h"
 #include "wm_common.h"
@@ -39,9 +40,6 @@ public:
 };
 class TddUtil {
 public:
-    static const constexpr char *CURRENT_BUNDLENAME = "";
-    static const constexpr char *CURRENT_EXTNAME = "imeExtName";
-    static const constexpr char *CURRENT_SUBNAME = "imeSubName";
     static int32_t GetCurrentUserId();
     static void StorageSelfTokenID();
     static uint64_t AllocTestTokenID(
@@ -63,7 +61,7 @@ public:
     static void DestroyWindow();
     static bool GetFocused();
     static bool GetUnfocused();
-    static void InitCurrentImePermissionInfo();
+    static void SetCoreAndAgent(const sptr<InputMethodAbility> &ima);
     class WindowManager {
     public:
         static void CreateWindow();
