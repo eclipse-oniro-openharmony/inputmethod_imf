@@ -26,21 +26,21 @@ struct Property {
     std::string name;    // the bundleName of inputMethod
     std::string id;      // the extensionName of inputMethod
     std::string label;   // the label of inputMethod
-    int32_t labelId = 0; // the labelId of inputMethod
+    uint32_t labelId = 0; // the labelId of inputMethod
     std::string icon;    // the icon of inputMethod
-    int32_t iconId = 0;  // the icon id of inputMethod
+    uint32_t iconId = 0;  // the icon id of inputMethod
 };
 
 struct SubProperty {
     std::string label;    // the label of subtype
-    int32_t labelId = 0;  // the labelId of subtype
+    uint32_t labelId = 0;  // the labelId of subtype
     std::string name;     // the bundleName of inputMethod
     std::string id;       // the name of subtype
     std::string mode;     // the mode of subtype, containing "upper" and "lower"
     std::string locale;   // the tongues of subtype, such as "zh_CN", "en_US", etc.
     std::string language; // the language of subtype
     std::string icon;     // the icon of subtype
-    int32_t iconId = 0;   // the icon id of subtype
+    uint32_t iconId = 0;   // the icon id of subtype
 };
 
 struct FullImeInfo {
