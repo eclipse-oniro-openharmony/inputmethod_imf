@@ -171,8 +171,6 @@ private:
     double positionY_ = 0;
     double height_ = 0;
 
-    bool isPendingShowKeyboard_ = false;
-
     std::mutex defaultImeCheckMutex_;
     bool isDefaultIme_ = false;
     std::mutex inputAttrLock_;

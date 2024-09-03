@@ -223,7 +223,6 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
 
     auto showPanel = [&, needShow = clientInfo.isShowKeyboard] {
         if (needShow) {
-            isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
             ShowKeyboardImplWithoutLock(cmdId_);
         }
     };
@@ -810,11 +809,6 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
             inputMethodPanel = nullptr;
             return false;
         });
-    // Called when creating the input method first time, if the CreatePanel is called later than the ShowKeyboard.
-    if (panelInfo.panelType == SOFT_KEYBOARD && isPendingShowKeyboard_) {
-        ShowKeyboard();
-        isPendingShowKeyboard_ = false;
-    }
     return flag ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
