@@ -222,6 +222,7 @@ void InputMethodDfxTest::SetUpTestCase(void)
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->abilityManager_ = imsa_;
     TddUtil::InitCurrentImePermissionInfo();
+    IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
     inputMethodAbility_->SetCoreAndAgent();
     inputMethodAbility_->SetImeListener(imeListener_);
 
@@ -439,7 +440,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_UnBind, TestSize.Leve
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_UnBind");
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::UNBIND)),
-        std::to_string(static_cast<int32_t>(getpid())), TddUtil::CURRENT_BUNDLENAME);
+        std::to_string(static_cast<int32_t>(getpid())), TddUtil::currentBundleNameMock_);
     auto imeStateUnBind = []() {
         inputMethodController_->Attach(textListener_, true);
         inputMethodController_->Close();
@@ -456,7 +457,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Bind, TestSize.Level0
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_Bind");
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::BIND)),
-        std::to_string(static_cast<int32_t>(getpid())), TddUtil::CURRENT_BUNDLENAME);
+        std::to_string(static_cast<int32_t>(getpid())), TddUtil::currentBundleNameMock_);
     auto imeStateBind = []() { inputMethodController_->RequestShowInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatchImeChange(watcherImeChange, imeStateBind));
 }

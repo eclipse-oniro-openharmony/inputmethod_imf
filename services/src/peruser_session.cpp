@@ -1357,7 +1357,7 @@ void PerUserSession::AddRestartIme()
 bool PerUserSession::RestartIme()
 {
     auto task = [this]() {
-        if (IsReady(MEMORY_MANAGER_SA_ID) && IsWmsReady()) {
+        if (IsReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()) {
             auto ret = StartCurrentIme(true);
             if (!ret) {
                 IMSA_HILOGE("start ime failed");
