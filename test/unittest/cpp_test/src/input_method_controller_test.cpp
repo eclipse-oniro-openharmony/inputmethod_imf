@@ -285,6 +285,7 @@ void InputMethodControllerTest::SetUpTestCase(void)
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     inputMethodAbility_->abilityManager_ = imsaProxy_;
     TddUtil::InitCurrentImePermissionInfo();
+    IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
     inputMethodAbility_->SetCoreAndAgent();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     controllerListener_ = std::make_shared<SelectListenerMock>();

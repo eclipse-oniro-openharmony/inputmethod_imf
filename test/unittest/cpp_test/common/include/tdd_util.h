@@ -39,9 +39,6 @@ public:
 };
 class TddUtil {
 public:
-    static const constexpr char *CURRENT_BUNDLENAME = "";
-    static const constexpr char *CURRENT_EXTNAME = "imeExtName";
-    static const constexpr char *CURRENT_SUBNAME = "imeSubName";
     static int32_t GetCurrentUserId();
     static void StorageSelfTokenID();
     static uint64_t AllocTestTokenID(
@@ -64,6 +61,7 @@ public:
     static bool GetFocused();
     static bool GetUnfocused();
     static void InitCurrentImePermissionInfo();
+    static std::string currentBundleNameMock_;
     class WindowManager {
     public:
         static void CreateWindow();

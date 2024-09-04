@@ -50,7 +50,7 @@ public:
     }
     std::string GetBundleNameByToken(uint32_t tokenId) override
     {
-        return "";
+        return bundleName_;
     }
     static void ResetParam()
     {
@@ -60,6 +60,7 @@ public:
         hasPermission_ = false;
         isBroker_ = false;
         isNativeSa_ = false;
+        bundleName_ = "";
     }
     static void SetFocused(bool isFocused)
     {
@@ -86,6 +87,11 @@ public:
         hasPermission_ = hasPermission;
     }
 
+    static void SetBundleName(const std::string &bundleName)
+    {
+        bundleName_ = bundleName;
+    }
+
 private:
     static bool isFocused_;
     static bool isSystemApp_;
@@ -93,6 +99,7 @@ private:
     static bool hasPermission_;
     static bool isBroker_;
     static bool isNativeSa_;
+    static std::string bundleName_;
 };
 bool IdentityCheckerMock::isFocused_{ false };
 bool IdentityCheckerMock::isSystemApp_{ false };
@@ -100,6 +107,7 @@ bool IdentityCheckerMock::isBundleNameValid_{ false };
 bool IdentityCheckerMock::hasPermission_{ false };
 bool IdentityCheckerMock::isBroker_{ false };
 bool IdentityCheckerMock::isNativeSa_{ false };
+std::string IdentityCheckerMock::bundleName_;
 } // namespace MiscServices
 } // namespace OHOS
 #endif // IMF_TEST_IDENTITY_CHECKER_MOCK_H

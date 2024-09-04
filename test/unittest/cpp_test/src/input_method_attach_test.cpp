@@ -26,8 +26,6 @@
 #include "global.h"
 #include "identity_checker_mock.h"
 #include "input_attribute.h"
-#include "input_method_ability.h"
-#include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
 #include "input_method_system_ability_proxy.h"
 #include "input_method_system_ability_stub.h"
@@ -65,6 +63,7 @@ public:
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->abilityManager_ = imsaProxy_;
         TddUtil::InitCurrentImePermissionInfo();
+        IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
 

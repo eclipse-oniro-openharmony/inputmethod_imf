@@ -140,6 +140,7 @@ public:
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->abilityManager_ = imsaProxy_;
         TddUtil::InitCurrentImePermissionInfo();
+        IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
         inputMethodAbility_->SetCoreAndAgent();
 
         TextListener::ResetParam();
