@@ -21,6 +21,7 @@ group("imf_packages") {
       "etc/init:inputmethodservice.cfg",
       "etc/para:inputmethod.para",
       "etc/para:inputmethod_para",
+      "frameworks/cj:cj_inputmethod_ffi",
       "frameworks/js/napi/inputmethodability:inputmethodengine",
       "frameworks/js/napi/inputmethodclient:inputmethod",
       "frameworks/js/napi/inputmethodlist:inputmethodlist",
