@@ -225,6 +225,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     ima_ = InputMethodAbility::GetInstance();
     ima_->abilityManager_ = imsa_;
     TddUtil::InitCurrentImePermissionInfo();
+    IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
     ima_->SetCoreAndAgent();
     InputMethodPanelTest::ima_->SetImeListener(imeListener_);
 

@@ -21,7 +21,6 @@
 #include "block_data.h"
 #include "bundle_mgr_interface.h"
 #include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
-#include "input_method_ability.h"
 #include "window_manager.h"
 #include "window_option.h"
 #include "wm_common.h"
@@ -61,7 +60,8 @@ public:
     static void DestroyWindow();
     static bool GetFocused();
     static bool GetUnfocused();
-    static void SetCoreAndAgent(const sptr<InputMethodAbility> &ima);
+    static void InitCurrentImePermissionInfo();
+    static std::string currentBundleNameMock_;
     class WindowManager {
     public:
         static void CreateWindow();

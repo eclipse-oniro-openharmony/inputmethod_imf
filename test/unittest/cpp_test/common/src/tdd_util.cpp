@@ -60,6 +60,7 @@ constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
 uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
+std::string TddUtil::currentBundleNameMock_;
 sptr<Window> TddUtil::WindowManager::window_ = nullptr;
 int32_t TddUtil::WindowManager::currentWindowId_ = 0;
 uint64_t TddUtil::WindowManager::windowTokenId_ = 0;
@@ -367,14 +368,8 @@ bool TddUtil::GetUnfocused()
     return unFocused;
 }
 
-void TddUtil::SetCoreAndAgent(const sptr<InputMethodAbility> &ima)
+void TddUtil::InitCurrentImePermissionInfo()
 {
-    std::shared_ptr<Property> property = nullptr;
-    InputMethodController::GetInstance()->GetDefaultInputMethod(property);
-    if (property == nullptr) {
-        IMSA_HILOGI("default ime is nullptr.");
-        return;
-    }
     auto userId = GetCurrentUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
@@ -385,11 +380,15 @@ void TddUtil::SetCoreAndAgent(const sptr<InputMethodAbility> &ima)
         IMSA_HILOGE("session is nullptr.");
         return;
     }
-    auto defaultImeTokenId = TddUtil::GetTestTokenID(property->name);
-    AccessScope scope(defaultImeTokenId, 0);
+    std::shared_ptr<Property> property = nullptr;
+    InputMethodController::GetInstance()->GetDefaultInputMethod(property);
+    if (property == nullptr) {
+        IMSA_HILOGI("default ime is nullptr.");
+        return;
+    }
+    currentBundleNameMock_ = property->name;
     session->InitImeData({ property->name, property->id });
     ImeCfgManager::GetInstance().imeConfigs_ = { { userId, property->name + "/" + property->id, "" } };
-    ima->SetCoreAndAgent();
 }
 
 void TddUtil::WindowManager::CreateWindow()
