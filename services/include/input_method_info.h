@@ -29,8 +29,8 @@ struct InputMethodInfo {
     std::string mConfigurationPage;
     bool isSystemIme = false;
     int32_t mDefaultImeId = 0;
-    int32_t labelId = 0;
-    int32_t descriptionId = 0;
+    uint32_t labelId = 0;
+    uint32_t descriptionId = 0;
     std::string label;
     std::string description;
 };
