@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 
-#include "settingsdatautils_fuzzer.h"
-
+#define private public
 #include "settings_data_utils.h"
+#undef private
+
+#include "settingsdatautils_fuzzer.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {

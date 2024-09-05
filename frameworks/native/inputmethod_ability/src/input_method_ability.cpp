@@ -244,6 +244,13 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     IMSA_HILOGI("IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", clientInfo.isShowKeyboard,
         isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
+    if (clientInfo.needHide) {
+        IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
+        auto panel = GetSoftKeyboardPanel();
+        if (panel != nullptr) {
+            panel->HidePanel();
+        }
+    }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
                                    : InvokeStartInputCallback(clientInfo.isNotifyInputStart);
     if (ret != ErrorCode::NO_ERROR) {

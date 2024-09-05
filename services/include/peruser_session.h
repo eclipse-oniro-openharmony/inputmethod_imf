@@ -118,6 +118,7 @@ public:
     int32_t RemoveCurrentClient();
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     BlockQueue<SwitchInfo>& GetSwitchQueue();
+    bool CheckPwdInputPatternConv(InputClientInfo &clientInfo);
 
 private:
     struct ResetManager {

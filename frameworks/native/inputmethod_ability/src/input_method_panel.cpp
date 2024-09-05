@@ -148,6 +148,10 @@ int32_t InputMethodPanel::DestroyPanel()
         IMSA_HILOGE("InputMethodPanel, hide panel failed, ret: %{public}d!", ret);
         return ret;
     }
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     if (panelType_ == SOFT_KEYBOARD) {
         UnregisterKeyboardPanelInfoChangeListener();
     }

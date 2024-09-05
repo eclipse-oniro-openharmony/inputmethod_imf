@@ -285,6 +285,9 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         // notify inputStart when caller pid different from both current client and inactive client
         inputClientInfo.isNotifyInputStart = true;
     }
+    if (inputClientInfo.isNotifyInputStart) {
+        inputClientInfo.needHide = session->CheckPwdInputPatternConv(inputClientInfo);
+    }
     if (!session->IsProxyImeEnable()) {
         CheckInputTypeOption(userId, inputClientInfo);
     }
@@ -1284,7 +1287,6 @@ void InputMethodSystemAbility::InitMonitors()
         IMSA_HILOGW("Enter security mode.");
         enableSecurityMode_ = true;
     }
-    RegisterDataShareObserver();
 }
 
 int32_t InputMethodSystemAbility::RegisterDataShareObserver()
