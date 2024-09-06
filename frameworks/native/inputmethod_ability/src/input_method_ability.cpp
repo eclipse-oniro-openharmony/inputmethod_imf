@@ -108,6 +108,8 @@ sptr<IInputMethodSystemAbility> InputMethodAbility::GetImsaProxy()
 int32_t InputMethodAbility::SetCoreAndAgent()
 {
     IMSA_HILOGD("InputMethodAbility, start.");
+    TaskManager::GetInstance().SetInited(true);
+
     if (isBound_.load()) {
         IMSA_HILOGD("already bound.");
         return ErrorCode::NO_ERROR;
