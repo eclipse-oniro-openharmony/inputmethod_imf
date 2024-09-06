@@ -18,6 +18,8 @@
 #include "input_method_system_ability_proxy.h"
 #undef private
 
+#include "systemabilitystub_fuzzer.h"
+
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -30,7 +32,6 @@
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
 #include "system_ability_definition.h"
-#include "systemabilitystub_fuzzer.h"
 #include "text_listener.h"
 #include "token_setproc.h"
 

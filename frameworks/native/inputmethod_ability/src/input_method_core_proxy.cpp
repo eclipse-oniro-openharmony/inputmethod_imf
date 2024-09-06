@@ -40,7 +40,7 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(const sptr<IInputControlCh
 
 int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
-    IMSA_HILOGI("CoreProxy start.");
+    IMSA_HILOGI("CoreProxy");
     return SendRequest(START_INPUT, [&clientInfo, isBindFromClient](MessageParcel &data) {
         return ITypesUtil::Marshal(data, isBindFromClient, clientInfo, clientInfo.channel);
     });
@@ -48,8 +48,9 @@ int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool
 
 int32_t InputMethodCoreProxy::OnSecurityChange(int32_t security)
 {
-    return SendRequest(SECURITY_CHANGE,
-        [security](MessageParcel &data) { return ITypesUtil::Marshal(data, security); });
+    return SendRequest(SECURITY_CHANGE, [security](MessageParcel& data) {
+        return ITypesUtil::Marshal(data, security);
+    });
 }
 
 int32_t InputMethodCoreProxy::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
@@ -88,8 +89,8 @@ int32_t InputMethodCoreProxy::StopInput(const sptr<IRemoteObject> &channel)
 bool InputMethodCoreProxy::IsEnable()
 {
     bool isEnable = false;
-    SendRequest(IS_ENABLE, nullptr,
-        [&isEnable](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isEnable); });
+    SendRequest(
+        IS_ENABLE, nullptr, [&isEnable](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isEnable); });
     return isEnable;
 }
 
@@ -109,34 +110,34 @@ void InputMethodCoreProxy::OnClientInactive(const sptr<IRemoteObject> &channel)
 
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)
 {
-    IMSA_HILOGD("InputMethodCoreProxy, run in, code = %{public}d.", code);
+    IMSA_HILOGD("InputMethodCoreProxy, run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("InputMethodCoreProxy::write interface token failed!");
+        IMSA_HILOGE("InputMethodCoreProxy::write interface token failed");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
     if (input != nullptr && (!input(data))) {
-        IMSA_HILOGE("InputMethodCoreProxy::write data failed!");
+        IMSA_HILOGE("InputMethodCoreProxy::write data failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        IMSA_HILOGE("InputMethodCoreProxy::remote is nullptr!");
+        IMSA_HILOGE("InputMethodCoreProxy remote is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputMethodCoreProxy send request failed, code: %{public}d, ret: %{public}d!", code, ret);
+        IMSA_HILOGE("InputMethodCoreProxy send request failed, code: %{public}d, ret %{public}d", code, ret);
         return ret;
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputMethodCoreProxy::reply error, ret: %{public}d!", ret);
+        IMSA_HILOGE("InputMethodCoreProxy::reply error, ret %{public}d", ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
-        IMSA_HILOGE("InputMethodCoreProxy::reply parcel error!");
+        IMSA_HILOGE("InputMethodCoreProxy::reply parcel error");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ret;

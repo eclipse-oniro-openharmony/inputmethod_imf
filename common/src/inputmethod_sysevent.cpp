@@ -41,7 +41,8 @@ const std::unordered_map<int32_t, std::string> InputMethodSysEvent::operateInfo_
 };
 
 std::map<int32_t, int32_t> InputMethodSysEvent::inputmethodBehaviour_ = {
-    { static_cast<int32_t>(IMEBehaviour::START_IME), 0 }, { static_cast<int32_t>(IMEBehaviour::CHANGE_IME), 0 }
+    {static_cast<int32_t>(IMEBehaviour::START_IME), 0},
+    {static_cast<int32_t>(IMEBehaviour::CHANGE_IME), 0}
 };
 
 InputMethodSysEvent::~InputMethodSysEvent()
@@ -57,35 +58,35 @@ InputMethodSysEvent &InputMethodSysEvent::GetInstance()
 
 void InputMethodSysEvent::ServiceFaultReporter(const std::string &componentName, int32_t errCode)
 {
-    IMSA_HILOGD("start.");
+    IMSA_HILOGD("run in.");
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "SERVICE_INIT_FAILED",
         HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "COMPONENT_ID", componentName, "ERROR_CODE",
         errCode);
     if (ret != HiviewDFX::SUCCESS) {
-        IMSA_HILOGE("hisysevent ServiceFaultReporter failed! ret: %{public}d, errCode: %{public}d", ret, errCode);
+        IMSA_HILOGE("hisysevent ServiceFaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
     }
 }
 
 void InputMethodSysEvent::InputmethodFaultReporter(int32_t errCode, const std::string &name, const std::string &info)
 {
-    IMSA_HILOGD("start.");
+    IMSA_HILOGD("run in.");
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "UNAVAILABLE_INPUTMETHOD",
         HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "APP_NAME", name, "ERROR_CODE", errCode, "INFO",
         info);
     if (ret != HiviewDFX::SUCCESS) {
-        IMSA_HILOGE("hisysevent InputmethodFaultReporter failed! ret: %{public}d,errCode %{public}d", ret, errCode);
+        IMSA_HILOGE("hisysevent InputmethodFaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
     }
 }
 
 void InputMethodSysEvent::ImeUsageBehaviourReporter()
 {
-    IMSA_HILOGD("start.");
+    IMSA_HILOGD("run in.");
     int ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::INPUTMETHOD, "IME_USAGE",
         HiSysEventNameSpace::EventType::STATISTIC, "IME_START",
         inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::START_IME)], "IME_CHANGE",
         inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::CHANGE_IME)]);
     if (ret != HiviewDFX::SUCCESS) {
-        IMSA_HILOGE("hisysevent BehaviourReporter failed! ret: %{public}d", ret);
+        IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
     {
         std::lock_guard<std::mutex> lock(behaviourMutex_);
@@ -113,7 +114,7 @@ void InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCo
         HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(static_cast<int32_t>(infoCode)),
         "OPERATE_INFO", GetOperateInfo(static_cast<int32_t>(infoCode)));
     if (ret != HiviewDFX::SUCCESS) {
-        IMSA_HILOGE("Hisysevent: operate soft keyboard report failed! ret: %{public}d", ret);
+        IMSA_HILOGE("Hisysevent: operate soft keyboard report failed! ret %{public}d", ret);
     }
 }
 
@@ -167,7 +168,7 @@ void InputMethodSysEvent::SetUserId(int32_t userId)
 
 void InputMethodSysEvent::StopTimer()
 {
-    IMSA_HILOGD("start.");
+    IMSA_HILOGD("run in");
     std::lock_guard<std::mutex> lock(timerLock_);
     if (timer_ == nullptr) {
         IMSA_HILOGE("timer_ is nullptr.");
@@ -179,12 +180,12 @@ void InputMethodSysEvent::StopTimer()
 
 bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t interval)
 {
-    IMSA_HILOGD("start.");
+    IMSA_HILOGD("run in");
     if (timer_ == nullptr) {
         timer_ = std::make_shared<Utils::Timer>("OS_imfTimer");
         uint32_t ret = timer_->Setup();
         if (ret != Utils::TIMER_ERR_OK) {
-            IMSA_HILOGE("create Timer error.");
+            IMSA_HILOGE("Create Timer error");
             return false;
         }
         timerId_ = timer_->Register(callback, interval, true);
@@ -198,7 +199,7 @@ bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t int
 
 bool InputMethodSysEvent::StartTimerForReport()
 {
-    IMSA_HILOGD("start.");
+    IMSA_HILOGD("run in");
     auto reportCallback = [this]() { ImeUsageBehaviourReporter(); };
     std::lock_guard<std::mutex> lock(timerLock_);
     return StartTimer(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS);

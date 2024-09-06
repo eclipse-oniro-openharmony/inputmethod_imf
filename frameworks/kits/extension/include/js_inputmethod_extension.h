@@ -110,7 +110,7 @@ public:
      *
      * @param configuration Indicates the updated configuration information.
      */
-    virtual void OnConfigurationUpdated(const AppExecFwk::Configuration &config) override;
+    virtual void OnConfigurationUpdated(const AppExecFwk::Configuration& config) override;
 
     /**
      * @brief Called when configuration changed, including system configuration and window configuration.
@@ -176,11 +176,9 @@ private:
     class SystemAbilityStatusChangeListener : public OHOS::SystemAbilityStatusChangeStub {
     public:
         SystemAbilityStatusChangeListener(sptr<JsInputMethodExtensionDisplayListener> displayListener)
-            : listener_(displayListener){};
-        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
-        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override
-        {
-        }
+            : listener_(displayListener) {};
+        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override {}
 
     private:
         sptr<JsInputMethodExtensionDisplayListener> listener_ = nullptr;

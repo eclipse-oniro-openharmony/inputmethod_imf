@@ -43,17 +43,17 @@ void PanelListenerImpl::SaveInfo(napi_env env, const std::string &type, napi_val
         std::make_shared<JSCallbackObject>(env, callback, std::this_thread::get_id());
     auto result = callbacks_.Find(windowId);
     if (!result.first) {
-        IMSA_HILOGI("start to subscribe, type: %{public}s, windowId: %{public}u.", type.c_str(), windowId);
+        IMSA_HILOGI("start to subscribe, type = %{public}s, windowId = %{public}u", type.c_str(), windowId);
         ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>> cbs{};
         cbs.Insert(type, cbObject);
         callbacks_.Insert(windowId, cbs);
     } else {
         auto res = result.second.Find(type);
         if (res.first) {
-            IMSA_HILOGD("type: %{public}s of windowId: %{public}u already subscribed.", type.c_str(), windowId);
+            IMSA_HILOGD("type: %{public}s of windowId: %{public}u already subscribed", type.c_str(), windowId);
             return;
         }
-        IMSA_HILOGI("start to subscribe type: %{public}s of windowId: %{public}u.", type.c_str(), windowId);
+        IMSA_HILOGI("start to subscribe type: %{public}s of windowId: %{public}u", type.c_str(), windowId);
         result.second.Insert(type, cbObject);
         callbacks_.InsertOrAssign(windowId, result.second);
     }
@@ -85,7 +85,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
     }
     auto entry = std::make_shared<UvEntry>(callback.second);
     if (entry == nullptr) {
-        IMSA_HILOGE("entry is nullptr!");
+        IMSA_HILOGE("work->data is nullptr!");
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -103,12 +103,12 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
     std::string type = "sizeChange";
     auto callback = GetCallback(type, windowId);
     if (callback == nullptr) {
-        IMSA_HILOGE("callback not found! type: %{public}s", type.c_str());
+        IMSA_HILOGE("callback not found! type:%{public}s", type.c_str());
         return;
     }
     auto entry = GetEntry(callback, [&size](UvEntry &entry) { entry.size = size; });
     if (entry == nullptr) {
-        IMSA_HILOGD("entry is nullptr!");
+        IMSA_HILOGD("failed to get entry");
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -117,7 +117,7 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
         return;
     }
 
-    IMSA_HILOGI("start.");
+    IMSA_HILOGI("run in");
     auto task = [entry]() {
         auto gitWindowSizeParams = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc == 0) {
@@ -145,10 +145,10 @@ std::shared_ptr<PanelListenerImpl::UvEntry> PanelListenerImpl::GetEntry(
 
 std::shared_ptr<JSCallbackObject> PanelListenerImpl::GetCallback(const std::string &type, uint32_t windowId)
 {
-    IMSA_HILOGD("start, type: %{public}s, windowId: %{public}d", type.c_str(), windowId);
+    IMSA_HILOGD("type: %{public}s, windowId: %{public}d", type.c_str(), windowId);
     auto result = callbacks_.Find(windowId);
     if (!result.first) {
-        IMSA_HILOGE("no callback of windowId: %{public}d!", windowId);
+        IMSA_HILOGE("no callback of windowId = %{public}d!", windowId);
         return nullptr;
     }
     auto callback = result.second.Find(type);

@@ -20,10 +20,11 @@
 #include "peruser_session.h"
 #undef private
 
+#include <string_ex.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <string_ex.h>
 
 #include "global.h"
 #include "i_input_method_agent.h"

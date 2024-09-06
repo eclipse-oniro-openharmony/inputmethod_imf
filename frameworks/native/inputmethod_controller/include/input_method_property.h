@@ -23,12 +23,12 @@
 namespace OHOS {
 namespace MiscServices {
 struct Property {
-    std::string name;    // the bundleName of inputMethod
-    std::string id;      // the extensionName of inputMethod
-    std::string label;   // the label of inputMethod
+    std::string name;   // the bundleName of inputMethod
+    std::string id;     // the extensionName of inputMethod
+    std::string label;  // the label of inputMethod
     int32_t labelId = 0; // the labelId of inputMethod
-    std::string icon;    // the icon of inputMethod
-    int32_t iconId = 0;  // the icon id of inputMethod
+    std::string icon;   // the icon of inputMethod
+    int32_t iconId = 0; // the icon id of inputMethod
 };
 
 struct SubProperty {

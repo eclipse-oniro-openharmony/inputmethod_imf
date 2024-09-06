@@ -31,10 +31,10 @@ InputControlChannelStub::~InputControlChannelStub()
 {
 }
 
-int32_t InputControlChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputControlChannelStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGD("InputControlChannelStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
+    IMSA_HILOGD("InputControlChannelStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {

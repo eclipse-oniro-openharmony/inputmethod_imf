@@ -39,10 +39,9 @@ public:
    * @param token the remote token.
    * @return The created context.
    */
-    virtual std::shared_ptr<InputMethodExtensionContext>
-    CreateAndInitContext(const std::shared_ptr<AbilityLocalRecord> &record,
-        const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
-        const sptr<IRemoteObject> &token) override;
+    virtual std::shared_ptr<InputMethodExtensionContext> CreateAndInitContext(
+        const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
+        std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token) override;
 
     /**
    * @brief Init the extension.

@@ -40,9 +40,7 @@ public:
     struct UvEntry {
         WindowSize size;
         std::shared_ptr<JSCallbackObject> cbCopy;
-        explicit UvEntry(const std::shared_ptr<JSCallbackObject> &cb) : cbCopy(cb)
-        {
-        }
+        explicit UvEntry(const std::shared_ptr<JSCallbackObject> &cb) : cbCopy(cb) {}
     };
     using EntrySetter = std::function<void(UvEntry &)>;
     static std::shared_ptr<PanelListenerImpl> GetInstance();
@@ -53,8 +51,8 @@ public:
     void RemoveInfo(const std::string &type, uint32_t windowId);
     void SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler);
     std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
-    std::shared_ptr<PanelListenerImpl::UvEntry> GetEntry(const std::shared_ptr<JSCallbackObject> &callback,
-        EntrySetter entrySetter);
+    std::shared_ptr<PanelListenerImpl::UvEntry> GetEntry(
+        const std::shared_ptr<JSCallbackObject> &callback, EntrySetter entrySetter);
     std::shared_ptr<JSCallbackObject> GetCallback(const std::string &type, uint32_t windowId);
 
     ConcurrentMap<uint32_t, ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;

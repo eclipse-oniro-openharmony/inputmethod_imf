@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "js_callback_object.h"
-
 #include <uv.h>
+
+#include "js_callback_object.h"
 
 namespace OHOS {
 namespace MiscServices {

@@ -20,8 +20,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-template<typename T>
-class BlockData {
+template<typename T> class BlockData {
 public:
     explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid)
     {

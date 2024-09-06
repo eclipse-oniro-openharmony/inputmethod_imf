@@ -16,8 +16,9 @@
 #ifndef INPUTMETHOD_TEST_TEXT_LISTENER_H
 #define INPUTMETHOD_TEST_TEXT_LISTENER_H
 
-#include <condition_variable>
 #include <unistd.h>
+
+#include <condition_variable>
 
 #include "input_method_controller.h"
 #include "input_method_utils.h"

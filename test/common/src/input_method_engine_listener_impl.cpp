@@ -104,9 +104,9 @@ bool InputMethodEngineListenerImpl::WaitSendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     std::unique_lock<std::mutex> lock(imeListenerMutex_);
-    imeListenerCv_.wait_for(lock, std::chrono::seconds(1),
-        [&privateCommand]() { return privateCommand_ == privateCommand; });
-
+    imeListenerCv_.wait_for(
+        lock, std::chrono::seconds(1), [&privateCommand]() { return privateCommand_ == privateCommand; });
+ 
     return privateCommand_ == privateCommand;
 }
 } // namespace MiscServices

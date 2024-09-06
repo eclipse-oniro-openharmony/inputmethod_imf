@@ -25,7 +25,7 @@ bool SysCfgParser::ParseSystemConfig(SystemConfig &systemConfig)
 {
     auto content = GetSysCfgContent(GET_NAME(systemConfig));
     if (content.empty()) {
-        IMSA_HILOGE("content is empty");
+        IMSA_HILOGE("empty content");
         return false;
     }
     ImeSystemConfig imeSysCfg;
@@ -38,7 +38,7 @@ bool SysCfgParser::ParseInputType(std::vector<InputTypeInfo> &inputType)
 {
     auto content = GetSysCfgContent(GET_NAME(supportedInputTypeList));
     if (content.empty()) {
-        IMSA_HILOGD("content is empty");
+        IMSA_HILOGD("empty content");
         return false;
     }
     InputTypeCfg inputTypeCfg;
@@ -51,7 +51,7 @@ bool SysCfgParser::ParsePanelAdjust(std::vector<SysPanelAdjust> &sysPanelAdjust)
 {
     auto content = GetSysCfgContent(GET_NAME(sysPanelAdjust));
     if (content.empty()) {
-        IMSA_HILOGE("content is empty");
+        IMSA_HILOGE("empty content");
         return false;
     }
     SysPanelAdjustCfg sysPanelAdjustCfg;
@@ -65,7 +65,7 @@ std::string SysCfgParser::GetSysCfgContent(const std::string &key)
     std::string content;
     auto ret = FileOperator::Read(SYS_CFG_FILE_PATH, key, content);
     if (!ret) {
-        IMSA_HILOGD("get content by %{public}s failed.", key.c_str());
+        IMSA_HILOGD("get content by %{public}s failed", key.c_str());
     }
     return content;
 }

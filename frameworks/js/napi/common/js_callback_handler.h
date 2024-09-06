@@ -42,8 +42,8 @@ public:
         }
     }
     template<typename T>
-    static void Traverse(const std::vector<std::shared_ptr<JSCallbackObject>> &objects,
-        const ArgContainer &argContainer, T &output)
+    static void Traverse(
+        const std::vector<std::shared_ptr<JSCallbackObject>> &objects, const ArgContainer &argContainer, T &output)
     {
         InputMethodSyncTrace tracer("Traverse callback with output");
         for (const auto &object : objects) {
@@ -57,8 +57,8 @@ public:
     }
 
 private:
-    static void Execute(const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer,
-        napi_value &output);
+    static void Execute(
+        const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer, napi_value &output);
 };
 } // namespace MiscServices
 } // namespace OHOS

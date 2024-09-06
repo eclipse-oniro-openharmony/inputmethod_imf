@@ -34,8 +34,8 @@ InputClientStub::~InputClientStub()
 {
 }
 
-int32_t InputClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputClientStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGD("InputClientStub code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
@@ -69,7 +69,7 @@ int32_t InputClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
 
 void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("ClientStub start.");
+    IMSA_HILOGI("ClientStub, run in");
     auto object = data.ReadRemoteObject();
     InputMethodController::GetInstance()->OnInputReady(object);
 }
@@ -84,7 +84,7 @@ int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParce
     Property property;
     SubProperty subProperty;
     if (!ITypesUtil::Unmarshal(data, property, subProperty)) {
-        IMSA_HILOGE("read message parcel failed!");
+        IMSA_HILOGE("read message parcel failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(OnSwitchInput(property, subProperty)) ? ErrorCode::NO_ERROR
@@ -96,7 +96,7 @@ int32_t InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, Messag
     uint32_t status = 0;
     ImeWindowInfo info;
     if (!ITypesUtil::Unmarshal(data, status, info)) {
-        IMSA_HILOGE("read message parcel failed!");
+        IMSA_HILOGE("read message parcel failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(OnPanelStatusChange(static_cast<InputWindowStatus>(status), info))

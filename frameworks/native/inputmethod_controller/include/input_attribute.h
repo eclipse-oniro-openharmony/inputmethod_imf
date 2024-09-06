@@ -51,8 +51,8 @@ struct InputAttribute {
 
     bool operator==(const InputAttribute &info) const
     {
-        return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType &&
-               inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
+        return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType
+               && inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
     }
 };
 } // namespace MiscServices
