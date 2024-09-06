@@ -47,11 +47,7 @@ using namespace Rosen;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr int32_t PERMISSION_NUM = 4;
-constexpr int32_t FIRST_PARAM_INDEX = 0;
-constexpr int32_t SECOND_PARAM_INDEX = 1;
-constexpr int32_t THIRD_PARAM_INDEX = 2;
-constexpr int32_t FOURTH_PARAM_INDEX = 3;
+constexpr int32_t PERMISSION_NUM = 3;
 constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
 constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
@@ -190,7 +186,6 @@ bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
     std::stringstream output;
     FILE *ptr = popen(cmd.c_str(), "r");
     if (ptr != nullptr) {
-        IMSA_HILOGI("Execute cmd: %{public}s", cmd.c_str());
         while (fgets(buff, sizeof(buff), ptr) != nullptr) {
             output << buff;
         }
@@ -269,10 +264,9 @@ int TddUtil::GetUserIdByBundleName(const std::string &bundleName, const int curr
 void TddUtil::GrantNativePermission()
 {
     const char **perms = new const char *[PERMISSION_NUM];
-    perms[FIRST_PARAM_INDEX] = "ohos.permission.MANAGE_SECURE_SETTINGS";
-    perms[SECOND_PARAM_INDEX] = "ohos.permission.CONNECT_IME_ABILITY";
-    perms[THIRD_PARAM_INDEX] = "ohos.permission.MANAGE_SETTINGS";
-    perms[FOURTH_PARAM_INDEX] = "ohos.permission.INJECT_INPUT_EVENT";
+    perms[0] = "ohos.permission.MANAGE_SECURE_SETTINGS";
+    perms[1] = "ohos.permission.CONNECT_IME_ABILITY";
+    perms[2] = "ohos.permission.MANAGE_SETTINGS";
     TokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = PERMISSION_NUM,
