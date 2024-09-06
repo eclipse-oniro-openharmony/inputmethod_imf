@@ -21,7 +21,6 @@
 
 #include <cinttypes>
 #include <sstream>
-#include <thread>
 
 #include "global.h"
 

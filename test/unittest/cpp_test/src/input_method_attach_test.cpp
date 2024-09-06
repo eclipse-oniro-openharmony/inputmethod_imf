@@ -38,6 +38,9 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+using namespace std::chrono;
+using namespace testing::ext;
+using namespace testing::mt;
 class InputMethodAttachTest : public testing::Test {
 public:
     static sptr<InputMethodController> inputMethodController_;
@@ -47,6 +50,8 @@ public:
     static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 1000;
     static constexpr int32_t MAX_WAIT_TIME = 5000;
     static bool timeout_;
+    static std::shared_ptr<AppExecFwk::EventHandler> textConfigHandler_;
+    
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::SetUpTestCase");
@@ -68,9 +73,10 @@ public:
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->abilityManager_ = imsaProxy_;
         TddUtil::InitCurrentImePermissionInfo();
-        IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
         inputMethodAbility_->SetCoreAndAgent();
-        inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("InputMethodAttachTest");
+        textConfigHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+        inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>(textConfigHandler_));
 
         inputMethodController_ = InputMethodController::GetInstance();
         inputMethodController_->abilityManager_ = imsaProxy_;
@@ -94,16 +100,15 @@ public:
         TaskManager::GetInstance().Reset();
     }
 
-    static void InputMethodAttachTest::TestImfMultiThreadAttach()
+    static void TestImfMultiThreadAttach()
     {
         for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; i++) { 
             sptr<OnTextChangedListener> textListener = new TextListener();
             if (timeout_) {
                 break;
             }
-            auto time = std::chrono::system_clock::now();
             int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-            auto ret = inputMethodController_->Attach(textListener, true);
+            inputMethodController_->Attach(textListener, true);
             int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
             auto consume = end - start;
             if (consume >= MAX_WAIT_TIME) {
@@ -117,6 +122,7 @@ sptr<InputMethodAbility> InputMethodAttachTest::inputMethodAbility_;
 sptr<InputMethodSystemAbilityProxy> InputMethodAttachTest::imsaProxy_;
 sptr<InputMethodSystemAbility> InputMethodAttachTest::imsa_;
 bool InputMethodAttachTest::timeout_{ false };
+std::shared_ptr<AppExecFwk::EventHandler> InputMethodAttachTest::textConfigHandler_{ nullptr };
 
 /**
  * @tc.name: testAttach001
@@ -718,7 +724,7 @@ HWTEST_F(InputMethodAttachTest, multiThreadAttachTest_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAttachTest multiThreadAttachTest_001 START");
     SET_THREAD_NUM(5);
-    GTEST_RUN_TASK(TestImfMultiThreadAttach);
+    GTEST_RUN_TASK(InputMethodAttachTest::TestImfMultiThreadAttach);
     EXPECT_FALSE(timeout_);
 }
 } // namespace MiscServices
