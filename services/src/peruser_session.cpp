@@ -1214,7 +1214,7 @@ int32_t PerUserSession::RestoreCurrentImeSubType()
 
 bool PerUserSession::IsCurrentImeByPid(int32_t pid)
 {
-    auto imeData = GetReadyImeData(ImeType::IME);
+    auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
         IMSA_HILOGE("ime not started!");
         return false;
