@@ -49,6 +49,7 @@ struct InputClientInfo {
     sptr<InputDeathRecipient> deathRecipient{ nullptr }; // death recipient of client
     ClientState state{ ClientState::INACTIVE };          // the state of input client
     bool isNotifyInputStart{ true };
+    bool needHide { false }; // panel needs to be hidden first, when input pattern is switched between pwd and normal
     uint32_t uiExtensionTokenId{ IMF_INVALID_TOKENID }; // the value is valid only in curClient and only UIExtension
 };
 } // namespace MiscServices

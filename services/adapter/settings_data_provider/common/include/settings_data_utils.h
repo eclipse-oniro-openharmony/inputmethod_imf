@@ -43,24 +43,25 @@ struct UserImeConfig : public Serializable {
 class SettingsDataUtils : public RefBase {
 public:
     static sptr<SettingsDataUtils> GetInstance();
-    int32_t GetStringValue(const std::string &key, std::string &value);
-    sptr<IRemoteObject> GetToken();
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper();
-    bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
     int32_t CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func);
-    int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
-    int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
-    Uri GenerateTargetUri(const std::string &key);
+    int32_t GetStringValue(const std::string &key, std::string &value);
 
 private:
     SettingsDataUtils() = default;
     ~SettingsDataUtils();
+    bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
+    int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
+    int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
+    Uri GenerateTargetUri(const std::string &key);
+    sptr<IRemoteObject> GetToken();
 
 private:
     static std::mutex instanceMutex_;
     static sptr<SettingsDataUtils> instance_;
     std::mutex tokenMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
+    std::mutex observerListMutex_;
     std::vector<sptr<SettingsDataObserver>> observerList_;
 };
 } // namespace MiscServices
