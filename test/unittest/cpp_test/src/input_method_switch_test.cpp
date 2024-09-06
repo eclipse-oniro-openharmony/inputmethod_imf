@@ -72,8 +72,8 @@ void InputMethodSwitchTest::SetUpTestCase(void)
     TddUtil::GetEnableData(beforeValue);
     TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
     TddUtil::StorageSelfTokenID();
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test",
-        { "ohos.permission.CONNECT_IME_ABILITY", "ohos.permission.INJECT_INPUT_EVENT" }));
+    TddUtil::SetTestTokenID(
+        TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);

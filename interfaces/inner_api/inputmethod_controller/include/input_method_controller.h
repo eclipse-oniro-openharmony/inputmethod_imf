@@ -17,8 +17,6 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 
 #include <atomic>
-#include <chrono>
-#include <ctime>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -802,7 +800,6 @@ private:
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
-    void PrintKeyEventLog();
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
@@ -829,10 +826,6 @@ private:
     static std::mutex instanceLock_;
     static sptr<InputMethodController> instance_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
-
-    static std::mutex logLock_;
-    static int keyEventCountInPeriod_;
-    static std::chrono::system_clock::time_point startLogTime_;
 
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };

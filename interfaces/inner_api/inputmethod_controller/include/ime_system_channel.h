@@ -116,7 +116,6 @@ private:
     sptr<InputDeathRecipient> agentDeathRecipient_;
     std::atomic_bool isSystemCmdConnect_{ false };
 
-    std::mutex systemChannelMutex_;
     sptr<ISystemCmdChannel> systemChannelStub_;
 };
 } // namespace MiscServices
