@@ -16,6 +16,7 @@
 #include "keyboard_event.h"
 
 #include <global.h>
+
 #include <memory>
 
 #include "global.h"
@@ -33,25 +34,26 @@ KeyboardEvent &KeyboardEvent::GetInstance()
 
 int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
 {
-    IMSA_HILOGI("KeyboardEvent::AddKeyEventMonitor start.");
+    IMSA_HILOGI("KeyboardEvent::AddKeyEventMonitor");
     std::shared_ptr<InputEventCallback> callback = std::make_shared<InputEventCallback>();
     callback->SetKeyHandle(handle);
-    int32_t monitorId = InputManager::GetInstance()->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
-        if (callback == nullptr) {
-            IMSA_HILOGE("callback is nullptr!");
-            return;
-        }
-        callback->OnInputEvent(keyEvent);
+    int32_t monitorId =
+        InputManager::GetInstance()->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
+            if (callback == nullptr) {
+                IMSA_HILOGE("callback is nullptr.");
+                return;
+            }
+            callback->OnInputEvent(keyEvent);
     });
     if (monitorId < 0) {
-        IMSA_HILOGE("add monitor failed, id: %{public}d!", monitorId);
+        IMSA_HILOGE("add monitor failed, id: %{public}d", monitorId);
         return ErrorCode::ERROR_SUBSCRIBE_KEYBOARD_EVENT;
     }
-    IMSA_HILOGD("add monitor success, id: %{public}d.", monitorId);
+    IMSA_HILOGD("add monitor success, id: %{public}d", monitorId);
 
     CombinationKeyCallBack combinationKeyCallBack = [callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
         if (callback == nullptr) {
-            IMSA_HILOGE("callback is nullptr!");
+            IMSA_HILOGE("callback is nullptr.");
             return;
         }
         callback->TriggerSwitch();
@@ -73,7 +75,7 @@ void KeyboardEvent::SubscribeCombinationKey(int32_t preKey, int32_t finalKey, Co
     keyOption->SetFinalKeyDownDuration(0);
     int32_t subscribeId = InputManager::GetInstance()->SubscribeKeyEvent(keyOption, callback);
     if (subscribeId < 0) {
-        IMSA_HILOGE("failed to SubscribeKeyEvent, id: %{public}d preKey: %{public}d.", subscribeId, preKey);
+        IMSA_HILOGE("SubscribeKeyEvent failed, id: %{public}d prekey: %{public}d", subscribeId, preKey);
     }
 }
 } // namespace MiscServices

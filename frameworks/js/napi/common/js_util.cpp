@@ -14,7 +14,6 @@
  */
 
 #include "js_util.h"
-
 #include "string_ex.h"
 
 namespace OHOS {

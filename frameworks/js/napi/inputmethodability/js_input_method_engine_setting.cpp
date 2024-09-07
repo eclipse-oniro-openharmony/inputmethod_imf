@@ -205,7 +205,7 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
         if (inputMethodEngine_ == nullptr) {
             auto engine = std::make_shared<JsInputMethodEngineSetting>();
             if (engine == nullptr) {
-                IMSA_HILOGE("create engine failed.");
+                IMSA_HILOGE("input method engine nullptr");
                 return nullptr;
             }
             inputMethodEngine_ = engine;
@@ -237,7 +237,7 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
     auto setting = GetInputMethodEngineSetting();
     if (setting == nullptr || !InitInputMethodSetting()) {
-        IMSA_HILOGE("failed to get setting.");
+        IMSA_HILOGE("failed to get setting");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
@@ -269,20 +269,20 @@ napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callbac
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, IMESRef_, &cons) != napi_ok) {
-        IMSA_HILOGE("failed to get reference value.");
+        IMSA_HILOGE("failed to get reference value");
         return nullptr;
     }
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
-        IMSA_HILOGE("failed to new instance.");
+        IMSA_HILOGE("failed to new instance");
         return nullptr;
     }
     return instance;
 }
 
-void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::string type,
-    std::shared_ptr<JSCallbackObject> callbackObj)
+void JsInputMethodEngineSetting::RegisterListener(
+    napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
-    IMSA_HILOGD("register listener: %{public}s.", type.c_str());
+    IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGD("methodName: %{public}s not registered!", type.c_str());
@@ -296,22 +296,22 @@ void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::stri
         return;
     }
 
-    IMSA_HILOGI("add %{public}s callbackObj into jsCbMap_.", type.c_str());
+    IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
     jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
 void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::string type)
 {
-    IMSA_HILOGI("unregister listener: %{public}s.", type.c_str());
+    IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName: %{public}s already unregistered!", type.c_str());
+        IMSA_HILOGE("methodName: %{public}s already unRegistered!", type.c_str());
         return;
     }
 
     if (callback == nullptr) {
         jsCbMap_.erase(type);
-        IMSA_HILOGE("callback is nullptr.");
+        IMSA_HILOGE("callback is nullptr");
         return;
     }
 
@@ -336,17 +336,17 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
-        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type) ||
-        JsUtil::GetType(env, argv[1]) != napi_function) {
-        IMSA_HILOGE("subscribe failed, type: %{public}s.", type.c_str());
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
+        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)
+        || JsUtil::GetType(env, argv[1]) != napi_function) {
+        IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     if (type == "privateCommand" && !InputMethodAbility::GetInstance()->IsDefaultIme()) {
-        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed",
-            TYPE_NONE);
+        JsUtils::ThrowException(
+            env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed", TYPE_NONE);
     }
-    IMSA_HILOGD("subscribe type:%{public}s.", type.c_str());
+    IMSA_HILOGD("Subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
@@ -360,18 +360,18 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     return result;
 }
 
-napi_status JsInputMethodEngineSetting::GetContext(napi_env env, napi_value in,
-    std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
+napi_status JsInputMethodEngineSetting::GetContext(
+    napi_env env, napi_value in, std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
 {
     bool stageMode = false;
     napi_status status = OHOS::AbilityRuntime::IsStageContext(env, in, stageMode);
     if (status != napi_ok || (!stageMode)) {
-        IMSA_HILOGE("it's not in stage mode.");
+        IMSA_HILOGE("It's not in stage mode.");
         return status;
     }
     context = OHOS::AbilityRuntime::GetStageModeContext(env, in);
     if (context == nullptr) {
-        IMSA_HILOGE("context is nullptr.");
+        IMSA_HILOGE("Context is nullptr.");
         return napi_generic_failure;
     }
     return napi_ok;
@@ -381,19 +381,20 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
 {
     auto ctxt = std::make_shared<PanelContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc >= 2, "at least two parameters is required.", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc >= 2, "at least two paramsters is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         // 0 means parameter of ctx<BaseContext>
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "ctx type must be BaseContext.", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "ctx type must be BaseContext",
+            TYPE_NONE, napi_invalid_arg);
         napi_status status = GetContext(env, argv[0], ctxt->context);
         if (status != napi_ok) {
             return status;
         }
         // 1 means parameter of info<PanelInfo>
         napi_typeof(env, argv[1], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "param info type must be PanelInfo.", TYPE_NONE,
-            napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param info type must be PanelInfo",
+            TYPE_NONE, napi_invalid_arg);
         status = JsUtils::GetValue(env, argv[1], ctxt->panelInfo);
         PARAM_CHECK_RETURN(env, status == napi_ok, "js param info covert failed", TYPE_NONE, napi_invalid_arg);
         return status;
@@ -409,13 +410,13 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         JsPanel *jsPanel = nullptr;
         napi_value constructor = JsPanel::Init(env);
-        CHECK_RETURN(constructor != nullptr, "failed to get panel constructor!", napi_generic_failure);
+        CHECK_RETURN(constructor != nullptr, "get jsPanel constructor failed!", napi_generic_failure);
 
         napi_status status = napi_new_instance(env, constructor, 0, nullptr, result);
-        CHECK_RETURN(status == napi_ok, "jsPanel new instance failed!", napi_generic_failure);
+        CHECK_RETURN(status == napi_ok, "get jsPanel instance failed!", napi_generic_failure);
 
         status = napi_unwrap(env, *result, (void **)(&jsPanel));
-        CHECK_RETURN((status == napi_ok) && (jsPanel != nullptr), "get jsPanel unwrap failed!", napi_generic_failure);
+        CHECK_RETURN((status == napi_ok) && (jsPanel != nullptr), "get jsPanel failed", napi_generic_failure);
         jsPanel->SetNative(ctxt->panel);
         return napi_ok;
     };
@@ -430,32 +431,32 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
 {
     auto ctxt = std::make_shared<PanelContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "param panel type must be InputMethodPanel.", TYPE_NONE,
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param panel type must be Panel", TYPE_NONE,
             napi_invalid_arg);
         bool isPanel = false;
         napi_value constructor = JsPanel::Init(env);
-        CHECK_RETURN(constructor != nullptr, "failed to get panel constructor.", napi_invalid_arg);
+        CHECK_RETURN(constructor != nullptr, "Failed to get panel constructor.", napi_invalid_arg);
         napi_status status = napi_instanceof(env, argv[0], constructor, &isPanel);
-        CHECK_RETURN((status == napi_ok) && isPanel, "param verification failed, it's not expected panel instance!",
+        CHECK_RETURN((status == napi_ok) && isPanel, "param verification failed. It's not expected panel instance!",
             status);
         JsPanel *jsPanel = nullptr;
         status = napi_unwrap(env, argv[0], (void **)(&jsPanel));
-        CHECK_RETURN((status == napi_ok) && (jsPanel != nullptr), "failed to unwrap JsPanel!", status);
+        CHECK_RETURN((status == napi_ok) && (jsPanel != nullptr), "Can not unwrap to JsPanel!", status);
         ctxt->panel = jsPanel->GetNative();
-        CHECK_RETURN((ctxt->panel != nullptr), "panel is nullptr!", napi_invalid_arg);
+        CHECK_RETURN((ctxt->panel != nullptr), "not get valid inputMathodPanel!", napi_invalid_arg);
         return status;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
 
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        CHECK_RETURN((ctxt->panel != nullptr), "panel is nullptr!", napi_generic_failure);
+        CHECK_RETURN((ctxt->panel != nullptr), "inputMethodPanel is nullptr!", napi_generic_failure);
         auto errCode = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->panel);
         if (errCode != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("DestroyPanel failed, errCode: %{public}d!", errCode);
+            IMSA_HILOGE("DestroyPanel failed, errCode = %{public}d", errCode);
             return napi_generic_failure;
         }
         ctxt->panel = nullptr;
@@ -470,7 +471,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
 
 napi_value JsInputMethodEngineSetting::GetSecurityMode(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGD("start get security mode.");
+    IMSA_HILOGD("get security mode");
     size_t argc = 1;
     napi_value argv[1] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
@@ -493,14 +494,14 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type) ||
-        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)) {
-        IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
+        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)) {
+        IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     if (type == "privateCommand" && !InputMethodAbility::GetInstance()->IsDefaultIme()) {
-        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed",
-            TYPE_NONE);
+        JsUtils::ThrowException(
+            env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed", TYPE_NONE);
     }
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
@@ -510,7 +511,7 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     // if the second param is napi_function, delete it, else delete all
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
-    IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());
+    IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
     auto setting = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (setting == nullptr) {
         return nullptr;
@@ -571,7 +572,7 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
 
 void JsInputMethodEngineSetting::OnInputStart()
 {
-    IMSA_HILOGD("start JsInputMethodEngineSetting.");
+    IMSA_HILOGD("JsInputMethodEngineSetting, run in");
     std::string type = "inputStart";
     auto entry = GetEntry(type);
     if (entry == nullptr) {
@@ -590,7 +591,7 @@ void JsInputMethodEngineSetting::OnInputStart()
             napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(env);
             napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(env);
             if (keyBoardController == nullptr || textInput == nullptr) {
-                IMSA_HILOGE("get KBCins or TICins failed!");
+                IMSA_HILOGE("get KBCins or TICins failed:");
                 return false;
             }
             // 0 means the first param of callback.
@@ -627,10 +628,10 @@ void JsInputMethodEngineSetting::OnInputStop()
     std::string type = "inputStop";
     uv_work_t *work = GetUVwork(type);
     if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("run in.");
+    IMSA_HILOGI("run in");
     auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -656,7 +657,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGD("windowId: %{public}d.", windowId);
+    IMSA_HILOGD("JsInputMethodEngineSetting, windowId: %{public}d", windowId);
     auto task = [entry]() {
         auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc == 0) {
@@ -677,7 +678,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
     std::string type = "setSubtype";
     auto entry = GetEntry(type, [&property](UvEntry &entry) { entry.subProperty = property; });
     if (entry == nullptr) {
-        IMSA_HILOGD("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -685,7 +686,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGI("subtypeId: %{public}s.", property.id.c_str());
+    IMSA_HILOGI("subtypeId: %{public}s", property.id.c_str());
     auto task = [entry]() {
         auto getSubtypeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc == 0) {
@@ -693,7 +694,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             }
             napi_value jsObject = GetResultOnSetSubtype(env, entry->subProperty);
             if (jsObject == nullptr) {
-                IMSA_HILOGE("jsObject is nullptr!");
+                IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
                 return false;
             }
             // 0 means the first param of callback.
@@ -711,7 +712,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
     std::string type = "securityModeChange";
     uv_work_t *work = GetUVwork(type, [&security](UvEntry &entry) { entry.security = security; });
     if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     IMSA_HILOGI("run in: %{public}s", type.c_str());
@@ -723,7 +724,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
                 delete work;
             });
             if (entry == nullptr) {
-                IMSA_HILOGE("entry is nullptr!");
+                IMSA_HILOGE("entryptr is null");
                 return;
             }
             auto getSecurityProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
@@ -744,7 +745,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
 void JsInputMethodEngineSetting::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    IMSA_HILOGD("start.");
+    IMSA_HILOGD("JsInputMethodEngineSetting, run in");
     std::string type = "privateCommand";
     auto entry = GetEntry(type, [&privateCommand](UvEntry &entry) { entry.privateCommand = privateCommand; });
     if (entry == nullptr) {
@@ -762,7 +763,7 @@ void JsInputMethodEngineSetting::ReceivePrivateCommand(
             }
             napi_value jsObject = JsUtils::GetJsPrivateCommand(env, entry->privateCommand);
             if (jsObject == nullptr) {
-                IMSA_HILOGE("jsObject is nullptr!");
+                IMSA_HILOGE("GetJsPrivateCommand failed: jsObject is nullptr");
                 return false;
             }
             // 0 means the first param of callback.
@@ -777,18 +778,18 @@ void JsInputMethodEngineSetting::ReceivePrivateCommand(
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGD("run in, type: %{public}s.", type.c_str());
+    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGD("%{public}s cb-vector is empty.", type.c_str());
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
         if (entry == nullptr) {
-            IMSA_HILOGE("entry is nullptr!");
+            IMSA_HILOGE("entry ptr is nullptr!");
             return nullptr;
         }
         if (entrySetter != nullptr) {
@@ -797,7 +798,7 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntryS
     }
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
-        IMSA_HILOGE("work is nullptr!");
+        IMSA_HILOGE("entry ptr is nullptr!");
         delete entry;
         return nullptr;
     }
@@ -811,10 +812,10 @@ std::shared_ptr<AppExecFwk::EventHandler> JsInputMethodEngineSetting::GetEventHa
     return handler_;
 }
 
-std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting::GetEntry(const std::string &type,
-    EntrySetter entrySetter)
+std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting::GetEntry(
+    const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGD("type: %{public}s.", type.c_str());
+    IMSA_HILOGD("type: %{public}s", type.c_str());
     std::shared_ptr<UvEntry> entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -839,7 +840,7 @@ void JsInputMethodEngineSetting::FreeWorkIfFail(int ret, uv_work_t *work)
     UvEntry *data = static_cast<UvEntry *>(work->data);
     delete data;
     delete work;
-    IMSA_HILOGE("uv_queue_work failed retCode: %{public}d!", ret);
+    IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
 }
 
 bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)

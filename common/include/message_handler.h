@@ -29,9 +29,9 @@ namespace OHOS {
 namespace MiscServices {
 namespace MessageID {
 enum {
-    MSG_ID_USER_START = 0,  //  a user started
-    MSG_ID_USER_REMOVED,    // a user removed
-    MSG_ID_PACKAGE_REMOVED, // a package is removed
+    MSG_ID_USER_START = 0,       //  a user started
+    MSG_ID_USER_REMOVED,     // a user removed
+    MSG_ID_PACKAGE_REMOVED,  // a package is removed
     MSG_ID_BUNDLE_SCAN_FINISHED, // bundle scan finished, ready to create data share helper
     MSG_ID_PACKAGE_ADDED,
     MSG_ID_PACKAGE_CHANGED,

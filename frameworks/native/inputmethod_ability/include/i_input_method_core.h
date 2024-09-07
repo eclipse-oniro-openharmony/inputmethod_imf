@@ -60,8 +60,8 @@ public:
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
     virtual bool IsEnable() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
-    virtual int32_t OnSecurityChange(int32_t security) = 0;
-    virtual int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0;
+    virtual int32_t OnSecurityChange(int32_t security) = 0 ;
+    virtual int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0 ;
     virtual void OnClientInactive(const sptr<IRemoteObject> &channel) = 0;
 };
 } // namespace MiscServices

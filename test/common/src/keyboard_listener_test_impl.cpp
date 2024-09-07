@@ -35,8 +35,8 @@ bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sp
     return true;
 }
 
-bool KeyboardListenerTestImpl::OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-    sptr<KeyEventConsumerProxy> &consumer)
+bool KeyboardListenerTestImpl::OnDealKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
     bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
     bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
@@ -103,8 +103,8 @@ bool KeyboardListenerTestImpl::WaitTextChange(const std::string &text)
 bool KeyboardListenerTestImpl::WaitEditorAttributeChange(const InputAttribute &inputAttribute)
 {
     std::unique_lock<std::mutex> lock(kdListenerLock_);
-    kdListenerCv_.wait_for(lock, std::chrono::seconds(1),
-        [&inputAttribute]() { return inputAttribute == inputAttribute_; });
+    kdListenerCv_.wait_for(
+        lock, std::chrono::seconds(1), [&inputAttribute]() { return inputAttribute == inputAttribute_; });
     return inputAttribute == inputAttribute_;
 }
 } // namespace MiscServices

@@ -16,12 +16,13 @@
 #ifndef INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H
 #define INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H
 
+#include <uv.h>
+
 #include <map>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
-#include <uv.h>
 
 #include "async_call.h"
 #include "event_handler.h"
@@ -92,7 +93,8 @@ private:
     static napi_value GetJsSecurityModeProperty(napi_env env);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info);
-    static napi_status GetContext(napi_env env, napi_value in, std::shared_ptr<OHOS::AbilityRuntime::Context> &context);
+    static napi_status GetContext(napi_env env, napi_value in,
+            std::shared_ptr<OHOS::AbilityRuntime::Context> &context);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     static napi_value GetResultOnSetSubtype(napi_env env, const SubProperty &property);

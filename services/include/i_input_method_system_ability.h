@@ -17,6 +17,7 @@
 #define SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 
 #include <errors.h>
+
 #include <memory>
 #include <vector>
 
@@ -61,8 +62,8 @@ public:
     virtual int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) = 0;
     virtual int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) = 0;
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
-    virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name,
-        SwitchTrigger trigger) = 0;
+    virtual int32_t SwitchInputMethod(
+        const std::string &bundleName, const std::string &name, SwitchTrigger trigger) = 0;
     virtual int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) = 0;
     virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) = 0;
     virtual bool IsCurrentIme() = 0;

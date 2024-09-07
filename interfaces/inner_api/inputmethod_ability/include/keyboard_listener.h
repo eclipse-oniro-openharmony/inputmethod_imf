@@ -24,8 +24,8 @@ namespace MiscServices {
 class KeyboardListener {
 public:
     virtual ~KeyboardListener() = default;
-    virtual bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-        sptr<KeyEventConsumerProxy> &consumer) = 0;
+    virtual bool OnDealKeyEvent(
+        const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) = 0;
     virtual bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) = 0;
     virtual bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) = 0;
     virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) = 0;

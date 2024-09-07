@@ -35,10 +35,10 @@ InputMethodAgentStub::~InputMethodAgentStub()
 {
 }
 
-int32_t InputMethodAgentStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputMethodAgentStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGD("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
+    IMSA_HILOGD("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
@@ -92,12 +92,12 @@ int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, Mess
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (!keyEvent->ReadFromParcel(data)) {
-        IMSA_HILOGE("failed to read key event from parcel!");
+        IMSA_HILOGE("failed to read key event from parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto consumerObject = data.ReadRemoteObject();
     if (consumerObject == nullptr) {
-        IMSA_HILOGE("consumerObject is nullptr!");
+        IMSA_HILOGE("consumerObject is nullptr");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(consumerObject);
@@ -109,7 +109,7 @@ int32_t InputMethodAgentStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
 {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     if (!ITypesUtil::Unmarshal(data, privateCommand)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto ret = InputMethodAbility::GetInstance()->ReceivePrivateCommand(privateCommand);
@@ -120,7 +120,7 @@ int32_t InputMethodAgentStub::OnAttributeChangeOnRemote(MessageParcel &data, Mes
 {
     InputAttribute attribute;
     if (!ITypesUtil::Unmarshal(data, attribute)) {
-        IMSA_HILOGE("failed to read attribute from parcel!");
+        IMSA_HILOGE("failed to read attribute from parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     OnAttributeChange(attribute);
@@ -128,8 +128,8 @@ int32_t InputMethodAgentStub::OnAttributeChangeOnRemote(MessageParcel &data, Mes
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAgentStub::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-    sptr<IKeyEventConsumer> &consumer)
+int32_t InputMethodAgentStub::DispatchKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer)
 {
     return false;
 }
@@ -152,8 +152,8 @@ void InputMethodAgentStub::OnCursorUpdate(int32_t positionX, int32_t positionY, 
     msgHandler_->SendMessage(message);
 }
 
-void InputMethodAgentStub::OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin,
-    int32_t newEnd)
+void InputMethodAgentStub::OnSelectionChange(
+    std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
     if (msgHandler_ == nullptr) {
         return;
@@ -177,22 +177,22 @@ int32_t InputMethodAgentStub::SendPrivateCommand(
 void InputMethodAgentStub::OnAttributeChange(const InputAttribute &attribute)
 {
     if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("msgHandler_ is nullptr!");
+        IMSA_HILOGE("msgHandler_ is nullptr");
         return;
     }
     auto data = new (std::nothrow) MessageParcel();
     if (data == nullptr) {
-        IMSA_HILOGE("failed to create message parcel!");
+        IMSA_HILOGE("failed to create message parcel");
         return;
     }
     if (!ITypesUtil::Marshal(*data, attribute)) {
-        IMSA_HILOGE("failed to write attribute!");
+        IMSA_HILOGE("failed to write attribute");
         delete data;
         return;
     }
     auto message = new (std::nothrow) Message(MessageID::MSG_ID_ON_ATTRIBUTE_CHANGE, data);
     if (message == nullptr) {
-        IMSA_HILOGE("failed to create Message!");
+        IMSA_HILOGE("failed to create Message");
         delete data;
         return;
     }

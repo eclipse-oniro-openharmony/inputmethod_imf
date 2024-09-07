@@ -36,21 +36,21 @@ ImeEventMonitorManager &ImeEventMonitorManager::GetInstance()
     return manager;
 }
 
-int32_t ImeEventMonitorManager::RegisterImeEventListener(uint32_t eventFlag,
-    const std::shared_ptr<ImeEventListener> &listener)
+int32_t ImeEventMonitorManager::RegisterImeEventListener(
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     if (!IsParamValid(eventFlag, listener)) {
-        IMSA_HILOGE("param is invalid!");
+        IMSA_HILOGE("param is invalid");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     return ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(eventFlag & ALL_EVENT_MASK, listener);
 }
 
-int32_t ImeEventMonitorManager::UnRegisterImeEventListener(uint32_t eventFlag,
-    const std::shared_ptr<ImeEventListener> &listener)
+int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     if (!IsParamValid(eventFlag, listener)) {
-        IMSA_HILOGE("param is invalid!");
+        IMSA_HILOGE("param is invalid");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     return ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener(eventFlag & ALL_EVENT_MASK, listener);
@@ -58,7 +58,7 @@ int32_t ImeEventMonitorManager::UnRegisterImeEventListener(uint32_t eventFlag,
 bool ImeEventMonitorManager::IsParamValid(uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     if (eventFlag == 0) {
-        IMSA_HILOGE("eventFlag is 0!");
+        IMSA_HILOGE("eventFlag is 0");
         return false;
     }
     return listener != nullptr;

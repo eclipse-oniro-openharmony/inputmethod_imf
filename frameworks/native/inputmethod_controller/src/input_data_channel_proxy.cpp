@@ -40,8 +40,8 @@ int32_t InputDataChannelProxy::DeleteForward(int32_t length)
 
 int32_t InputDataChannelProxy::DeleteBackward(int32_t length)
 {
-    return SendRequest(DELETE_BACKWARD,
-        [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); });
+    return SendRequest(
+        DELETE_BACKWARD, [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); });
 }
 
 int32_t InputDataChannelProxy::GetTextBeforeCursor(int32_t number, std::u16string &text)
@@ -71,8 +71,8 @@ void InputDataChannelProxy::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 
 int32_t InputDataChannelProxy::SendFunctionKey(int32_t funcKey)
 {
-    return SendRequest(SEND_FUNCTION_KEY,
-        [funcKey](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, funcKey); });
+    return SendRequest(
+        SEND_FUNCTION_KEY, [funcKey](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, funcKey); });
 }
 
 int32_t InputDataChannelProxy::MoveCursor(int32_t keyCode)
@@ -106,8 +106,8 @@ int32_t InputDataChannelProxy::GetTextConfig(TextTotalConfig &textConfig)
 
 int32_t InputDataChannelProxy::SelectByRange(int32_t start, int32_t end)
 {
-    return SendRequest(SELECT_BY_RANGE,
-        [start, end](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, start, end); });
+    return SendRequest(
+        SELECT_BY_RANGE, [start, end](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, start, end); });
 }
 
 int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
@@ -119,14 +119,14 @@ int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t curso
 
 int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
 {
-    return SendRequest(HANDLE_EXTEND_ACTION,
-        [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
+    return SendRequest(
+        HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
 }
 
 void InputDataChannelProxy::NotifyKeyboardHeight(uint32_t height)
 {
-    SendRequest(NOTIFY_KEYBOARD_HEIGHT,
-        [height](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, height); });
+    SendRequest(
+        NOTIFY_KEYBOARD_HEIGHT, [height](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, height); });
 }
 
 int32_t InputDataChannelProxy::SendPrivateCommand(
@@ -138,8 +138,8 @@ int32_t InputDataChannelProxy::SendPrivateCommand(
 
 int32_t InputDataChannelProxy::SetPreviewText(const std::string &text, const Range &range)
 {
-    return SendRequest(SET_PREVIEW_TEXT,
-        [&text, &range](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text, range); });
+    return SendRequest(
+        SET_PREVIEW_TEXT, [&text, &range](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text, range); });
 }
 
 int32_t InputDataChannelProxy::FinishTextPreview(bool isAsync)
@@ -174,21 +174,21 @@ int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
     GetMessageOption(code, option);
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("write interface token failed!");
+        IMSA_HILOGE("write interface token failed");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
     if (input != nullptr && (!input(data))) {
-        IMSA_HILOGE("write data failed!");
+        IMSA_HILOGE("write data failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        IMSA_HILOGE("remote is nullptr!");
+        IMSA_HILOGE("InputDataChannelProxy remote is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("send request failed, code: %{public}d ret %{public}d", code, ret);
+        IMSA_HILOGE("InputDataChannelProxy send request failed, code: %{public}d ret %{public}d", code, ret);
         return ret;
     }
     if (option.GetFlags() == MessageOption::TF_ASYNC) {
@@ -196,11 +196,11 @@ int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("reply error, ret: %{public}d", ret);
+        IMSA_HILOGE("reply error, ret %{public}d", ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
-        IMSA_HILOGE("reply parcel error!");
+        IMSA_HILOGE("reply parcel error");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ret;

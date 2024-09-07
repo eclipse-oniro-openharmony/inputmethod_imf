@@ -32,14 +32,14 @@ InputDataChannelStub::~InputDataChannelStub()
 {
 }
 
-int32_t InputDataChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputDataChannelStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGD("InputDataChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
+    IMSA_HILOGD("InputDataChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != IInputDataChannel::GetDescriptor()) {
-        IMSA_HILOGE("descriptor error!");
+        IMSA_HILOGE("InputDataChannelStub descriptor error");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(DATA_CHANNEL_CMD_LAST)) {
@@ -53,7 +53,7 @@ int32_t InputDataChannelStub::InsertTextOnRemote(MessageParcel &data, MessagePar
 {
     std::u16string text;
     if (!ITypesUtil::Unmarshal(data, text)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(InsertText(text)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -63,7 +63,7 @@ int32_t InputDataChannelStub::DeleteForwardOnRemote(MessageParcel &data, Message
 {
     int32_t length = 0;
     if (!ITypesUtil::Unmarshal(data, length)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(DeleteForward(length)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -73,7 +73,7 @@ int32_t InputDataChannelStub::DeleteBackwardOnRemote(MessageParcel &data, Messag
 {
     int32_t length = 0;
     if (!ITypesUtil::Unmarshal(data, length)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(DeleteBackward(length)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -83,7 +83,7 @@ int32_t InputDataChannelStub::GetTextBeforeCursorOnRemote(MessageParcel &data, M
 {
     int32_t length = 0;
     if (!ITypesUtil::Unmarshal(data, length)) {
-        IMSA_HILOGE("failed to unmarshal!");
+        IMSA_HILOGE("failed to unmarshal");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     std::u16string text;
@@ -95,7 +95,7 @@ int32_t InputDataChannelStub::GetTextAfterCursorOnRemote(MessageParcel &data, Me
 {
     int32_t length = 0;
     if (!ITypesUtil::Unmarshal(data, length)) {
-        IMSA_HILOGE("failed to unmarshal!");
+        IMSA_HILOGE("failed to unmarshal");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     std::u16string text;
@@ -114,7 +114,7 @@ int32_t InputDataChannelStub::SendKeyboardStatusOnRemote(MessageParcel &data, Me
 {
     int32_t status = -1;
     if (!ITypesUtil::Unmarshal(data, status)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     SendKeyboardStatus(static_cast<KeyboardStatus>(status));
@@ -125,7 +125,7 @@ int32_t InputDataChannelStub::SendFunctionKeyOnRemote(MessageParcel &data, Messa
 {
     int32_t functionKey = 0;
     if (!ITypesUtil::Unmarshal(data, functionKey)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(SendFunctionKey(functionKey)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -135,7 +135,7 @@ int32_t InputDataChannelStub::MoveCursorOnRemote(MessageParcel &data, MessagePar
 {
     int32_t direction = 0;
     if (!ITypesUtil::Unmarshal(data, direction)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(MoveCursor(direction)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -160,7 +160,7 @@ int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, Message
     int32_t start = 0;
     int32_t end = 0;
     if (!ITypesUtil::Unmarshal(data, start, end)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(SelectByRange(start, end)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -181,7 +181,7 @@ int32_t InputDataChannelStub::HandleExtendActionOnRemote(MessageParcel &data, Me
 {
     int32_t action = 0;
     if (!ITypesUtil::Unmarshal(data, action)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(HandleExtendAction(action)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -198,7 +198,7 @@ int32_t InputDataChannelStub::NotifyPanelStatusInfoOnRemote(MessageParcel &data,
 {
     PanelStatusInfo info{};
     if (!ITypesUtil::Unmarshal(data, info)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     NotifyPanelStatusInfo(info);
@@ -209,7 +209,7 @@ int32_t InputDataChannelStub::NotifyKeyboardHeightOnRemote(MessageParcel &data, 
 {
     uint32_t height = 0;
     if (!ITypesUtil::Unmarshal(data, height)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     NotifyKeyboardHeight(height);
@@ -220,7 +220,7 @@ int32_t InputDataChannelStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
 {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     if (!ITypesUtil::Unmarshal(data, privateCommand)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(SendPrivateCommand(privateCommand)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -231,7 +231,7 @@ int32_t InputDataChannelStub::SetPreviewTextOnRemote(MessageParcel &data, Messag
     std::string text;
     Range range;
     if (!ITypesUtil::Unmarshal(data, text, range)) {
-        IMSA_HILOGE("failed to read message parcel!");
+        IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(SetPreviewText(text, range)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;

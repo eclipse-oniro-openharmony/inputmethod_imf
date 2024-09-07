@@ -20,7 +20,7 @@ extern const char _binary_inputmethod_extension_context_js_end[];
 extern const char _binary_inputmethod_extension_context_abc_start[];
 extern const char _binary_inputmethod_extension_context_abc_end[];
 
-static napi_module g_ExtensionContextModule = {
+static napi_module g_ExtensionContextModule  = {
     .nm_version = 0,
     .nm_filename = "libinputmethodextensioncontext_napi.so/inputmethod_extension_context.js",
     .nm_modname = "InputMethodExtensionContext",
