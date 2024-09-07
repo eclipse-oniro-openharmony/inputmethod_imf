@@ -1017,7 +1017,7 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
     }
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (currentImeCfg == nullptr) {
-        IMSA_HILOGE("currentImeCfg is nullptr");
+        IMSA_HILOGE("currentImeCfg is nullptr!");
         return false;
     }
     imeId.bundleName = currentImeCfg->bundleName;
@@ -1132,7 +1132,7 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
     auto remoteClient = clientInfo.client->AsObject();
     auto ret = AddClientInfo(remoteClient, clientInfo, START_LISTENING);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to AddClientInfo");
+        IMSA_HILOGE("failed to AddClientInfo!");
         return ret;
     }
     auto info = GetClientInfo(remoteClient);
@@ -1262,7 +1262,7 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
         return exec();
     }
     if (data == nullptr || data->freezeMgr == nullptr) {
-        IMSA_HILOGE("data is nullptr");
+        IMSA_HILOGE("data is nullptr!");
         return ErrorCode::NO_ERROR;
     }
     data->freezeMgr->BeforeIpc(type);
@@ -1308,7 +1308,7 @@ int32_t PerUserSession::RemoveCurrentClient()
 {
     auto currentClient = GetCurrentClient();
     if (currentClient == nullptr) {
-        IMSA_HILOGE("currentClient is nullptr");
+        IMSA_HILOGE("currentClient is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return RemoveClient(currentClient, false);
@@ -1360,7 +1360,7 @@ bool PerUserSession::RestartIme()
         if (IsReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()) {
             auto ret = StartCurrentIme(true);
             if (!ret) {
-                IMSA_HILOGE("start ime failed");
+                IMSA_HILOGE("start ime failed!");
             }
         }
         int32_t tasks = 0;
@@ -1572,7 +1572,7 @@ bool PerUserSession::StopReadyCurrentIme()
         return true;
     }
     if (imeData->core == nullptr) {
-        IMSA_HILOGE("core is nullptr.");
+        IMSA_HILOGE("core is nullptr!");
         return ForceStopCurrentIme();
     }
     auto ret = RequestIme(imeData, RequestType::NORMAL, [&imeData] {

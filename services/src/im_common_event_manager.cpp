@@ -331,17 +331,17 @@ void ImCommonEventManager::EventSubscriber::HandlePackageEvent(int32_t messageId
     }
     MessageParcel *parcel = new (std::nothrow) MessageParcel();
     if (parcel == nullptr) {
-        IMSA_HILOGE("parcel is nullptr");
+        IMSA_HILOGE("parcel is nullptr!");
         return;
     }
     if (!ITypesUtil::Marshal(*parcel, userId, bundleName)) {
-        IMSA_HILOGE("Failed to write message parcel");
+        IMSA_HILOGE("Failed to write message parcel!");
         delete parcel;
         return;
     }
     Message *msg = new (std::nothrow) Message(messageId, parcel);
     if (msg == nullptr) {
-        IMSA_HILOGE("failed to create Message");
+        IMSA_HILOGE("failed to create Message!");
         delete parcel;
         return;
     }

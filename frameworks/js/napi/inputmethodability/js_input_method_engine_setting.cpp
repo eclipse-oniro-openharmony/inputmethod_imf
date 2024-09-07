@@ -205,7 +205,7 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
         if (inputMethodEngine_ == nullptr) {
             auto engine = std::make_shared<JsInputMethodEngineSetting>();
             if (engine == nullptr) {
-                IMSA_HILOGE("create engine failed.");
+                IMSA_HILOGE("create engine failed!");
                 return nullptr;
             }
             inputMethodEngine_ = engine;
@@ -395,7 +395,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
         PARAM_CHECK_RETURN(env, valueType == napi_object, "param info type must be PanelInfo.", TYPE_NONE,
             napi_invalid_arg);
         status = JsUtils::GetValue(env, argv[1], ctxt->panelInfo);
-        PARAM_CHECK_RETURN(env, status == napi_ok, "js param info covert failed", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "js param info covert failed!", TYPE_NONE, napi_invalid_arg);
         return status;
     };
 

@@ -1111,7 +1111,7 @@ void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag pa
 int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     if (!IsDefaultIme()) {
-        IMSA_HILOGE("current is not default ime.");
+        IMSA_HILOGE("current is not default ime!");
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
     if (!TextConfig::IsPrivateCommandValid(privateCommand)) {

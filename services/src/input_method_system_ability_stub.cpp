@@ -223,7 +223,7 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote(Messa
                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
     }
     if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property)) {
-        IMSA_HILOGE("marshal failed");
+        IMSA_HILOGE("marshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -239,7 +239,7 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &dat
     std::vector<Property> properties = {};
     auto ret = ListInputMethod(InputMethodStatus(status), properties);
     if (!ITypesUtil::Marshal(reply, ret, properties)) {
-        IMSA_HILOGE("marshal failed");
+        IMSA_HILOGE("marshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
