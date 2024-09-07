@@ -1073,6 +1073,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         IMSA_HILOGE("failed to create channel proxy!");
         return;
     }
+    imeListener_->OnKeyboardStatus(false);
     panels_.ForEach([this, &channelProxy](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
             auto ret = panel->HidePanel(false);
@@ -1080,7 +1081,6 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
                 IMSA_HILOGE("failed, ret: %{public}d", ret);
                 return false;
             }
-            imeListener_->OnKeyboardStatus(false);
             NotifyPanelStatusInfo({ { panel->GetPanelType(), panel->GetPanelFlag() }, false, Trigger::IME_APP },
                 channelProxy);
             // finish previewing text when soft keyboard hides
