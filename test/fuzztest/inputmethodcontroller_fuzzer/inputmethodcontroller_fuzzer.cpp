@@ -40,7 +40,7 @@ void TestListInputMethod(sptr<InputMethodController> imc)
     imc->DisplayOptionalInputMethod();
 }
 
-void TestListInputMethodSubtype(sptr<InputMethodController> imc, const std::string &fuzzedString, int32_t fuzzedInt32)
+void TestListInputMethodSubtype(sptr<InputMethodController> imc, const std::string &fuzzedString, uint32_t fuzzedUint32)
 {
     std::vector<SubProperty> subProperties = {};
     Property property;
@@ -48,7 +48,7 @@ void TestListInputMethodSubtype(sptr<InputMethodController> imc, const std::stri
     property.id = fuzzedString;
     property.label = fuzzedString;
     property.icon = fuzzedString;
-    property.iconId = fuzzedInt32;
+    property.iconId = fuzzedUint32;
     imc->ListInputMethodSubtype(property, subProperties);
 }
 
@@ -206,7 +206,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::sptr<InputMethodController> imc = InputMethodController::GetInstance();
 
     OHOS::TestListInputMethod(imc);
-    OHOS::TestListInputMethodSubtype(imc, fuzzedString, fuzzedInt32);
+    OHOS::TestListInputMethodSubtype(imc, fuzzedString, fuzzedUint32);
     OHOS::TestOnSelectionChange(imc, fuzzedU16String, fuzzedInt, fuzzedDouble);
     OHOS::TestOnConfigurationChange(imc);
     OHOS::TestSwitchInputMethod(fuzzedTrigger, imc, fuzzedString);

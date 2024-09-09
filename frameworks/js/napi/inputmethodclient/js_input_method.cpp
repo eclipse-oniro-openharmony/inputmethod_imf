@@ -120,7 +120,7 @@ napi_value JsInputMethod::GetJsInputMethodProperty(napi_env env, const Property 
     napi_set_named_property(env, prop, "icon", icon);
 
     napi_value iconId = nullptr;
-    napi_create_int32(env, property.iconId, &iconId);
+    napi_create_uint32(env, property.iconId, &iconId);
     napi_set_named_property(env, prop, "iconId", iconId);
 
     napi_value label = nullptr;
@@ -128,7 +128,7 @@ napi_value JsInputMethod::GetJsInputMethodProperty(napi_env env, const Property 
     napi_set_named_property(env, prop, "label", label);
 
     napi_value labelId = nullptr;
-    napi_create_int32(env, property.labelId, &labelId);
+    napi_create_uint32(env, property.labelId, &labelId);
     napi_set_named_property(env, prop, "labelId", labelId);
     return prop;
 }
@@ -147,7 +147,7 @@ napi_value JsInputMethod::GetJsInputMethodSubProperty(napi_env env, const SubPro
     napi_set_named_property(env, prop, "label", label);
 
     napi_value labelId = nullptr;
-    napi_create_int32(env, subProperty.labelId, &labelId);
+    napi_create_uint32(env, subProperty.labelId, &labelId);
     napi_set_named_property(env, prop, "labelId", labelId);
 
     napi_value name = nullptr;
@@ -171,7 +171,7 @@ napi_value JsInputMethod::GetJsInputMethodSubProperty(napi_env env, const SubPro
     napi_set_named_property(env, prop, "icon", icon);
 
     napi_value iconId = nullptr;
-    napi_create_int32(env, subProperty.iconId, &iconId);
+    napi_create_uint32(env, subProperty.iconId, &iconId);
     napi_set_named_property(env, prop, "iconId", iconId);
     return prop;
 }

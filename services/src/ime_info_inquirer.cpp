@@ -577,7 +577,7 @@ void ImeInfoInquirer::CovertToLanguage(const std::string &locale, std::string &l
 }
 
 std::string ImeInfoInquirer::GetStringById(
-    const std::string &bundleName, const std::string &moduleName, int32_t labelId, int32_t userId)
+    const std::string &bundleName, const std::string &moduleName, uint32_t labelId, int32_t userId)
 {
     auto bundleMgr = GetBundleMgr();
     return bundleMgr == nullptr ? "" : bundleMgr->GetStringById(bundleName, moduleName, labelId, userId);
