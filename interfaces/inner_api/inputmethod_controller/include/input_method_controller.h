@@ -98,6 +98,7 @@ public:
     virtual void FinishTextPreview()
     {
     }
+    virtual void OnDetach() { }
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
@@ -741,7 +742,8 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 12
      */
-    int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t ReceivePrivateCommand(
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
     /**
      * @brief Set preview text.
@@ -764,12 +766,23 @@ public:
      */
     int32_t FinishTextPreview();
 
+    /**
+     * @brief Reset controller.
+     *
+     * This function is used to reset controller.
+     * Do not call this interface unless you know what you are doing
+     *
+     * @since 12
+     */
+    IMF_API void Reset();
+
 private:
     InputMethodController();
     ~InputMethodController();
 
     int32_t Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
+    void RemoveDeathRecipient();
     int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
     int32_t ShowInput(sptr<IInputClient> &client);
     int32_t HideInput(sptr<IInputClient> &client);

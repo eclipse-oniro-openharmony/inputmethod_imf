@@ -17,6 +17,7 @@
 #define SERVICES_INCLUDE_IME_INFO_ENQUIRER_H
 
 #include <application_info.h>
+
 #include <memory>
 #include <mutex>
 #include <string>
@@ -78,8 +79,8 @@ public:
     std::shared_ptr<ImeInfo> GetImeInfo(int32_t userId, const std::string &bundleName, const std::string &subName);
     std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
     std::shared_ptr<Property> GetDefaultImeCfgProp();
-    std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(const std::vector<SubProperty> &subProps,
-        const Condition &condition);
+    std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(
+    const std::vector<SubProperty> &subProps, const Condition &condition);
     int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief = false);
     int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);

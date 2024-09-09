@@ -19,7 +19,6 @@
 #include "message.h"
 #include "message_handler.h"
 #include "parameter.h"
-
 namespace OHOS {
 namespace MiscServices {
 SystemLanguageObserver &SystemLanguageObserver::GetInstance()
@@ -31,16 +30,16 @@ SystemLanguageObserver &SystemLanguageObserver::GetInstance()
 void SystemLanguageObserver::Watch()
 {
     auto errNo = WatchParameter(SYSTEM_LANGUAGE_KEY, OnChange, nullptr);
-    IMSA_HILOGD("ret: %{public}d.", errNo);
+    IMSA_HILOGD("ret: %{public}d", errNo);
 }
 
 void SystemLanguageObserver::OnChange(const char *key, const char *value, void *context)
 {
     if (strncmp(key, SYSTEM_LANGUAGE_KEY, strlen(SYSTEM_LANGUAGE_KEY)) != 0) {
-        IMSA_HILOGE("key: %{public}s is error!", key);
+        IMSA_HILOGE("key: %{public}s is error", key);
         return;
     }
-    IMSA_HILOGD("value: %{public}s.", value);
+    IMSA_HILOGD("value: %{public}s", value);
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SYS_LANGUAGE_CHANGED, nullptr);
     if (msg == nullptr) {
         return;

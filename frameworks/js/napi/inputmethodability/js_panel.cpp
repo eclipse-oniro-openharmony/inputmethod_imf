@@ -36,12 +36,12 @@ FFRTBlockQueue<JsEventInfo> JsPanel::jsQueue_{ MAX_WAIT_TIME };
 
 napi_value JsPanel::Init(napi_env env)
 {
-    IMSA_HILOGI("JsPanel start.");
+    IMSA_HILOGI("JsPanel in.");
     napi_value constructor = nullptr;
     std::lock_guard<std::mutex> lock(panelConstructorMutex_);
     if (panelConstructorRef_ != nullptr) {
         napi_status status = napi_get_reference_value(env, panelConstructorRef_, &constructor);
-        CHECK_RETURN(status == napi_ok, "failed to get jsPanel constructor.", nullptr);
+        CHECK_RETURN(status == napi_ok, "Failed to get jsPanel constructor.", nullptr);
         return constructor;
     }
     const napi_property_descriptor properties[] = {
@@ -58,38 +58,38 @@ napi_value JsPanel::Init(napi_env env)
     };
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
-    CHECK_RETURN(constructor != nullptr, "failed to define class!", nullptr);
+    CHECK_RETURN(constructor != nullptr, "napi_define_class failed!", nullptr);
     NAPI_CALL(env, napi_create_reference(env, constructor, 1, &panelConstructorRef_));
     return constructor;
 }
 
 napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGD("create panel instance start.");
+    IMSA_HILOGD("JsPanel, create panel instance in.");
     std::shared_ptr<PanelListenerImpl> panelImpl = PanelListenerImpl::GetInstance();
     if (panelImpl != nullptr) {
-        IMSA_HILOGD("set eventHandler.");
+        IMSA_HILOGD("Set eventhandler.");
         panelImpl->SetEventHandler(AppExecFwk::EventHandler::Current());
     }
     JsPanel *panel = new (std::nothrow) JsPanel();
-    CHECK_RETURN(panel != nullptr, "no memory for JsPanel!", nullptr);
+    CHECK_RETURN(panel != nullptr, "no memory for JsPanel", nullptr);
     auto finalize = [](napi_env env, void *data, void *hint) {
         IMSA_HILOGD("jsPanel finalize.");
         auto *jsPanel = reinterpret_cast<JsPanel *>(data);
-        CHECK_RETURN_VOID(jsPanel != nullptr, "finalize nullptr!");
+        CHECK_RETURN_VOID(jsPanel != nullptr, "finalize null!");
         jsPanel->GetNative() = nullptr;
         delete jsPanel;
     };
     napi_value thisVar = nullptr;
     napi_status status = napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
     if (status != napi_ok) {
-        IMSA_HILOGE("failed to get cb info: %{public}d!", status);
+        IMSA_HILOGE("JsPanel napi_get_cb_info failed: %{public}d", status);
         delete panel;
         return nullptr;
     }
     status = napi_wrap(env, thisVar, panel, finalize, nullptr, nullptr);
     if (status != napi_ok) {
-        IMSA_HILOGE("failed to wrap: %{public}d!", status);
+        IMSA_HILOGE("JsPanel napi_wrap failed: %{public}d", status);
         delete panel;
         return nullptr;
     }
@@ -113,14 +113,14 @@ std::shared_ptr<InputMethodPanel> JsPanel::GetNative()
 
 napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("JsPanel start.");
+    IMSA_HILOGI("JsPanel in.");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, status);
         // 0 means the first param path<std::string>
         PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], ctxt->path) == napi_ok,
-            "js param path covert failed, must be string!", TYPE_NONE, status);
+            "js param path covert failed, must be string", TYPE_NONE, status);
         // if type of argv[1] is object, we will get value of 'storage' from it.
         if (argc >= 2) {
             napi_valuetype valueType = napi_undefined;
@@ -138,7 +138,9 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         return napi_ok;
     };
 
-    auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        ctxt->SetState(napi_ok);
+    };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
         auto code = ctxt->inputMethodPanel->SetUiContent(ctxt->path, env, ctxt->contentStorage);
@@ -160,13 +162,13 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc > 1, "at least two parameters is required", TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, status);
         // 0 means the first param width<uint32_t>
         PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], ctxt->width) == napi_ok,
-            "width type must be number!", TYPE_NONE, status);
+            "param width type must be number", TYPE_NONE, status);
         // 1 means the second param height<uint32_t>
         PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[1], ctxt->height) == napi_ok,
-            "height type must be number!", TYPE_NONE, status);
+            "param height type must be number", TYPE_NONE, status);
         ctxt->info = { std::chrono::system_clock::now(), JsEvent::RESIZE };
         jsQueue_.Push(ctxt->info);
         return napi_ok;
@@ -200,12 +202,12 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc > 1, "at least two parameters is required ", TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required ", TYPE_NONE, status);
         // 0 means the first param x<int32_t>
-        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], ctxt->x) == napi_ok, "x type must be number",
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], ctxt->x) == napi_ok, "param x type must be number",
             TYPE_NONE, status);
         // 1 means the second param y<int32_t>
-        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[1], ctxt->y) == napi_ok, "y type must be number",
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[1], ctxt->y) == napi_ok, "param y type must be number",
             TYPE_NONE, status);
         ctxt->info = { std::chrono::system_clock::now(), JsEvent::MOVE_TO };
         jsQueue_.Push(ctxt->info);
@@ -253,7 +255,7 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
     InputMethodSyncTrace tracer("JsPanel_Show");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
         auto code = InputMethodAbility::GetInstance()->ShowPanel(ctxt->inputMethodPanel);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
@@ -271,7 +273,7 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
     InputMethodSyncTrace tracer("JsPanel_Hide");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
         auto code = InputMethodAbility::GetInstance()->HidePanel(ctxt->inputMethodPanel);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
@@ -290,22 +292,26 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
-    PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, nullptr);
     int32_t panelFlag = 0;
     // 0 means the first param flag<PanelFlag>
     napi_status status = JsUtils::GetValue(env, argv[0], panelFlag);
-    PARAM_CHECK_RETURN(env, status == napi_ok, "flag type must be PanelFlag!", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, status == napi_ok, "param flag type must be PanelFlag", TYPE_NONE, nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr");
+        return nullptr;
+    }
     PARAM_CHECK_RETURN(env,
         (panelFlag == PanelFlag::FLG_FIXED || panelFlag == PanelFlag::FLG_FLOATING ||
             panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN),
-        "flag type must be one of PanelFlag!", TYPE_NONE, nullptr);
+        "param flag type must be one of PanelFlag", TYPE_NONE, nullptr);
     JsEventInfo eventInfo = { std::chrono::system_clock::now(), JsEvent::CHANGE_FLAG };
     jsQueue_.Push(eventInfo);
     jsQueue_.Wait(eventInfo);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
     jsQueue_.Pop();
-    CHECK_RETURN(ret == ErrorCode::NO_ERROR, "failed to ChangePanelFlag!", nullptr);
+    CHECK_RETURN(ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!", nullptr);
     return nullptr;
 }
 
@@ -315,25 +321,29 @@ napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
-    PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, nullptr);
     bool isPrivacyMode = false;
     // 0 means the first param isPrivacyMode<boolean>
     napi_status status = JsUtils::GetValue(env, argv[0], isPrivacyMode);
-    PARAM_CHECK_RETURN(env, status == napi_ok, "isPrivacyMode type must be boolean!", TYPE_NONE, nullptr);
-    CHECK_RETURN(status == napi_ok, "failed to get isPrivacyMode!", nullptr);
+    PARAM_CHECK_RETURN(env, status == napi_ok, "param isPrivacyMode type must be boolean", TYPE_NONE, nullptr);
+    CHECK_RETURN(status == napi_ok, "get isPrivacyMode failed!", nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr");
+        return nullptr;
+    }
     auto ret = inputMethodPanel->SetPrivacyMode(isPrivacyMode);
     if (ret == static_cast<int32_t>(WMError::WM_ERROR_INVALID_PERMISSION)) {
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_STATUS_PERMISSION_DENIED),
             " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE);
     }
-    CHECK_RETURN(ret == ErrorCode::NO_ERROR, "failed to SetPrivacyMode!", nullptr);
+    CHECK_RETURN(ret == ErrorCode::NO_ERROR, "SetPrivacyMode failed!", nullptr);
     return nullptr;
 }
 
 napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGD("JsPanel start.");
+    IMSA_HILOGD("JsPanel in");
     size_t argc = ARGC_MAX;
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
@@ -343,17 +353,17 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
         !EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type) ||
         JsUtil::GetType(env, argv[1]) != napi_function) {
-        IMSA_HILOGE("subscribe failed, type: %{public}s!", type.c_str());
+        IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
-    IMSA_HILOGD("subscribe type: %{public}s.", type.c_str());
+    IMSA_HILOGD("Subscribe type:%{public}s", type.c_str());
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     // 1 means the second param callback.
     observer->SaveInfo(env, type, argv[1], inputMethodPanel->windowId_);
     bool ret = inputMethodPanel->SetPanelStatusListener(observer, type);
     if (!ret) {
-        IMSA_HILOGE("failed to subscribe %{public}s!", type.c_str());
+        IMSA_HILOGE("failed to subscribe %{public}s", type.c_str());
         observer->RemoveInfo(type, inputMethodPanel->windowId_);
     }
     napi_value result = nullptr;
@@ -369,20 +379,25 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     std::string type;
     // 1 means least param num.
-    PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, nullptr);
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], type), "type must be string!", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(
+        env, JsUtil::GetValue(env, argv[0], type), "param type must be string", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
-        "type should be show/hide/sizeChange!", TYPE_NONE, nullptr);
+        "type shoule be show/hide/sizeChange", TYPE_NONE, nullptr);
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     PARAM_CHECK_RETURN(env, (paramType == napi_function || paramType == napi_null || paramType == napi_undefined),
-        "callback should be function or null or undefined!", TYPE_NONE, nullptr);
+        "callback should be function or null or undefined", TYPE_NONE, nullptr);
     // if the second param is napi_function, delete it, else delete all
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
-    IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());
+    IMSA_HILOGD("UnSubscribe type:%{public}s", type.c_str());
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr");
+        return nullptr;
+    }
     observer->RemoveInfo(type, inputMethodPanel->windowId_);
     inputMethodPanel->ClearPanelListener(type);
     napi_value result = nullptr;
@@ -453,7 +468,7 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
             ctxt->SetState(napi_ok);
             return;
         } else if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
-            ctxt->SetErrorMessage("width limit:[0, displayWidth], height limit:[0, 70 percent of displayHeight]!");
+            ctxt->SetErrorMessage("width limit:[0, displayWidth], height limit:[0, 70 percent of displayHeight]");
         }
         ctxt->SetErrorCode(code);
     };
@@ -467,7 +482,7 @@ std::shared_ptr<InputMethodPanel> JsPanel::UnwrapPanel(napi_env env, napi_value 
 {
     void *native = nullptr;
     napi_status status = napi_unwrap(env, thisVar, &native);
-    CHECK_RETURN((status == napi_ok && native != nullptr), "failed to unwrap!", nullptr);
+    CHECK_RETURN((status == napi_ok && native != nullptr), "napi_unwrap failed!", nullptr);
     auto jsPanel = reinterpret_cast<JsPanel *>(native);
     if (jsPanel == nullptr) {
         return nullptr;

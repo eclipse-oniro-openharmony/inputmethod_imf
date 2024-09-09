@@ -17,9 +17,10 @@
 #define SERVICES_INCLUDE_GLOBAL_H
 
 #include <errno.h>
-#include <functional>
 #include <sys/time.h>
 #include <time.h>
+
+#include <functional>
 
 #include "hilog/log.h"
 
@@ -52,22 +53,22 @@ void LogTimeStamp();
 namespace ErrorCode {
 // Error Code definition in the input method management system
 enum {
-    ERROR_STATUS_PERMISSION_DENIED = -EPERM,     // permission denied
-    ERROR_STATUS_UNKNOWN_TRANSACTION = -EBADMSG, // unknown transaction
+    ERROR_STATUS_PERMISSION_DENIED = -EPERM,                          // permission denied
+    ERROR_STATUS_UNKNOWN_TRANSACTION = -EBADMSG,                      // unknown transaction
 
     // binder exception error code from Status.h
     ERROR_EX_ILLEGAL_ARGUMENT = -3,      // illegal argument exception
     ERROR_EX_NULL_POINTER = -4,          // null pointer exception
     ERROR_EX_ILLEGAL_STATE = -5,         // illegal state exception
-    ERROR_EX_PARCELABLE = -6,            // parcelable exception
+    ERROR_EX_PARCELABLE  = -6,           // parcelable exception
     ERROR_EX_UNSUPPORTED_OPERATION = -7, // unsupported operation exception
     ERROR_EX_SERVICE_SPECIFIC = -8,      // service specific exception
     // no error
     NO_ERROR = 0, // no error
 
     // system service error
-    ERROR_NULL_POINTER = 1,   // null pointer
-    ERROR_BAD_PARAMETERS = 2, // bad parameters
+    ERROR_NULL_POINTER = 1,          // null pointer
+    ERROR_BAD_PARAMETERS = 2,        // bad parameters
     ERROR_CLIENT_NOT_FOUND = 3,
     ERROR_CLIENT_NULL_POINTER = 4,
     ERROR_SUBSCRIBE_KEYBOARD_EVENT = 5,
@@ -80,8 +81,8 @@ enum {
     ERROR_SWITCH_IME = 11,
     ERROR_PACKAGE_MANAGER = 12,
     ERROR_REMOTE_CLIENT_DIED = 13,
-    ERROR_IME_START_FAILED = 14, // failed to start IME service
-    ERROR_KBD_SHOW_FAILED = 15,  // failed to show keyboard
+    ERROR_IME_START_FAILED = 14,          // failed to start IME service
+    ERROR_KBD_SHOW_FAILED = 15,           // failed to show keyboard
     ERROR_CLIENT_NOT_BOUND = 16,
     ERROR_CLIENT_NOT_EDITABLE = 17,
     ERROR_CLIENT_NOT_FOCUSED = 18,
@@ -92,7 +93,7 @@ enum {
     ERROR_ADD_DEATH_RECIPIENT_FAILED = 23,
     ERROR_STATUS_SYSTEM_PERMISSION = 24, // not system application
     ERROR_IME = 25,
-    ERROR_PARAMETER_CHECK_FAILED = 26,
+	ERROR_PARAMETER_CHECK_FAILED = 26,
     ERROR_IME_START_INPUT_FAILED = 27,
     ERROR_KEYWORD_NOT_FOUND = 28,
     ERROR_ENABLE_IME = 29,

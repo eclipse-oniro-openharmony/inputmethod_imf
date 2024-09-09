@@ -21,8 +21,8 @@
 #include <string>
 #include <vector>
 
-#include "element_name.h"
 #include "global.h"
+#include "element_name.h"
 #include "i_input_method_system_ability.h"
 #include "input_attribute.h"
 #include "input_client_stub.h"

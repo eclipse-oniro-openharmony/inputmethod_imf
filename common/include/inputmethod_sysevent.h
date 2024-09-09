@@ -36,6 +36,7 @@ enum class OperateIMEInfoCode : int32_t {
     IME_HIDE_NORMAL,
     IME_HIDE_UNFOCUSED,
     IME_HIDE_SELF,
+    IME_HIDE_FORCE,
 };
 
 enum class IMEBehaviour : int32_t {

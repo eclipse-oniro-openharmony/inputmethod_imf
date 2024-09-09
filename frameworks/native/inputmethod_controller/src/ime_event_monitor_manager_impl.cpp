@@ -35,8 +35,8 @@ ImeEventMonitorManagerImpl &ImeEventMonitorManagerImpl::GetInstance()
     return manager;
 }
 
-int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(uint32_t eventFlag,
-    const std::shared_ptr<ImeEventListener> &listener)
+int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     std::lock_guard<std::mutex> lock(lock_);
     uint32_t currentEventFlag = 0;
@@ -46,7 +46,7 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(uint32_t eventFlag,
     auto finalEventFlag = currentEventFlag | eventFlag;
     auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(finalEventFlag, eventFlag, true);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to UpdateListenEventFlag: %{public}d!", ret);
+        IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
         return ret;
     }
     for (uint32_t i = 0; i < MAX_EVENT_NUM; i++) {
@@ -64,8 +64,8 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(uint32_t eventFlag,
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(uint32_t eventFlag,
-    const std::shared_ptr<ImeEventListener> &listener)
+int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     std::lock_guard<std::mutex> lock(lock_);
     bool isAbsentParam = false;
@@ -95,7 +95,7 @@ int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(uint32_t eventFla
     }
     auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(finalEventFlag, eventFlag, false);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to UpdateListenEventFlag: %{public}d!", ret);
+        IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
         return ret;
     }
     return isAbsentParam ? ErrorCode::ERROR_BAD_PARAMETERS : ErrorCode::NO_ERROR;

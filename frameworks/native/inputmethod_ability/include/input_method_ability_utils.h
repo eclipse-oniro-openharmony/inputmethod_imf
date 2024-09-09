@@ -25,7 +25,7 @@ public:
     static sptr<IInputMethodSystemAbility> GetImsaProxy();
 
 private:
-    static sptr<IInputMethodSystemAbility> abilityManager_; // for tdd test
+    static sptr<IInputMethodSystemAbility> abilityManager_;  // for tdd test
 };
 } // namespace MiscServices
 } // namespace OHOS

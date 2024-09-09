@@ -22,6 +22,7 @@ config("inputmethod_js_common_config") {
     "-fdata-sections",
     "-ffunction-sections",
     "-fvisibility=hidden",
+    "-Wno-c99-designator",
   ]
 }
 

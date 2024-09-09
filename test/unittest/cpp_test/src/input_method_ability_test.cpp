@@ -308,7 +308,7 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardWithoutImeListener, TestSize.Le
 HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testHideKeyboardWithoutImeListener start.");
-    auto ret = inputMethodAbility_->HideKeyboard();
+    auto ret = inputMethodAbility_->HideKeyboard(false);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 }
 
@@ -821,7 +821,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_001, TestSize.Level0)
     EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({ info1, true, Trigger::IMF }));
 
     TextListener::ResetParam();
-    ret = inputMethodAbility_->HideKeyboard();
+    ret = inputMethodAbility_->HideKeyboard(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
     EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({ info1, false, Trigger::IMF }));

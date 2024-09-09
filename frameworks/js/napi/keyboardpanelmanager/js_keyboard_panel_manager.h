@@ -19,8 +19,8 @@
 #include "async_call.h"
 #include "block_queue.h"
 #include "event_handler.h"
-#include "ime_system_channel.h"
 #include "js_callback_object.h"
+#include "ime_system_channel.h"
 
 namespace OHOS {
 namespace MiscServices {

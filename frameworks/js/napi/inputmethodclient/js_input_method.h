@@ -37,7 +37,7 @@ struct SwitchInputMethodContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        CHECK_RETURN(self != nullptr, "self is nullptr!", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -69,10 +69,10 @@ public:
     static napi_value GetJsInputConfigElement(napi_env env, const OHOS::AppExecFwk::ElementName &elementName);
 
 private:
-    static napi_status GetInputMethodProperty(napi_env env, napi_value argv,
-        std::shared_ptr<SwitchInputMethodContext> ctxt);
-    static napi_status GetInputMethodSubProperty(napi_env env, napi_value argv,
-        std::shared_ptr<SwitchInputMethodContext> ctxt);
+    static napi_status GetInputMethodProperty(
+        napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt);
+    static napi_status GetInputMethodSubProperty(
+        napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt);
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
     static constexpr size_t PARAM_POS_TWO = 2;
     static constexpr size_t PARAM_POS_ONE = 1;
