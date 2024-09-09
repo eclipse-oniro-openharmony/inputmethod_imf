@@ -118,7 +118,7 @@ int32_t InputMethodController::Initialize()
 {
     sptr<IInputClient> client = new (std::nothrow) InputClientStub();
     if (client == nullptr) {
-        IMSA_HILOGE("failed to create client!");
+        IMSA_HILOGE("failed to create client");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     sptr<IInputDataChannel> channel = new (std::nothrow) InputDataChannelStub();
@@ -262,7 +262,7 @@ int32_t InputMethodController::ShowTextInput()
 {
     InputMethodSyncTrace tracer("IMC_ShowTextInput");
     if (!IsBound()) {
-        IMSA_HILOGE("not bound!");
+        IMSA_HILOGE("not bound.");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     IMSA_HILOGI("start.");
@@ -1311,7 +1311,7 @@ int32_t InputMethodController::ReceivePrivateCommand(
 {
     auto listener = GetTextListener();
     if (listener == nullptr) {
-        IMSA_HILOGE("listener is nullptr!");
+        IMSA_HILOGE("listener is nullptr.");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     IMSA_HILOGD("IMC in.");

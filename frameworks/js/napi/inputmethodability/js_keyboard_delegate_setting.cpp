@@ -199,7 +199,7 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
 
     if (callback == nullptr) {
         jsCbMap_.erase(type);
-        IMSA_HILOGE("callback is nullptr!");
+        IMSA_HILOGE("callback is nullptr");
         return;
     }
 
@@ -456,7 +456,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, s
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
         auto consumer = entry->keyEvenetConsumer;
         if (consumer != nullptr) {
-            IMSA_HILOGE("consumer result: %{public}d!", isConsumed);
+            IMSA_HILOGE("consumer result: %{public}d", isConsumed);
             consumer->OnKeyCodeConsumeResult(isConsumed);
         }
         FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));

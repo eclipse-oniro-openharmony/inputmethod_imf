@@ -43,7 +43,7 @@ TaskManager &TaskManager::GetInstance()
 uint64_t TaskManager::PostTask(task_ptr_t task, uint32_t delayMs)
 {
     if (!task) {
-        IMSA_HILOGE("task is NULL!");
+        IMSA_HILOGE("task is NULL");
         return 0;
     }
 
@@ -68,11 +68,11 @@ void TaskManager::Complete(uint64_t seqId)
 int32_t TaskManager::Pend(action_ptr_t action)
 {
     if (action == nullptr) {
-        IMSA_HILOGE("curTask_ is NULL or not runing, pend failed!");
+        IMSA_HILOGE("curTask_ is NULL or not runing, pend failed");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (curTask_ == nullptr || !curTask_->IsRunning()) {
-        IMSA_HILOGE("curTask_ is NULL or not runing, pend failed!");
+        IMSA_HILOGE("curTask_ is NULL or not runing, pend failed");
         return ErrorCode::ERROR_TASK_MANAGER_PEND_FAILED;
     }
     return curTask_->Pend(std::move(action));
@@ -109,7 +109,7 @@ void TaskManager::SetInited(bool flag)
 void TaskManager::OnNewTask(task_ptr_t task)
 {
     if (task == nullptr) {
-        IMSA_HILOGE("task is NULL!");
+        IMSA_HILOGE("task is NULL");
         return;
     }
     auto srcType = task->GetSourceType();
@@ -127,7 +127,7 @@ void TaskManager::OnNewTask(task_ptr_t task)
             innerTasks_.push_back(task);
             break;
         default:
-            IMSA_HILOGE("task type %{public}d unknown!", srcType);
+            IMSA_HILOGE("task type %{public}d unknown", srcType);
             return;
     }
     Process();

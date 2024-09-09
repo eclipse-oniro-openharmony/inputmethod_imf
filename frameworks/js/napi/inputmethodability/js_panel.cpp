@@ -175,7 +175,7 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         jsQueue_.Wait(ctxt->info);
         if (ctxt->inputMethodPanel == nullptr) {
-            IMSA_HILOGE("inputMethodPanel_ is nullptr!");
+            IMSA_HILOGE("inputMethodPanel_ is nullptr.");
             jsQueue_.Pop();
             return;
         }
@@ -217,7 +217,7 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
         jsQueue_.Wait(ctxt->info);
         PrintEditorQueueInfoIfTimeout(start, ctxt->info);
         if (ctxt->inputMethodPanel == nullptr) {
-            IMSA_HILOGE("inputMethodPanel_ is nullptr!");
+            IMSA_HILOGE("inputMethodPanel_ is nullptr.");
             jsQueue_.Pop();
             return;
         }
@@ -297,7 +297,7 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     PARAM_CHECK_RETURN(env, status == napi_ok, "flag type must be PanelFlag!", TYPE_NONE, nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     if (inputMethodPanel == nullptr) {
-        IMSA_HILOGE("inputMethodPanel is nullptr!");
+        IMSA_HILOGE("inputMethodPanel is nullptr");
         return nullptr;
     }
     PARAM_CHECK_RETURN(env,
@@ -327,7 +327,7 @@ napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
     CHECK_RETURN(status == napi_ok, "failed to get isPrivacyMode!", nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     if (inputMethodPanel == nullptr) {
-        IMSA_HILOGE("inputMethodPanel is nullptr!");
+        IMSA_HILOGE("inputMethodPanel is nullptr");
         return nullptr;
     }
     auto ret = inputMethodPanel->SetPrivacyMode(isPrivacyMode);
@@ -394,7 +394,7 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     if (inputMethodPanel == nullptr) {
-        IMSA_HILOGE("inputMethodPanel is nullptr!");
+        IMSA_HILOGE("inputMethodPanel is nullptr");
         return nullptr;
     }
     observer->RemoveInfo(type, inputMethodPanel->windowId_);
@@ -448,7 +448,7 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         jsQueue_.Wait(ctxt->info);
         if (ctxt->inputMethodPanel == nullptr) {
-            IMSA_HILOGE("inputMethodPanel_ is nullptr!");
+            IMSA_HILOGE("inputMethodPanel_ is nullptr.");
             jsQueue_.Pop();
             return;
         }

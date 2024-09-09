@@ -67,7 +67,7 @@ int32_t InputMethodPanel::CreatePanel(const std::shared_ptr<AbilityRuntime::Cont
     WMError wmError = WMError::WM_OK;
     window_ = OHOS::Rosen::Window::Create(GeneratePanelName(), winOption_, context, wmError);
     if (wmError == WMError::WM_ERROR_INVALID_PERMISSION || wmError == WMError::WM_ERROR_NOT_SYSTEM_APP) {
-        IMSA_HILOGE("create window failed, permission denied, %{public}d!", wmError);
+        IMSA_HILOGE("create window failed, permission denied, %{public}d~", wmError);
         return ErrorCode::ERROR_NOT_IME;
     }
     if (window_ == nullptr || wmError != WMError::WM_OK) {
@@ -112,7 +112,7 @@ int32_t InputMethodPanel::SetPanelProperties()
     } else if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FLOATING) {
         auto surfaceNode = window_->GetSurfaceNode();
         if (surfaceNode == nullptr) {
-            IMSA_HILOGE("surfaceNode is nullptr!");
+            IMSA_HILOGE("surfaceNode is nullptr");
             return ErrorCode::ERROR_OPERATE_PANEL;
         }
         surfaceNode->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
@@ -120,7 +120,7 @@ int32_t InputMethodPanel::SetPanelProperties()
     } else if (panelType_ == STATUS_BAR) {
         auto surfaceNo = window_->GetSurfaceNode();
         if (surfaceNo == nullptr) {
-            IMSA_HILOGE("surfaceNo is nullptr!");
+            IMSA_HILOGE("surfaceNo is nullptr");
             return ErrorCode::ERROR_OPERATE_PANEL;
         }
         surfaceNo->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
@@ -138,7 +138,7 @@ int32_t InputMethodPanel::SetPanelProperties()
     keyboardLayoutParams_.gravity_ = gravity;
     auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window!", ret);
+        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window.", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     return ErrorCode::NO_ERROR;
@@ -322,7 +322,7 @@ int32_t InputMethodPanel::ParsePanelRect(const PanelFlag panelFlag, const Layout
             panelAdjust_.insert({ config.style, { config.top, config.left, config.right, config.bottom } });
         }
     } else {
-        IMSA_HILOGE("there is no configuration file!");
+        IMSA_HILOGE("there is no configuration file.");
         auto ret = CalculateNoConfigRect(panelFlag, layoutParams);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to calculate NoConfigRect, err: %{public}d!", ret);
@@ -442,7 +442,7 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
     }
     auto displayInfo = defaultDisplay->GetDisplayInfo();
     if (displayInfo == nullptr) {
-        IMSA_HILOGE("GetDisplayInfo failed!");
+        IMSA_HILOGE("GetDisplayInfo failed.");
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
     auto densityDpi = displayInfo->GetDensityInCurResolution();
@@ -582,7 +582,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     } else {
         auto surfaceNode = window_->GetSurfaceNode();
         if (surfaceNode == nullptr) {
-            IMSA_HILOGE("surfaceNode is nullptr!");
+            IMSA_HILOGE("surfaceNode is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
         surfaceNode->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
@@ -736,7 +736,7 @@ int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
 {
     IMSA_HILOGD("isPrivacyMode: %{public}d.", isPrivacyMode);
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr!");
+        IMSA_HILOGE("window_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto ret = window_->SetPrivacyMode(isPrivacyMode);
@@ -805,7 +805,7 @@ int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, napi_env 
     std::shared_ptr<NativeReference> storage)
 {
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr, can not SetUiContent!");
+        IMSA_HILOGE("window_ is nullptr, can not SetUiContent.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     WMError ret = WMError::WM_OK;
@@ -899,7 +899,7 @@ bool InputMethodPanel::MarkListener(const std::string &type, bool isRegister)
     } else if (type == "sizeChange") {
         sizeChangeRegistered_ = isRegister;
     } else {
-        IMSA_HILOGE("type error!");
+        IMSA_HILOGE("type error.");
         return false;
     }
     return true;
@@ -922,7 +922,7 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
     }
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (defaultDisplay == nullptr) {
-        IMSA_HILOGE("GetDefaultDisplay failed!");
+        IMSA_HILOGE("GetDefaultDisplay failed.");
         return false;
     }
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag_ == PanelFlag::FLG_FIXED
@@ -1002,7 +1002,7 @@ bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
 {
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (defaultDisplay == nullptr) {
-        IMSA_HILOGE("GetDefaultDisplay failed!");
+        IMSA_HILOGE("GetDefaultDisplay failed.");
         return false;
     }
     auto width = defaultDisplay->GetWidth();
@@ -1020,7 +1020,7 @@ bool InputMethodPanel::IsDisplayPortrait()
 {
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (defaultDisplay == nullptr) {
-    IMSA_HILOGE("GetDefaultDisplay failed!");
+    IMSA_HILOGE("GetDefaultDisplay failed.");
         return false;
     }
     auto width = defaultDisplay->GetWidth();
@@ -1032,7 +1032,7 @@ bool InputMethodPanel::CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t h
 {
     WindowSize displaySize;
     if (!GetDisplaySize(isDataPortrait, displaySize)) {
-        IMSA_HILOGE("GetDisplaySize failed!");
+        IMSA_HILOGE("GetDisplaySize failed.");
         return false;
     }
     return IsSizeValid(panelFlag, width, height, displaySize.width, displaySize.height);

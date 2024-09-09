@@ -80,7 +80,7 @@ int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandl
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("reply error, ret: %{public}d!", ret);
+        IMSA_HILOGE("reply error, ret: %{public}d", ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
