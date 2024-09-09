@@ -26,3 +26,11 @@ bundllemanager_path = "//foundation/bundlemanager/bundle_framework"
 multimodalinput_path = "//foundation/multimodalinput/input"
 
 startup_init_path = "//base/startup/init"
+
+declare_args() {
+  imf_screenlock_mgr_enable = false
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.theme_screenlock_mgr)) {
+    imf_screenlock_mgr_enable = true
+  }
+}
