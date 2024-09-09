@@ -82,6 +82,9 @@ bool IdentityCheckerImpl::HasPermission(uint32_t tokenId, const std::string &per
 
 bool IdentityCheckerImpl::IsBroker(AccessTokenID tokenId)
 {
+    if (!IsNativeSa(tokenId)) {
+        return false;
+    }
     NativeTokenInfo nativeTokenInfoRes;
     AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
     return nativeTokenInfoRes.processName == "broker";
@@ -89,7 +92,7 @@ bool IdentityCheckerImpl::IsBroker(AccessTokenID tokenId)
 
 bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
 {
-    return AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE;
+    return AccessTokenKit::GetTokenTypeFlag(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE;
 }
 
 bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId)
