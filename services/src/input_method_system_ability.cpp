@@ -41,6 +41,9 @@
 #include "scene_board_judgement.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+#include "screenlock_manager.h"
+#endif
 #include "system_language_observer.h"
 #include "user_session_manager.h"
 #include "wms_connection_observer.h"
@@ -1106,7 +1109,14 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
         IMSA_HILOGI("switch language");
         return SwitchLanguage();
     }
-    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
+    bool isScreenLocked = false;
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+        IMSA_HILOGI("isScreenLocked  now.");
+        isScreenLocked = true;
+    }
+#endif
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state) && !isScreenLocked) {
         IMSA_HILOGI("switch ime");
         DealSwitchRequest();
         return ErrorCode::NO_ERROR;

@@ -15,7 +15,9 @@
       "syscap": [
           "SystemCapability.MiscServices.InputMethodFramework"
       ], 
-      "features": [ ], 
+      "features": [
+          "imf_screenlock_mgr_enable"
+      ], 
       "hisysevent_config": [
           "//base/inputmethod/imf/hisysevent.yaml"
       ], 
@@ -52,7 +54,8 @@
               "resource_schedule_service",
               "memmgr",
               "hicollie",
-              "resource_management"
+              "resource_management",
+              "screenlock_mgr"
           ], 
           "third_party": [
               "cJSON"

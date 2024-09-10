@@ -119,6 +119,10 @@ ohos_shared_library("inputmethod_service") {
   ]
 
   defines = []
+  if (imf_screenlock_mgr_enable) {
+    defines += [ "IMF_SCREENLOCK_MGR_ENABLE" ]
+    external_deps += [ "screenlock_mgr:screenlock_client" ]
+  }
   if (scene_board_enabled) {
     external_deps += [ "window_manager:libwm_lite" ]
     defines += [ "SCENE_BOARD_ENABLE" ]
@@ -206,6 +210,10 @@ ohos_static_library("inputmethod_service_static") {
   ]
 
   defines = []
+  if (imf_screenlock_mgr_enable) {
+    defines += [ "IMF_SCREENLOCK_MGR_ENABLE" ]
+    external_deps += [ "screenlock_mgr:screenlock_client" ]
+  }
   if (scene_board_enabled) {
     external_deps += [ "window_manager:libwm_lite" ]
     defines += [ "SCENE_BOARD_ENABLE" ]
