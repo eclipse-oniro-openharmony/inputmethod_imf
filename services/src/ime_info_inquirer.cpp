@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <string>
 
+#include "app_mgr_client.h"
 #include "application_info.h"
 #include "bundle_mgr_client_impl.h"
 #include "file_operator.h"
@@ -32,6 +33,7 @@
 #include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
+#include "running_process_info.h"
 #include "string_ex.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
@@ -41,6 +43,7 @@ namespace MiscServices {
 namespace {
 using namespace OHOS::AppExecFwk;
 using namespace Global::Resource;
+using namespace OHOS::AAFwk;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
 constexpr const char *TEMPORARY_INPUT_METHOD_METADATA_NAME = "ohos.extension.temporary_input_method";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
@@ -114,14 +117,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfo(
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s", userId, bundleName.c_str(),
         subName.c_str());
     auto info = GetImeInfoFromCache(userId, bundleName, subName);
-    if (info != nullptr) {
-        return info;
-    }
-    auto ret = FullImeInfoManager::GetInstance().Add(userId, bundleName);
-    if (ret != ErrorCode::NO_ERROR) {
-        return nullptr;
-    }
-    return GetImeInfoFromCache(userId, bundleName, subName);
+    return info == nullptr ? GetImeInfoFromBundleMgr(userId, bundleName, subName) : info;
 }
 
 std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
@@ -135,6 +131,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
     }
     auto info = std::make_shared<ImeInfo>();
     auto subProps = it->subProps;
+    info->isSpecificSubName = !subName.empty();
     if (subName.empty() && !subProps.empty()) {
         info->subProp = subProps[0];
     } else {
@@ -151,6 +148,53 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
     info->prop = it->prop;
     if (!info->isNewIme) {
         // old ime, make the id of prop same with the id of subProp.
+        info->prop.id = info->subProp.id;
+    }
+    return info;
+}
+
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
+    const int32_t userId, const std::string &bundleName, const std::string &subName)
+{
+    IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s.", userId, bundleName.c_str(),
+        subName.c_str());
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extInfos;
+    auto ret = ImeInfoInquirer::GetInstance().GetExtInfosByBundleName(userId, bundleName, extInfos);
+    if (ret != ErrorCode::NO_ERROR || extInfos.empty()) {
+        IMSA_HILOGE("userId: %{public}d getExtInfosByBundleName %{public}s failed!", userId, bundleName.c_str());
+        return nullptr;
+    }
+    auto info = std::make_shared<ImeInfo>();
+    info->prop.name = extInfos[0].bundleName;
+    info->prop.id = extInfos[0].name;
+    info->prop.label =
+        GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId);
+    info->prop.labelId = extInfos[0].applicationInfo.labelId;
+    info->prop.iconId = extInfos[0].applicationInfo.iconId;
+
+    std::vector<SubProperty> subProps;
+    info->isNewIme = IsNewExtInfos(extInfos);
+    ret = info->isNewIme ? ListInputMethodSubtype(userId, extInfos[0], subProps)
+                         : ListInputMethodSubtype(userId, extInfos, subProps);
+    if (ret != ErrorCode::NO_ERROR || subProps.empty()) {
+        IMSA_HILOGE("userId: %{public}d listInputMethodSubtype failed!", userId);
+        return nullptr;
+    }
+    info->subProps = subProps;
+    if (subName.empty()) {
+        info->isSpecificSubName = false;
+        info->subProp = subProps[0];
+    } else {
+        auto it = std::find_if(subProps.begin(), subProps.end(),
+            [&subName](const SubProperty &subProp) { return subProp.id == subName; });
+        if (it == subProps.end()) {
+            IMSA_HILOGE("find subName: %{public}s failed", subName.c_str());
+            return nullptr;
+        }
+        info->subProp = *it;
+    }
+    // old ime, make the id of prop same with the id of subProp.
+    if (!info->isNewIme) {
         info->prop.id = info->subProp.id;
     }
     return info;
@@ -1036,6 +1080,32 @@ bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
             return metadata.name == TEMPORARY_INPUT_METHOD_METADATA_NAME;
         });
     return iter != extInfo.metadata.end();
+}
+
+std::vector<std::string> ImeInfoInquirer::GetRunningIme(int32_t userId)
+{
+    std::vector<std::string> bundleNames;
+    std::vector<RunningProcessInfo> infos;
+    AppMgrClient client;
+    auto ret = client.GetProcessRunningInfosByUserId(infos, userId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
+        return bundleNames;
+    }
+    for (const auto &info : infos) {
+        if (info.extensionType_ == ExtensionAbilityType::INPUTMETHOD && !info.bundleNames.empty()) {
+            bundleNames.push_back(info.bundleNames[0]);
+        }
+    }
+    return bundleNames;
+}
+
+bool ImeInfoInquirer::IsRunningIme(int32_t userId, const std::string &bundleName)
+{
+    auto bundleNames = GetRunningIme(userId);
+    auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
+        [&bundleName](const std::string &bundleNameTemp) { return bundleName == bundleNameTemp; });
+    return it != bundleNames.end();
 }
 } // namespace MiscServices
 } // namespace OHOS

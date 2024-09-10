@@ -623,26 +623,20 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
     handler_->PostTask(task, type);
 }
 
-void JsInputMethodEngineSetting::OnInputStop()
+int32_t JsInputMethodEngineSetting::OnInputStop()
 {
     std::string type = "inputStop";
-    uv_work_t *work = GetUVwork(type);
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
-        return;
+    auto entry = GetEntry(type);
+    if (entry == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGI("run in");
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            JsCallbackHandler::Traverse(entry->vecCopy);
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto task = [entry]() { JsCallbackHandler::Traverse(entry->vecCopy); };
+    return handler_->PostTask(task, type) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME;
 }
 
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)

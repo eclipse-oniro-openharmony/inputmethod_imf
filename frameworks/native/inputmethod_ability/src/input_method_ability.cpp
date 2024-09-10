@@ -174,6 +174,11 @@ void InputMethodAbility::SetImeListener(std::shared_ptr<InputMethodEngineListene
     }
 }
 
+std::shared_ptr<InputMethodEngineListener> InputMethodAbility::GetImeListener()
+{
+    return imeListener_;
+}
+
 void InputMethodAbility::SetKdListener(std::shared_ptr<KeyboardListener> kdListener)
 {
     IMSA_HILOGD("InputMethodAbility.");
@@ -202,10 +207,6 @@ void InputMethodAbility::WorkThread()
             }
             case MSG_ID_ON_ATTRIBUTE_CHANGE: {
                 OnAttributeChange(msg);
-                break;
-            }
-            case MSG_ID_STOP_INPUT_SERVICE: {
-                OnStopInputService(msg);
                 break;
             }
             case MSG_ID_SET_SUBTYPE: {
@@ -397,15 +398,18 @@ void InputMethodAbility::OnAttributeChange(Message *msg)
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
-void InputMethodAbility::OnStopInputService(Message *msg)
+int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
 {
-    MessageParcel *data = msg->msgContent_;
-    bool isTerminateIme = data->ReadBool();
-    IMSA_HILOGI("isTerminateIme: %{public}d", isTerminateIme);
-    if (isTerminateIme && imeListener_ != nullptr) {
-        imeListener_->OnInputStop();
-    }
+    IMSA_HILOGI("isTerminateIme: %{public}d.", isTerminateIme);
     isBound_.store(false);
+    auto imeListener = GetImeListener();
+    if (imeListener == nullptr) {
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    if (isTerminateIme) {
+        return imeListener->OnInputStop();
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::HideKeyboard(bool isForce)

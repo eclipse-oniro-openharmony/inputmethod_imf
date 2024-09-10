@@ -15,7 +15,9 @@
 #define private public
 #define protected public
 #include "enable_ime_data_parser.h"
+#include "full_ime_info_manager.h"
 #include "settings_data_utils.h"
+#include "user_session_manager.h"
 #undef private
 
 #include <unistd.h>
@@ -30,6 +32,7 @@
 #include "datashare_helper.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
+#include "input_method_controller.h"
 #include "iservice_registry.h"
 #include "nativetoken_kit.h"
 #include "os_account_manager.h"
@@ -53,6 +56,7 @@ constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
 uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
+std::string TddUtil::currentBundleNameMock_;
 sptr<Window> TddUtil::WindowManager::window_ = nullptr;
 int32_t TddUtil::WindowManager::currentWindowId_ = 0;
 uint64_t TddUtil::WindowManager::windowTokenId_ = 0;
@@ -356,6 +360,29 @@ bool TddUtil::GetUnfocused()
     bool unFocused = FocusChangedListenerTestImpl::unFocused_->GetValue();
     IMSA_HILOGI("unFocused end, unFocused = %{public}d", unFocused);
     return unFocused;
+}
+
+void TddUtil::InitCurrentImePermissionInfo()
+{
+    auto userId = GetCurrentUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("session is nullptr.");
+        return;
+    }
+    std::shared_ptr<Property> property = nullptr;
+    InputMethodController::GetInstance()->GetDefaultInputMethod(property);
+    if (property == nullptr) {
+        IMSA_HILOGI("default ime is nullptr.");
+        return;
+    }
+    currentBundleNameMock_ = property->name;
+    session->InitImeData({ property->name, property->id });
+    ImeCfgManager::GetInstance().imeConfigs_ = { { userId, property->name + "/" + property->id, "" } };
 }
 
 void TddUtil::WindowManager::CreateWindow()

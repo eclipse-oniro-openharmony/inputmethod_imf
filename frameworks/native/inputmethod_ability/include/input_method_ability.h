@@ -52,6 +52,7 @@ public:
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
+    std::shared_ptr<InputMethodEngineListener> GetImeListener();
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
@@ -96,6 +97,7 @@ public:
     int32_t NotifyPanelStatus(const std::shared_ptr<InputMethodPanel> &inputMethodPanel,
         SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
+    int32_t OnStopInputService(bool isTerminateIme);
 
 private:
     std::thread workThreadHandler;
@@ -144,7 +146,6 @@ private:
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnAttributeChange(Message *msg);
-    void OnStopInputService(Message *msg);
 
     int32_t HideKeyboard(Trigger trigger, bool isForce);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();

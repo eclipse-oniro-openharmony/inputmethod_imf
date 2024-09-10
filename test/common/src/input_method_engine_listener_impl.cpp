@@ -43,9 +43,10 @@ void InputMethodEngineListenerImpl::OnInputStart()
     isInputStart_ = true;
     imeListenerCv_.notify_one();
 }
-void InputMethodEngineListenerImpl::OnInputStop()
+int32_t InputMethodEngineListenerImpl::OnInputStop()
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStop");
+    return ErrorCode::NO_ERROR;
 }
 void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
 {

@@ -60,6 +60,8 @@ public:
     static void DestroyWindow();
     static bool GetFocused();
     static bool GetUnfocused();
+    static void InitCurrentImePermissionInfo();
+    static std::string currentBundleNameMock_;
     class WindowManager {
     public:
         static void CreateWindow();

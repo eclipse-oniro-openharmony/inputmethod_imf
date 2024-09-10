@@ -92,8 +92,9 @@ public:
     void OnInputStart() override
     {
     }
-    void OnInputStop() override
+    int32_t OnInputStop() override
     {
+        return ErrorCode::NO_ERROR;
     }
     void OnSecurityChange(int32_t security) override
     {

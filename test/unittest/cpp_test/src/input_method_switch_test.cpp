@@ -162,7 +162,7 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
     ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, extName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[0]);
     CheckCurrentSubProps();
@@ -238,7 +238,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
