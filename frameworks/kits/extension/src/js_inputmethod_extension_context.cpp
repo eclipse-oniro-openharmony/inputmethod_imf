@@ -458,8 +458,6 @@ napi_value CreateJsInputMethodExtensionContext(
     napi_value objValue = CreateJsExtensionContext(env, context);
     std::unique_ptr<JsInputMethodExtensionContext> jsContext = std::make_unique<JsInputMethodExtensionContext>(context);
     napi_wrap(env, objValue, jsContext.release(), JsInputMethodExtensionContext::Finalizer, nullptr, nullptr);
-    // make handler
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
 
     const char *moduleName = "JsInputMethodExtensionContext";
     BindNativeFunction(env, objValue, "startAbility", moduleName, JsInputMethodExtensionContext::StartAbility);
@@ -475,7 +473,8 @@ napi_value CreateJsInputMethodExtensionContext(
     return objValue;
 }
 
-JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(napi_env env) : env_(env)
+JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(napi_env env) : env_(env),
+    handler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner()))
 {
 }
 
@@ -519,7 +518,11 @@ void JSInputMethodExtensionConnection::HandleOnAbilityConnectDone(
         return;
     }
 
-    napi_value obj = jsConnectionObject_->GetNapiValue();
+    napi_value obj = nullptr;
+    if (napi_get_reference_value(env_, jsConnectionObject_, &obj) != napi_ok) {
+        IMSA_HILOGE("failed to get jsConnectionObject_!");
+        return;
+    }
     if (obj == nullptr) {
         IMSA_HILOGE("Failed to get object");
         return;
@@ -565,7 +568,11 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
         IMSA_HILOGE("jsConnectionObject_ nullptr");
         return;
     }
-    napi_value obj = jsConnectionObject_->GetNapiValue();
+    napi_value obj = nullptr;
+    if (napi_get_reference_value(env_, jsConnectionObject_, &obj) != napi_ok) {
+        IMSA_HILOGE("failed to get jsConnectionObject_!");
+        return;
+    }
     if (obj == nullptr) {
         IMSA_HILOGE("Failed to get object");
         return;
@@ -590,6 +597,9 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
             });
         if (item != connects_.end()) {
             // match bundlename && abilityname
+            if (item->second != nullptr) {
+                item->second->ReleaseConnection();
+            }
             connects_.erase(item);
             IMSA_HILOGI("OnAbilityDisconnectDone erase connects_.size:%{public}zu", connects_.size());
         }
@@ -601,9 +611,7 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
 
 void JSInputMethodExtensionConnection::SetJsConnectionObject(napi_value jsConnectionObject)
 {
-    napi_ref value = nullptr;
-    napi_create_reference(env_, jsConnectionObject, 1, &value);
-    jsConnectionObject_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(value));
+    napi_create_reference(env_, jsConnectionObject, 1, &jsConnectionObject_);
 }
 
 void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
@@ -613,7 +621,11 @@ void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
         IMSA_HILOGE("jsConnectionObject_ nullptr");
         return;
     }
-    napi_value obj = jsConnectionObject_->GetNapiValue();
+    napi_value obj = nullptr;
+    if (napi_get_reference_value(env_, jsConnectionObject_, &obj) != napi_ok) {
+        IMSA_HILOGE("failed to get jsConnectionObject_!");
+        return;
+    }
     if (obj == nullptr) {
         IMSA_HILOGE("Failed to get object");
         return;
@@ -632,6 +644,16 @@ void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
     napi_value callResult = nullptr;
     napi_call_function(env_, obj, method, ARGC_ONE, argv, &callResult);
     IMSA_HILOGI("CallJsFailed end");
+}
+
+void JSInputMethodExtensionConnection::ReleaseConnection()
+{
+    IMSA_HILOGD("ReleaseConnection");
+    if (jsConnectionObject_ != nullptr) {
+        napi_delete_reference(env_, jsConnectionObject_);
+        env_ = nullptr;
+        jsConnectionObject_ = nullptr;
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
