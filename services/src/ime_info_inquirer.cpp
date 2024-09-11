@@ -517,12 +517,18 @@ int32_t ImeInfoInquirer::GetSubProperty(int32_t userId, const std::string &subNa
     subProp.icon = subtype->icon;
     auto pos = subProp.label.find(':');
     if (pos != std::string::npos && pos + 1 < subProp.label.size()) {
-        subProp.labelId = atoi(subProp.label.substr(pos + 1).c_str());
-        subProp.label = GetStringById(extInfo.bundleName, extInfo.moduleName, subProp.labelId, userId);
+        int32_t labelId = atoi(subProp.label.substr(pos + 1).c_str());
+        if (labelId > 0) {
+            subProp.labelId = static_cast<uint32_t>(labelId);
+            subProp.label = GetStringById(extInfo.bundleName, extInfo.moduleName, subProp.labelId, userId);
+        }
     }
     pos = subProp.icon.find(':');
     if (pos != std::string::npos && pos + 1 < subProp.icon.size()) {
-        subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
+        int32_t iconId = atoi(subProp.icon.substr(pos + 1).c_str());
+        if (iconId > 0) {
+            subProp.iconId = static_cast<uint32_t>(iconId);
+        }
     }
     CovertToLanguage(subProp.locale, subProp.language);
     return ErrorCode::NO_ERROR;
@@ -555,7 +561,10 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
             .icon = subtype.icon };
         auto pos = subProp.label.find(':');
         if (pos != std::string::npos && pos + 1 < subProp.label.size()) {
-            subProp.labelId = atoi(subProp.label.substr(pos + 1).c_str());
+            int32_t labelId = atoi(subProp.label.substr(pos + 1).c_str());
+            if (labelId > 0) {
+                subProp.labelId = static_cast<uint32_t>(labelId);
+            }
         }
         if (resMgr != nullptr) {
             auto errValue = resMgr->GetStringById(subProp.labelId, subProp.label);
@@ -566,7 +575,10 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
         }
         pos = subProp.icon.find(':');
         if (pos != std::string::npos && pos + 1 < subProp.icon.size()) {
-            subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
+            int32_t iconId = atoi(subProp.icon.substr(pos + 1).c_str());
+            if (iconId > 0) {
+                subProp.iconId = static_cast<uint32_t>(iconId);
+            }
         }
         CovertToLanguage(subProp.locale, subProp.language);
         subProps.emplace_back(subProp);
