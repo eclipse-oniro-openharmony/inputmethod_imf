@@ -532,7 +532,7 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
     napi_set_named_property(env, subType, "label", label);
 
     napi_value labelId = nullptr;
-    napi_create_int32(env, property.labelId, &labelId);
+    napi_create_uint32(env, property.labelId, &labelId);
     napi_set_named_property(env, subType, "labelId", labelId);
 
     napi_value name = nullptr;
@@ -560,7 +560,7 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
     napi_set_named_property(env, subType, "icon", icon);
 
     napi_value iconId = nullptr;
-    napi_create_int32(env, property.iconId, &iconId);
+    napi_create_uint32(env, property.iconId, &iconId);
     napi_set_named_property(env, subType, "iconId", iconId);
 
     napi_value extra = nullptr;

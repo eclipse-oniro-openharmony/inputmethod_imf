@@ -103,7 +103,7 @@ private:
     ~ImeInfoInquirer() = default;
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
-    std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const int32_t labelId,
+    std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const uint32_t labelId,
         const int32_t userId);
     std::shared_ptr<ImeInfo> GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
         const std::string &subName);

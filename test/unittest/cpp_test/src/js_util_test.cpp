@@ -28,7 +28,7 @@ struct Property {
     std::string name;
     std::string id;
     std::string icon;
-    int32_t iconId = 0;
+    uint32_t iconId = 0;
 };
 struct JsProperty {
     static napi_value Write(napi_env env, const std::shared_ptr<Property> &nativeObject)
