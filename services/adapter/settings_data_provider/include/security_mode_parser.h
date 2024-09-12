@@ -45,6 +45,7 @@ public:
     int32_t Initialize(const int32_t userId);
     SecurityMode GetSecurityMode(const std::string &bundleName, int32_t userId);
     int32_t UpdateFullModeList(int32_t userId);
+    bool IsDefaultFullMode(const std::string &bundleName, int32_t userId);
     static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
 
 private:
@@ -53,6 +54,7 @@ private:
 
     bool ParseSecurityMode(const std::string &valueStr, const int32_t userId);
     bool IsFullMode(const std::string bundleName);
+    bool IsExpired(const std::string &expirationTime);
     static std::mutex instanceMutex_;
     static sptr<SecurityModeParser> instance_;
     std::mutex listMutex_;

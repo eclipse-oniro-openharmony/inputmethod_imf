@@ -75,10 +75,10 @@ public:
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
     /**
-     * @brief Get smart menu config from default input method.
+     * @brief Get smart menue config from default input method.
      *
-     * This function is used to get smart menu config from default input method.
-     *
+     * This function is used to get smart menue config from default input method.
+     *.
      * @return string.
      * @since 12
      */
@@ -117,6 +117,7 @@ private:
     sptr<InputDeathRecipient> agentDeathRecipient_;
     std::atomic_bool isSystemCmdConnect_{ false };
 
+    std::mutex systemChannelMutex_;
     sptr<ISystemCmdChannel> systemChannelStub_;
 };
 } // namespace MiscServices

@@ -111,10 +111,10 @@ int32_t ImeInfoInquirer::GetExtInfosByBundleName(
     return ErrorCode::NO_ERROR;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfo(
-    int32_t userId, const std::string &bundleName, const std::string &subName)
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfo(int32_t userId, const std::string &bundleName,
+    const std::string &subName)
 {
-    IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s", userId, bundleName.c_str(),
+    IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s.", userId, bundleName.c_str(),
         subName.c_str());
     auto info = GetImeInfoFromCache(userId, bundleName, subName);
     return info == nullptr ? GetImeInfoFromBundleMgr(userId, bundleName, subName) : info;
@@ -138,7 +138,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
         auto iter = std::find_if(subProps.begin(), subProps.end(),
             [&subName](const SubProperty &subProp) { return subProp.id == subName; });
         if (iter == subProps.end()) {
-            IMSA_HILOGE("Find subName: %{public}s failed", subName.c_str());
+            IMSA_HILOGE("find subName: %{public}s failed", subName.c_str());
             return nullptr;
         }
         info->subProp = *iter;
@@ -401,7 +401,7 @@ int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(
 int32_t ImeInfoInquirer::ListInputMethodSubtype(
     int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps)
 {
-    IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
+    IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s.", userId, bundleName.c_str());
     auto infos = FullImeInfoManager::GetInstance().Get(userId);
     auto it = std::find_if(
         infos.begin(), infos.end(), [&bundleName](const FullImeInfo &info) { return info.prop.name == bundleName; });
@@ -620,8 +620,8 @@ void ImeInfoInquirer::CovertToLanguage(const std::string &locale, std::string &l
     }
 }
 
-std::string ImeInfoInquirer::GetStringById(
-    const std::string &bundleName, const std::string &moduleName, uint32_t labelId, int32_t userId)
+std::string ImeInfoInquirer::GetStringById(const std::string &bundleName, const std::string &moduleName,
+    uint32_t labelId, int32_t userId)
 {
     auto bundleMgr = GetBundleMgr();
     return bundleMgr == nullptr ? "" : bundleMgr->GetStringById(bundleName, moduleName, labelId, userId);
@@ -672,7 +672,7 @@ std::shared_ptr<Property> ImeInfoInquirer::GetImeProperty(
 std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    IMSA_HILOGD("currentIme: %{public}s", currentImeCfg->imeId.c_str());
+    IMSA_HILOGD("currentIme: %{public}s.", currentImeCfg->imeId.c_str());
     auto infos = FullImeInfoManager::GetInstance().Get(userId);
     auto it = std::find_if(infos.begin(), infos.end(),
         [&currentImeCfg](const FullImeInfo &info) { return info.prop.name == currentImeCfg->bundleName; });
@@ -689,7 +689,7 @@ std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
 {
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    IMSA_HILOGD("currentIme: %{public}s", currentIme->imeId.c_str());
+    IMSA_HILOGD("currentIme: %{public}s.", currentIme->imeId.c_str());
     auto infos = FullImeInfoManager::GetInstance().Get(userId);
     auto it = std::find_if(infos.begin(), infos.end(),
         [&currentIme](const FullImeInfo &info) { return info.prop.name == currentIme->bundleName; });
@@ -789,7 +789,7 @@ int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::
 
 int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief)
 {
-    IMSA_HILOGD("userId: %{public}d", userId);
+    IMSA_HILOGD("userId: %{public}d.", userId);
     auto defaultIme = GetDefaultImeCfgProp();
     if (defaultIme == nullptr) {
         IMSA_HILOGE("abnormal default ime cfg.");
@@ -1051,6 +1051,9 @@ int32_t ImeInfoInquirer::GetFullImeInfo(
         GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId);
     imeInfo.prop.labelId = extInfos[0].applicationInfo.labelId;
     imeInfo.prop.iconId = extInfos[0].applicationInfo.iconId;
+    if (!GetAppIdByBundleName(userId, imeInfo.prop.name, imeInfo.appId)) {
+        IMSA_HILOGE("%{public}s failed to get app id", imeInfo.prop.name.c_str());
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1106,6 +1109,34 @@ bool ImeInfoInquirer::IsRunningIme(int32_t userId, const std::string &bundleName
     auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
         [&bundleName](const std::string &bundleNameTemp) { return bundleName == bundleNameTemp; });
     return it != bundleNames.end();
+}
+
+bool ImeInfoInquirer::GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId)
+{
+    FullImeInfo imeInfo;
+    if (FullImeInfoManager::GetInstance().Get(bundleName, userId, imeInfo) && !imeInfo.appId.empty()) {
+        appId = imeInfo.appId;
+        return true;
+    }
+    return GetAppIdByBundleName(userId, bundleName, appId);
+}
+
+bool ImeInfoInquirer::GetAppIdByBundleName(int32_t userId, const std::string &bundleName, std::string &appId)
+{
+    auto bundleMgr = GetBundleMgr();
+    if (bundleMgr == nullptr) {
+        IMSA_HILOGE("failed to get bundleMgr");
+        return false;
+    }
+    OHOS::AppExecFwk::BundleInfo bundleInfo;
+    auto ret = bundleMgr->GetBundleInfo(
+        bundleName, static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_SIGNATURE_INFO), bundleInfo, userId);
+    if (!ret) {
+        IMSA_HILOGE("failed to get bundle info");
+        return false;
+    }
+    appId = bundleInfo.signatureInfo.appIdentifier;
+    return !appId.empty();
 }
 } // namespace MiscServices
 } // namespace OHOS

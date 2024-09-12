@@ -77,7 +77,6 @@ ohos_shared_library("inputmethod_extension") {
     "ability_runtime:ability_start_options",
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
-    "ability_runtime:extensionkit_native",
     "ability_runtime:napi_common",
     "ability_runtime:runtime",
     "c_utils:utils",

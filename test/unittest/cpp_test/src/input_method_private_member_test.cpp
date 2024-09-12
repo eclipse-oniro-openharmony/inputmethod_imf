@@ -707,7 +707,7 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0
  */
 HWTEST_F(InputMethodPrivateMemberTest, testIsPanelShown, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
+    IMSA_HILOGI("InputMethodPrivateMemberTest testIsPanelShown TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     bool flag = true;

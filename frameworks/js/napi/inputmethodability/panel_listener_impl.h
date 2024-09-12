@@ -16,10 +16,11 @@
 #ifndef INPUTMETHOD_IMF_PANEL_LISTENER_IMPL_H
 #define INPUTMETHOD_IMF_PANEL_LISTENER_IMPL_H
 
+#include <uv.h>
+
 #include <mutex>
 #include <thread>
 #include <tuple>
-#include <uv.h>
 
 #include "concurrent_map.h"
 #include "event_handler.h"
@@ -37,14 +38,16 @@ struct JsWindowSize {
 };
 class PanelListenerImpl : public PanelStatusListener {
 public:
+    ~PanelListenerImpl();
     struct UvEntry {
         WindowSize size;
         std::shared_ptr<JSCallbackObject> cbCopy;
-        explicit UvEntry(const std::shared_ptr<JSCallbackObject> &cb) : cbCopy(cb) {}
+        explicit UvEntry(const std::shared_ptr<JSCallbackObject> &cb) : cbCopy(cb)
+        {
+        }
     };
     using EntrySetter = std::function<void(UvEntry &)>;
     static std::shared_ptr<PanelListenerImpl> GetInstance();
-    ~PanelListenerImpl();
     void OnPanelStatus(uint32_t windowId, bool isShow) override;
     void OnSizeChange(uint32_t windowId, const WindowSize &size) override;
     void SaveInfo(napi_env env, const std::string &type, napi_value callback, uint32_t windowId);
@@ -53,6 +56,7 @@ public:
     std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     std::shared_ptr<PanelListenerImpl::UvEntry> GetEntry(
         const std::shared_ptr<JSCallbackObject> &callback, EntrySetter entrySetter);
+    uv_work_t *GetUVwork(const std::shared_ptr<JSCallbackObject> &callback, EntrySetter entrySetter);
     std::shared_ptr<JSCallbackObject> GetCallback(const std::string &type, uint32_t windowId);
 
     ConcurrentMap<uint32_t, ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;

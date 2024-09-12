@@ -146,8 +146,11 @@ int32_t InputMethodPanel::DestroyPanel()
 {
     auto ret = HidePanel(false);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputMethodPanel, hide panel failed, ret = %{public}d.", ret);
-        return ret;
+        IMSA_HILOGE("InputMethodPanel, hide panel failed, ret: %{public}d!", ret);
+    }
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     if (panelType_ == SOFT_KEYBOARD) {
         UnregisterKeyboardPanelInfoChangeListener();
@@ -167,7 +170,7 @@ LayoutParams InputMethodPanel::GetResizeParams()
     IMSA_HILOGI("is fold device and fold state or other");
     return resizePanelFoldParams_;
 }
- 
+
 void InputMethodPanel::SetResizeParams(uint32_t width, uint32_t height)
 {
     if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
@@ -303,6 +306,7 @@ int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const Layou
         IMSA_HILOGE("AdjustPanelRect error, err = %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     return ErrorCode::NO_ERROR;
@@ -496,7 +500,6 @@ int32_t InputMethodPanel::CalculateFloatRect(const LayoutParams &layoutParams, P
         keyboardLayoutParams_.PortraitKeyboardRect_.posY_ - static_cast<int32_t>(porIterValue.top * densityDpi);
     keyboardLayoutParams_.PortraitPanelRect_.posX_ =
         keyboardLayoutParams_.PortraitKeyboardRect_.posX_ - static_cast<int32_t>(porIterValue.left * densityDpi);
-
     //landscape floating keyboard
     keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = layoutParams.landscapeRect.width_;
     keyboardLayoutParams_.LandscapeKeyboardRect_.height_ = layoutParams.landscapeRect.height_;
@@ -945,45 +948,6 @@ int32_t InputMethodPanel::SizeChange(const WindowSize &size)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
-{
-    kbPanelInfoListener_ = new (std::nothrow)
-        KeyboardPanelInfoChangeListener([this](const KeyboardPanelInfo &keyboardPanelInfo) {
-            if (panelHeightCallback_ != nullptr) {
-                panelHeightCallback_(keyboardPanelInfo.rect_.height_, panelFlag_);
-            }
-            HandleKbPanelInfoChange(keyboardPanelInfo);
-        });
-    if (kbPanelInfoListener_ == nullptr) {
-        return;
-    }
-    if (window_ == nullptr) {
-        return;
-    }
-    auto ret = window_->RegisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
-    IMSA_HILOGD("ret: %{public}d", ret);
-}
-
-void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()
-{
-    if (window_ == nullptr) {
-        return;
-    }
-    auto ret = window_->UnregisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
-    kbPanelInfoListener_ = nullptr;
-    IMSA_HILOGD("ret: %{public}d", ret);
-}
-
-void InputMethodPanel::HandleKbPanelInfoChange(const KeyboardPanelInfo &keyboardPanelInfo)
-{
-    IMSA_HILOGD("run in");
-    InputWindowStatus status = InputWindowStatus::HIDE;
-    if (keyboardPanelInfo.isShowing_) {
-        status = InputWindowStatus::SHOW;
-    }
-    PanelStatusChangeToImc(status, keyboardPanelInfo.rect_);
-}
-
 bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
 {
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
@@ -1045,6 +1009,44 @@ bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t
         return false;
     }
     return true;
+}
+
+void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
+{
+    kbPanelInfoListener_ = new (std::nothrow)
+        KeyboardPanelInfoChangeListener([this](const KeyboardPanelInfo &keyboardPanelInfo) {
+            if (panelHeightCallback_ != nullptr) {
+                panelHeightCallback_(keyboardPanelInfo.rect_.height_, panelFlag_);
+            }
+            HandleKbPanelInfoChange(keyboardPanelInfo);
+        });
+    if (kbPanelInfoListener_ == nullptr) {
+        return;
+    }
+    if (window_ == nullptr) {
+        return;
+    }
+    auto ret = window_->RegisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
+    IMSA_HILOGD("ret: %{public}d", ret);
+}
+
+void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()
+{
+    if (window_ == nullptr) {
+        return;
+    }
+    auto ret = window_->UnregisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
+    kbPanelInfoListener_ = nullptr;
+    IMSA_HILOGD("ret: %{public}d", ret);
+}
+
+void InputMethodPanel::HandleKbPanelInfoChange(const KeyboardPanelInfo &keyboardPanelInfo)
+{
+    InputWindowStatus status = InputWindowStatus::HIDE;
+    if (keyboardPanelInfo.isShowing_) {
+        status = InputWindowStatus::SHOW;
+    }
+    PanelStatusChangeToImc(status, keyboardPanelInfo.rect_);
 }
 
 void InputMethodPanel::SetPanelHeightCallback(CallbackFunc heightCallback)

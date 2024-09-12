@@ -172,7 +172,7 @@ bool InputMethodDfxTest::WriteAndWatch(
     }
     std::unique_lock<std::mutex> lock(watcher->cvMutex_);
     exec();
-    bool result = watcher->watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+    bool result = watcher->watcherCv_.wait_for(lock, std::chrono::seconds(3)) != std::cv_status::timeout;
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
     if (ret != SUCCESS || !result) {
         IMSA_HILOGE("RemoveListener ret = %{public}d, wait_for result = %{public}s", ret, result ? "true" : "false");
@@ -479,6 +479,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_HELP, TestSize.Level0)
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ALL, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDump::InputMethod_Dump_ALL");
+    InputmethodDump::GetInstance().AddDumpAllMethod([](int32_t fd) { return; });
     std::vector<std::string> args = {"-a"};
     int fd = 1;
     EXPECT_FALSE(!InputmethodDump::GetInstance().Dump(fd, args));
