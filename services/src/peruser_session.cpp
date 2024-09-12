@@ -87,8 +87,15 @@ int PerUserSession::AddClientInfo(
         return ErrorCode::NO_ERROR;
     }
     auto info = std::make_shared<InputClientInfo>(clientInfo);
-    info->deathRecipient->SetDeathRecipient(
-        [this, info](const wptr<IRemoteObject> &) { this->OnClientDied(info->client); });
+    std::weak_ptr<InputClientInfo> weakClientInfo = info;
+    info->deathRecipient->SetDeathRecipient([this, weakClientInfo](const wptr<IRemoteObject> &) {
+        auto clientInfo = weakClientInfo.lock();
+        if (clientInfo == nullptr) {
+            IMSA_HILOGD("clientInfo is nullptr.");
+            return;
+        }
+        this->OnClientDied(clientInfo->client);
+    });
     auto obj = info->client->AsObject();
     if (obj == nullptr) {
         IMSA_HILOGE("client obj is nullptr");
@@ -124,7 +131,6 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
     if (clientInfo->deathRecipient != nullptr) {
         IMSA_HILOGD("deathRecipient remove");
         client->RemoveDeathRecipient(clientInfo->deathRecipient);
-        clientInfo->deathRecipient = nullptr;
     }
     mapClients_.erase(client);
     IMSA_HILOGI("client[%{public}d] is removed", clientInfo->pid);
@@ -891,7 +897,6 @@ void PerUserSession::RemoveImeData(ImeType type, bool isImeDied)
     auto data = it->second;
     if (isImeDied && data->core != nullptr && data->core->AsObject() != nullptr) {
         data->core->AsObject()->RemoveDeathRecipient(data->deathRecipient);
-        data->deathRecipient = nullptr;
     }
     imeData_.erase(type);
 }
