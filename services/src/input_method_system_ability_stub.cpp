@@ -393,5 +393,21 @@ int32_t InputMethodSystemAbilityStub::ConnectSystemCmdOnRemote(MessageParcel &da
     return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
                                                                    : ErrorCode::ERROR_EX_PARCELABLE;
 }
+
+int32_t InputMethodSystemAbilityStub::IsCurrentImeByPidOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t pid = -1;
+    if (!ITypesUtil::Unmarshal(data, pid)) {
+        IMSA_HILOGE("unmarshal failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsCurrentImeByPid(pid)) ? ErrorCode::NO_ERROR
+                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::InitConnectOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return reply.WriteInt32(InitConnect()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
 } // namespace MiscServices
 } // namespace OHOS

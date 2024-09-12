@@ -1193,6 +1193,16 @@ bool InputMethodController::IsInputTypeSupported(InputType type)
     return proxy->IsInputTypeSupported(type);
 }
 
+bool InputMethodController::IsCurrentImeByPid(int32_t pid)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return false;
+    }
+    return proxy->IsCurrentImeByPid(pid);
+}
+
 int32_t InputMethodController::StartInputType(InputType type)
 {
     auto proxy = GetSystemAbilityProxy();
