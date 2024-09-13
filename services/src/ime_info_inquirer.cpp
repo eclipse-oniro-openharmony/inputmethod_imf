@@ -1063,8 +1063,10 @@ int32_t ImeInfoInquirer::GetFullImeInfo(
         GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId);
     imeInfo.prop.labelId = extInfos[0].applicationInfo.labelId;
     imeInfo.prop.iconId = extInfos[0].applicationInfo.iconId;
-    if (!GetAppIdByBundleName(userId, imeInfo.prop.name, imeInfo.appId)) {
-        IMSA_HILOGE("%{public}s failed to get app id!", imeInfo.prop.name.c_str());
+    BundleInfo bundleInfo;
+    if (GetBundleInfoByBundleName(userId, imeInfo.prop.name, bundleInfo)) {
+        imeInfo.appId = bundleInfo.signatureInfo.appIdentifier;
+        imeInfo.versionCode = bundleInfo.versionCode;
     }
     return ErrorCode::NO_ERROR;
 }
@@ -1130,25 +1132,44 @@ bool ImeInfoInquirer::GetImeAppId(int32_t userId, const std::string &bundleName,
         appId = imeInfo.appId;
         return true;
     }
-    return GetAppIdByBundleName(userId, bundleName, appId);
+    BundleInfo bundleInfo;
+    if (!GetBundleInfoByBundleName(userId, bundleName, bundleInfo)) {
+        return false;
+    }
+    appId = bundleInfo.signatureInfo.appIdentifier;
+    return !appId.empty();
 }
 
-bool ImeInfoInquirer::GetAppIdByBundleName(int32_t userId, const std::string &bundleName, std::string &appId)
+bool ImeInfoInquirer::GetImeVersionCode(int32_t userId, const std::string &bundleName, uint32_t &versionCode)
+{
+    FullImeInfo imeInfo;
+    if (FullImeInfoManager::GetInstance().Get(bundleName, userId, imeInfo)) {
+        versionCode = imeInfo.versionCode;
+        return true;
+    }
+    BundleInfo bundleInfo;
+    if (!GetBundleInfoByBundleName(userId, bundleName, bundleInfo)) {
+        return false;
+    }
+    versionCode = bundleInfo.versionCode;
+    return true;
+}
+
+bool ImeInfoInquirer::GetBundleInfoByBundleName(
+    int32_t userId, const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo)
 {
     auto bundleMgr = GetBundleMgr();
     if (bundleMgr == nullptr) {
         IMSA_HILOGE("failed to get bundleMgr!");
         return false;
     }
-    BundleInfo bundleInfo;
     auto ret = bundleMgr->GetBundleInfo(
         bundleName, static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_SIGNATURE_INFO), bundleInfo, userId);
     if (!ret) {
         IMSA_HILOGE("failed to get bundle info");
         return false;
     }
-    appId = bundleInfo.signatureInfo.appIdentifier;
-    return !appId.empty();
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS
