@@ -124,8 +124,10 @@ bool SecurityModeParser::IsDefaultFullMode(const std::string &bundleName, int32_
         return true;
     }
     std::string appId;
-    if (!ImeInfoInquirer::GetInstance().GetImeAppId(userId, bundleName, appId)) {
-        IMSA_HILOGE("%{public}s failed to get app id", bundleName.c_str());
+    uint32_t versionCode;
+    if (!ImeInfoInquirer::GetInstance().GetImeAppId(userId, bundleName, appId)
+        || !ImeInfoInquirer::GetInstance().GetImeVersionCode(userId, bundleName, versionCode)) {
+        IMSA_HILOGE("%{public}s failed to get appId and versionCode", bundleName.c_str());
         return false;
     }
     std::vector<DefaultFullImeInfo> defaultFullImeList;
@@ -139,7 +141,12 @@ bool SecurityModeParser::IsDefaultFullMode(const std::string &bundleName, int32_
         IMSA_HILOGD("not default FULL");
         return false;
     }
-    bool isDefaultFull = !IsExpired(ime->expirationTime);
+    bool isDefaultFull = false;
+    if (ime->expirationVersionCode > 0) {
+        isDefaultFull = !IsExpired(ime->expirationTime) || versionCode < ime->expirationVersionCode;
+    } else {
+        isDefaultFull = !IsExpired(ime->expirationTime);
+    }
     IMSA_HILOGI("ime: %{public}s, isDefaultFull: %{public}d", bundleName.c_str(), isDefaultFull);
     return isDefaultFull;
 }

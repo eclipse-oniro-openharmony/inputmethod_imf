@@ -42,9 +42,15 @@ std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
     return defaultImeProperty_;
 }
 
-bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId)
+bool ImeInfoInquirer::GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId)
 {
     appId = MOCK_APP_ID;
+    return true;
+}
+
+bool ImeInfoInquirer::GetImeVersionCode(int32_t userId, const std::string &bundleName, uint32_t &versionCode)
+{
+    versionCode = 0;
     return true;
 }
 } // namespace MiscServices
