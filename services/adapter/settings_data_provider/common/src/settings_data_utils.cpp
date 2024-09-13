@@ -81,7 +81,9 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
     }
     helper->RegisterObserver(uri, observer);
     ReleaseDataShareHelper(helper);
-    IMSA_HILOGD("succeed to register observer of uri=%{public}s", uri.ToString().c_str());
+    IMSA_HILOGD("succeed to register observer of uri: %{public}s.", uri.ToString().c_str());
+
+    std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
     observerList_.push_back(observer);
     return ErrorCode::NO_ERROR;
 }

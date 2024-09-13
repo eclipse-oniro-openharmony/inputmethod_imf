@@ -32,8 +32,8 @@ using namespace std::chrono;
 using namespace HiviewDFX;
 constexpr uint32_t FATAL_TIMEOUT = 30;    // 30s
 constexpr int64_t WARNING_TIMEOUT = 5000; // 5s
-int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     if (code != static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT)) {
         IMSA_HILOGI("IMSA, code = %{public}u, callingPid/Uid/timestamp: %{public}d/%{public}d/%{public}lld", code,
@@ -392,6 +392,22 @@ int32_t InputMethodSystemAbilityStub::ConnectSystemCmdOnRemote(MessageParcel &da
     int32_t ret = ConnectSystemCmd(systemCmdStub, agent);
     return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
                                                                    : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::IsCurrentImeByPidOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t pid = -1;
+    if (!ITypesUtil::Unmarshal(data, pid)) {
+        IMSA_HILOGE("unmarshal failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsCurrentImeByPid(pid)) ? ErrorCode::NO_ERROR
+                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::InitConnectOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return reply.WriteInt32(InitConnect()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS

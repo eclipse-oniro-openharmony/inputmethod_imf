@@ -923,10 +923,22 @@ ohos_unittest("ImeControllerCpaiTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/inputmethod_controller_capi_test.cpp" ]
-  include_dirs = [ "${inputmethod_path}/interfaces/kits/c" ]
+  sources = [
+    "src/inputmethod_controller_capi_test.cpp",
+    "src/native_text_changed_listener_test.cpp",
+  ]
+  include_dirs = [
+    "${inputmethod_path}/interfaces/kits/c",
+    "${inputmethod_path}/frameworks/ndk/include",
+  ]
 
-  deps = [ "${inputmethod_path}/frameworks/ndk:ohinputmethod" ]
+  deps = [
+    "${inputmethod_path}/frameworks/ndk:ohinputmethod",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+  ]
 
-  external_deps = [ "googletest:gtest_main" ]
+  external_deps = [
+    "googletest:gtest_main",
+    "input:libmmi-client",
+  ]
 }

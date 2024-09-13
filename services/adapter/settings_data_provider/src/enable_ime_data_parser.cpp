@@ -236,8 +236,8 @@ bool EnableImeDataParser::ParseTempIme(const std::string &valueStr, int32_t user
     return true;
 }
 
-bool EnableImeDataParser::ParseEnableIme(const std::string &valueStr, int32_t userId,
-    std::vector<std::string> &enableVec)
+bool EnableImeDataParser::ParseEnableIme(
+    const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec)
 {
     EnableImeCfg enableIme;
     enableIme.userImeCfg.userId = std::to_string(userId);

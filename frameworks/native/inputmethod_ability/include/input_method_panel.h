@@ -131,6 +131,7 @@ private:
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
+    sptr<WindowChangeListenerImpl> windowChangeListenerImpl_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
     PanelFlag panelFlag_ = PanelFlag::FLG_FIXED;
     bool showRegistered_ = false;
@@ -146,10 +147,9 @@ private:
     std::mutex panelAdjustLock_;
     std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
 
-    Rosen::KeyboardLayoutParams keyboardLayoutParams_;
-
     std::mutex keyboardSizeLock_;
     WindowSize keyboardSize_{ 0, 0 };
+    Rosen::KeyboardLayoutParams keyboardLayoutParams_;
     std::mutex windowListenerLock_;
     sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
     CallbackFunc panelHeightCallback_ = nullptr;

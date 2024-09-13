@@ -95,6 +95,11 @@ int32_t InputMethodSystemAbilityProxy::RequestHideInput()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_HIDE_INPUT));
 }
 
+int32_t InputMethodSystemAbilityProxy::InitConnect()
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::INIT_CONNECT));
+}
+
 int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_METHOD));
@@ -227,6 +232,15 @@ bool InputMethodSystemAbilityProxy::IsCurrentIme()
 {
     bool isCurrentIme = false;
     SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME), nullptr,
+        [&isCurrentIme](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isCurrentIme); });
+    return isCurrentIme;
+}
+
+bool InputMethodSystemAbilityProxy::IsCurrentImeByPid(int32_t pid)
+{
+    bool isCurrentIme = false;
+    SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME_BY_PID),
+        [&pid](MessageParcel &data) { return ITypesUtil::Marshal(data, pid); },
         [&isCurrentIme](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isCurrentIme); });
     return isCurrentIme;
 }

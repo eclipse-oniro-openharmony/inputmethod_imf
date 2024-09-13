@@ -17,6 +17,8 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 
 #include <atomic>
+#include <chrono>
+#include <ctime>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -767,6 +769,17 @@ public:
     int32_t FinishTextPreview();
 
     /**
+     * @brief Query whether an process id current inputmethod.
+     *
+     * This function is used to query whether an process id is inputmethod.
+     *
+     * @param type Indicates current process id.
+     * @return Returns true for current ime process id, false for not current ime process id.
+     * @since 12
+     */
+    IMF_API bool IsCurrentImeByPid(int32_t pid);
+
+    /**
      * @brief Reset controller.
      *
      * This function is used to reset controller.
@@ -801,6 +814,7 @@ private:
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
+    void PrintKeyEventLog();
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
@@ -827,6 +841,10 @@ private:
     static std::mutex instanceLock_;
     static sptr<InputMethodController> instance_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
+
+    static std::mutex logLock_;
+    static int keyEventCountInPeriod_;
+    static std::chrono::system_clock::time_point startLogTime_;
 
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };

@@ -551,6 +551,7 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
     InputClientInfo infoTemp = *clientInfo;
     infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
     infoTemp.isNotifyInputStart = inputClientInfo.isNotifyInputStart;
+    infoTemp.needHide = inputClientInfo.needHide;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     if (ret != ErrorCode::NO_ERROR) {
@@ -800,7 +801,7 @@ void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
     if (inactiveClient != nullptr) {
         auto inactiveClientInfo = GetClientInfo(inactiveClient->AsObject());
         if (inactiveClientInfo != nullptr && inactiveClientInfo->pid != clientInfo->pid) {
-            IMSA_HILOGI("remove inactive client[%{public}d]", inactiveClientInfo->pid);
+            IMSA_HILOGI("remove inactive client: [%{public}d]", inactiveClientInfo->pid);
             RemoveClient(inactiveClient, false);
         }
     }
@@ -998,7 +999,7 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
             imeToStart->imeId, "start ime failed!");
         return false;
     }
-    IMSA_HILOGI("current ime changed to %{public}s", imeToStart->imeId.c_str());
+    IMSA_HILOGI("current ime changed to %{public}s.", imeToStart->imeId.c_str());
     auto currentImeInfo =
         ImeInfoInquirer::GetInstance().GetImeInfo(userId_, imeToStart->bundleName, imeToStart->subName);
     if (currentImeInfo != nullptr) {
@@ -1028,7 +1029,11 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     SecurityMode mode;
-    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
+    bool isolatedSandBox = true;
+    if (SecurityModeParser::GetInstance()->IsDefaultFullMode(ime->bundleName, userId_)) {
+        mode = SecurityMode::FULL;
+        isolatedSandBox = false;
+    } else if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         mode = SecurityModeParser::GetInstance()->GetSecurityMode(ime->bundleName, userId_);
     } else {
         mode = SecurityMode::FULL;
@@ -1036,8 +1041,6 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
-    auto isolatedSandBox = (defaultIme != nullptr && defaultIme->name != ime->bundleName);
     want.SetParam(ISOLATED_SANDBOX, isolatedSandBox);
     IMSA_HILOGI("userId: %{public}d, ime: %{public}s, mode: %{public}d, isolatedSandbox: %{public}d", userId_,
         ime->imeId.c_str(), static_cast<int32_t>(mode), isolatedSandBox);
@@ -1222,10 +1225,21 @@ int32_t PerUserSession::RestoreCurrentImeSubType()
     return SwitchSubtype(subProp);
 }
 
+bool PerUserSession::IsCurrentImeByPid(int32_t pid)
+{
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        IMSA_HILOGE("ime not started!");
+        return false;
+    }
+    IMSA_HILOGD("userId: %{public}d, pid: %{public}d, current pid: %{public}d.", userId_, pid, imeData->pid);
+    return imeData->pid == pid;
+}
+
 int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     if (GetCurrentClient() == nullptr) {
-        IMSA_HILOGD("not in bound state.");
+        IMSA_HILOGD("not in bound state");
         isShown = false;
         return ErrorCode::NO_ERROR;
     }
@@ -1316,7 +1330,7 @@ int32_t PerUserSession::RemoveCurrentClient()
 bool PerUserSession::IsWmsReady()
 {
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        IMSA_HILOGD("scb enable");
+        IMSA_HILOGE("scb enable");
         return WmsConnectionObserver::IsWmsConnected(userId_);
     }
     return IsReady(WINDOW_MANAGER_SERVICE_ID);
@@ -1332,7 +1346,7 @@ bool PerUserSession::IsReady(int32_t saId)
     if (saMgr->CheckSystemAbility(saId) == nullptr) {
         IMSA_HILOGE("sa:%{public}d not ready!", saId);
         return false;
-    }
+    };
     return true;
 }
 
@@ -1426,6 +1440,17 @@ int32_t PerUserSession::UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteO
         return ErrorCode::ERROR_ADD_DEATH_RECIPIENT_FAILED;
     }
     it->second->deathRecipient = deathRecipient;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::InitConnect(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(imeDataLock_);
+    auto it = imeData_.find(ImeType::IME);
+    if (it == imeData_.end()) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    it->second->pid = pid;
     return ErrorCode::NO_ERROR;
 }
 
@@ -1663,6 +1688,26 @@ int32_t PerUserSession::RestoreCurrentIme()
     }
     SwitchSubtype(subProp);
     return ErrorCode::NO_ERROR;
+}
+
+bool PerUserSession::CheckPwdInputPatternConv(InputClientInfo &newClientInfo)
+{
+    auto exClient = GetCurrentClient();
+    if (exClient == nullptr) {
+        exClient = GetInactiveClient();
+    }
+    auto exClientInfo = exClient != nullptr ? GetClientInfo(exClient->AsObject()) : nullptr;
+    if (exClientInfo == nullptr) {
+        IMSA_HILOGE("exClientInfo is nullptr!");
+        return false;
+    }
+    // if current input pattern differ from previous in pwd and normal, need hide panel first.
+    if (newClientInfo.config.inputAttribute.GetSecurityFlag()) {
+        IMSA_HILOGI("new input pattern is pwd.");
+        return !exClientInfo->config.inputAttribute.GetSecurityFlag();
+    }
+    IMSA_HILOGI("new input pattern is normal.");
+    return exClientInfo->config.inputAttribute.GetSecurityFlag();
 }
 } // namespace MiscServices
 } // namespace OHOS

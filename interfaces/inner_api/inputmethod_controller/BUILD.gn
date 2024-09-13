@@ -42,6 +42,11 @@ config("inputmethod_client_native_public_config") {
 
 ohos_shared_library("inputmethod_client") {
   branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/ime_event_monitor_manager.cpp",
@@ -72,6 +77,7 @@ ohos_shared_library("inputmethod_client") {
   deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
   external_deps = [
+    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -81,7 +87,6 @@ ohos_shared_library("inputmethod_client") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
-  public_external_deps = [ "ability_base:want" ]
 
   configs = [ ":inputmethod_client_native_config" ]
 
@@ -118,6 +123,7 @@ ohos_static_library("inputmethod_client_static") {
   deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
   external_deps = [
+    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -127,8 +133,6 @@ ohos_static_library("inputmethod_client_static") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
-
-  public_external_deps = [ "ability_base:want" ]
 
   subsystem_name = "inputmethod"
   part_name = "imf"

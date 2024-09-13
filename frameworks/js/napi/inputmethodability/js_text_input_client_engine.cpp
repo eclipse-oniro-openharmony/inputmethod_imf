@@ -86,7 +86,8 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
             TYPE_NONE, napi_generic_failure);
         auto status = JsUtils::GetValue(env, argv[0], ctxt->num);
         // 1 means least param num.
-        PARAM_CHECK_RETURN(env, ctxt->num >= 0, "direction should be no less than 0", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, ctxt->num >= 0, "direction should be not less than 0!", TYPE_NONE,
+            napi_generic_failure);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
@@ -215,7 +216,7 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
         napi_status ret = JsUtils::GetValue(env, argv[0], ctxt->action);
-        PARAM_CHECK_RETURN(env, ret == napi_ok, "param action type must be number", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, ret == napi_ok, "action type must be number!", TYPE_NONE, napi_generic_failure);
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -302,7 +303,7 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "param length type must be number",
             TYPE_NONE, napi_generic_failure);
         auto status = JsUtils::GetValue(env, argv[0], ctxt->length);
-        PARAM_CHECK_RETURN(env, ctxt->length >= 0, "length should no less than 0", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, ctxt->length >= 0, "length should no less than 0!", TYPE_NONE, napi_generic_failure);
         return status;
     };
     auto output = [ctxt, traceId](napi_env env, napi_value *result) -> napi_status {
@@ -661,8 +662,7 @@ napi_value JsTextInputClientEngine::SelectByMovementSync(napi_env env, napi_call
     auto ctxt = std::make_shared<SelectContext>();
     auto status = GetSelectMovement(env, argv[0], ctxt);
     if (status != napi_ok) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "js param direction covert failed",
-            TYPE_NONE);
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "direction covert failed!", TYPE_NONE);
         return JsUtil::Const::Null(env);
     }
     IMSA_HILOGD("direction: %{public}d", ctxt->direction);
@@ -791,7 +791,7 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
 napi_value JsTextInputClientEngine::SetPreviewTextSync(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JS_SetPreviewTextSync", GenerateTraceId());
-    IMSA_HILOGD("JsTextInputClientEngine in");
+    IMSA_HILOGD("start.");
     // 2 means JsAPI:setPreviewText needs 2 params at most
     size_t argc = 2;
     napi_value argv[2] = { nullptr };
@@ -854,7 +854,7 @@ napi_value JsTextInputClientEngine::FinishTextPreviewSync(napi_env env, napi_cal
 
 napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGD("run in");
+    IMSA_HILOGD("start.");
     int32_t index = 0;
     int32_t ret = InputMethodAbility::GetInstance()->GetTextIndexAtCursor(index);
     if (ret != ErrorCode::NO_ERROR) {
