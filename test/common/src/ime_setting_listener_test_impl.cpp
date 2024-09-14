@@ -57,7 +57,7 @@ bool ImeSettingListenerTestImpl::WaitTargetImeChange(const std::string &bundleNa
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
     do {
-        // 3 means 3 seconds
+        // 3 means 3 seconds.
         imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME),
             [&bundleName]() { return bundleName == property_.name; });
     } while (bundleName != property_.name);
