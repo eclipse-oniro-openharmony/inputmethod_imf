@@ -1150,7 +1150,7 @@ sptr<AAFwk::IAbilityManager> InputMethodSystemAbility::GetAbilityManagerService(
         IMSA_HILOGE("Failed to get ability manager service.");
         return nullptr;
     }
-    
+
     return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
 }
 
@@ -1811,7 +1811,7 @@ void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, bool 
         IMSA_HILOGE("currentImeCfg is nullptr.");
         return;
     }
-    // same ime, need hide panel first
+    // same ime, need hide panel first.
     needHide = currentImeCfg->bundleName == ime.bundleName;
 }
 } // namespace MiscServices
