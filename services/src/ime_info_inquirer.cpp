@@ -49,6 +49,7 @@ constexpr const char *TEMPORARY_INPUT_METHOD_METADATA_NAME = "ohos.extension.tem
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
+constexpr uint32_t DEFAULT_BMS_VALUE = 0;
 } // namespace
 ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 {
@@ -167,8 +168,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
     auto info = std::make_shared<ImeInfo>();
     info->prop.name = extInfos[0].bundleName;
     info->prop.id = extInfos[0].name;
-    info->prop.label =
-        GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId);
+    info->prop.label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId);
     info->prop.labelId = extInfos[0].applicationInfo.labelId;
     info->prop.iconId = extInfos[0].applicationInfo.iconId;
 
@@ -237,9 +237,8 @@ std::vector<InputMethodInfo> ImeInfoInquirer::ListInputMethodInfo(const int32_t 
     std::vector<InputMethodInfo> properties;
     for (const auto &extension : extensionInfos) {
         auto applicationInfo = extension.applicationInfo;
-        auto label = GetStringById(extension.bundleName, extension.moduleName, applicationInfo.labelId, userId);
-        auto description =
-            GetStringById(extension.bundleName, extension.moduleName, applicationInfo.descriptionId, userId);
+        auto label = GetTargetString(extension, ImeTargetString::LABEL, userId);
+        auto description = GetTargetString(extension, ImeTargetString::DESCRIPTION, userId);
         InputMethodInfo property;
         property.mPackageName = extension.bundleName;
         property.mAbilityName = extension.name;
@@ -295,14 +294,8 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
             continue;
         }
         std::string label;
-        std::string resPath = extension.hapPath.empty() ? extension.resourcePath : extension.hapPath;
-        auto resMgr = GetResMgr(resPath);
-        if (resMgr != nullptr) {
-            auto errValue = resMgr->GetStringById(extension.applicationInfo.labelId, label);
-            if (errValue != RState::SUCCESS) {
-                IMSA_HILOGE("GetStringById failed, bundleName:%{public}s, id:%{public}d", extension.bundleName.c_str(),
-                    extension.applicationInfo.labelId);
-            }
+        if (GetAppLabelFromRes(extension, label) != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("GetAppLabelFromRes failed");
         }
         props.push_back({ .name = extension.bundleName,
             .id = extension.name,
@@ -673,8 +666,7 @@ std::shared_ptr<Property> ImeInfoInquirer::GetImeProperty(
     }
     Property prop = { .name = extInfos[0].bundleName,
         .id = extName.empty() ? extInfos[0].name : extName,
-        .label =
-            GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId),
+        .label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId),
         .labelId = extInfos[0].applicationInfo.labelId,
         .iconId = extInfos[0].applicationInfo.iconId };
     return std::make_shared<Property>(prop);
@@ -1059,8 +1051,7 @@ int32_t ImeInfoInquirer::GetFullImeInfo(
     imeInfo.tokenId = extInfos[0].applicationInfo.accessTokenId;
     imeInfo.prop.name = extInfos[0].bundleName;
     imeInfo.prop.id = extInfos[0].name;
-    imeInfo.prop.label =
-        GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId);
+    imeInfo.prop.label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId);
     imeInfo.prop.labelId = extInfos[0].applicationInfo.labelId;
     imeInfo.prop.iconId = extInfos[0].applicationInfo.iconId;
     BundleInfo bundleInfo;
@@ -1170,6 +1161,49 @@ bool ImeInfoInquirer::GetBundleInfoByBundleName(
         return false;
     }
     return true;
+}
+
+std::string ImeInfoInquirer::GetTargetString(
+    const AppExecFwk::ExtensionAbilityInfo &extension, ImeTargetString target, int32_t userId)
+{
+    if (target == ImeTargetString::LABEL) {
+        if (extension.labelId != DEFAULT_BMS_VALUE) {
+            return GetStringById(extension.bundleName, extension.moduleName, extension.labelId, userId);
+        }
+        IMSA_HILOGD("Extension label is empty, get application label");
+        std::string label;
+        if (GetAppLabelFromRes(extension, label) != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("GetAppLabelFromRes failed");
+        }
+        return label;
+    }
+    if (target == ImeTargetString::DESCRIPTION) {
+        if (extension.descriptionId != DEFAULT_BMS_VALUE) {
+            return GetStringById(extension.bundleName, extension.moduleName, extension.descriptionId, userId);
+        }
+        IMSA_HILOGD("extension description is empty, get application description");
+        return GetStringById(extension.bundleName, extension.applicationInfo.descriptionResource.moduleName,
+            extension.applicationInfo.descriptionResource.id, userId);
+    }
+    IMSA_HILOGD("No match target string");
+    return "";
+}
+
+int32_t ImeInfoInquirer::GetAppLabelFromRes(const AppExecFwk::ExtensionAbilityInfo &extension, std::string &label)
+{
+    std::string resPath = extension.hapPath.empty() ? extension.resourcePath : extension.hapPath;
+    auto resMgr = GetResMgr(resPath);
+    if (resMgr == nullptr) {
+        IMSA_HILOGE("failed to get resMgr");
+        return ErrorCode::NO_ERROR;
+    }
+    auto errValue = resMgr->GetStringById(extension.applicationInfo.labelId, label);
+    if (errValue != RState::SUCCESS) {
+        IMSA_HILOGE("GetStringById failed, bundleName:%{public}s, id:%{public}d", extension.bundleName.c_str(),
+            extension.applicationInfo.labelId);
+        return ErrorCode::ERROR_RES_ERROR;
+    }
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

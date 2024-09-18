@@ -112,6 +112,7 @@ enum {
     ERROR_INVALID_PRIVATE_COMMAND = 43,
     ERROR_OS_ACCOUNT = 44,
     ERROR_TASK_MANAGER_PEND_FAILED = 45,
+    ERROR_RES_ERROR = 46,
 };
 }; // namespace ErrorCode
 
