@@ -47,6 +47,7 @@ struct FullImeInfo {
     bool isNewIme{ false };
     uint32_t tokenId{ 0 };
     std::string appId;
+    uint32_t versionCode;
     Property prop;
     std::vector<SubProperty> subProps;
 };

@@ -112,6 +112,7 @@ enum {
     ERROR_SYSTEM_CMD_CHANNEL_ERROR = 42,
     ERROR_INVALID_PRIVATE_COMMAND = 43,
     ERROR_OS_ACCOUNT = 44,
+    ERROR_RES_ERROR = 46,
 };
 }; // namespace ErrorCode
 

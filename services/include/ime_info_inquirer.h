@@ -41,6 +41,11 @@ enum class Condition {
     CHINESE,
 };
 
+enum class ImeTargetString {
+    LABEL = 0,
+    DESCRIPTION,
+};
+
 struct Subtype : public Serializable {
     std::string label;
     std::string id;
@@ -82,6 +87,7 @@ public:
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(const std::vector<SubProperty> &subProps,
         const Condition &condition);
     bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId);
+    bool GetImeVersionCode(int32_t userId, const std::string &bundleName, uint32_t &versionCode);
     int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief = false);
     int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
@@ -104,9 +110,12 @@ private:
     ~ImeInfoInquirer() = default;
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
+    std::string GetTargetString(
+        const AppExecFwk::ExtensionAbilityInfo &extension, ImeTargetString target, int32_t userId);
+    int32_t GetAppLabelFromRes(const AppExecFwk::ExtensionAbilityInfo &extension, std::string &label);
     std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const uint32_t labelId,
         const int32_t userId);
-    bool GetAppIdByBundleName(int32_t userId, const std::string &bundleName, std::string &appId);
+    bool GetBundleInfoByBundleName(int32_t userId, const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo);
     std::shared_ptr<ImeInfo> GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
         const std::string &subName);
     std::shared_ptr<ImeInfo> GetImeInfoFromBundleMgr(
