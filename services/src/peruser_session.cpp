@@ -258,6 +258,10 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     }
     IMSA_HILOGI("type: %{public}d.", type);
     auto imeData = GetImeData(type);
+    auto ime = InputTypeManager::GetInstance().GetCurrentIme();
+    if (ime.bundleName == imeData->ime.first) {
+        InputTypeManager::GetInstance().Set(false);
+    }
     if (imeData != nullptr && imeData->imeStatus == ImeStatus::EXITING) {
         RemoveImeData(type, true);
         NotifyImeStopFinished();
@@ -265,7 +269,6 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
         return;
     }
     RemoveImeData(type, true);
-    InputTypeManager::GetInstance().Set(false);
     if (!OsAccountAdapter::IsOsAccountForeground(userId_)) {
         IMSA_HILOGW("userId:%{public}d in background, no need to restart ime.", userId_);
         return;
@@ -1175,6 +1178,17 @@ int32_t PerUserSession::SwitchSubtype(const SubProperty &subProperty)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return RequestIme(data, RequestType::NORMAL, [&data, &subProperty] { return data->core->SetSubtype(subProperty); });
+}
+
+int32_t PerUserSession::SetInputType()
+{
+    InputType inputType = InputTypeManager::GetInstance().GetCurrentInputType();
+    auto data = GetValidIme(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime: %{public}d is not exist!", ImeType::IME);
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    return RequestIme(data, RequestType::NORMAL, [&data, &inputType] { return data->core->OnSetInputType(inputType); });
 }
 
 bool PerUserSession::IsBoundToClient()

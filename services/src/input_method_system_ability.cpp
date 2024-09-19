@@ -303,6 +303,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         IMSA_HILOGE("failed to PrepareInput!");
         return ret;
     }
+    session->SetInputType();
     return session->OnStartInput(inputClientInfo, agent);
 }
 

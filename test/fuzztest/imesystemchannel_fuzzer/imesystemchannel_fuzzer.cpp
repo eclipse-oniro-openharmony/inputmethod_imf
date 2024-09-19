@@ -83,7 +83,7 @@ void FuzzPrivateCommand(const uint8_t *data, size_t size)
 
 void FuzzNotifyPanelStatus(const uint8_t *data, size_t size)
 {
-    bool fuzzedBool = static_cast<bool>(data[0] % 2);
+    InputType fuzzedBool = static_cast<InputType>(data[0] % 2);
     auto fuzzedUint32 = static_cast<uint32_t>(size);
 
     SysPanelStatus sysPanelStatus = { fuzzedBool, 0, fuzzedUint32, fuzzedUint32 };

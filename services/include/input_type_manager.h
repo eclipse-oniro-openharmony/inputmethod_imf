@@ -49,6 +49,8 @@ public:
     bool IsStarted();
     bool IsSecurityImeStarted();
     bool IsCameraImeStarted();
+    bool IsVoiceImeStarted();
+    InputType GetCurrentInputType();
     void Set(bool isStarted, const ImeIdentification &currentIme = {});
     ImeIdentification GetCurrentIme();
     int32_t GetImeByInputType(InputType type, ImeIdentification &ime);

@@ -46,6 +46,7 @@ public:
     int32_t OnSecurityChange(int32_t security) override;
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
     void OnClientInactive(const sptr<IRemoteObject> &channel) override;
+    int32_t OnSetInputType(InputType inputType) override;
 
 private:
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -60,6 +61,7 @@ private:
     int32_t SecurityChangeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnClientInactiveOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnConnectSystemCmdOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnSetInputTypeOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
     using RequestHandler = int32_t (InputMethodCoreStub::*)(MessageParcel &, MessageParcel &);
@@ -76,6 +78,7 @@ private:
         [SECURITY_CHANGE] = &InputMethodCoreStub::SecurityChangeOnRemote,
         [ON_CLIENT_INACTIVE] = &InputMethodCoreStub::OnClientInactiveOnRemote,
         [ON_CONNECT_SYSTEM_CMD] = &InputMethodCoreStub::OnConnectSystemCmdOnRemote,
+        [ON_SET_INPUT_TYPE] = &InputMethodCoreStub::OnSetInputTypeOnRemote,
     };
 };
 } // namespace MiscServices

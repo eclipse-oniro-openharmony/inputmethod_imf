@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace MiscServices {
 struct SysPanelStatus {
-    bool isSecurity { false };
+    InputType inputType = InputType::NONE;
     int32_t flag = FLG_FIXED;
     uint32_t width = 0;
     uint32_t height = 0;

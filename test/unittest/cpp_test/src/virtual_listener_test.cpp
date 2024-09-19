@@ -264,12 +264,12 @@ HWTEST_F(VirtualListenerTest, testOnSystemCmdListener_001, TestSize.Level0)
     SystemCmdChannelListenerImpl::ResetParam();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     VirtualListenerTest::systemCmdListener_->ReceivePrivateCommand(privateCommand);
-    VirtualListenerTest::systemCmdListener_->NotifyPanelStatus({ false, 0, 0, 0 });
+    VirtualListenerTest::systemCmdListener_->NotifyPanelStatus({ InputType::NONE, 0, 0, 0 });
     EXPECT_FALSE(SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_);
     EXPECT_FALSE(SystemCmdChannelListenerImpl::isReceivePrivateCommand_);
     SystemCmdChannelListenerImpl::ResetParam();
     listener->ReceivePrivateCommand(privateCommand);
-    listener->NotifyPanelStatus({ false, 0, 0, 0 });
+    listener->NotifyPanelStatus({ InputType::NONE, 0, 0, 0 });
     EXPECT_TRUE(SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_);
     EXPECT_TRUE(SystemCmdChannelListenerImpl::isReceivePrivateCommand_);
 }

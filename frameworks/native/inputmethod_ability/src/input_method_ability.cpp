@@ -250,6 +250,18 @@ void InputMethodAbility::OnSetSubtype(SubProperty subProperty)
     imeListener_->OnSetSubtype(subProperty);
 }
 
+void InputMethodAbility::OnSetInputType(InputType inputType)
+{
+    inputType_ = inputType;
+    IMSA_HILOGD("OnSetInputType, inputType = %{public}d", static_cast<int32_t>(inputType));
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
+        auto keyboardSize = panel->GetKeyboardSize();
+        SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
+        NotifyPanelStatus(panel, sysPanelStatus);
+    }
+}
+
 void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
 {
     std::lock_guard<std::mutex> lock(dataChannelLock_);
@@ -272,6 +284,7 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject)
     HideKeyboardImplWithoutLock(cmdCount, false);
     ClearDataChannel(channelObject);
     ClearInputAttribute();
+    ClearInputType();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
@@ -346,7 +359,7 @@ void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
         auto keyboardSize = panel->GetKeyboardSize();
-        SysPanelStatus sysPanelStatus = { false, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
+        SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
         NotifyPanelStatus(panel, sysPanelStatus);
     }
     kdListener_->OnEditorAttributeChange(attribute);
@@ -864,7 +877,7 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
         }
     }
     auto keyboardSize = inputMethodPanel->GetKeyboardSize();
-    SysPanelStatus sysPanelStatus = { false, flag, keyboardSize.width, keyboardSize.height };
+    SysPanelStatus sysPanelStatus = { inputType_, flag, keyboardSize.width, keyboardSize.height };
     NotifyPanelStatus(inputMethodPanel, sysPanelStatus);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
@@ -899,8 +912,7 @@ int32_t InputMethodAbility::NotifyPanelStatus(
     if (channel == nullptr) {
         return ErrorCode::NO_ERROR;
     }
-    bool isSecurity = GetInputAttribute().GetSecurityFlag();
-    sysPanelStatus.isSecurity = isSecurity;
+    sysPanelStatus.inputType = inputType_;
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
@@ -1034,12 +1046,25 @@ bool InputMethodAbility::IsEnable()
 int32_t InputMethodAbility::ExitCurrentInputType()
 {
     IMSA_HILOGD("InputMethodAbility start.");
+    ClearInputType();
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
+        auto keyboardSize = panel->GetKeyboardSize();
+        SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
+        NotifyPanelStatus(panel, sysPanelStatus);
+    }
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("failed to get imsa proxy!");
         return false;
     }
     return proxy->ExitCurrentInputType();
+}
+
+void InputMethodAbility::ClearInputType()
+{
+    std::lock_guard<std::mutex> lock(inputTypeLock_);
+    inputType_ = InputType::NONE;
 }
 
 int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)

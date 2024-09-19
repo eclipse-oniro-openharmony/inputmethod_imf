@@ -92,6 +92,7 @@ public:
     int32_t NotifyPanelStatus(const std::shared_ptr<InputMethodPanel> &inputMethodPanel,
         SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
+    void OnSetInputType(InputType inputType);
 
 public:
     /* called from TaskManager worker thread */
@@ -158,6 +159,7 @@ private:
     int32_t ShowKeyboardImplWithLock(int32_t cmdId);
     int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
     void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy);
+    void ClearInputType();
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };
@@ -177,6 +179,9 @@ private:
     InputAttribute inputAttribute_{};
     std::recursive_mutex keyboardCmdLock_;
     int32_t cmdId_ = 0;
+
+    std::mutex inputTypeLock_;
+    InputType inputType_ = InputType::NONE;
 };
 } // namespace MiscServices
 } // namespace OHOS
