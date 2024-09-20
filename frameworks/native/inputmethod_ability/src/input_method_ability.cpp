@@ -488,9 +488,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
                 textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
     }
-    if (textConfig.windowId == ANCO_INVALID_WINDOW_ID) {
-        return ErrorCode::NO_ERROR;
-    }
     auto task = [this, textConfig]() {
         panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
             panel->SetCallingWindow(textConfig.windowId);
@@ -1187,7 +1184,7 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
     }
     TextTotalConfig textConfig;
     int32_t ret = GetTextConfig(textConfig);
-    if (ret != ErrorCode::NO_ERROR || textConfig.windowId == ANCO_INVALID_WINDOW_ID) {
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to get window id, ret: %{public}d!", ret);
         return ErrorCode::ERROR_GET_TEXT_CONFIG;
     }

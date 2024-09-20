@@ -270,12 +270,8 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsBroker(tokenId)) {
-        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
-            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-        }
-    } else {
-        inputClientInfo.config.windowId = ANCO_INVALID_WINDOW_ID;
+    if (!identityChecker_->IsBroker(tokenId) && !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     auto userId = GetCallingUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
