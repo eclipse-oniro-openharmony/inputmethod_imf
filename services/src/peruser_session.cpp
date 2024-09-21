@@ -1586,7 +1586,7 @@ bool PerUserSession::StopReadyCurrentIme()
     }
     if (!WaitForCurrentImeStop()) {
         IMSA_HILOGI("stop timeout.");
-        return false;
+        return ForceStopCurrentIme();
     }
     return true;
 }
