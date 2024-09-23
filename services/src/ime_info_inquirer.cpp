@@ -293,13 +293,9 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
         if (IsTempInputMethod(extension)) {
             continue;
         }
-        std::string label;
-        if (GetAppLabelFromRes(extension, label) != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("GetAppLabelFromRes failed");
-        }
         props.push_back({ .name = extension.bundleName,
             .id = extension.name,
-            .label = label,
+            .label = GetTargetString(extension, ImeTargetString::LABEL, userId),
             .labelId = extension.applicationInfo.labelId,
             .iconId = extension.applicationInfo.iconId });
     }
@@ -1171,11 +1167,8 @@ std::string ImeInfoInquirer::GetTargetString(
             return GetStringById(extension.bundleName, extension.moduleName, extension.labelId, userId);
         }
         IMSA_HILOGD("Extension label is empty, get application label");
-        std::string label;
-        if (GetAppLabelFromRes(extension, label) != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("GetAppLabelFromRes failed");
-        }
-        return label;
+        return GetStringById(extension.bundleName, extension.applicationInfo.labelResource.moduleName,
+            extension.applicationInfo.labelResource.id, userId);
     }
     if (target == ImeTargetString::DESCRIPTION) {
         if (extension.descriptionId != DEFAULT_BMS_VALUE) {
@@ -1187,23 +1180,6 @@ std::string ImeInfoInquirer::GetTargetString(
     }
     IMSA_HILOGD("No match target string");
     return "";
-}
-
-int32_t ImeInfoInquirer::GetAppLabelFromRes(const AppExecFwk::ExtensionAbilityInfo &extension, std::string &label)
-{
-    std::string resPath = extension.hapPath.empty() ? extension.resourcePath : extension.hapPath;
-    auto resMgr = GetResMgr(resPath);
-    if (resMgr == nullptr) {
-        IMSA_HILOGE("failed to get resMgr");
-        return ErrorCode::NO_ERROR;
-    }
-    auto errValue = resMgr->GetStringById(extension.applicationInfo.labelId, label);
-    if (errValue != RState::SUCCESS) {
-        IMSA_HILOGE("GetStringById failed, bundleName:%{public}s, id:%{public}d", extension.bundleName.c_str(),
-            extension.applicationInfo.labelId);
-        return ErrorCode::ERROR_RES_ERROR;
-    }
-    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS
