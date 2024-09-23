@@ -1750,5 +1750,75 @@ HWTEST_F(InputMethodPanelTest, testSetUiContent02, TestSize.Level0)
     InputMethodPanelTest::imc_->Close();
     TddUtil::DestroyWindow();
 }
+
+/**
+* @tc.name: testIsSizeValid
+* @tc.desc: Test IsSizeValid
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testIsSizeValid, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    EXPECT_FALSE(inputMethodPanel->IsSizeValid(INT32_MAX + 1, INT32_MAX));
+    EXPECT_FALSE(inputMethodPanel->IsSizeValid(INT32_MAX, INT32_MAX + 1));
+}
+
+/**
+* @tc.name: testGenerateSequenceId
+* @tc.desc: Test GenerateSequenceId
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testGenerateSequenceId, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    inputMethodPanel->sequenceId_ = std::numeric_limits<uint32_t>::max() - 1;
+    uint32_t seqId = inputMethodPanel->GenerateSequenceId();
+    EXPECT_EQ(seqId, 0);
+}
+
+/**
+* @tc.name: testPanelStatusListener01
+* @tc.desc: Test SetPanelStatusListener
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testPanelStatusListener01, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    inputMethodPanel->panelStatusListener_ = nullptr;
+    inputMethodPanel->ClearPanelListener("show");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FIXED };
+    auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodPanel->panelStatusListener_ = statusListener;
+    EXPECT_TRUE(inputMethodPanel->SetPanelStatusListener(statusListener, "sizeChange"));
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testPanelStatusListener02
+* @tc.desc: Test SetPanelStatusListener
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testPanelStatusListener02, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodPanel->panelStatusListener_ = statusListener;
+    EXPECT_TRUE(inputMethodPanel->SetPanelStatusListener(statusListener, "sizeChange"));
+    EXPECT_TRUE(inputMethodPanel->SetPanelStatusListener(nullptr, "sizeChange"));
+    inputMethodPanel->panelStatusListener_ = nullptr;
+    EXPECT_TRUE(inputMethodPanel->SetPanelStatusListener(nullptr, "sizeChange"));
+    EXPECT_TRUE(inputMethodPanel->SetPanelStatusListener(statusListener, "sizeChange"));
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS
