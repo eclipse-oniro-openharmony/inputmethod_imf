@@ -349,7 +349,9 @@ int32_t InputMethodController::Close()
     OperateIMEInfoCode infoCode = OperateIMEInfoCode::IME_UNBIND;
     {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-        infoCode = clientInfo_.isShowKeyboard ? OperateIMEInfoCode::IME_HIDE_UNBIND : OperateIMEInfoCode::IME_UNBIND;
+        if (clientInfo_.isShowKeyboard) {
+            infoCode = OperateIMEInfoCode::IME_HIDE_UNBIND;
+        }
     }
     InputMethodSyncTrace tracer("InputMethodController Close trace.");
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(infoCode);
