@@ -263,6 +263,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     if (imeData != nullptr && imeData->imeStatus == ImeStatus::EXITING) {
         RemoveImeData(type, true);
         NotifyImeStopFinished();
+        InputTypeManager::GetInstance().Set(false);
         IMSA_HILOGI("%{public}d not current imeData.", type);
         return;
     }
@@ -1573,7 +1574,7 @@ bool PerUserSession::StopReadyCurrentIme()
     }
     if (!WaitForCurrentImeStop()) {
         IMSA_HILOGI("stop timeout.");
-        return false;
+        return ForceStopCurrentIme();
     }
     return true;
 }
