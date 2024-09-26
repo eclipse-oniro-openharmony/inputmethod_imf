@@ -150,7 +150,7 @@ RetInputMethodSubtype FfiInputMethodSettingListInputMethodSubtype(CInputMethodPr
         return ret;
     }
     IMSA_HILOGI("exec ListInputMethodSubtype success");
-    ret.size = subProps.size();
+    ret.size = static_cast<int64_t>(subProps.size());
     if (ret.size > 0) {
         ret.head = static_cast<CInputMethodSubtype *>(malloc(sizeof(CInputMethodSubtype) * ret.size));
     }
@@ -182,7 +182,7 @@ RetInputMethodSubtype FfiInputMethodSettingListCurrentInputMethodSubtype()
         return ret;
     }
     IMSA_HILOGI("exec ListCurrentInputMethodSubtype success.");
-    ret.size = subProps.size();
+    ret.size = static_cast<int64_t>(subProps.size());
     if (ret.size > 0) {
         ret.head = static_cast<CInputMethodSubtype *>(malloc(sizeof(CInputMethodSubtype) * ret.size));
     }
@@ -213,7 +213,7 @@ RetInputMethodProperty FfiInputMethodSettingGetInputMethods(bool enable)
     if (errCode != ErrorCode::NO_ERROR) {
         return ret;
     }
-    ret.size = properties.size();
+    ret.size = static_cast<int64_t>(properties.size());
     if (ret.size > 0) {
         ret.head = static_cast<CInputMethodProperty *>(malloc(sizeof(CInputMethodProperty) * ret.size));
     }
@@ -244,7 +244,7 @@ RetInputMethodProperty FfiInputMethodSettingGetAllInputMethods()
     if (errCode != ErrorCode::NO_ERROR) {
         return ret;
     }
-    ret.size = properties.size();
+    ret.size = static_cast<int64_t>(properties.size());
     if (ret.size > 0) {
         ret.head = static_cast<CInputMethodProperty *>(malloc(sizeof(CInputMethodProperty) * ret.size));
     }

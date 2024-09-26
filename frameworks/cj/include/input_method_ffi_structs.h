@@ -26,9 +26,9 @@ extern "C" {
         char* name;
         char* id;
         char* label;
-        int32_t labelId;
+        uint32_t labelId;
         char* icon;
-        int32_t iconId;
+        uint32_t iconId;
     };
 
     struct CInputMethodSubtype {
@@ -37,9 +37,9 @@ extern "C" {
         char* locale;
         char* language;
         char* label;
-        int32_t labelId;
+        uint32_t labelId;
         char* icon;
-        int32_t iconId;
+        uint32_t iconId;
         char* mode;
     };
 
