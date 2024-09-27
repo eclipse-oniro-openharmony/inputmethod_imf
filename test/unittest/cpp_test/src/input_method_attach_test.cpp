@@ -715,7 +715,7 @@ HWTEST_F(InputMethodAttachTest, testImeCallbackInAttach, TestSize.Level0)
 
 /**
  * @tc.name: TestImfMultiThreadAttach
- * @tc.desc:
+ * @tc.desc: test ime Attach in multi-thread
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: mashaoyin
