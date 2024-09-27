@@ -73,6 +73,7 @@ public:
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->abilityManager_ = imsaProxy_;
         TddUtil::InitCurrentImePermissionInfo();
+        IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
         inputMethodAbility_->SetCoreAndAgent();
         std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("InputMethodAttachTest");
         textConfigHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
