@@ -102,7 +102,7 @@ public:
 
     static void TestImfMultiThreadAttach()
     {
-        for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; i++) { 
+        for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; ++i) {
             sptr<OnTextChangedListener> textListener = new TextListener();
             if (timeout_) {
                 break;
