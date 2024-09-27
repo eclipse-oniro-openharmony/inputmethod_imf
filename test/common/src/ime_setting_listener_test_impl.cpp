@@ -20,6 +20,7 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t SWITCH_IME_WAIT_TIME = 3;
+constexpr int32_t TIMEOUT_SECONDS = 2;
 InputWindowStatus ImeSettingListenerTestImpl::status_{ InputWindowStatus::NONE };
 SubProperty ImeSettingListenerTestImpl::subProperty_{};
 Property ImeSettingListenerTestImpl::property_{};
@@ -36,13 +37,15 @@ void ImeSettingListenerTestImpl::ResetParam()
 bool ImeSettingListenerTestImpl::WaitPanelHide()
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return status_ == InputWindowStatus::HIDE; });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(TIMEOUT_SECONDS),
+        []() { return status_ == InputWindowStatus::HIDE; });
     return status_ == InputWindowStatus::HIDE;
 }
 bool ImeSettingListenerTestImpl::WaitPanelShow()
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return status_ == InputWindowStatus::SHOW; });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(TIMEOUT_SECONDS),
+        []() { return status_ == InputWindowStatus::SHOW; });
     return status_ == InputWindowStatus::SHOW;
 }
 

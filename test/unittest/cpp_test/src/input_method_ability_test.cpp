@@ -181,7 +181,7 @@ public:
     void SetUp()
     {
         IMSA_HILOGI("InputMethodAbilityTest::SetUp");
-        TextListener::ResetParam();
+        TaskManager::GetInstance().Reset();
     }
     void TearDown()
     {
@@ -774,6 +774,7 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel006, TestSize.Level0)
 
     ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel3);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 /**
@@ -794,6 +795,7 @@ HWTEST_F(InputMethodAbilityTest, testSetCallingWindow001, TestSize.Level0)
     InputMethodAbilityTest::imeListenerCv_.wait_for(
         lock, std::chrono::seconds(DEALY_TIME), [windowId] { return InputMethodAbilityTest::windowId_ == windowId; });
     EXPECT_EQ(InputMethodAbilityTest::windowId_, windowId);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 /**
@@ -833,6 +835,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodAbility_->DestroyPanel(panel1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 /**
@@ -859,6 +862,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 /**
@@ -871,12 +875,13 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_003 START");
-    imc_->Attach(textListener_);
+    imc_->Attach(textListener_, false);
     PanelInfo info = { .panelType = STATUS_BAR };
     auto panel = std::make_shared<InputMethodPanel>();
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
 
     // ShowPanel
     CheckPanelStatusInfo(panel, { info, true, Trigger::IME_APP });

@@ -19,7 +19,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t KEYBOARD_STATUS_WAIT_TIME_OUT = 2;
+constexpr uint32_t KEYBOARD_STATUS_WAIT_TIME_OUT = 3;
 std::mutex TextListener::textListenerCallbackLock_;
 std::condition_variable TextListener::textListenerCv_;
 int32_t TextListener::direction_ = -1;
