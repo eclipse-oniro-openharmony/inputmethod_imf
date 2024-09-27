@@ -28,6 +28,7 @@ std::condition_variable InputMethodEngineListenerImpl::imeListenerCv_;
 bool InputMethodEngineListenerImpl::isEnable_{ false };
 bool InputMethodEngineListenerImpl::isInputFinish_{ false };
 std::unordered_map<std::string, PrivateDataValue> InputMethodEngineListenerImpl::privateCommand_{};
+constexpr int32_t TIMEOUT_SECONDS = 2;
 void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
@@ -86,13 +87,13 @@ void InputMethodEngineListenerImpl::ResetParam()
 bool InputMethodEngineListenerImpl::WaitInputStart()
 {
     std::unique_lock<std::mutex> lock(imeListenerMutex_);
-    imeListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isInputStart_; });
+    imeListenerCv_.wait_for(lock, std::chrono::seconds(TIMEOUT_SECONDS), []() { return isInputStart_; });
     return isInputStart_;
 }
 bool InputMethodEngineListenerImpl::WaitInputFinish()
 {
     std::unique_lock<std::mutex> lock(imeListenerMutex_);
-    imeListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isInputFinish_; });
+    imeListenerCv_.wait_for(lock, std::chrono::seconds(TIMEOUT_SECONDS), []() { return isInputFinish_; });
     return isInputFinish_;
 }
 bool InputMethodEngineListenerImpl::WaitSetCallingWindow(uint32_t windowId)

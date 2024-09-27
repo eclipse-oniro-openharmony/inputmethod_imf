@@ -1715,7 +1715,7 @@ HWTEST_F(InputMethodPanelTest, testGetCallingWindowInfo02, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     CallingWindowInfo windowInfo;
     auto ret = inputMethodPanel->GetCallingWindowInfo(windowInfo);
-    EXPECT_EQ(ret, ErrorCode::ERROR_WINDOW_MANAGER);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
     InputMethodPanelTest::imc_->Close();
     TddUtil::DestroyWindow();

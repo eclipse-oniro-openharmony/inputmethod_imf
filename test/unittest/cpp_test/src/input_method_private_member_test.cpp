@@ -537,6 +537,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.L
 
     // get correct subProp
     auto currentSubProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+    ImeCfgManager::GetInstance().imeConfigs_.clear();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
         { currentUserId, currentProp->name + "/" + currentProp->id, currentSubProp->id });
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
