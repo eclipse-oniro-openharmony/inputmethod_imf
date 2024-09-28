@@ -1018,3 +1018,30 @@ ohos_unittest("ImeControllerCpaiTest") {
     "input:libmmi-client",
   ]
 }
+
+ohos_unittest("FullImeInfoManagerTest") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./inputmethod_blocklist.txt"
+  }
+  module_out_path = module_output_path
+
+  sources = [
+    "${inputmethod_path}/services/src/full_ime_info_manager.cpp",
+    "mock/ime_info_inquirer.cpp",
+    "src/full_ime_info_manager_test.cpp",
+  ]
+  include_dirs = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/test/unittest/cpp_test/mock",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "input:libmmi-client",
+  ]
+}
