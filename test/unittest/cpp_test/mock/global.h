@@ -60,6 +60,7 @@ constexpr int32_t NO_ERROR = 0;
 
 // system service error
 constexpr int32_t ERROR_NULL_POINTER = 1;
+constexpr int32_t ERROR_PACKAGE_MANAGER = 12;
 constexpr int32_t ERROR_KEYWORD_NOT_FOUND = 26;
 constexpr int32_t ERROR_ENABLE_IME = 27;
 

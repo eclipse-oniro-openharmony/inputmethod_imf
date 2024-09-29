@@ -32,6 +32,12 @@ public:
     std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
     std::shared_ptr<Property> GetCurrentInputMethod(int32_t userId);
     std::shared_ptr<Property> GetDefaultImeCfgProp();
+    void SetFullImeInfo(bool isReturnOk, const FullImeInfo &imeInfo);
+    void SetFullImeInfo(bool isReturnOk, const std::vector<FullImeInfo> &imeInfos);
+    void SetFullImeInfo(bool isReturnOk, const std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos);
+    int32_t QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos);
+    int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos);
+    int32_t GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo);
     static bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId);
     static bool GetImeVersionCode(int32_t userId, const std::string &bundleName, uint32_t &versionCode);
 
@@ -39,6 +45,12 @@ private:
     static std::shared_ptr<ImeInfo> defaultIme_;
     static std::shared_ptr<Property> currentIme_;
     static std::shared_ptr<Property> defaultImeProperty_;
+    bool isQueryAllFullImeInfosOk_{ false };
+    std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> allFullImeInfos_;
+    bool isQueryFullImeInfosOk_{ false };
+    std::vector<FullImeInfo> fullImeInfos_;
+    bool isGetFullImeInfoOk_{ false };
+    FullImeInfo fullImeInfo_;
 };
 } // namespace MiscServices
 } // namespace OHOS

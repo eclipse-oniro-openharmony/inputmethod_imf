@@ -15,6 +15,7 @@
 
 #include "ime_info_inquirer.h"
 
+#include "global.h"
 namespace OHOS {
 namespace MiscServices {
 std::shared_ptr<ImeInfo> ImeInfoInquirer::defaultIme_ = nullptr;
@@ -52,6 +53,52 @@ bool ImeInfoInquirer::GetImeVersionCode(int32_t userId, const std::string &bundl
 {
     versionCode = 0;
     return true;
+}
+
+int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos)
+{
+    if (!isQueryAllFullImeInfosOk_) {
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    }
+    fullImeInfos = allFullImeInfos_;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos)
+{
+    if (!isQueryFullImeInfosOk_) {
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    }
+    imeInfos = fullImeInfos_;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo)
+{
+    if (!isGetFullImeInfoOk_) {
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    }
+    imeInfo = fullImeInfo_;
+    return ErrorCode::NO_ERROR;
+}
+
+void ImeInfoInquirer::SetFullImeInfo(bool isReturnOk, const FullImeInfo &imeInfo)
+{
+    isGetFullImeInfoOk_ = isReturnOk;
+    fullImeInfo_ = imeInfo;
+}
+
+void ImeInfoInquirer::SetFullImeInfo(bool isReturnOk, const std::vector<FullImeInfo> &imeInfos)
+{
+    isQueryFullImeInfosOk_ = isReturnOk;
+    fullImeInfos_ = imeInfos;
+}
+
+void ImeInfoInquirer::SetFullImeInfo(
+    bool isReturnOk, const std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos)
+{
+    isQueryAllFullImeInfosOk_ = isReturnOk;
+    allFullImeInfos_ = fullImeInfos;
 }
 } // namespace MiscServices
 } // namespace OHOS
