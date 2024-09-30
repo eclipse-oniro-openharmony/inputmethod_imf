@@ -394,7 +394,8 @@ void TddUtil::InitCurrentImePermissionInfo()
 void TddUtil::WindowManager::CreateWindow()
 {
     if (windowTokenId_ == 0) {
-        windowTokenId_ = AllocTestTokenID(true, "TestWindow", {});
+        windowTokenId_ = AllocTestTokenID(true, "TestWindow",
+            { "ohos.permission.SYSTEM_FLOAT_WINDOW" });
     }
     TokenScope scope(windowTokenId_);
     std::string windowName = "inputmethod_test_window";
