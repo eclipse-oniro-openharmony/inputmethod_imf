@@ -141,7 +141,7 @@ int32_t JsUtils::Convert(int32_t code)
     IMSA_HILOGD("Convert start.");
     auto iter = ERROR_CODE_MAP.find(code);
     if (iter != ERROR_CODE_MAP.end()) {
-        IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
+        IMSA_HILOGD("ErrorCode: %{public}d", iter->second);
         return iter->second;
     }
     IMSA_HILOGD("Convert end.");
@@ -153,7 +153,7 @@ const std::string JsUtils::ToMessage(int32_t code)
     IMSA_HILOGD("ToMessage start");
     auto iter = ERROR_CODE_CONVERT_MESSAGE_MAP.find(code);
     if (iter != ERROR_CODE_CONVERT_MESSAGE_MAP.end()) {
-        IMSA_HILOGI("ErrorMessage: %{public}s", (iter->second).c_str());
+        IMSA_HILOGD("ErrorMessage: %{public}s", (iter->second).c_str());
         return iter->second;
     }
     return "error is out of definition.";

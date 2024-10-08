@@ -187,7 +187,8 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
             napi_get_undefined(env, &result[ARG_DATA]);
         }
     } else {
-        IMSA_HILOGE("runStatus: [%{public}d]", runStatus);
+        IMSA_HILOGE("failed, [status:%{public}d, runStatus:%{public}d, errorCode:%{public}d, errMessage:%{public}s].",
+            status, runStatus, context->ctx->errorCode_, context->ctx->errMessage_.c_str());
         result[ARG_ERROR] = JsUtils::ToError(env, context->ctx->errorCode_, context->ctx->errMessage_);
         napi_get_undefined(env, &result[ARG_DATA]);
     }

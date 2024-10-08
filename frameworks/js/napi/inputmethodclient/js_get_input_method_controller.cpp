@@ -509,23 +509,30 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
     bool result = false;
     if (status == napi_ok) {
         result = JsGetInputMethodController::GetValue(env, cursorInfoResult, out.cursorInfo);
-        IMSA_HILOGE("get cursorInfo end, ret: %{public}d", result);
+        if (!result) {
+            IMSA_HILOGE("get cursorInfo failed.");
+        }
     }
 
     napi_value rangeResult = nullptr;
     status = JsUtils::GetValue(env, in, "selection", rangeResult);
     if (status == napi_ok) {
         result = JsGetInputMethodController::GetValue(env, rangeResult, out.range);
-        IMSA_HILOGE("get selectionRange end, ret: %{public}d", result);
+        if (!result) {
+            IMSA_HILOGE("get selectionRange failed.");
+        }
     }
 
     result = JsUtil::Object::ReadProperty(env, in, "windowId", out.windowId);
-    IMSA_HILOGE("get windowId end, ret: %{public}d", result);
+    if (!result) {
+        IMSA_HILOGE("get windowId failed.");
+    }
     return ret;
 }
 
 napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("run in.");
     InputMethodSyncTrace tracer("JsGetInputMethodController_Attach");
     auto ctxt = std::make_shared<AttachContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {

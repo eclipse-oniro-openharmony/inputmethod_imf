@@ -246,7 +246,6 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     sptr<IRemoteObject> agent = nullptr;
     int32_t ret = StartInput(clientInfo_, agent);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to start input, ret: %{public}d", ret);
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;
