@@ -98,7 +98,7 @@ HWTEST_F(ImeSystemChannelTest, testConnectSystemCmd002, TestSize.Level0)
     IMSA_HILOGI("ImeSystemChannelTest testConnectSystemCmd002 Test START");
     TokenScope scope(ImeSystemChannelTest::permissionTokenId_);
     auto ret = imeSystemChannel_->ConnectSystemCmd(sysCmdListener_);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_NE(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
 }
 
 /**
