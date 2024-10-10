@@ -416,7 +416,7 @@ int32_t PerUserSession::OnRequestHideInput()
     }
     auto inactiveClient = GetInactiveClient();
     if (inactiveClient != nullptr) {
-        RemoveClient(inactiveClient, false);
+        RemoveClient(inactiveClient, false, true);
     }
     RestoreCurrentImeSubType();
     return ErrorCode::NO_ERROR;
@@ -471,7 +471,7 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
     return RemoveClient(client, true);
 }
 
-int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient)
+int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient, bool isInactiveClient)
 {
     if (client == nullptr) {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -482,11 +482,12 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUn
         UnBindClientWithIme(clientInfo, isUnbindFromClient);
         SetCurrentClient(nullptr);
         RestoreCurrentImeSubType();
+        StopClientInput(clientInfo);
     }
     if (IsSameClient(client, GetInactiveClient())) {
         SetInactiveClient(nullptr);
+        StopClientInput(clientInfo, isInactiveClient);
     }
-    StopClientInput(clientInfo);
     RemoveClientInfo(client->AsObject());
     return ErrorCode::NO_ERROR;
 }
@@ -614,13 +615,14 @@ void PerUserSession::UnBindClientWithIme(const std::shared_ptr<InputClientInfo> 
     StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel);
 }
 
-void PerUserSession::StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo)
+void PerUserSession::StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient)
 {
     if (clientInfo == nullptr || clientInfo->client == nullptr) {
         return;
     }
-    auto ret = clientInfo->client->OnInputStop();
-    IMSA_HILOGI("stop client input, client pid: %{public}d, ret: %{public}d.", ret, clientInfo->pid);
+    auto ret = clientInfo->client->OnInputStop(isStopInactiveClient);
+    IMSA_HILOGI("isStopInactiveClient: %{public}d, client pid: %{public}d, ret: %{public}d.", isStopInactiveClient,
+        clientInfo->pid, ret);
 }
 
 void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel)

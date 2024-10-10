@@ -39,7 +39,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
 
     virtual int32_t OnInputReady(const sptr<IRemoteObject> &agent) = 0;
-    virtual int32_t OnInputStop() = 0;
+    virtual int32_t OnInputStop(bool isStopInactiveClient) = 0;
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
     virtual int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) = 0;
     virtual void DeactivateClient() = 0;

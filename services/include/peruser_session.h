@@ -180,7 +180,8 @@ private:
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
-    int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false);
+    int32_t RemoveClient(
+        const sptr<IInputClient> &client, bool isUnbindFromClient = false, bool isInactiveClient = false);
     void DeactivateClient(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
@@ -200,7 +201,7 @@ private:
         bool isBindFromClient = false);
     void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
         bool isUnbindFromClient = false);
-    void StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo);
+    void StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient = false);
     void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);
