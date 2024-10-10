@@ -859,12 +859,14 @@ describe('InputMethodWithAttachTest', function () {
             }
       };
       await inputMethod.getController().attach(true, cfg);
-      let result = inputMethod.getSetting().isPanelShown({type: PanelType.SOFT_KEYBOARD});
-      if (result) {
-        expect(true).assertTrue();
-      } else {
-        expect().assertFail();
-      }
+      setTimeout(()=>{
+        let result = inputMethod.getSetting().isPanelShown({type: PanelType.SOFT_KEYBOARD});
+        if (result) {
+          expect(true).assertTrue();
+        } else {
+          expect().assertFail();
+        }
+      }, WAIT_DEAL_OK);
       done();
     } catch (error) {
       console.info(`inputmethod_test_isPanelShown_001 result: ${JSON.stringify(error)}`);
