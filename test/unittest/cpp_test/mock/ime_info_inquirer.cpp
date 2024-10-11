@@ -55,7 +55,7 @@ bool ImeInfoInquirer::GetImeVersionCode(int32_t userId, const std::string &bundl
     return true;
 }
 
-int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos)
+int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos) const
 {
     if (!isQueryAllFullImeInfosOk_) {
         return ErrorCode::ERROR_PACKAGE_MANAGER;
@@ -64,7 +64,7 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::ve
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos)
+int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos) const
 {
     if (!isQueryFullImeInfosOk_) {
         return ErrorCode::ERROR_PACKAGE_MANAGER;
@@ -73,7 +73,7 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInf
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo)
+int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo) const
 {
     if (!isGetFullImeInfoOk_) {
         return ErrorCode::ERROR_PACKAGE_MANAGER;

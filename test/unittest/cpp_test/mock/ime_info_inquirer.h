@@ -35,9 +35,9 @@ public:
     void SetFullImeInfo(bool isReturnOk, const FullImeInfo &imeInfo);
     void SetFullImeInfo(bool isReturnOk, const std::vector<FullImeInfo> &imeInfos);
     void SetFullImeInfo(bool isReturnOk, const std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos);
-    int32_t QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos);
-    int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos);
-    int32_t GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo);
+    int32_t QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos) const;
+    int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos) const;
+    int32_t GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo) const;
     static bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId);
     static bool GetImeVersionCode(int32_t userId, const std::string &bundleName, uint32_t &versionCode);
 
