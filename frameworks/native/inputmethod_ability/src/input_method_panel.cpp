@@ -37,8 +37,6 @@ using namespace Rosen;
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr int32_t NUMBER_ZERO = 0;
-constexpr int32_t NUMBER_TWO = 2;
-constexpr int32_t CUTOUTINFO = 100;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
 constexpr int32_t MAXWAITTIME = 30;
 constexpr int32_t WAITTIME = 10;
@@ -546,17 +544,6 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
         keyboardLayoutParams_.LandscapePanelRect_.posY_ + static_cast<int32_t>(lanIterValue.top * densityDpi);
     keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ =
         keyboardLayoutParams_.LandscapePanelRect_.posX_ + static_cast<int32_t>(lanIterValue.left * densityDpi);
-    sptr<Rosen::CutoutInfo> cutoutInfo = defaultDisplay->GetCutoutInfo();
-    if (cutoutInfo != nullptr) {
-        if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
-            Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
-            return ErrorCode::NO_ERROR;
-        }
-        keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = keyboardLayoutParams_.LandscapeKeyboardRect_.width_ -
-            static_cast<uint32_t>((CUTOUTINFO - lanIterValue.left) * NUMBER_TWO  * densityDpi);
-        keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ = keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ +
-            static_cast<int32_t>((CUTOUTINFO - lanIterValue.left) * densityDpi);
-    }
     return ErrorCode::NO_ERROR;
 }
 
