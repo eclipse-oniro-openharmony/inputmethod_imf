@@ -30,6 +30,7 @@ extern "C" {
 struct InputMethod_InputMethodProxy {
     InputMethod_TextEditorProxy *textEditor = nullptr;
     OHOS::sptr<NativeTextChangedListener> listener = nullptr;
+    bool attached = false;
 };
 
 InputMethod_InputMethodProxy *g_inputMethodProxy = nullptr;
@@ -50,6 +51,11 @@ InputMethod_ErrorCode IsValidInputMethodProxy(InputMethod_InputMethodProxy *inpu
     if (g_inputMethodProxy != inputMethodProxy) {
         IMSA_HILOGE("g_inputMethodProxy is not equal to inputMethodProxy");
         return IME_ERR_PARAMCHECK;
+    }
+
+    if (g_inputMethodProxy->attached == false) {
+        IMSA_HILOGE("g_inputMethodProxy is not attached");
+        return IME_ERR_DETACHED;
     }
 
     return IME_ERR_OK;
@@ -160,6 +166,9 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
     if (err == ErrorCode::NO_ERROR) {
         errCode = IME_ERR_OK;
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
+        if (g_inputMethodProxy != nullptr) {
+            g_inputMethodProxy->attached = true;
+        }
         *inputMethodProxy = g_inputMethodProxy;
     } else {
         errCode = ErrorCodeConvert(err);
@@ -172,10 +181,8 @@ void ClearInputMethodProxy(void)
 {
     std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
     if (g_inputMethodProxy != nullptr) {
-        IMSA_HILOGI("g_inputMethodProxy is cleared");
-        g_inputMethodProxy->listener = nullptr;
-        delete g_inputMethodProxy;
-        g_inputMethodProxy = nullptr;
+        IMSA_HILOGI("g_inputMethodProxy is detached");
+        g_inputMethodProxy->attached = false;
     }
 }
 
