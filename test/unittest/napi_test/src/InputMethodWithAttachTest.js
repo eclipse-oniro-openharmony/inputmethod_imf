@@ -866,8 +866,8 @@ describe('InputMethodWithAttachTest', function () {
         } else {
           expect().assertFail();
         }
+        done();
       }, WAIT_DEAL_OK);
-      done();
     } catch (error) {
       console.info(`inputmethod_test_isPanelShown_001 result: ${JSON.stringify(error)}`);
       expect().assertFail();
