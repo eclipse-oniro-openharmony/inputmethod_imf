@@ -260,7 +260,6 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     auto imeData = GetImeData(type);
     auto ime = InputTypeManager::GetInstance().GetCurrentIme();
     if (ime.bundleName == imeData->ime.first) {
-        InputTypeManager::GetInstance().Set(false);
     }
     if (imeData != nullptr && imeData->imeStatus == ImeStatus::EXITING) {
         RemoveImeData(type, true);
