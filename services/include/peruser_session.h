@@ -144,6 +144,7 @@ public:
     bool IsWmsReady();
     bool CheckPwdInputPatternConv(InputClientInfo &clientInfo);
     int32_t RestoreCurrentIme();
+    int32_t SetInputType();
 
 private:
     struct ResetManager {

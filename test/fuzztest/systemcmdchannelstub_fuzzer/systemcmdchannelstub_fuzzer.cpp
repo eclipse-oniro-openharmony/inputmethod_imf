@@ -37,7 +37,7 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 }
 bool FuzzSystemCmdChannelStub(const uint8_t *rawData, size_t size)
 {
-    bool fuzzedBool = static_cast<bool>(rawData[0] % 2);
+    InputType fuzzedBool = static_cast<InputType>(rawData[0] % 2);
     auto fuzzedUint32 = static_cast<uint32_t>(size);
 
     uint32_t code = ConvertToUint32(rawData);
@@ -48,7 +48,7 @@ bool FuzzSystemCmdChannelStub(const uint8_t *rawData, size_t size)
 
     std::unordered_map <std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
-    PrivateDataValue privateDataValue2 = fuzzedBool;
+    PrivateDataValue privateDataValue2 = static_cast<int32_t>(fuzzedBool);
     PrivateDataValue privateDataValue3 = PRIVATEDATAVALUE;
     privateCommand.emplace("value1", privateDataValue1);
     privateCommand.emplace("value2", privateDataValue2);

@@ -133,7 +133,7 @@ HWTEST_F(ImeSystemChannelTest, testImeSystemChannel_nullptr, TestSize.Level0)
     imeSystemChannel_->GetSmartMenuCfg();
     int32_t ret = imeSystemChannel_->ReceivePrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
-    ret = imeSystemChannel_->NotifyPanelStatus({ false, 0, 0, 0 });
+    ret = imeSystemChannel_->NotifyPanelStatus({ InputType::NONE, 0, 0, 0 });
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 } // namespace MiscServices

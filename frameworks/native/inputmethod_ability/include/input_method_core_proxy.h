@@ -45,6 +45,7 @@ public:
     int32_t OnSecurityChange(int32_t security) override;
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
     void OnClientInactive(const sptr<IRemoteObject> &channel) override;
+    int32_t OnSetInputType(InputType inputType) override;
 
 private:
     static inline BrokerDelegator<InputMethodCoreProxy> delegator_;

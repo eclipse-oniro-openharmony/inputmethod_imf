@@ -47,6 +47,7 @@ public:
         SECURITY_CHANGE,
         ON_CLIENT_INACTIVE,
         ON_CONNECT_SYSTEM_CMD,
+        ON_SET_INPUT_TYPE,
         CORE_CMD_END,
     };
 
@@ -64,6 +65,7 @@ public:
     virtual int32_t OnSecurityChange(int32_t security) = 0;
     virtual int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0;
     virtual void OnClientInactive(const sptr<IRemoteObject> &channel) = 0;
+    virtual int32_t OnSetInputType(InputType inputType) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

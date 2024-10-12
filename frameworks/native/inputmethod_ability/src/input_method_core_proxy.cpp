@@ -52,6 +52,13 @@ int32_t InputMethodCoreProxy::OnSecurityChange(int32_t security)
         [security](MessageParcel &data) { return ITypesUtil::Marshal(data, security); });
 }
 
+int32_t InputMethodCoreProxy::OnSetInputType(InputType inputType)
+{
+    return SendRequest(ON_SET_INPUT_TYPE,
+        [inputType](MessageParcel &data) { return ITypesUtil::Marshal(data, inputType); },
+        nullptr, MessageOption::TF_ASYNC);
+}
+
 int32_t InputMethodCoreProxy::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
     return SendRequest(

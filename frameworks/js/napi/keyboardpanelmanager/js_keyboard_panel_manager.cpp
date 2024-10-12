@@ -367,7 +367,7 @@ napi_value JsPanelStatus::Write(napi_env env, const SysPanelStatus &in)
 {
     napi_value jsObject = nullptr;
     napi_create_object(env, &jsObject);
-    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "isSecurity", in.isSecurity);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "inputType", static_cast<int32_t>(in.inputType));
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "flag", in.flag);
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", in.width);
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", in.height);

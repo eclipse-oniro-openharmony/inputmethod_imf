@@ -95,7 +95,11 @@ private:
         std::string smartMenu;
         std::unordered_map<std::string, PrivateDataValue> privateCommand;
         explicit UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
-            : vecCopy(cbVec), type(type), sysPanelStatus({ false, 0, 0, 0 }), smartMenu(""), privateCommand({})
+            : vecCopy(cbVec),
+              type(type),
+              sysPanelStatus({ InputType::NONE, 0, 0, 0 }),
+              smartMenu(""),
+              privateCommand({})
         {
         }
     };

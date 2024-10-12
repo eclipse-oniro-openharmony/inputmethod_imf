@@ -314,16 +314,20 @@ bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const SysPanelStatus &input, MessageParcel &data)
 {
-    return data.WriteBool(input.isSecurity) && data.WriteInt32(input.flag) && data.WriteUint32(input.width) &&
-        data.WriteUint32(input.height);
+    return data.WriteInt32(static_cast<int32_t>(input.inputType)) &&
+           data.WriteInt32(input.flag) &&
+           data.WriteUint32(input.width) &&
+           data.WriteUint32(input.height);
 }
 
 bool ITypesUtil::Unmarshalling(SysPanelStatus &output, MessageParcel &data)
 {
-    if (!data.ReadBool(output.isSecurity) || !data.ReadInt32(output.flag) || !data.ReadUint32(output.width) ||
+    int32_t inputType = 0;
+    if (!data.ReadInt32(inputType) || !data.ReadInt32(output.flag) || !data.ReadUint32(output.width) ||
         !data.ReadUint32(output.height)) {
         return false;
     }
+    output.inputType = static_cast<InputType>(inputType);
     return true;
 }
 
