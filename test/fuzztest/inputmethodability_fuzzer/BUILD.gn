@@ -53,7 +53,7 @@ ohos_fuzztest("InputMethodAbilityFuzzTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
