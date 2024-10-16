@@ -688,6 +688,7 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         IMSA_HILOGD("not bound.");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
+    bool oldSecurityFlag = textConfig_.inputAttribute.GetSecurityFlag();
     InputAttribute attribute;
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
@@ -701,6 +702,15 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     }
     IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d.", attribute.enterKeyType,
         attribute.inputPattern);
+    if (oldSecurityFlag != attribute.GetSecurityFlag()) {
+        GetTextConfig(clientInfo_.config);
+        sptr<IRemoteObject> agent = nullptr;
+        int32_t ret = StartInput(clientInfo_, agent);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
+        OnInputReady(agent);
+    }
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr!");
