@@ -767,6 +767,17 @@ public:
     int32_t FinishTextPreview();
 
     /**
+     * @brief Query whether an process id current inputmethod.
+     *
+     * This function is used to query whether an process id is inputmethod.
+     *
+     * @param type Indicates current process id.
+     * @return Returns true for current ime process id, false for not current ime process id.
+     * @since 12
+     */
+    IMF_API bool IsCurrentImeByPid(int32_t pid);
+
+    /**
      * @brief Reset controller.
      *
      * This function is used to reset controller.

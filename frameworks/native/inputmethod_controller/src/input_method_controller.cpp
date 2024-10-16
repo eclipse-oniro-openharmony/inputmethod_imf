@@ -1150,6 +1150,10 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
         IMSA_HILOGE("textListener_ is nullptr");
         return;
     }
+    if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD) {
+            info.visible ? SendKeyboardStatus(KeyboardStatus::SHOW)
+                         : SendKeyboardStatus(KeyboardStatus::HIDE);
+    }
     listener->NotifyPanelStatusInfo(info);
     if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD
         && info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
@@ -1191,6 +1195,16 @@ bool InputMethodController::IsInputTypeSupported(InputType type)
     }
     IMSA_HILOGI("type: %{public}d", static_cast<int32_t>(type));
     return proxy->IsInputTypeSupported(type);
+}
+
+bool InputMethodController::IsCurrentImeByPid(int32_t pid)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return false;
+    }
+    return proxy->IsCurrentImeByPid(pid);
 }
 
 int32_t InputMethodController::StartInputType(InputType type)
