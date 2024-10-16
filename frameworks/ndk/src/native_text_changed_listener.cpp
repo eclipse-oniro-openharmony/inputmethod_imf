@@ -236,7 +236,7 @@ int32_t NativeTextChangedListener::ReceivePrivateCommand(
     }
 
     size_t index = 0;
-    for (auto &item : privateCommand) {
+    for (const auto &item : privateCommand) {
         command[index] = new InputMethod_PrivateCommand();
         command[index]->key = item.first;
         command[index]->value = item.second;

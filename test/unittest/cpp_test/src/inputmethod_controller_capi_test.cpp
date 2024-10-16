@@ -17,7 +17,7 @@
 
 using namespace testing::ext;
 class InputMethodControllerCapiTest : public testing::Test { };
-
+namespace {
 /**
  * @tc.name: TestCursorInfo_001
  * @tc.desc: create and destroy TestCursorInfo success
@@ -557,6 +557,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_GetSelection_001, TestSize
     InputMethod_TextConfig *config = OH_TextConfig_Create();
     ASSERT_NE(config, nullptr);
     ret = OH_TextConfig_GetSelection(config, nullptr, nullptr);
+    EXPECT_EQ(IME_ERR_NULL_POINTER, ret);
     int32_t start = 0;
     ret = OH_TextConfig_GetSelection(config, &start, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
@@ -1511,4 +1512,5 @@ HWTEST_F(InputMethodControllerCapiTest, TestAttachWithNorrmalParam_001, TestSize
 
     OH_AttachOptions_Destroy(options);
     OH_TextEditorProxy_Destroy(textEditorProxy);
+}
 }

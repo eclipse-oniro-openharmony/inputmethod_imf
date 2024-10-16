@@ -36,7 +36,7 @@ struct InputMethod_InputMethodProxy {
 InputMethod_InputMethodProxy *g_inputMethodProxy = nullptr;
 std::mutex g_textEditorProxyMapMutex;
 
-InputMethod_ErrorCode IsValidInputMethodProxy(InputMethod_InputMethodProxy *inputMethodProxy)
+InputMethod_ErrorCode IsValidInputMethodProxy(const InputMethod_InputMethodProxy *inputMethodProxy)
 {
     if (inputMethodProxy == nullptr) {
         IMSA_HILOGE("inputMethodProxy is nullptr");
@@ -118,7 +118,7 @@ static int32_t IsValidTextEditorProxy(InputMethod_TextEditorProxy *textEditor)
     return IME_ERR_OK;
 }
 
-static TextConfig ConstructTextConfig(const InputMethod_TextConfig& config)
+static TextConfig ConstructTextConfig(const InputMethod_TextConfig &config)
 {
     TextConfig textConfig = {
         .inputAttribute = {
@@ -160,7 +160,7 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
     InputMethod_TextConfig config;
     textEditor->getTextConfigFunc(textEditor, &config);
 
-   auto textConfig = ConstructTextConfig(config);
+    auto textConfig = ConstructTextConfig(config);
 
     auto controller = InputMethodController::GetInstance();
     OHOS::sptr<NativeTextChangedListener> listener = nullptr;
