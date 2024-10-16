@@ -60,6 +60,7 @@ ohos_fuzztest("EnableImeDataParseFuzzTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "resource_management:global_resmgr",
   ]
 }
 
