@@ -101,6 +101,10 @@ private:
 
     int32_t ConnectSystemCmdOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t IsCurrentImeByPidOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t InitConnectOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     const RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)] = {
         &InputMethodSystemAbilityStub::InvalidRequest,
@@ -136,6 +140,8 @@ private:
         &InputMethodSystemAbilityStub::GetSecurityModeOnRemote,
         &InputMethodSystemAbilityStub::IsDefaultImeOnRemote,
         &InputMethodSystemAbilityStub::ConnectSystemCmdOnRemote,
+        &InputMethodSystemAbilityStub::IsCurrentImeByPidOnRemote,
+        &InputMethodSystemAbilityStub::InitConnectOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

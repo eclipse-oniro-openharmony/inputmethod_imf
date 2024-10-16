@@ -246,6 +246,10 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
 
 void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
 {
+    auto inputMethodAbility = InputMethodAbility::GetInstance();
+    if (inputMethodAbility != nullptr) {
+        inputMethodAbility->InitConnect();
+    }
     StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
     StartAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
     Extension::OnStart(want);

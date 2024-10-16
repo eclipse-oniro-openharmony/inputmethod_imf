@@ -156,6 +156,7 @@ void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option
     switch (code) {
         case SEND_KEYBOARD_STATUS:
         case NOTIFY_KEYBOARD_HEIGHT:
+        case NOTIFY_PANEL_STATUS_INFO:
             IMSA_HILOGD("Async IPC.");
             option.SetFlags(MessageOption::TF_ASYNC);
             break;
