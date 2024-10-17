@@ -73,7 +73,7 @@ ohos_unittest("InputMethodControllerTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -119,7 +119,7 @@ ohos_unittest("InputMethodAttachTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -176,7 +176,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "window_manager:libwsutils",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -219,7 +219,7 @@ ohos_unittest("InputMethodServiceTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -268,7 +268,7 @@ ohos_unittest("InputMethodDfxTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -318,7 +318,7 @@ ohos_unittest("InputMethodPanelTest") {
     "window_manager:libwsutils",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -358,7 +358,7 @@ ohos_unittest("InputMethodSwitchTest") {
     "input:libmmi-client",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -409,7 +409,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -456,7 +456,7 @@ ohos_unittest("InputMethodEditorTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -496,7 +496,7 @@ ohos_unittest("NewImeSwitchTest") {
     "input:libmmi-client",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -543,7 +543,7 @@ ohos_unittest("IdentityCheckerTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -589,7 +589,7 @@ ohos_unittest("TextListenerInnerApiTest") {
     "samgr:samgr_proxy",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -637,7 +637,7 @@ ohos_unittest("ImeProxyTest") {
     "window_manager:libdm",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -771,7 +771,7 @@ ohos_unittest("ImeFreezeManagerTest") {
     "os_account:os_account_innerkits",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -845,7 +845,7 @@ ohos_unittest("VirtualListenerTest") {
     "samgr:samgr_proxy",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
@@ -890,7 +890,7 @@ ohos_unittest("ImeSystemChannelTest") {
     "samgr:samgr_proxy",
   ]
 
-  if (scene_board_enabled) {
+  if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
