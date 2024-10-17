@@ -55,6 +55,7 @@ ohos_static_library("settings_data_static") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "hilog:libhilog",
+    "resource_management:global_resmgr",
   ]
 
   subsystem_name = "inputmethod"
