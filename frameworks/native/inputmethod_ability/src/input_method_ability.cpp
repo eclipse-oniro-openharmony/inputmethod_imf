@@ -1095,7 +1095,8 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         IMSA_HILOGE("failed to create channel proxy!");
         return;
     }
-    if (imeListener_ != nullptr) {
+    auto panel = GetSoftKeyboardPanel();
+    if (imeListener_ != nullptr && panel != nullptr && panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
         imeListener_->OnKeyboardStatus(false);
     }
     panels_.ForEach([this, &channelProxy](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
