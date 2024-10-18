@@ -857,14 +857,15 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
 
 int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
+    // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
     if (isImeTerminating.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
         IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
         return ErrorCode::NO_ERROR;
     }
+
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP, false);
 }
