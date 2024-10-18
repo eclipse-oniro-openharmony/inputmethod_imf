@@ -36,7 +36,7 @@ struct InputMethod_InputMethodProxy {
 InputMethod_InputMethodProxy *g_inputMethodProxy = nullptr;
 std::mutex g_textEditorProxyMapMutex;
 
-InputMethod_ErrorCode IsValidInputMethodProxy(InputMethod_InputMethodProxy *inputMethodProxy)
+InputMethod_ErrorCode IsValidInputMethodProxy(const InputMethod_InputMethodProxy *inputMethodProxy)
 {
     if (inputMethodProxy == nullptr) {
         IMSA_HILOGE("inputMethodProxy is nullptr");
@@ -53,7 +53,7 @@ InputMethod_ErrorCode IsValidInputMethodProxy(InputMethod_InputMethodProxy *inpu
         return IME_ERR_PARAMCHECK;
     }
 
-    if (g_inputMethodProxy->attached == false) {
+    if (!(g_inputMethodProxy->attached)) {
         IMSA_HILOGE("g_inputMethodProxy is not attached");
         return IME_ERR_DETACHED;
     }
@@ -118,22 +118,8 @@ static int32_t IsValidTextEditorProxy(InputMethod_TextEditorProxy *textEditor)
     return IME_ERR_OK;
 }
 
-InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProxy *textEditor,
-    InputMethod_AttachOptions *options, InputMethod_InputMethodProxy **inputMethodProxy)
+static TextConfig ConstructTextConfig(const InputMethod_TextConfig &config)
 {
-    if ((IsValidTextEditorProxy(textEditor) != IME_ERR_OK) || options == nullptr || inputMethodProxy == nullptr) {
-        IMSA_HILOGE("invalid parameter");
-        return IME_ERR_NULL_POINTER;
-    }
-
-    InputMethod_ErrorCode errCode = GetInputMethodProxy(textEditor);
-    if (errCode != IME_ERR_OK) {
-        return errCode;
-    }
-
-    InputMethod_TextConfig config;
-    textEditor->getTextConfigFunc(textEditor, &config);
-
     TextConfig textConfig = {
         .inputAttribute = {
             .inputPattern = static_cast<InputMethod_TextInputType>(config.inputType),
@@ -155,11 +141,34 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
         .height = config.avoidInfo.height,
     };
 
+    return textConfig;
+}
+
+InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProxy *textEditor,
+    InputMethod_AttachOptions *options, InputMethod_InputMethodProxy **inputMethodProxy)
+{
+    if ((IsValidTextEditorProxy(textEditor) != IME_ERR_OK) || options == nullptr || inputMethodProxy == nullptr) {
+        IMSA_HILOGE("invalid parameter");
+        return IME_ERR_NULL_POINTER;
+    }
+
+    InputMethod_ErrorCode errCode = GetInputMethodProxy(textEditor);
+    if (errCode != IME_ERR_OK) {
+        return errCode;
+    }
+
+    InputMethod_TextConfig config;
+    textEditor->getTextConfigFunc(textEditor, &config);
+
+    auto textConfig = ConstructTextConfig(config);
+
     auto controller = InputMethodController::GetInstance();
     OHOS::sptr<NativeTextChangedListener> listener = nullptr;
     {
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
-        listener = g_inputMethodProxy->listener;
+        if (g_inputMethodProxy != nullptr) {
+            listener = g_inputMethodProxy->listener;
+        }
     }
 
     int32_t err = controller->Attach(listener, options->showKeyboard, textConfig);
