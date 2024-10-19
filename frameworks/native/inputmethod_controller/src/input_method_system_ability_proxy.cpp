@@ -166,6 +166,25 @@ std::shared_ptr<SubProperty> InputMethodSystemAbilityProxy::GetCurrentInputMetho
     return ret != ErrorCode::NO_ERROR ? nullptr : property;
 }
 
+bool InputMethodSystemAbilityProxy::IsDefaultImeSet()
+{
+    bool isDefaultImeSet = false;
+    IMSA_HILOGI("InputMethodSystemAbilityProxy::IsDefaultImeSet enter.");
+    SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_DEFAULT_IME_SET), nullptr,
+        [&isDefaultImeSet](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isDefaultImeSet); });
+    return isDefaultImeSet;
+}
+ 
+bool InputMethodSystemAbilityProxy::EnableIme(const std::string &bundleName)
+{
+    bool enableIme = false;
+    IMSA_HILOGI("InputMethodSystemAbilityProxy::EnableIme enter.");
+    SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::ENABLE_IME),
+        [&bundleName](MessageParcel &data) { return ITypesUtil::Marshal(data, bundleName); },
+        [&enableIme](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, enableIme); });
+    return enableIme;
+}
+
 int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
     return SendRequest(

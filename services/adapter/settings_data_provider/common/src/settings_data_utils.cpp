@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <sstream>
 #include "settings_data_utils.h"
 
 #include "ime_info_inquirer.h"
@@ -192,6 +192,81 @@ sptr<IRemoteObject> SettingsDataUtils::GetToken()
     }
     remoteObj_ = remoteObj;
     return remoteObj_;
+}
+
+bool SettingsDataUtils::EnableIme(int32_t userId, const std::string &bundleName)
+{
+    const int32_t mainUserId = 100;
+    if (userId != mainUserId) {
+        IMSA_HILOGE("user is not main.");
+        return false;
+    }
+    const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
+    const char *SETTING_COLUMN_VALUE = "VALUE";
+    const char *settingKey = "settings.inputmethod.enable_ime";
+    std::string settingValue = "";
+    GetStringValue(settingKey, settingValue);
+    IMSA_HILOGI("settingValue: %{public}s", settingValue.c_str());
+    std::string value = "";
+    if (settingValue == "") {
+        value = "{\"enableImeList\" : {\"100\" : [\"" + bundleName + "\"]}}";
+    } else {
+        value = SetSettingValues(settingValue, bundleName);
+    }
+    IMSA_HILOGI("value: %{public}s", value.c_str());
+    auto helper = CreateDataShareHelper();
+    if (helper == nullptr) {
+        IMSA_HILOGE("helper is nullptr.");
+        return false;
+    }
+    DataShare::DataShareValueObject keyObj(settingKey);
+    DataShare::DataShareValueObject valueObj(value);
+    DataShare::DataShareValuesBucket bucket;
+    bucket.Put(SETTING_COLUMN_KEYWORD, keyObj);
+    bucket.Put(SETTING_COLUMN_VALUE, valueObj);
+    DataShare::DataSharePredicates predicates;
+    predicates.EqualTo(SETTING_COLUMN_KEYWORD, settingKey);
+    Uri uri(GenerateTargetUri(settingKey));
+    if (helper->Update(uri, predicates, bucket) <= 0) {
+        int index = helper->Insert(uri, bucket);
+        IMSA_HILOGI("no data exists, insert ret index: %{public}d", index);
+    } else {
+        IMSA_HILOGI("data exits");
+    }
+    bool ret = ReleaseDataShareHelper(helper);
+    IMSA_HILOGI("ReleaseDataShareHelper isSuccess: %{public}d", ret);
+    return ret;
+}
+ 
+std::vector<std::string> SettingsDataUtils::split(const std::string &text, char delim)
+{
+    std::vector<std::string> tokens;
+    std::stringstream ss(text);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        if (!item.empty()) {
+            tokens.push_back(item);
+        }
+    }
+    return tokens;
+}
+ 
+std::string SettingsDataUtils::SetSettingValues(const std::string &settingValue, const std::string &bundleName)
+{
+    std::string value = "";
+    std::vector<std::string> settingValues = split(settingValue, ']');
+    for (uint32_t i = 0; i < settingValues.size(); ++i) {
+        if (i == 0) {
+            if (settingValues[0].back() == '[') {
+                value += settingValues[i] + "\"" + bundleName + "\"" + "]";
+            } else {
+                value += settingValues[i] + ",\"" + bundleName + "\"" + "]";
+            }
+        } else {
+            value += settingValues[i];
+        }
+    }
+    return value;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -103,6 +103,7 @@ public:
     bool IsInputMethod(int32_t userId, const std::string &bundleName);
     bool IsRunningIme(int32_t userId, const std::string &bundleName);
     std::vector<std::string> GetRunningIme(int32_t userId);
+    bool IsDefaultImeSet(int32_t userId);
 
 private:
     ImeInfoInquirer() = default;

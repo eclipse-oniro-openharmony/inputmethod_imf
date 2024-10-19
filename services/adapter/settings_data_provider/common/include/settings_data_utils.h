@@ -46,15 +46,18 @@ public:
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper();
     int32_t CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func);
     int32_t GetStringValue(const std::string &key, std::string &value);
+    bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
+    Uri GenerateTargetUri(const std::string &key);
+    bool EnableIme(int32_t userId, const std::string &bundleName);
 
 private:
     SettingsDataUtils() = default;
     ~SettingsDataUtils();
-    bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
     int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
     int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
-    Uri GenerateTargetUri(const std::string &key);
     sptr<IRemoteObject> GetToken();
+    std::vector<std::string> split(const std::string &text, char separator);
+    std::string SetSettingValues(const std::string &settingValue, const std::string &bundleName);
 
 private:
     static std::mutex instanceMutex_;

@@ -74,6 +74,8 @@ public:
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
     virtual int32_t GetSecurityMode(int32_t &security) = 0;
     virtual int32_t IsDefaultIme() = 0;
+    virtual bool IsDefaultImeSet() = 0;
+    virtual bool EnableIme(const std::string &bundleName) = 0;
     virtual int32_t ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
