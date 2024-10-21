@@ -578,6 +578,10 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
 int32_t ImeInfoInquirer::ParseSubtype(const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,
     std::vector<Subtype> &subtypes)
 {
+    if (extInfo.metadata.empty()) {
+        IMSA_HILOGE("metadata is empty!");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
     auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
         [](const Metadata &metadata) { return metadata.name == SUBTYPE_PROFILE_METADATA_NAME; });
     if (iter == extInfo.metadata.end()) {
