@@ -227,6 +227,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         if (needShow) {
             ShowKeyboardImplWithoutLock(cmdId_);
         }
+        isImeTerminating.store(false);
     };
 
     if (!imeListener_) {
@@ -374,6 +375,7 @@ int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     if (isTerminateIme) {
+        isImeTerminating.store(true);
         return imeListener->OnInputStop();
     }
     return ErrorCode::NO_ERROR;
@@ -561,6 +563,11 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey)
 
 int32_t InputMethodAbility::HideKeyboardSelf()
 {
+    // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
+    if (isImeTerminating.load()) {
+        IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
+        return ErrorCode::NO_ERROR;
+    }
     InputMethodSyncTrace tracer("IMA_HideKeyboardSelf start.");
     auto ret = HideKeyboard(Trigger::IME_APP, false);
     if (ret == ErrorCode::NO_ERROR) {
@@ -850,10 +857,16 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
 
 int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
+    // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
+    if (isImeTerminating.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
+        return ErrorCode::NO_ERROR;
+    }
+
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP, false);
 }
 
