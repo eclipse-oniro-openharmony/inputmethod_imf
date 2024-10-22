@@ -235,13 +235,20 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     if (remote == nullptr) {
         return;
     }
+    auto clientInfo = GetClientInfo(remote->AsObject());
     IMSA_HILOGI("userId: %{public}d.", userId_);
     if (IsSameClient(remote, GetCurrentClient())) {
-        auto clientInfo = GetClientInfo(remote->AsObject());
         if (clientInfo != nullptr) {
             StopImeInput(clientInfo->bindImeType, clientInfo->channel);
         }
         SetCurrentClient(nullptr);
+        RestoreCurrentImeSubType();
+    }
+    if (IsSameClient(remote, GetInactiveClient())) {
+        if (clientInfo != nullptr) {
+            StopImeInput(clientInfo->bindImeType, clientInfo->channel);
+        }
+        SetInactiveClient(nullptr);
         RestoreCurrentImeSubType();
     }
     RemoveClientInfo(remote->AsObject(), true);
