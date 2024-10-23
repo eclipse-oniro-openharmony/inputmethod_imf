@@ -404,8 +404,8 @@ private:
     static napi_value GetResultEditorAttribute(
         napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
     static napi_value HandleParamCheckFailure(napi_env env);
-    static napi_status GetPreviewTextParam(
-        napi_env env, size_t argc, napi_value *argv, std::string &text, Range &range);
+    static napi_status GetPreviewTextParam(napi_env env, size_t argc, napi_value *argv, std::string &text,
+        Range &range);
 
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;

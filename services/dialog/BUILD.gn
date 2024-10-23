@@ -13,6 +13,7 @@
 
 import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
+import("./signature/InputMethodChooseDialog.gni")
 
 group("input_method_choose_dialog") {
   deps = [ ":input_method_choose_hap" ]
@@ -32,6 +33,12 @@ ohos_hap("input_method_choose_hap") {
   part_name = "prebuilt_hap"
   publicity_file = "${inputmethod_path}/publicity.xml"
   module_install_dir = "app/com.ohos.inputmethodchoosedialog"
+  if (defined(sign_hap_py_path)) {
+    certificate_profile = "${certificate_profile_path}"
+    key_alias = "InputMethodChooseDialog Release"
+    private_key_path = "InputMethodChooseDialog Release"
+    compatible_version = "9"
+  }
 }
 
 ohos_js_assets("input_method_choose_dialog_js_assets") {

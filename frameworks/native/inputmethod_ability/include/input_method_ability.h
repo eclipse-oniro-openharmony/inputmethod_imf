@@ -161,6 +161,7 @@ private:
     int32_t HideKeyboardImplWithoutLock(int32_t cmdId, bool isForce);
     int32_t ShowKeyboardImplWithLock(int32_t cmdId);
     int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };
@@ -168,13 +169,13 @@ private:
     sptr<IInputMethodCore> coreStub_{ nullptr };
     sptr<IInputMethodAgent> agentStub_{ nullptr };
     sptr<IInputMethodAgent> systemAgentStub_{ nullptr };
-    std::mutex imeCheckMutex_;
-    bool isCurrentIme_ = false;
 
+    bool isPendingShowKeyboard_ = false;
     double positionY_ = 0;
     double height_ = 0;
 
-    bool isPendingShowKeyboard_ = false;
+    std::mutex imeCheckMutex_;
+    bool isCurrentIme_ = false;
 
     std::mutex defaultImeCheckMutex_;
     bool isDefaultIme_ = false;

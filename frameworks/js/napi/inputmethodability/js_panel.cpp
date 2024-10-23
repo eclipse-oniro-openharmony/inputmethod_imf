@@ -168,7 +168,7 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
             "param width type must be number", TYPE_NONE, status);
         // 1 means the second param height<uint32_t>
         PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[1], ctxt->height) == napi_ok,
-            "param height type must be number", TYPE_NONE, status);
+            "height type must be number!", TYPE_NONE, status);
         ctxt->info = { std::chrono::system_clock::now(), JsEvent::RESIZE };
         jsQueue_.Push(ctxt->info);
         return napi_ok;
@@ -305,13 +305,13 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     PARAM_CHECK_RETURN(env,
         (panelFlag == PanelFlag::FLG_FIXED || panelFlag == PanelFlag::FLG_FLOATING ||
             panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN),
-        "param flag type must be one of PanelFlag", TYPE_NONE, nullptr);
+        "flag type must be one of PanelFlag!", TYPE_NONE, nullptr);
     JsEventInfo eventInfo = { std::chrono::system_clock::now(), JsEvent::CHANGE_FLAG };
     jsQueue_.Push(eventInfo);
     jsQueue_.Wait(eventInfo);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
     jsQueue_.Pop();
-    CHECK_RETURN(ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!", nullptr);
+    CHECK_RETURN(ret == ErrorCode::NO_ERROR, "failed to ChangePanelFlag!", nullptr);
     return nullptr;
 }
 

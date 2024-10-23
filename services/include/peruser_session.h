@@ -142,6 +142,7 @@ public:
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     BlockQueue<SwitchInfo>& GetSwitchQueue();
     bool IsWmsReady();
+    bool CheckPwdInputPatternConv(InputClientInfo &clientInfo);
     int32_t RestoreCurrentIme();
 
 private:

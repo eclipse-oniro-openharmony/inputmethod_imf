@@ -143,7 +143,7 @@ export struct InputMethodListDialog {
     let context = getContext(this) as common.UIAbilityContext;
     try {
       let activeSubTypeStr = await settings.getValue(context, settings.input.ACTIVATED_INPUT_METHOD_SUB_MODE);
-      let activeSubType: Array<SubType> = JSON.parse(activeSubTypeStr);
+      let activeSubType: SubType[] = JSON.parse(activeSubTypeStr);
       if (activeSubType) {
         console.info(`${TAG} activeSubType: ${JSON.stringify(activeSubType)}`);
         for (let i = 0; i < this.inputMethods.length; i++) {

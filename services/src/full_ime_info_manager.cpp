@@ -175,6 +175,24 @@ std::vector<FullImeInfo> FullImeInfoManager::Get(int32_t userId)
     return it->second;
 }
 
+bool FullImeInfoManager::Get(const std::string &bundleName, int32_t userId, FullImeInfo &fullImeInfo)
+{
+    std::lock_guard<std::mutex> lock(lock_);
+    auto it = fullImeInfos_.find(userId);
+    if (it == fullImeInfos_.end()) {
+        IMSA_HILOGD("user %{public}d info", userId);
+        return false;
+    }
+    auto iter = std::find_if(it->second.begin(), it->second.end(),
+        [&bundleName](const FullImeInfo &info) { return bundleName == info.prop.name; });
+    if (iter == it->second.end()) {
+        IMSA_HILOGD("ime: %{public}s not in cache", bundleName.c_str());
+        return false;
+    }
+    fullImeInfo = *iter;
+    return true;
+}
+
 bool FullImeInfoManager::Has(int32_t userId, const std::string &bundleName)
 {
     std::lock_guard<std::mutex> lock(lock_);

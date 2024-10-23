@@ -110,7 +110,10 @@ int32_t ImeSystemCmdChannel::ConnectSystemCmd(const sptr<OnSystemCmdListener> &l
 int32_t ImeSystemCmdChannel::RunConnectSystemCmd()
 {
     if (systemChannelStub_ == nullptr) {
-        systemChannelStub_ = new (std::nothrow) SystemCmdChannelStub();
+        std::lock_guard<decltype(systemChannelMutex_)> lock(systemChannelMutex_);
+        if (systemChannelStub_ == nullptr) {
+            systemChannelStub_ = new (std::nothrow) SystemCmdChannelStub();
+        }
         if (systemChannelStub_ == nullptr) {
             IMSA_HILOGE("channel is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;

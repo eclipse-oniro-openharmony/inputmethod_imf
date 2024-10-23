@@ -596,7 +596,7 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
                        (abilityName == obj.first.want.GetElement().GetAbilityName());
             });
         if (item != connects_.end()) {
-            // match bundlename && abilityname
+            // match bundleName && abilityName
             if (item->second != nullptr) {
                 item->second->ReleaseConnection();
             }

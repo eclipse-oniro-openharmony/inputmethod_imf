@@ -262,6 +262,13 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     IMSA_HILOGI(
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
+    if (clientInfo.needHide) {
+        IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
+        auto panel = GetSoftKeyboardPanel();
+        if (panel != nullptr) {
+            panel->HidePanel(false);
+        }
+    }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
                                    : InvokeStartInputCallback(clientInfo.isNotifyInputStart);
     if (ret != ErrorCode::NO_ERROR) {
@@ -494,19 +501,8 @@ int32_t InputMethodAbility::ShowKeyboardImplWithoutLock(int32_t cmdId)
 
 void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    // CANDIDATE_COLUMN not notify
-    if (info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
-        return;
-    }
     auto channel = GetInputDataChannelProxy();
-    if (channel != nullptr) {
-        channel->NotifyPanelStatusInfo(info);
-    }
-
-    auto controlChannel = GetInputControlChannel();
-    if (controlChannel != nullptr && info.trigger == Trigger::IME_APP && !info.visible) {
-        controlChannel->HideKeyboardSelf();
-    }
+    NotifyPanelStatusInfo(info, channel);
 }
 
 int32_t InputMethodAbility::InvokeStartInputCallback(bool isNotifyInputStart)
@@ -551,7 +547,11 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
             kdListener_->OnCursorUpdate(
                 textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
         }
-        if (textConfig.textSelection.newBegin != INVALID_SELECTION_VALUE) {
+        if (textConfig.textSelection.newBegin == INVALID_SELECTION_VALUE
+            || (textConfig.textSelection.newBegin == textConfig.textSelection.oldBegin
+                && textConfig.textSelection.newEnd == textConfig.textSelection.oldEnd)) {
+            IMSA_HILOGD("invalid selection or no selection change");
+        } else {
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
                 textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
@@ -899,8 +899,7 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
 
 int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
-    IMSA_HILOGI("IMA");
+    IMSA_HILOGI("InputMethodAbility start.");
     if (inputMethodPanel == nullptr) {
         IMSA_HILOGE("panel is nullptr");
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -964,16 +963,10 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = inputMethodPanel->HidePanel(isForce);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGD("failed, ret: %{public}d", ret);
-        return ret;
+    if (ret == ErrorCode::NO_ERROR) {
+        NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
     }
-    NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
-    // finish previewing text when soft keyboard hides
-    if (inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-        FinishTextPreview(true);
-    }
-    return ErrorCode::NO_ERROR;
+    return ret;
 }
 
 int32_t InputMethodAbility::NotifyPanelStatus(
@@ -1156,9 +1149,24 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
-    panels_.ForEach([this](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+    auto channelProxy = std::make_shared<InputDataChannelProxy>(channel);
+    if (channelProxy == nullptr) {
+        IMSA_HILOGE("failed to create channel proxy!");
+        return;
+    }
+    panels_.ForEach([this, &channelProxy](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
-            HidePanel(panel);
+            auto ret = panel->HidePanel(false);
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("failed, ret: %{public}d", ret);
+                return false;
+            }
+            NotifyPanelStatusInfo({ { panel->GetPanelType(), panel->GetPanelFlag() }, false, Trigger::IME_APP },
+                channelProxy);
+            // finish previewing text when soft keyboard hides
+            if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+                FinishTextPreview(true);
+            }
         }
         return false;
     });
@@ -1260,7 +1268,7 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
     TextTotalConfig textConfig;
     int32_t ret = GetTextConfig(textConfig);
     if (ret != ErrorCode::NO_ERROR || textConfig.windowId == ANCO_INVALID_WINDOW_ID) {
-        IMSA_HILOGE("failed to get window id, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to get window id, ret: %{public}d!", ret);
         return ErrorCode::ERROR_GET_TEXT_CONFIG;
     }
     ret = panel->SetCallingWindow(textConfig.windowId);
@@ -1273,6 +1281,23 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
         IMSA_HILOGE("GetCallingWindowInfo failed, ret: %{public}d", ret);
     }
     return ret;
+}
+
+void InputMethodAbility::NotifyPanelStatusInfo(
+    const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy)
+{
+    // CANDIDATE_COLUMN not notify
+    if (info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
+        return;
+    }
+    if (channelProxy != nullptr) {
+        channelProxy->NotifyPanelStatusInfo(info);
+    }
+
+    auto controlChannel = GetInputControlChannel();
+    if (controlChannel != nullptr && info.trigger == Trigger::IME_APP && !info.visible) {
+        controlChannel->HideKeyboardSelf();
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

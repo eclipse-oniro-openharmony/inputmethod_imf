@@ -20,6 +20,7 @@
 #include <map>
 #include <thread>
 
+#include "ability_manager_interface.h"
 #include "application_info.h"
 #include "block_queue.h"
 #include "bundle_mgr_proxy.h"
@@ -41,6 +42,7 @@
 namespace OHOS {
 namespace MiscServices {
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
+
 class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
 
@@ -115,6 +117,7 @@ private:
     int32_t HandlePackageEvent(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
     int32_t OnDisplayOptionalInputMethod();
+    static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     void SubscribeCommonEvent();
     int32_t Switch(int32_t userId, const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchExtension(int32_t userId, const std::shared_ptr<ImeInfo> &info);
@@ -161,6 +164,8 @@ private:
     void OnSecurityModeChange();
     bool IsCurrentIme(int32_t userId);
     int32_t StartInputType(int32_t userId, InputType type);
+    // if switch input type need to switch ime, then no need to hide panel first.
+    void NeedHideWhenSwitchInputType(int32_t userId, bool &needHide);
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
