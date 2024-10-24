@@ -854,7 +854,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto targetIme = GetImeNativeCfg(userId, switchInfo.bundleName, switchInfo.subName);
+    auto targetIme = session->GetImeNativeCfg(userId, switchInfo.bundleName, switchInfo.subName);
     if (targetIme == nullptr) {
         IMSA_HILOGE("targetIme is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;

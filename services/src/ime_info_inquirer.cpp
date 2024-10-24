@@ -1190,18 +1190,5 @@ std::string ImeInfoInquirer::GetTargetString(
     IMSA_HILOGD("No match target string");
     return "";
 }
-
-std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeNativeCfg(int32_t userId, const std::string &bundleName,
-        const std::string &subName)
-{
-    auto targetImeProperty = GetImeProperty(userId, bundleName);
-    if (targetImeProperty == nullptr) {
-        IMSA_HILOGE("GetImeProperty [%{public}d, %{public}s] failed!", userId, bundleName.c_str());
-        return nullptr;
-    }
-    std::string targetName = bundleName + "/" + targetImeProperty->id;
-    ImeNativeCfg targetIme = { targetName, bundleName, subName, targetImeProperty->id };
-    return std::make_shared<ImeNativeCfg>(targetIme);
-}
 } // namespace MiscServices
 } // namespace OHOS

@@ -1002,8 +1002,7 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
     std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
     if (InputTypeManager::GetInstance().IsStarted()) {
         auto currentInputType = InputTypeManager::GetInstance().GetCurrentIme();
-        imeToStart = ImeInfoInquirer::GetInstance().GetImeNativeCfg(userId_, currentInputType.bundleName,
-            currentInputType.subName);
+        imeToStart = GetImeNativeCfg(userId_, currentInputType.bundleName, currentInputType.subName);
     } else {
         auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
         imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
@@ -1725,6 +1724,19 @@ bool PerUserSession::CheckPwdInputPatternConv(InputClientInfo &newClientInfo)
     }
     IMSA_HILOGI("new input pattern is normal.");
     return exClientInfo->config.inputAttribute.GetSecurityFlag();
+}
+
+std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeNativeCfg(int32_t userId, const std::string &bundleName,
+        const std::string &subName)
+{
+    auto targetImeProperty = GetImeProperty(userId, bundleName);
+    if (targetImeProperty == nullptr) {
+        IMSA_HILOGE("GetImeProperty [%{public}d, %{public}s] failed!", userId, bundleName.c_str());
+        return nullptr;
+    }
+    std::string targetName = bundleName + "/" + targetImeProperty->id;
+    ImeNativeCfg targetIme = { targetName, bundleName, subName, targetImeProperty->id };
+    return std::make_shared<ImeNativeCfg>(targetIme);
 }
 } // namespace MiscServices
 } // namespace OHOS
