@@ -100,10 +100,12 @@ struct SysPanelAdjustCfg : public Serializable {
 struct DefaultFullImeInfo : public Serializable {
     std::string appId;
     std::string expirationTime;
+    uint32_t expirationVersionCode{ 0 };
     bool Unmarshal(cJSON *node) override
     {
         bool ret = GetValue(node, GET_NAME(appIdentifier), appId);
         ret &= GetValue(node, GET_NAME(expirationTime), expirationTime);
+        GetValue(node, GET_NAME(expirationVersionCode), expirationVersionCode);
         return ret;
     }
 };
