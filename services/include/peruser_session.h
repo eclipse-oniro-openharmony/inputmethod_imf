@@ -145,6 +145,8 @@ public:
     bool CheckPwdInputPatternConv(InputClientInfo &clientInfo);
     int32_t RestoreCurrentIme();
     int32_t SetInputType();
+    std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
+        const std::string &subName);
 
 private:
     struct ResetManager {

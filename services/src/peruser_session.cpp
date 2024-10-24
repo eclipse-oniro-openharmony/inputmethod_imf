@@ -999,10 +999,17 @@ bool PerUserSession::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> 
 
 bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
 {
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    auto imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
-    IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
-        imeToStart->imeId.c_str());
+    std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
+    if (InputTypeManager::GetInstance().IsStarted()) {
+        auto currentInputType = InputTypeManager::GetInstance().GetCurrentIme();
+        imeToStart = ImeInfoInquirer::GetInstance().GetImeNativeCfg(userId_, currentInputType.bundleName,
+            currentInputType.subName);
+    } else {
+        auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+        imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+        IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
+            imeToStart->imeId.c_str());
+    }
     if (!StartIme(imeToStart, isStopCurrentIme)) {
         IMSA_HILOGE("failed to start ime!");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED,
