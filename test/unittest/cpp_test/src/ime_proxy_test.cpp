@@ -37,6 +37,7 @@ constexpr int32_t RETRY_INTERVAL = 100;
 constexpr int32_t RETRY_TIME = 30;
 constexpr int32_t WAIT_APP_START_COMPLETE = 1;
 constexpr int32_t WAIT_BIND_COMPLETE = 1;
+constexpr int32_t WAIT_CLICK_COMPLETE = 100;
 constexpr const char *BUNDLENAME = "com.example.editorbox";
 class ImeProxyTest : public testing::Test {
 public:
@@ -57,7 +58,6 @@ public:
     {
         TddUtil::DestroyWindow();
         TddUtil::RestoreSelfTokenID();
-        TddUtil::KillImsaProcess();
     }
     void SetUp()
     {
@@ -102,6 +102,7 @@ public:
         std::string result;
         auto ret = TddUtil::ExecuteCmd(cmd, result);
         EXPECT_TRUE(ret);
+        usleep(WAIT_CLICK_COMPLETE); // ensure click complete
     }
 
     static void StopApp()

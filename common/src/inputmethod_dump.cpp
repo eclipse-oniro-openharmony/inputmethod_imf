@@ -51,7 +51,7 @@ bool InputmethodDump::Dump(int fd, const std::vector<std::string> &args)
     if (command == CMD_HELP) {
         ShowHelp(fd);
     } else if (command == CMD_ALL_DUMP) {
-        if (!dumpAllMethod_) {
+        if (dumpAllMethod_ == nullptr) {
             return false;
         }
         dumpAllMethod_(fd);

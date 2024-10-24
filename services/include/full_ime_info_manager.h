@@ -36,6 +36,7 @@ public:
     int32_t Update(int32_t userId, const std::string &bundleName); // package changed
     std::vector<FullImeInfo> Get(int32_t userId);
     std::string Get(int32_t userId, uint32_t tokenId);
+    bool Get(const std::string &bundleName, int32_t userId, FullImeInfo &fullImeInfo);
     bool Has(int32_t userId, const std::string &bundleName);
 
 private:

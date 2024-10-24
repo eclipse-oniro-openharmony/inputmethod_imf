@@ -39,7 +39,7 @@ void SystemLanguageObserver::OnChange(const char *key, const char *value, void *
         IMSA_HILOGE("key: %{public}s is error", key);
         return;
     }
-    IMSA_HILOGD("value: %{public}s", value);
+    IMSA_HILOGD("value: %{public}s.", value);
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SYS_LANGUAGE_CHANGED, nullptr);
     if (msg == nullptr) {
         return;

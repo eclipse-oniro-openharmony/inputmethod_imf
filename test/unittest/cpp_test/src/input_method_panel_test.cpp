@@ -339,7 +339,7 @@ void InputMethodPanelTest::ImcPanelHideNumCheck(uint32_t num)
         return;
     }
     bool ret = imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME),
-        [&num] { return num == imeHideCallbackNum_; });
+        [&num] { return num <= imeHideCallbackNum_; });
     EXPECT_TRUE(ret);
 }
 

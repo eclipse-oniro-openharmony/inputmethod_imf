@@ -23,7 +23,7 @@ namespace MiscServices {
 sptr<IInputMethodSystemAbility> ImaUtils::abilityManager_{ nullptr }; // for tdd test
 sptr<IInputMethodSystemAbility> ImaUtils::GetImsaProxy()
 {
-    IMSA_HILOGD("ImaUtils::GetImsaProxy");
+    IMSA_HILOGD("ImaUtils::GetImsaProxy start.");
     // for tdd test begin
     if (abilityManager_ != nullptr) {
         return abilityManager_;
