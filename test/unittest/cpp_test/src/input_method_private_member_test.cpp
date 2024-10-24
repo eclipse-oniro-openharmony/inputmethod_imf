@@ -383,7 +383,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_003, TestSize.L
     info.prop = { .name = "testBundleName" };
     info.subProps = { { .id = "testSubName" } };
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName" });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName",
+        false });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -404,7 +405,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.L
     info.prop = { .name = "testBundleName", .id = "testExtName" };
     info.subProps = { { .name = "testBundleName", .id = "testSubName", .language = "French" } };
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName" });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName",
+        false });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -423,7 +425,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_005, TestSize.L
     info.prop = { .name = "testBundleName", .id = "testExtName" };
     info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" } };
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName" });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName",
+        false });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -446,7 +449,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.L
         { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
 
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName" });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName",
+        false});
     // english->chinese
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
@@ -489,7 +493,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_008, TestSize.L
     service_->userId_ = userId;
     auto prop = InputMethodController::GetInstance()->GetCurrentInputMethod();
     auto subProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ userId, prop->name + "/" + prop->id, subProp->id });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ userId, prop->name + "/" + prop->id, subProp->id, false });
     std::vector<Property> props;
     InputMethodController::GetInstance()->ListInputMethod(props);
     if (props.size() == 1) {
@@ -530,7 +534,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.L
     // subName is not find
     auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { currentUserId, currentProp->name + "/" + currentProp->id, "tt" });
+        { currentUserId, currentProp->name + "/" + currentProp->id, "tt", false });
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->name == currentProp->name);
@@ -539,7 +543,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.L
     auto currentSubProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
     ImeCfgManager::GetInstance().imeConfigs_.clear();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { currentUserId, currentProp->name + "/" + currentProp->id, currentSubProp->id });
+        { currentUserId, currentProp->name + "/" + currentProp->id, currentSubProp->id, false});
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->id == currentSubProp->id);
@@ -563,7 +567,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentIme_001, TestSize.Level
     // get correct prop
     auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { currentUserId, currentProp->name + "/" + currentProp->id, "test" });
+        { currentUserId, currentProp->name + "/" + currentProp->id, currentProp->id, false});
     prop = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(currentUserId);
     ASSERT_TRUE(prop != nullptr);
     EXPECT_TRUE(prop->id == currentProp->id);
@@ -644,7 +648,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestIsNewExtInfos_001, TestSize.Level
 HWTEST_F(InputMethodPrivateMemberTest, ICM_TestDeleteImeCfg_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestDeleteImeCfg_001 TEST START");
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 100, "testBundleName", "testSubName" });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 100, "testBundleName", "testSubName", false});
     ImeCfgManager::GetInstance().DeleteImeCfg(100);
     EXPECT_TRUE(ImeCfgManager::GetInstance().imeConfigs_.empty());
 }
@@ -829,7 +833,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestHandlePackageEvent, TestSize.Level0)
     //remove bundle not current ime
     auto parcel3 = new (std::nothrow) MessageParcel();
     service_->userId_ = userId;
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 60, "testBundleName/testExtName", "testSubName" });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 60, "testBundleName/testExtName", "testSubName", false });
     parcel3->WriteInt32(userId);
     parcel3->WriteString(bundleName);
     auto msg3 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel3);

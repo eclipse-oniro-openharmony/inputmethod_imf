@@ -482,6 +482,28 @@ std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype
     return property;
 }
 
+bool InputMethodController::IsDefaultImeSet()
+{
+    IMSA_HILOGI("enter.");
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return false;
+    }
+    return proxy->IsDefaultImeSet();
+}
+ 
+bool InputMethodController::EnableIme(const std::string &bundleName)
+{
+    IMSA_HILOGI("enter.");
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return false;
+    }
+    return proxy->EnableIme(bundleName);
+}
+
 int32_t InputMethodController::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("InputMethodController::StartInput start.");

@@ -20,6 +20,8 @@
 #include <string>
 
 #include "data_ability_observer_interface.h"
+#include "datashare_value_object.h"
+#include "datashare_values_bucket.h"
 #include "uri.h"
 
 namespace OHOS {
@@ -55,6 +57,8 @@ public:
     static void RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
     static void UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
     static bool Release();
+    static int Update(Uri &uri, const DataSharePredicates &predicates, const DataShareValuesBucket &value);
+    static int Insert(Uri &uri, const DataShareValuesBucket &value);
 
 private:
     static std::shared_ptr<DataShareHelper> instance_;
