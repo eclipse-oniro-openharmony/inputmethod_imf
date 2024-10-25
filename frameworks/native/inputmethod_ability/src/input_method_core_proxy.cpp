@@ -77,9 +77,9 @@ int32_t InputMethodCoreProxy::ShowKeyboard()
     return SendRequest(SHOW_KEYBOARD);
 }
 
-int32_t InputMethodCoreProxy::HideKeyboard(bool isForce)
+int32_t InputMethodCoreProxy::HideKeyboard()
 {
-    return SendRequest(HIDE_KEYBOARD, [isForce](MessageParcel &data) { return ITypesUtil::Marshal(data, isForce); });
+    return SendRequest(HIDE_KEYBOARD);
 }
 
 int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)

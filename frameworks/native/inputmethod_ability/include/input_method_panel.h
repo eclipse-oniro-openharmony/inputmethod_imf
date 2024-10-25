@@ -87,7 +87,7 @@ public:
     PanelType GetPanelType();
     PanelFlag GetPanelFlag();
     int32_t ShowPanel();
-    int32_t HidePanel(bool isForce);
+    int32_t HidePanel();
     int32_t SizeChange(const WindowSize &size);
     WindowSize GetKeyboardSize();
     bool SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);

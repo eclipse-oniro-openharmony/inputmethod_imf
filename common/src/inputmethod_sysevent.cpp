@@ -37,8 +37,7 @@ const std::unordered_map<int32_t, std::string> InputMethodSysEvent::operateInfo_
                                                                      "editable state." },
     { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL), "HideSoftKeyboard, hide soft keyboard." },
     { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNFOCUSED), "OnUnfocused: unfocused, hide soft keyboard." },
-    { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF), "HideKeyboardSelf: hide soft keyboard self." },
-    { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_FORCE), "HidePanel: force hide soft keyboard." }
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF), "HideKeyboardSelf: hide soft keyboard self." }
 };
 
 std::map<int32_t, int32_t> InputMethodSysEvent::inputmethodBehaviour_ = {
@@ -154,7 +153,6 @@ std::string InputMethodSysEvent::GetOperateAction(int32_t infoCode)
         case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL):
         case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNFOCUSED):
         case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF):
-        case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_FORCE):
             return "hide";
         default:
             break;
