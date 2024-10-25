@@ -1726,7 +1726,7 @@ bool PerUserSession::CheckPwdInputPatternConv(InputClientInfo &newClientInfo)
     return exClientInfo->config.inputAttribute.GetSecurityFlag();
 }
 
-std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeNativeCfg(int32_t userId, const std::string &bundleName,
+std::shared_ptr<ImeNativeCfg> PerUserSession::GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName)
 {
     auto targetImeProperty = GetImeProperty(userId, bundleName);
