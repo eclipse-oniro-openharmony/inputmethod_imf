@@ -854,19 +854,16 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeProperty(userId, switchInfo.bundleName);
-    if (targetImeProperty == nullptr) {
-        IMSA_HILOGE("GetImeProperty [%{public}d, %{public}s] failed!", userId, switchInfo.bundleName.c_str());
+    auto targetIme = session->GetImeNativeCfg(userId, switchInfo.bundleName, switchInfo.subName);
+    if (targetIme == nullptr) {
+        IMSA_HILOGE("targetIme is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    std::string targetName = switchInfo.bundleName + "/" + targetImeProperty->id;
-    ImeNativeCfg targetIme = { targetName, switchInfo.bundleName, switchInfo.subName, targetImeProperty->id };
-    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
-    if (!session->StartIme(std::make_shared<ImeNativeCfg>(targetIme))) {
+    if (!session->StartIme(targetIme)) {
         IMSA_HILOGE("start input method failed!");
-        InputTypeManager::GetInstance().Set(false);
         return ErrorCode::ERROR_IME_START_FAILED;
     }
+    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     int32_t ret = session->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
     if (ret != ErrorCode::NO_ERROR) {
         InputTypeManager::GetInstance().Set(false);

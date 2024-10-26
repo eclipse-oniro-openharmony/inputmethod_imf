@@ -993,10 +993,13 @@ bool PerUserSession::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> 
 
 bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
 {
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    auto imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
-    IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
-        imeToStart->imeId.c_str());
+    std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
+    if (!CheckInputTypeToStart(imeToStart)) {
+        auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+        imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+        IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
+            imeToStart->imeId.c_str());
+    }
     if (!StartIme(imeToStart, isStopCurrentIme)) {
         IMSA_HILOGE("failed to start ime!");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED,
@@ -1716,6 +1719,33 @@ bool PerUserSession::CheckPwdInputPatternConv(InputClientInfo &newClientInfo)
     }
     IMSA_HILOGI("new input pattern is normal.");
     return exClientInfo->config.inputAttribute.GetSecurityFlag();
+}
+
+std::shared_ptr<ImeNativeCfg> PerUserSession::GetImeNativeCfg(int32_t userId, const std::string &bundleName,
+    const std::string &subName)
+{
+    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeProperty(userId, bundleName);
+    if (targetImeProperty == nullptr) {
+        IMSA_HILOGE("GetImeProperty [%{public}d, %{public}s] failed!", userId, bundleName.c_str());
+        return nullptr;
+    }
+    std::string targetName = bundleName + "/" + targetImeProperty->id;
+    ImeNativeCfg targetIme = { targetName, bundleName, subName, targetImeProperty->id };
+    return std::make_shared<ImeNativeCfg>(targetIme);
+}
+
+bool PerUserSession::CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart)
+{
+    if (!InputTypeManager::GetInstance().IsStarted()) {
+        return false;
+    }
+    auto currentInputTypeIme = InputTypeManager::GetInstance().GetCurrentIme();
+    if (currentInputTypeIme.bundleName.empty()) {
+        auto currentInputType = InputTypeManager::GetInstance().GetCurrentInputType();
+        InputTypeManager::GetInstance().GetImeByInputType(currentInputType, currentInputTypeIme);
+    }
+    imeToStart = GetImeNativeCfg(userId_, currentInputTypeIme.bundleName, currentInputTypeIme.subName);
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS
