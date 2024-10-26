@@ -827,8 +827,8 @@ sptr<IInputClient> PerUserSession::GetInactiveClient()
 void PerUserSession::NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty)
 {
     IMSA_HILOGD("start.");
-    std::lock_guard<std::recursive_mutex> lock(mtx);
-    for (const auto &client : mapClients_) {
+    auto clientMap = GetClientMap();
+    for (const auto &client : clientMap) {
         auto clientInfo = client.second;
         if (clientInfo == nullptr || !EventStatusManager::IsImeChangeOn(clientInfo->eventFlag)) {
             IMSA_HILOGD("client nullptr or no need to notify.");

@@ -57,6 +57,8 @@ public:
     static sptr<InputMethodSystemAbility> service_;
 };
 constexpr std::int32_t MAIN_USER_ID = 100;
+constexpr std::int32_t INVALID_USER_ID = 10001;
+constexpr std::int32_t INVALID_PROCESS_ID = -1;
 void InputMethodPrivateMemberTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUpTestCase");
@@ -264,6 +266,15 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionClientError, TestSize.Level
     sptr<InputMethodCoreStub> core = new InputMethodCoreStub();
 
     auto clientInfo = userSession->GetClientInfo(imc->clientInfo_.client->AsObject());
+    EXPECT_EQ(clientInfo, nullptr);
+
+    clientInfo = userSession->GetCurClientInfo();
+    EXPECT_EQ(clientInfo, nullptr);
+
+    bool clientInfoIsNull = userSession->IsCurClientFocused(INVALID_PROCESS_ID, INVALID_USER_ID);
+    EXPECT_FALSE(clientInfoIsNull);
+
+    clientInfo = userSession->GetClientInfo(INVALID_USER_ID);
     EXPECT_EQ(clientInfo, nullptr);
 
     userSession->SetCurrentClient(nullptr);
@@ -1143,6 +1154,115 @@ HWTEST_F(InputMethodPrivateMemberTest, test_WmsConnectionObserver, TestSize.Leve
     int32_t invalidUserId = 1234567890;
     observer.Remove(invalidUserId);
     ASSERT_EQ(observer.connectedUserId_.find(invalidUserId), observer.connectedUserId_.end());
+}
+
+/**
+ * @tc.name: BranchCoverage001
+ * @tc.desc: BranchCoverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest BranchCoverage001 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    sptr<IInputMethodCore> core = nullptr;
+    sptr<IRemoteObject> agent = nullptr;
+    pid_t pid{ -1 };
+    auto ret = userSession->UpdateImeData(core, agent, pid);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    InputClientInfo clientInfo;
+    auto ret2 = service_->PrepareInput(INVALID_USER_ID, clientInfo);
+    EXPECT_NE(ret2, ErrorCode::NO_ERROR);
+
+    clientInfo.config.inputAttribute.inputPattern = 7;
+    clientInfo.isNotifyInputStart = false;
+    ret2 = service_->CheckInputTypeOption(INVALID_USER_ID, clientInfo);
+    EXPECT_NE(ret2, ErrorCode::NO_ERROR);
+
+    clientInfo.isNotifyInputStart = true;
+    ret2 = service_->CheckInputTypeOption(INVALID_USER_ID, clientInfo);
+    EXPECT_EQ(ret2, ErrorCode::ERROR_NULL_POINTER);
+
+    const std::string bundleName;
+    const std::string subName;
+    SwitchTrigger trigger = SwitchTrigger::IMSA;
+    ret2 = service_->SwitchInputMethod(bundleName, subName, trigger);
+    EXPECT_EQ(ret2, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    const std::shared_ptr<ImeInfo> info = nullptr;
+    ret2 = service_->SwitchSubType(INVALID_USER_ID, info);
+    EXPECT_NE(ret2, ErrorCode::NO_ERROR);
+
+    const SwitchInfo switchInfo;
+    ret2 = service_->SwitchInputType(INVALID_USER_ID, switchInfo);
+    EXPECT_NE(ret2, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: BranchCoverage002
+ * @tc.desc: BranchCoverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest BranchCoverage002 TEST START");
+    auto msgPtr = std::make_shared<Message>(0, nullptr);
+    const OHOS::MiscServices::Message* msg = msgPtr.get();
+    auto ret = service_->OnUserRemoved(msg);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = service_->OnUserStop(msg);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = service_->OnHideKeyboardSelf(msg);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = service_->HandlePackageEvent(msg);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    service_->HandleUserSwitched(INVALID_USER_ID);
+
+    const SwitchInfo switchInfo;
+    UserSessionManager::GetInstance().RemoveUserSession(INVALID_USER_ID);
+    auto ret2 = service_->OnStartInputType(INVALID_USER_ID, switchInfo, false);
+    EXPECT_EQ(ret2, ErrorCode::ERROR_NULL_POINTER);
+
+    bool needHide = false;
+    auto ret3 = service_->IsCurrentIme(INVALID_USER_ID);
+    service_->NeedHideWhenSwitchInputType(INVALID_USER_ID, needHide);
+    EXPECT_FALSE(ret3);
+}
+
+/**
+ * @tc.name: BranchCoverage003
+ * @tc.desc: BranchCoverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest BranchCoverage003 TEST START");
+    UserSessionManager::GetInstance().RemoveUserSession(INVALID_USER_ID);
+    const std::string bundleName = "";
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extInfos;
+    ImeInfoInquirer inquirer;
+    auto ret = inquirer.GetExtInfosByBundleName(INVALID_USER_ID, bundleName, extInfos);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    auto ret2 = inquirer.ListInputMethodInfo(INVALID_USER_ID);
+    EXPECT_TRUE(ret2.empty());
+
+    auto ret3 = inquirer.GetDumpInfo(INVALID_USER_ID);
+    EXPECT_TRUE(ret3 == "");
+
+    std::vector<Property> props = {};
+    ret = inquirer.ListEnabledInputMethod(INVALID_USER_ID, props, false);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+
+    ret = inquirer.ListDisabledInputMethod(INVALID_USER_ID, props, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    SwitchInfo switchInfo;
+    uint32_t cacheCount = -1;
+    ret = inquirer.GetSwitchInfoBySwitchCount(switchInfo, INVALID_USER_ID, false, cacheCount);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS
