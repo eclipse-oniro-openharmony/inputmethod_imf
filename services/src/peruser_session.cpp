@@ -1742,9 +1742,9 @@ bool PerUserSession::CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToS
         return false;
     }
     auto currentInputTypeIme = InputTypeManager::GetInstance().GetCurrentIme();
-    if (currentInputType.bundleName == "") {
+    if (currentInputTypeIme.bundleName == "") {
         auto currentInputType = InputTypeManager::GetInstance().GetCurrentInputType();
-        InputTypeManager::GetInstance().GetImeByInputType(currentInputType, currentInputTypeIme)
+        InputTypeManager::GetInstance().GetImeByInputType(currentInputType, currentInputTypeIme);
     }
     imeToStart = GetImeNativeCfg(userId_, currentInputTypeIme.bundleName, currentInputTypeIme.subName);
     return true;
