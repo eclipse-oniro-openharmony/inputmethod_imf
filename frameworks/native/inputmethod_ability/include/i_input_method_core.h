@@ -56,7 +56,7 @@ public:
     virtual int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient) = 0;
     virtual int32_t StopInput(const sptr<IRemoteObject> &channel) = 0;
     virtual int32_t ShowKeyboard() = 0;
-    virtual int32_t HideKeyboard(bool isForce) = 0;
+    virtual int32_t HideKeyboard() = 0;
     virtual int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) = 0;
     virtual int32_t StopInputService(bool isTerminateIme) = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;

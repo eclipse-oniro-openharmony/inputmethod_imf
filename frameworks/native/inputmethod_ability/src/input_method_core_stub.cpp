@@ -70,9 +70,9 @@ int32_t InputMethodCoreStub::ShowKeyboard()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodCoreStub::HideKeyboard(bool isForce)
+int32_t InputMethodCoreStub::HideKeyboard()
 {
-    auto task = std::make_shared<TaskImsaHideKeyboard>(isForce);
+    auto task = std::make_shared<TaskImsaHideKeyboard>();
     TaskManager::GetInstance().PostTask(task);
     return ErrorCode::NO_ERROR;
 }
@@ -196,12 +196,7 @@ int32_t InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessagePa
 
 int32_t InputMethodCoreStub::HideKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    bool isForce = false;
-    if (!ITypesUtil::Unmarshal(data, isForce)) {
-        IMSA_HILOGE("unmarshal failed!");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    auto ret = HideKeyboard(isForce);
+    auto ret = HideKeyboard();
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
