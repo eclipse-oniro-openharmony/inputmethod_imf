@@ -1000,10 +1000,7 @@ bool PerUserSession::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> 
 bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
 {
     std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
-    if (InputTypeManager::GetInstance().IsStarted()) {
-        auto currentInputType = InputTypeManager::GetInstance().GetCurrentIme();
-        imeToStart = GetImeNativeCfg(userId_, currentInputType.bundleName, currentInputType.subName);
-    } else {
+    if (!CheckInputTypeToStart(imeToStart)) {
         auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
         imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
         IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
@@ -1737,6 +1734,20 @@ std::shared_ptr<ImeNativeCfg> PerUserSession::GetImeNativeCfg(int32_t userId, co
     std::string targetName = bundleName + "/" + targetImeProperty->id;
     ImeNativeCfg targetIme = { targetName, bundleName, subName, targetImeProperty->id };
     return std::make_shared<ImeNativeCfg>(targetIme);
+}
+
+bool PerUserSession::CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart)
+{
+    if (!InputTypeManager::GetInstance().IsStarted()) {
+        return false;
+    }
+    auto currentInputTypeIme = InputTypeManager::GetInstance().GetCurrentIme();
+    if (currentInputType.bundleName == "") {
+        auto currentInputType = InputTypeManager::GetInstance().GetCurrentInputType();
+        InputTypeManager::GetInstance().GetImeByInputType(currentInputType, currentInputTypeIme)
+    }
+    imeToStart = GetImeNativeCfg(userId_, currentInputTypeIme.bundleName, currentInputTypeIme.subName);
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS
