@@ -859,7 +859,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
         IMSA_HILOGE("targetIme is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (!session->StartIme(std::make_shared<ImeNativeCfg>(targetIme))) {
+    if (!session->StartIme(targetIme)) {
         IMSA_HILOGE("start input method failed!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
