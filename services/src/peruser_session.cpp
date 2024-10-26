@@ -1727,7 +1727,7 @@ bool PerUserSession::CheckPwdInputPatternConv(InputClientInfo &newClientInfo)
 }
 
 std::shared_ptr<ImeNativeCfg> PerUserSession::GetImeNativeCfg(int32_t userId, const std::string &bundleName,
-        const std::string &subName)
+    const std::string &subName)
 {
     auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeProperty(userId, bundleName);
     if (targetImeProperty == nullptr) {
