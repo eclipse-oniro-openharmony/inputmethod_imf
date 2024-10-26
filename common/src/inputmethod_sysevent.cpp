@@ -203,5 +203,15 @@ bool InputMethodSysEvent::StartTimerForReport()
     std::lock_guard<std::mutex> lock(timerLock_);
     return StartTimer(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS);
 }
+
+void InputMethodSysEvent::ReportSystemShortCut(const std::string &shortcutName)
+{
+    IMSA_HILOGD("run in.");
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD_UE, "SYSTEM_SHORTCUT",
+        HiSysEventNameSpace::EventType::BEHAVIOR, "PROCESS_NAME", "inputmethod_service", "SHORTCUT_NAME", shortcutName);
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("system shortcut: %{public}s report failed! ret: %{public}d", shortcutName.c_str(), ret);
+    }
+}
 } // namespace MiscServices
 } // namespace OHOS

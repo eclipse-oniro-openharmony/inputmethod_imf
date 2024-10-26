@@ -22,10 +22,6 @@ namespace MiscServices {
 uint32_t InputEventCallback::keyState_ = static_cast<uint32_t>(0);
 bool InputEventCallback::isKeyHandled_ = false;
 const std::map<int32_t, uint8_t> MASK_MAP{
-    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, KeyboardEvent::SHIFT_LEFT_MASK },
-    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, KeyboardEvent::SHIFT_RIGHT_MASK },
-    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, KeyboardEvent::CTRL_LEFT_MASK },
-    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, KeyboardEvent::CTRL_RIGHT_MASK },
     { MMI::KeyEvent::KEYCODE_CAPS_LOCK, KeyboardEvent::CAPS_MASK },
 };
 
