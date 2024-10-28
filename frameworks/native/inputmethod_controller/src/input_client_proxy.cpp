@@ -61,30 +61,30 @@ int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandl
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("InputClientProxy::write interface token failed");
+        IMSA_HILOGE("write interface token failed!");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
     if (input != nullptr && (!input(data))) {
-        IMSA_HILOGE("InputClientProxy::write data failed");
+        IMSA_HILOGE("write data failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        IMSA_HILOGE("InputClientProxy remote is nullptr");
+        IMSA_HILOGE("remote is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputClientProxy send request failed, code: %{public}d, ret: %{public}d", code, ret);
+        IMSA_HILOGE("send request failed, code: %{public}d, ret: %{public}d!", code, ret);
         return ret;
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputClientProxy::reply error, ret %{public}d", ret);
+        IMSA_HILOGE("reply error, ret: %{public}d!", ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
-        IMSA_HILOGE("InputClientProxy::reply parcel error");
+        IMSA_HILOGE("reply parcel error!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ret;

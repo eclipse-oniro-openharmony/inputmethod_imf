@@ -33,17 +33,17 @@ void LogTimeStamp()
 
 bool BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
 {
-    IMSA_HILOGD("start");
+    IMSA_HILOGD("retry start");
     uint32_t times = 0;
     do {
         times++;
         if (func()) {
-            IMSA_HILOGD("success, retry times: %{public}d", times);
+            IMSA_HILOGD("success, retry times is: %{public}d", times);
             return true;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     } while (times < maxRetryTimes);
-    IMSA_HILOGI("failed");
+    IMSA_HILOGI("retry failed");
     return false;
 }
 } // namespace MiscServices

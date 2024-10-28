@@ -24,7 +24,7 @@ InputMethodExtensionModuleLoader::~InputMethodExtensionModuleLoader() = default;
 
 Extension *InputMethodExtensionModuleLoader::Create(const std::unique_ptr<Runtime> &runtime) const
 {
-    IMSA_HILOGI("InputMethodExtensionModuleLoader::Create runtime");
+    IMSA_HILOGI("InputMethodExtensionModuleLoader::Create runtime.");
     return InputMethodExtension::Create(runtime);
 }
 

@@ -46,7 +46,7 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(
     auto finalEventFlag = currentEventFlag | eventFlag;
     auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(finalEventFlag, eventFlag, true);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
+        IMSA_HILOGE("failed to UpdateListenEventFlag: %{public}d!", ret);
         return ret;
     }
     for (uint32_t i = 0; i < MAX_EVENT_NUM; i++) {
@@ -95,7 +95,7 @@ int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(
     }
     auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(finalEventFlag, eventFlag, false);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
+        IMSA_HILOGE("failed to UpdateListenEventFlag: %{public}d!", ret);
         return ret;
     }
     return isAbsentParam ? ErrorCode::ERROR_BAD_PARAMETERS : ErrorCode::NO_ERROR;

@@ -214,8 +214,8 @@ int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(
 
 int32_t InputMethodSystemAbilityProxy::PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
-    return SendRequest(
-        static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE), [status, &info](MessageParcel &data) {
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE),
+        [status, &info](MessageParcel &data) {
             return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), info);
         });
 }
@@ -295,28 +295,28 @@ void InputMethodSystemAbilityProxy::GetMessageOption(int32_t code, MessageOption
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGD("IMSAProxy, code = %{public}d", code);
+    IMSA_HILOGD("IMSAProxy, code = %{public}d.", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     GetMessageOption(code, option);
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("write interface token failed");
+        IMSA_HILOGE("write interface token failed!");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
     if (input != nullptr && (!input(data))) {
-        IMSA_HILOGE("write data failed");
+        IMSA_HILOGE("write data failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbilityProxy remote is nullptr");
+        IMSA_HILOGE("remote is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("transport exceptions, code: %{public}d, ret %{public}d", code, ret);
+        IMSA_HILOGE("failed to send request to IMSA, code: %{public}d, ret: %{public}d!", code, ret);
         return ret;
     }
     if (option.GetFlags() == MessageOption::TF_ASYNC) {
@@ -324,11 +324,11 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("dispose failed in service, code: %{public}d, ret: %{public}d", code, ret);
+        IMSA_HILOGE("dispose failed in IMSA, code: %{public}d, ret: %{public}d!", code, ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
-        IMSA_HILOGE("reply parcel error");
+        IMSA_HILOGE("reply parcel error!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;

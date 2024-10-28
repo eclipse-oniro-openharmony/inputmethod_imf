@@ -38,7 +38,7 @@ InputMethodAgentStub::~InputMethodAgentStub()
 int32_t InputMethodAgentStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGD("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGD("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
@@ -92,12 +92,12 @@ int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, Mess
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (!keyEvent->ReadFromParcel(data)) {
-        IMSA_HILOGE("failed to read key event from parcel");
+        IMSA_HILOGE("failed to read key event from parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto consumerObject = data.ReadRemoteObject();
     if (consumerObject == nullptr) {
-        IMSA_HILOGE("consumerObject is nullptr");
+        IMSA_HILOGE("consumerObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(consumerObject);
@@ -109,7 +109,7 @@ int32_t InputMethodAgentStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
 {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     if (!ITypesUtil::Unmarshal(data, privateCommand)) {
-        IMSA_HILOGE("failed to read message parcel");
+        IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto ret = InputMethodAbility::GetInstance()->ReceivePrivateCommand(privateCommand);
@@ -120,7 +120,7 @@ int32_t InputMethodAgentStub::OnAttributeChangeOnRemote(MessageParcel &data, Mes
 {
     InputAttribute attribute;
     if (!ITypesUtil::Unmarshal(data, attribute)) {
-        IMSA_HILOGE("failed to read attribute from parcel");
+        IMSA_HILOGE("failed to read attribute from parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     OnAttributeChange(attribute);

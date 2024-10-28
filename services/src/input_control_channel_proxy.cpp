@@ -38,22 +38,22 @@ InputControlChannelProxy::~InputControlChannelProxy()
 
 int32_t InputControlChannelProxy::HideKeyboardSelf()
 {
-    IMSA_HILOGD("InputControlChannelProxy::HideKeyboardSelf");
+    IMSA_HILOGD("InputControlChannelProxy::HideKeyboardSelf start.");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("InputControlChannelProxy descriptor is not match");
+        IMSA_HILOGE("descriptor is error!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        IMSA_HILOGE("InputControlChannelProxy remote is nullptr");
+        IMSA_HILOGE("remote is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = remote->SendRequest(HIDE_KEYBOARD_SELF, data, reply, option);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputControlChannelProxy SendRequest failed");
+        IMSA_HILOGE("send request failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.ReadInt32();

@@ -36,11 +36,11 @@ KeyEventConsumerStub::~KeyEventConsumerStub()
 int32_t KeyEventConsumerStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGD("KeyEventConsumerStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGD("KeyEventConsumerStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != IKeyEventConsumer::GetDescriptor()) {
-        IMSA_HILOGE("KeyEventConsumerStub descriptor error");
+        IMSA_HILOGE("KeyEventConsumerStub descriptor error!");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(KEY_EVENT_CONSUMER_CMD_LAST)) {
@@ -54,13 +54,13 @@ int32_t KeyEventConsumerStub::OnKeyEventResultOnRemote(MessageParcel &data, Mess
 {
     bool isConsumed = false;
     if (!ITypesUtil::Unmarshal(data, isConsumed)) {
-        IMSA_HILOGE("failed to read message parcel");
+        IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     if (callback_ != nullptr) {
         callback_(keyEvent_, isConsumed);
     } else {
-        IMSA_HILOGE("callback is nullptr, isConsumed: %{public}d ", isConsumed);
+        IMSA_HILOGE("callback is nullptr, isConsumed: %{public}d!", isConsumed);
     }
     return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
