@@ -72,12 +72,12 @@ PerUserSession::~PerUserSession()
 int PerUserSession::AddClientInfo(
     sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
 {
-    IMSA_HILOGD("PerUserSession, run in");
+    IMSA_HILOGD("PerUserSession start.");
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
-        IMSA_HILOGD("info is existed");
-        if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID
-            && clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
+        IMSA_HILOGD("info is existed.");
+        if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID &&
+            clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
             UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
         }
         UpdateClientInfo(inputClient, { { UpdateFlag::TEXT_CONFIG, clientInfo.config } });
@@ -98,16 +98,16 @@ int PerUserSession::AddClientInfo(
     });
     auto obj = info->client->AsObject();
     if (obj == nullptr) {
-        IMSA_HILOGE("client obj is nullptr");
+        IMSA_HILOGE("client obj is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     if (obj->IsProxyObject() && !obj->AddDeathRecipient(info->deathRecipient)) {
-        IMSA_HILOGE("failed to add client death recipient");
+        IMSA_HILOGE("failed to add client death recipient!");
         return ErrorCode::ERROR_CLIENT_ADD_FAILED;
     }
     std::lock_guard<std::recursive_mutex> lock(mtx);
     mapClients_.insert({ inputClient, info });
-    IMSA_HILOGI("add client end");
+    IMSA_HILOGI("add client end.");
     return ErrorCode::NO_ERROR;
 }
 
@@ -116,12 +116,12 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
     std::lock_guard<std::recursive_mutex> lock(mtx);
     auto clientInfo = GetClientInfo(client);
     if (clientInfo == nullptr) {
-        IMSA_HILOGD("client already removed");
+        IMSA_HILOGD("client already removed.");
         return;
     }
     // if client is subscriber and the release is not because of the client died, do not remove
     if (clientInfo->eventFlag != NO_EVENT_ON && !isClientDied) {
-        IMSA_HILOGD("is subscriber, do not remove");
+        IMSA_HILOGD("is subscriber, do not remove.");
         auto isShowKeyboard = false;
         auto bindImeType = ImeType::NONE;
         UpdateClientInfo(
@@ -129,24 +129,23 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
         return;
     }
     if (clientInfo->deathRecipient != nullptr) {
-        IMSA_HILOGD("deathRecipient remove");
+        IMSA_HILOGD("deathRecipient remove.");
         client->RemoveDeathRecipient(clientInfo->deathRecipient);
     }
     mapClients_.erase(client);
-    IMSA_HILOGI("client[%{public}d] is removed", clientInfo->pid);
+    IMSA_HILOGI("client[%{public}d] is removed.", clientInfo->pid);
 }
 
-void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
-    const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>>
-        &updateInfos)
+void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client, const std::unordered_map<UpdateFlag,
+    std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>> &updateInfos)
 {
     if (client == nullptr) {
-        IMSA_HILOGE("client is nullptr.");
+        IMSA_HILOGE("client is nullptr!");
         return;
     }
     auto info = GetClientInfo(client);
     if (info == nullptr) {
-        IMSA_HILOGE("client info is not exist.");
+        IMSA_HILOGE("client info is not exist!");
         return;
     }
     for (const auto &updateInfo : updateInfos) {
@@ -183,20 +182,20 @@ void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
 
 int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
 {
-    IMSA_HILOGD("PerUserSession::HideKeyboard");
+    IMSA_HILOGD("PerUserSession::HideKeyboard start.");
     auto clientInfo = GetClientInfo(currentClient->AsObject());
     if (clientInfo == nullptr) {
-        IMSA_HILOGE("client info is nullptr");
+        IMSA_HILOGE("client info is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     auto data = GetReadyImeData(clientInfo->bindImeType);
     if (data == nullptr) {
-        IMSA_HILOGE("ime: %{public}d is not exist", clientInfo->bindImeType);
+        IMSA_HILOGE("ime: %{public}d is not exist!", clientInfo->bindImeType);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     auto ret = RequestIme(data, RequestType::NORMAL, [&data] { return data->core->HideKeyboard(false); });
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to hide keyboard, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to hide keyboard, ret: %{public}d!", ret);
         return ErrorCode::ERROR_KBD_HIDE_FAILED;
     }
     bool isShowKeyboard = false;
@@ -207,20 +206,20 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
 
 int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
 {
-    IMSA_HILOGD("PerUserSession::ShowKeyboard");
+    IMSA_HILOGD("PerUserSession::ShowKeyboard start.");
     auto clientInfo = GetClientInfo(currentClient->AsObject());
     if (clientInfo == nullptr) {
-        IMSA_HILOGE("client info is nullptr");
+        IMSA_HILOGE("client info is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     auto data = GetReadyImeData(clientInfo->bindImeType);
     if (data == nullptr) {
-        IMSA_HILOGE("ime: %{public}d is not exist", clientInfo->bindImeType);
+        IMSA_HILOGE("ime: %{public}d is not exist!", clientInfo->bindImeType);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     auto ret = RequestIme(data, RequestType::REQUEST_SHOW, [&data] { return data->core->ShowKeyboard(); });
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to show keyboard, ret: %{public}d!", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
     }
     bool isShowKeyboard = true;
@@ -237,7 +236,7 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     if (remote == nullptr) {
         return;
     }
-    IMSA_HILOGI("userId: %{public}d", userId_);
+    IMSA_HILOGI("userId: %{public}d.", userId_);
     if (IsSameClient(remote, GetCurrentClient())) {
         auto clientInfo = GetClientInfo(remote->AsObject());
         if (clientInfo != nullptr) {
@@ -284,12 +283,12 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     }
     auto currentImeInfo = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (currentImeInfo == nullptr) {
-        IMSA_HILOGE("currentImeInfo is nullptr");
+        IMSA_HILOGE("currentImeInfo is nullptr!");
         return;
     }
     auto defaultImeInfo = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
     if (defaultImeInfo == nullptr) {
-        IMSA_HILOGE("defaultImeInfo is nullptr");
+        IMSA_HILOGE("defaultImeInfo is nullptr!");
         return;
     }
     if (type == ImeType::IME && currentImeInfo->bundleName == defaultImeInfo->name) {
@@ -320,7 +319,7 @@ int32_t PerUserSession::OnHideCurrentInput()
 {
     sptr<IInputClient> client = GetCurrentClient();
     if (client == nullptr) {
-        IMSA_HILOGE("current client is nullptr");
+        IMSA_HILOGE("current client is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     return HideKeyboard(client);
@@ -328,10 +327,10 @@ int32_t PerUserSession::OnHideCurrentInput()
 
 int32_t PerUserSession::OnShowCurrentInput()
 {
-    IMSA_HILOGD("PerUserSession::OnShowCurrentInput");
+    IMSA_HILOGD("PerUserSession::OnShowCurrentInput start.");
     sptr<IInputClient> client = GetCurrentClient();
     if (client == nullptr) {
-        IMSA_HILOGE("current client is nullptr");
+        IMSA_HILOGE("current client is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     return ShowKeyboard(client);
@@ -339,9 +338,9 @@ int32_t PerUserSession::OnShowCurrentInput()
 
 int32_t PerUserSession::OnHideInput(sptr<IInputClient> client)
 {
-    IMSA_HILOGD("PerUserSession::OnHideInput");
+    IMSA_HILOGD("PerUserSession::OnHideInput start.");
     if (!IsSameClient(client, GetCurrentClient())) {
-        IMSA_HILOGE("client is not current client");
+        IMSA_HILOGE("client is not current client!");
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return HideKeyboard(client);
@@ -349,9 +348,9 @@ int32_t PerUserSession::OnHideInput(sptr<IInputClient> client)
 
 int32_t PerUserSession::OnShowInput(sptr<IInputClient> client)
 {
-    IMSA_HILOGD("PerUserSession::OnShowInput");
+    IMSA_HILOGD("PerUserSession::OnShowInput start.");
     if (!IsSameClient(client, GetCurrentClient())) {
-        IMSA_HILOGE("client is not current client");
+        IMSA_HILOGE("client is not current client!");
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return ShowKeyboard(client);
@@ -359,10 +358,10 @@ int32_t PerUserSession::OnShowInput(sptr<IInputClient> client)
 
 void PerUserSession::OnHideSoftKeyBoardSelf()
 {
-    IMSA_HILOGD("run in");
+    IMSA_HILOGD("PerUserSession::OnHideSoftKeyBoardSel start.");
     sptr<IInputClient> client = GetCurrentClient();
     if (client == nullptr) {
-        IMSA_HILOGE("current client is nullptr");
+        IMSA_HILOGE("current client is nullptr!");
         return;
     }
     UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, false } });
@@ -374,12 +373,12 @@ int32_t PerUserSession::OnRequestShowInput()
     IMSA_HILOGD("PerUserSession::OnRequestShowInput start.");
     auto data = GetReadyImeData(ImeType::IME);
     if (data == nullptr) {
-        IMSA_HILOGE("ime: %{public}d doesn't exist", ImeType::IME);
+        IMSA_HILOGE("ime: %{public}d doesn't exist!", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     auto ret = RequestIme(data, RequestType::REQUEST_SHOW, [&data] { return data->core->ShowKeyboard(); });
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to show keyboard, ret: %{public}d!", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
     }
     InputMethodSysEvent::GetInstance().ReportImeState(
@@ -397,7 +396,7 @@ int32_t PerUserSession::OnRequestHideInput()
     IMSA_HILOGD("PerUserSession::OnRequestHideInput start.");
     auto data = GetReadyImeData(ImeType::IME);
     if (data == nullptr) {
-        IMSA_HILOGE("ime: %{public}d doesn't exist", ImeType::IME);
+        IMSA_HILOGE("ime: %{public}d doesn't exist!", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
 
@@ -409,7 +408,7 @@ int32_t PerUserSession::OnRequestHideInput()
     auto ret = RequestIme(data, RequestType::REQUEST_HIDE,
         [&data, isForce] { return data->core->HideKeyboard(isForce); });
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to hide keyboard, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to hide keyboard, ret: %{public}d!", ret);
         return ErrorCode::ERROR_KBD_HIDE_FAILED;
     }
     auto currentClient = GetCurrentClient();
@@ -433,13 +432,13 @@ int32_t PerUserSession::OnRequestHideInput()
 std::shared_ptr<InputClientInfo> PerUserSession::GetClientInfo(sptr<IRemoteObject> inputClient)
 {
     if (inputClient == nullptr) {
-        IMSA_HILOGE("inputClient is nullptr");
+        IMSA_HILOGE("inputClient is nullptr!");
         return nullptr;
     }
     std::lock_guard<std::recursive_mutex> lock(mtx);
     auto it = mapClients_.find(inputClient);
     if (it == mapClients_.end()) {
-        IMSA_HILOGD("client not found");
+        IMSA_HILOGD("client not found.");
         return nullptr;
     }
     return it->second;
@@ -451,7 +450,7 @@ std::shared_ptr<InputClientInfo> PerUserSession::GetClientInfo(pid_t pid)
     auto iter = std::find_if(
         mapClients_.begin(), mapClients_.end(), [pid](const auto &mapClient) { return mapClient.second->pid == pid; });
     if (iter == mapClients_.end()) {
-        IMSA_HILOGD("not found");
+        IMSA_HILOGD("not found.");
         return nullptr;
     }
     return iter->second;
@@ -459,7 +458,7 @@ std::shared_ptr<InputClientInfo> PerUserSession::GetClientInfo(pid_t pid)
 
 int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
 {
-    IMSA_HILOGD("PerUserSession::OnPrepareInput Start");
+    IMSA_HILOGD("PerUserSession::OnPrepareInput start");
     return AddClientInfo(clientInfo.client->AsObject(), clientInfo, PREPARE_INPUT);
 }
 
@@ -469,7 +468,7 @@ int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
  */
 int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
 {
-    IMSA_HILOGD("PerUserSession::Start");
+    IMSA_HILOGD("PerUserSession::OnReleaseInput start");
     return RemoveClient(client, true);
 }
 
@@ -496,14 +495,14 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUn
 void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
 {
     if (client == nullptr) {
-        IMSA_HILOGD("client is nullptr");
+        IMSA_HILOGD("client is nullptr.");
         return;
     }
     auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
         return;
     }
-    IMSA_HILOGI("deactivate client[%{public}d]", clientInfo->pid);
+    IMSA_HILOGI("deactivate client[%{public}d].", clientInfo->pid);
     UpdateClientInfo(client->AsObject(), { { UpdateFlag::STATE, ClientState::INACTIVE } });
     if (IsSameClient(client, GetCurrentClient())) {
         SetCurrentClient(nullptr);
@@ -516,7 +515,7 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
     }
     auto data = GetReadyImeData(clientInfo->bindImeType);
     if (data == nullptr) {
-        IMSA_HILOGE("ime %{public}d doesn't exist", clientInfo->bindImeType);
+        IMSA_HILOGE("ime %{public}d doesn't exist!", clientInfo->bindImeType);
         return;
     }
     RequestIme(data, RequestType::NORMAL, [&data, &clientInfo] {
@@ -538,14 +537,14 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
 {
     const sptr<IInputClient> &client = inputClientInfo.client;
     if (client == nullptr) {
-        IMSA_HILOGE("client is nullptr");
+        IMSA_HILOGE("client is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    IMSA_HILOGD("start input with keyboard[%{public}d]", inputClientInfo.isShowKeyboard);
+    IMSA_HILOGD("start input with keyboard[%{public}d].", inputClientInfo.isShowKeyboard);
     if (IsSameClient(client, GetCurrentClient()) && IsImeBindChanged(clientInfo->bindImeType)) {
         UnBindClientWithIme(clientInfo);
     }
@@ -556,12 +555,12 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("bind failed, ret: %{public}d", ret);
+        IMSA_HILOGE("bind failed, ret: %{public}d!", ret);
         return ret;
     }
     auto data = GetReadyImeData(imeType);
     if (data == nullptr || data->agent == nullptr) {
-        IMSA_HILOGE("data or agent is nullptr.");
+        IMSA_HILOGE("data or agent is nullptr!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     agent = data->agent;
@@ -572,10 +571,10 @@ int32_t PerUserSession::BindClientWithIme(
     const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient)
 {
     if (clientInfo == nullptr) {
-        IMSA_HILOGE("clientInfo is nullptr");
+        IMSA_HILOGE("clientInfo is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGD("imeType: %{public}d, isShowKeyboard: %{public}d, isBindFromClient: %{public}d", type,
+    IMSA_HILOGD("imeType: %{public}d, isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", type,
         clientInfo->isShowKeyboard, isBindFromClient);
     auto data = GetValidIme(type);
     if (data == nullptr) {
@@ -584,7 +583,7 @@ int32_t PerUserSession::BindClientWithIme(
     auto ret = RequestIme(data, RequestType::START_INPUT,
         [&data, &clientInfo, isBindFromClient]() { return data->core->StartInput(*clientInfo, isBindFromClient); });
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("start input failed, ret: %{public}d", ret);
+        IMSA_HILOGE("start input failed, ret: %{public}d!", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
     }
     if (type == ImeType::IME) {
@@ -593,7 +592,7 @@ int32_t PerUserSession::BindClientWithIme(
         Memory::MemMgrClient::GetInstance().SetCritical(getpid(), true, INPUT_METHOD_SYSTEM_ABILITY_ID);
     }
     if (!isBindFromClient && clientInfo->client->OnInputReady(data->agent) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
+        IMSA_HILOGE("start client input failed, ret: %{public}d!", ret);
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     UpdateClientInfo(clientInfo->client->AsObject(),
@@ -610,7 +609,7 @@ void PerUserSession::UnBindClientWithIme(
         return;
     }
     if (!isUnbindFromClient) {
-        IMSA_HILOGD("Unbind from service.");
+        IMSA_HILOGD("unbind from service.");
         StopClientInput(currentClientInfo);
     }
     StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel);
@@ -633,7 +632,7 @@ void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject>
     }
     auto ret = RequestIme(
         data, RequestType::STOP_INPUT, [&data, &currentChannel]() { return data->core->StopInput(currentChannel); });
-    IMSA_HILOGI("stop ime input, ret: %{public}d", ret);
+    IMSA_HILOGI("stop ime input, ret: %{public}d.", ret);
     if (ret == ErrorCode::NO_ERROR && currentType == ImeType::IME) {
         InputMethodSysEvent::GetInstance().ReportImeState(
             ImeState::UNBIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
@@ -653,7 +652,7 @@ void PerUserSession::OnSecurityChange(int32_t security)
     }
     auto ret =
         RequestIme(data, RequestType::NORMAL, [&data, security] { return data->core->OnSecurityChange(security); });
-    IMSA_HILOGD("on security change, ret: %{public}d", ret);
+    IMSA_HILOGD("on security change, ret: %{public}d.", ret);
 }
 
 int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
@@ -685,7 +684,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
 
 int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
-    IMSA_HILOGD("run in");
+    IMSA_HILOGD("start.");
     auto imeType = ImeType::PROXY_IME;
     auto ret = AddImeData(imeType, core, agent, IPCSkeleton::GetCallingPid());
     if (ret != ErrorCode::NO_ERROR) {
@@ -707,7 +706,7 @@ int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, c
 
 int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
 {
-    IMSA_HILOGD("proxy unregister type: %{public}d", type);
+    IMSA_HILOGD("proxy unregister type: %{public}d.", type);
     // 0: stop proxy  1: switch to ima
     if (type == UnRegisteredType::REMOVE_PROXY_IME) {
         RemoveIme(core, ImeType::PROXY_IME);
@@ -717,7 +716,7 @@ int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr
         auto client = GetCurrentClient();
         auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
         if (clientInfo == nullptr) {
-            IMSA_HILOGE("not find current client");
+            IMSA_HILOGE("not found current client!");
             return ErrorCode::ERROR_CLIENT_NOT_BOUND;
         }
         if (clientInfo->bindImeType == ImeType::PROXY_IME) {
@@ -733,11 +732,11 @@ int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr
 
 int32_t PerUserSession::InitInputControlChannel()
 {
-    IMSA_HILOGD("PerUserSession::InitInputControlChannel");
+    IMSA_HILOGD("PerUserSession::InitInputControlChannel start.");
     sptr<IInputControlChannel> inputControlChannel = new InputControlChannelStub(userId_);
     auto data = GetReadyImeData(ImeType::IME);
     if (data == nullptr) {
-        IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
+        IMSA_HILOGE("ime: %{public}d is not exist!", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return RequestIme(data, RequestType::NORMAL,
@@ -767,14 +766,14 @@ void PerUserSession::StartImeInImeDied()
 
 void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
 {
-    IMSA_HILOGD("set current client");
+    IMSA_HILOGD("set current client.");
     std::lock_guard<std::mutex> lock(clientLock_);
     currentClient_ = client;
 }
 
 sptr<IInputClient> PerUserSession::GetCurrentClient()
 {
-    IMSA_HILOGD("get current client");
+    IMSA_HILOGD("get current client.");
     std::lock_guard<std::mutex> lock(clientLock_);
     return currentClient_;
 }
@@ -794,7 +793,7 @@ void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
     if (replacedClient != nullptr) {
         auto replacedClientInfo = GetClientInfo(replacedClient->AsObject());
         if (replacedClientInfo != nullptr && replacedClientInfo->pid != clientInfo->pid) {
-            IMSA_HILOGI("remove replaced client[%{public}d]", replacedClientInfo->pid);
+            IMSA_HILOGI("remove replaced client: [%{public}d]", replacedClientInfo->pid);
             RemoveClient(replacedClient);
         }
     }
@@ -810,7 +809,7 @@ void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
 
 void PerUserSession::SetInactiveClient(sptr<IInputClient> client)
 {
-    IMSA_HILOGD("set inactive client");
+    IMSA_HILOGD("set inactive client.");
     std::lock_guard<std::mutex> lock(inactiveClientLock_);
     inactiveClient_ = client;
 }
@@ -823,18 +822,18 @@ sptr<IInputClient> PerUserSession::GetInactiveClient()
 
 void PerUserSession::NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGD("start");
+    IMSA_HILOGD("start.");
     std::lock_guard<std::recursive_mutex> lock(mtx);
     for (const auto &client : mapClients_) {
         auto clientInfo = client.second;
         if (clientInfo == nullptr || !EventStatusManager::IsImeChangeOn(clientInfo->eventFlag)) {
-            IMSA_HILOGD("client nullptr or no need to notify");
+            IMSA_HILOGD("client nullptr or no need to notify.");
             continue;
         }
-        IMSA_HILOGD("notify client[%{public}d]", static_cast<int32_t>(clientInfo->pid));
+        IMSA_HILOGD("notify client: [%{public}d]", static_cast<int32_t>(clientInfo->pid));
         int32_t ret = clientInfo->client->OnSwitchInput(property, subProperty);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("notify failed, ret: %{public}d, uid: %{public}d", ret, static_cast<int32_t>(clientInfo->uid));
+            IMSA_HILOGE("notify failed, ret: %{public}d, uid: %{public}d!", ret, static_cast<int32_t>(clientInfo->uid));
             continue;
         }
     }
@@ -843,18 +842,18 @@ void PerUserSession::NotifyImeChangeToClients(const Property &property, const Su
 int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid)
 {
     if (core == nullptr || agent == nullptr) {
-        IMSA_HILOGE("core or agent is nullptr");
+        IMSA_HILOGE("core or agent is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     sptr<InputDeathRecipient> deathRecipient = new (std::nothrow) InputDeathRecipient();
     if (deathRecipient == nullptr) {
-        IMSA_HILOGE("failed to new deathRecipient");
+        IMSA_HILOGE("failed to new deathRecipient!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     deathRecipient->SetDeathRecipient([this, core, type](const wptr<IRemoteObject> &) { this->OnImeDied(core, type); });
     auto coreObject = core->AsObject();
     if (coreObject == nullptr || (coreObject->IsProxyObject() && !coreObject->AddDeathRecipient(deathRecipient))) {
-        IMSA_HILOGE("failed to add death recipient");
+        IMSA_HILOGE("failed to add death recipient!");
         return ErrorCode::ERROR_ADD_DEATH_RECIPIENT_FAILED;
     }
     std::lock_guard<std::mutex> lock(imeDataLock_);
@@ -893,7 +892,7 @@ void PerUserSession::RemoveImeData(ImeType type, bool isImeDied)
     std::lock_guard<std::mutex> lock(imeDataLock_);
     auto it = imeData_.find(type);
     if (it == imeData_.end()) {
-        IMSA_HILOGD("imeData not found");
+        IMSA_HILOGD("imeData not found.");
         return;
     }
     auto data = it->second;
@@ -911,16 +910,16 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
         return;
     }
     if (IsCurClientFocused(pid, uid)) {
-        IMSA_HILOGD("current client focused, focusedPid:%{public}d", pid);
+        IMSA_HILOGD("current client focused, focusedPid: %{public}d", pid);
         return;
     }
     if (!OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        IMSA_HILOGI("focus shifts to pid: %{public}d, remove current client", pid);
+        IMSA_HILOGI("focus shifts to pid: %{public}d, remove current client.", pid);
         RemoveClient(client);
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
         return;
     }
-    IMSA_HILOGI("focus shifts to pid: %{public}d, deactivate current client", pid);
+    IMSA_HILOGI("focus shifts to pid: %{public}d, deactivate current client.", pid);
     DeactivateClient(client);
 }
 
@@ -930,7 +929,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
         return;
     }
     if (IsCurClientUnFocused(pid, uid)) {
-        IMSA_HILOGD("current client Unfocused, unFocusedPid:%{public}d", pid);
+        IMSA_HILOGD("current client Unfocused, unFocusedPid: %{public}d", pid);
         return;
     }
     auto clientInfo = GetClientInfo(pid);
@@ -945,7 +944,7 @@ std::shared_ptr<InputClientInfo> PerUserSession::GetCurClientInfo()
 {
     auto client = GetCurrentClient();
     if (client == nullptr) {
-        IMSA_HILOGD("no client in bound state");
+        IMSA_HILOGD("no client in bound state.");
         return nullptr;
     }
     return GetClientInfo(client->AsObject());
@@ -955,7 +954,7 @@ bool PerUserSession::IsCurClientFocused(int32_t pid, int32_t uid)
 {
     auto clientInfo = GetCurClientInfo();
     if (clientInfo == nullptr) {
-        IMSA_HILOGE("failed to get cur client info");
+        IMSA_HILOGE("failed to get cur client info!");
         return false;
     }
     auto identityChecker = std::make_shared<IdentityCheckerImpl>();
@@ -971,7 +970,7 @@ bool PerUserSession::IsCurClientUnFocused(int32_t pid, int32_t uid)
 {
     auto clientInfo = GetCurClientInfo();
     if (clientInfo == nullptr) {
-        IMSA_HILOGE("failed to get cur client info");
+        IMSA_HILOGE("failed to get cur client info!");
         return false;
     }
     auto identityChecker = std::make_shared<IdentityCheckerImpl>();
@@ -1019,7 +1018,7 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
     }
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (currentImeCfg == nullptr) {
-        IMSA_HILOGE("currentImeCfg is nullptr");
+        IMSA_HILOGE("currentImeCfg is nullptr!");
         return false;
     }
     imeId.bundleName = currentImeCfg->bundleName;
@@ -1056,23 +1055,23 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
     isImeStarted_.Clear(false);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
-        IMSA_HILOGE("failed to create connection");
+        IMSA_HILOGE("failed to create connection!");
         return false;
     }
     auto want = GetWant(ime);
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("connect %{public}s failed, ret: %{public}d", ime->imeId.c_str(), ret);
+        IMSA_HILOGE("connect %{public}s failed, ret: %{public}d!", ime->imeId.c_str(), ret);
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
             ErrorCode::ERROR_IME_START_FAILED, ime->imeId, "StartInputService, failed to start ability.");
         return false;
     }
     InitImeData({ ime->bundleName, ime->extName });
     if (!isImeStarted_.GetValue()) {
-        IMSA_HILOGE("start %{public}s timeout", ime->imeId.c_str());
+        IMSA_HILOGE("start %{public}s timeout!", ime->imeId.c_str());
         return false;
     }
-    IMSA_HILOGI("%{public}s started successfully", ime->imeId.c_str());
+    IMSA_HILOGI("%{public}s started successfully.", ime->imeId.c_str());
     InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
     auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, ime->bundleName, ime->subName);
     if (info == nullptr) {
@@ -1121,20 +1120,20 @@ int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, con
     for (const auto &client : clientMap) {
         auto clientInfo = client.second;
         if (clientInfo == nullptr) {
-            IMSA_HILOGD("client nullptr or no need to notify");
+            IMSA_HILOGD("client nullptr or no need to notify.");
             continue;
         }
         if (status == InputWindowStatus::SHOW && !EventStatusManager::IsImeShowOn(clientInfo->eventFlag)) {
-            IMSA_HILOGD("has no imeShow callback");
+            IMSA_HILOGD("has not imeShow callback");
             continue;
         }
         if (status == InputWindowStatus::HIDE && !EventStatusManager::IsImeHideOn(clientInfo->eventFlag)) {
-            IMSA_HILOGD("has no imeHide callback");
+            IMSA_HILOGD("has not imeHide callback");
             continue;
         }
         int32_t ret = clientInfo->client->OnPanelStatusChange(status, info);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("OnPanelStatusChange failed, ret: %{public}d", ret);
+            IMSA_HILOGE("failed to OnPanelStatusChange, ret: %{public}d", ret);
             continue;
         }
     }
@@ -1146,12 +1145,12 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
     auto remoteClient = clientInfo.client->AsObject();
     auto ret = AddClientInfo(remoteClient, clientInfo, START_LISTENING);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("AddClientInfo failed");
+        IMSA_HILOGE("failed to AddClientInfo!");
         return ret;
     }
     auto info = GetClientInfo(remoteClient);
     if (info == nullptr) {
-        IMSA_HILOGE("info is nullptr");
+        IMSA_HILOGE("info is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     if (info->eventFlag == NO_EVENT_ON && info->bindImeType == ImeType::NONE) {
@@ -1185,7 +1184,7 @@ int32_t PerUserSession::SwitchSubtype(const SubProperty &subProperty)
 {
     auto data = GetValidIme(ImeType::IME);
     if (data == nullptr) {
-        IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
+        IMSA_HILOGE("ime: %{public}d is not exist!", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return RequestIme(data, RequestType::NORMAL, [&data, &subProperty] { return data->core->SetSubtype(subProperty); });
@@ -1194,7 +1193,7 @@ int32_t PerUserSession::SwitchSubtype(const SubProperty &subProperty)
 bool PerUserSession::IsBoundToClient()
 {
     if (GetCurrentClient() == nullptr) {
-        IMSA_HILOGE("not in bound state");
+        IMSA_HILOGE("not in bound state!");
         return false;
     }
     return true;
@@ -1203,7 +1202,7 @@ bool PerUserSession::IsBoundToClient()
 int32_t PerUserSession::RestoreCurrentImeSubType()
 {
     if (!InputTypeManager::GetInstance().IsStarted()) {
-        IMSA_HILOGD("already exit");
+        IMSA_HILOGD("already exit.");
         return ErrorCode::NO_ERROR;
     }
     auto typeIme = InputTypeManager::GetInstance().GetCurrentIme();
@@ -1240,13 +1239,13 @@ bool PerUserSession::IsCurrentImeByPid(int32_t pid)
 int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     if (GetCurrentClient() == nullptr) {
-        IMSA_HILOGD("not in bound state");
+        IMSA_HILOGD("not in bound state.");
         isShown = false;
         return ErrorCode::NO_ERROR;
     }
     auto ime = GetReadyImeData(ImeType::IME);
     if (ime == nullptr) {
-        IMSA_HILOGE("ime not started");
+        IMSA_HILOGE("ime not started!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return RequestIme(ime, RequestType::NORMAL,
@@ -1272,11 +1271,11 @@ std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> PerUserSession::
 int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec)
 {
     if (IsProxyImeEnable()) {
-        IMSA_HILOGD("proxy enable");
+        IMSA_HILOGD("proxy enable.");
         return exec();
     }
     if (data == nullptr || data->freezeMgr == nullptr) {
-        IMSA_HILOGE("data nullptr");
+        IMSA_HILOGE("data is nullptr!");
         return ErrorCode::NO_ERROR;
     }
     data->freezeMgr->BeforeIpc(type);
@@ -1289,14 +1288,14 @@ int32_t PerUserSession::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, s
 {
     auto data = GetReadyImeData(ImeType::IME);
     if (data == nullptr) {
-        IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
+        IMSA_HILOGE("ime: %{public}d is not exist!", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     auto ret = RequestIme(data, RequestType::NORMAL,
         [&data, &channel, &agent] { return data->core->OnConnectSystemCmd(channel, agent); });
-    IMSA_HILOGD("on connect systemCmd, ret: %{public}d", ret);
+    IMSA_HILOGD("on connect systemCmd, ret: %{public}d.", ret);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("bind failed, ret: %{public}d", ret);
+        IMSA_HILOGE("bind failed, ret: %{public}d!", ret);
         return ret;
     }
     return ErrorCode::NO_ERROR;
@@ -1304,7 +1303,7 @@ int32_t PerUserSession::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, s
 
 bool PerUserSession::WaitForCurrentImeStop()
 {
-    IMSA_HILOGI("run in");
+    IMSA_HILOGI("start.");
     std::unique_lock<std::mutex> lock(imeStopMutex_);
     isSwitching_.store(true);
     return imeStopCv_.wait_for(lock, std::chrono::milliseconds(STOP_IME_TIME), [this]() { return !isSwitching_; });
@@ -1312,7 +1311,7 @@ bool PerUserSession::WaitForCurrentImeStop()
 
 void PerUserSession::NotifyImeStopFinished()
 {
-    IMSA_HILOGI("run in");
+    IMSA_HILOGI("start.");
     std::unique_lock<std::mutex> lock(imeStopMutex_);
     isSwitching_.store(false);
     imeStopCv_.notify_one();
@@ -1322,7 +1321,7 @@ int32_t PerUserSession::RemoveCurrentClient()
 {
     auto currentClient = GetCurrentClient();
     if (currentClient == nullptr) {
-        IMSA_HILOGE("currentClient is null");
+        IMSA_HILOGE("currentClient is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return RemoveClient(currentClient, false);
@@ -1331,7 +1330,7 @@ int32_t PerUserSession::RemoveCurrentClient()
 bool PerUserSession::IsWmsReady()
 {
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        IMSA_HILOGE("scb enable");
+        IMSA_HILOGD("scb enable");
         return WmsConnectionObserver::IsWmsConnected(userId_);
     }
     return IsReady(WINDOW_MANAGER_SERVICE_ID);
@@ -1374,7 +1373,7 @@ bool PerUserSession::RestartIme()
         if (IsReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()) {
             auto ret = StartCurrentIme(true);
             if (!ret) {
-                IMSA_HILOGE("start ime failed");
+                IMSA_HILOGE("start ime failed!");
             }
         }
         int32_t tasks = 0;
@@ -1586,7 +1585,7 @@ bool PerUserSession::StopReadyCurrentIme()
         return true;
     }
     if (imeData->core == nullptr) {
-        IMSA_HILOGE("core is nullptr.");
+        IMSA_HILOGE("core is nullptr!");
         return ForceStopCurrentIme();
     }
     auto ret = RequestIme(imeData, RequestType::NORMAL, [&imeData] {

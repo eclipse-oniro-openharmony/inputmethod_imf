@@ -399,7 +399,7 @@ private:
     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
     static napi_status GetSelectMovement(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
 
-    static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+    static napi_value JsConstructor(napi_env env, napi_callback_info info);
     static napi_value GetResult(napi_env env, std::string &text);
     static napi_value GetResultEditorAttribute(
         napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);

@@ -21,7 +21,7 @@ bool Serializable::Unmarshall(const std::string &content)
 {
     auto root = cJSON_Parse(content.c_str());
     if (root == NULL) {
-        IMSA_HILOGE("%{public}s:parse failed", content.c_str());
+        IMSA_HILOGE("%{public}s: parse failed!", content.c_str());
         return false;
     }
     auto ret = Unmarshal(root);
@@ -55,7 +55,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, std::string &v
 {
     auto subNode = GetSubNode(node, name);
     if (subNode == nullptr || !cJSON_IsString(subNode)) {
-        IMSA_HILOGD("%{public}s not string", name.c_str());
+        IMSA_HILOGD("%{public}s not string!", name.c_str());
         return false;
     }
     value = subNode->valuestring;
@@ -66,7 +66,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, int32_t &value
 {
     auto subNode = GetSubNode(node, name);
     if (subNode == nullptr || !cJSON_IsNumber(subNode)) {
-        IMSA_HILOGD("%{public}s not number", name.c_str());
+        IMSA_HILOGD("%{public}s not number!", name.c_str());
         return false;
     }
     value = subNode->valueint;
@@ -125,7 +125,7 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const int32_t 
 cJSON *Serializable::GetSubNode(cJSON *node, const std::string &name)
 {
     if (name.empty()) {
-        IMSA_HILOGD("end node");
+        IMSA_HILOGD("end node.");
         return node;
     }
     if (!cJSON_IsObject(node)) {
@@ -133,7 +133,7 @@ cJSON *Serializable::GetSubNode(cJSON *node, const std::string &name)
         return nullptr;
     }
     if (!cJSON_HasObjectItem(node, name.c_str())) {
-        IMSA_HILOGD("subNode: %{public}s not contain", name.c_str());
+        IMSA_HILOGD("subNode: %{public}s not contain.", name.c_str());
         return nullptr;
     }
     return cJSON_GetObjectItem(node, name.c_str());

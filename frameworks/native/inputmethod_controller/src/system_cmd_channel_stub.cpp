@@ -43,7 +43,7 @@ int32_t SystemCmdChannelStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
 {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     if (!ITypesUtil::Unmarshal(data, privateCommand)) {
-        IMSA_HILOGE("failed to read message parcel");
+        IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(SendPrivateCommand(privateCommand)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
@@ -58,7 +58,7 @@ int32_t SystemCmdChannelStub::NotifyPanelStatusOnRemote(MessageParcel &data, Mes
 {
     SysPanelStatus sysPanelStatus;
     if (!ITypesUtil::Unmarshal(data, sysPanelStatus)) {
-        IMSA_HILOGE("failed to read message parcel");
+        IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.WriteInt32(NotifyPanelStatus(sysPanelStatus)) ? ErrorCode::NO_ERROR
@@ -68,11 +68,11 @@ int32_t SystemCmdChannelStub::NotifyPanelStatusOnRemote(MessageParcel &data, Mes
 int32_t SystemCmdChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("SystemCmdChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGI("SystemCmdChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != ISystemCmdChannel::GetDescriptor()) {
-        IMSA_HILOGE("SystemCmdChannelStub descriptor error");
+        IMSA_HILOGE("SystemCmdChannelStub descriptor error!");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(SYSTEM_CMD_LAST)) {

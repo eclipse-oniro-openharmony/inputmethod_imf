@@ -44,7 +44,7 @@ InputTypeManager &InputTypeManager::GetInstance()
 bool InputTypeManager::IsSupported(InputType type)
 {
     if (!isTypeCfgReady_.load() && !Init()) {
-        IMSA_HILOGE("init cfg failed");
+        IMSA_HILOGE("init cfg failed!");
         return false;
     }
     std::lock_guard<std::mutex> lock(typesLock_);
@@ -54,7 +54,7 @@ bool InputTypeManager::IsSupported(InputType type)
 bool InputTypeManager::IsInputType(const ImeIdentification &ime)
 {
     if (!isTypeCfgReady_.load() && !Init()) {
-        IMSA_HILOGD("init cfg failed");
+        IMSA_HILOGD("init cfg failed.");
         return false;
     }
     std::lock_guard<std::mutex> lock(listLock_);
@@ -64,17 +64,17 @@ bool InputTypeManager::IsInputType(const ImeIdentification &ime)
 int32_t InputTypeManager::GetImeByInputType(InputType type, ImeIdentification &ime)
 {
     if (!isTypeCfgReady_.load() && !Init()) {
-        IMSA_HILOGE("init cfg failed");
+        IMSA_HILOGE("init cfg failed!");
         return ErrorCode::ERROR_PARSE_CONFIG_FILE;
     }
     std::lock_guard<std::mutex> lock(typesLock_);
     auto iter = inputTypes_.find(type);
     if (iter == inputTypes_.end()) {
-        IMSA_HILOGE("type: %{public}d not supported", type);
+        IMSA_HILOGE("type: %{public}d not supported!", type);
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     ime = iter->second;
-    IMSA_HILOGI("type: %{public}d find ime: %{public}s|%{public}s", type, ime.bundleName.c_str(), ime.subName.c_str());
+    IMSA_HILOGI("type: %{public}d find ime: %{public}s|%{public}s.", type, ime.bundleName.c_str(), ime.subName.c_str());
     return ErrorCode::NO_ERROR;
 }
 
@@ -121,7 +121,7 @@ ImeIdentification InputTypeManager::GetCurrentIme()
 
 bool InputTypeManager::Init()
 {
-    IMSA_HILOGD("start");
+    IMSA_HILOGD("start.");
     if (isInitInProgress_.load()) {
         return isInitSuccess_.GetValue();
     }
@@ -129,7 +129,7 @@ bool InputTypeManager::Init()
     isInitSuccess_.Clear(false);
     std::vector<InputTypeInfo> configs;
     auto isSuccess = SysCfgParser::ParseInputType(configs);
-    IMSA_HILOGD("ParseInputType isSuccess: %{public}d", isSuccess);
+    IMSA_HILOGD("ParseInputType isSuccess: %{public}d.", isSuccess);
     if (isSuccess) {
         std::lock_guard<std::mutex> lk(typesLock_);
         for (const auto &config : configs) {

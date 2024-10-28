@@ -124,7 +124,7 @@ bool ITypesUtil::Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
 {
     if (!Marshal(data, input.name, input.id, input.label, input.labelId, input.icon, input.iconId)) {
-        IMSA_HILOGE("ITypesUtil::write Property to message parcel failed");
+        IMSA_HILOGE("write Property to message parcel failed.");
         return false;
     }
     return true;
@@ -133,7 +133,7 @@ bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(Property &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.name, output.id, output.label, output.labelId, output.icon, output.iconId)) {
-        IMSA_HILOGE("ITypesUtil::read Property from message parcel failed");
+        IMSA_HILOGE("read Property from message parcel failed.");
         return false;
     }
     return true;
@@ -143,7 +143,7 @@ bool ITypesUtil::Marshalling(const SubProperty &input, MessageParcel &data)
 {
     if (!Marshal(data, input.label, input.labelId, input.name, input.id, input.mode, input.locale, input.language,
         input.icon, input.iconId)) {
-        IMSA_HILOGE("ITypesUtil::write SubProperty to message parcel failed");
+        IMSA_HILOGE("write SubProperty to message parcel failed.");
         return false;
     }
     return true;
@@ -153,7 +153,7 @@ bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.label, output.labelId, output.name, output.id, output.mode, output.locale,
         output.language, output.icon, output.iconId)) {
-        IMSA_HILOGE("ITypesUtil::read SubProperty from message parcel failed");
+        IMSA_HILOGE("read SubProperty from message parcel failed.");
         return false;
     }
     return true;
@@ -162,7 +162,7 @@ bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 {
     if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption, input.isTextPreviewSupported)) {
-        IMSA_HILOGE("write InputAttribute to message parcel failed");
+        IMSA_HILOGE("write InputAttribute to message parcel failed.");
         return false;
     }
     return true;
@@ -171,7 +171,7 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption, output.isTextPreviewSupported)) {
-        IMSA_HILOGE("read InputAttribute from message parcel failed");
+        IMSA_HILOGE("read InputAttribute from message parcel failed.");
         return false;
     }
     return true;
@@ -180,32 +180,32 @@ bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
 {
     if (!Marshal(data, input.inputAttribute)) {
-        IMSA_HILOGE("write InputAttribute to message parcel failed");
+        IMSA_HILOGE("write InputAttribute to message parcel failed.");
         return false;
     }
     if (!Marshal(data, input.cursorInfo.left, input.cursorInfo.top, input.cursorInfo.height, input.cursorInfo.width)) {
-        IMSA_HILOGE("write CursorInfo to message parcel failed");
+        IMSA_HILOGE("write CursorInfo to message parcel failed.");
         return false;
     }
     if (!Marshal(data, input.textSelection.oldBegin, input.textSelection.oldEnd, input.textSelection.newBegin,
         input.textSelection.newEnd)) {
-        IMSA_HILOGE("write TextSelection to message parcel failed");
+        IMSA_HILOGE("write TextSelection to message parcel failed.");
         return false;
     }
     if (!Marshal(data, input.windowId)) {
-        IMSA_HILOGE("write windowId to message parcel failed");
+        IMSA_HILOGE("write windowId to message parcel failed.");
         return false;
     }
     if (!Marshal(data, input.positionY)) {
-        IMSA_HILOGE("write positionY to message parcel failed");
+        IMSA_HILOGE("write positionY to message parcel failed.");
         return false;
     }
     if (!Marshal(data, input.height)) {
-        IMSA_HILOGE("write height to message parcel failed");
+        IMSA_HILOGE("write height to message parcel failed.");
         return false;
     }
     if (!Marshal(data, input.privateCommand)) {
-        IMSA_HILOGE("write privateCommand to message parcel failed");
+        IMSA_HILOGE("write privateCommand to message parcel failed.");
         return false;
     }
     return true;
@@ -214,33 +214,33 @@ bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 {
     if (!Unmarshalling(output.inputAttribute, data)) {
-        IMSA_HILOGE("read InputAttribute from message parcel failed");
+        IMSA_HILOGE("read InputAttribute from message parcel failed.");
         return false;
     }
     if (!Unmarshal(data, output.cursorInfo.left, output.cursorInfo.top,
         output.cursorInfo.height, output.cursorInfo.width)) {
-        IMSA_HILOGE("read CursorInfo from message parcel failed");
+        IMSA_HILOGE("read CursorInfo from message parcel failed.");
         return false;
     }
     if (!Unmarshal(data, output.textSelection.oldBegin, output.textSelection.oldEnd,
         output.textSelection.newBegin, output.textSelection.newEnd)) {
-        IMSA_HILOGE("read TextSelection from message parcel failed");
+        IMSA_HILOGE("read TextSelection from message parcel failed.");
         return false;
     }
     if (!Unmarshal(data, output.windowId)) {
-        IMSA_HILOGE("read windowId from message parcel failed");
+        IMSA_HILOGE("read windowId from message parcel failed.");
         return false;
     }
     if (!Unmarshal(data, output.positionY)) {
-        IMSA_HILOGE("read positionY from message parcel failed");
+        IMSA_HILOGE("read positionY from message parcel failed.");
         return false;
     }
     if (!Unmarshal(data, output.height)) {
-        IMSA_HILOGE("read height from message parcel failed");
+        IMSA_HILOGE("read height from message parcel failed.");
         return false;
     }
     if (!Unmarshal(data, output.privateCommand)) {
-        IMSA_HILOGE("read privateCommand from message parcel failed");
+        IMSA_HILOGE("read privateCommand from message parcel failed.");
         return false;
     }
     return true;
@@ -250,7 +250,7 @@ bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
         input.state, input.isNotifyInputStart, input.needHide)) {
-        IMSA_HILOGE("write InputClientInfo to message parcel failed");
+        IMSA_HILOGE("write InputClientInfo to message parcel failed.");
         return false;
     }
     return true;
@@ -260,7 +260,7 @@ bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config,
         output.state, output.isNotifyInputStart, output.needHide)) {
-        IMSA_HILOGE("read InputClientInfo from message parcel failed");
+        IMSA_HILOGE("read InputClientInfo from message parcel failed.");
         return false;
     }
     return true;
@@ -271,7 +271,7 @@ bool ITypesUtil::Marshalling(const ImeWindowInfo &input, MessageParcel &data)
     if (!Marshal(data, static_cast<int32_t>(input.panelInfo.panelFlag),
                  static_cast<int32_t>(input.panelInfo.panelType), input.windowInfo.name, input.windowInfo.top,
                  input.windowInfo.left, input.windowInfo.width, input.windowInfo.height)) {
-        IMSA_HILOGE("write InputWindowInfo to message parcel failed");
+        IMSA_HILOGE("write InputWindowInfo to message parcel failed.");
         return false;
     }
     return true;
@@ -284,7 +284,7 @@ bool ITypesUtil::Unmarshalling(ImeWindowInfo &output, MessageParcel &data)
     InputWindowInfo windowInfo;
     if (!Unmarshal(data, panelFlag, panelType, windowInfo.name, windowInfo.top, windowInfo.left, windowInfo.width,
                    windowInfo.height)) {
-        IMSA_HILOGE("read InputWindowInfo from message parcel failed");
+        IMSA_HILOGE("read InputWindowInfo from message parcel failed.");
         return false;
     }
     output.panelInfo = { static_cast<PanelType>(panelType), static_cast<PanelFlag>(panelFlag) };
@@ -344,7 +344,7 @@ bool ITypesUtil::Unmarshalling(OHOS::AppExecFwk::ElementName &output, MessagePar
         output.SetAbilityName(abilityName);
         return true;
     }
-    IMSA_HILOGE("read ElementName from message parcel failed");
+    IMSA_HILOGE("read ElementName from message parcel failed.");
     return false;
 }
 
@@ -390,7 +390,7 @@ bool ITypesUtil::Unmarshalling(ClientState &output, MessageParcel &data)
 {
     uint32_t state = 0;
     if (!data.ReadUint32(state)) {
-        IMSA_HILOGE("ClientState read failed");
+        IMSA_HILOGE("ClientState read failed.");
         return false;
     }
     output = static_cast<ClientState>(state);
@@ -406,7 +406,7 @@ bool ITypesUtil::Unmarshalling(SwitchTrigger &output, MessageParcel &data)
 {
     uint32_t state = 0;
     if (!data.ReadUint32(state)) {
-        IMSA_HILOGE("ClientState read failed");
+        IMSA_HILOGE("ClientState read failed.");
         return false;
     }
     output = static_cast<SwitchTrigger>(state);
@@ -417,7 +417,7 @@ bool ITypesUtil::Marshalling(const PrivateDataValue &input, MessageParcel &data)
 {
     size_t idx = input.index();
     if (!data.WriteInt32(static_cast<int32_t>(idx))) {
-        IMSA_HILOGE("Write index failed.");
+        IMSA_HILOGE("write index failed.");
         return false;
     }
     if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
@@ -458,7 +458,7 @@ bool ITypesUtil::Unmarshalling(PrivateDataValue &output, MessageParcel &data)
         output.emplace<int32_t>(intValue);
     }
     if (!res) {
-        IMSA_HILOGE("read PrivateDataValue from message parcel failed");
+        IMSA_HILOGE("read PrivateDataValue from message parcel failed.");
     }
     return res;
 }
@@ -466,7 +466,7 @@ bool ITypesUtil::Unmarshalling(PrivateDataValue &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const Range &input, MessageParcel &data)
 {
     if (!Marshal(data, input.start, input.end)) {
-        IMSA_HILOGE("failed to write Range into message parcel");
+        IMSA_HILOGE("failed to write Range into message parcel.");
         return false;
     }
     return true;
@@ -475,7 +475,7 @@ bool ITypesUtil::Marshalling(const Range &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(Range &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.start, output.end)) {
-        IMSA_HILOGE("failed to read Range from message parcel");
+        IMSA_HILOGE("failed to read Range from message parcel.");
         return false;
     }
     return true;

@@ -45,7 +45,7 @@ void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY,
     auto ret = SendRequest(ON_CURSOR_UPDATE, [positionX, positionY, height](MessageParcel &data) {
         return ITypesUtil::Marshal(data, positionX, positionY, height);
     });
-    IMSA_HILOGD("InputMethodAgentProxy::OnCursorUpdate ret = %{public}d", ret);
+    IMSA_HILOGD("InputMethodAgentProxy::OnCursorUpdate ret: %{public}d.", ret);
 }
 
 void InputMethodAgentProxy::OnSelectionChange(
@@ -54,21 +54,21 @@ void InputMethodAgentProxy::OnSelectionChange(
     auto ret = SendRequest(ON_SELECTION_CHANGE, [&text, oldBegin, oldEnd, newBegin, newEnd](MessageParcel &data) {
         return ITypesUtil::Marshal(data, text, oldBegin, oldEnd, newBegin, newEnd);
     });
-    IMSA_HILOGD("InputMethodAgentProxy::OnSelectionChange ret = %{public}d", ret);
+    IMSA_HILOGD("InputMethodAgentProxy::OnSelectionChange ret: %{public}d.", ret);
 }
 
 void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
 {
     auto ret = SendRequest(
         SET_CALLING_WINDOW_ID, [windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
-    IMSA_HILOGD("InputMethodAgentProxy::SetCallingWindow ret = %{public}d", ret);
+    IMSA_HILOGD("InputMethodAgentProxy::SetCallingWindow ret: %{public}d.", ret);
 }
 
 void InputMethodAgentProxy::OnAttributeChange(const InputAttribute &attribute)
 {
     auto ret = SendRequest(
         ON_ATTRIBUTE_CHANGE, [&attribute](MessageParcel &data) { return ITypesUtil::Marshal(data, attribute); });
-    IMSA_HILOGD("InputMethodAgentProxy, ret: %{public}d", ret);
+    IMSA_HILOGD("InputMethodAgentProxy, ret: %{public}d.", ret);
 }
 
 int32_t InputMethodAgentProxy::SendPrivateCommand(
@@ -84,30 +84,30 @@ int32_t InputMethodAgentProxy::SendPrivateCommand(
 
 int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGD("InputMethodAgentProxy run in, code = %{public}d", code);
+    IMSA_HILOGD("InputMethodAgentProxy start, code: %{public}d.", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("InputMethodAgentProxy::write interface token failed");
+        IMSA_HILOGE("InputMethodAgentProxy::write interface token failed!");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
     if (input != nullptr && (!input(data))) {
-        IMSA_HILOGE("InputMethodAgentProxy::write data failed");
+        IMSA_HILOGE("InputMethodAgentProxy::write data failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        IMSA_HILOGE("InputMethodAgentProxy remote is nullptr");
+        IMSA_HILOGE("InputMethodAgentProxy remote is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputMethodCoreProxy send request failed, code: %{public}d, ret: %{public}d", code, ret);
+        IMSA_HILOGE("InputMethodCoreProxy send request failed, code: %{public}d, ret: %{public}d!", code, ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
-        IMSA_HILOGE("InputMethodCoreProxy::reply parcel error");
+        IMSA_HILOGE("InputMethodCoreProxy::reply parcel error!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ret;

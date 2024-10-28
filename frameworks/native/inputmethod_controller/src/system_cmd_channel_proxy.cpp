@@ -44,30 +44,30 @@ int32_t SystemCmdChannelProxy::NotifyPanelStatus(const SysPanelStatus &sysPanelS
 
 int32_t SystemCmdChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGD("SystemCmdChannelProxy run in, code = %{public}d", code);
+    IMSA_HILOGD("SystemCmdChannelProxy run in, code = %{public}d.", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_ASYNC };
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("SystemCmdChannelProxy::write interface token failed");
+        IMSA_HILOGE("write interface token failed!");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
     if (input != nullptr && (!input(data))) {
-        IMSA_HILOGE("SystemCmdChannelProxy::write data failed");
+        IMSA_HILOGE("write data failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        IMSA_HILOGE("SystemCmdChannelProxy::SendRequest remote is nullptr.");
+        IMSA_HILOGE("remote is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("SystemCmdChannelProxy send request failed, code: %{public}d, ret: %{public}d", code, ret);
+        IMSA_HILOGE("send request failed, code: %{public}d, ret: %{public}d!", code, ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
-        IMSA_HILOGE("SystemCmdChannelProxy::reply parcel error");
+        IMSA_HILOGE("reply parcel error!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ret;

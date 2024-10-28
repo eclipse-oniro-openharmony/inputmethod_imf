@@ -93,7 +93,7 @@ std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::GetKeyboar
         if (keyboardDelegate_ == nullptr) {
             auto delegate = std::make_shared<JsKeyboardDelegateSetting>();
             if (delegate == nullptr) {
-                IMSA_HILOGE("keyboard delegate nullptr");
+                IMSA_HILOGE("keyboard delegate is nullptr!");
                 return nullptr;
             }
             keyboardDelegate_ = delegate;
@@ -125,7 +125,7 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
     auto delegate = GetKeyboardDelegateSetting();
     if (delegate == nullptr || !InitKeyboardDelegate()) {
-        IMSA_HILOGE("failed to get delegate");
+        IMSA_HILOGE("failed to get delegate!");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
@@ -133,7 +133,7 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
     napi_status status = napi_wrap(
         env, thisVar, delegate.get(), [](napi_env env, void *nativeObject, void *hint) {}, nullptr, nullptr);
     if (status != napi_ok) {
-        IMSA_HILOGE("JsKeyboardDelegateSetting napi_wrap failed: %{public}d", status);
+        IMSA_HILOGE("failed to wrap: %{public}d!", status);
         return nullptr;
     }
     if (delegate->loop_ == nullptr) {
@@ -157,11 +157,11 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, KDSRef_, &cons) != napi_ok) {
-        IMSA_HILOGE("napi_get_reference_value(env, KDSRef_, &cons) != napi_ok");
+        IMSA_HILOGE("failed to get reference value!");
         return nullptr;
     }
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
-        IMSA_HILOGE("napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok");
+        IMSA_HILOGE("failed to new instance!");
         return nullptr;
     }
     return instance;
@@ -173,7 +173,7 @@ void JsKeyboardDelegateSetting::RegisterListener(
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGD("methodName %{public}s not registered!", type.c_str());
+        IMSA_HILOGD("methodName %{public}s is not registered!", type.c_str());
     }
     auto callbacks = jsCbMap_[type];
     bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
@@ -184,16 +184,16 @@ void JsKeyboardDelegateSetting::RegisterListener(
         return;
     }
 
-    IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
+    IMSA_HILOGI("add %{public}s callbackObj into jsCbMap_.", type.c_str());
     jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
 void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::string type)
 {
-    IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
+    IMSA_HILOGI("unregister listener: %{public}s.", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName %{public}s not unRegistered!", type.c_str());
+        IMSA_HILOGE("methodName %{public}s is not unregistered!", type.c_str());
         return;
     }
 
@@ -227,10 +227,10 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
         || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)
         || JsUtil::GetType(env, argv[1]) != napi_function) {
-        IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
+        IMSA_HILOGE("subscribe failed, type: %{public}s!", type.c_str());
         return nullptr;
     }
-    IMSA_HILOGD("Subscribe type:%{public}s.", type.c_str());
+    IMSA_HILOGD("subscribe type: %{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsKeyboardDelegateSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
@@ -255,7 +255,7 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     // 1 means least param num.
     if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
         || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)) {
-        IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
+        IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
         return nullptr;
     }
 
@@ -267,7 +267,7 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     // if the second param is napi_function, delete it, else delete all
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
-    IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
+    IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());
     auto delegate = reinterpret_cast<JsKeyboardDelegateSetting *>(JsUtils::GetNativeSelf(env, info));
     if (delegate == nullptr) {
         return nullptr;
@@ -299,7 +299,7 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(
 {
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr");
+        IMSA_HILOGE("eventHandler is nullptr!");
         return false;
     }
     auto keyEventEntry =
@@ -310,10 +310,10 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(
         entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
     });
     if (keyEventEntry == nullptr && keyCodeEntry == nullptr) {
-        IMSA_HILOGW("no key event callback registered");
+        IMSA_HILOGW("key event callback is not registered.");
         return false;
     }
-    IMSA_HILOGD("run in");
+    IMSA_HILOGD("run in.");
     auto task = [keyEventEntry, keyCodeEntry, consumer]() { DealKeyEvent(keyEventEntry, keyCodeEntry, consumer); };
     eventHandler->PostTask(task, "OnDealKeyEvent");
     return true;
@@ -350,7 +350,7 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &key
             napi_value jsObject =
                 GetResultOnKeyEvent(env, keyCodeEntry->keyEventPara.keyCode, keyCodeEntry->keyEventPara.keyStatus);
             if (jsObject == nullptr) {
-                IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
+                IMSA_HILOGE("jsObject is nullptr!");
                 return false;
             }
             // 0 means the first param of callback.
@@ -364,7 +364,7 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &key
     if (consumer != nullptr) {
         consumer->OnKeyEventResult(consumeResult);
         if (!consumeResult) {
-            IMSA_HILOGW("ime is not consumed, result: %{public}d", consumeResult);
+            IMSA_HILOGW("ime is not consumed, result: %{public}d.", consumeResult);
         }
     }
 }
@@ -382,11 +382,11 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(
     }
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr");
+        IMSA_HILOGE("eventHandler is nullptr!");
         return false;
     }
 
-    IMSA_HILOGI("run in");
+    IMSA_HILOGI("run in.");
     StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     auto task = [entry]() {
         auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
@@ -408,7 +408,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
         auto consumer = entry->keyEvenetConsumer;
         if (consumer != nullptr) {
-            IMSA_HILOGE("consumer result: %{public}d", isConsumed);
+            IMSA_HILOGE("consumer result: %{public}d!", isConsumed);
             consumer->OnKeyEventConsumeResult(isConsumed);
         }
         FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
@@ -430,11 +430,11 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, s
     }
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr");
+        IMSA_HILOGE("eventHandler is nullptr!");
         return false;
     }
 
-    IMSA_HILOGI("run in");
+    IMSA_HILOGI("run in.");
     StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     auto task = [entry]() {
         InputMethodSyncTrace tracer("OnkeyEvent UV_QUEUE_WORK");
@@ -445,7 +445,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, s
             }
             napi_value jsObject = GetResultOnKeyEvent(env, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
             if (jsObject == nullptr) {
-                IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
+                IMSA_HILOGE("jsObject is nullptr!");
                 return false;
             }
             // 0 means the first param of callback.
@@ -483,8 +483,8 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGD(
-        "JsKeyboardDelegateSetting, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
+    IMSA_HILOGD("the cursor for x: %{public}d, y: %{public}d, height: %{public}d.", positionX, positionY,
+        height);
     auto task = [entry]() {
         auto paramGetter = [&entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 3) {
@@ -522,9 +522,8 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGD("JsKeyboardDelegateSetting, oldBegin: %{public}d, oldEnd: %{public}d, newBegin: %{public}d, newEnd: "
-                "%{public}d",
-        oldBegin, oldEnd, newBegin, newEnd);
+    IMSA_HILOGD("the selection for oldBegin: %{public}d, oldEnd: %{public}d, newBegin: %{public}d, newEnd: "
+                "%{public}d.", oldBegin, oldEnd, newBegin, newEnd);
     auto task = [entry]() {
         auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 4) {
@@ -551,7 +550,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
     std::string type = "textChange";
     auto entry = GetEntry(type, [&text](UvEntry &entry) { entry.text = text; });
     if (entry == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGE("failed to get uv entry!");
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -559,7 +558,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGD("run in");
+    IMSA_HILOGD("run in.");
     
     auto task = [entry]() {
         auto getTextChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
@@ -597,7 +596,7 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
             }
             napi_value jsObject = JsInputAttribute::Write(env, entry->inputAttribute);
             if (jsObject == JsUtil::Const::Null(env)) {
-                IMSA_HILOGE("get GetAttribute failed: jsObject is nullptr");
+                IMSA_HILOGE("jsObject is nullptr!");
                 return false;
             }
             // 0 means the first param of callback.
@@ -612,18 +611,18 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
 
 uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
+    IMSA_HILOGD("start, type: %{public}s", type.c_str());
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
+            IMSA_HILOGD("%{public}s cb-vector is empty.", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
         if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
+            IMSA_HILOGE("entry is nullptr!");
             return nullptr;
         }
         if (entrySetter != nullptr) {
@@ -632,7 +631,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySe
     }
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
+        IMSA_HILOGE("work is nullptr!");
         delete entry;
         return nullptr;
     }
@@ -649,12 +648,12 @@ std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardDelegateSetting::GetEventHan
 std::shared_ptr<JsKeyboardDelegateSetting::UvEntry> JsKeyboardDelegateSetting::GetEntry(
     const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGD("type: %{public}s", type.c_str());
+    IMSA_HILOGD("start, type: %{public}s", type.c_str());
     std::shared_ptr<UvEntry> entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
+            IMSA_HILOGD("%{public}s cb-vector is empty.", type.c_str());
             return nullptr;
         }
         entry = std::make_shared<UvEntry>(jsCbMap_[type], type);
