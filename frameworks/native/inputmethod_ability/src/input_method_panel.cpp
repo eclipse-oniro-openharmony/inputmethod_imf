@@ -77,13 +77,11 @@ int32_t InputMethodPanel::CreatePanel(const std::shared_ptr<AbilityRuntime::Cont
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     windowId_ = window_->GetWindowId();
-    IMSA_HILOGI("success, type/flag/windowId: %{public}d/%{public}d/%{public}u.", static_cast<int32_t>(panelType_),
-        static_cast<int32_t>(panelFlag_), windowId_);
-    if (panelInfo.panelType == SOFT_KEYBOARD) {
-        isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
-        if (isScbEnable_) {
-            RegisterKeyboardPanelInfoChangeListener();
-        }
+    isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+    IMSA_HILOGI("success, type/flag/windowId/isScbEnable_: %{public}d/%{public}d/%{public}u/%{public}d.",
+        static_cast<int32_t>(panelType_), static_cast<int32_t>(panelFlag_), windowId_, isScbEnable_);
+    if (panelInfo.panelType == SOFT_KEYBOARD && isScbEnable_) {
+        RegisterKeyboardPanelInfoChangeListener();
     }
     return ErrorCode::NO_ERROR;
 }
