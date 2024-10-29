@@ -38,6 +38,7 @@
 #include "input_control_channel_stub.h"
 #include "input_data_channel_proxy.h"
 #include "input_data_channel_stub.h"
+#include "input_method_ability_interface.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
@@ -436,7 +437,14 @@ HWTEST_F(InputMethodAbilityTest, testDeleteText, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitDeleteBackward(deleteForwardLenth));
 
+    ret = InputMethodAbilityInterface::GetInstance().DeleteForward(deleteForwardLenth);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitDeleteBackward(deleteForwardLenth));
+
     int32_t deleteBackwardLenth = 2;
+    ret = InputMethodAbilityInterface::GetInstance().DeleteBackward(deleteBackwardLenth);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitDeleteForward(deleteBackwardLenth));
     ret = inputMethodAbility_->DeleteBackward(deleteBackwardLenth);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitDeleteForward(deleteBackwardLenth));
@@ -1329,6 +1337,52 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_003, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED);
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
     InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: BranchCoverage001
+ * @tc.desc: BranchCoverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, BranchCoverage001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest BranchCoverage001 TEST START");
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->OnStopInputService(false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    InputMethodAbilityTest::inputMethodAbility_->imeListener_ = nullptr;
+    ret = InputMethodAbilityTest::inputMethodAbility_->OnStopInputService(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
+
+    ret = InputMethodAbilityTest::inputMethodAbility_->OnSecurityChange(INVALID_VALUE);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    ret = InputMethodAbilityTest::inputMethodAbility_->HideKeyboardImplWithoutLock(INVALID_VALUE);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = InputMethodAbilityTest::inputMethodAbility_->ShowKeyboardImplWithoutLock(INVALID_VALUE);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = InputMethodAbilityTest::inputMethodAbility_->ShowPanel(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    PanelFlag flag = PanelFlag::FLG_FIXED;
+    Trigger trigger = Trigger::IME_APP;
+    ret = InputMethodAbilityTest::inputMethodAbility_->ShowPanel(nullptr, flag, trigger);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    ret = InputMethodAbilityTest::inputMethodAbility_->HidePanel(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    ret = InputMethodAbilityTest::inputMethodAbility_->HidePanel(nullptr, flag, trigger);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    InputMethodAbilityTest::inputMethodAbility_->isCurrentIme_ = true;
+    auto ret2 = InputMethodAbilityTest::inputMethodAbility_->IsCurrentIme();
+    EXPECT_TRUE(ret2);
+
+    ret2 = InputMethodAbilityTest::inputMethodAbility_->IsEnable();
+    EXPECT_FALSE(ret2);
 }
 } // namespace MiscServices
 } // namespace OHOS

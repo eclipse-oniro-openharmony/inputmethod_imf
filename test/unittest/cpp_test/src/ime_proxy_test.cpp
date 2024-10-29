@@ -645,5 +645,19 @@ HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level0)
     InputMethodAbility::GetInstance()->OnClientInactive(nullptr);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
 }
+
+/**
+* @tc.name: testIsFromTs
+* @tc.desc: ImeProxyTest testIsFromTs
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(ImeProxyTest, testIsFromTs, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest testDelete Test START");
+    sptr<OnTextChangedListener> testListener = new TextListener();
+    bool isFrom = testListener->IsFromTs();
+    EXPECT_FALSE(isFrom);
+}
 } // namespace MiscServices
 } // namespace OHOS
