@@ -421,7 +421,6 @@ napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_i
         HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], text), "text covert failed!", TYPE_NONE,
         HandleParamCheckFailure(env));
-    IMSA_HILOGD("insert text, text: %{public}s.", text.c_str());
     int32_t ret = InputMethodAbility::GetInstance()->InsertText(text);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to insert text!", TYPE_NONE);

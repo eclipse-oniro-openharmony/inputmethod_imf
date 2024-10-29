@@ -1699,5 +1699,21 @@ HWTEST_F(InputMethodControllerTest, testIMCReset, TestSize.Level0)
     EXPECT_EQ(inputMethodController_->abilityManager_, nullptr);
     inputMethodController_->abilityManager_ = imsaProxy_;
 }
+
+/**
+ * @tc.name: testIsDefaultImeSetAndEnableIme
+ * @tc.desc: test IMC Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIsDefaultImeSetAndEnableIme, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIsDefaultImeSetAndEnableIme Test START");
+    auto ret = inputMethodController_->IsDefaultImeSet();
+    EXPECT_FALSE(ret);
+    const std::string bundleName = "";
+    ret = inputMethodController_->EnableIme(bundleName);
+    EXPECT_FALSE(ret);
+}
 } // namespace MiscServices
 } // namespace OHOS

@@ -55,7 +55,6 @@ bool FileOperator::Read(const std::string &path, std::string &content)
 
 bool FileOperator::Write(const std::string &path, const std::string &content, int32_t flags, mode_t mode)
 {
-    IMSA_HILOGD("content: %{public}s.", content.c_str());
     auto fd = open(path.c_str(), flags, mode);
     if (fd < 0) {
         IMSA_HILOGE("%{public}s open fail, errno: %{public}d", path.c_str(), errno);

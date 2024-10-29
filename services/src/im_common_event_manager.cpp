@@ -318,8 +318,6 @@ void ImCommonEventManager::EventSubscriber::HandlePackageEvent(int32_t messageId
         IMSA_HILOGE("invalid user id, messageId:%{public}d", messageId);
         return;
     }
-    IMSA_HILOGD(
-        "messageId:%{public}d, bundleName:%{public}s, userId:%{public}d", messageId, bundleName.c_str(), userId);
     if (messageId == MessageID::MSG_ID_PACKAGE_REMOVED) {
         if (!FullImeInfoManager::GetInstance().Has(userId, bundleName)) {
             return;
