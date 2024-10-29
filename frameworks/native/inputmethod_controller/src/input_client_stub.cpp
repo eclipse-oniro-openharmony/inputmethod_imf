@@ -76,7 +76,12 @@ void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &r
 
 int32_t InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    return reply.WriteInt32(OnInputStop()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    bool isStopInactiveClient = false;
+    if (!ITypesUtil::Unmarshal(data, isStopInactiveClient)) {
+        IMSA_HILOGE("failed to unmarshall isStopInactiveClient");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return reply.WriteInt32(OnInputStop(isStopInactiveClient)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -115,9 +120,9 @@ int32_t InputClientStub::OnInputReady(const sptr<IRemoteObject> &agent)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputClientStub::OnInputStop()
+int32_t InputClientStub::OnInputStop(bool isStopInactiveClient)
 {
-    InputMethodController::GetInstance()->OnInputStop();
+    InputMethodController::GetInstance()->OnInputStop(isStopInactiveClient);
     return ErrorCode::NO_ERROR;
 }
 

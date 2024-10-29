@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_PROXY_IME_UNREGISTERED_TYPE_H
-#define INPUTMETHOD_IMF_PROXY_IME_UNREGISTERED_TYPE_H
+#ifndef INPUTMETHOD_INPUT_METHOD_TYPES_H
+#define INPUTMETHOD_INPUT_METHOD_TYPES_H
 
 #include "input_attribute.h"
 #include "key_event.h"
@@ -23,4 +23,4 @@ namespace MiscServices {
 enum class UnRegisteredType : int32_t { REMOVE_PROXY_IME, SWITCH_PROXY_IME_TO_IME, NONE };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // INPUTMETHOD_IMF_PROXY_IME_UNREGISTERED_TYPE_H
+#endif // INPUTMETHOD_INPUT_METHOD_TYPES_H

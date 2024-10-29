@@ -40,6 +40,7 @@ public:
     std::u16string GetRightTextOfCursor(int32_t number) override;
     int32_t GetTextIndexAtCursor() override;
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    bool IsFromTs() override;
 
 private:
     static std::mutex listenerMutex_;

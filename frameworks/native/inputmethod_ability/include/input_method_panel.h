@@ -163,6 +163,7 @@ private:
         {0, 0, 0, 822},
         {0, 0, 0, 809}
     };
+    std::atomic<bool> isWaitSetUiContent_{true};
 };
 } // namespace MiscServices
 } // namespace OHOS

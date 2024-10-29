@@ -31,9 +31,10 @@ namespace MiscServices {
 class ISystemCmdChannel : public IRemoteBroker {
 public:
     enum {
-        SEND_PRIVATE_COMMAND = FIRST_CALL_TRANSACTION,
+        SYSTEM_CMD_BEGIN,
+        SEND_PRIVATE_COMMAND = SYSTEM_CMD_BEGIN,
         SHOULD_SYSTEM_PANEL_SHOW,
-        SYSTEM_CMD_LAST,
+        SYSTEM_CMD_END,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.ISystemCmdChannel");

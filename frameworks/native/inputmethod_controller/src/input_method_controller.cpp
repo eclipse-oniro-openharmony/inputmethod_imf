@@ -948,7 +948,7 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     SetAgent(agentObject);
 }
 
-void InputMethodController::OnInputStop()
+void InputMethodController::OnInputStop(bool isStopInactiveClient)
 {
     {
         std::lock_guard<std::mutex> autoLock(agentLock_);
@@ -962,7 +962,9 @@ void InputMethodController::OnInputStop()
             IMSA_HILOGD("finish text preview.");
             listener->FinishTextPreview();
         }
-        listener->SendKeyboardStatus(KeyboardStatus::HIDE);
+        if (!isStopInactiveClient || !listener->IsFromTs()) {
+            listener->SendKeyboardStatus(KeyboardStatus::HIDE);
+        }
     }
     isBound_.store(false);
     isEditable_.store(false);

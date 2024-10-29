@@ -17,7 +17,7 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_EVENT_MONITOR_MANAGER_H
 #include <map>
 #include <set>
-
+#include <memory>
 #include "ime_event_listener.h"
 #include "visibility.h"
 

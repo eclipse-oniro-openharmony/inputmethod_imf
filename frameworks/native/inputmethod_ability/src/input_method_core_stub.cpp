@@ -49,11 +49,12 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
         IMSA_HILOGE("InputMethodCoreStub descriptor error!");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
-    if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(CORE_CMD_LAST)) {
-        return (this->*HANDLERS[code])(data, reply);
-    } else {
-        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    if (code < CORE_CMD_BEGIN || code >= CORE_CMD_END) {
+        IMSA_HILOGE("code error, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
+            IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
+        return IRemoteStub::OnRemoteRequest(code, data, reply, option);
     }
+    return (this->*HANDLERS[code])(data, reply);
 }
 
 int32_t InputMethodCoreStub::InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel)

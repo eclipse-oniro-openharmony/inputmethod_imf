@@ -17,6 +17,8 @@
 
 namespace OHOS {
 namespace MiscServices {
+std::mutex MessageHandler::handlerMutex_;
+
 MessageHandler::MessageHandler()
 {
 }
@@ -63,7 +65,11 @@ MessageHandler *MessageHandler::Instance()
 {
     static MessageHandler *handler = nullptr;
     if (handler == nullptr) {
-        handler = new MessageHandler();
+        std::unique_lock<std::mutex> lock(handlerMutex_);
+        if (handler == nullptr) {
+            handler = new MessageHandler();
+            return handler;
+        }
     }
     return handler;
 }

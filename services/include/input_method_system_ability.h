@@ -37,7 +37,7 @@
 #include "security_mode_parser.h"
 #include "settings_data_utils.h"
 #include "system_ability.h"
-#include "unRegistered_type.h"
+#include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -169,10 +169,10 @@ private:
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
-    bool enableImeOn_ = false;
-    bool enableSecurityMode_ = false;
+    std::atomic<bool> enableImeOn_ = false;
+    std::atomic<bool> enableSecurityMode_ = false;
 
-    bool isScbEnable_ = false;
+    std::atomic<bool> isScbEnable_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;

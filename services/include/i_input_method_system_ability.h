@@ -35,7 +35,7 @@
 #include "iremote_broker.h"
 #include "message_parcel.h"
 #include "panel_info.h"
-#include "unRegistered_type.h"
+#include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {

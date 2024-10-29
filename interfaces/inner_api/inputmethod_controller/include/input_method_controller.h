@@ -100,7 +100,20 @@ public:
     virtual void FinishTextPreview()
     {
     }
-    virtual void OnDetach() { }
+    virtual void OnDetach()
+    {
+    }
+    /**
+     * @brief Is listener from ts registration.
+     *
+     * If you use C/C++ interface, ignore this.
+     *
+     * @since 12
+     */
+    virtual bool IsFromTs()
+    {
+        return false;
+    }
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
@@ -521,7 +534,7 @@ public:
      *
      * @since 10
      */
-    void OnInputStop();
+    void OnInputStop(bool isStopInactiveClient = false);
 
     /**
      * @brief Insert text.
