@@ -40,7 +40,7 @@
 #include "input_method_property.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
-#include "unRegistered_type.h"
+#include "input_method_types.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {

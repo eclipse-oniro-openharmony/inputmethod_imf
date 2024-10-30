@@ -15,6 +15,7 @@
 #ifndef OHOS_INPUT_CALLBACK_HANDLER_H
 #define OHOS_INPUT_CALLBACK_HANDLER_H
 
+#include <functional>
 #include "inputmethod_trace.h"
 #include "js_callback_object.h"
 #include "js_util.h"
@@ -36,6 +37,9 @@ public:
     {
         InputMethodSyncTrace tracer("Traverse callback");
         for (const auto &object : objects) {
+            if (object == nullptr) {
+                continue;
+            }
             JsUtil::ScopeGuard scopeGuard(object->env_);
             napi_value jsOutput = nullptr;
             Execute(object, argContainer, jsOutput);

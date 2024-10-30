@@ -69,6 +69,7 @@ enum {
     MSG_ID_ON_CONFIGURATION_CHANGE,
     MSG_ID_ON_ATTRIBUTE_CHANGE,
     MSG_ID_QUIT_WORKER_THREAD,
+    MSG_ID_SET_COREANDANGENT,
 };
 }
 
@@ -79,6 +80,7 @@ public:
     void SendMessage(Message *msg);
     Message *GetMessage();
     static MessageHandler *Instance();
+    static std::mutex handlerMutex_;
 
 private:
     std::mutex mMutex;            // a mutex to guard message queue

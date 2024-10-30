@@ -262,8 +262,9 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     StartAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     CallObjectMethod("onCreate", argv, ARGC_ONE);
     FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
-    auto ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
-    IMSA_HILOGI("ime bind imf: %{public}d.", ret);
+    auto ability = InputMethodAbility::GetInstance();
+    ability->SetCoreAndAgentAsync();
+    IMSA_HILOGI("ime bind imf");
     FinishAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
 }
 
@@ -340,7 +341,7 @@ void JsInputMethodExtension::OnCommand(const AAFwk::Want &want, bool restart, in
 
 napi_value JsInputMethodExtension::CallObjectMethod(const char *name, const napi_value *argv, size_t argc)
 {
-    IMSA_HILOGI("JsInputMethodExtension::CallObjectMethod(%{public}s), begin", name);
+    IMSA_HILOGI("JsInputMethodExtension::CallObjectMethod(%{public}s), start.", name);
 
     if (jsObj_ == nullptr) {
         IMSA_HILOGW("not found InputMethodExtension.js.");
@@ -404,7 +405,7 @@ void JsInputMethodExtension::OnDestroy(Rosen::DisplayId displayId)
 
 void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
 {
-    IMSA_HILOGD("displayId: %{public}" PRIu64 "", displayId);
+    IMSA_HILOGD("displayId: %{public}" PRIu64"", displayId);
     auto context = GetContext();
     if (context == nullptr) {
         IMSA_HILOGE("context is invalid!");

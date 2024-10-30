@@ -32,9 +32,10 @@ int32_t InputClientProxy::OnInputReady(const sptr<IRemoteObject> &agent)
     return SendRequest(ON_INPUT_READY, [agent](MessageParcel &data) { return ITypesUtil::Marshal(data, agent); });
 }
 
-int32_t InputClientProxy::OnInputStop()
+int32_t InputClientProxy::OnInputStop(bool isStopInactiveClient)
 {
-    return SendRequest(ON_INPUT_STOP);
+    return SendRequest(ON_INPUT_STOP,
+        [isStopInactiveClient](MessageParcel &data) { return ITypesUtil::Marshal(data, isStopInactiveClient); });
 }
 
 int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubProperty &subProperty)

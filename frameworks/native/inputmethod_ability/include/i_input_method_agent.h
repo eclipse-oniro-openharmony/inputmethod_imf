@@ -31,12 +31,14 @@ namespace MiscServices {
 class IInputMethodAgent : public IRemoteBroker {
 public:
     enum {
-        DISPATCH_KEY_EVENT = FIRST_CALL_TRANSACTION,
+        AGENT_CODE_BEGIN,
+        DISPATCH_KEY_EVENT = AGENT_CODE_BEGIN,
         ON_CURSOR_UPDATE,
         ON_SELECTION_CHANGE,
         SET_CALLING_WINDOW_ID,
         SEND_PRIVATE_COMMAND,
         ON_ATTRIBUTE_CHANGE,
+        AGENT_CODE_END,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodAgent");

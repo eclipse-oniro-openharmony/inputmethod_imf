@@ -85,5 +85,10 @@ int32_t JsGetInputMethodTextChangedListener::ReceivePrivateCommand(
 {
     return ErrorCode::NO_ERROR;
 }
+
+bool JsGetInputMethodTextChangedListener::IsFromTs()
+{
+    return true;
+}
 } // namespace MiscServices
 } // namespace OHOS

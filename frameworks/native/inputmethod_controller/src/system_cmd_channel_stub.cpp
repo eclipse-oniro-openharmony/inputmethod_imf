@@ -75,11 +75,12 @@ int32_t SystemCmdChannelStub::OnRemoteRequest(
         IMSA_HILOGE("SystemCmdChannelStub descriptor error!");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
-    if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(SYSTEM_CMD_LAST)) {
-        return (this->*HANDLERS[code])(data, reply);
-    } else {
+    if (code < SYSTEM_CMD_BEGIN || code >= SYSTEM_CMD_END) {
+        IMSA_HILOGE("code error, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
+            IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
+    return (this->*HANDLERS[code])(data, reply);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -51,10 +51,6 @@ public:
 
 private:
     MessageHandler *msgHandler_;
-    int32_t InvalidRequest(MessageParcel &data, MessageParcel &reply)
-    {
-        return ERR_UNKNOWN_TRANSACTION;
-    };
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -70,20 +66,19 @@ private:
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
     using RequestHandler = int32_t (InputMethodCoreStub::*)(MessageParcel &, MessageParcel &);
-    const RequestHandler HANDLERS[CORE_CMD_LAST] = {
-        &InputMethodCoreStub::InvalidRequest,
-        &InputMethodCoreStub::ShowKeyboardOnRemote,
-        &InputMethodCoreStub::StopInputServiceOnRemote,
-        &InputMethodCoreStub::HideKeyboardOnRemote,
-        &InputMethodCoreStub::InitInputControlChannelOnRemote,
-        &InputMethodCoreStub::SetSubtypeOnRemote,
-        &InputMethodCoreStub::StartInputOnRemote,
-        &InputMethodCoreStub::StopInputOnRemote,
-        &InputMethodCoreStub::IsEnableOnRemote,
-        &InputMethodCoreStub::IsPanelShownOnRemote,
-        &InputMethodCoreStub::SecurityChangeOnRemote,
-        &InputMethodCoreStub::OnClientInactiveOnRemote,
-        &InputMethodCoreStub::OnConnectSystemCmdOnRemote,
+    static constexpr RequestHandler HANDLERS[CORE_CMD_END] = {
+        [SHOW_KEYBOARD] = &InputMethodCoreStub::ShowKeyboardOnRemote,
+        [STOP_INPUT_SERVICE] = &InputMethodCoreStub::StopInputServiceOnRemote,
+        [HIDE_KEYBOARD] = &InputMethodCoreStub::HideKeyboardOnRemote,
+        [INIT_INPUT_CONTROL_CHANNEL] = &InputMethodCoreStub::InitInputControlChannelOnRemote,
+        [SET_SUBTYPE] = &InputMethodCoreStub::SetSubtypeOnRemote,
+        [START_INPUT] = &InputMethodCoreStub::StartInputOnRemote,
+        [STOP_INPUT] = &InputMethodCoreStub::StopInputOnRemote,
+        [IS_ENABLE] = &InputMethodCoreStub::IsEnableOnRemote,
+        [IS_PANEL_SHOWN] = &InputMethodCoreStub::IsPanelShownOnRemote,
+        [SECURITY_CHANGE] = &InputMethodCoreStub::SecurityChangeOnRemote,
+        [ON_CLIENT_INACTIVE] = &InputMethodCoreStub::OnClientInactiveOnRemote,
+        [ON_CONNECT_SYSTEM_CMD] = &InputMethodCoreStub::OnConnectSystemCmdOnRemote,
     };
 };
 } // namespace MiscServices

@@ -20,7 +20,8 @@
 namespace OHOS {
 namespace MiscServices {
 enum class InputMethodInterfaceCode {
-    START_INPUT = FIRST_CALL_TRANSACTION,
+    IMS_CMD_BEGIN = FIRST_CALL_TRANSACTION,
+    START_INPUT = IMS_CMD_BEGIN,
     SHOW_CURRENT_INPUT,
     HIDE_CURRENT_INPUT,
     SHOW_INPUT,
@@ -54,7 +55,7 @@ enum class InputMethodInterfaceCode {
     CONNECT_SYSTEM_CMD,
     IS_CURRENT_IME_BY_PID,
     INIT_CONNECT,
-    IMS_CMD_LAST,
+    IMS_CMD_END,
 };
 } // namespace MiscServices
 } // namespace OHOS

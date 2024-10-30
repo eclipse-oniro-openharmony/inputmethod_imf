@@ -24,13 +24,9 @@
 #include "message.h"
 namespace OHOS {
 namespace MiscServices {
-InputDataChannelStub::InputDataChannelStub()
-{
-}
+InputDataChannelStub::InputDataChannelStub() {}
 
-InputDataChannelStub::~InputDataChannelStub()
-{
-}
+InputDataChannelStub::~InputDataChannelStub() {}
 
 int32_t InputDataChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -42,11 +38,12 @@ int32_t InputDataChannelStub::OnRemoteRequest(
         IMSA_HILOGE("descriptor error!");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
-    if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(DATA_CHANNEL_CMD_LAST)) {
-        return (this->*HANDLERS[code])(data, reply);
-    } else {
+    if (code < DATA_CHANNEL_CMD_BEGIN || code >= DATA_CHANNEL_CMD_END) {
+        IMSA_HILOGE("code error, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
+            IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
+    return (this->*HANDLERS[code])(data, reply);
 }
 
 int32_t InputDataChannelStub::InsertTextOnRemote(MessageParcel &data, MessageParcel &reply)
