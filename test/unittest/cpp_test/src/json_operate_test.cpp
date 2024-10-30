@@ -240,16 +240,11 @@ HWTEST_F(JsonOperateTest, testParseImePersistCfg001, TestSize.Level0)
 HWTEST_F(JsonOperateTest, testPackageImePersistCfg001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testPackageImePersistCfg001 START");
-    const std::string imePersistCfg = "{\"imeCfgList\":[{\"userId\":100,\"currentIme\":\"bundleName/"
-                                            "extName\",\"currentSubName\":\"subName\",\"isDefaultImeSet\":0},"
-                                            "{\"userId\":104,\"currentIme\":\"bundleName1/"
-                                            "extName1\",\"currentSubName\":\"subName1\","
-                                            "\"isDefaultImeSet\":0}]}";
     ImeCfgManager::GetInstance().imeConfigs_.clear();
     ImeCfgManager::GetInstance().imeConfigs_.emplace_back(100, "bundleName/extName", "subName", false);
     ImeCfgManager::GetInstance().imeConfigs_.emplace_back(104, "bundleName1/extName1", "subName1", false);
     auto str = ImeCfgManager::GetInstance().PackageImeCfg();
-    EXPECT_EQ(str, imePersistCfg);
+    EXPECT_EQ(str, JsonOperateTest::IME_PERSIST_CFG);
 }
 
 /**
