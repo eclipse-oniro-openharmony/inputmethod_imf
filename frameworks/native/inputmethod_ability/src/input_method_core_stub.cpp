@@ -69,9 +69,9 @@ int32_t InputMethodCoreStub::ShowKeyboard()
     return InputMethodAbility::GetInstance()->ShowKeyboard();
 }
 
-int32_t InputMethodCoreStub::HideKeyboard(bool isForce)
+int32_t InputMethodCoreStub::HideKeyboard()
 {
-    return InputMethodAbility::GetInstance()->HideKeyboard(isForce);
+    return InputMethodAbility::GetInstance()->HideKeyboard();
 }
 
 int32_t InputMethodCoreStub::StopInputService(bool isTerminateIme)
@@ -179,12 +179,7 @@ int32_t InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessagePa
 
 int32_t InputMethodCoreStub::HideKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    bool isForce = false;
-    if (!ITypesUtil::Unmarshal(data, isForce)) {
-        IMSA_HILOGE("unmarshal failed!");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    auto ret = HideKeyboard(isForce);
+    auto ret = HideKeyboard();
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

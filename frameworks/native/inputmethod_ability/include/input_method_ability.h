@@ -62,7 +62,7 @@ public:
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
     int32_t StopInput(const sptr<IRemoteObject> &channelObject);
     int32_t ShowKeyboard();
-    int32_t HideKeyboard(bool isForce);
+    int32_t HideKeyboard();
     int32_t SendExtendAction(int32_t action);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
@@ -149,17 +149,16 @@ private:
     void OnSelectionChange(Message *msg);
     void OnAttributeChange(Message *msg);
 
-    int32_t HideKeyboard(Trigger trigger, bool isForce);
+    int32_t HideKeyboard(Trigger trigger);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
     /* param flag: ShowPanel is async, show/hide softkeyboard in alphabet keyboard attached,
        flag will be changed before finishing show/hide */
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
-    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger,
-        bool isForce);
+    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     void SetInputAttribute(const InputAttribute &inputAttribute);
     void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
-    int32_t HideKeyboardImplWithoutLock(int32_t cmdId, bool isForce);
+    int32_t HideKeyboardImplWithoutLock(int32_t cmdId);
     int32_t ShowKeyboardImplWithLock(int32_t cmdId);
     int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
     void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy);

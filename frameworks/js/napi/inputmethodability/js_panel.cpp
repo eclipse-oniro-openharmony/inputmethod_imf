@@ -382,8 +382,7 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     std::string type;
     // 1 means least param num.
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, nullptr);
-    PARAM_CHECK_RETURN(
-        env, JsUtil::GetValue(env, argv[0], type), "type must be string!", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], type), "type must be string!", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
         "type should be show/hide/sizeChange!", TYPE_NONE, nullptr);
     // if the second param is not napi_function/napi_null/napi_undefined, return

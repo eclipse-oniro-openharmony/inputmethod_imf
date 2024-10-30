@@ -387,7 +387,7 @@ void InputMethodPanelTest::TestHidePanel(const std::shared_ptr<InputMethodPanel>
     ASSERT_NE(panel, nullptr);
     // set tokenId and uid as current ime
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    auto ret = panel->HidePanel(false);
+    auto ret = panel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -607,7 +607,7 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = inputMethodPanel->HidePanel(false);
+    ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
