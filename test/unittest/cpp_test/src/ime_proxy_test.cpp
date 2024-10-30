@@ -654,7 +654,7 @@ HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level0)
 */
 HWTEST_F(ImeProxyTest, testIsFromTs, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest testDelete Test START");
+    IMSA_HILOGI("ImeProxyTest testIsFromTs Test START");
     sptr<OnTextChangedListener> testListener = new TextListener();
     bool isFrom = testListener->IsFromTs();
     EXPECT_FALSE(isFrom);
