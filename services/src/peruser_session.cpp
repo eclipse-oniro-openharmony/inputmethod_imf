@@ -548,12 +548,15 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     IMSA_HILOGD("start input with keyboard[%{public}d].", inputClientInfo.isShowKeyboard);
+    InputClientInfo infoTemp = *clientInfo;
+    infoTemp.isNotifyInputStart = inputClientInfo.isNotifyInputStart;
     if (IsSameClient(client, GetCurrentClient()) && IsImeBindChanged(clientInfo->bindImeType)) {
+        if (clientInfo->bindImeType == ImeType::IME) {
+            infoTemp.isNotifyInputStart = true;
+        }
         UnBindClientWithIme(clientInfo);
     }
-    InputClientInfo infoTemp = *clientInfo;
     infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
-    infoTemp.isNotifyInputStart = inputClientInfo.isNotifyInputStart;
     infoTemp.needHide = inputClientInfo.needHide;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
