@@ -182,6 +182,7 @@ private:
     std::mutex inputTypeLock_;
     InputType inputType_ = InputType::NONE;
     std::atomic<bool> isImeTerminating = false;
+    std::atomic_bool isShowInCreate_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

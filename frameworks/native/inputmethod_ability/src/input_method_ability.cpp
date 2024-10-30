@@ -436,6 +436,7 @@ int32_t InputMethodAbility::ShowKeyboardImplWithoutLock(int32_t cmdId)
         }
         return ShowPanel(panel, flag, Trigger::IMF);
     }
+    isShowInCreate_.store(true);
     IMSA_HILOGI("panel not create.");
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
@@ -828,6 +829,11 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
             inputMethodPanel = nullptr;
             return false;
         });
+    auto showTask = [this]() { ShowKeyboard(); };
+    if (flag && isShowInCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD) {
+        isShowInCreate_.store(false);
+        std::thread(showTask).detach();
+    }
     return flag ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
@@ -951,6 +957,7 @@ InputAttribute InputMethodAbility::GetInputAttribute()
 
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 {
+    isShowInCreate_.store(false);
     InputMethodSyncTrace tracer("IMA_HideKeyboard");
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr!");

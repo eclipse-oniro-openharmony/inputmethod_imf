@@ -1682,22 +1682,16 @@ bool PerUserSession::HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, 
 int32_t PerUserSession::RestoreCurrentIme()
 {
     InputTypeManager::GetInstance().Set(false);
-    auto cfgIme = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_); // may be null
     auto imeData = GetReadyImeData(ImeType::IME);
     if (imeData != nullptr && imeData->ime.first == cfgIme->bundleName && imeData->ime.second == cfgIme->extName) {
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGD("need restore!");
-    if (!StartIme(cfgIme)) {
+    if (!StartCurrentIme()) {
         IMSA_HILOGE("start ime failed!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    SubProperty subProp = { .name = cfgIme->bundleName, .id = cfgIme->subName };
-    auto subPropTemp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
-    if (subPropTemp != nullptr) {
-        subProp = *subPropTemp;
-    }
-    SwitchSubtype(subProp);
     return ErrorCode::NO_ERROR;
 }
 

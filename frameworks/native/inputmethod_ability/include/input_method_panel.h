@@ -16,9 +16,11 @@
 #ifndef INPUT_METHOD_PANEL_H
 #define INPUT_METHOD_PANEL_H
 
+#include <condition_variable>
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <mutex>
 #include <string>
 
 #include "calling_window_info.h"
@@ -176,7 +178,11 @@ private:
         {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, UNFOLD_BOTTOM},
         {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, COMMON_BOTTOM}
     };
-    std::atomic<bool> isWaitSetUiContent_{true};
+
+    static constexpr int32_t WAIT_UI_CONTENT_TIME = 500;
+    std::mutex uiContentLock_;
+    std::condition_variable uiContentCv_;
+    bool isWaitSetUiContent_{ true };
 };
 } // namespace MiscServices
 } // namespace OHOS
