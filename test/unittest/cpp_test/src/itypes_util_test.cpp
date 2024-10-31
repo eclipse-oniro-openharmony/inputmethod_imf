@@ -161,6 +161,48 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute, TestSize.Level
 }
 
 /**
+ * @tc.name: testMarshallAndUnMarshallInputAttributeSuccess
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttributeSuccess_WithBundleName, TestSize.Level0)
+{
+    IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputAttributeSuccess Test START");
+    MessageParcel data;
+    InputAttribute attrIn { .bundleName = "MyBundleName" };
+    auto ret = ITypesUtil::Marshalling(attrIn, data);
+    EXPECT_TRUE(ret);
+
+    InputAttribute attrOut;
+    ret = ITypesUtil::Unmarshalling(attrOut, data);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(attrIn, attrOut);
+    EXPECT_EQ(attrIn.bundleName, attrOut.bundleName);
+}
+
+/**
+ * @tc.name: testMarshallAndUnMarshallInputAttributeSuccess
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute_WithEmptyBundleName, TestSize.Level0)
+{
+    IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputAttributeSuccess Test START");
+    MessageParcel data;
+    InputAttribute attrIn { .bundleName = "" };
+    auto ret = ITypesUtil::Marshalling(attrIn, data);
+    EXPECT_TRUE(ret);
+
+    InputAttribute attrOut;
+    ret = ITypesUtil::Unmarshalling(attrOut, data);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(attrIn, attrOut);
+    EXPECT_EQ(attrIn.bundleName, attrOut.bundleName);
+}
+
+/**
  * @tc.name: testMarshallAndUnMarshallTextTotalConfig
  * @tc.desc: IMA
  * @tc.type: FUNC
