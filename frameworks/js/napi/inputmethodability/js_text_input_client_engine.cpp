@@ -115,8 +115,8 @@ napi_value JsTextInputClientEngine::MoveCursorSync(napi_env env, napi_callback_i
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "direction must be number!", TYPE_NUMBER,
         HandleParamCheckFailure(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], direction),
-        "direction covert failed!", TYPE_NONE, HandleParamCheckFailure(env));
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], direction), "direction covert failed!", TYPE_NONE,
+        HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, direction >= 0, "direction should be no less than 0!", TYPE_NONE,
         HandleParamCheckFailure(env));
     IMSA_HILOGD("moveCursor , direction: %{public}d", direction);
@@ -201,7 +201,7 @@ napi_status JsTextInputClientEngine::GetSelectMovement(
     napi_status status = napi_generic_failure;
     napi_value napiValue = nullptr;
     status = napi_get_named_property(env, argv, "direction", &napiValue);
-    PARAM_CHECK_RETURN(env, status == napi_ok, "direction must be exist.", TYPE_NONE, status);
+    PARAM_CHECK_RETURN(env, status == napi_ok, "direction must be exist!", TYPE_NONE, status);
     status = JsUtils::GetValue(env, napiValue, ctxt->direction);
     if (status != napi_ok) {
         IMSA_HILOGE("failed to get direction value!");
@@ -279,11 +279,11 @@ napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callbac
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     int32_t length = 0;
     // 1 means least param num.
-    PARAM_CHECK_RETURN(env, argc >= 1, "at least one  parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
+    PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "length must be number!", TYPE_NUMBER,
         HandleParamCheckFailure(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed",
-        TYPE_NONE, HandleParamCheckFailure(env));
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed", TYPE_NONE,
+        HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, length >= 0, "length should not less than 0!", TYPE_NONE, HandleParamCheckFailure(env));
     IMSA_HILOGD("delete forward, length: %{public}d.", length);
     int32_t ret = InputMethodAbility::GetInstance()->DeleteForward(length);
@@ -338,8 +338,8 @@ napi_value JsTextInputClientEngine::DeleteBackwardSync(napi_env env, napi_callba
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "length must be number!", TYPE_NUMBER,
         HandleParamCheckFailure(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed!",
-        TYPE_NONE, HandleParamCheckFailure(env));
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed!", TYPE_NONE,
+        HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, length >= 0, "length should no less than 0!", TYPE_NONE, HandleParamCheckFailure(env));
     IMSA_HILOGD("delete backward, length: %{public}d.", length);
     int32_t ret = InputMethodAbility::GetInstance()->DeleteBackward(length);
@@ -424,8 +424,8 @@ napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_i
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_string, "text must be string!", TYPE_STRING,
         HandleParamCheckFailure(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], text), "text covert failed!",
-        TYPE_NONE, HandleParamCheckFailure(env));
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], text), "text covert failed!", TYPE_NONE,
+        HandleParamCheckFailure(env));
     IMSA_HILOGD("insert text, text: %{public}s.", text.c_str());
     int32_t ret = InputMethodAbility::GetInstance()->InsertText(text);
     if (ret != ErrorCode::NO_ERROR) {
@@ -445,8 +445,8 @@ napi_value JsTextInputClientEngine::GetForwardSync(napi_env env, napi_callback_i
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "length must be string!", TYPE_NUMBER,
         HandleParamCheckFailure(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed!",
-        TYPE_NONE, HandleParamCheckFailure(env));
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed!", TYPE_NONE,
+        HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, length >= 0, "length should no less than 0!", TYPE_NONE, HandleParamCheckFailure(env));
     IMSA_HILOGD("get forward, length: %{public}d.", length);
     std::u16string text;
@@ -507,8 +507,8 @@ napi_value JsTextInputClientEngine::GetBackwardSync(napi_env env, napi_callback_
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "length must be string!", TYPE_NUMBER,
         HandleParamCheckFailure(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed!",
-        TYPE_NONE, HandleParamCheckFailure(env));
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed!", TYPE_NONE,
+        HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, length >= 0, "length should not less than 0!", TYPE_NONE, HandleParamCheckFailure(env));
     IMSA_HILOGD("get backward, length: %{public}d.", length);
     std::u16string text;
@@ -893,8 +893,8 @@ napi_status JsTextInputClientEngine::GetPreviewTextParam(
     PARAM_CHECK_RETURN(env, argc >= 2, "at least two parameters is required!", TYPE_NONE, napi_generic_failure);
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], text), "text covert failed, must be string!",
         TYPE_NONE, napi_generic_failure);
-    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "range type must be Range!",
-        TYPE_NONE, napi_generic_failure);
+    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "range type must be Range!", TYPE_NONE,
+        napi_generic_failure);
     PARAM_CHECK_RETURN(env, JsRange::Read(env, argv[1], range),
         "range covert failed, the range should have numbers start and end", TYPE_NONE, napi_generic_failure);
     return napi_ok;

@@ -16,11 +16,10 @@
 #ifndef INPUTMETHOD_IMF_PANEL_LISTENER_IMPL_H
 #define INPUTMETHOD_IMF_PANEL_LISTENER_IMPL_H
 
-#include <uv.h>
-
 #include <mutex>
 #include <thread>
 #include <tuple>
+#include <uv.h>
 
 #include "concurrent_map.h"
 #include "event_handler.h"
@@ -38,7 +37,6 @@ struct JsWindowSize {
 };
 class PanelListenerImpl : public PanelStatusListener {
 public:
-    ~PanelListenerImpl();
     struct UvEntry {
         WindowSize size;
         std::shared_ptr<JSCallbackObject> cbCopy;
@@ -48,6 +46,7 @@ public:
     };
     using EntrySetter = std::function<void(UvEntry &)>;
     static std::shared_ptr<PanelListenerImpl> GetInstance();
+    ~PanelListenerImpl();
     void OnPanelStatus(uint32_t windowId, bool isShow) override;
     void OnSizeChange(uint32_t windowId, const WindowSize &size) override;
     void Subscribe(uint32_t windowId, const std::string &type, std::shared_ptr<JSCallbackObject> cbObject);

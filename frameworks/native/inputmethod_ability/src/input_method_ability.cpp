@@ -183,7 +183,7 @@ void InputMethodAbility::Initialize()
     }
     msgHandler_ = new (std::nothrow) MessageHandler();
     if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("failed to create message handler");
+        IMSA_HILOGE("failed to create message handler!");
         return;
     }
     coreStub->SetMessageHandler(msgHandler_);
@@ -216,7 +216,7 @@ void InputMethodAbility::SetKdListener(std::shared_ptr<KeyboardListener> kdListe
 
 void InputMethodAbility::WorkThread()
 {
-    prctl(PR_SET_NAME, "OS_IMAWorkThread");
+    prctl(PR_SET_NAME, "OS_IMAWorkThread start.");
     while (!stop_) {
         Message *msg = msgHandler_->GetMessage();
         switch (msg->msgId_) {
@@ -260,7 +260,7 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
     MessageParcel *data = msg->msgContent_;
     sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
     if (channelObject == nullptr) {
-        IMSA_HILOGE("channelObject is nullptr");
+        IMSA_HILOGE("channelObject is nullptr!");
         return;
     }
     SetInputControlChannel(channelObject);
@@ -271,7 +271,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     int32_t cmdCount = ++cmdId_;
     if (clientInfo.channel == nullptr) {
-        IMSA_HILOGE("channelObject is nullptr");
+        IMSA_HILOGE("channelObject is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     IMSA_HILOGI("IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", clientInfo.isShowKeyboard,
@@ -290,6 +290,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d!", ret);
         return ret;
     }
+    isImeTerminating_.store(false);
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     if (clientInfo.isShowKeyboard) {
         auto task = [this, cmdCount]() {
@@ -308,11 +309,11 @@ void InputMethodAbility::OnSetSubtype(Message *msg)
     auto data = msg->msgContent_;
     SubProperty subProperty;
     if (!ITypesUtil::Unmarshal(*data, subProperty)) {
-        IMSA_HILOGE("read message parcel failed");
+        IMSA_HILOGE("read message parcel failed!");
         return;
     }
     if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr");
+        IMSA_HILOGE("imeListener_ is nullptr!");
         return;
     }
     imeListener_->OnSetSubtype(subProperty);
@@ -414,13 +415,13 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
 void InputMethodAbility::OnAttributeChange(Message *msg)
 {
     if (kdListener_ == nullptr || msg == nullptr) {
-        IMSA_HILOGE("kdListener_ is nullptr!");
+        IMSA_HILOGE("kdListener_ or msg is nullptr!");
         return;
     }
     MessageParcel *data = msg->msgContent_;
     InputAttribute attribute;
     if (!ITypesUtil::Unmarshal(*data, attribute)) {
-        IMSA_HILOGE("failed to read attribute");
+        IMSA_HILOGE("failed to read attribute!");
         return;
     }
     IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d.", attribute.enterKeyType,
@@ -445,6 +446,7 @@ int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     if (isTerminateIme) {
+        isImeTerminating_.store(true);
         return imeListener->OnInputStop();
     }
     return ErrorCode::NO_ERROR;
@@ -522,6 +524,7 @@ void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 
 int32_t InputMethodAbility::InvokeStartInputCallback(bool isNotifyInputStart)
 {
+    // CANDIDATE_COLUMN not notify
     TextTotalConfig textConfig = {};
     int32_t ret = GetTextConfig(textConfig);
     if (ret == ErrorCode::NO_ERROR) {
@@ -570,9 +573,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
                 textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
-    }
-    if (textConfig.windowId == ANCO_INVALID_WINDOW_ID) {
-        return ErrorCode::NO_ERROR;
     }
     auto task = [this, textConfig]() {
         panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
@@ -634,6 +634,11 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey)
 
 int32_t InputMethodAbility::HideKeyboardSelf()
 {
+    // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
+    if (isImeTerminating_.load()) {
+        IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
+        return ErrorCode::NO_ERROR;
+    }
     InputMethodSyncTrace tracer("IMA_HideKeyboardSelf start.");
     auto ret = HideKeyboard(Trigger::IME_APP);
     if (ret == ErrorCode::NO_ERROR) {
@@ -938,10 +943,16 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
 
 int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
+    // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
+    if (isImeTerminating_.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
+        return ErrorCode::NO_ERROR;
+    }
+
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
 }
 
@@ -1030,7 +1041,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         IMSA_HILOGE("imeListener_ is nullptr!");
         return ErrorCode::ERROR_IME;
     }
-    IMSA_HILOGD("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
+    IMSA_HILOGD("IMA, trigger: %{public}d.", static_cast<int32_t>(trigger));
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
@@ -1132,7 +1143,7 @@ int32_t InputMethodAbility::ExitCurrentInputType()
     IMSA_HILOGD("InputMethodAbility start.");
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {
-        IMSA_HILOGE("failed to get imsa proxy");
+        IMSA_HILOGE("failed to get imsa proxy!");
         return false;
     }
     return proxy->ExitCurrentInputType();
@@ -1206,7 +1217,7 @@ void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag pa
 int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     if (!IsDefaultIme()) {
-        IMSA_HILOGE("current is not default ime!");
+        IMSA_HILOGE("current is not default ime.");
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
     if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
@@ -1282,7 +1293,7 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
     }
     TextTotalConfig textConfig;
     int32_t ret = GetTextConfig(textConfig);
-    if (ret != ErrorCode::NO_ERROR || textConfig.windowId == ANCO_INVALID_WINDOW_ID) {
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to get window id, ret: %{public}d!", ret);
         return ErrorCode::ERROR_GET_TEXT_CONFIG;
     }

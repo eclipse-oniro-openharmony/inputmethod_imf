@@ -48,30 +48,22 @@ sptr<EnableImeDataParser> EnableImeDataParser::GetInstance()
 int32_t EnableImeDataParser::Initialize(const int32_t userId)
 {
     currentUserId_ = userId;
-    enableList_.insert({ std::string(ENABLE_IME), {} });
-    enableList_.insert({ std::string(ENABLE_KEYBOARD), {} });
-
-    if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], userId) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGW("get enable ime list failed.");
+    {
+        std::lock_guard<std::mutex> autoLock(listMutex_);
+        enableList_.insert({ std::string(ENABLE_IME), {} });
+        enableList_.insert({ std::string(ENABLE_KEYBOARD), {} });
     }
-    if (GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], userId) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGW("get enable keyboard list failed.");
-    }
+    UpdateEnableData(userId, ENABLE_IME);
+    UpdateEnableData(userId, ENABLE_KEYBOARD);
     GetDefaultIme();
     return ErrorCode::NO_ERROR;
 }
 
 void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
 {
-    std::lock_guard<std::mutex> autoLock(listMutex_);
-    IMSA_HILOGD("current userId: %{public}d, switch to: %{public}d", currentUserId_, targetUserId);
     currentUserId_ = targetUserId;
-    if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], targetUserId) != ErrorCode::NO_ERROR ||
-        GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], targetUserId) !=
-        ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("get enable list failed!");
-        return;
-    }
+    UpdateEnableData(targetUserId, ENABLE_IME);
+    UpdateEnableData(targetUserId, ENABLE_KEYBOARD);
 }
 
 bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId)
@@ -281,6 +273,61 @@ std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
     defaultImeInfo_->name = defaultIme->name;
     defaultImeInfo_->id = defaultIme->id;
     return defaultImeInfo_;
+}
+
+void EnableImeDataParser::OnConfigChanged(int32_t userId, const std::string &key)
+{
+    UpdateEnableData(userId, key);
+}
+
+int32_t EnableImeDataParser::UpdateEnableData(int32_t userId, const std::string &key)
+{
+    std::lock_guard<std::mutex> autoLock(listMutex_);
+    if (key == ENABLE_IME) {
+        isEnableImeInit_ = false;
+    }
+    std::vector<std::string> enableData;
+    IMSA_HILOGD("update userId: %{public}d %{public}s", userId, key.c_str());
+    auto ret = GetEnableData(key, enableData, userId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("userId: %{public}d get enable %{public}s list failed!", userId, key.c_str());
+        return ret;
+    }
+    enableList_.insert_or_assign(key, enableData);
+    if (key == ENABLE_IME) {
+        isEnableImeInit_ = true;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t EnableImeDataParser::GetEnableIme(int32_t userId, std::vector<std::string> &enableVec)
+{
+    if (userId != currentUserId_) {
+        return GetEnableData(ENABLE_IME, enableVec, userId);
+    }
+    auto ret = GetEnableImeFromCache(enableVec);
+    if (ret == ErrorCode::NO_ERROR) {
+        return ErrorCode::NO_ERROR;
+    }
+    ret = UpdateEnableData(userId, ENABLE_IME);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    return GetEnableImeFromCache(enableVec);
+}
+
+int32_t EnableImeDataParser::GetEnableImeFromCache(std::vector<std::string> &enableVec)
+{
+    std::lock_guard<std::mutex> autoLock(listMutex_);
+    if (isEnableImeInit_) {
+        auto it = enableList_.find(ENABLE_IME);
+        if (it != enableList_.end()) {
+            IMSA_HILOGD("GetEnableIme from cache.");
+            enableVec = it->second;
+            return ErrorCode::NO_ERROR;
+        }
+    }
+    return ErrorCode::ERROR_ENABLE_IME;
 }
 } // namespace MiscServices
 } // namespace OHOS

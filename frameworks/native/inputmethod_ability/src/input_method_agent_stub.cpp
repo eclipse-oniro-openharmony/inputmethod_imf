@@ -177,22 +177,22 @@ int32_t InputMethodAgentStub::SendPrivateCommand(
 void InputMethodAgentStub::OnAttributeChange(const InputAttribute &attribute)
 {
     if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("msgHandler_ is nullptr");
+        IMSA_HILOGE("msgHandler_ is nullptr!");
         return;
     }
     auto data = new (std::nothrow) MessageParcel();
     if (data == nullptr) {
-        IMSA_HILOGE("failed to create message parcel");
+        IMSA_HILOGE("failed to create message parcel!");
         return;
     }
     if (!ITypesUtil::Marshal(*data, attribute)) {
-        IMSA_HILOGE("failed to write attribute");
+        IMSA_HILOGE("failed to write attribute!");
         delete data;
         return;
     }
     auto message = new (std::nothrow) Message(MessageID::MSG_ID_ON_ATTRIBUTE_CHANGE, data);
     if (message == nullptr) {
-        IMSA_HILOGE("failed to create Message");
+        IMSA_HILOGE("failed to create Message!");
         delete data;
         return;
     }

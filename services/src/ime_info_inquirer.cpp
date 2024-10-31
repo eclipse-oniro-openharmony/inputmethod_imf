@@ -317,7 +317,7 @@ int32_t ImeInfoInquirer::ListEnabledInputMethod(const int32_t userId, std::vecto
     if (enableOn) {
         IMSA_HILOGD("enable on.");
         std::vector<std::string> enableVec;
-        ret = EnableImeDataParser::GetInstance()->GetEnableData(EnableImeDataParser::ENABLE_IME, enableVec, userId);
+        ret = EnableImeDataParser::GetInstance()->GetEnableIme(userId, enableVec);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("get enable data failed!");
             return ret;
@@ -348,7 +348,7 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
     }
 
     std::vector<std::string> enableVec;
-    ret = EnableImeDataParser::GetInstance()->GetEnableData(EnableImeDataParser::ENABLE_IME, enableVec, userId);
+    ret = EnableImeDataParser::GetInstance()->GetEnableIme(userId, enableVec);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get enable data failed!");
         return ret;

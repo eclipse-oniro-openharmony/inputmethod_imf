@@ -73,8 +73,8 @@ ErrCode InputMethodExtensionContext::StartAbilityWithAccount(
     const AAFwk::Want &want, int accountId, const AAFwk::StartOptions &startOptions) const
 {
     IMSA_HILOGD("%{public}s start.", __func__);
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(
-        want, startOptions, token_, ILLEGAL_REQUEST_CODE, accountId);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_,
+        ILLEGAL_REQUEST_CODE, accountId);
     IMSA_HILOGD("%{public}s ret: %{public}d", __func__, err);
     if (err != ERR_OK) {
         IMSA_HILOGE("InputMethodContext::StartAbilityWithAccount is failed %{public}d!", err);

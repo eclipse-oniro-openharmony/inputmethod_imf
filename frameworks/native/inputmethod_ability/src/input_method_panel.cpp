@@ -111,7 +111,7 @@ int32_t InputMethodPanel::SetPanelProperties()
     } else if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FLOATING) {
         auto surfaceNode = window_->GetSurfaceNode();
         if (surfaceNode == nullptr) {
-            IMSA_HILOGE("surfaceNode is nullptr!");
+            IMSA_HILOGE("surfaceNode is nullptr");
             return ErrorCode::ERROR_OPERATE_PANEL;
         }
         surfaceNode->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
@@ -119,7 +119,7 @@ int32_t InputMethodPanel::SetPanelProperties()
     } else if (panelType_ == STATUS_BAR) {
         auto surfaceNo = window_->GetSurfaceNode();
         if (surfaceNo == nullptr) {
-            IMSA_HILOGE("surfaceNo is nullptr!");
+            IMSA_HILOGE("surfaceNo is nullptr");
             return ErrorCode::ERROR_OPERATE_PANEL;
         }
         surfaceNo->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
@@ -137,7 +137,7 @@ int32_t InputMethodPanel::SetPanelProperties()
     keyboardLayoutParams_.gravity_ = gravity;
     auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window!", ret);
+        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window.", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     return ErrorCode::NO_ERROR;
@@ -307,7 +307,6 @@ int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const Layou
         IMSA_HILOGE("AdjustPanelRect error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     return ErrorCode::NO_ERROR;
@@ -324,7 +323,7 @@ int32_t InputMethodPanel::ParsePanelRect(const PanelFlag panelFlag, const Layout
             panelAdjust_.insert({ config.style, { config.top, config.left, config.right, config.bottom } });
         }
     } else {
-        IMSA_HILOGE("there is no configuration file!");
+        IMSA_HILOGE("there is no configuration file.");
         auto ret = CalculateNoConfigRect(panelFlag, layoutParams);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to calculate NoConfigRect, err: %{public}d!", ret);
@@ -403,8 +402,8 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> InputMethodPanel:
         Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
         foldStatus = "foldable";
     }
-    std::vector<std::string> lanPanel = { flag, foldStatus, "landscape"};
-    std::vector<std::string> porPanel = { flag, foldStatus, "portrait"};
+    std::vector<std::string> lanPanel = { flag, foldStatus, "landscape" };
+    std::vector<std::string> porPanel = { flag, foldStatus, "portrait" };
     return std::make_tuple(lanPanel, porPanel);
 }
 
@@ -444,7 +443,7 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
     }
     auto displayInfo = defaultDisplay->GetDisplayInfo();
     if (displayInfo == nullptr) {
-        IMSA_HILOGE("GetDisplayInfo failed!");
+        IMSA_HILOGE("GetDisplayInfo failed.");
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
     auto densityDpi = displayInfo->GetDensityInCurResolution();
@@ -574,13 +573,16 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
         IMSA_HILOGE("STATUS_BAR cannot ChangePanelFlag!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
+    if (panelType_ == SOFT_KEYBOARD && panelFlag == FLG_CANDIDATE_COLUMN) {
+        PanelStatusChangeToImc(InputWindowStatus::HIDE, { 0, 0, 0, 0 });
+    }
     WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
     if (panelFlag == FLG_FIXED) {
         gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
     } else {
         auto surfaceNode = window_->GetSurfaceNode();
         if (surfaceNode == nullptr) {
-            IMSA_HILOGE("surfaceNode is nullptr!");
+            IMSA_HILOGE("surfaceNode is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
         surfaceNode->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
@@ -730,7 +732,7 @@ int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
 {
     IMSA_HILOGD("isPrivacyMode: %{public}d.", isPrivacyMode);
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr!");
+        IMSA_HILOGE("window_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto ret = window_->SetPrivacyMode(isPrivacyMode);
@@ -762,8 +764,8 @@ void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, c
         IMSA_HILOGD("no need to deal.");
         return;
     }
-    auto imsa = ImaUtils::GetImsaProxy();
-    if (imsa == nullptr) {
+    auto proxy = ImaUtils::GetImsaProxy();
+    if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr!");
         return;
     }
@@ -772,7 +774,7 @@ void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, c
     IMSA_HILOGD("rect[%{public}d, %{public}d, %{public}u, %{public}u], status: %{public}d, "
                 "panelFlag: %{public}d.",
         rect.posX_, rect.posY_, rect.width_, rect.height_, status, info.panelInfo.panelFlag);
-    imsa->PanelStatusChange(status, info);
+    proxy->PanelStatusChange(status, info);
 }
 
 bool InputMethodPanel::IsShowing()
@@ -954,6 +956,45 @@ int32_t InputMethodPanel::SizeChange(const WindowSize &size)
     return ErrorCode::NO_ERROR;
 }
 
+void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
+{
+    kbPanelInfoListener_ = new (std::nothrow)
+        KeyboardPanelInfoChangeListener([this](const KeyboardPanelInfo &keyboardPanelInfo) {
+            if (panelHeightCallback_ != nullptr) {
+                panelHeightCallback_(keyboardPanelInfo.rect_.height_, panelFlag_);
+            }
+            HandleKbPanelInfoChange(keyboardPanelInfo);
+        });
+    if (kbPanelInfoListener_ == nullptr) {
+        return;
+    }
+    if (window_ == nullptr) {
+        return;
+    }
+    auto ret = window_->RegisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
+    IMSA_HILOGD("ret: %{public}d.", ret);
+}
+
+void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()
+{
+    if (window_ == nullptr) {
+        return;
+    }
+    auto ret = window_->UnregisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
+    kbPanelInfoListener_ = nullptr;
+    IMSA_HILOGD("ret: %{public}d.", ret);
+}
+
+void InputMethodPanel::HandleKbPanelInfoChange(const KeyboardPanelInfo &keyboardPanelInfo)
+{
+    IMSA_HILOGD("start.");
+    InputWindowStatus status = InputWindowStatus::HIDE;
+    if (keyboardPanelInfo.isShowing_) {
+        status = InputWindowStatus::SHOW;
+    }
+    PanelStatusChangeToImc(status, keyboardPanelInfo.rect_);
+}
+
 bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
 {
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
@@ -1015,45 +1056,6 @@ bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t
         return false;
     }
     return true;
-}
-
-void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
-{
-    kbPanelInfoListener_ = new (std::nothrow)
-        KeyboardPanelInfoChangeListener([this](const KeyboardPanelInfo &keyboardPanelInfo) {
-            if (panelHeightCallback_ != nullptr) {
-                panelHeightCallback_(keyboardPanelInfo.rect_.height_, panelFlag_);
-            }
-            HandleKbPanelInfoChange(keyboardPanelInfo);
-        });
-    if (kbPanelInfoListener_ == nullptr) {
-        return;
-    }
-    if (window_ == nullptr) {
-        return;
-    }
-    auto ret = window_->RegisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
-    IMSA_HILOGD("ret: %{public}d.", ret);
-}
-
-void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()
-{
-    if (window_ == nullptr) {
-        return;
-    }
-    auto ret = window_->UnregisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
-    kbPanelInfoListener_ = nullptr;
-    IMSA_HILOGD("ret: %{public}d.", ret);
-}
-
-void InputMethodPanel::HandleKbPanelInfoChange(const KeyboardPanelInfo &keyboardPanelInfo)
-{
-    IMSA_HILOGD("start.");
-    InputWindowStatus status = InputWindowStatus::HIDE;
-    if (keyboardPanelInfo.isShowing_) {
-        status = InputWindowStatus::SHOW;
-    }
-    PanelStatusChangeToImc(status, keyboardPanelInfo.rect_);
 }
 
 void InputMethodPanel::SetPanelHeightCallback(CallbackFunc heightCallback)
