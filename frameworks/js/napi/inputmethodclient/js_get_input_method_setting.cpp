@@ -439,8 +439,7 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
 
     PanelInfo panelInfo;
     napi_status status = JsUtils::GetValue(env, argv[0], panelInfo);
-    PARAM_CHECK_RETURN(env, status == napi_ok, "panelInfo covert failed!",
-        TYPE_NONE, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, status == napi_ok, "panelInfo covert failed!", TYPE_NONE, JsUtil::Const::Null(env));
 
     bool isShown = false;
     int32_t errorCode = InputMethodController::GetInstance()->IsPanelShown(panelInfo, isShown);
@@ -483,9 +482,9 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)
-        || JsUtil::GetType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type) ||
+        JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -554,8 +553,8 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)) {
         IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
         return nullptr;
     }

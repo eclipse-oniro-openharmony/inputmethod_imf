@@ -183,6 +183,7 @@ private:
     InputAttribute inputAttribute_{};
     std::recursive_mutex keyboardCmdLock_;
     int32_t cmdId_ = 0;
+    std::atomic<bool> isImeTerminating_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -73,11 +73,13 @@ public:
     static sptr<EnableImeDataParser> GetInstance();
     int32_t Initialize(const int32_t userId);
     int32_t GetEnableData(const std::string &key, std::vector<std::string> &enableVec, const int32_t userId);
+    int32_t GetEnableIme(int32_t userId, std::vector<std::string> &enableVec);
     // for enable list changed
     bool CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId);
     // for switch target ime
     bool CheckNeedSwitch(const SwitchInfo &info, const int32_t userId);
     void OnUserChanged(const int32_t userId);
+    void OnConfigChanged(int32_t userId, const std::string &key);
 
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *ENABLE_KEYBOARD = "settings.inputmethod.enable_keyboard";
@@ -87,6 +89,8 @@ private:
     EnableImeDataParser() = default;
     ~EnableImeDataParser();
 
+    int32_t UpdateEnableData(int32_t userId, const std::string &key);
+    int32_t GetEnableImeFromCache(std::vector<std::string> &enableVec);
     bool ParseEnableIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool ParseEnableKeyboard(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool ParseTempIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &tempVector);
@@ -102,6 +106,7 @@ private:
     std::mutex defaultImeMutex_;
     std::shared_ptr<Property> defaultImeInfo_{ nullptr };
     int32_t currentUserId_ = 0;
+    bool isEnableImeInit_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

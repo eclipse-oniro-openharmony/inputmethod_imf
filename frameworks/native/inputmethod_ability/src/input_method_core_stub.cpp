@@ -253,24 +253,24 @@ void InputMethodCoreStub::OnClientInactive(const sptr<IRemoteObject> &channel)
 
 int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)
 {
-    IMSA_HILOGD("InputMethodCoreStub::SendMessage");
+    IMSA_HILOGD("InputMethodCoreStub::SendMessage start.");
     if (msgHandler_ == nullptr) {
-        IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr");
+        IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto *parcel = new (std::nothrow) MessageParcel();
     if (parcel == nullptr) {
-        IMSA_HILOGE("parcel is nullptr");
+        IMSA_HILOGE("parcel is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     if (input != nullptr && (!input(*parcel))) {
-        IMSA_HILOGE("write data failed");
+        IMSA_HILOGE("write data failed!");
         delete parcel;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto *msg = new (std::nothrow) Message(code, parcel);
     if (msg == nullptr) {
-        IMSA_HILOGE("msg is nullptr");
+        IMSA_HILOGE("msg is nullptr!");
         delete parcel;
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }

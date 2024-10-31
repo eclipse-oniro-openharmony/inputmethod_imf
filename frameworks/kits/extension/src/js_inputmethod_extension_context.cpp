@@ -123,8 +123,8 @@ private:
             unwrapArgc++;
         }
 
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, startOptions, unwrapArgc](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, startOptions, unwrapArgc](napi_env env,
+                                                       NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility start.");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -176,8 +176,8 @@ private:
             AppExecFwk::UnwrapStartOptions(env, argv[INDEX_TWO], startOptions);
             unwrapArgc++;
         }
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions, unwrapArgc](
-                                                       napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions,
+                                                       unwrapArgc](napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility start");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -209,7 +209,7 @@ private:
         }
 
         NapiAsyncTask::CompleteCallback complete = [weak = context_](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+                                                       napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("TerminateAbility start.");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -260,8 +260,8 @@ private:
         } else {
             serialNumber_ = 0;
         }
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection, connectId](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection, connectId](napi_env env,
+                                                       NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnConnectAbility start.");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -361,8 +361,8 @@ private:
             }
         }
         // begin disconnect
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection](napi_env env,
+                                                       NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnDisconnectAbility start.");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -509,8 +509,7 @@ void JSInputMethodExtensionConnection::HandleOnAbilityConnectDone(
 
     // wrap RemoteObject
     IMSA_HILOGI("OnAbilityConnectDone start NAPI_ohos_rpc_CreateJsRemoteObject.");
-    napi_value napiRemoteObject =
-        NAPI_ohos_rpc_CreateJsRemoteObject(env_, remoteObject);
+    napi_value napiRemoteObject = NAPI_ohos_rpc_CreateJsRemoteObject(env_, remoteObject);
     napi_value argv[] = { napiElementName, napiRemoteObject };
     
     if (jsConnectionObject_ == nullptr) {

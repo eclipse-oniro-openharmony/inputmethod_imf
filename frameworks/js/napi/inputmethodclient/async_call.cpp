@@ -183,7 +183,7 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
             IMSA_HILOGD("output != nullptr!");
             result[ARG_DATA] = output;
         } else {
-            IMSA_HILOGD("output == nullptr!");
+            IMSA_HILOGD("output is nullptr!");
             napi_get_undefined(env, &result[ARG_DATA]);
         }
     } else {

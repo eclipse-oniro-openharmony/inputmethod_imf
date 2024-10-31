@@ -237,7 +237,10 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     }
     ClearEditorCache(clientInfo_.isNotifyInputStart, lastListener);
     SetTextListener(listener);
-    clientInfo_.isShowKeyboard = isShowKeyboard;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        clientInfo_.isShowKeyboard = isShowKeyboard;
+    }
     SaveTextConfig(textConfig);
     GetTextConfig(clientInfo_.config);
 
@@ -264,7 +267,10 @@ int32_t InputMethodController::ShowTextInput()
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     IMSA_HILOGI("start.");
-    clientInfo_.isShowKeyboard = true;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        clientInfo_.isShowKeyboard = true;
+    }
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ENEDITABLE);
     int32_t ret = ShowInput(clientInfo_.client);
     if (ret != ErrorCode::NO_ERROR) {
@@ -299,7 +305,11 @@ int32_t InputMethodController::HideCurrentInput()
     }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
-        IMSA_HILOGE("proxy is nullptr!");
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        clientInfo_.isShowKeyboard = false;
+    }
+
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = false;
@@ -320,7 +330,10 @@ int32_t InputMethodController::ShowCurrentInput()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     IMSA_HILOGI("start.");
-    clientInfo_.isShowKeyboard = true;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        clientInfo_.isShowKeyboard = true;
+    }
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_NORMAL);
     return proxy->ShowCurrentInputDeprecated();
 }
@@ -330,15 +343,18 @@ int32_t InputMethodController::Close()
     if (IsBound()) {
         IMSA_HILOGI("start.");
     }
+
     auto listener = GetTextListener();
     if (listener != nullptr) {
         listener->OnDetach();
     }
-
-    bool isReportHide = clientInfo_.isShowKeyboard;
+    OperateIMEInfoCode infoCode = OperateIMEInfoCode::IME_UNBIND;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        infoCode = clientInfo_.isShowKeyboard ? OperateIMEInfoCode::IME_HIDE_UNBIND : OperateIMEInfoCode::IME_UNBIND;
+    }
     InputMethodSyncTrace tracer("InputMethodController Close trace.");
-    isReportHide ? InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
-                 : InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_UNBIND);
+    InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(infoCode);
     return ReleaseInput(clientInfo_.client);
 }
 
@@ -576,7 +592,12 @@ void InputMethodController::RestoreAttachInfoInSaDied()
             tempConfig.range.end = selectNewEnd_;
         }
         auto listener = GetTextListener();
-        auto errCode = Attach(listener, clientInfo_.isShowKeyboard, tempConfig);
+        bool isShowKeyboard = false;
+        {
+            std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+            isShowKeyboard = clientInfo_.isShowKeyboard;
+        }
+        auto errCode = Attach(listener, isShowKeyboard, tempConfig);
         IMSA_HILOGI("attach end, errCode = %{public}d", errCode);
         return errCode == ErrorCode::NO_ERROR;
     };
@@ -859,7 +880,10 @@ int32_t InputMethodController::ShowSoftKeyboard()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     IMSA_HILOGI("start.");
-    clientInfo_.isShowKeyboard = true;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        clientInfo_.isShowKeyboard = true;
+    }
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_NORMAL);
     return proxy->ShowCurrentInput();
 }
@@ -1161,6 +1185,7 @@ void InputMethodController::SendKeyboardStatus(KeyboardStatus status)
     }
     listener->SendKeyboardStatus(status);
     if (status == KeyboardStatus::HIDE) {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
         clientInfo_.isShowKeyboard = false;
     }
 }
@@ -1183,6 +1208,7 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     listener->NotifyPanelStatusInfo(info);
     if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD
         && info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
         clientInfo_.isShowKeyboard = false;
     }
 }

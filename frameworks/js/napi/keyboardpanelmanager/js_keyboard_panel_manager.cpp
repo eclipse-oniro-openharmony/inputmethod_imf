@@ -96,9 +96,9 @@ napi_value JsKeyboardPanelManager::Subscribe(napi_env env, napi_callback_info in
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_PANEL_MANAGER, type)
-        || JsUtil::GetType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_PANEL_MANAGER, type) ||
+        JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("subscribe failed, type: %{public}s!", type.c_str());
         return nullptr;
     }
@@ -119,8 +119,8 @@ napi_value JsKeyboardPanelManager::UnSubscribe(napi_env env, napi_callback_info 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_PANEL_MANAGER, type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_PANEL_MANAGER, type)) {
         IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
         return nullptr;
     }

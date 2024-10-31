@@ -59,15 +59,15 @@ void InputMethodAgentProxy::OnSelectionChange(
 
 void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
 {
-    auto ret = SendRequest(
-        SET_CALLING_WINDOW_ID, [windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
+    auto ret = SendRequest(SET_CALLING_WINDOW_ID,
+        [windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
     IMSA_HILOGD("InputMethodAgentProxy::SetCallingWindow ret: %{public}d.", ret);
 }
 
 void InputMethodAgentProxy::OnAttributeChange(const InputAttribute &attribute)
 {
-    auto ret = SendRequest(
-        ON_ATTRIBUTE_CHANGE, [&attribute](MessageParcel &data) { return ITypesUtil::Marshal(data, attribute); });
+    auto ret = SendRequest(ON_ATTRIBUTE_CHANGE,
+        [&attribute](MessageParcel &data) { return ITypesUtil::Marshal(data, attribute); });
     IMSA_HILOGD("InputMethodAgentProxy, ret: %{public}d.", ret);
 }
 
