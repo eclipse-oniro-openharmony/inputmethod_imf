@@ -192,7 +192,7 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
         IMSA_HILOGE("ime: %{public}d is not exist!", clientInfo->bindImeType);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = RequestIme(data, RequestType::NORMAL, [&data] { return data->core->HideKeyboard(false); });
+    auto ret = RequestIme(data, RequestType::NORMAL, [&data] { return data->core->HideKeyboard(); });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to hide keyboard, ret: %{public}d!", ret);
         return ErrorCode::ERROR_KBD_HIDE_FAILED;
@@ -399,13 +399,7 @@ int32_t PerUserSession::OnRequestHideInput()
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
 
-    bool isForce = false;
-    if (!data->freezeMgr->IsIpcNeeded(RequestType::REQUEST_HIDE)) {
-        IMSA_HILOGD("need to force hide");
-        isForce = true;
-    }
-    auto ret = RequestIme(data, RequestType::REQUEST_HIDE,
-        [&data, isForce] { return data->core->HideKeyboard(isForce); });
+    auto ret = RequestIme(data, RequestType::REQUEST_HIDE, [&data] { return data->core->HideKeyboard(); });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to hide keyboard, ret: %{public}d!", ret);
         return ErrorCode::ERROR_KBD_HIDE_FAILED;
@@ -1277,6 +1271,10 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
     }
     if (data == nullptr || data->freezeMgr == nullptr) {
         IMSA_HILOGE("data is nullptr!");
+        return ErrorCode::NO_ERROR;
+    }
+    if (!data->freezeMgr->IsIpcNeeded(type)) {
+        IMSA_HILOGD("no need to request, type: %{public}d.", type);
         return ErrorCode::NO_ERROR;
     }
     data->freezeMgr->BeforeIpc(type);

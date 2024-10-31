@@ -336,9 +336,9 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)
-        || JsUtil::GetType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type) ||
+        JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("subscribe failed, type: %{public}s.", type.c_str());
         return nullptr;
     }
@@ -385,16 +385,15 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
         napi_valuetype valueType = napi_undefined;
         // 0 means parameter of ctx<BaseContext>
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "ctx type must be BaseContext.",
-            TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "ctx type must be BaseContext.", TYPE_NONE, napi_invalid_arg);
         napi_status status = GetContext(env, argv[0], ctxt->context);
         if (status != napi_ok) {
             return status;
         }
         // 1 means parameter of info<PanelInfo>
         napi_typeof(env, argv[1], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "param info type must be PanelInfo.",
-            TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param info type must be PanelInfo.", TYPE_NONE,
+            napi_invalid_arg);
         status = JsUtils::GetValue(env, argv[1], ctxt->panelInfo);
         PARAM_CHECK_RETURN(env, status == napi_ok, "js param info covert failed", TYPE_NONE, napi_invalid_arg);
         return status;
@@ -494,8 +493,8 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)) {
         IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
         return nullptr;
     }
@@ -792,7 +791,7 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntryS
     }
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
-            IMSA_HILOGE("entry is nullptr!");
+            IMSA_HILOGE("work is nullptr!");
         delete entry;
         return nullptr;
     }
