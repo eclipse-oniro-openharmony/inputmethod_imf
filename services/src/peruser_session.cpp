@@ -1535,7 +1535,7 @@ bool PerUserSession::StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime)
         }
         return StartInputService(ime);
     }
-    if (!StopExitingCurrentIme()) {
+    if (!ForceStopCurrentIme()) {
         return false;
     }
     return StartInputService(ime);
@@ -1554,8 +1554,10 @@ bool PerUserSession::HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &
         IMSA_HILOGW("ready when timeout");
         return true;
     }
-    ForceStopCurrentIme(false);
-    return false;
+    if(!ForceStopCurrentIme(false)) {
+        return false;
+    }
+    return StartInputService(ime);
 }
 
 bool PerUserSession::StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime)
@@ -1578,10 +1580,7 @@ bool PerUserSession::StopCurrentIme()
     if (action == ImeAction::STOP_READY_IME) {
         return StopReadyCurrentIme();
     }
-    if (action == ImeAction::STOP_STARTING_IME) {
-        return ForceStopCurrentIme();
-    }
-    return StopExitingCurrentIme();
+    return ForceStopCurrentIme();
 }
 
 bool PerUserSession::StopReadyCurrentIme()
@@ -1614,30 +1613,21 @@ bool PerUserSession::StopReadyCurrentIme()
     return true;
 }
 
-bool PerUserSession::StopExitingCurrentIme()
+bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
 {
     auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
         return true;
     }
     if (!ImeInfoInquirer::GetInstance().IsRunningIme(userId_, imeData->ime.first)) {
-        IMSA_HILOGD("already stop!");
+        IMSA_HILOGW("[%{public}s, %{public}s] already stop.", imeData->ime.first.c_str(), imeData->ime.second.c_str());
         RemoveImeData(ImeType::IME, true);
         return true;
     }
-    return ForceStopCurrentIme();
-}
-
-bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
-{
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
         StopClientInput(clientInfo);
-    }
-    auto imeData = GetImeData(ImeType::IME);
-    if (imeData == nullptr) {
-        return true;
     }
     AAFwk::Want want;
     want.SetElementName(imeData->ime.first, imeData->ime.second);
@@ -1649,7 +1639,7 @@ bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
         return false;
     }
     if (!isNeedWait) {
-        return true;
+        return false;
     }
     WaitForCurrentImeStop();
     if (ImeInfoInquirer::GetInstance().IsRunningIme(userId_, imeData->ime.first)) {

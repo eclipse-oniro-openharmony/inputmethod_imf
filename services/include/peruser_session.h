@@ -64,9 +64,9 @@ enum class ImeEvent : uint32_t {
 enum class ImeAction : uint32_t {
     DO_NOTHING,
     HANDLE_STARTING_IME,
-    STOP_EXITING_IME,
+    FORCE_STOP_IME,
     STOP_READY_IME,
-    STOP_STARTING_IME,
+    START_IME_AFTER_FORCE_STOP_IME,
     DO_SET_CORE_AND_AGENT,
     DO_ACTION_IN_NULL_IME_DATA,
     DO_ACTION_IN_IME_EVENT_CONVERT_FAILED,
@@ -238,7 +238,6 @@ private:
     bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
     bool ForceStopCurrentIme(bool isNeedWait = true);
     bool StopReadyCurrentIme();
-    bool StopExitingCurrentIme();
     bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     bool CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
@@ -262,13 +261,16 @@ private:
     static inline const std::map<std::pair<ImeStatus, ImeEvent>, std::pair<ImeStatus, ImeAction>> imeEventConverter_ = {
         { { ImeStatus::READY, ImeEvent::START_IME }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
         { { ImeStatus::STARTING, ImeEvent::START_IME }, { ImeStatus::STARTING, ImeAction::HANDLE_STARTING_IME } },
-        { { ImeStatus::EXITING, ImeEvent::START_IME }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::EXITING, ImeEvent::START_IME },
+            { ImeStatus::EXITING, ImeAction::START_IME_AFTER_FORCE_STOP_IME } },
         { { ImeStatus::READY, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
-        { { ImeStatus::STARTING, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
-        { { ImeStatus::EXITING, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::STARTING, ImeEvent::START_IME_TIMEOUT },
+            { ImeStatus::EXITING, ImeAction::START_IME_AFTER_FORCE_STOP_IME } },
+        { { ImeStatus::EXITING, ImeEvent::START_IME_TIMEOUT },
+            { ImeStatus::EXITING, ImeAction::START_IME_AFTER_FORCE_STOP_IME } },
         { { ImeStatus::READY, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_READY_IME } },
-        { { ImeStatus::STARTING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_STARTING_IME } },
-        { { ImeStatus::EXITING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::STARTING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::FORCE_STOP_IME } },
+        { { ImeStatus::EXITING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::FORCE_STOP_IME } },
         { { ImeStatus::READY, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
         { { ImeStatus::STARTING, ImeEvent::SET_CORE_AND_AGENT },
             { ImeStatus::READY, ImeAction::DO_SET_CORE_AND_AGENT } },

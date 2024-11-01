@@ -337,6 +337,45 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
 }
 
 /**
+* @tc.name: testStartInputBeforeCreatePanel
+* @tc.desc: InputMethodAbility StartInput before create panel
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testStartInputBeforeCreatePanel start.");
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+    InputClientInfo clientInfo;
+    clientInfo.channel = channelStub;
+    clientInfo.isShowKeyboard = true;
+    InputMethodAbilityTest::showKeyboard_ = false;
+    auto ret = inputMethodAbility_->StartInput(clientInfo, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::imeListenerCv_.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
+    ASSERT_FALSE(InputMethodAbilityTest::showKeyboard_);
+    {
+        AccessScope scope(currentImeTokenId_, currentImeUid_);
+        std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
+        PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+        ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    }
+    std::unique_lock<std::mutex> lock1(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::imeListenerCv_.wait_for(
+        lock1, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
+    EXPECT_TRUE(InputMethodAbilityTest::showKeyboard_);
+
+    ret = inputMethodAbility_->StopInput(channelStub->AsObject());
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
 * @tc.name: testHideKeyboardSelf
 * @tc.desc: InputMethodAbility HideKeyboardSelf
 * @tc.type: FUNC

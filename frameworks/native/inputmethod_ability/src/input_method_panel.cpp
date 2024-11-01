@@ -37,6 +37,8 @@ constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr int32_t NUMBER_ZERO = 0;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
+constexpr int32_t MAXWAITTIME = 30;
+constexpr int32_t WAITTIME = 10;
 InputMethodPanel::~InputMethodPanel() = default;
 
 int32_t InputMethodPanel::CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context,
@@ -602,6 +604,12 @@ PanelFlag InputMethodPanel::GetPanelFlag()
 int32_t InputMethodPanel::ShowPanel()
 {
     IMSA_HILOGD("InputMethodPanel start.");
+    int32_t waitTime = 0;
+    while (isWaitSetUiContent_ && waitTime < MAXWAITTIME) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAITTIME));
+        waitTime += WAITTIME;
+        IMSA_HILOGI("InputMethodPanel show pannel waitTime %{public}d.", waitTime);
+    }
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -609,11 +617,6 @@ int32_t InputMethodPanel::ShowPanel()
     if (IsShowing()) {
         IMSA_HILOGI("panel already shown.");
         return ErrorCode::NO_ERROR;
-    }
-    {
-        std::unique_lock<std::mutex> lock(uiContentLock_);
-        uiContentCv_.wait_for(
-            lock, std::chrono::milliseconds(WAIT_UI_CONTENT_TIME), [this]() { return !isWaitSetUiContent_; });
     }
     auto ret = WMError::WM_OK;
     {
@@ -794,17 +797,11 @@ int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, napi_env 
         ret = window_->NapiSetUIContent(contentInfo, env, storage->GetNapiValue());
     }
     WMError wmError = window_->SetTransparent(true);
-
-    auto waitTask = [this]() {
-        std::unique_lock<std::mutex> lock(uiContentLock_);
-        if (isWaitSetUiContent_) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            isWaitSetUiContent_ = false;
-            uiContentCv_.notify_one();
-        }
-    };
-    std::thread(waitTask).detach();
-    IMSA_HILOGI("SetTransparent ret: %{public}u, NapiSetUIContent ret: %{public}d.", wmError, ret);
+    if (isWaitSetUiContent_) {
+        isWaitSetUiContent_ = false;
+    }
+    IMSA_HILOGI("SetTransparent ret: %{public}u.", wmError);
+    IMSA_HILOGI("NapiSetUIContent ret: %{public}d.", ret);
     return ret == WMError::WM_ERROR_INVALID_PARAM ? ErrorCode::ERROR_PARAMETER_CHECK_FAILED : ErrorCode::NO_ERROR;
 }
 

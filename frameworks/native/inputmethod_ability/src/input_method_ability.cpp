@@ -32,6 +32,7 @@
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "tasks/task.h"
+#include "tasks/task_imsa.h"
 #include "task_manager.h"
 
 namespace OHOS {
@@ -436,7 +437,7 @@ int32_t InputMethodAbility::ShowKeyboardImplWithoutLock(int32_t cmdId)
         }
         return ShowPanel(panel, flag, Trigger::IMF);
     }
-    isShowInCreate_.store(true);
+    isShowAfterCreate_.store(true);
     IMSA_HILOGI("panel not create.");
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
@@ -829,10 +830,10 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
             inputMethodPanel = nullptr;
             return false;
         });
-    auto showTask = [this]() { ShowKeyboard(); };
-    if (flag && isShowInCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD) {
-        isShowInCreate_.store(false);
-        std::thread(showTask).detach();
+    if (flag && isShowAfterCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD) {
+        isShowAfterCreate_.store(false);
+        auto task = std::make_shared<TaskImsaShowKeyboard>();
+        TaskManager::GetInstance().PostTask(task);
     }
     return flag ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
@@ -871,7 +872,10 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
         return ErrorCode::NO_ERROR;
     }
-
+    if (inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD
+        && inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_CANDIDATE_COLUMN) {
+        isShowAfterCreate_.store(false);
+    }
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
 }
@@ -957,7 +961,7 @@ InputAttribute InputMethodAbility::GetInputAttribute()
 
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 {
-    isShowInCreate_.store(false);
+    isShowAfterCreate_.store(false);
     InputMethodSyncTrace tracer("IMA_HideKeyboard");
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr!");
