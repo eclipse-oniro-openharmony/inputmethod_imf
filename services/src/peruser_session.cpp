@@ -266,11 +266,9 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     IMSA_HILOGI("type: %{public}d.", type);
     auto imeData = GetImeData(type);
     auto ime = InputTypeManager::GetInstance().GetCurrentIme();
-    if (ime.bundleName == imeData->ime.first) {
-        InputTypeManager::GetInstance().Set(false);
-    }
     if (imeData != nullptr && imeData->imeStatus == ImeStatus::EXITING) {
         RemoveImeData(type, true);
+        InputTypeManager::GetInstance().Set(false);
         NotifyImeStopFinished();
         IMSA_HILOGI("%{public}d not current imeData.", type);
         return;
