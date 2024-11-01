@@ -119,6 +119,30 @@ ImeIdentification InputTypeManager::GetCurrentIme()
     return currentTypeIme_;
 }
 
+bool InputTypeManager::IsVoiceImeStarted()
+{
+    if (!IsStarted()) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(typesLock_);
+    return inputTypes_.find(InputType::VOICE_INPUT) != inputTypes_.end() &&
+           inputTypes_[InputType::VOICE_INPUT] == currentTypeIme_;
+}
+ 
+InputType InputTypeManager::GetCurrentInputType()
+{
+    if (IsSecurityImeStarted()) {
+        return InputType::SECURITY_INPUT;
+    }
+    if (IsCameraImeStarted()) {
+        return InputType::CAMERA_INPUT;
+    }
+    if (IsVoiceImeStarted()) {
+        return InputType::VOICE_INPUT;
+    }
+    return InputType::NONE;
+}
+
 bool InputTypeManager::Init()
 {
     IMSA_HILOGD("start.");

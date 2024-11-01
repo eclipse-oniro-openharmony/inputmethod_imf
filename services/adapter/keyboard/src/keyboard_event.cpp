@@ -37,12 +37,12 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     IMSA_HILOGI("KeyboardEvent::AddKeyEventMonitor start.");
     std::shared_ptr<InputEventCallback> callback = std::make_shared<InputEventCallback>();
     callback->SetKeyHandle(handle);
-    int32_t monitorId =
-        InputManager::GetInstance()->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
-            if (callback == nullptr) {
+    int32_t monitorId = InputManager::GetInstance()->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
+        if (callback == nullptr) {
             IMSA_HILOGE("callback is nullptr!");
-                return;
-            }
+            return;
+        }
+        callback->OnInputEvent(keyEvent);
             callback->OnInputEvent(keyEvent);
     });
     if (monitorId < 0) {
