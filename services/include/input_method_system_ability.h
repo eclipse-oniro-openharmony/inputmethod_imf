@@ -123,6 +123,7 @@ private:
     int32_t SwitchExtension(int32_t userId, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchSubType(int32_t userId, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchInputType(int32_t userId, const SwitchInfo &switchInfo);
+    void GetValidSubtype(const std::string &subName, const std::shared_ptr<ImeInfo> &info);
     ServiceRunningState state_;
     void InitServiceHandler();
     void UpdateUserInfo(int32_t userId);

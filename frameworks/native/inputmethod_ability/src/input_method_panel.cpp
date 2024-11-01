@@ -171,7 +171,7 @@ LayoutParams InputMethodPanel::GetResizeParams()
     IMSA_HILOGI("is fold device and fold state or other");
     return resizePanelFoldParams_;
 }
-
+ 
 void InputMethodPanel::SetResizeParams(uint32_t width, uint32_t height)
 {
     if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
@@ -285,8 +285,7 @@ int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const Layou
         IMSA_HILOGE("posX_ and posY_ cannot be less than 0!");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
-    if (!CheckSize(panelFlag, layoutParams.portraitRect.width_,
-        layoutParams.portraitRect.height_, true)) {
+    if (!CheckSize(panelFlag, layoutParams.portraitRect.width_, layoutParams.portraitRect.height_, true)) {
         IMSA_HILOGE("portrait invalid size!");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
@@ -351,8 +350,8 @@ int32_t InputMethodPanel::CalculateNoConfigRect(const PanelFlag panelFlag, const
         }
         keyboardLayoutParams_.PortraitPanelRect_.width_ = portraitDisplaySize.width;
         keyboardLayoutParams_.PortraitPanelRect_.height_ = layoutParams.portraitRect.height_;
-        keyboardLayoutParams_.PortraitPanelRect_.posY_ = static_cast<int32_t>(portraitDisplaySize.height -
-            keyboardLayoutParams_.PortraitPanelRect_.height_);
+        keyboardLayoutParams_.PortraitPanelRect_.posY_ =
+            static_cast<int32_t>(portraitDisplaySize.height - keyboardLayoutParams_.PortraitPanelRect_.height_);
         keyboardLayoutParams_.PortraitPanelRect_.posX_ = NUMBER_ZERO;
         //fixed Portraitkeyboard
         keyboardLayoutParams_.PortraitKeyboardRect_.width_ = keyboardLayoutParams_.PortraitPanelRect_.width_;
@@ -367,8 +366,8 @@ int32_t InputMethodPanel::CalculateNoConfigRect(const PanelFlag panelFlag, const
         }
         keyboardLayoutParams_.LandscapePanelRect_.width_ = landscapeDisplaySize.width;
         keyboardLayoutParams_.LandscapePanelRect_.height_ = layoutParams.landscapeRect.height_;
-        keyboardLayoutParams_.LandscapePanelRect_.posY_ = static_cast<int32_t>(landscapeDisplaySize.height -
-            keyboardLayoutParams_.LandscapePanelRect_.height_);
+        keyboardLayoutParams_.LandscapePanelRect_.posY_ =
+            static_cast<int32_t>(landscapeDisplaySize.height - keyboardLayoutParams_.LandscapePanelRect_.height_);
         keyboardLayoutParams_.LandscapePanelRect_.posX_ = NUMBER_ZERO;
         //Landscapekeyboard
         keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = keyboardLayoutParams_.LandscapePanelRect_.width_;
@@ -500,6 +499,7 @@ int32_t InputMethodPanel::CalculateFloatRect(const LayoutParams &layoutParams, P
         keyboardLayoutParams_.PortraitKeyboardRect_.posY_ - static_cast<int32_t>(porIterValue.top * densityDpi);
     keyboardLayoutParams_.PortraitPanelRect_.posX_ =
         keyboardLayoutParams_.PortraitKeyboardRect_.posX_ - static_cast<int32_t>(porIterValue.left * densityDpi);
+
     //landscape floating keyboard
     keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = layoutParams.landscapeRect.width_;
     keyboardLayoutParams_.LandscapeKeyboardRect_.height_ = layoutParams.landscapeRect.height_;
@@ -530,12 +530,12 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
     keyboardLayoutParams_.LandscapePanelRect_.height_ = layoutParams.landscapeRect.height_ +
         static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * densityDpi);
     if (keyboardLayoutParams_.LandscapePanelRect_.height_ >
-            landscapeDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO) {
+        landscapeDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO) {
         keyboardLayoutParams_.LandscapePanelRect_.height_ =
             landscapeDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO;
     }
-    keyboardLayoutParams_.LandscapePanelRect_.posY_ = static_cast<int32_t>(landscapeDisplaySize.height -
-        keyboardLayoutParams_.LandscapePanelRect_.height_);
+    keyboardLayoutParams_.LandscapePanelRect_.posY_ =
+        static_cast<int32_t>(landscapeDisplaySize.height - keyboardLayoutParams_.LandscapePanelRect_.height_);
     keyboardLayoutParams_.LandscapePanelRect_.posX_ = NUMBER_ZERO;
     //Landscapekeyboard
     keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = keyboardLayoutParams_.LandscapePanelRect_.width_ -
@@ -779,7 +779,7 @@ void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, c
 
 bool InputMethodPanel::IsShowing()
 {
-    WindowState windowState = window_->GetWindowState();
+    auto windowState = window_->GetWindowState();
     if (windowState == WindowState::STATE_SHOWN) {
         return true;
     }
@@ -801,7 +801,7 @@ int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, napi_env 
     std::shared_ptr<NativeReference> storage)
 {
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr, can not SetUiContent!");
+        IMSA_HILOGE("window_ is nullptr, can not SetUiContent.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     WMError ret = WMError::WM_OK;
@@ -840,8 +840,8 @@ bool InputMethodPanel::SetPanelStatusListener(std::shared_ptr<PanelStatusListene
             }
         }
     }
-    if (panelType_ == PanelType::SOFT_KEYBOARD && (panelFlag_ == PanelFlag::FLG_FIXED ||
-            panelFlag_ == PanelFlag::FLG_FLOATING) && type == "sizeChange") {
+    if (panelType_ == PanelType::SOFT_KEYBOARD &&
+        (panelFlag_ == PanelFlag::FLG_FIXED || panelFlag_ == PanelFlag::FLG_FLOATING) && type == "sizeChange") {
         if (panelStatusListener_ == nullptr && statusListener != nullptr) {
             panelStatusListener_ = std::move(statusListener);
         }
@@ -850,9 +850,8 @@ bool InputMethodPanel::SetPanelStatusListener(std::shared_ptr<PanelStatusListene
             IMSA_HILOGD("windowChangedListener already registered.");
             return true;
         }
-        windowChangedListener_ = new (std::nothrow) WindowChangeListenerImpl([this](WindowSize windowSize) {
-            SizeChange(windowSize);
-        });
+        windowChangedListener_ = new (std::nothrow)
+            WindowChangeListenerImpl([this](WindowSize windowSize) { SizeChange(windowSize); });
         if (windowChangedListener_ == nullptr || window_ == nullptr) {
             IMSA_HILOGE("observer or window_ is nullptr!");
             return false;
@@ -896,7 +895,7 @@ bool InputMethodPanel::MarkListener(const std::string &type, bool isRegister)
     } else if (type == "sizeChange") {
         sizeChangeRegistered_ = isRegister;
     } else {
-        IMSA_HILOGE("type error!");
+        IMSA_HILOGE("type error.");
         return false;
     }
     return true;
@@ -919,7 +918,7 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
     }
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (defaultDisplay == nullptr) {
-        IMSA_HILOGE("GetDefaultDisplay failed!");
+        IMSA_HILOGE("GetDefaultDisplay failed.");
         return false;
     }
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag_ == PanelFlag::FLG_FIXED
@@ -1035,8 +1034,8 @@ bool InputMethodPanel::CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t h
     return IsSizeValid(panelFlag, width, height, displaySize.width, displaySize.height);
 }
 
-bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height,
-    int32_t displayWidth, int32_t displayHeight)
+bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height, int32_t displayWidth,
+    int32_t displayHeight)
 {
     if (width > INT32_MAX || height > INT32_MAX) {
         IMSA_HILOGE("width or height over maximum");
@@ -1046,13 +1045,13 @@ bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t
                                 ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
                                 : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
     if (static_cast<float>(height) > displayHeight * ratio) {
-        IMSA_HILOGE("height invalid, defaultDisplay height = %{public}d, target height = %{public}u",
-            displayHeight, height);
+        IMSA_HILOGE("height is invalid, defaultDisplay height: %{public}d, target height: %{public}u!", displayHeight,
+            height);
         return false;
     }
     if (static_cast<int32_t>(width) > displayWidth) {
-        IMSA_HILOGE("width invalid, defaultDisplay width = %{public}d, target width = %{public}u",
-            displayWidth, width);
+        IMSA_HILOGE("width is invalid, defaultDisplay width: %{public}d, target width: %{public}u!", displayWidth,
+            width);
         return false;
     }
     return true;

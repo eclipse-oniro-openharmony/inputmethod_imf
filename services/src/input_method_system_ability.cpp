@@ -57,6 +57,7 @@ using namespace AppExecFwk;
 using namespace Security::AccessToken;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
+constexpr const char *UNDEFINED = "undefined";
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -705,14 +706,15 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
         std::string targetImeName = info->prop.name + "/" + info->prop.id;
         ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id });
-        auto targetIme = std::make_shared<ImeNativeCfg>(
-            ImeNativeCfg{ targetImeName, info->prop.name, info->subProp.id, info->prop.id });
+        auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg {
+            targetImeName, info->prop.name, switchInfo.subName.empty() ? "" : info->subProp.id, info->prop.id });
         if (!session->StartIme(targetIme)) {
             InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ret, switchInfo.bundleName,
                 "switch input method failed!");
             session->GetSwitchQueue().Pop();
             return ErrorCode::ERROR_IME_START_FAILED;
         }
+        GetValidSubtype(switchInfo.subName, info);
         session->NotifyImeChangeToClients(info->prop, info->subProp);
         ret = session->SwitchSubtype(info->subProp);
     }
@@ -724,6 +726,16 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
     }
     return ret;
 }
+
+void InputMethodSystemAbility::GetValidSubtype(const std::string &subName, const std::shared_ptr<ImeInfo> &info)
+{
+    if (subName.empty()) {
+        IMSA_HILOGW("undefined subtype");
+        info->subProp.id = UNDEFINED;
+        info->subProp.name = UNDEFINED;
+    }
+}
+
 
 int32_t InputMethodSystemAbility::OnStartInputType(int32_t userId, const SwitchInfo &switchInfo,
     bool isCheckPermission)
@@ -804,6 +816,8 @@ int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::sha
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     session->NotifyImeChangeToClients(info->prop, info->subProp);
+    GetValidSubtype("", info);
+    session->SwitchSubtype(info->subProp);
     return ErrorCode::NO_ERROR;
 }
 
@@ -833,19 +847,16 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeProperty(userId, switchInfo.bundleName);
-    if (targetImeProperty == nullptr) {
-        IMSA_HILOGE("GetImeProperty [%{public}d, %{public}s] failed", userId, switchInfo.bundleName.c_str());
+    auto targetIme = session->GetImeNativeCfg(userId, switchInfo.bundleName, switchInfo.subName);
+    if (targetIme == nullptr) {
+        IMSA_HILOGE("targetIme is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    std::string targetName = switchInfo.bundleName + "/" + targetImeProperty->id;
-    ImeNativeCfg targetIme = { targetName, switchInfo.bundleName, switchInfo.subName, targetImeProperty->id };
-    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
-    if (!session->StartIme(std::make_shared<ImeNativeCfg>(targetIme))) {
+    if (!session->StartIme(targetIme)) {
         IMSA_HILOGE("start input method failed!");
-        InputTypeManager::GetInstance().Set(false);
         return ErrorCode::ERROR_IME_START_FAILED;
     }
+    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     int32_t ret = session->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
     if (ret != ErrorCode::NO_ERROR) {
         InputTypeManager::GetInstance().Set(false);

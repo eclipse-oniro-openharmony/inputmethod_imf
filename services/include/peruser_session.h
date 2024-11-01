@@ -144,6 +144,8 @@ public:
     bool IsWmsReady();
     bool CheckPwdInputPatternConv(InputClientInfo &clientInfo);
     int32_t RestoreCurrentIme();
+    std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
+        const std::string &subName);
 
 private:
     struct ResetManager {
@@ -238,6 +240,7 @@ private:
     bool StopExitingCurrentIme();
     bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
+    bool CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };

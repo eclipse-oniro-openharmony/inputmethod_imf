@@ -290,7 +290,6 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d!", ret);
         return ret;
     }
-    isImeTerminating_.store(false);
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     if (clientInfo.isShowKeyboard) {
         auto task = [this, cmdCount]() {
@@ -300,6 +299,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
             IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
             ShowKeyboardImplWithoutLock(cmdCount);
         }
+        isImeTerminating_.store(false);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -518,13 +518,13 @@ int32_t InputMethodAbility::ShowKeyboardImplWithoutLock(int32_t cmdId)
 
 void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
+    // CANDIDATE_COLUMN not notify
     auto channel = GetInputDataChannelProxy();
     NotifyPanelStatusInfo(info, channel);
 }
 
 int32_t InputMethodAbility::InvokeStartInputCallback(bool isNotifyInputStart)
 {
-    // CANDIDATE_COLUMN not notify
     TextTotalConfig textConfig = {};
     int32_t ret = GetTextConfig(textConfig);
     if (ret == ErrorCode::NO_ERROR) {
@@ -946,6 +946,7 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
+
     // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
     if (isImeTerminating_.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
         IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
@@ -989,10 +990,12 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = inputMethodPanel->HidePanel();
-    if (ret == ErrorCode::NO_ERROR) {
-        NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGD("failed, ret: %{public}d", ret);
+        return ret;
     }
-    return ret;
+    NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::NotifyPanelStatus(
@@ -1179,6 +1182,10 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
     if (channelProxy == nullptr) {
         IMSA_HILOGE("failed to create channel proxy!");
         return;
+    }
+    auto panel = GetSoftKeyboardPanel();
+    if (imeListener_ != nullptr && panel != nullptr && panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
+        imeListener_->OnKeyboardStatus(false);
     }
     panels_.ForEach([this, &channelProxy](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {

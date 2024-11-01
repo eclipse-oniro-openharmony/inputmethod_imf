@@ -119,7 +119,7 @@ int32_t InputMethodController::Initialize()
 {
     sptr<IInputClient> client = new (std::nothrow) InputClientStub();
     if (client == nullptr) {
-        IMSA_HILOGE("failed to create client!");
+        IMSA_HILOGE("failed to create client");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     sptr<IInputDataChannel> channel = new (std::nothrow) InputDataChannelStub();
@@ -247,7 +247,7 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     sptr<IRemoteObject> agent = nullptr;
     int32_t ret = StartInput(clientInfo_, agent);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
+        IMSA_HILOGE("failed to start input, ret: %{public}d", ret);
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;
@@ -263,7 +263,7 @@ int32_t InputMethodController::ShowTextInput()
 {
     InputMethodSyncTrace tracer("IMC_ShowTextInput");
     if (!IsBound()) {
-        IMSA_HILOGE("not bound!");
+        IMSA_HILOGE("not bound.");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     IMSA_HILOGI("start.");
@@ -305,14 +305,13 @@ int32_t InputMethodController::HideCurrentInput()
     }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
     {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
         clientInfo_.isShowKeyboard = false;
     }
-
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    clientInfo_.isShowKeyboard = false;
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_NORMAL);
     return proxy->HideCurrentInputDeprecated();
 }
@@ -343,7 +342,6 @@ int32_t InputMethodController::Close()
     if (IsBound()) {
         IMSA_HILOGI("start.");
     }
-
     auto listener = GetTextListener();
     if (listener != nullptr) {
         listener->OnDetach();
@@ -598,7 +596,7 @@ void InputMethodController::RestoreAttachInfoInSaDied()
             isShowKeyboard = clientInfo_.isShowKeyboard;
         }
         auto errCode = Attach(listener, isShowKeyboard, tempConfig);
-        IMSA_HILOGI("attach end, errCode = %{public}d", errCode);
+        IMSA_HILOGI("attach end, errCode: %{public}d", errCode);
         return errCode == ErrorCode::NO_ERROR;
     };
     if (attach()) {
@@ -663,7 +661,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_.range = { start, end };
     }
-    if (isTextNotified_.exchange(true) && textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
+    if (textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
         IMSA_HILOGD("same to last update.");
         return ErrorCode::NO_ERROR;
     }
@@ -896,7 +894,10 @@ int32_t InputMethodController::HideSoftKeyboard()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     IMSA_HILOGI("start.");
-    clientInfo_.isShowKeyboard = false;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        clientInfo_.isShowKeyboard = false;
+    }
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_NORMAL);
     return proxy->HideCurrentInput();
 }
@@ -1277,7 +1278,7 @@ int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &is
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGD("type: %{public}d, flag: %{public}d.", static_cast<int32_t>(panelInfo.panelType),
+    IMSA_HILOGI("type: %{public}d, flag: %{public}d.", static_cast<int32_t>(panelInfo.panelType),
         static_cast<int32_t>(panelInfo.panelFlag));
     return proxy->IsPanelShown(panelInfo, isShown);
 }
@@ -1312,7 +1313,7 @@ int32_t InputMethodController::ReceivePrivateCommand(
 {
     auto listener = GetTextListener();
     if (listener == nullptr) {
-        IMSA_HILOGE("listener is nullptr!");
+        IMSA_HILOGE("listener is nullptr.");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     IMSA_HILOGD("IMC in.");

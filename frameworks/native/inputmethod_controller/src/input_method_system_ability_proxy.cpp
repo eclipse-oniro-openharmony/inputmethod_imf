@@ -316,7 +316,7 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("failed to send request to IMSA, code: %{public}d, ret: %{public}d!", code, ret);
+        IMSA_HILOGE("failed to send request, code: %{public}d, ret %{public}d!", code, ret);
         return ret;
     }
     if (option.GetFlags() == MessageOption::TF_ASYNC) {
@@ -324,7 +324,7 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("dispose failed in IMSA, code: %{public}d, ret: %{public}d!", code, ret);
+        IMSA_HILOGE("dispose failed in service, code: %{public}d, ret: %{public}d!", code, ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
