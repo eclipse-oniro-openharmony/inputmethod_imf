@@ -28,7 +28,7 @@ void FuzzGetToken()
 
 void FuzzDataShareHelper()
 {
-    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper();
+    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper(SETTING_URI_PROXY);
     SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
 }
 
@@ -51,7 +51,7 @@ void FuzzUnregisterObserver(const std::string &key, SettingsDataObserver::Callba
 
 void FuzzGenerateTargetUri(const std::string &key)
 {
-    SettingsDataUtils::GetInstance()->GenerateTargetUri(key);
+    SettingsDataUtils::GetInstance()->GenerateTargetUri(SETTING_URI_PROXY, key);
 }
 } // namespace OHOS
 
