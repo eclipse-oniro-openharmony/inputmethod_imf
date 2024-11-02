@@ -342,6 +342,7 @@ int32_t InputMethodController::Close()
     if (IsBound()) {
         IMSA_HILOGI("start.");
     }
+
     auto listener = GetTextListener();
     if (listener != nullptr) {
         listener->OnDetach();

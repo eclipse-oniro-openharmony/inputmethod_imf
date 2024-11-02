@@ -335,13 +335,13 @@ void ImCommonEventManager::EventSubscriber::HandlePackageEvent(int32_t messageId
         return;
     }
     if (!ITypesUtil::Marshal(*parcel, userId, bundleName)) {
-        IMSA_HILOGE("Failed to write message parcel!");
+        IMSA_HILOGE("failed to write message parcel");
         delete parcel;
         return;
     }
     Message *msg = new (std::nothrow) Message(messageId, parcel);
     if (msg == nullptr) {
-        IMSA_HILOGE("failed to create Message!");
+        IMSA_HILOGE("failed to create Message");
         delete parcel;
         return;
     }
@@ -366,9 +366,9 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility
     int32_t systemAbilityId, const std::string &deviceId)
 {
     IMSA_HILOGD("systemAbilityId: %{public}d.", systemAbilityId);
-    if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID
-        && systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN
-        && systemAbilityId != MEMORY_MANAGER_SA_ID) {
+    if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID &&
+        systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN &&
+        systemAbilityId != MEMORY_MANAGER_SA_ID) {
         return;
     }
     if (func_ != nullptr) {
