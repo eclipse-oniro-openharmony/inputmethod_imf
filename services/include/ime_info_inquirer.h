@@ -112,7 +112,6 @@ private:
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
     std::string GetTargetString(
         const AppExecFwk::ExtensionAbilityInfo &extension, ImeTargetString target, int32_t userId);
-    int32_t GetAppLabelFromRes(const AppExecFwk::ExtensionAbilityInfo &extension, std::string &label);
     std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const uint32_t labelId,
         const int32_t userId);
     bool GetBundleInfoByBundleName(int32_t userId, const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo);

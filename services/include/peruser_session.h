@@ -123,7 +123,7 @@ public:
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     int32_t InitConnect(pid_t pid);
-    
+
     bool StartCurrentIme(bool isStopCurrentIme = false);
     bool StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme = false);
     bool StopCurrentIme();

@@ -289,8 +289,7 @@ int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const Layou
         IMSA_HILOGE("portrait invalid size!");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
-    if (!CheckSize(panelFlag, layoutParams.landscapeRect.width_,
-        layoutParams.landscapeRect.height_, false)) {
+    if (!CheckSize(panelFlag, layoutParams.landscapeRect.width_, layoutParams.landscapeRect.height_, false)) {
         IMSA_HILOGE("landscape invalid size!");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
@@ -465,8 +464,8 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
             keyboardLayoutParams_.PortraitPanelRect_.height_ =
                 portraitDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO;
         }
-        keyboardLayoutParams_.PortraitPanelRect_.posY_ = static_cast<int32_t>(portraitDisplaySize.height -
-            keyboardLayoutParams_.PortraitPanelRect_.height_);
+        keyboardLayoutParams_.PortraitPanelRect_.posY_ =
+            static_cast<int32_t>(portraitDisplaySize.height - keyboardLayoutParams_.PortraitPanelRect_.height_);
         keyboardLayoutParams_.PortraitPanelRect_.posX_ = NUMBER_ZERO;
         //fixed Portraitkeyboard
         keyboardLayoutParams_.PortraitKeyboardRect_.width_ = keyboardLayoutParams_.PortraitPanelRect_.width_ -
@@ -789,7 +788,7 @@ bool InputMethodPanel::IsShowing()
 
 bool InputMethodPanel::IsHidden()
 {
-    WindowState windowState = window_->GetWindowState();
+    auto windowState = window_->GetWindowState();
     if (windowState == WindowState::STATE_HIDDEN) {
         return true;
     }
@@ -1038,12 +1037,12 @@ bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t
     int32_t displayHeight)
 {
     if (width > INT32_MAX || height > INT32_MAX) {
-        IMSA_HILOGE("width or height over maximum");
+        IMSA_HILOGE("width or height over maximum!");
         return false;
     }
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag == PanelFlag::FLG_FIXED
-                                ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
-                                : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
+                      ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
+                      : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
     if (static_cast<float>(height) > displayHeight * ratio) {
         IMSA_HILOGE("height is invalid, defaultDisplay height: %{public}d, target height: %{public}u!", displayHeight,
             height);
