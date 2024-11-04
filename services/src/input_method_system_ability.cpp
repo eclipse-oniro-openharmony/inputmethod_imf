@@ -1599,7 +1599,7 @@ int32_t InputMethodSystemAbility::ConnectSystemCmd(const sptr<IRemoteObject> &ch
     auto userId = GetCallingUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
-        IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY");
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnConnectSystemCmd(channel, agent);
