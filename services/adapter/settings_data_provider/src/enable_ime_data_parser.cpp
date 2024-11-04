@@ -267,7 +267,7 @@ std::string EnableImeDataParser::ParseEnableValueUserId(const std::string &value
 {
     auto root = cJSON_Parse(valueStr.c_str());
     auto subNode = Serializable::GetSubNode(root, "enableImeList");
-    if (subNode == nullptr || cJSON_IsObject(subNode)) {
+    if (subNode == nullptr || !cJSON_IsObject(subNode)) {
         IMSA_HILOGW("subNode is null or not object");
         return "";
     }
