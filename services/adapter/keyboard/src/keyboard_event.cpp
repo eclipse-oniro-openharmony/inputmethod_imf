@@ -43,7 +43,6 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
             return;
         }
         callback->OnInputEvent(keyEvent);
-            callback->OnInputEvent(keyEvent);
     });
     if (monitorId < 0) {
         IMSA_HILOGE("add monitor failed, id: %{public}d!", monitorId);

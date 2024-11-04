@@ -188,7 +188,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
         auto it = std::find_if(subProps.begin(), subProps.end(),
             [&subName](const SubProperty &subProp) { return subProp.id == subName; });
         if (it == subProps.end()) {
-            IMSA_HILOGE("find subName: %{public}s failed!", subName.c_str());
+            IMSA_HILOGE("find subName: %{public}s failed", subName.c_str());
             return nullptr;
         }
         info->subProp = *it;
@@ -346,7 +346,7 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
     std::vector<std::string> enableVec;
     ret = EnableImeDataParser::GetInstance()->GetEnableIme(userId, enableVec);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("get enable data failed!");
+        IMSA_HILOGE("get enable data failed");
         return ret;
     }
     auto info = GetDefaultIme();
@@ -542,8 +542,7 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
         if (InputTypeManager::GetInstance().IsInputType({ extInfo.bundleName, subtype.id })) {
             continue;
         }
-        SubProperty subProp{
-            .label = subtype.label,
+        SubProperty subProp{ .label = subtype.label,
             .name = extInfo.bundleName,
             .id = subtype.id,
             .mode = subtype.mode,
@@ -593,7 +592,7 @@ int32_t ImeInfoInquirer::ParseSubtype(const OHOS::AppExecFwk::ExtensionAbilityIn
     }
     SubtypeCfg subtypeCfg;
     if (!ParseSubtypeProfile(profiles, subtypeCfg)) {
-        IMSA_HILOGE("failed to ParseSubTypeCfg!");
+        IMSA_HILOGE("failed to ParseSubTypeCfg");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     subtypes = subtypeCfg.subtypes;
@@ -793,7 +792,7 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
     IMSA_HILOGD("userId: %{public}d.", userId);
     auto defaultIme = GetDefaultImeCfgProp();
     if (defaultIme == nullptr) {
-        IMSA_HILOGE("abnormal default ime cfg!");
+        IMSA_HILOGE("abnormal default ime cfg.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto infos = FullImeInfoManager::GetInstance().Get(userId);

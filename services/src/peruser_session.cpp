@@ -1370,7 +1370,7 @@ bool PerUserSession::RestartIme()
         if (IsReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()) {
             auto ret = StartCurrentIme(true);
             if (!ret) {
-                IMSA_HILOGE("start ime failed!");
+                IMSA_HILOGE("start ime failed");
             }
         }
         int32_t tasks = 0;
