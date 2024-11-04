@@ -371,6 +371,10 @@ HWTEST_F(InputMethodAbilityTest, testMoveCursor, TestSize.Level0)
     auto ret = inputMethodAbility_->MoveCursor(keyCode); // move cursor right });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitMoveCursor(keyCode));
+
+    ret = InputMethodAbilityInterface::GetInstance().MoveCursor(keyCode);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitMoveCursor(keyCode));
 }
 
 /**
