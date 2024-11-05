@@ -85,5 +85,15 @@ bool DataShareHelper::Release()
 {
     return true;
 }
+
+int DataShareHelper::Update(Uri &uri, const DataSharePredicates &predicates, const DataShareValuesBucket &value)
+{
+    return 0;
+}
+ 
+int DataShareHelper::Insert(Uri &uri, const DataShareValuesBucket &value)
+{
+    return 0;
+}
 } // namespace DataShare
 } // namespace OHOS

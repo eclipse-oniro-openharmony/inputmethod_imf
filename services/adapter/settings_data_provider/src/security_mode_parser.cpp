@@ -63,7 +63,7 @@ int32_t SecurityModeParser::UpdateFullModeList(int32_t userId)
 {
     IMSA_HILOGD("key: %{public}s.", SECURITY_MODE);
     std::string valueStr;
-    int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(SECURITY_MODE, valueStr);
+    int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, SECURITY_MODE, valueStr);
     if (ret != ErrorCode::NO_ERROR || valueStr.empty()) {
         IMSA_HILOGW("get value failed, or valueStr is empty");
         return ErrorCode::ERROR_ENABLE_SECURITY_MODE;

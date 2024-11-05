@@ -30,6 +30,12 @@
 
 namespace OHOS {
 namespace MiscServices {
+constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
+constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
+const std::string SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/entry/settingsdata/"
+                                          "SETTINGSDATA?Proxy=true";
+const std::string SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
+const std::string SETTINGS_USER_DATA_URI = "datashare:///com.ohos.settingsdata/entry/settingsdata/USER_SETTINGSDATA_";
 struct UserImeConfig : public Serializable {
     std::string userId;
     std::vector<std::string> identities;
@@ -43,9 +49,10 @@ struct UserImeConfig : public Serializable {
 class SettingsDataUtils : public RefBase {
 public:
     static sptr<SettingsDataUtils> GetInstance();
-    std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper();
+    std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper(const std::string &uriProxy);
     int32_t CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func);
-    int32_t GetStringValue(const std::string &key, std::string &value);
+    int32_t GetStringValue(const std::string &uriProxy, const std::string &key, std::string &value);
+    bool SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value);
 
 private:
     SettingsDataUtils() = default;
@@ -53,7 +60,7 @@ private:
     bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
     int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
     int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
-    Uri GenerateTargetUri(const std::string &key);
+    Uri GenerateTargetUri(const std::string &uriProxy, const std::string &key);
     sptr<IRemoteObject> GetToken();
 
 private:
