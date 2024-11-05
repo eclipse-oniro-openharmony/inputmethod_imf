@@ -46,6 +46,8 @@
 #include "system_language_observer.h"
 #include "user_session_manager.h"
 #include "wms_connection_observer.h"
+#include "xcollie/xcollie.h"
+#include "xcollie/xcollie_define.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -57,6 +59,7 @@ constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr const char *UNDEFINED = "undefined";
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
+constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
@@ -87,6 +90,8 @@ void InputMethodSystemAbility::OnStart()
         IMSA_HILOGI("imsa service is already running.");
         return;
     }
+    auto id = HiviewDFX::XCollie::GetInstance().SetTimer(
+        "IMSA OnStart timeout", START_SA_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_DEFAULT);
     InitServiceHandler();
     Initialize();
     int32_t ret = Init();
@@ -99,6 +104,7 @@ void InputMethodSystemAbility::OnStart()
     InitHiTrace();
     InputMethodSyncTrace tracer("InputMethodController Attach trace.");
     InputmethodDump::GetInstance().AddDumpAllMethod([this](int fd) { this->DumpAllMethod(fd); });
+    HiviewDFX::XCollie::GetInstance().CancelTimer(id);
     IMSA_HILOGI("start imsa service success.");
     return;
 }
