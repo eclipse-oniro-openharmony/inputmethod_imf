@@ -137,10 +137,13 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 
 int32_t InputMethodSystemAbility::Init()
 {
+    IMSA_HILOGI("InputMethodSystemAbility::Init start.");
     bool isSuccess = Publish(this);
     if (!isSuccess) {
+        IMSA_HILOGE("publish failed");
         return -1;
     }
+    IMSA_HILOGI("publish success");
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitSystemConfig();
@@ -199,7 +202,9 @@ void InputMethodSystemAbility::Initialize()
     UserSessionManager::GetInstance().SetEventHandler(serviceHandler_);
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
+    IMSA_HILOGI("start get scene board enable status");
     isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
+    IMSA_HILOGI("InputMethodSystemAbility::Initialize end.");
 }
 
 void InputMethodSystemAbility::SubscribeCommonEvent()
