@@ -55,8 +55,6 @@ constexpr int32_t FIRST_PARAM_INDEX = 0;
 constexpr int32_t SECOND_PARAM_INDEX = 1;
 constexpr int32_t THIRD_PARAM_INDEX = 2;
 constexpr int32_t FOURTH_PARAM_INDEX = 3;
-constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
-constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
 uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
@@ -301,7 +299,7 @@ void TddUtil::GrantNativePermission()
 void TddUtil::PushEnableImeValue(const std::string &key, const std::string &value)
 {
     IMSA_HILOGI("key: %{public}s, value: %{public}s", key.c_str(), value.c_str());
-    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper();
+    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper(SETTING_URI_PROXY);
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr.");
         return;
@@ -313,7 +311,7 @@ void TddUtil::PushEnableImeValue(const std::string &key, const std::string &valu
     bucket.Put(SETTING_COLUMN_VALUE, valueObj);
     DataShare::DataSharePredicates predicates;
     predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
-    Uri uri(SettingsDataUtils::GetInstance()->GenerateTargetUri(key));
+    Uri uri(SettingsDataUtils::GetInstance()->GenerateTargetUri(SETTING_URI_PROXY, key));
     if (helper->Update(uri, predicates, bucket) <= 0) {
         int index = helper->Insert(uri, bucket);
         IMSA_HILOGI("no data exists, insert ret index: %{public}d", index);
@@ -326,7 +324,7 @@ void TddUtil::PushEnableImeValue(const std::string &key, const std::string &valu
 
 int32_t TddUtil::GetEnableData(std::string &value)
 {
-    auto ret = SettingsDataUtils::GetInstance()->GetStringValue(EnableImeDataParser::ENABLE_IME, value);
+    auto ret = SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, EnableImeDataParser::ENABLE_IME, value);
     if (ret == ErrorCode::NO_ERROR) {
         IMSA_HILOGI("success, value: %{public}s", value.c_str());
     }

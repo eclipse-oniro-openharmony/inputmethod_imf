@@ -23,11 +23,6 @@ namespace OHOS {
 namespace MiscServices {
 std::mutex SettingsDataUtils::instanceMutex_;
 sptr<SettingsDataUtils> SettingsDataUtils::instance_ = nullptr;
-constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
-constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
-constexpr const char *SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/entry/settingsdata/"
-                                          "SETTINGSDATA?Proxy=true";
-constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
 SettingsDataUtils::~SettingsDataUtils()
 {
     remoteObj_ = nullptr;
@@ -73,8 +68,8 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    auto uri = GenerateTargetUri(observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper();
+    auto uri = GenerateTargetUri(SETTING_URI_PROXY, observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(SETTING_URI_PROXY);
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -90,8 +85,8 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
 
 int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &observer)
 {
-    auto uri = GenerateTargetUri(observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper();
+    auto uri = GenerateTargetUri(SETTING_URI_PROXY, observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(SETTING_URI_PROXY);
     if (helper == nullptr) {
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -101,7 +96,7 @@ int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &
     return ErrorCode::NO_ERROR;
 }
 
-std::shared_ptr<DataShare::DataShareHelper> SettingsDataUtils::CreateDataShareHelper()
+std::shared_ptr<DataShare::DataShareHelper> SettingsDataUtils::CreateDataShareHelper(const std::string &uriProxy)
 {
     auto remoteObj = GetToken();
     if (remoteObj == nullptr) {
@@ -109,9 +104,9 @@ std::shared_ptr<DataShare::DataShareHelper> SettingsDataUtils::CreateDataShareHe
         return nullptr;
     }
 
-    auto helper = DataShare::DataShareHelper::Creator(remoteObj_, SETTING_URI_PROXY, SETTINGS_DATA_EXT_URI);
+    auto helper = DataShare::DataShareHelper::Creator(remoteObj_, uriProxy, SETTINGS_DATA_EXT_URI);
     if (helper == nullptr) {
-        IMSA_HILOGE("create helper failed, uri: %{public}s!", SETTING_URI_PROXY);
+        IMSA_HILOGE("create helper failed, uri: %{public}s!", uriProxy.c_str());
         return nullptr;
     }
     return helper;
@@ -130,17 +125,43 @@ bool SettingsDataUtils::ReleaseDataShareHelper(std::shared_ptr<DataShare::DataSh
     return true;
 }
 
-Uri SettingsDataUtils::GenerateTargetUri(const std::string &key)
+Uri SettingsDataUtils::GenerateTargetUri(const std::string &uriProxy, const std::string &key)
 {
-    Uri uri(std::string(SETTING_URI_PROXY) + "&key=" + key);
+    Uri uri(std::string(uriProxy) + "&key=" + key);
     return uri;
 }
 
-
-int32_t SettingsDataUtils::GetStringValue(const std::string &key, std::string &value)
+bool SettingsDataUtils::SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value)
 {
     IMSA_HILOGD("start.");
-    auto helper = CreateDataShareHelper();
+    auto helper = CreateDataShareHelper(uriProxy);
+    if (helper == nullptr) {
+        IMSA_HILOGE("helper is nullptr.");
+        return false;
+    }
+    DataShare::DataShareValueObject keyObj(key);
+    DataShare::DataShareValueObject valueObj(value);
+    DataShare::DataShareValuesBucket bucket;
+    bucket.Put(SETTING_COLUMN_KEYWORD, keyObj);
+    bucket.Put(SETTING_COLUMN_VALUE, valueObj);
+    DataShare::DataSharePredicates predicates;
+    predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
+    Uri uri(GenerateTargetUri(uriProxy, key));
+    if (helper->Update(uri, predicates, bucket) <= 0) {
+        int index = helper->Insert(uri, bucket);
+        IMSA_HILOGI("no data exists, insert ret index: %{public}d", index);
+    } else {
+        IMSA_HILOGI("data exits");
+    }
+    bool ret = ReleaseDataShareHelper(helper);
+    IMSA_HILOGI("ReleaseDataShareHelper isSuccess: %{public}d", ret);
+    return ret;
+}
+
+int32_t SettingsDataUtils::GetStringValue(const std::string &uriProxy, const std::string &key, std::string &value)
+{
+    IMSA_HILOGD("start.");
+    auto helper = CreateDataShareHelper(uriProxy);
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -148,7 +169,7 @@ int32_t SettingsDataUtils::GetStringValue(const std::string &key, std::string &v
     std::vector<std::string> columns = { SETTING_COLUMN_VALUE };
     DataShare::DataSharePredicates predicates;
     predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
-    Uri uri(GenerateTargetUri(key));
+    Uri uri(GenerateTargetUri(uriProxy, key));
     auto resultSet = helper->Query(uri, predicates, columns);
     ReleaseDataShareHelper(helper);
     if (resultSet == nullptr) {

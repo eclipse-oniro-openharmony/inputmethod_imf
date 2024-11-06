@@ -90,6 +90,10 @@ private:
     ~EnableImeDataParser();
 
     int32_t UpdateEnableData(int32_t userId, const std::string &key);
+    void CoverGlobalTable(const std::string &key, std::string &valueStr);
+    std::string GetUserEnableTable(int32_t userId, const std::string &key);
+    std::string GetEanbleIme(int32_t userId, const std::string &key, const std::string &globalStr);
+    std::string GetGlobalTableUserId(const std::string &valueStr);
     int32_t GetEnableImeFromCache(std::vector<std::string> &enableVec);
     bool ParseEnableIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool ParseEnableKeyboard(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);

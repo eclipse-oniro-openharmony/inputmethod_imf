@@ -82,8 +82,6 @@ public:
         }
         return ret;
     }
-
-private:
     static cJSON *GetSubNode(cJSON *node, const std::string &name);
 };
 } // namespace MiscServices
