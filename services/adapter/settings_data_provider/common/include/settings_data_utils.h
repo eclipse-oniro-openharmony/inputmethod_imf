@@ -35,6 +35,7 @@ constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 const std::string SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/entry/settingsdata/"
                                           "SETTINGSDATA?Proxy=true";
 const std::string SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
+const std::string SETTINGS_USER_DATA_URI = "datashare:///com.ohos.settingsdata/entry/settingsdata/USER_SETTINGSDATA_";
 struct UserImeConfig : public Serializable {
     std::string userId;
     std::vector<std::string> identities;
@@ -51,7 +52,7 @@ public:
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper(const std::string &uriProxy);
     int32_t CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func);
     int32_t GetStringValue(const std::string &uriProxy, const std::string &key, std::string &value);
-    int32_t SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value);
+    bool SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value);
     bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
     Uri GenerateTargetUri(const std::string &uriProxy, const std::string &key);
     bool EnableIme(int32_t userId, const std::string &bundleName);

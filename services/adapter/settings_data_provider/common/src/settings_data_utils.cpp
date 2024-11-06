@@ -131,7 +131,7 @@ Uri SettingsDataUtils::GenerateTargetUri(const std::string &uriProxy, const std:
     return uri;
 }
 
-int32_t SettingsDataUtils::SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value)
+bool SettingsDataUtils::SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value)
 {
     IMSA_HILOGD("start.");
     auto helper = CreateDataShareHelper(uriProxy);
@@ -234,8 +234,7 @@ bool SettingsDataUtils::EnableIme(int32_t userId, const std::string &bundleName)
         value = SetSettingValues(settingValue, bundleName);
     }
     IMSA_HILOGI("value: %{public}s", value.c_str());
-    auto ret = SetStringValue(SETTING_URI_PROXY, settingKey, value);
-    return ret;
+    return SetStringValue(SETTING_URI_PROXY, settingKey, value);
 }
  
 std::vector<std::string> SettingsDataUtils::split(const std::string &text, char delim)
