@@ -1001,6 +1001,7 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
         imeToStart->imeId.c_str());
+
     if (!StartIme(imeToStart, isStopCurrentIme)) {
         IMSA_HILOGE("failed to start ime!");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED,
