@@ -265,12 +265,9 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     }
     IMSA_HILOGI("type: %{public}d.", type);
     auto imeData = GetImeData(type);
-    auto ime = InputTypeManager::GetInstance().GetCurrentIme();
-    if (ime.bundleName == imeData->ime.first) {
-        InputTypeManager::GetInstance().Set(false);
-    }
     if (imeData != nullptr && imeData->imeStatus == ImeStatus::EXITING) {
         RemoveImeData(type, true);
+        InputTypeManager::GetInstance().Set(false);
         NotifyImeStopFinished();
         IMSA_HILOGI("%{public}d not current imeData.", type);
         return;
@@ -997,12 +994,17 @@ bool PerUserSession::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> 
 bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
 {
     std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
-    if (!CheckInputTypeToStart(imeToStart)) {
-        auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (!GetInputTypeToStart(imeToStart)) {
         imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
-        IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
-            imeToStart->imeId.c_str());
     }
+    if (imeToStart == nullptr) {
+        IMSA_HILOGE("imeToStart is nullptr!");
+        return false;
+    }
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s.", currentIme->imeId.c_str(),
+        imeToStart->imeId.c_str());
+
     if (!StartIme(imeToStart, isStopCurrentIme)) {
         IMSA_HILOGE("failed to start ime!");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED,
@@ -1737,7 +1739,7 @@ std::shared_ptr<ImeNativeCfg> PerUserSession::GetImeNativeCfg(int32_t userId, co
     return std::make_shared<ImeNativeCfg>(targetIme);
 }
 
-bool PerUserSession::CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart)
+bool PerUserSession::GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart)
 {
     if (!InputTypeManager::GetInstance().IsStarted()) {
         return false;

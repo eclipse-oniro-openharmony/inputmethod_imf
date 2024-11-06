@@ -241,7 +241,7 @@ private:
     bool StopExitingCurrentIme();
     bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
+    bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };

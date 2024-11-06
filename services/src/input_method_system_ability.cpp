@@ -874,13 +874,12 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
         IMSA_HILOGE("start input method failed!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     int32_t ret = session->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
     if (ret != ErrorCode::NO_ERROR) {
-        InputTypeManager::GetInstance().Set(false);
         IMSA_HILOGE("switch subtype failed!");
         return ret;
     }
+    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     return ErrorCode::NO_ERROR;
 }
 
