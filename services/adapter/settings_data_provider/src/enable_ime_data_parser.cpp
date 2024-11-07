@@ -267,16 +267,24 @@ int32_t EnableImeDataParser::GetEnableData(
 std::string EnableImeDataParser::GetGlobalTableUserId(const std::string &valueStr)
 {
     auto root = cJSON_Parse(valueStr.c_str());
+    if (root == nullptr) {
+        IMSA_HILOGE("valueStr content parse failed!");
+        return "";
+    }
     auto subNode = Serializable::GetSubNode(root, "enableImeList");
     if (subNode == nullptr || !cJSON_IsObject(subNode)) {
         IMSA_HILOGW("subNode is null or not object");
+        cJSON_Delete(root);
         return "";
     }
     if (subNode->child == nullptr) {
         IMSA_HILOGW("subNode has not child");
+        cJSON_Delete(root);
         return "";
     }
-    return subNode->child->string;
+    std::string userId = subNode->child->string;
+    cJSON_Delete(root);
+    return userId;
 }
 
 bool EnableImeDataParser::ParseTempIme(const std::string &valueStr, int32_t userId,
