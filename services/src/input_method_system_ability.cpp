@@ -539,7 +539,8 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
 int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
 {
     IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u.", clientInfo.eventFlag, eventFlag);
-    if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag)) {
+    if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag) ||
+        EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
         if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
             !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
             IMSA_HILOGE("not system application!");
@@ -557,6 +558,18 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnUpdateListenEventFlag(clientInfo);
+}
+
+int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInputClient> client)
+{
+    IMSA_HILOGD("IMF SA setCallingWindow enter");
+    auto callingUserId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(callingUserId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->OnSetCallingWindow(windowId, client);
 }
 
 bool InputMethodSystemAbility::IsCurrentIme()

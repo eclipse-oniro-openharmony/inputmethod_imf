@@ -61,6 +61,12 @@ int32_t InputClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
         case DEACTIVATE_CLIENT: {
             return DeactivateClientOnRemote(data, reply);
         }
+        case ON_NOTIFY_INPUT_START: {
+            return NotifyInputStartOnRemote(data, reply);
+        }
+        case ON_NOTIFY_INPUT_STOP: {
+            return NotifyInputStopOnRemote(data, reply);
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
@@ -115,6 +121,22 @@ int32_t InputClientStub::DeactivateClientOnRemote(MessageParcel &data, MessagePa
     return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputClientStub::NotifyInputStartOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    uint32_t callingWndId = 0;
+    if (!ITypesUtil::Unmarshal(data, callingWndId)) {
+        IMSA_HILOGE("read message parcel failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return reply.WriteInt32(NotifyInputStart(callingWndId)) ?
+           ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputClientStub::NotifyInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return reply.WriteInt32(NotifyInputStop()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputClientStub::OnInputReady(const sptr<IRemoteObject> &agent)
 {
     return ErrorCode::NO_ERROR;
@@ -134,6 +156,16 @@ int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProper
 int32_t InputClientStub::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     return ImeEventMonitorManagerImpl::GetInstance().OnPanelStatusChange(status, info);
+}
+
+int32_t InputClientStub::NotifyInputStart(uint32_t callingWndId)
+{
+    return ImeEventMonitorManagerImpl::GetInstance().OnInputStart(callingWndId);
+}
+
+int32_t InputClientStub::NotifyInputStop()
+{
+    return ImeEventMonitorManagerImpl::GetInstance().OnInputStop();
 }
 
 void InputClientStub::DeactivateClient()

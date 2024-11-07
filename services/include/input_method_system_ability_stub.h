@@ -109,6 +109,8 @@ private:
 
     int32_t InitConnectOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t SetCallingWindowOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static inline constexpr RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_END)] = {
         &InputMethodSystemAbilityStub::InvalidRequest,
@@ -184,6 +186,8 @@ private:
             &InputMethodSystemAbilityStub::IsDefaultImeSetOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::ENABLE_IME)] =
             &InputMethodSystemAbilityStub::EnableImeOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::SET_CALLING_WINDOW)] =
+            &InputMethodSystemAbilityStub::SetCallingWindowOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

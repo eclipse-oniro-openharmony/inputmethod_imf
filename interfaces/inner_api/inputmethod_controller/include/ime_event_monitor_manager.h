@@ -38,7 +38,8 @@ public:
     /**
      * @brief Register Ime Event Listener.
      *
-     * This function is used to Register Ime Event Listener, only IME_SHOW and IME_HIDE supported at present
+     * This function is used to Register Ime Event Listener, only IME_SHOW, IME_HIDE,
+     * INPUT_STATUS_CHANGED supported at present
      *
      * @param eventFlag Indicates the flag of the ime event to be registered
      * @param listener Indicates the the listener to be registered.
@@ -50,7 +51,8 @@ public:
     /**
      * @brief UnRegister Ime Event Listener.
      *
-     * This function is used to UnRegister Ime Event Listener, only IME_SHOW and IME_HIDE supported at present
+     * This function is used to UnRegister Ime Event Listener, only IME_SHOW and IME_HIDE,
+     * INPUT_STATUS_CHANGED supported at present
      *
      * @param types Indicates the flag of the ime event to be unRegistered
      * @param listener Indicates the the listener to be unregistered.
@@ -60,7 +62,8 @@ public:
     IMF_API int32_t UnRegisterImeEventListener(uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener);
 
 private:
-    static constexpr uint32_t ALL_EVENT_MASK = EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK;
+    static constexpr uint32_t ALL_EVENT_MASK = EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK |
+        EVENT_INPUT_STATUS_CHANGED_MASK;
     ImeEventMonitorManager();
     ~ImeEventMonitorManager();
     bool IsParamValid(uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener);

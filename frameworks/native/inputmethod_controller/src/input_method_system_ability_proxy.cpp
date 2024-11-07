@@ -185,6 +185,17 @@ bool InputMethodSystemAbilityProxy::EnableIme(const std::string &bundleName)
     return enableIme;
 }
 
+int32_t InputMethodSystemAbilityProxy::SetCallingWindow(uint32_t windowId, sptr<IInputClient> client)
+{
+    IMSA_HILOGI("proxy setCallingWindow enter");
+    if (client == nullptr) {
+        IMSA_HILOGE("nullptr client");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SET_CALLING_WINDOW),
+        [windowId, client](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId, client->AsObject()); });
+}
+
 int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
     return SendRequest(

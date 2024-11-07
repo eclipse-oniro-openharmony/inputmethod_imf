@@ -102,7 +102,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_003, TestSize.
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(15, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
+    EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 3);
     auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_HIDE_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_SHOW_MASK);
@@ -462,6 +462,52 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_019, TestSiz
     iter = it->second.find(listener1);
     EXPECT_NE(iter, it->second.end());
 }
+
+/**
+* @tc.name: testInputStatusChangedListener
+* @tc.desc: register and unregister EVENT_INPUT_STATUS_CHANGED_MASK,
+*           there is no effect on EVENT_IME_SHOW_MASK and EVENT_HIDE_SHOW_MASK
+* @tc.type: FUNC
+*/
+HWTEST_F(ImeEventMonitorManagerTest, testInputStatusChangedListener, TestSize.Level0)
+{
+    IMSA_HILOGI("testInputStatusChangedListener start.");
+    auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+    auto listener1 = std::make_shared<ImeSettingListenerTestImpl>();
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
+
+    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_INPUT_STATUS_CHANGED_MASK, listener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 14);
+
+    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_INPUT_STATUS_CHANGED_MASK, listener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_HIDE_MASK);
+    ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
+    ASSERT_EQ(it->second.size(), 1);
+    auto iter = it->second.find(listener);
+
+    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_INPUT_STATUS_CHANGED_MASK, listener1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 14);
+    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_INPUT_STATUS_CHANGED_MASK);
+    ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
+    ASSERT_EQ(it->second.size(), 1);
+    iter = it->second.find(listener1);
+    EXPECT_NE(iter, it->second.end());
+
+    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_INPUT_STATUS_CHANGED_MASK, listener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 14);
+    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_INPUT_STATUS_CHANGED_MASK);
+    ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
+    ASSERT_EQ(it->second.size(), 2);
+}
+
 /********************************* all test is for innerkit above ***************************************************/
 /**
 * @tc.name: testRegisterImeEventListener_020

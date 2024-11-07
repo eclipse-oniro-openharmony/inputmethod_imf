@@ -61,6 +61,9 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(uint32_t eventFlag,
         }
         it->second.insert(listener);
     }
+    if (isInputStart_ && EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
+        listener->OnInputStart(callingWindow_);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -119,6 +122,32 @@ int32_t ImeEventMonitorManagerImpl::OnPanelStatusChange(const InputWindowStatus 
         return OnImeShow(info);
     }
     return ErrorCode::ERROR_BAD_PARAMETERS;
+}
+
+int32_t ImeEventMonitorManagerImpl::OnInputStart(uint32_t callingWndId)
+{
+    isInputStart_ = true;
+    callingWindow_ = callingWndId;
+    auto listeners = GetListeners(EVENT_INPUT_STATUS_CHANGED_MASK);
+    for (const auto &listener : listeners) {
+        if (listener != nullptr) {
+            IMSA_HILOGD("listener start to callback, callingWndId: %{public}u", callingWndId);
+            listener->OnInputStart(callingWndId);
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ImeEventMonitorManagerImpl::OnInputStop()
+{
+    isInputStart_ = false;
+    auto listeners = GetListeners(EVENT_INPUT_STATUS_CHANGED_MASK);
+    for (const auto &listener : listeners) {
+        if (listener != nullptr) {
+            listener->OnInputStop();
+        }
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t ImeEventMonitorManagerImpl::OnImeShow(const ImeWindowInfo &info)
