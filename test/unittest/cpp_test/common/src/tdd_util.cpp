@@ -324,7 +324,8 @@ void TddUtil::PushEnableImeValue(const std::string &key, const std::string &valu
 
 int32_t TddUtil::GetEnableData(std::string &value)
 {
-    auto ret = SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, EnableImeDataParser::ENABLE_IME, value);
+    auto ret =
+        SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, EnableImeDataParser::ENABLE_IME, value);
     if (ret == ErrorCode::NO_ERROR) {
         IMSA_HILOGI("success, value: %{public}s", value.c_str());
     }
