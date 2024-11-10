@@ -34,6 +34,7 @@
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
+#include "ime_event_monitor_manager_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -556,6 +557,8 @@ int32_t InputMethodController::HideInput(sptr<IInputClient> &client)
 void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 {
     IMSA_HILOGI("input method service death.");
+    // imf sa died, current client callback inputStop
+    ImeEventMonitorManagerImpl::GetInstance().OnInputStop();
     auto textListener = GetTextListener();
     if (textListener != nullptr && textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGD("finish text preview.");
@@ -900,6 +903,10 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
     }
     IMSA_HILOGI("windowId: %{public}d.", windowId);
     agent->SetCallingWindow(windowId);
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy != nullptr) {
+        proxy->SetCallingWindow(windowId, clientInfo_.client);
+    }
     return ErrorCode::NO_ERROR;
 }
 

@@ -57,6 +57,8 @@ enum class InputMethodInterfaceCode {
     INIT_CONNECT,
     IS_DEFAULT_IME_SET,
     ENABLE_IME,
+    SET_CALLING_WINDOW,
+
     IMS_CMD_END,
 };
 } // namespace MiscServices

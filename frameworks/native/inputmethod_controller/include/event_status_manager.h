@@ -34,6 +34,10 @@ public:
     {
         return (eventFlag & EVENT_IME_HIDE_MASK) == EVENT_IME_HIDE_MASK;
     }
+    inline static bool IsInputStatusChangedOn(uint32_t eventFlag)
+    {
+        return (eventFlag & EVENT_INPUT_STATUS_CHANGED_MASK) == EVENT_INPUT_STATUS_CHANGED_MASK;
+    }
 };
 } // namespace MiscServices
 } // namespace OHOS

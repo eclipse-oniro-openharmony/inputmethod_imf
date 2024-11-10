@@ -81,6 +81,8 @@ public:
     int32_t ShowCurrentInputDeprecated() override;
     bool IsDefaultImeSet() override;
     bool EnableIme(const std::string &bundleName) override;
+    // make app client know calling IMF window
+    int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) override;
 
 private:
     static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
