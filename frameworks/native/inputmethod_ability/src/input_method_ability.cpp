@@ -1074,7 +1074,9 @@ int32_t InputMethodAbility::ExitCurrentInputType()
 void InputMethodAbility::ClearInputType()
 {
     std::lock_guard<std::mutex> lock(inputTypeLock_);
-    inputType_ = InputType::NONE;
+    if (inputType_ != InputType::SECURITY_INPUT) {
+        inputType_ = InputType::NONE;
+    }
 }
 
 int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
