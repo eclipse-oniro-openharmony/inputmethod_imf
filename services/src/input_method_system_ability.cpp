@@ -305,6 +305,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
             return ret;
         }
     }
+    inputClientInfo.config.inputAttribute.bundleName = identityChecker_->GetBundleNameByToken(tokenId);
     int32_t ret = PrepareInput(userId, inputClientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to PrepareInput!");
