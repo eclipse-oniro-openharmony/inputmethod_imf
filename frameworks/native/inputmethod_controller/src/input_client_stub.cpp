@@ -142,7 +142,7 @@ int32_t InputClientStub::OnInputReady(const sptr<IRemoteObject> &agent)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputClientStub::OnInputStop(bool isStopInactiveClient)
+int32_t InputClientStub::OnInputStop(bool isStopInactiveClient, bool isAsync)
 {
     InputMethodController::GetInstance()->OnInputStop(isStopInactiveClient);
     return ErrorCode::NO_ERROR;

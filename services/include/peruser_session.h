@@ -109,7 +109,7 @@ public:
     int32_t OnShowInput(sptr<IInputClient> client);
     int32_t OnHideInput(sptr<IInputClient> client);
     int32_t OnRequestShowInput();
-    int32_t OnRequestHideInput();
+    int32_t OnRequestHideInput(int32_t callingPid);
     void OnSecurityChange(int32_t security);
     void OnHideSoftKeyBoardSelf();
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
@@ -184,8 +184,8 @@ private:
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
-    int32_t RemoveClient(
-        const sptr<IInputClient> &client, bool isUnbindFromClient = false, bool isInactiveClient = false);
+    int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false,
+        bool isInactiveClient = false, bool isNotifyClientAsync = false);
     void DeactivateClient(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
@@ -204,8 +204,9 @@ private:
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
         bool isBindFromClient = false);
     void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
-        bool isUnbindFromClient = false);
-    void StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient = false);
+        bool isUnbindFromClient = false, bool isNotifyClientAsync = false);
+    void StopClientInput(
+        const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient = false, bool isAsync = false);
     void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);

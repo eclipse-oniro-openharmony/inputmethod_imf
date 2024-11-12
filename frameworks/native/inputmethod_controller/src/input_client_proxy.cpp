@@ -32,10 +32,13 @@ int32_t InputClientProxy::OnInputReady(const sptr<IRemoteObject> &agent)
     return SendRequest(ON_INPUT_READY, [agent](MessageParcel &data) { return ITypesUtil::Marshal(data, agent); });
 }
 
-int32_t InputClientProxy::OnInputStop(bool isStopInactiveClient)
+int32_t InputClientProxy::OnInputStop(bool isStopInactiveClient, bool isAsync)
 {
-    return SendRequest(ON_INPUT_STOP,
-        [isStopInactiveClient](MessageParcel &data) { return ITypesUtil::Marshal(data, isStopInactiveClient); });
+    MessageOption option = isAsync ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC;
+    return SendRequest(
+        ON_INPUT_STOP,
+        [isStopInactiveClient](MessageParcel &data) { return ITypesUtil::Marshal(data, isStopInactiveClient); },
+        nullptr, option);
 }
 
 int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubProperty &subProperty)
