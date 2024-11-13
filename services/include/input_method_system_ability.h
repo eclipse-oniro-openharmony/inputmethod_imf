@@ -137,6 +137,7 @@ private:
     void HandleMemStarted();
     void HandleOsAccountStarted();
     void HandleFocusChanged(bool isFocused, int32_t pid, int32_t uid);
+    void HandleImeCfgCapsState();
     void StopImeInBackground();
     int32_t InitAccountMonitor();
     int32_t RegisterDataShareObserver();
@@ -148,6 +149,7 @@ private:
     bool stop_ = false;
     void InitMonitors();
     int32_t InitKeyEventMonitor();
+    bool InitMmiMonitor();
     bool InitWmsMonitor();
     void InitSystemLanguageMonitor();
     bool InitMemMgrMonitor();
@@ -169,12 +171,15 @@ private:
     int32_t StartInputType(int32_t userId, InputType type);
     // if switch input type need to switch ime, then no need to hide panel first.
     void NeedHideWhenSwitchInputType(int32_t userId, bool &needHide);
+    bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
+    bool CheckImeCfgCapsCorrect();
+    void HandleBundleScanFinished();
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     std::atomic<bool> enableImeOn_ = false;
     std::atomic<bool> enableSecurityMode_ = false;
-
+    std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
