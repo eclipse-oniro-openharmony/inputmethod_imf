@@ -55,6 +55,7 @@ public:
     void ReportImeState(ImeState state, pid_t pid, const std::string &bundleName);
     bool StartTimerForReport();
     void SetUserId(int32_t userId);
+    void ReportSystemShortCut(const std::string &shortcutName);
 
 private:
     InputMethodSysEvent() = default;

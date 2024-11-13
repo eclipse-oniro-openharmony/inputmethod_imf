@@ -21,6 +21,7 @@
 #include "global.h"
 #include "input_event_callback.h"
 #include "key_event.h"
+#include "inputmethod_sysevent.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -50,6 +51,7 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     IMSA_HILOGD("add monitor success, id: %{public}d.", monitorId);
 
     CombinationKeyCallBack combinationKeyCallBack = [callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
+        InputMethodSysEvent::GetInstance().ReportSystemShortCut("usual.event.WIN_SPACE");
         if (callback == nullptr) {
             IMSA_HILOGE("callback is nullptr!");
             return;
@@ -58,6 +60,20 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     };
     SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_META_LEFT, MMI::KeyEvent::KEYCODE_SPACE, combinationKeyCallBack);
     SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_META_RIGHT, MMI::KeyEvent::KEYCODE_SPACE, combinationKeyCallBack);
+
+    CombinationKeyCallBack ctrlShiftCallBack = [callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
+        InputMethodSysEvent::GetInstance().ReportSystemShortCut("usual.event.CTRL_SHIFT");
+        if (callback == nullptr) {
+            IMSA_HILOGE("callback is nullptr!");
+            return;
+        }
+        callback->TriggerSwitch();
+    };
+
+    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT, ctrlShiftCallBack);
+    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, ctrlShiftCallBack);
+    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT, ctrlShiftCallBack);
+    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, ctrlShiftCallBack);
     return ErrorCode::NO_ERROR;
 }
 
