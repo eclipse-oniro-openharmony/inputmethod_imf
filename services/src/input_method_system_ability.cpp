@@ -1367,8 +1367,6 @@ void InputMethodSystemAbility::InitMonitors()
     IMSA_HILOGI("init KeyEvent monitor, ret: %{public}d.", ret);
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
-    ret = InitMmiMonitor();
-    IMSA_HILOGI("init MMI monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
     if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         IMSA_HILOGW("Enter enable mode.");
@@ -1403,8 +1401,15 @@ int32_t InputMethodSystemAbility::InitAccountMonitor()
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor start.");
-    bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
-        [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
+    auto handler = [this](){
+        auto switchTrigger = [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode);};
+        int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(switchTrigger);
+        IMSA_HILOGI("SubscribeKeyboardEvent add monitor: %{public}s.",
+            ret == ErrorCode::NO_ERROR ? "success" : "failed");
+        // Check device capslock status and ime cfg corrent, when device power-up.
+        HandleImeCfgCapsState();
+    };
+    bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(handler);
     return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
 }
 
@@ -1860,7 +1865,7 @@ void InputMethodSystemAbility::HandleBundleScanFinished()
     HandleImeCfgCapsState();
 }
 
-bool InputMethodSystemAbility::CheckImeCfgCapsCorrect()
+bool InputMethodSystemAbility::ModifyImeCfgWithWrongCaps()
 {
     bool isCapsEnable = false;
     if (!GetDeviceFunctionKeyState(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, isCapsEnable)) {
@@ -1922,15 +1927,9 @@ void InputMethodSystemAbility::HandleImeCfgCapsState()
         IMSA_HILOGE("MMI service is not ready.");
         return;
     }
-    if (!CheckImeCfgCapsCorrect()) {
+    if (!ModifyImeCfgWithWrongCaps()) {
         IMSA_HILOGE("Check ImeCfg capslock state correct failed!");
     }
-}
-
-bool InputMethodSystemAbility::InitMmiMonitor()
-{
-    IMSA_HILOGI("InputMethodSystemAbility::InitMmiMonitor start.");
-    return ImCommonEventManager::GetInstance()->SubscribeMMIService([this]() { HandleImeCfgCapsState(); });
 }
 } // namespace MiscServices
 } // namespace OHOS

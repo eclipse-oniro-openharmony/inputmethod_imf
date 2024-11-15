@@ -149,7 +149,6 @@ private:
     bool stop_ = false;
     void InitMonitors();
     int32_t InitKeyEventMonitor();
-    bool InitMmiMonitor();
     bool InitWmsMonitor();
     void InitSystemLanguageMonitor();
     bool InitMemMgrMonitor();
@@ -172,7 +171,7 @@ private:
     // if switch input type need to switch ime, then no need to hide panel first.
     void NeedHideWhenSwitchInputType(int32_t userId, bool &needHide);
     bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
-    bool CheckImeCfgCapsCorrect();
+    bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
 
     std::mutex checkMutex_;

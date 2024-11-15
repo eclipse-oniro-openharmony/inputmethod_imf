@@ -93,7 +93,7 @@ bool ImCommonEventManager::SubscribeEvent()
     return true;
 }
 
-bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
+bool ImCommonEventManager::SubscribeKeyboardEvent(const Handler &handler)
 {
     IMSA_HILOGI("ImCommonEventManager::SubscribeKeyboardEvent start.");
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -101,10 +101,10 @@ bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
         IMSA_HILOGE("SubscribeKeyboardEvent abilityManager is nullptr!");
         return false;
     }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handle]() {
-        int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
-        IMSA_HILOGI("SubscribeKeyboardEvent add monitor: %{public}s.",
-            ret == ErrorCode::NO_ERROR ? "success" : "failed");
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
+        if (handler != nullptr) {
+            handler();
+        }
     });
     if (listener == nullptr) {
         IMSA_HILOGE("listener is nullptr!");
@@ -184,30 +184,6 @@ bool ImCommonEventManager::SubscribeAccountManagerService(Handler handler)
         return false;
     }
     int32_t ret = abilityManager->SubscribeSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, listener);
-    if (ret != ERR_OK) {
-        IMSA_HILOGE("subscribe system ability failed, ret: %{public}d", ret);
-        return false;
-    }
-    return true;
-}
-
-bool ImCommonEventManager::SubscribeMMIService(const Handler &handler)
-{
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("abilityManager is nullptr!");
-        return false;
-    }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
-        if (handler != nullptr) {
-            handler();
-        }
-    });
-    if (listener == nullptr) {
-        IMSA_HILOGE("failed to create listener!");
-        return false;
-    }
-    int32_t ret = abilityManager->SubscribeSystemAbility(MULTIMODAL_INPUT_SERVICE_ID, listener);
     if (ret != ERR_OK) {
         IMSA_HILOGE("subscribe system ability failed, ret: %{public}d", ret);
         return false;
