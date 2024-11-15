@@ -61,8 +61,14 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(uint32_t eventFlag,
         }
         it->second.insert(listener);
     }
-    if (isInputStart_ && EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
-        listener->OnInputStart(callingWindow_);
+    // Register inputStart callback when imf bound, need inputStart callback when register finish
+    if (EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
+        bool isInputStart = false;
+        uint32_t callingWindowId = 0;
+        auto ret = InputMethodController::GetInstance()->GetInputStartInfo(isInputStart, callingWindowId);
+        if (ret == ErrorCode::NO_ERROR && isInputStart && listener != nullptr) {
+            listener->OnInputStart(callingWindowId);
+        }
     }
     return ErrorCode::NO_ERROR;
 }

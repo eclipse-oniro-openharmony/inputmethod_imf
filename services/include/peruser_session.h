@@ -148,6 +148,7 @@ public:
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
     int32_t OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client);
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId);
 
 private:
     struct ResetManager {
