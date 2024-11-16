@@ -1665,8 +1665,10 @@ bool PerUserSession::HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &
         IMSA_HILOGW("ready when timeout");
         return true;
     }
-    ForceStopCurrentIme(false);
-    return false;
+    if (!ForceStopCurrentIme(false)) {
+        return false;
+    }
+    return StartInputService(ime);
 }
 
 bool PerUserSession::StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime)
@@ -1727,6 +1729,11 @@ bool PerUserSession::StopReadyCurrentIme()
 
 bool PerUserSession::StopExitingCurrentIme()
 {
+    return ForceStopCurrentIme();
+}
+
+bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
+{
     auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
         return true;
@@ -1736,20 +1743,12 @@ bool PerUserSession::StopExitingCurrentIme()
         RemoveImeData(ImeType::IME, true);
         return true;
     }
-    return ForceStopCurrentIme();
-}
-
-bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
-{
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
         StopClientInput(clientInfo);
     }
-    auto imeData = GetImeData(ImeType::IME);
-    if (imeData == nullptr) {
-        return true;
-    }
+
     AAFwk::Want want;
     want.SetElementName(imeData->ime.first, imeData->ime.second);
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
@@ -1760,7 +1759,7 @@ bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
         return false;
     }
     if (!isNeedWait) {
-        return true;
+        return false;
     }
     WaitForCurrentImeStop();
     if (ImeInfoInquirer::GetInstance().IsRunningIme(userId_, imeData->ime.first)) {
