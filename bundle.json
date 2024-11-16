@@ -19,7 +19,8 @@
           "imf_screenlock_mgr_enable"
       ], 
       "hisysevent_config": [
-          "//base/inputmethod/imf/hisysevent.yaml"
+          "//base/inputmethod/imf/hisysevent.yaml",
+          "//base/inputmethod/imf/hisysevent_ue.yaml"
       ], 
       "adapted_system_type": [
           "standard"

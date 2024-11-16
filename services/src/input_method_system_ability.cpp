@@ -1004,6 +1004,10 @@ void InputMethodSystemAbility::WorkThread()
                 HandleBundleScanFinished();
                 break;
             }
+            case MSG_ID_DATA_SHARE_READY: {
+                HandleDataShareReady();
+                break;
+            }
             case MSG_ID_PACKAGE_ADDED:
             case MSG_ID_PACKAGE_CHANGED:
             case MSG_ID_PACKAGE_REMOVED: {
@@ -1368,28 +1372,23 @@ void InputMethodSystemAbility::InitMonitors()
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
+}
+
+void InputMethodSystemAbility::HandleDataShareReady()
+{
     if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         IMSA_HILOGW("Enter enable mode.");
+        RegisterEnableImeObserver();
         EnableImeDataParser::GetInstance()->Initialize(userId_);
         enableImeOn_.store(true);
     }
     if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         IMSA_HILOGW("Enter security mode.");
+        RegisterSecurityModeObserver();
+        SecurityModeParser::GetInstance()->Initialize(userId_);
         enableSecurityMode_.store(true);
     }
-    RegisterDataShareObserver();
-}
-
-int32_t InputMethodSystemAbility::RegisterDataShareObserver()
-{
-    IMSA_HILOGD("start.");
-    if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
-        RegisterEnableImeObserver();
-    }
-    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
-        RegisterSecurityModeObserver();
-    }
-    return ErrorCode::NO_ERROR;
+    FullImeInfoManager::GetInstance().Init();
 }
 
 int32_t InputMethodSystemAbility::InitAccountMonitor()
