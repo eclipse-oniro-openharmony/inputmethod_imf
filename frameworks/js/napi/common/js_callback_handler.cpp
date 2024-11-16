@@ -15,6 +15,8 @@
 
 #include "js_callback_handler.h"
 
+#include "global.h"
+
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t MAX_ARGV_COUNT = 10;
@@ -22,6 +24,7 @@ void JsCallbackHandler::Execute(const std::shared_ptr<JSCallbackObject> &object,
     napi_value &output)
 {
     if (object->threadId_ != std::this_thread::get_id()) {
+        IMSA_HILOGW("threadId not same!");
         return;
     }
     napi_value argv[MAX_ARGV_COUNT] = { nullptr };
@@ -31,13 +34,15 @@ void JsCallbackHandler::Execute(const std::shared_ptr<JSCallbackObject> &object,
     napi_value callback = nullptr;
     napi_value global = nullptr;
     napi_get_reference_value(object->env_, object->callback_, &callback);
-    if (callback != nullptr) {
-        napi_get_global(object->env_, &global);
-        InputMethodSyncTrace tracer("Execute napi_call_function");
-        auto status = napi_call_function(object->env_, global, callback, argContainer.argc, argv, &output);
-        if (status != napi_ok) {
-            output = nullptr;
-        }
+    if (callback == nullptr) {
+        IMSA_HILOGE("callback is nullptr!");
+        return;
+    }
+    napi_get_global(object->env_, &global);
+    InputMethodSyncTrace tracer("Execute napi_call_function");
+    auto status = napi_call_function(object->env_, global, callback, argContainer.argc, argv, &output);
+    if (status != napi_ok) {
+        output = nullptr;
     }
 }
 } // namespace MiscServices
