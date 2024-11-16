@@ -1892,7 +1892,7 @@ bool InputMethodSystemAbility::ModifyImeCfgWithWrongCaps()
     }
     std::string correctImeName = info->prop.name + "/" + info->prop.id;
     ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, correctImeName, correctIme->id, false });
-    IMSA_HILOGD("adjust imeCfg caps success! current imeName: %{public}s, subName: %{public}s",
+    IMSA_HILOGD("Adjust imeCfg caps success! current imeName: %{public}s, subName: %{public}s",
         correctImeName.c_str(), correctIme->id.c_str());
     return true;
 }
@@ -1917,7 +1917,7 @@ void InputMethodSystemAbility::HandleImeCfgCapsState()
     }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
     if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        IMSA_HILOGE("UserId: %{public}d session is nullptr!", userId_);
         return;
     }
     if (!session->IsSaReady(MULTIMODAL_INPUT_SERVICE_ID)) {
