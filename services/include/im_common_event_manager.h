@@ -40,7 +40,7 @@ public:
     ~ImCommonEventManager();
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent();
-    bool SubscribeKeyboardEvent(KeyHandle handle);
+    bool SubscribeKeyboardEvent(const Handler &handler);
     bool SubscribeWindowManagerService(const Handler &handler);
     bool SubscribeMemMgrService(const Handler &handler);
     bool SubscribeAccountManagerService(Handler handle);

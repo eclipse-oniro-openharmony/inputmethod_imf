@@ -148,6 +148,7 @@ public:
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
     int32_t OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client);
+    bool IsSaReady(int32_t saId);
 
 private:
     struct ResetManager {
@@ -232,7 +233,6 @@ private:
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
-    bool IsReady(int32_t saId);
     AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime);

@@ -1455,10 +1455,10 @@ bool PerUserSession::IsWmsReady()
         IMSA_HILOGD("scb enable");
         return WmsConnectionObserver::IsWmsConnected(userId_);
     }
-    return IsReady(WINDOW_MANAGER_SERVICE_ID);
+    return IsSaReady(WINDOW_MANAGER_SERVICE_ID);
 }
 
-bool PerUserSession::IsReady(int32_t saId)
+bool PerUserSession::IsSaReady(int32_t saId)
 {
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (saMgr == nullptr) {
@@ -1492,7 +1492,7 @@ void PerUserSession::AddRestartIme()
 bool PerUserSession::RestartIme()
 {
     auto task = [this]() {
-        if (IsReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()) {
+        if (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()) {
             auto ret = StartCurrentIme(true);
             if (!ret) {
                 IMSA_HILOGE("start ime failed!");
