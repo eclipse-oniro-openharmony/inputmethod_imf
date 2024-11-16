@@ -1859,8 +1859,6 @@ void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, bool 
 void InputMethodSystemAbility::HandleBundleScanFinished()
 {
     isBundleScanFinished_.store(true);
-    RegisterDataShareObserver();
-    FullImeInfoManager::GetInstance().Init();
     HandleImeCfgCapsState();
 }
 
