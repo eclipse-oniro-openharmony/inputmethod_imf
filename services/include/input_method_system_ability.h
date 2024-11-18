@@ -133,11 +133,11 @@ private:
     void HandleUserSwitched(int32_t userId);
     void HandleWmsStarted();
     void HandleMemStarted();
+    void HandleDataShareReady();
     void HandleOsAccountStarted();
     void HandleFocusChanged(bool isFocused, int32_t pid, int32_t uid);
     void StopImeInBackground();
     int32_t InitAccountMonitor();
-    int32_t RegisterDataShareObserver();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
