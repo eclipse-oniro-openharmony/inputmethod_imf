@@ -435,7 +435,8 @@ int32_t InputMethodSystemAbility::RequestShowInput()
 int32_t InputMethodSystemAbility::RequestHideInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) &&
+    auto pid = IPCSkeleton::GetCallingPid();
+    if (!identityChecker_->IsFocused(pid, tokenId) &&
         !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
@@ -445,7 +446,7 @@ int32_t InputMethodSystemAbility::RequestHideInput()
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnRequestHideInput();
+    return session->OnRequestHideInput(pid);
 }
 
 int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)

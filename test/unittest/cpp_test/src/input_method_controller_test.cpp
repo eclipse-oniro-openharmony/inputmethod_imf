@@ -1167,7 +1167,7 @@ HWTEST_F(InputMethodControllerTest, testIMCRequestHideInput, TestSize.Level0)
     imeListener_->keyboardState_ = true;
     int32_t ret = InputMethodControllerTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(WaitKeyboardStatus(true));
+    EXPECT_TRUE(WaitKeyboardStatus(false));
 }
 
 /**

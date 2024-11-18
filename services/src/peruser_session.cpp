@@ -403,7 +403,7 @@ int32_t PerUserSession::OnRequestShowInput()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::OnRequestHideInput()
+int32_t PerUserSession::OnRequestHideInput(int32_t callingPid)
 {
     IMSA_HILOGD("PerUserSession::OnRequestHideInput start.");
     auto data = GetReadyImeData(ImeType::IME);
@@ -418,8 +418,9 @@ int32_t PerUserSession::OnRequestHideInput()
         return ErrorCode::ERROR_KBD_HIDE_FAILED;
     }
     auto currentClient = GetCurrentClient();
-    if (currentClient != nullptr) {
-        UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, false } });
+    auto currentClientInfo = currentClient != nullptr ? GetClientInfo(currentClient->AsObject()) : nullptr;
+    if (currentClientInfo != nullptr) {
+        RemoveClient(currentClient, false, false, currentClientInfo->pid != callingPid);
     }
     auto inactiveClient = GetInactiveClient();
     if (inactiveClient != nullptr) {
@@ -490,7 +491,8 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient, bool isInactiveClient)
+int32_t PerUserSession::RemoveClient(
+    const sptr<IInputClient> &client, bool isUnbindFromClient, bool isInactiveClient, bool isNotifyClientAsync)
 {
     if (client == nullptr) {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -498,10 +500,10 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUn
     // if client is current client, unbind firstly
     auto clientInfo = GetClientInfo(client->AsObject());
     if (IsSameClient(client, GetCurrentClient())) {
-        UnBindClientWithIme(clientInfo, isUnbindFromClient);
+        UnBindClientWithIme(clientInfo, isUnbindFromClient, isNotifyClientAsync);
         SetCurrentClient(nullptr);
         RestoreCurrentImeSubType();
-        StopClientInput(clientInfo);
+        StopClientInput(clientInfo, false, isNotifyClientAsync);
     }
     if (IsSameClient(client, GetInactiveClient())) {
         SetInactiveClient(nullptr);
@@ -626,25 +628,26 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
     return ErrorCode::NO_ERROR;
 }
 
-void PerUserSession::UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
-    bool isUnbindFromClient)
+void PerUserSession::UnBindClientWithIme(
+    const std::shared_ptr<InputClientInfo> &currentClientInfo, bool isUnbindFromClient, bool isNotifyClientAsync)
 {
     if (currentClientInfo == nullptr) {
         return;
     }
     if (!isUnbindFromClient) {
         IMSA_HILOGD("unbind from service.");
-        StopClientInput(currentClientInfo);
+        StopClientInput(currentClientInfo, isNotifyClientAsync);
     }
     StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel);
 }
 
-void PerUserSession::StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient)
+void PerUserSession::StopClientInput(
+    const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient, bool isAsync)
 {
     if (clientInfo == nullptr || clientInfo->client == nullptr) {
         return;
     }
-    auto ret = clientInfo->client->OnInputStop(isStopInactiveClient);
+    auto ret = clientInfo->client->OnInputStop(isStopInactiveClient, isAsync);
     IMSA_HILOGI("isStopInactiveClient: %{public}d, client pid: %{public}d, ret: %{public}d.", isStopInactiveClient,
         clientInfo->pid, ret);
 }
