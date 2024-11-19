@@ -64,10 +64,10 @@ void ImeEventMonitorManagerTest::TearDown()
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_001
-* @tc.desc: eventType is 0
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_001
+ * @tc.desc: eventType is 0
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_001, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_001 start.");
@@ -78,10 +78,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_001, TestSize.
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_002
-* @tc.desc: eventFlag is 0
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_002
+ * @tc.desc: eventFlag is 0
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_002, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_002 start.");
@@ -92,10 +92,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_002, TestSiz
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_003
-* @tc.desc: eventFlag is 15
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_003
+ * @tc.desc: eventFlag is 15
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_003, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_003 start.");
@@ -110,10 +110,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_003, TestSize.
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_004
-* @tc.desc: eventFlag is 5
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_004
+ * @tc.desc: eventFlag is 5
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_004, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_004 start.");
@@ -127,10 +127,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_004, TestSize.
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_005
-* @tc.desc: listener is nullptr
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_005
+ * @tc.desc: listener is nullptr
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_005, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_005 start.");
@@ -140,10 +140,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_005, TestSize.
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_006
-* @tc.desc: listener is nullptr
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_006
+ * @tc.desc: listener is nullptr
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_006, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_006 start.");
@@ -153,10 +153,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_006, TestSiz
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_007
-* @tc.desc: UpdateListenEventFlag filed
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_007
+ * @tc.desc: UpdateListenEventFlag filed
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_007, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_007 start.");
@@ -168,10 +168,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_007, TestSize.
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_008
-* @tc.desc: one listener register one event, unregister with UpdateListenEventFlag filed
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_008
+ * @tc.desc: one listener register one event, unregister with UpdateListenEventFlag filed
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_008, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_008 start.");
@@ -188,10 +188,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_008, TestSiz
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_009
-* @tc.desc: one listener register one event
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_009
+ * @tc.desc: one listener register one event
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_009, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_009 start.");
@@ -208,10 +208,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_009, TestSize.
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_010
-* @tc.desc: one listener register EVENT_IME_HIDE_MASK|EVENT_IME_SHOW_MASK
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_010
+ * @tc.desc: one listener register EVENT_IME_HIDE_MASK|EVENT_IME_SHOW_MASK
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_010, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_010 start.");
@@ -235,10 +235,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_010, TestSize.
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_011
-* @tc.desc: one listener register EVENT_IME_SHOW_MASK|EVENT_IME_HIDE_MASK|EVENT_IME_CHANGE_MASK
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_011
+ * @tc.desc: one listener register EVENT_IME_SHOW_MASK|EVENT_IME_HIDE_MASK|EVENT_IME_CHANGE_MASK
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_011, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_011 start.");
@@ -253,10 +253,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_011, TestSize.
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_012
-* @tc.desc: two listener register same event
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_012
+ * @tc.desc: two listener register same event
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_012, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_012 start.");
@@ -287,10 +287,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_012, TestSize.
 }
 
 /**
-* @tc.name: testRegisterImeEventListener_013
-* @tc.desc: two listener register not same event
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_013
+ * @tc.desc: two listener register not same event
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_013, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_013 start.");
@@ -319,10 +319,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_013, TestSize.
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_014
-* @tc.desc: one listener register one event, unregister
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_014
+ * @tc.desc: one listener register one event, unregister
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_014, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_014 start.");
@@ -338,10 +338,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_014, TestSiz
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_015
-* @tc.desc: one listener register all events, unregister one events
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_015
+ * @tc.desc: one listener register all events, unregister one events
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_015, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_015 start.");
@@ -358,10 +358,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_015, TestSiz
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_016
-* @tc.desc: one listener register all events, unregister all events
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_016
+ * @tc.desc: one listener register all events, unregister all events
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_016, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_016 start.");
@@ -379,10 +379,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_016, TestSiz
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_017
-* @tc.desc: two listener register same event, unregister one listener
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_017
+ * @tc.desc: two listener register same event, unregister one listener
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_017, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_017 start.");
@@ -406,10 +406,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_017, TestSiz
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_018
-* @tc.desc: two listener register same event, unregister one listener with error event
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_018
+ * @tc.desc: two listener register same event, unregister one listener with error event
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_018, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_018 start.");
@@ -434,10 +434,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_018, TestSiz
     EXPECT_NE(iter, it->second.end());
 }
 /**
-* @tc.name: testUnRegisterImeEventListener_019
-* @tc.desc: two listener register same event, unregister one listener with error listener
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_019
+ * @tc.desc: two listener register same event, unregister one listener with error listener
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_019, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_019 start.");
@@ -464,11 +464,11 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_019, TestSiz
 }
 
 /**
-* @tc.name: testInputStatusChangedListener
-* @tc.desc: register and unregister EVENT_INPUT_STATUS_CHANGED_MASK,
-*           there is no effect on EVENT_IME_SHOW_MASK and EVENT_HIDE_SHOW_MASK
-* @tc.type: FUNC
-*/
+ * @tc.name: testInputStatusChangedListener
+ * @tc.desc: register and unregister EVENT_INPUT_STATUS_CHANGED_MASK,
+ *           there is no effect on EVENT_IME_SHOW_MASK and EVENT_HIDE_SHOW_MASK
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testInputStatusChangedListener, TestSize.Level0)
 {
     IMSA_HILOGI("testInputStatusChangedListener start.");
@@ -510,10 +510,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testInputStatusChangedListener, TestSize.Le
 
 /********************************* all test is for innerkit above ***************************************************/
 /**
-* @tc.name: testRegisterImeEventListener_020
-* @tc.desc: two listener, one is innerkit(register all event), one is js(register one event)
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterImeEventListener_020
+ * @tc.desc: two listener, one is innerkit(register all event), one is js(register one event)
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_020, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_020 start.");
@@ -529,10 +529,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_020, TestSize.
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_021
-* @tc.desc: two listener, one is innerkit(register all event), one is js(register all event), js unregister IME_CHANGE
-* @tc.type: FUNC
-*/
+ * @tc.name: testUnRegisterImeEventListener_021
+ * @tc.desc: two listener, one is innerkit(register all event), one is js(register all event), js unregister IME_CHANGE
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_021, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_021 start.");

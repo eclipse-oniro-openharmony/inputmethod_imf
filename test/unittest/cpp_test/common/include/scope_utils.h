@@ -44,7 +44,7 @@ public:
     }
 
 private:
-    uint64_t originalTokenId_{ 0 };
+    uint64_t originalTokenId_ { 0 };
 };
 
 class TokenScope {
@@ -62,7 +62,7 @@ public:
     }
 
 private:
-    uint64_t originalTokenId_{ 0 };
+    uint64_t originalTokenId_ { 0 };
 };
 
 class UidScope {

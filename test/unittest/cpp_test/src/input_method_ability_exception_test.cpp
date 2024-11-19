@@ -39,12 +39,8 @@ public:
     {
         IMSA_HILOGI("InputMethodAbilityExceptionTest::TearDownTestCase");
     }
-    void SetUp()
-    {
-    }
-    void TearDown()
-    {
-    }
+    void SetUp() { }
+    void TearDown() { }
     static void ResetMemberVar()
     {
         inputMethodAbility_->dataChannelProxy_ = nullptr;
@@ -133,7 +129,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.L
     end = 2;
     ret = inputMethodAbility_->SelectByRange(start, end);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
-    //end < 0, start > 0
+    // end < 0, start > 0
     start = 1;
     end = -2;
     ret = inputMethodAbility_->SelectByRange(start, end);

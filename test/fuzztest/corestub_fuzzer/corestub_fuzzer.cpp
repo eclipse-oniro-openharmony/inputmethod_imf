@@ -35,6 +35,7 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
     uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
     return bigVar;
 }
+
 bool FuzzCoreStub(const uint8_t *rawData, size_t size)
 {
     uint32_t code = ConvertToUint32(rawData);

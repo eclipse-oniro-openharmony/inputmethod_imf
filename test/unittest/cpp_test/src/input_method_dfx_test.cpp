@@ -61,12 +61,8 @@ constexpr const char *IME_STATE_CHANGED_EVENT_NAME = "IME_STATE_CHANGED";
 
 class Watcher : public HiSysEventListener {
 public:
-    explicit Watcher(const std::string &operateInfo) : operateInfo_(operateInfo)
-    {
-    }
-    virtual ~Watcher()
-    {
-    }
+    explicit Watcher(const std::string &operateInfo) : operateInfo_(operateInfo) { }
+    virtual ~Watcher() { }
     void OnEvent(std::shared_ptr<HiSysEventRecord> sysEvent) final
     {
         if (sysEvent == nullptr) {
@@ -100,9 +96,7 @@ public:
         : state_(state), pid_(pid), bundleName_(bundleName)
     {
     }
-    virtual ~WatcherImeChange()
-    {
-    }
+    virtual ~WatcherImeChange() { }
     void OnEvent(std::shared_ptr<HiSysEventRecord> sysEvent) final
     {
         if (sysEvent == nullptr) {
@@ -253,12 +247,12 @@ void InputMethodDfxTest::TearDown(void)
 }
 
 /**
-* @tc.name: InputMethodDfxTest_DumpAllMethod_001
-* @tc.desc: DumpAllMethod
-* @tc.type: FUNC
-* @tc.require: issueI61PMG
-* @tc.author: chenyu
-*/
+ * @tc.name: InputMethodDfxTest_DumpAllMethod_001
+ * @tc.desc: DumpAllMethod
+ * @tc.type: FUNC
+ * @tc.require: issueI61PMG
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_DumpAllMethod_001");
@@ -270,12 +264,12 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Leve
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Dump_ShowHelp_001
-* @tc.desc: Dump ShowHelp.
-* @tc.type: FUNC
-* @tc.require: issueI61PMG
-* @tc.author: chenyu
-*/
+ * @tc.name: InputMethodDfxTest_Dump_ShowHelp_001
+ * @tc.desc: Dump ShowHelp.
+ * @tc.type: FUNC
+ * @tc.require: issueI61PMG
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Dump_ShowHelp_001");
@@ -288,12 +282,12 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Leve
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Dump_ShowIllealInformation_001
-* @tc.desc: Dump ShowIllealInformation.
-* @tc.type: FUNC
-* @tc.require: issueI61PMG
-* @tc.author: chenyu
-*/
+ * @tc.name: InputMethodDfxTest_Dump_ShowIllealInformation_001
+ * @tc.desc: Dump ShowIllealInformation.
+ * @tc.type: FUNC
+ * @tc.require: issueI61PMG
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Dump_ShowIllealInformation_001");
@@ -304,24 +298,26 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, 
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_Attach
-* @tc.desc: Hisysevent attach.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_Attach
+ * @tc.desc: Hisysevent attach.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_Attach");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ATTACH)));
-    auto attach = []() { inputMethodController_->Attach(textListener_, true); };
+    auto attach = []() {
+        inputMethodController_->Attach(textListener_, true);
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, attach));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_HideTextInput
-* @tc.desc: Hisysevent HideTextInput.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_HideTextInput
+ * @tc.desc: Hisysevent HideTextInput.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_HideTextInput");
@@ -329,113 +325,129 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetInstance().GetOperateInfo(
         static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNEDITABLE)));
-    auto hideTextInput = []() { inputMethodController_->HideTextInput(); };
+    auto hideTextInput = []() {
+        inputMethodController_->HideTextInput();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideTextInput));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_ShowTextInput
-* @tc.desc: Hisysevent ShowTextInput.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_ShowTextInput
+ * @tc.desc: Hisysevent ShowTextInput.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_ShowTextInput");
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetInstance().GetOperateInfo(
         static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ENEDITABLE)));
-    auto showTextInput = []() { inputMethodController_->ShowTextInput(); };
+    auto showTextInput = []() {
+        inputMethodController_->ShowTextInput();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showTextInput));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_HideCurrentInput
-* @tc.desc: Hisysevent HideCurrentInput.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_HideCurrentInput
+ * @tc.desc: Hisysevent HideCurrentInput.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_HideCurrentInput");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL)));
-    auto hideCurrentInput = []() { inputMethodController_->HideCurrentInput(); };
+    auto hideCurrentInput = []() {
+        inputMethodController_->HideCurrentInput();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideCurrentInput));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_ShowCurrentInput
-* @tc.desc: Hisysevent ShowCurrentInput.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_ShowCurrentInput
+ * @tc.desc: Hisysevent ShowCurrentInput.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_ShowCurrentInput");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_NORMAL)));
-    auto showCurrentInput = []() { inputMethodController_->ShowCurrentInput(); };
+    auto showCurrentInput = []() {
+        inputMethodController_->ShowCurrentInput();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showCurrentInput));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_HideSoftKeyboard
-* @tc.desc: Hisysevent HideSoftKeyboard.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_HideSoftKeyboard
+ * @tc.desc: Hisysevent HideSoftKeyboard.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_HideSoftKeyboard");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL)));
-    auto hideSoftKeyboard = []() { inputMethodController_->HideSoftKeyboard(); };
+    auto hideSoftKeyboard = []() {
+        inputMethodController_->HideSoftKeyboard();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideSoftKeyboard));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_ShowSoftKeyboard
-* @tc.desc: Hisysevent ShowSoftKeyboard.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_ShowSoftKeyboard
+ * @tc.desc: Hisysevent ShowSoftKeyboard.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_ShowSoftKeyboard");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_NORMAL)));
-    auto showSoftKeyboard = []() { inputMethodController_->ShowSoftKeyboard(); };
+    auto showSoftKeyboard = []() {
+        inputMethodController_->ShowSoftKeyboard();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showSoftKeyboard));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_HideKeyboardSelf
-* @tc.desc: Hisysevent HideKeyboardSelf.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_HideKeyboardSelf
+ * @tc.desc: Hisysevent HideKeyboardSelf.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_HideKeyboardSelf");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF)));
-    auto hideKeyboardSelf = []() { inputMethodAbility_->HideKeyboardSelf(); };
+    auto hideKeyboardSelf = []() {
+        inputMethodAbility_->HideKeyboardSelf();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideKeyboardSelf));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_Close
-* @tc.desc: Hisysevent Close.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_Close
+ * @tc.desc: Hisysevent Close.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Close, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_Close");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_UNBIND)));
-    auto close = []() { inputMethodController_->Close(); };
+    auto close = []() {
+        inputMethodController_->Close();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, close));
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_UnBind
-* @tc.desc: Hisysevent UnBind.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_UnBind
+ * @tc.desc: Hisysevent UnBind.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_UnBind, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_UnBind");
@@ -449,41 +461,43 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_UnBind, TestSize.Leve
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Hisysevent_Bind
-* @tc.desc: Hisysevent Bind.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethodDfxTest_Hisysevent_Bind
+ * @tc.desc: Hisysevent Bind.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Bind, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_Bind");
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::BIND)),
         std::to_string(static_cast<int32_t>(getpid())), TddUtil::currentBundleNameMock_);
-    auto imeStateBind = []() { inputMethodController_->RequestShowInput(); };
+    auto imeStateBind = []() {
+        inputMethodController_->RequestShowInput();
+    };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatchImeChange(watcherImeChange, imeStateBind));
 }
 
 /**
-* @tc.name: InputMethod_Dump_HELP
-* @tc.desc: InputMethodDump.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethod_Dump_HELP
+ * @tc.desc: InputMethodDump.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_HELP, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDump::InputMethod_Dump_HELP");
-    std::vector<std::string> args = {"-h"};
+    std::vector<std::string> args = { "-h" };
     int fd = 1;
     EXPECT_TRUE(InputmethodDump::GetInstance().Dump(fd, args));
 }
 
 /**
-* @tc.name: InputMethod_Dump_ALL
-* @tc.desc: InputMethodDump.
-* @tc.type: FUNC
-*/
+ * @tc.name: InputMethod_Dump_ALL
+ * @tc.desc: InputMethodDump.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ALL, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodDump::InputMethod_Dump_ALL");
-    std::vector<std::string> args = {"-a"};
+    std::vector<std::string> args = { "-a" };
     int fd = 1;
     EXPECT_FALSE(!InputmethodDump::GetInstance().Dump(fd, args));
 }

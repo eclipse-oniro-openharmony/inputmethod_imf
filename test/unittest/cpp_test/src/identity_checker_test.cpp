@@ -100,7 +100,9 @@ void IdentityCheckerTest::SetUpTestCase(void)
         return;
     }
     service_->OnStart();
-    ImeCfgManager::GetInstance().imeConfigs_ = { { MAIN_USER_ID, CURRENT_IME, CURRENT_SUBNAME, false} };
+    ImeCfgManager::GetInstance().imeConfigs_ = {
+        { MAIN_USER_ID, CURRENT_IME, CURRENT_SUBNAME, false }
+    };
     identityCheckerImpl_ = std::make_shared<IdentityCheckerImpl>();
 }
 
@@ -134,7 +136,7 @@ std::shared_ptr<IdentityCheckerImpl> IdentityCheckerTest::identityCheckerImpl_;
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStartInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_001 start");
@@ -151,7 +153,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_002 start");
@@ -169,7 +171,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_003 start");
@@ -187,7 +189,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_004 start");
@@ -205,7 +207,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStopInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInput_001 start");
@@ -220,7 +222,7 @@ HWTEST_F(IdentityCheckerTest, testStopInput_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStopInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInput_002 start");
@@ -236,13 +238,13 @@ HWTEST_F(IdentityCheckerTest, testStopInput_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStopInput_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInput_003 start");
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
-    InputClientInfo clientInfo{};
+    InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
@@ -253,13 +255,13 @@ HWTEST_F(IdentityCheckerTest, testStopInput_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStopInput_004, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInput_004 start");
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
-    InputClientInfo clientInfo{};
+    InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
@@ -270,7 +272,7 @@ HWTEST_F(IdentityCheckerTest, testStopInput_004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStopInputSession_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInputSession_001 start");
@@ -285,7 +287,7 @@ HWTEST_F(IdentityCheckerTest, testStopInputSession_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStopInputSession_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInputSession_002 start");
@@ -301,13 +303,13 @@ HWTEST_F(IdentityCheckerTest, testStopInputSession_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStopInputSession_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInputSession_003 start");
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
-    InputClientInfo clientInfo{};
+    InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->StopInputSession();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -318,13 +320,13 @@ HWTEST_F(IdentityCheckerTest, testStopInputSession_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testStopInputSession_004, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInputSession_004 start");
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
-    InputClientInfo clientInfo{};
+    InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->StopInputSession();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -335,7 +337,7 @@ HWTEST_F(IdentityCheckerTest, testStopInputSession_004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_001 start");
@@ -350,7 +352,7 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_002 start");
@@ -365,7 +367,7 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_003 start");
@@ -381,7 +383,7 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_001 start");
@@ -396,7 +398,7 @@ HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_002 start");
@@ -411,7 +413,7 @@ HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_001 start");
@@ -426,7 +428,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_002 start");
@@ -441,7 +443,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testHideCurrentInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInput_001 start");
@@ -456,7 +458,7 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInput_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testHideCurrentInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInput_002 start");
@@ -472,7 +474,7 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInput_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testHideCurrentInput_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInput_003 start");
@@ -489,7 +491,7 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInput_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testShowCurrentInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInput_001 start");
@@ -504,7 +506,7 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInput_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testShowCurrentInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInput_002 start");
@@ -520,7 +522,7 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInput_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testShowCurrentInput_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInput_003 start");
@@ -537,13 +539,13 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInput_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testPanelStatusChange_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testPanelStatusChange_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
     InputWindowStatus status = InputWindowStatus::SHOW;
-    ImeWindowInfo info{};
+    ImeWindowInfo info {};
     int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
@@ -554,13 +556,13 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testPanelStatusChange_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     InputWindowStatus status = InputWindowStatus::SHOW;
-    ImeWindowInfo info{};
+    ImeWindowInfo info {};
     int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
@@ -571,12 +573,12 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    InputClientInfo clientInfo{};
+    InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
 
@@ -593,13 +595,13 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isSystemApp_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
-    InputClientInfo clientInfo{};
+    InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
@@ -616,13 +618,13 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_003 start");
     IdentityCheckerTest::IdentityCheckerMock::isSystemApp_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
-    InputClientInfo clientInfo{};
+    InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
@@ -639,7 +641,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testDisplayOptionalInputMethod_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testDisplayOptionalInputMethod_001 start");
@@ -654,7 +656,7 @@ HWTEST_F(IdentityCheckerTest, testDisplayOptionalInputMethod_001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_001 start");
@@ -670,7 +672,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_002 start");
@@ -687,7 +689,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_003 start");
@@ -704,7 +706,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInputDeprecated_001 start");
@@ -719,7 +721,7 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInputDeprecated_002 start");
@@ -735,7 +737,7 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_002, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInputDeprecated_003 start");
@@ -751,7 +753,7 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_003, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInputDeprecated_001 start");
@@ -766,7 +768,7 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInputDeprecated_002 start");
@@ -782,7 +784,7 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_002, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
-*/
+ */
 HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInputDeprecated_003 start");

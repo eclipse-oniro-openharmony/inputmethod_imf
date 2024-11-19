@@ -35,20 +35,18 @@ int32_t TextListener::selectionSkip_ = -1;
 int32_t TextListener::action_ = -1;
 uint32_t TextListener::height_ = 0;
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
-PanelStatusInfo TextListener::info_{};
-std::unordered_map<std::string, PrivateDataValue> TextListener::privateCommand_{};
+PanelStatusInfo TextListener::info_ {};
+std::unordered_map<std::string, PrivateDataValue> TextListener::privateCommand_ {};
 std::string TextListener::previewText_;
-Range TextListener::previewRange_{};
-bool TextListener::isFinishTextPreviewCalled_{ false };
+Range TextListener::previewRange_ {};
+bool TextListener::isFinishTextPreviewCalled_ { false };
 TextListener::TextListener()
 {
     std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("TextListenerNotifier");
     serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
 }
 
-TextListener::~TextListener()
-{
-}
+TextListener::~TextListener() { }
 
 void TextListener::InsertText(const std::u16string &text)
 {
@@ -74,9 +72,7 @@ void TextListener::DeleteBackward(int32_t length)
     IMSA_HILOGI("TextListener: DeleteBackward, direction is: %{public}d", length);
 }
 
-void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event)
-{
-}
+void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event) { }
 
 void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
 {
@@ -215,79 +211,106 @@ void TextListener::ResetParam()
 bool TextListener::WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(KEYBOARD_STATUS_WAIT_TIME_OUT),
-        [&keyboardStatus]() { return keyboardStatus == keyboardStatus_; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(KEYBOARD_STATUS_WAIT_TIME_OUT), [&keyboardStatus]() {
+        return keyboardStatus == keyboardStatus_;
+    });
     return keyboardStatus == keyboardStatus_;
 }
 
 bool TextListener::WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [info]() { return info == info_; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [info]() {
+        return info == info_;
+    });
     return info == info_;
 }
 
 bool TextListener::WaitNotifyKeyboardHeightCallback(uint32_t height)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [height]() { return height_ == height; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [height]() {
+        return height_ == height;
+    });
     return height_ == height;
 }
 
 bool TextListener::WaitSendPrivateCommandCallback(std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1),
-        [privateCommand]() { return privateCommand_ == privateCommand; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [privateCommand]() {
+        return privateCommand_ == privateCommand;
+    });
     return privateCommand_ == privateCommand;
 }
+
 bool TextListener::WaitInsertText(const std::u16string &insertText)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [insertText]() { return insertText_ == insertText; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [insertText]() {
+        return insertText_ == insertText;
+    });
     return insertText_ == insertText;
 }
+
 bool TextListener::WaitMoveCursor(int32_t direction)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [direction]() { return direction_ == direction; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [direction]() {
+        return direction_ == direction;
+    });
     return direction_ == direction;
 }
+
 bool TextListener::WaitDeleteForward(int32_t length)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [length]() { return deleteForwardLength_ == length; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [length]() {
+        return deleteForwardLength_ == length;
+    });
     return deleteForwardLength_ == length;
 }
+
 bool TextListener::WaitDeleteBackward(int32_t length)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     textListenerCv_.wait_for(lock, std::chrono::seconds(1), [length]() { return deleteBackwardLength_ == length; });
     return deleteBackwardLength_ == length;
 }
+
 bool TextListener::WaitSendFunctionKey(int32_t functionKey)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [functionKey]() { return key_ == functionKey; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [functionKey]() {
+        return key_ == functionKey;
+    });
     return key_ == functionKey;
 }
+
 bool TextListener::WaitHandleExtendAction(int32_t action)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [action]() { return action_ == action; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [action]() {
+        return action_ == action;
+    });
     return action_ == action;
 }
+
 bool TextListener::WaitHandleSetSelection(int32_t start, int32_t end)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1),
-        [start, end]() { return selectionStart_ == start && selectionEnd_ == end; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [start, end]() {
+        return selectionStart_ == start && selectionEnd_ == end;
+    });
     return selectionStart_ == start && selectionEnd_ == end;
 }
+
 bool TextListener::WaitHandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [keyCode]() { return selectionDirection_ == keyCode; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [keyCode]() {
+        return selectionDirection_ == keyCode;
+    });
     return selectionDirection_ == keyCode;
 }
 } // namespace MiscServices

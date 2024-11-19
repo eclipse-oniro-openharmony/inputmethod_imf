@@ -17,22 +17,20 @@
 #include "itypes_util.h"
 #undef private
 
-#include <gtest/gtest.h>
 #include <cstdint>
+#include <gtest/gtest.h>
 #include <string>
 
-
 #include "global.h"
-#include "tdd_util.h"
-#include "itypes_util.h"
 #include "inputmethod_sysevent.h"
+#include "itypes_util.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 class ITypesUtilTest : public testing::Test {
 public:
-
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
         InputMethodEngineListenerImpl() = default;
@@ -230,7 +228,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputClientInfo, TestSize.Leve
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputClientInfo Test START");
     MessageParcel data;
     InputClientInfo input;
-    auto  ret = ITypesUtil::Unmarshalling(input, data);
+    auto ret = ITypesUtil::Unmarshalling(input, data);
     EXPECT_FALSE(ret);
     ret = ITypesUtil::Marshalling(input, data);
     EXPECT_TRUE(ret);
@@ -296,7 +294,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputType, TestSize.Level0)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputType Test START");
     MessageParcel data;
-    InputType input{ InputType::NONE };
+    InputType input { InputType::NONE };
     auto ret = ITypesUtil::Unmarshalling(input, data);
     EXPECT_FALSE(ret);
     data.WriteInt32(1);

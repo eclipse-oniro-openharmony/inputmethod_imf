@@ -21,11 +21,11 @@ namespace OHOS {
 namespace MiscServices {
 std::mutex KeyboardListenerTestImpl::kdListenerLock_;
 std::condition_variable KeyboardListenerTestImpl::kdListenerCv_;
-int32_t KeyboardListenerTestImpl::keyCode_{ -1 };
-int32_t KeyboardListenerTestImpl::cursorHeight_{ -1 };
-int32_t KeyboardListenerTestImpl::newBegin_{ -1 };
+int32_t KeyboardListenerTestImpl::keyCode_ { -1 };
+int32_t KeyboardListenerTestImpl::cursorHeight_ { -1 };
+int32_t KeyboardListenerTestImpl::newBegin_ { -1 };
 std::string KeyboardListenerTestImpl::text_;
-InputAttribute KeyboardListenerTestImpl::inputAttribute_{ 0, 0, 0 };
+InputAttribute KeyboardListenerTestImpl::inputAttribute_ { 0, 0, 0 };
 bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
 {
     keyCode_ = keyCode;
@@ -35,8 +35,8 @@ bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sp
     return true;
 }
 
-bool KeyboardListenerTestImpl::OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-    sptr<KeyEventConsumerProxy> &consumer)
+bool KeyboardListenerTestImpl::OnDealKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
     bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
     bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
@@ -51,21 +51,25 @@ void KeyboardListenerTestImpl::OnCursorUpdate(int32_t positionX, int32_t positio
     cursorHeight_ = height;
     kdListenerCv_.notify_one();
 }
+
 void KeyboardListenerTestImpl::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
     newBegin_ = newBegin;
     kdListenerCv_.notify_one();
 }
+
 void KeyboardListenerTestImpl::OnTextChange(const std::string &text)
 {
     text_ = text;
     kdListenerCv_.notify_one();
 }
+
 void KeyboardListenerTestImpl::OnEditorAttributeChange(const InputAttribute &inputAttribute)
 {
     inputAttribute_ = inputAttribute;
     kdListenerCv_.notify_one();
 }
+
 void KeyboardListenerTestImpl::ResetParam()
 {
     keyCode_ = -1;
@@ -76,35 +80,49 @@ void KeyboardListenerTestImpl::ResetParam()
     inputAttribute_.enterKeyType = 0;
     inputAttribute_.inputOption = 0;
 }
+
 bool KeyboardListenerTestImpl::WaitKeyEvent(int32_t keyCode)
 {
     std::unique_lock<std::mutex> lock(kdListenerLock_);
-    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&keyCode]() { return keyCode == keyCode_; });
+    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&keyCode]() {
+        return keyCode == keyCode_;
+    });
     return keyCode == keyCode_;
 }
+
 bool KeyboardListenerTestImpl::WaitCursorUpdate()
 {
     std::unique_lock<std::mutex> lock(kdListenerLock_);
-    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return cursorHeight_ > 0; });
+    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), []() {
+        return cursorHeight_ > 0;
+    });
     return cursorHeight_ > 0;
 }
+
 bool KeyboardListenerTestImpl::WaitSelectionChange(int32_t newBegin)
 {
     std::unique_lock<std::mutex> lock(kdListenerLock_);
-    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&newBegin]() { return newBegin == newBegin_; });
+    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&newBegin]() {
+        return newBegin == newBegin_;
+    });
     return newBegin == newBegin_;
 }
+
 bool KeyboardListenerTestImpl::WaitTextChange(const std::string &text)
 {
     std::unique_lock<std::mutex> lock(kdListenerLock_);
-    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&text]() { return text == text_; });
+    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&text]() {
+        return text == text_;
+    });
     return text == text_;
 }
+
 bool KeyboardListenerTestImpl::WaitEditorAttributeChange(const InputAttribute &inputAttribute)
 {
     std::unique_lock<std::mutex> lock(kdListenerLock_);
-    kdListenerCv_.wait_for(lock, std::chrono::seconds(1),
-        [&inputAttribute]() { return inputAttribute == inputAttribute_; });
+    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&inputAttribute]() {
+        return inputAttribute == inputAttribute_;
+    });
     return inputAttribute == inputAttribute_;
 }
 } // namespace MiscServices

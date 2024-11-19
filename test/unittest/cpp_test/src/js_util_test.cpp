@@ -109,7 +109,7 @@ static napi_value GetString(napi_env env, napi_callback_info info)
 static napi_value GetObject(napi_env env, napi_callback_info info)
 {
     return Handle(env, info, [env](napi_value in) -> napi_value {
-        Property prop{};
+        Property prop {};
         JsProperty::Read(env, in, prop);
         return JsProperty::Write(env, prop);
     });

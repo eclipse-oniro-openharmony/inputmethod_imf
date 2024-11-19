@@ -54,13 +54,12 @@ namespace OHOS {
 namespace MiscServices {
 class KeyboardListenerImpl : public KeyboardListener {
 public:
-    KeyboardListenerImpl(){};
-    ~KeyboardListenerImpl(){};
+    KeyboardListenerImpl() {};
+    ~KeyboardListenerImpl() {};
     static int32_t keyCode_;
     static int32_t keyStatus_;
     static CursorInfo cursorInfo_;
-    bool OnDealKeyEvent(
-        const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
+    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override;
     bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
@@ -98,15 +97,9 @@ void KeyboardListenerImpl::OnCursorUpdate(int32_t positionX, int32_t positionY, 
     IMSA_HILOGD("KeyboardListenerImpl::OnCursorUpdate %{public}d %{public}d %{public}d", positionX, positionY, height);
     cursorInfo_ = { static_cast<double>(positionX), static_cast<double>(positionY), 0, static_cast<double>(height) };
 }
-void KeyboardListenerImpl::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
-{
-}
-void KeyboardListenerImpl::OnTextChange(const std::string &text)
-{
-}
-void KeyboardListenerImpl::OnEditorAttributeChange(const InputAttribute &inputAttribute)
-{
-}
+void KeyboardListenerImpl::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) { }
+void KeyboardListenerImpl::OnTextChange(const std::string &text) { }
+void KeyboardListenerImpl::OnEditorAttributeChange(const InputAttribute &inputAttribute) { }
 
 class InputMethodEditorTest : public testing::Test {
 public:
@@ -434,8 +427,8 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
     ret = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_,
         [&consumeResult](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) { consumeResult = isConsumed; });
     usleep(1000);
-    ret = ret && kbListener_->keyCode_ == keyEvent_->GetKeyCode()
-          && kbListener_->keyStatus_ == keyEvent_->GetKeyAction();
+    ret =
+        ret && kbListener_->keyCode_ == keyEvent_->GetKeyCode() && kbListener_->keyStatus_ == keyEvent_->GetKeyAction();
     EXPECT_TRUE(consumeResult);
     InputMethodEditorTest::inputMethodController_->Close();
     IdentityCheckerMock::SetFocused(false);

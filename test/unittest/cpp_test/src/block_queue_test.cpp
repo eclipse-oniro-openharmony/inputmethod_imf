@@ -45,23 +45,15 @@ public:
 private:
     static BlockQueue<std::chrono::system_clock::time_point> timeQueue_;
 };
-BlockQueue<std::chrono::system_clock::time_point> ImfBlockQueueTest::timeQueue_{ MAX_WAIT_TIME };
-bool ImfBlockQueueTest::timeout_{ false };
-void ImfBlockQueueTest::SetUpTestCase(void)
-{
-}
+BlockQueue<std::chrono::system_clock::time_point> ImfBlockQueueTest::timeQueue_ { MAX_WAIT_TIME };
+bool ImfBlockQueueTest::timeout_ { false };
+void ImfBlockQueueTest::SetUpTestCase(void) { }
 
-void ImfBlockQueueTest::TearDownTestCase(void)
-{
-}
+void ImfBlockQueueTest::TearDownTestCase(void) { }
 
-void ImfBlockQueueTest::SetUp()
-{
-}
+void ImfBlockQueueTest::SetUp() { }
 
-void ImfBlockQueueTest::TearDown()
-{
-}
+void ImfBlockQueueTest::TearDown() { }
 
 int64_t ImfBlockQueueTest::GetThreadId()
 {
