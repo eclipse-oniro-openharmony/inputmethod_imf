@@ -1045,9 +1045,15 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
     IMSA_HILOGI("current ime changed to %{public}s.", imeToStart->imeId.c_str());
     auto currentImeInfo =
         ImeInfoInquirer::GetInstance().GetImeInfo(userId_, imeToStart->bundleName, imeToStart->subName);
-    if (currentImeInfo != nullptr) {
-        NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
-        SwitchSubtype(currentImeInfo->subProp);
+    if (currentImeInfo == nullptr) {
+        IMSA_HILOGD("currentImeInfo is nullptr!");
+        return true;
+    }
+    
+    NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
+    auto ret = SwitchSubtypeWithoutStartIme(currentImeInfo->subProp);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("SwitchSubtype failed!");
     }
     return true;
 }
@@ -1296,6 +1302,17 @@ int32_t PerUserSession::SwitchSubtype(const SubProperty &subProperty)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return RequestIme(data, RequestType::NORMAL, [&data, &subProperty] { return data->core->SetSubtype(subProperty); });
+}
+
+int32_t PerUserSession::SwitchSubtypeWithoutStartIme(const SubProperty &subProperty)
+{
+    auto data = GetReadyImeData(ImeType::IME);
+    if (data == nullptr || data->core == nullptr) {
+        IMSA_HILOGE("ime: %{public}d is not exist, or core is nullptr.", ImeType::IME);
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    return RequestIme(data, RequestType::NORMAL,
+        [&data, &subProperty] { return data->core->SetSubtype(subProperty); });
 }
 
 int32_t PerUserSession::SetInputType()
