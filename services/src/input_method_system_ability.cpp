@@ -207,7 +207,10 @@ void InputMethodSystemAbility::Initialize()
     identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = OsAccountAdapter::MAIN_USER_ID;
     UserSessionManager::GetInstance().SetEventHandler(serviceHandler_);
-    UserSessionManager::GetInstance().AddUserSession(userId_);
+    if (PerUserSession(userId_).IsSaReady(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID)) {
+        // if bms not start, AppMgrClient::GetProcessRunningInfosByUserId will blocked
+        UserSessionManager::GetInstance().AddUserSession(userId_);
+    }
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     IMSA_HILOGI("start get scene board enable status");
     isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
