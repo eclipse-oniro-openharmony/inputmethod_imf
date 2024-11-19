@@ -69,6 +69,8 @@ bool ImCommonEventManager::SubscribeEvent()
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_DATA_SHARE_READY);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_STOPPED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -192,6 +194,30 @@ bool ImCommonEventManager::SubscribeAccountManagerService(Handler handler)
     return true;
 }
 
+bool ImCommonEventManager::SubscribeScreenLockMgrService(const Handler &handler)
+{
+    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (abilityManager == nullptr) {
+        IMSA_HILOGE("abilityManager is nullptr!");
+        return false;
+    }
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
+        if (handler != nullptr) {
+            handler();
+        }
+    });
+    if (listener == nullptr) {
+        IMSA_HILOGE("failed to create listener!");
+        return false;
+    }
+    int32_t ret = abilityManager->SubscribeSystemAbility(SCREENLOCK_SERVICE_ID, listener);
+    if (ret != ERR_OK) {
+        IMSA_HILOGE("subscribe system ability failed, ret: %{public}d", ret);
+        return false;
+    }
+    return true;
+}
+
 bool ImCommonEventManager::UnsubscribeEvent()
 {
     return true;
@@ -236,6 +262,14 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
             return that->HandleBootCompleted(data);
         };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->OnScreenLocked(data);
+        };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED] =
+            [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+                return that->OnScreenUnlocked(data);
+            };
 }
 
 void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
@@ -377,6 +411,26 @@ void ImCommonEventManager::EventSubscriber::HandleBootCompleted(const EventFwk::
     MessageHandler::Instance()->SendMessage(msg);
 }
 
+void ImCommonEventManager::EventSubscriber::OnScreenLocked(const EventFwk::CommonEventData &data)
+{
+    auto msg = new (std::nothrow) Message(MessageID::MSG_ID_SCREEN_LOCKED, nullptr);
+    if (msg == nullptr) {
+        IMSA_HILOGE("failed to new Message");
+        return;
+    }
+    MessageHandler::Instance()->SendMessage(msg);
+}
+
+void ImCommonEventManager::EventSubscriber::OnScreenUnlocked(const EventFwk::CommonEventData &data)
+{
+    auto msg = new (std::nothrow) Message(MessageID::MSG_ID_SCREEN_UNLOCKED, nullptr);
+    if (msg == nullptr) {
+        IMSA_HILOGE("failed to new Message");
+        return;
+    }
+    MessageHandler::Instance()->SendMessage(msg);
+}
+
 ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(std::function<void()> func)
     : func_(std::move(func))
 {
@@ -388,7 +442,7 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility
     IMSA_HILOGD("systemAbilityId: %{public}d.", systemAbilityId);
     if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID &&
         systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN &&
-        systemAbilityId != MEMORY_MANAGER_SA_ID) {
+        systemAbilityId != MEMORY_MANAGER_SA_ID && systemAbilityId != SCREENLOCK_SERVICE_ID) {
         return;
     }
     if (func_ != nullptr) {

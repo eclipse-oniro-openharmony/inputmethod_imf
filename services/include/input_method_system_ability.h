@@ -119,6 +119,8 @@ private:
     int32_t OnStartInputType(int32_t userId, const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t HandlePackageEvent(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
+    void OnScreenLocked();
+    void OnScreenUnlocked();
     int32_t OnDisplayOptionalInputMethod();
     void SubscribeCommonEvent();
     int32_t Switch(int32_t userId, const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
@@ -137,6 +139,7 @@ private:
     void HandleMemStarted();
     void HandleDataShareReady();
     void HandleOsAccountStarted();
+    void HandleScreenLockMgrStarted();
     void HandleFocusChanged(bool isFocused, int32_t pid, int32_t uid);
     void HandleImeCfgCapsState();
     void StopImeInBackground();
@@ -154,6 +157,7 @@ private:
     bool InitMemMgrMonitor();
     void InitWmsConnectionMonitor();
     void InitFocusChangedMonitor();
+    bool InitScreenLockMgrMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();

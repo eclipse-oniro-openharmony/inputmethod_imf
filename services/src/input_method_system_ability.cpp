@@ -1024,6 +1024,14 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
+            case MSG_ID_SCREEN_LOCKED: {
+                OnScreenLocked();
+                break;
+            }
+            case MSG_ID_SCREEN_UNLOCKED: {
+                OnScreenUnlocked();
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -1161,6 +1169,26 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::st
         IMSA_HILOGI("switch ret: %{public}d", ret);
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodSystemAbility::OnScreenLocked()
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("failed to get user session: %{public}d", userId_);
+        return;
+    }
+    session->OnScreenLocked();
+}
+
+void InputMethodSystemAbility::OnScreenUnlocked()
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("failed to get user session: %{public}d", userId_);
+        return;
+    }
+    session->OnScreenUnlocked();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -1373,6 +1401,8 @@ void InputMethodSystemAbility::InitMonitors()
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
+    ret = InitScreenLockMgrMonitor();
+    IMSA_HILOGI("init ScreenLock monitor, ret: %{public}d.", ret);
 }
 
 void InputMethodSystemAbility::HandleDataShareReady()
@@ -1440,6 +1470,12 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
 {
     FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
         [this](bool isOnFocused, int32_t pid, int32_t uid) { HandleFocusChanged(isOnFocused, pid, uid); });
+}
+
+bool InputMethodSystemAbility::InitScreenLockMgrMonitor()
+{
+    return ImCommonEventManager::GetInstance()->SubscribeScreenLockMgrService(
+        [this]() { HandleScreenLockMgrStarted(); });
 }
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
@@ -1680,6 +1716,7 @@ void InputMethodSystemAbility::HandleUserSwitched(int32_t userId)
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return;
     }
+    session->UpdateScreenLockState();
     auto imeData = session->GetReadyImeData(ImeType::IME);
     if (imeData == nullptr && session->IsWmsReady()) {
         session->StartCurrentIme();
@@ -1772,6 +1809,16 @@ void InputMethodSystemAbility::HandleOsAccountStarted()
         return;
     }
     MessageHandler::Instance()->SendMessage(msg);
+}
+
+void InputMethodSystemAbility::HandleScreenLockMgrStarted()
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("failed to get user session: %{public}d", userId_);
+        return;
+    }
+    session->OnScreenLockMgrStarted();
 }
 
 void InputMethodSystemAbility::StopImeInBackground()

@@ -116,6 +116,9 @@ public:
     int32_t SwitchSubtype(const SubProperty &subProperty);
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
+    void OnScreenLocked();
+    void OnScreenUnlocked();
+    void OnScreenLockMgrStarted();
     int64_t GetCurrentClientPid();
     int64_t GetInactiveClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
@@ -149,6 +152,7 @@ public:
         const std::string &subName);
     int32_t OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client);
     bool IsSaReady(int32_t saId);
+    void UpdateScreenLockState();
 
 private:
     struct ResetManager {
@@ -234,6 +238,9 @@ private:
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
+    bool CanStartIme();
+    int32_t ChangeToDefaultImeIfNeed(
+        const std::shared_ptr<ImeNativeCfg> &ime, std::shared_ptr<ImeNativeCfg> &imeToStart);
     AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime);
@@ -281,6 +288,7 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
+    std::atomic<bool> isScreenLocked_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

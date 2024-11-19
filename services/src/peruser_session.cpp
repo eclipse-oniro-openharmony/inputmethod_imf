@@ -39,6 +39,9 @@
 #include "system_ability_definition.h"
 #include "unistd.h"
 #include "wms_connection_observer.h"
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+#include "screenlock_manager.h"
+#endif
 
 namespace OHOS {
 namespace MiscServices {
@@ -975,6 +978,58 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
+void PerUserSession::OnScreenLocked()
+{
+    IMSA_HILOGD("useId: %{public}d", userId_);
+    isScreenLocked_.store(true);
+}
+
+void PerUserSession::OnScreenUnlocked()
+{
+    IMSA_HILOGD("useId: %{public}d", userId_);
+    isScreenLocked_.store(false);
+    ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        IMSA_HILOGE("ime not started");
+        return;
+    }
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentIme == nullptr) {
+        IMSA_HILOGE("currentIme nullptr");
+        return;
+    }
+    if (imeData->ime.first == currentIme->bundleName) {
+        IMSA_HILOGD("no need to switch");
+        return;
+    }
+    IMSA_HILOGI("screen unlocked, start current ime");
+    AddRestartIme();
+}
+
+void PerUserSession::OnScreenLockMgrStarted()
+{
+    UpdateScreenLockState();
+    IMSA_HILOGI("start, isLocked: %{public}d", isScreenLocked_.load());
+    if (!isScreenLocked_.load()) {
+        OnScreenUnlocked();
+        return;
+    }
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (defaultIme == nullptr) {
+        IMSA_HILOGE("failed to get default ime");
+        return;
+    }
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData != nullptr && imeData->ime.first == defaultIme->bundleName) {
+        IMSA_HILOGD("already default ime");
+        return;
+    }
+    IMSA_HILOGI("start default ime");
+    ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, defaultIme->imeId);
+    AddRestartIme();
+}
+
 std::shared_ptr<InputClientInfo> PerUserSession::GetCurClientInfo()
 {
     auto client = GetCurrentClient();
@@ -1042,11 +1097,16 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
             imeToStart->imeId, "start ime failed!");
         return false;
     }
-    IMSA_HILOGI("current ime changed to %{public}s.", imeToStart->imeId.c_str());
+    currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    IMSA_HILOGI("current ime changed to %{public}s.", currentIme->imeId.c_str());
     auto currentImeInfo =
-        ImeInfoInquirer::GetInstance().GetImeInfo(userId_, imeToStart->bundleName, imeToStart->subName);
-    if (currentImeInfo != nullptr) {
-        NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
+        ImeInfoInquirer::GetInstance().GetImeInfo(userId_, currentIme->bundleName, currentIme->subName);
+    if (currentImeInfo == nullptr) {
+        IMSA_HILOGW("current ime info is nullptr");
+        return true;
+    }
+    NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
+    if (!currentIme->subName.empty()) {
         SwitchSubtype(currentImeInfo->subProp);
     }
     return true;
@@ -1068,6 +1128,45 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
     imeId.bundleName = currentImeCfg->bundleName;
     imeId.subName = currentImeCfg->extName;
     return true;
+}
+
+bool PerUserSession::CanStartIme()
+{
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    return IsSaReady(SCREENLOCK_SERVICE_ID) && IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
+#endif
+    return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
+}
+
+void PerUserSession::UpdateScreenLockState()
+{
+    bool isScreenLocked = false;
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    int32_t ret = ScreenLock::ScreenLockManager::GetInstance()->IsLocked(isScreenLocked);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to query IsLocked, ret: %{public}d", ret);
+    }
+#endif
+    IMSA_HILOGD("IsLocked: %{public}d", isScreenLocked);
+    isScreenLocked_.store(isScreenLocked);
+}
+
+int32_t PerUserSession::ChangeToDefaultImeIfNeed(
+    const std::shared_ptr<ImeNativeCfg> &targetIme, std::shared_ptr<ImeNativeCfg> &imeToStart)
+{
+    if (!isScreenLocked_.load()) {
+        IMSA_HILOGD("no need");
+        imeToStart = targetIme;
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGI("Screen is locked, start default ime");
+    imeToStart = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (imeToStart == nullptr) {
+        IMSA_HILOGE("failed to get default ime");
+        return ErrorCode::ERROR_PERSIST_CONFIG;
+    }
+    ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, imeToStart->imeId);
+    return ErrorCode::NO_ERROR;
 }
 
 AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
@@ -1096,6 +1195,11 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
     if (ime == nullptr) {
         return false;
     }
+    auto imeToStart = std::make_shared<ImeNativeCfg>();
+    if (ChangeToDefaultImeIfNeed(ime, imeToStart) != ErrorCode::NO_ERROR) {
+        return false;
+    }
+    InitImeData({ imeToStart->bundleName, imeToStart->extName });
     isImeStarted_.Clear(false);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
@@ -1110,7 +1214,6 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
             "failed to start ability.");
         return false;
     }
-    InitImeData({ ime->bundleName, ime->extName });
     if (!isImeStarted_.GetValue()) {
         IMSA_HILOGE("start %{public}s timeout!", ime->imeId.c_str());
         return false;
@@ -1495,7 +1598,7 @@ void PerUserSession::AddRestartIme()
 bool PerUserSession::RestartIme()
 {
     auto task = [this]() {
-        if (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()) {
+        if (CanStartIme()) {
             auto ret = StartCurrentIme(true);
             if (!ret) {
                 IMSA_HILOGE("start ime failed!");
