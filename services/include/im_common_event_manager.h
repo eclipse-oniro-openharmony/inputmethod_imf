@@ -56,6 +56,7 @@ public:
         void RemoveUser(const EventFwk::CommonEventData &data);
         void StopUser(const EventFwk::CommonEventData &data);
         void OnBundleScanFinished(const EventFwk::CommonEventData &data);
+        void OnDataShareReady(const EventFwk::CommonEventData &data);
         void AddPackage(const EventFwk::CommonEventData &data);
         void ChangePackage(const EventFwk::CommonEventData &data);
         void HandleBootCompleted(const EventFwk::CommonEventData &data);
