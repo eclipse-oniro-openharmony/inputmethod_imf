@@ -568,12 +568,7 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
     IMSA_HILOGD("start input with keyboard[%{public}d].", inputClientInfo.isShowKeyboard);
     InputClientInfo infoTemp = *clientInfo;
     infoTemp.isNotifyInputStart = inputClientInfo.isNotifyInputStart;
-    if (IsSameClient(client, GetCurrentClient()) && IsImeBindChanged(clientInfo->bindImeType)) {
-        if (clientInfo->bindImeType == ImeType::IME) {
-            infoTemp.isNotifyInputStart = true;
-        }
-        UnBindClientWithIme(clientInfo);
-    }
+    HandleImeBindTypeChanged(infoTemp);
     infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
     infoTemp.needHide = inputClientInfo.needHide;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
@@ -1049,7 +1044,7 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
         IMSA_HILOGD("currentImeInfo is nullptr!");
         return true;
     }
-    
+
     NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
     auto ret = SwitchSubtypeWithoutStartIme(currentImeInfo->subProp);
     if (ret != ErrorCode::NO_ERROR) {
@@ -1288,7 +1283,7 @@ bool PerUserSession::IsProxyImeStartInImeBind(ImeType bindImeType, ImeType start
     return startImeType == ImeType::PROXY_IME && bindImeType == ImeType::IME;
 }
 
-bool PerUserSession::IsImeBindChanged(ImeType bindImeType)
+bool PerUserSession::IsImeBindTypeChanged(ImeType bindImeType)
 {
     return (bindImeType == ImeType::IME && IsProxyImeEnable()) ||
            (bindImeType == ImeType::PROXY_IME && !IsProxyImeEnable());
@@ -1876,6 +1871,50 @@ bool PerUserSession::GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToSta
     }
     imeToStart = GetImeNativeCfg(userId_, currentInputTypeIme.bundleName, currentInputTypeIme.subName);
     return true;
+}
+
+void PerUserSession::GetOldClientInfo(std::shared_ptr<InputClientInfo> &oldClientInfo, bool &isClientInactive)
+{
+    std::lock_guard<std::mutex> lock(focusedClientLock_);
+    auto currentClient = GetCurrentClient();
+    if (currentClient != nullptr) {
+        oldClientInfo = GetClientInfo(currentClient->AsObject());
+        if (oldClientInfo != nullptr) {
+            if (IsImeBindTypeChanged(oldClientInfo->bindImeType)) {
+                SetCurrentClient(nullptr);
+            }
+            return;
+        }
+    }
+    auto inactiveClient = GetInactiveClient();
+    if (inactiveClient != nullptr) {
+        oldClientInfo = GetClientInfo(inactiveClient->AsObject());
+        isClientInactive = true;
+    }
+}
+
+void PerUserSession::HandleImeBindTypeChanged(InputClientInfo &newClientInfo)
+{
+    /* isClientInactive: true: represent the oldClientInfo is inactiveClient's
+                         false: represent the oldClientInfo is currentClient's */
+    bool isClientInactive = false;
+    std::shared_ptr<InputClientInfo> oldClientInfo = nullptr;
+    GetOldClientInfo(oldClientInfo, isClientInactive);
+    if (oldClientInfo == nullptr) {
+        return;
+    }
+    if (!IsImeBindTypeChanged(oldClientInfo->bindImeType)) {
+        return;
+    }
+    IMSA_HILOGD("isClientInactive: %{public}d!", isClientInactive);
+    if (IsSameClient(newClientInfo.client, oldClientInfo->client) && oldClientInfo->bindImeType == ImeType::IME) {
+        newClientInfo.isNotifyInputStart = true;
+    }
+    if (isClientInactive) {
+        StopImeInput(oldClientInfo->bindImeType, oldClientInfo->channel);
+        return;
+    }
+    UnBindClientWithIme(oldClientInfo);
 }
 } // namespace MiscServices
 } // namespace OHOS
