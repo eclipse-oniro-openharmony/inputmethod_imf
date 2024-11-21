@@ -67,8 +67,7 @@ describe('InputMethodTest', function () {
     expect(subProp.language).assertEqual(language[index]);
   }
 
-  function checkNewImeSubProps(subProps)
-  {
+  function checkNewImeSubProps(subProps) {
     expect(subProps.length).assertEqual(NEW_IME_SUBTYPE_NUM);
     for (let i = 0; i < subProps.length; i++) {
       expect(subProps[i].name).assertEqual(bundleName);
@@ -78,24 +77,21 @@ describe('InputMethodTest', function () {
     }
   }
 
-  function checkImeCurrentProp(property, index)
-  {
+  function checkImeCurrentProp(property, index) {
     expect(property.name).assertEqual(bundleName1);
     expect(property.id).assertEqual(extName1[index]);
     expect(property.packageName).assertEqual(bundleName1);
     expect(property.methodId).assertEqual(extName1[index]);
   }
 
-  function checkImeCurrentSubProp(subProp, index)
-  {
+  function checkImeCurrentSubProp(subProp, index) {
     expect(subProp.name).assertEqual(bundleName1);
     expect(subProp.id).assertEqual(extName1[index]);
     expect(subProp.locale).assertEqual(locale1[index]);
     expect(subProp.language).assertEqual(language1[index]);
   }
 
-  function checkImeSubProps(subProps)
-  {
+  function checkImeSubProps(subProps) {
     expect(subProps.length).assertEqual(OLD_IME_SUBTYPE_NUM);
     for (let i = 0; i < subProps.length; i++) {
       expect(subProps[i].name).assertEqual(bundleName1);
@@ -107,7 +103,7 @@ describe('InputMethodTest', function () {
 
   function wait(delay) {
     let start = new Date().getTime();
-    while (new Date().getTime() - start < delay){
+    while (new Date().getTime() - start < delay) {
     }
   }
 

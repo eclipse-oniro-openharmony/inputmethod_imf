@@ -21,7 +21,7 @@ import { PanelInfo, PanelFlag, PanelType } from '@ohos.inputMethod.Panel';
 describe('InputMethodWithAttachTest', function () {
   const WAIT_DEAL_OK = 500;
   const TEST_RESULT_CODE = 0;
-  const TEST_FUNCTION =  {
+  const TEST_FUNCTION = {
     INSERT_TEXT_SYNC: 0,
     MOVE_CURSOR_SYNC: 1,
     GET_ATTRIBUTE_SYNC: 2,
@@ -41,11 +41,11 @@ describe('InputMethodWithAttachTest', function () {
   beforeAll(async function (done) {
     console.info('beforeAll called');
     let inputMethodProperty = {
-      name:'com.example.testIme',
-      id:'InputMethodExtAbility'
+      name: 'com.example.testIme',
+      id: 'InputMethodExtAbility'
     };
     await inputMethod.switchInputMethod(inputMethodProperty);
-    setTimeout(()=>{
+    setTimeout(() => {
       done();
     }, WAIT_DEAL_OK);
   });
@@ -56,9 +56,9 @@ describe('InputMethodWithAttachTest', function () {
     let props = await inputMethodSetting.listInputMethod();
     let bundleName = 'com.example.newTestIme';
     let bundleName1 = 'com.example.testIme';
-    for(let i = 0;i< props.length; i++) {
+    for (let i = 0; i < props.length; i++) {
       let prop = props[i];
-      if(prop.name !== bundleName && prop.name !== bundleName1){
+      if (prop.name !== bundleName && prop.name !== bundleName1) {
         await inputMethod.switchInputMethod(prop);
       }
     }
@@ -91,13 +91,13 @@ describe('InputMethodWithAttachTest', function () {
   }
 
   function subscribe(subscribeInfo, functionCode, done) {
-    commonEventManager.createSubscriber(subscribeInfo).then((data)=>{
+    commonEventManager.createSubscriber(subscribeInfo).then((data) => {
       let subscriber = data;
-      commonEventManager.subscribe(subscriber, (err, eventData)=>{
+      commonEventManager.subscribe(subscriber, (err, eventData) => {
         console.info("inputMethod subscribe");
-        if(eventData.code === TEST_RESULT_CODE) {
+        if (eventData.code === TEST_RESULT_CODE) {
           expect(true).assertTrue();
-        }else{
+        } else {
           expect().assertFail();
         }
         commonEventManager.unsubscribe(subscriber);
@@ -168,7 +168,6 @@ describe('InputMethodWithAttachTest', function () {
       done();
     });
   });
-
 
   /*
   * @tc.number  inputmethod_with_attach_test_hideTextInput_002

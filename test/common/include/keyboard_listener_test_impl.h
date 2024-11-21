@@ -25,8 +25,8 @@ namespace OHOS {
 namespace MiscServices {
 class KeyboardListenerTestImpl : public KeyboardListener {
 public:
-    KeyboardListenerTestImpl(){};
-    ~KeyboardListenerTestImpl(){};
+    KeyboardListenerTestImpl() {};
+    ~KeyboardListenerTestImpl() {};
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override;
     bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
     {

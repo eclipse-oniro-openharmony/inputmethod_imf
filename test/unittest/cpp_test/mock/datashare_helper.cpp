@@ -90,7 +90,7 @@ int DataShareHelper::Update(Uri &uri, const DataSharePredicates &predicates, con
 {
     return 0;
 }
- 
+
 int DataShareHelper::Insert(Uri &uri, const DataShareValuesBucket &value)
 {
     return 0;

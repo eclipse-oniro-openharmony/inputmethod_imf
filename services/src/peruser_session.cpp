@@ -51,9 +51,7 @@ constexpr const char *STRICT_MODE = "strictMode";
 constexpr const char *ISOLATED_SANDBOX = "isolatedSandbox";
 constexpr uint32_t CHECK_IME_RUNNING_RETRY_INTERVAL = 60;
 constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
-PerUserSession::PerUserSession(int userId) : userId_(userId)
-{
-}
+PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
     : userId_(userId), eventHandler_(eventHandler)
@@ -64,9 +62,7 @@ PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk:
     }
 }
 
-PerUserSession::~PerUserSession()
-{
-}
+PerUserSession::~PerUserSession() { }
 
 int PerUserSession::AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo,
     ClientAddEvent event)

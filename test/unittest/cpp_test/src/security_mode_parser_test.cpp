@@ -16,9 +16,9 @@
 #define private public
 #define protected public
 
+#include "input_method_system_ability.h"
 #include "security_mode_parser.h"
 #include "settings_data_utils.h"
-#include "input_method_system_ability.h"
 
 #undef private
 
@@ -44,7 +44,7 @@ public:
 };
 std::shared_ptr<DataShareHelper> SecurityModeParserTest::helper_;
 std::shared_ptr<DataShareResultSet> SecurityModeParserTest::resultSet_;
-sptr<InputMethodSystemAbility> SecurityModeParserTest::service_{ nullptr };
+sptr<InputMethodSystemAbility> SecurityModeParserTest::service_ { nullptr };
 void SecurityModeParserTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("SecurityModeParserTest::SetUpTestCase");
@@ -151,8 +151,7 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_002, TestSize.Level0)
     IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_002 START");
     int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(SecurityModeParserTest::USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    SecurityMode security =
-        SecurityModeParser::GetInstance()->GetSecurityMode("test", SecurityModeParserTest::USER_ID);
+    SecurityMode security = SecurityModeParser::GetInstance()->GetSecurityMode("test", SecurityModeParserTest::USER_ID);
     EXPECT_EQ(static_cast<int32_t>(security), 0);
 }
 
@@ -263,8 +262,10 @@ HWTEST_F(SecurityModeParserTest, testParseSecurityMode_001, TestSize.Level0)
 HWTEST_F(SecurityModeParserTest, testParseSecurityMode_002, TestSize.Level0)
 {
     IMSA_HILOGI("SecurityModeParserTest testParseSecurityMode_002 START");
-    auto ret = SecurityModeParser::GetInstance()->ParseSecurityMode("{\"fullExperienceList\" : {\"100\" : ["
-        "\"xiaoyiIme\", \"baiduIme\", \"sougouIme\"],\"101\" : [\"sougouIme\"]}}", SecurityModeParserTest::USER_ID);
+    auto ret = SecurityModeParser::GetInstance()->ParseSecurityMode(
+        "{\"fullExperienceList\" : {\"100\" : ["
+        "\"xiaoyiIme\", \"baiduIme\", \"sougouIme\"],\"101\" : [\"sougouIme\"]}}",
+        SecurityModeParserTest::USER_ID);
     EXPECT_TRUE(ret);
 }
 } // namespace MiscServices

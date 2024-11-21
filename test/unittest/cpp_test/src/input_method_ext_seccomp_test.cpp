@@ -44,10 +44,10 @@ namespace OHOS {
 namespace MiscServices {
 class SeccompUnitTest : public testing::Test {
 public:
-    SeccompUnitTest(){};
-    virtual ~SeccompUnitTest(){};
-    static void SetUpTestCase(){};
-    static void TearDownTestCase(){};
+    SeccompUnitTest() {};
+    virtual ~SeccompUnitTest() {};
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
 
     void SetUp()
     {
@@ -59,8 +59,8 @@ public:
         sleep(SLEEP_TIME_1S);
     };
 
-    void TearDown(){};
-    void TestBody(void){};
+    void TearDown() {};
+    void TestBody(void) {};
 
     static pid_t StartChild(SeccompFilterType type, const char *filterName, SyscallFunc func)
     {
