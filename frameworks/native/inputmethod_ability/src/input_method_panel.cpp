@@ -908,14 +908,11 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag_ == PanelFlag::FLG_FIXED
                       ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
                       : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
-    if (static_cast<float>(height) > defaultDisplay->GetHeight() * ratio) {
-        IMSA_HILOGE("height is invalid, defaultDisplay height: %{public}d, target height: %{public}u!",
-            defaultDisplay->GetHeight(), height);
-        return false;
-    }
-    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth()) {
-        IMSA_HILOGE("width is invalid, defaultDisplay width: %{public}d, target width: %{public}u!",
-            defaultDisplay->GetWidth(), width);
+    if (static_cast<float>(height) > defaultDisplay->GetHeight() * ratio
+        || static_cast<int32_t>(width) > defaultDisplay->GetWidth()) {
+        IMSA_HILOGE("param is invalid, defaultDisplay height: %{public}d, defaultDisplay width %{public}d, target "
+            "height: %{public}u, target width: %{public}u!",
+            defaultDisplay->GetHeight(), defaultDisplay->GetWidth(), height, width);
         return false;
     }
     return true;
@@ -1028,14 +1025,9 @@ bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag == PanelFlag::FLG_FIXED
                       ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
                       : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
-    if (static_cast<float>(height) > displayHeight * ratio) {
-        IMSA_HILOGE("height is invalid, defaultDisplay height: %{public}d, target height: %{public}u!", displayHeight,
-            height);
-        return false;
-    }
-    if (static_cast<int32_t>(width) > displayWidth) {
-        IMSA_HILOGE("width is invalid, defaultDisplay width: %{public}d, target width: %{public}u!", displayWidth,
-            width);
+    if (static_cast<float>(height) > displayHeight * ratio || static_cast<int32_t>(width) > displayWidth) {
+        IMSA_HILOGE("param is invalid, defaultDisplay height: %{public}d, defaultDisplay width %{public}d, target "
+            "height: %{public}u, target width: %{public}u!", displayHeight, displayWidth, height, width);
         return false;
     }
     return true;
