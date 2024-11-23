@@ -228,7 +228,7 @@ private:
     bool IsImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInImeBind(ImeType bindImeType, ImeType startImeType);
-    bool IsImeBindChanged(ImeType bindImeType);
+    bool IsImeBindTypeChanged(ImeType bindImeType);
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
 
@@ -249,6 +249,8 @@ private:
     int32_t NotifyInputStartToClients(uint32_t callingWndId);
     int32_t NotifyInputStopToClients();
     bool IsNotifyInputStop(const sptr<IInputClient> &client);
+    void GetOldClientInfo(std::shared_ptr<InputClientInfo> &oldClientInfo, bool &isClientInactive);
+    void HandleImeBindTypeChanged(InputClientInfo &newClientInfo);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
