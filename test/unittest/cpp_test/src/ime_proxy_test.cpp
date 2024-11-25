@@ -27,10 +27,10 @@
 #include "input_method_ability_interface.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
+#include "input_method_types.h"
 #include "keyboard_listener_test_impl.h"
 #include "tdd_util.h"
 #include "text_listener.h"
-#include "input_method_types.h"
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
@@ -94,8 +94,9 @@ public:
         std::string result;
         auto ret = TddUtil::ExecuteCmd(cmd, result);
         EXPECT_TRUE(ret);
-        BlockRetry(RETRY_INTERVAL, RETRY_TIME,
-            []() { return AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName() == BUNDLENAME; });
+        BlockRetry(RETRY_INTERVAL, RETRY_TIME, []() {
+            return AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName() == BUNDLENAME;
+        });
         IMSA_HILOGI("start app success");
         sleep(WAIT_APP_START_COMPLETE); // ensure app start complete
     }
@@ -116,8 +117,9 @@ public:
         std::string result;
         auto ret = TddUtil::ExecuteCmd(cmd, result);
         EXPECT_TRUE(ret);
-        BlockRetry(RETRY_INTERVAL, RETRY_TIME,
-            []() { return AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName() != BUNDLENAME; });
+        BlockRetry(RETRY_INTERVAL, RETRY_TIME, []() {
+            return AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName() != BUNDLENAME;
+        });
         IMSA_HILOGI("stop app success");
     }
 
@@ -160,10 +162,10 @@ private:
 sptr<InputMethodController> ImeProxyTest::imc_;
 
 /**
-* @tc.name: RegisteredProxyNotInEditor_001
-* @tc.desc: not in editor
-* @tc.type: FUNC
-*/
+ * @tc.name: RegisteredProxyNotInEditor_001
+ * @tc.desc: not in editor
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, RegisteredProxyNotInEditor_001, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::RegisteredProxyNotInEditor_001");
@@ -178,10 +180,10 @@ HWTEST_F(ImeProxyTest, RegisteredProxyNotInEditor_001, TestSize.Level0)
 }
 
 /**
-* @tc.name: AttachInPcAfterRegisteredProxyNotInEditor_002
-* @tc.desc: not in editor
-* @tc.type: FUNC
-*/
+ * @tc.name: AttachInPcAfterRegisteredProxyNotInEditor_002
+ * @tc.desc: not in editor
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::AttachInPcAfterRegisteredProxyNotInEditor_002");
@@ -204,10 +206,10 @@ HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.L
 }
 
 /**
-* @tc.name: AttachInPeAfterRegisteredProxyNotInEditor_003
-* @tc.desc: not in editor
-* @tc.type: FUNC
-*/
+ * @tc.name: AttachInPeAfterRegisteredProxyNotInEditor_003
+ * @tc.desc: not in editor
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::AttachInPeAfterRegisteredProxyNotInEditor_003");
@@ -230,10 +232,10 @@ HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.L
 }
 
 /**
-* @tc.name: RegisteredProxyInImaEditor_004
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: RegisteredProxyInImaEditor_004
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::RegisteredProxyInImaEditor_004");
@@ -260,10 +262,10 @@ HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level0)
 }
 
 /**
-* @tc.name: UnRegisteredAndRegisteredProxyInProxyBind_005
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: UnRegisteredAndRegisteredProxyInProxyBind_005
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredAndRegisteredProxyInProxyBind_005");
@@ -297,10 +299,10 @@ HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.L
 }
 
 /**
-* @tc.name: UnRegisteredProxyNotInBind_stop_006
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: UnRegisteredProxyNotInBind_stop_006
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_stop_006, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyNotInBind_stop_006");
@@ -314,10 +316,10 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_stop_006, TestSize.Level0)
 }
 
 /**
-* @tc.name: UnRegisteredProxyInProxyBind_stop_007
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: UnRegisteredProxyInProxyBind_stop_007
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInProxyBind_stop_007");
@@ -344,10 +346,10 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
 }
 
 /**
-* @tc.name: UnRegisteredProxyInImaBind_stop_008
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: UnRegisteredProxyInImaBind_stop_008
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBind_stop_008, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInImaBind_stop_008");
@@ -373,10 +375,10 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBind_stop_008, TestSize.Level0)
 }
 
 /**
-* @tc.name: UnRegisteredProxyNotInBind_switch_009
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: UnRegisteredProxyNotInBind_switch_009
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_switch_009, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyNotInBind_switch_009");
@@ -388,10 +390,10 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_switch_009, TestSize.Level0)
 }
 
 /**
-* @tc.name: UnRegisteredProxyInProxyBind_switch_010
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: UnRegisteredProxyInProxyBind_switch_010
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInProxyBind_switch_010");
@@ -417,10 +419,10 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level0)
 }
 
 /**
-* @tc.name: UnRegisteredProxyWithErrorType_011
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: UnRegisteredProxyWithErrorType_011
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_011, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyWithErrorType_011");
@@ -432,10 +434,10 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_011, TestSize.Level0)
 }
 
 /**
-* @tc.name: AppUnFocusInProxyBindInPe_012
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: AppUnFocusInProxyBindInPe_012
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::AppUnFocusInProxyBindInPe_012");
@@ -460,10 +462,10 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level0)
 }
 
 /**
-* @tc.name: AppUnFocusInProxyBindInPc_013
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: AppUnFocusInProxyBindInPc_013
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::AppUnFocusInProxyBindInPc_013");
@@ -488,10 +490,10 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level0)
 }
 
 /**
-* @tc.name: ProxyAndImaSwitchTest_014
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: ProxyAndImaSwitchTest_014
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::ProxyAndImaSwitchTest_014");
@@ -527,10 +529,10 @@ HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
 }
 
 /**
-* @tc.name: KeyboardListenerTest_015
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: KeyboardListenerTest_015
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::KeyboardListenerTest_015");
@@ -544,10 +546,10 @@ HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level0)
 }
 
 /**
-* @tc.name: TextEditTest
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: TextEditTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, TextEditTest, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::TextEditTest");
@@ -579,10 +581,10 @@ HWTEST_F(ImeProxyTest, TextEditTest, TestSize.Level0)
 }
 
 /**
-* @tc.name: ClientDiedInImaBind_016
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: ClientDiedInImaBind_016
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, ClientDiedInImaBind_016, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::ClientDiedInImaBind_016");
@@ -599,10 +601,10 @@ HWTEST_F(ImeProxyTest, ClientDiedInImaBind_016, TestSize.Level0)
 }
 
 /**
-* @tc.name: ClientDiedInProxyBind_017
-* @tc.desc:
-* @tc.type: FUNC
-*/
+ * @tc.name: ClientDiedInProxyBind_017
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::ClientDiedInProxyBind_017");
@@ -624,10 +626,10 @@ HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
 }
 
 /**
-* @tc.name: onInputFinishTest_StopInput
-* @tc.desc: close
-* @tc.type: FUNC
-*/
+ * @tc.name: onInputFinishTest_StopInput
+ * @tc.desc: close
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::onInputFinishTest_StopInput");
@@ -635,10 +637,10 @@ HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level0)
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
 }
 /**
-* @tc.name: onInputFinishTest_OnClientInactive
-* @tc.desc: OnClientInactive
-* @tc.type: FUNC
-*/
+ * @tc.name: onInputFinishTest_OnClientInactive
+ * @tc.desc: OnClientInactive
+ * @tc.type: FUNC
+ */
 HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::onInputFinishTest_OnClientInactive");
@@ -647,14 +649,14 @@ HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level0)
 }
 
 /**
-* @tc.name: testIsFromTs
-* @tc.desc: ImeProxyTest testIsFromTs
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testIsFromTs
+ * @tc.desc: ImeProxyTest testIsFromTs
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(ImeProxyTest, testIsFromTs, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest testDelete Test START");
+    IMSA_HILOGI("ImeProxyTest testIsFromTs Test START");
     sptr<OnTextChangedListener> testListener = new TextListener();
     bool isFrom = testListener->IsFromTs();
     EXPECT_FALSE(isFrom);

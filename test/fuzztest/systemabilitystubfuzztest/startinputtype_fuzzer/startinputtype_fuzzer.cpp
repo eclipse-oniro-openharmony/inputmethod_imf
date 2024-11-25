@@ -24,7 +24,6 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(data, size,
-        InputMethodInterfaceCode::START_INPUT_TYPE);
+    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(data, size, InputMethodInterfaceCode::START_INPUT_TYPE);
     return 0;
 }

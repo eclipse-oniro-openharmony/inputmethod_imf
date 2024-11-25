@@ -34,6 +34,7 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
     uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
     return bigVar;
 }
+
 bool FuzzKeyEventConsumerStub(const uint8_t *rawData, size_t size)
 {
     bool isConsumed = static_cast<bool>(rawData[0] % 2);
@@ -48,7 +49,7 @@ bool FuzzKeyEventConsumerStub(const uint8_t *rawData, size_t size)
     MessageParcel reply;
     MessageOption option;
 
-    std::shared_ptr <MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+    std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
 
     sptr <KeyEventConsumerStub> stub = new KeyEventConsumerStub(
             [](std::shared_ptr <MMI::KeyEvent> &keyEvent, bool isConsumed) {}, keyEvent);

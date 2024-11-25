@@ -262,6 +262,22 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testSerializedInputAttribute
+ * @tc.desc: Checkout the serialization of InputAttribute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute_WithSpecificBundleName, TestSize.Level0)
+{
+    InputAttribute inAttribute;
+    inAttribute.bundleName = "com.example.inputmethod";
+    MessageParcel data;
+    EXPECT_TRUE(InputAttribute::Marshalling(inAttribute, data));
+    InputAttribute outAttribute;
+    EXPECT_TRUE(InputAttribute::Unmarshalling(outAttribute, data));
+    EXPECT_EQ(inAttribute.bundleName, outAttribute.bundleName);
+}
+
+/**
 * @tc.name: testShowKeyboardInputMethodCoreProxy
 * @tc.desc: Test InputMethodCoreProxy ShowKeyboard
 * @tc.type: FUNC
@@ -345,34 +361,33 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testStartInputBeforeCreatePanel start.");
+    inputMethodAbility_->panels_.Clear();
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
-    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
-    InputClientInfo clientInfo;
-    clientInfo.channel = channelStub;
-    clientInfo.isShowKeyboard = true;
     InputMethodAbilityTest::showKeyboard_ = false;
-    auto ret = inputMethodAbility_->StartInput(clientInfo, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-    InputMethodAbilityTest::imeListenerCv_.wait_for(
-        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
-    ASSERT_FALSE(InputMethodAbilityTest::showKeyboard_);
+    auto ret = imc_->Attach(textListener_);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    {
+        std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+        InputMethodAbilityTest::imeListenerCv_.wait_for(
+            lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
+        ASSERT_FALSE(InputMethodAbilityTest::showKeyboard_);
+    }
+
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
     {
         AccessScope scope(currentImeTokenId_, currentImeUid_);
-        std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
         PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
         ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_EQ(ErrorCode::NO_ERROR, ret);
     }
-    std::unique_lock<std::mutex> lock1(InputMethodAbilityTest::imeListenerCallbackLock_);
-    InputMethodAbilityTest::imeListenerCv_.wait_for(
-        lock1, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
-    EXPECT_TRUE(InputMethodAbilityTest::showKeyboard_);
-
-    ret = inputMethodAbility_->StopInput(channelStub->AsObject());
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel1);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    {
+        std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+        InputMethodAbilityTest::imeListenerCv_.wait_for(
+            lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
+        EXPECT_TRUE(InputMethodAbilityTest::showKeyboard_);
+    }
+    imc_->Close();
+    inputMethodAbility_->DestroyPanel(softKeyboardPanel);
 }
 
 /**
@@ -408,6 +423,10 @@ HWTEST_F(InputMethodAbilityTest, testMoveCursor, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility MoveCursor Test START");
     constexpr int32_t keyCode = 4;
     auto ret = inputMethodAbility_->MoveCursor(keyCode); // move cursor right });
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitMoveCursor(keyCode));
+
+    ret = InputMethodAbilityInterface::GetInstance().MoveCursor(keyCode);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitMoveCursor(keyCode));
 }

@@ -217,6 +217,10 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
             panel->HidePanel();
         }
     }
+    {
+        std::lock_guard<std::mutex> lock(inputAttrLock_);
+        inputAttribute_.bundleName = clientInfo.config.inputAttribute.bundleName;
+    }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
                                    : InvokeStartInputCallback(clientInfo.isNotifyInputStart);
     if (ret != ErrorCode::NO_ERROR) {
@@ -356,6 +360,7 @@ void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
     }
     IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d.", attribute.enterKeyType,
         attribute.inputPattern);
+    attribute.bundleName = GetInputAttribute().bundleName;
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();
@@ -459,6 +464,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(bool isNotifyInputStart)
     TextTotalConfig textConfig = {};
     int32_t ret = GetTextConfig(textConfig);
     if (ret == ErrorCode::NO_ERROR) {
+        textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         return InvokeStartInputCallback(textConfig, isNotifyInputStart);
     }
     IMSA_HILOGW("failed to get text config, ret: %{public}d.", ret);
@@ -691,7 +697,11 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return channel->GetTextConfig(textConfig);
+    auto ret = channel->GetTextConfig(textConfig);
+    if (ret == ErrorCode::NO_ERROR) {
+        textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
+    }
+    return ret;
 }
 
 void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
@@ -830,7 +840,8 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
             inputMethodPanel = nullptr;
             return false;
         });
-    if (flag && isShowAfterCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD) {
+    if (flag && isShowAfterCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD
+        && panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
         isShowAfterCreate_.store(false);
         auto task = std::make_shared<TaskImsaShowKeyboard>();
         TaskManager::GetInstance().PostTask(task);
@@ -872,7 +883,7 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
         return ErrorCode::NO_ERROR;
     }
-    if (inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD
+    if (isShowAfterCreate_.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD
         && inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_CANDIDATE_COLUMN) {
         isShowAfterCreate_.store(false);
     }
@@ -1085,7 +1096,9 @@ int32_t InputMethodAbility::ExitCurrentInputType()
 void InputMethodAbility::ClearInputType()
 {
     std::lock_guard<std::mutex> lock(inputTypeLock_);
-    inputType_ = InputType::NONE;
+    if (inputType_ != InputType::SECURITY_INPUT) {
+        inputType_ = InputType::NONE;
+    }
 }
 
 int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)

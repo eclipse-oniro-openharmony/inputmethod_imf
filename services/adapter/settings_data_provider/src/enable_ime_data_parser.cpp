@@ -182,28 +182,77 @@ bool EnableImeDataParser::CheckTargetEnableName(const std::string &key, const st
     return true;
 }
 
-int32_t EnableImeDataParser::GetEnableData(const std::string &key, std::vector<std::string> &enableVec,
-    const int32_t userId)
+void EnableImeDataParser::CoverGlobalEnableTable(const std::string &valueStr)
+{
+    SettingsDataUtils::GetInstance()->SetStringValue(SETTING_URI_PROXY, ENABLE_IME, valueStr);
+}
+
+std::string EnableImeDataParser::GetUserEnableTable(int32_t userId)
+{
+    std::string valueStr;
+    int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(
+        SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true", ENABLE_IME, valueStr);
+    IMSA_HILOGI("get user enable table, userId = %{public}d, ret = %{public}d, valurStr = %{public}s",
+        userId, ret, valueStr.c_str());
+    if (valueStr.empty()) {
+        auto defaultIme = GetDefaultIme();
+        if (defaultIme != nullptr) {
+            valueStr =
+              "{\"enableImeList\" : {\"" + std::to_string(userId) + "\" : [\"" + defaultIme->name + "\"]}}";
+        }
+    }
+    return valueStr;
+}
+
+std::string EnableImeDataParser::GetEanbleIme(int32_t userId, const std::string &globalStr)
+{
+    std::string enableStr = globalStr;
+    std::string globaleUserId;
+    if (enableStr.empty()) {
+        enableStr = GetUserEnableTable(currentUserId_);
+        CoverGlobalEnableTable(enableStr);
+        globaleUserId = std::to_string(currentUserId_);
+    } else {
+        globaleUserId = GetGlobalTableUserId(enableStr);
+    }
+    SettingsDataUtils::GetInstance()->SetStringValue(SETTINGS_USER_DATA_URI + globaleUserId + "?Proxy=true",
+        ENABLE_IME, enableStr);
+    if (globaleUserId != std::to_string(currentUserId_)) {
+        enableStr = GetUserEnableTable(currentUserId_);
+        CoverGlobalEnableTable(enableStr);
+    }
+    if (currentUserId_ != userId) {
+        enableStr = GetUserEnableTable(userId);
+    }
+    return enableStr;
+}
+
+int32_t EnableImeDataParser::GetEnableData(
+    const std::string &key, std::vector<std::string> &enableVec, const int32_t userId)
 {
     if (key != std::string(ENABLE_IME) && key != std::string(ENABLE_KEYBOARD) && key != std::string(TEMP_IME)) {
         IMSA_HILOGD("invalid key: %{public}s.", key.c_str());
         return ErrorCode::ERROR_ENABLE_IME;
     }
-
     IMSA_HILOGD("userId: %{public}d, key: %{public}s.", userId, key.c_str());
     std::string valueStr;
-    int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(key, valueStr);
+    int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, key, valueStr);
     if (ret == ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
         IMSA_HILOGW("no keyword exist");
         enableVec.clear();
         return ErrorCode::NO_ERROR;
     }
-    if (ret != ErrorCode::NO_ERROR || valueStr.empty()) {
+    if (key != ENABLE_IME && (ret != ErrorCode::NO_ERROR || valueStr.empty())) {
         IMSA_HILOGW("get value failed, or valueStr is empty.");
         return ErrorCode::ERROR_ENABLE_IME;
     }
     auto parseRet = false;
     if (key == ENABLE_IME) {
+        valueStr = GetEanbleIme(userId, valueStr);
+        if (valueStr.empty()) {
+            IMSA_HILOGW("valueStr is empty, userId = %{public}d", userId);
+            return ErrorCode::NO_ERROR;
+        }
         parseRet = ParseEnableIme(valueStr, userId, enableVec);
     }
     if (key == ENABLE_KEYBOARD) {
@@ -213,6 +262,29 @@ int32_t EnableImeDataParser::GetEnableData(const std::string &key, std::vector<s
         parseRet = ParseTempIme(valueStr, userId, enableVec);
     }
     return parseRet ? ErrorCode::NO_ERROR : ErrorCode::ERROR_ENABLE_IME;
+}
+
+std::string EnableImeDataParser::GetGlobalTableUserId(const std::string &valueStr)
+{
+    auto root = cJSON_Parse(valueStr.c_str());
+    if (root == nullptr) {
+        IMSA_HILOGE("valueStr content parse failed!");
+        return "";
+    }
+    auto subNode = Serializable::GetSubNode(root, "enableImeList");
+    if (subNode == nullptr || !cJSON_IsObject(subNode)) {
+        IMSA_HILOGW("subNode is null or not object");
+        cJSON_Delete(root);
+        return "";
+    }
+    if (subNode->child == nullptr) {
+        IMSA_HILOGW("subNode has not child");
+        cJSON_Delete(root);
+        return "";
+    }
+    std::string userId = subNode->child->string;
+    cJSON_Delete(root);
+    return userId;
 }
 
 bool EnableImeDataParser::ParseTempIme(const std::string &valueStr, int32_t userId,

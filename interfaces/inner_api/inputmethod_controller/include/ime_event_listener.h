@@ -24,12 +24,15 @@ namespace MiscServices {
 constexpr uint32_t EVENT_IME_CHANGE_MASK = 1u;
 constexpr uint32_t EVENT_IME_SHOW_MASK = 1u << 1u;
 constexpr uint32_t EVENT_IME_HIDE_MASK = 1u << 2u;
+constexpr uint32_t EVENT_INPUT_STATUS_CHANGED_MASK = 1u << 3u; // OnInputStart and OnInputStop
 class ImeEventListener {
 public:
     virtual ~ImeEventListener() = default;
     virtual void OnImeChange(const Property &property, const SubProperty &subProperty){};
     virtual void OnImeShow(const ImeWindowInfo &info){};
     virtual void OnImeHide(const ImeWindowInfo &info){};
+    virtual void OnInputStart(uint32_t callingWndId) {};
+    virtual void OnInputStop() {};
 };
 } // namespace MiscServices
 } // namespace OHOS

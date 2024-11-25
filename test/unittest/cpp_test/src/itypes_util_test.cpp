@@ -17,22 +17,20 @@
 #include "itypes_util.h"
 #undef private
 
-#include <gtest/gtest.h>
 #include <cstdint>
+#include <gtest/gtest.h>
 #include <string>
 
-
 #include "global.h"
-#include "tdd_util.h"
-#include "itypes_util.h"
 #include "inputmethod_sysevent.h"
+#include "itypes_util.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 class ITypesUtilTest : public testing::Test {
 public:
-
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
         InputMethodEngineListenerImpl() = default;
@@ -161,6 +159,48 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute, TestSize.Level
 }
 
 /**
+ * @tc.name: testMarshallAndUnMarshallInputAttributeSuccess
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttributeSuccess_WithBundleName, TestSize.Level0)
+{
+    IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputAttributeSuccess Test START");
+    MessageParcel data;
+    InputAttribute attrIn { .bundleName = "MyBundleName" };
+    auto ret = ITypesUtil::Marshalling(attrIn, data);
+    EXPECT_TRUE(ret);
+
+    InputAttribute attrOut;
+    ret = ITypesUtil::Unmarshalling(attrOut, data);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(attrIn, attrOut);
+    EXPECT_EQ(attrIn.bundleName, attrOut.bundleName);
+}
+
+/**
+ * @tc.name: testMarshallAndUnMarshallInputAttributeSuccess
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute_WithEmptyBundleName, TestSize.Level0)
+{
+    IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputAttributeSuccess Test START");
+    MessageParcel data;
+    InputAttribute attrIn { .bundleName = "" };
+    auto ret = ITypesUtil::Marshalling(attrIn, data);
+    EXPECT_TRUE(ret);
+
+    InputAttribute attrOut;
+    ret = ITypesUtil::Unmarshalling(attrOut, data);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(attrIn, attrOut);
+    EXPECT_EQ(attrIn.bundleName, attrOut.bundleName);
+}
+
+/**
  * @tc.name: testMarshallAndUnMarshallTextTotalConfig
  * @tc.desc: IMA
  * @tc.type: FUNC
@@ -188,7 +228,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputClientInfo, TestSize.Leve
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputClientInfo Test START");
     MessageParcel data;
     InputClientInfo input;
-    auto  ret = ITypesUtil::Unmarshalling(input, data);
+    auto ret = ITypesUtil::Unmarshalling(input, data);
     EXPECT_FALSE(ret);
     ret = ITypesUtil::Marshalling(input, data);
     EXPECT_TRUE(ret);
@@ -254,7 +294,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputType, TestSize.Level0)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputType Test START");
     MessageParcel data;
-    InputType input{ InputType::NONE };
+    InputType input { InputType::NONE };
     auto ret = ITypesUtil::Unmarshalling(input, data);
     EXPECT_FALSE(ret);
     data.WriteInt32(1);

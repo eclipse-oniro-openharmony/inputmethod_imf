@@ -79,7 +79,6 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
           console.log(TAG + `commonEvent subscribe error, errorCode: ${error}`);
           return;
         }
-        console.log(TAG + 'commonEvent:' + JSON.stringify(commonEventData?.event));
         if (commonEventData?.event === PACKAGE_ADDED || commonEventData?.event === PACKAGE_REMOVED) {
           this.updateImeList();
         }

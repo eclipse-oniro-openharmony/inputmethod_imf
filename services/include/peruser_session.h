@@ -66,7 +66,7 @@ enum class ImeAction : uint32_t {
     HANDLE_STARTING_IME,
     FORCE_STOP_IME,
     STOP_READY_IME,
-    START_IME_AFTER_FORCE_STOP_IME,
+    START_AFTER_FORCE_STOP,
     DO_SET_CORE_AND_AGENT,
     DO_ACTION_IN_NULL_IME_DATA,
     DO_ACTION_IN_IME_EVENT_CONVERT_FAILED,
@@ -109,11 +109,12 @@ public:
     int32_t OnShowInput(sptr<IInputClient> client);
     int32_t OnHideInput(sptr<IInputClient> client);
     int32_t OnRequestShowInput();
-    int32_t OnRequestHideInput();
+    int32_t OnRequestHideInput(int32_t callingPid);
     void OnSecurityChange(int32_t security);
     void OnHideSoftKeyBoardSelf();
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
     int32_t SwitchSubtype(const SubProperty &subProperty);
+    int32_t SwitchSubtypeWithoutStartIme(const SubProperty &subProperty);
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
     int64_t GetCurrentClientPid();
@@ -147,6 +148,8 @@ public:
     int32_t SetInputType();
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
+    int32_t OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client);
+    bool IsSaReady(int32_t saId);
 
 private:
     struct ResetManager {
@@ -183,8 +186,8 @@ private:
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
-    int32_t RemoveClient(
-        const sptr<IInputClient> &client, bool isUnbindFromClient = false, bool isInactiveClient = false);
+    int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false,
+        bool isInactiveClient = false, bool isNotifyClientAsync = false);
     void DeactivateClient(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
@@ -203,8 +206,9 @@ private:
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
         bool isBindFromClient = false);
     void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
-        bool isUnbindFromClient = false);
-    void StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient = false);
+        bool isUnbindFromClient = false, bool isNotifyClientAsync = false);
+    void StopClientInput(
+        const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient = false, bool isAsync = false);
     void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);
@@ -224,14 +228,13 @@ private:
     bool IsImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInImeBind(ImeType bindImeType, ImeType startImeType);
-    bool IsImeBindChanged(ImeType bindImeType);
+    bool IsImeBindTypeChanged(ImeType bindImeType);
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
-    bool IsReady(int32_t saId);
     AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime);
@@ -240,7 +243,12 @@ private:
     bool StopReadyCurrentIme();
     bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
+    bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
+    // from service notify clients input start and stop
+    int32_t NotifyInputStartToClients(uint32_t callingWndId);
+    int32_t NotifyInputStopToClients();
+    bool IsNotifyInputStop(const sptr<IInputClient> &client);
+    void HandleImeBindTypeChanged(InputClientInfo &newClientInfo);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
@@ -261,13 +269,12 @@ private:
     static inline const std::map<std::pair<ImeStatus, ImeEvent>, std::pair<ImeStatus, ImeAction>> imeEventConverter_ = {
         { { ImeStatus::READY, ImeEvent::START_IME }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
         { { ImeStatus::STARTING, ImeEvent::START_IME }, { ImeStatus::STARTING, ImeAction::HANDLE_STARTING_IME } },
-        { { ImeStatus::EXITING, ImeEvent::START_IME },
-            { ImeStatus::EXITING, ImeAction::START_IME_AFTER_FORCE_STOP_IME } },
+        { { ImeStatus::EXITING, ImeEvent::START_IME }, { ImeStatus::EXITING, ImeAction::START_AFTER_FORCE_STOP } },
         { { ImeStatus::READY, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
         { { ImeStatus::STARTING, ImeEvent::START_IME_TIMEOUT },
-            { ImeStatus::EXITING, ImeAction::START_IME_AFTER_FORCE_STOP_IME } },
+            { ImeStatus::EXITING, ImeAction::START_AFTER_FORCE_STOP } },
         { { ImeStatus::EXITING, ImeEvent::START_IME_TIMEOUT },
-            { ImeStatus::EXITING, ImeAction::START_IME_AFTER_FORCE_STOP_IME } },
+            { ImeStatus::EXITING, ImeAction::START_AFTER_FORCE_STOP } },
         { { ImeStatus::READY, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_READY_IME } },
         { { ImeStatus::STARTING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::FORCE_STOP_IME } },
         { { ImeStatus::EXITING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::FORCE_STOP_IME } },

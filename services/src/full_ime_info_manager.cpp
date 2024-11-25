@@ -25,7 +25,7 @@ constexpr uint32_t TIMER_TASK_INTERNAL = 3600000; // updated hourly
 FullImeInfoManager::~FullImeInfoManager()
 {
     timer_.Unregister(timerId_);
-    timer_.Shutdown(false);
+    timer_.Shutdown();
     fullImeInfos_.clear();
 }
 
@@ -100,26 +100,7 @@ int32_t FullImeInfoManager::Delete(int32_t userId)
 
 int32_t FullImeInfoManager::Add(int32_t userId, const std::string &bundleName)
 {
-    FullImeInfo info;
-    auto ret = ImeInfoInquirer::GetInstance().GetFullImeInfo(userId, bundleName, info);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to GetFullImeInfo, userId:%{public}d, bundleName:%{public}s, ret:%{public}d", userId,
-            bundleName.c_str(), ret);
-        return ret;
-    }
-    std::lock_guard<std::mutex> lock(lock_);
-    auto it = fullImeInfos_.find(userId);
-    if (it == fullImeInfos_.end()) {
-        fullImeInfos_.insert({ userId, { info } });
-        return ErrorCode::NO_ERROR;
-    }
-    auto iter = std::find_if(it->second.begin(), it->second.end(),
-        [&bundleName](const FullImeInfo &info) { return bundleName == info.prop.name; });
-    if (iter != it->second.end()) {
-        return ErrorCode::NO_ERROR;
-    }
-    it->second.push_back(info);
-    return ErrorCode::NO_ERROR;
+    return Update(userId, bundleName);
 }
 
 int32_t FullImeInfoManager::Delete(int32_t userId, const std::string &bundleName)

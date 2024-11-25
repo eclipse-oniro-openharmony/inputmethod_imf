@@ -45,11 +45,11 @@ private:
     static std::shared_ptr<ImeInfo> defaultIme_;
     static std::shared_ptr<Property> currentIme_;
     static std::shared_ptr<Property> defaultImeProperty_;
-    bool isQueryAllFullImeInfosOk_{ false };
+    bool isQueryAllFullImeInfosOk_ { false };
     std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> allFullImeInfos_;
-    bool isQueryFullImeInfosOk_{ false };
+    bool isQueryFullImeInfosOk_ { false };
     std::vector<FullImeInfo> fullImeInfos_;
-    bool isGetFullImeInfoOk_{ false };
+    bool isGetFullImeInfoOk_ { false };
     FullImeInfo fullImeInfo_;
 };
 } // namespace MiscServices

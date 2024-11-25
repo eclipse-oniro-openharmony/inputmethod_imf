@@ -35,39 +35,17 @@ namespace MiscServices {
  */
 class TextListenerImpl : public OnTextChangedListener {
 public:
-    void InsertText(const std::u16string &text) override
-    {
-    }
-    void DeleteForward(int32_t length) override
-    {
-    }
-    void DeleteBackward(int32_t length) override
-    {
-    }
-    void SendKeyEventFromInputMethod(const KeyEvent &event) override
-    {
-    }
-    void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) override
-    {
-    }
-    void SendFunctionKey(const FunctionKey &functionKey) override
-    {
-    }
-    void SetKeyboardStatus(bool status) override
-    {
-    }
-    void MoveCursor(const Direction direction) override
-    {
-    }
-    void HandleSetSelection(int32_t start, int32_t end) override
-    {
-    }
-    void HandleExtendAction(int32_t action) override
-    {
-    }
-    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override
-    {
-    }
+    void InsertText(const std::u16string &text) override { }
+    void DeleteForward(int32_t length) override { }
+    void DeleteBackward(int32_t length) override { }
+    void SendKeyEventFromInputMethod(const KeyEvent &event) override { }
+    void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) override { }
+    void SendFunctionKey(const FunctionKey &functionKey) override { }
+    void SetKeyboardStatus(bool status) override { }
+    void MoveCursor(const Direction direction) override { }
+    void HandleSetSelection(int32_t start, int32_t end) override { }
+    void HandleExtendAction(int32_t action) override { }
+    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override { }
     std::u16string GetLeftTextOfCursor(int32_t number) override
     {
         return Str8ToStr16("test");
@@ -86,39 +64,25 @@ public:
  */
 class EngineListenerImpl : public InputMethodEngineListener {
 public:
-    void OnKeyboardStatus(bool isShow) override
-    {
-    }
-    void OnInputStart() override
-    {
-    }
+    void OnKeyboardStatus(bool isShow) override { }
+    void OnInputStart() override { }
     int32_t OnInputStop() override
     {
         return ErrorCode::NO_ERROR;
     }
-    void OnSecurityChange(int32_t security) override
-    {
-    }
-    void OnSetCallingWindow(uint32_t windowId) override
-    {
-    }
-    void OnSetSubtype(const SubProperty &property) override
-    {
-    }
-    void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override
-    {
-    }
+    void OnSecurityChange(int32_t security) override { }
+    void OnSetCallingWindow(uint32_t windowId) override { }
+    void OnSetSubtype(const SubProperty &property) override { }
+    void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override { }
 };
 /**
  * @brief Only pure virtual functions are implemented.
  */
-class EventListenerImpl : public ImeEventListener {
-};
+class EventListenerImpl : public ImeEventListener { };
 /**
  * @brief Only pure virtual functions are implemented.
  */
-class SystemCmdChannelImpl : public OnSystemCmdListener {
-};
+class SystemCmdChannelImpl : public OnSystemCmdListener { };
 
 class SystemCmdChannelListenerImpl : public OnSystemCmdListener {
 public:
@@ -126,7 +90,7 @@ public:
     {
         isReceivePrivateCommand_ = true;
     }
-    void NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)override
+    void NotifyPanelStatus(const SysPanelStatus &sysPanelStatus) override
     {
         isNotifyIsShowSysPanel_ = true;
     }
@@ -138,8 +102,8 @@ public:
     static bool isReceivePrivateCommand_;
     static bool isNotifyIsShowSysPanel_;
 };
-bool SystemCmdChannelListenerImpl::isReceivePrivateCommand_{ false };
-bool SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_{ false };
+bool SystemCmdChannelListenerImpl::isReceivePrivateCommand_ { false };
+bool SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_ { false };
 
 class VirtualListenerTest : public testing::Test {
 public:
@@ -168,10 +132,10 @@ public:
     static std::shared_ptr<InputMethodEngineListener> engineListener_;
     static sptr<OnSystemCmdListener> systemCmdListener_;
 };
-sptr<OnTextChangedListener> VirtualListenerTest::textListener_{ nullptr };
-std::shared_ptr<ImeEventListener> VirtualListenerTest::eventListener_{ nullptr };
-std::shared_ptr<InputMethodEngineListener> VirtualListenerTest::engineListener_{ nullptr };
-sptr<OnSystemCmdListener> VirtualListenerTest::systemCmdListener_{ nullptr };
+sptr<OnTextChangedListener> VirtualListenerTest::textListener_ { nullptr };
+std::shared_ptr<ImeEventListener> VirtualListenerTest::eventListener_ { nullptr };
+std::shared_ptr<InputMethodEngineListener> VirtualListenerTest::engineListener_ { nullptr };
+sptr<OnSystemCmdListener> VirtualListenerTest::systemCmdListener_ { nullptr };
 
 /**
  * @tc.name: testOnTextChangedListener_001

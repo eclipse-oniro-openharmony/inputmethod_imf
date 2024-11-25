@@ -66,6 +66,7 @@ bool ImCommonEventManager::SubscribeEvent()
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_CHANGED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_DATA_SHARE_READY);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_STOPPED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
 
@@ -93,7 +94,7 @@ bool ImCommonEventManager::SubscribeEvent()
     return true;
 }
 
-bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
+bool ImCommonEventManager::SubscribeKeyboardEvent(const Handler &handler)
 {
     IMSA_HILOGI("ImCommonEventManager::SubscribeKeyboardEvent start.");
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -101,10 +102,10 @@ bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
         IMSA_HILOGE("SubscribeKeyboardEvent abilityManager is nullptr!");
         return false;
     }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handle]() {
-        int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
-        IMSA_HILOGI("SubscribeKeyboardEvent add monitor: %{public}s.",
-            ret == ErrorCode::NO_ERROR ? "success" : "failed");
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
+        if (handler != nullptr) {
+            handler();
+        }
     });
     if (listener == nullptr) {
         IMSA_HILOGE("listener is nullptr!");
@@ -219,6 +220,10 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
             return that->OnBundleScanFinished(data);
         };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_DATA_SHARE_READY] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->OnDataShareReady(data);
+        };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED] =
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
             return that->AddPackage(data);
@@ -285,6 +290,23 @@ void ImCommonEventManager::EventSubscriber::OnBundleScanFinished(const EventFwk:
         return;
     }
     auto msg = new (std::nothrow) Message(MessageID::MSG_ID_BUNDLE_SCAN_FINISHED, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("failed to create Message!");
+        delete parcel;
+        return;
+    }
+    MessageHandler::Instance()->SendMessage(msg);
+}
+
+void ImCommonEventManager::EventSubscriber::OnDataShareReady(const EventFwk::CommonEventData &data)
+{
+    IMSA_HILOGI("ImCommonEventManager start.");
+    auto parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("failed to create MessageParcel!");
+        return;
+    }
+    auto msg = new (std::nothrow) Message(MessageID::MSG_ID_DATA_SHARE_READY, parcel);
     if (msg == nullptr) {
         IMSA_HILOGE("failed to create Message!");
         delete parcel;

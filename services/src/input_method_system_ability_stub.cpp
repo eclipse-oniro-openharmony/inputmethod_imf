@@ -328,6 +328,22 @@ int32_t InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote(MessageParce
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::SetCallingWindowOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    auto clientObject = data.ReadRemoteObject();
+    if (clientObject == nullptr) {
+        IMSA_HILOGE("clientObject is nullptr!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    uint32_t windowId = 0;
+    if (!ITypesUtil::Unmarshal(data, windowId)) {
+        IMSA_HILOGE("unmarshal failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ITypesUtil::Marshal(reply, SetCallingWindow(windowId, iface_cast<IInputClient>(clientObject))) ?
+        ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)
 {
     int32_t ret = ShowCurrentInputDeprecated();

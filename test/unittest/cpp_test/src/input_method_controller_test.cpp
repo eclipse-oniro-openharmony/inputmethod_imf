@@ -16,9 +16,9 @@
 #define protected public
 #include "input_method_controller.h"
 
+#include "input_data_channel_stub.h"
 #include "input_method_ability.h"
 #include "input_method_system_ability.h"
-#include "input_data_channel_stub.h"
 #include "task_manager.h"
 #undef private
 
@@ -42,6 +42,7 @@
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "identity_checker_mock.h"
 #include "if_system_ability_manager.h"
 #include "input_client_stub.h"
 #include "input_death_recipient.h"
@@ -58,7 +59,6 @@
 #include "system_ability_definition.h"
 #include "tdd_util.h"
 #include "text_listener.h"
-#include "identity_checker_mock.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -164,7 +164,7 @@ public:
                                                                                               "st");
             textConfigHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         };
-        ~KeyboardListenerImpl(){};
+        ~KeyboardListenerImpl() {};
         bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override
         {
             if (!doesKeyEventConsume_) {
@@ -208,8 +208,8 @@ public:
         }
         void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override
         {
-            IMSA_HILOGI("KeyboardListenerImpl %{public}d %{public}d %{public}d %{public}d", oldBegin, oldEnd, newBegin,
-                newEnd);
+            IMSA_HILOGI(
+                "KeyboardListenerImpl %{public}d %{public}d %{public}d %{public}d", oldBegin, oldEnd, newBegin, newEnd);
             oldBegin_ = oldBegin;
             oldEnd_ = oldEnd;
             newBegin_ = newBegin;
@@ -252,18 +252,18 @@ std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
 sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
 std::mutex InputMethodControllerTest::onRemoteSaDiedMutex_;
 std::condition_variable InputMethodControllerTest::onRemoteSaDiedCv_;
-BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockKeyEvent_{
+BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockKeyEvent_ {
     InputMethodControllerTest::KEY_EVENT_DELAY_TIME, nullptr
 };
-BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockFullKeyEvent_{
+BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockFullKeyEvent_ {
     InputMethodControllerTest::KEY_EVENT_DELAY_TIME, nullptr
 };
-bool InputMethodControllerTest::doesKeyEventConsume_{ false };
-bool InputMethodControllerTest::doesFUllKeyEventConsume_{ false };
+bool InputMethodControllerTest::doesKeyEventConsume_ { false };
+bool InputMethodControllerTest::doesFUllKeyEventConsume_ { false };
 std::condition_variable InputMethodControllerTest::keyEventCv_;
 std::mutex InputMethodControllerTest::keyEventLock_;
-bool InputMethodControllerTest::consumeResult_{ false };
-std::shared_ptr<AppExecFwk::EventHandler> InputMethodControllerTest::textConfigHandler_{ nullptr };
+bool InputMethodControllerTest::consumeResult_ { false };
+std::shared_ptr<AppExecFwk::EventHandler> InputMethodControllerTest::textConfigHandler_ { nullptr };
 
 void InputMethodControllerTest::SetUpTestCase(void)
 {
@@ -347,7 +347,9 @@ void InputMethodControllerTest::SetInputDeathRecipient()
         IMSA_HILOGE("InputMethodControllerTest, new death recipient failed");
         return;
     }
-    deathRecipient_->SetDeathRecipient([](const wptr<IRemoteObject> &remote) { OnRemoteSaDied(remote); });
+    deathRecipient_->SetDeathRecipient([](const wptr<IRemoteObject> &remote) {
+        OnRemoteSaDied(remote);
+    });
     if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
         IMSA_HILOGE("InputMethodControllerTest, failed to add death recipient.");
         return;
@@ -396,14 +398,14 @@ void InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> key
     ret = keyEvent->GetKeyIntention() == keyEvent_->GetKeyIntention();
     EXPECT_TRUE(ret);
     // check function key state
-    ret = keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY)
-          == keyEvent_->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY);
+    ret = keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY) ==
+        keyEvent_->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY);
     EXPECT_TRUE(ret);
-    ret = keyEvent->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY)
-          == keyEvent_->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY);
+    ret = keyEvent->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY) ==
+        keyEvent_->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY);
     EXPECT_TRUE(ret);
-    ret = keyEvent->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY)
-          == keyEvent_->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY);
+    ret = keyEvent->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY) ==
+        keyEvent_->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY);
     EXPECT_TRUE(ret);
     // check KeyItem
     ret = keyEvent->GetKeyItems().size() == keyEvent_->GetKeyItems().size();
@@ -428,17 +430,18 @@ bool InputMethodControllerTest::WaitKeyboardStatus(bool keyboardState)
 void InputMethodControllerTest::TriggerConfigurationChangeCallback(Configuration &info)
 {
     textConfigHandler_->PostTask(
-        [info]() { inputMethodController_->OnConfigurationChange(info); }, InputMethodControllerTest::TASK_DELAY_TIME);
+        [info]() {
+            inputMethodController_->OnConfigurationChange(info);
+        },
+        InputMethodControllerTest::TASK_DELAY_TIME);
     {
         std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
         InputMethodControllerTest::keyboardListenerCv_.wait_for(
             lock, std::chrono::seconds(InputMethodControllerTest::DELAY_TIME), [&info] {
                 return (static_cast<OHOS::MiscServices::TextInputType>(
-                            InputMethodControllerTest::inputAttribute_.inputPattern)
-                           == info.GetTextInputType())
-                       && (static_cast<OHOS::MiscServices::EnterKeyType>(
-                               InputMethodControllerTest::inputAttribute_.enterKeyType)
-                           == info.GetEnterKeyType());
+                            InputMethodControllerTest::inputAttribute_.inputPattern) == info.GetTextInputType()) &&
+                    (static_cast<OHOS::MiscServices::EnterKeyType>(
+                         InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
             });
     }
 }
@@ -446,26 +449,33 @@ void InputMethodControllerTest::TriggerConfigurationChangeCallback(Configuration
 void InputMethodControllerTest::TriggerCursorUpdateCallback(CursorInfo &info)
 {
     textConfigHandler_->PostTask(
-        [info]() { inputMethodController_->OnCursorUpdate(info); }, InputMethodControllerTest::TASK_DELAY_TIME);
+        [info]() {
+            inputMethodController_->OnCursorUpdate(info);
+        },
+        InputMethodControllerTest::TASK_DELAY_TIME);
     {
         std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
-        InputMethodControllerTest::keyboardListenerCv_.wait_for(lock,
-            std::chrono::seconds(InputMethodControllerTest::DELAY_TIME),
-            [&info] { return InputMethodControllerTest::cursorInfo_ == info; });
+        InputMethodControllerTest::keyboardListenerCv_.wait_for(
+            lock, std::chrono::seconds(InputMethodControllerTest::DELAY_TIME), [&info] {
+                return InputMethodControllerTest::cursorInfo_ == info;
+            });
     }
 }
 
 void InputMethodControllerTest::TriggerSelectionChangeCallback(std::u16string &text, int start, int end)
 {
     IMSA_HILOGI("InputMethodControllerTest run in");
-    textConfigHandler_->PostTask([text, start, end]() { inputMethodController_->OnSelectionChange(text, start, end); },
+    textConfigHandler_->PostTask(
+        [text, start, end]() {
+            inputMethodController_->OnSelectionChange(text, start, end);
+        },
         InputMethodControllerTest::TASK_DELAY_TIME);
     {
         std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
         InputMethodControllerTest::keyboardListenerCv_.wait_for(
             lock, std::chrono::seconds(InputMethodControllerTest::DELAY_TIME), [&text, start, end] {
-                return InputMethodControllerTest::text_ == Str16ToStr8(text)
-                       && InputMethodControllerTest::newBegin_ == start && InputMethodControllerTest::newEnd_ == end;
+                return InputMethodControllerTest::text_ == Str16ToStr8(text) &&
+                    InputMethodControllerTest::newBegin_ == start && InputMethodControllerTest::newEnd_ == end;
             });
     }
     IMSA_HILOGI("InputMethodControllerTest end");
@@ -494,7 +504,9 @@ void InputMethodControllerTest::DispatchKeyEventCallback(std::shared_ptr<MMI::Ke
 bool InputMethodControllerTest::WaitKeyEventCallback()
 {
     std::unique_lock<std::mutex> lock(keyEventLock_);
-    keyEventCv_.wait_for(lock, std::chrono::seconds(DELAY_TIME), [] { return consumeResult_; });
+    keyEventCv_.wait_for(lock, std::chrono::seconds(DELAY_TIME), [] {
+        return consumeResult_;
+    });
     return consumeResult_;
 }
 
@@ -1018,8 +1030,8 @@ HWTEST_F(InputMethodControllerTest, testIMCGetEnterKeyType, TestSize.Level0)
     IMSA_HILOGI("IMC GetEnterKeyType Test START");
     int32_t keyType;
     inputMethodController_->GetEnterKeyType(keyType);
-    EXPECT_TRUE(keyType >= static_cast<int32_t>(EnterKeyType::UNSPECIFIED)
-                && keyType <= static_cast<int32_t>(EnterKeyType::PREVIOUS));
+    EXPECT_TRUE(keyType >= static_cast<int32_t>(EnterKeyType::UNSPECIFIED) &&
+        keyType <= static_cast<int32_t>(EnterKeyType::PREVIOUS));
 }
 
 /**
@@ -1033,8 +1045,8 @@ HWTEST_F(InputMethodControllerTest, testIMCGetInputPattern, TestSize.Level0)
     IMSA_HILOGI("IMC GetInputPattern Test START");
     int32_t inputPattern;
     inputMethodController_->GetInputPattern(inputPattern);
-    EXPECT_TRUE(inputPattern >= static_cast<int32_t>(TextInputType::NONE)
-                && inputPattern <= static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD));
+    EXPECT_TRUE(inputPattern >= static_cast<int32_t>(TextInputType::NONE) &&
+        inputPattern <= static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD));
 }
 
 /**
@@ -1167,7 +1179,7 @@ HWTEST_F(InputMethodControllerTest, testIMCRequestHideInput, TestSize.Level0)
     imeListener_->keyboardState_ = true;
     int32_t ret = InputMethodControllerTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(WaitKeyboardStatus(true));
+    EXPECT_TRUE(WaitKeyboardStatus(false));
 }
 
 /**
@@ -1520,12 +1532,15 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextListener::ResetParam();
-    std::unordered_map<std::string, PrivateDataValue> privateCommand1{ { "v",
-        string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') } };
-    std::unordered_map<std::string, PrivateDataValue> privateCommand2{ { "v",
-        string(PRIVATE_COMMAND_SIZE_MAX - 1, 'a') } };
-    std::unordered_map<std::string, PrivateDataValue> privateCommand3{ { "v",
-        string(PRIVATE_COMMAND_SIZE_MAX, 'a') } };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand1 {
+        { "v", string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') }
+    };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand2 {
+        { "v", string(PRIVATE_COMMAND_SIZE_MAX - 1, 'a') }
+    };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand3 {
+        { "v", string(PRIVATE_COMMAND_SIZE_MAX, 'a') }
+    };
     ret = inputMethodController_->SendPrivateCommand(privateCommand1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodController_->SendPrivateCommand(privateCommand2);
@@ -1588,7 +1603,7 @@ HWTEST_F(InputMethodControllerTest, testOnInputReady, TestSize.Level0)
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
 
- /**
+/**
  * @tc.name: testIsPanelShown
  * @tc.desc: IMC testIsPanelShown
  * @tc.type: IMC

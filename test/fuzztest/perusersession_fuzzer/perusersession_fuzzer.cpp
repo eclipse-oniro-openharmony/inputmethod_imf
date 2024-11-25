@@ -37,9 +37,9 @@
 #include "input_method_core_stub.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
+#include "input_method_types.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
-#include "input_method_types.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {

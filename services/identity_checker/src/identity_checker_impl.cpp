@@ -42,12 +42,17 @@ bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId,
 #endif
         realFocusedPid = info.pid_;
     }
-    IMSA_HILOGD("focusedPid: %{public}" PRId64 ", pid: %{public}" PRId64 "", realFocusedPid, callingPid);
     if (callingPid == realFocusedPid) {
-        IMSA_HILOGD("pid is same, focused app.");
+        IMSA_HILOGD("focused app, pid: %{public}" PRId64 "", callingPid);
         return true;
     }
-    return IsFocusedUIExtension(callingTokenId);
+    bool isFocused = IsFocusedUIExtension(callingTokenId);
+    if (!isFocused) {
+        IMSA_HILOGE("not focused, focusedPid: %{public}" PRId64 ", callerPid: %{public}" PRId64 ", callerToken: "
+                    "%{public}d",
+            realFocusedPid, callingPid, callingTokenId);
+    }
+    return isFocused;
 }
 
 bool IdentityCheckerImpl::IsSystemApp(uint64_t fullTokenId)
@@ -99,8 +104,12 @@ bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId)
 {
     bool isFocused = false;
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to CheckUIExtensionIsFocused, ret: %{public}d", ret);
+        return false;
+    }
     IMSA_HILOGD("tokenId: %{public}d, check result: %{public}d, isFocused: %{public}d", callingTokenId, ret, isFocused);
-    return ret == ErrorCode::NO_ERROR && isFocused;
+    return isFocused;
 }
 
 std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)

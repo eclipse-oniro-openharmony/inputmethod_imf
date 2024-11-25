@@ -32,10 +32,13 @@ int32_t InputClientProxy::OnInputReady(const sptr<IRemoteObject> &agent)
     return SendRequest(ON_INPUT_READY, [agent](MessageParcel &data) { return ITypesUtil::Marshal(data, agent); });
 }
 
-int32_t InputClientProxy::OnInputStop(bool isStopInactiveClient)
+int32_t InputClientProxy::OnInputStop(bool isStopInactiveClient, bool isAsync)
 {
-    return SendRequest(ON_INPUT_STOP,
-        [isStopInactiveClient](MessageParcel &data) { return ITypesUtil::Marshal(data, isStopInactiveClient); });
+    MessageOption option = isAsync ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC;
+    return SendRequest(
+        ON_INPUT_STOP,
+        [isStopInactiveClient](MessageParcel &data) { return ITypesUtil::Marshal(data, isStopInactiveClient); },
+        nullptr, option);
 }
 
 int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubProperty &subProperty)
@@ -51,6 +54,19 @@ int32_t InputClientProxy::OnPanelStatusChange(const InputWindowStatus &status, c
     });
 }
 
+int32_t InputClientProxy::NotifyInputStart(uint32_t callingWndId)
+{
+    IMSA_HILOGD("InputClientProxy::NotifyInputStart");
+    return SendRequest(ON_NOTIFY_INPUT_START, [callingWndId](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, callingWndId);
+    });
+}
+
+int32_t InputClientProxy::NotifyInputStop()
+{
+    IMSA_HILOGD("InputClientProxy::NotifyInputStop");
+    return SendRequest(ON_NOTIFY_INPUT_STOP, nullptr);
+}
 void InputClientProxy::DeactivateClient()
 {
     SendRequest(DEACTIVATE_CLIENT, nullptr, nullptr, MessageOption::TF_ASYNC);

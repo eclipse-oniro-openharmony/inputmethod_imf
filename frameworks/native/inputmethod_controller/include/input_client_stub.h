@@ -37,9 +37,11 @@ public:
     ~InputClientStub();
 
     int32_t OnInputReady(const sptr<IRemoteObject> &agent) override;
-    int32_t OnInputStop(bool isStopInactiveClient) override;
+    int32_t OnInputStop(bool isStopInactiveClient, bool isAsync = false) override;
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
+    int32_t NotifyInputStart(uint32_t callingWndId) override;
+    int32_t NotifyInputStop() override;
     void DeactivateClient() override;
 
 private:
@@ -48,6 +50,8 @@ private:
     int32_t OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeactivateClientOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t NotifyInputStartOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t NotifyInputStopOnRemote(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace MiscServices
 } // namespace OHOS
