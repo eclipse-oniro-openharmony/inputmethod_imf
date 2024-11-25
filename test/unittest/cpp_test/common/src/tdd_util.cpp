@@ -387,14 +387,15 @@ void TddUtil::InitCurrentImePermissionInfo()
     }
     currentBundleNameMock_ = property->name;
     session->InitImeData({ property->name, property->id });
-    ImeCfgManager::GetInstance().imeConfigs_ = { { userId, property->name + "/" + property->id, "", false } };
+    ImeCfgManager::GetInstance().imeConfigs_ = {
+        { userId, property->name + "/" + property->id, "", false }
+    };
 }
 
 void TddUtil::WindowManager::CreateWindow()
 {
     if (windowTokenId_ == 0) {
-        windowTokenId_ = AllocTestTokenID(true, "TestWindow",
-            { "ohos.permission.SYSTEM_FLOAT_WINDOW" });
+        windowTokenId_ = AllocTestTokenID(true, "TestWindow", { "ohos.permission.SYSTEM_FLOAT_WINDOW" });
     }
     TokenScope scope(windowTokenId_);
     std::string windowName = "inputmethod_test_window";

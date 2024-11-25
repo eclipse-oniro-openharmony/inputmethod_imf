@@ -101,12 +101,12 @@ private:
     static bool isNativeSa_;
     static std::string bundleName_;
 };
-bool IdentityCheckerMock::isFocused_{ false };
-bool IdentityCheckerMock::isSystemApp_{ false };
-bool IdentityCheckerMock::isBundleNameValid_{ false };
-bool IdentityCheckerMock::hasPermission_{ false };
-bool IdentityCheckerMock::isBroker_{ false };
-bool IdentityCheckerMock::isNativeSa_{ false };
+bool IdentityCheckerMock::isFocused_ { false };
+bool IdentityCheckerMock::isSystemApp_ { false };
+bool IdentityCheckerMock::isBundleNameValid_ { false };
+bool IdentityCheckerMock::hasPermission_ { false };
+bool IdentityCheckerMock::isBroker_ { false };
+bool IdentityCheckerMock::isNativeSa_ { false };
 std::string IdentityCheckerMock::bundleName_;
 } // namespace MiscServices
 } // namespace OHOS

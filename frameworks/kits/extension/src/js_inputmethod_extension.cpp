@@ -69,13 +69,18 @@ napi_value AttachInputMethodExtensionContext(napi_env env, void *value, void *)
         IMSA_HILOGE("workContext is nullptr!");
         return nullptr;
     }
-    napi_wrap(
+    napi_status status = napi_wrap(
         env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             IMSA_HILOGI("finalizer for weak_ptr input method extension context is called.");
             delete static_cast<std::weak_ptr<InputMethodExtensionContext> *>(data);
         },
         nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("InputMethodExtensionContext wrap failed: %{public}d!", status);
+        delete workContext;
+        return nullptr;
+    }
     return object;
 }
 
@@ -242,13 +247,17 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
     context->Bind(jsRuntime_, shellContextRef.release());
     IMSA_HILOGD("JsInputMethodExtension::SetProperty.");
     napi_set_named_property(env, obj, "context", contextObj);
-    napi_wrap(
+    napi_status status = napi_wrap(
         env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             IMSA_HILOGI("Finalizer for weak_ptr input method extension context is called.");
             delete static_cast<std::weak_ptr<InputMethodExtensionContext> *>(data);
         },
         nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("InputMethodExtensionContext wrap failed: %{public}d", status);
+        delete workContext;
+    }
 }
 
 void JsInputMethodExtension::OnStart(const AAFwk::Want &want)

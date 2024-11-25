@@ -174,9 +174,9 @@ private:
         EXPECT_EQ(freezeManager_->isFrozen_, freezable);
     }
 };
-std::shared_ptr<FreezeManager> ImeFreezeManagerTest::freezeManager_{ nullptr };
+std::shared_ptr<FreezeManager> ImeFreezeManagerTest::freezeManager_ { nullptr };
 std::mutex ImeFreezeManagerTest::mtx_;
-std::shared_ptr<AppExecFwk::EventHandler> ImeFreezeManagerTest::eventHandler_{ nullptr };
+std::shared_ptr<AppExecFwk::EventHandler> ImeFreezeManagerTest::eventHandler_ { nullptr };
 
 /**
  * @tc.name: SingleThread_StartInput_001

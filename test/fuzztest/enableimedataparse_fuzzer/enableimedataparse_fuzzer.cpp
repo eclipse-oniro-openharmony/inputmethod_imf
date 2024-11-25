@@ -54,8 +54,8 @@ void FuzzParseEnableKeyboard(const std::string &valueStr, int32_t userId, std::v
     EnableImeDataParser::GetInstance()->ParseEnableKeyboard(valueStr, userId, enableVec);
 }
 
-void FuzzCheckTargetEnableName(const std::string &key, const std::string &targetName, std::string &nextIme,
-                               const int32_t userId)
+void FuzzCheckTargetEnableName(
+    const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId)
 {
     EnableImeDataParser::GetInstance()->CheckTargetEnableName(key, targetName, nextIme, userId);
 }

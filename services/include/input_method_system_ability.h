@@ -137,11 +137,12 @@ private:
     void HandleUserSwitched(int32_t userId);
     void HandleWmsStarted();
     void HandleMemStarted();
+    void HandleDataShareReady();
     void HandleOsAccountStarted();
     void HandleFocusChanged(bool isFocused, int32_t pid, int32_t uid);
+    void HandleImeCfgCapsState();
     void StopImeInBackground();
     int32_t InitAccountMonitor();
-    int32_t RegisterDataShareObserver();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
@@ -171,12 +172,15 @@ private:
     int32_t StartInputType(int32_t userId, InputType type);
     // if switch input type need to switch ime, then no need to hide panel first.
     void NeedHideWhenSwitchInputType(int32_t userId, bool &needHide);
+    bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
+    bool ModifyImeCfgWithWrongCaps();
+    void HandleBundleScanFinished();
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     std::atomic<bool> enableImeOn_ = false;
     std::atomic<bool> enableSecurityMode_ = false;
-
+    std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;

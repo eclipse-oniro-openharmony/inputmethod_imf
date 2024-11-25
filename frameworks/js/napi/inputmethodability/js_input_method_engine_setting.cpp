@@ -571,10 +571,11 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
 
 void JsInputMethodEngineSetting::OnInputStart()
 {
-    IMSA_HILOGD("start JsInputMethodEngineSetting.");
+    IMSA_HILOGI("OnInputStart start.");
     std::string type = "inputStart";
     auto entry = GetEntry(type);
     if (entry == nullptr) {
+        IMSA_HILOGE("entry is nullptr!");
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -583,8 +584,10 @@ void JsInputMethodEngineSetting::OnInputStart()
         return;
     }
     auto task = [entry]() {
+        IMSA_HILOGI("OnInputStart task start!");
         auto paramGetter = [](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 2) {
+                IMSA_HILOGE("the num:%{public}d of params in OnInputStart is abnormal!", argc);
                 return false;
             }
             napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(env);
@@ -601,8 +604,12 @@ void JsInputMethodEngineSetting::OnInputStart()
         };
         // 2 means callback has 2 params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 2, paramGetter });
+        IMSA_HILOGI("OnInputStart task end!");
     };
-    handler_->PostTask(task, type);
+    auto ret = handler_->PostTask(task, type);
+    if (!ret) {
+        IMSA_HILOGE("OnInputStart PostTask failed!");
+    }
 }
 
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)

@@ -27,11 +27,11 @@
 #include "global.h"
 #include "ime_cfg_manager.h"
 #include "input_method_controller.h"
+#include "inputmethodsystemability_fuzzer.h"
 #include "iservice_registry.h"
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
 #include "system_ability_definition.h"
-#include "inputmethodsystemability_fuzzer.h"
 #include "text_listener.h"
 #include "token_setproc.h"
 
@@ -41,7 +41,7 @@ constexpr const int32_t MSG_ID_USER_ONE = 50;
 constexpr const int32_t MSG_ID_USER_TWO = 60;
 void FuzzOnUser(int32_t userId, const std::string &packageName)
 {
-    //onUserStarted
+    // onUserStarted
     MessageParcel *parcel = new MessageParcel();
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->isScbEnable_ = false;
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->userId_ = MSG_ID_USER_ONE;
@@ -49,13 +49,13 @@ void FuzzOnUser(int32_t userId, const std::string &packageName)
     auto msg = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnUserStarted(msg.get());
 
-    //onUserRemoved
+    // onUserRemoved
     MessageParcel *parcel1 = new MessageParcel();
     parcel1->WriteInt32(MSG_ID_USER_TWO);
     auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_USER_REMOVED, parcel1);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnUserRemoved(msg1.get());
 
-    //HandlePackageEvent
+    // HandlePackageEvent
     MessageParcel *parcel2 = new (std::nothrow) MessageParcel();
     auto bundleName = "testBundleName1";
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->userId_ = MSG_ID_USER_TWO;
@@ -64,7 +64,7 @@ void FuzzOnUser(int32_t userId, const std::string &packageName)
     auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel2);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandlePackageEvent(msg2.get());
 
-    //OnPackageRemoved
+    // OnPackageRemoved
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->userId_ = userId;
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnPackageRemoved(userId, bundleName);
 }

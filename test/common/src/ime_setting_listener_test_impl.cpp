@@ -21,12 +21,13 @@ namespace OHOS {
 namespace MiscServices {
 constexpr int32_t SWITCH_IME_WAIT_TIME = 3;
 constexpr int32_t TIMEOUT_SECONDS = 2;
-InputWindowStatus ImeSettingListenerTestImpl::status_{ InputWindowStatus::NONE };
-SubProperty ImeSettingListenerTestImpl::subProperty_{};
-Property ImeSettingListenerTestImpl::property_{};
+InputWindowStatus ImeSettingListenerTestImpl::status_ { InputWindowStatus::NONE };
+SubProperty ImeSettingListenerTestImpl::subProperty_ {};
+Property ImeSettingListenerTestImpl::property_ {};
 std::mutex ImeSettingListenerTestImpl::imeSettingListenerLock_;
-bool ImeSettingListenerTestImpl::isImeChange_{ false };
+bool ImeSettingListenerTestImpl::isImeChange_ { false };
 std::condition_variable ImeSettingListenerTestImpl::imeSettingListenerCv_;
+
 void ImeSettingListenerTestImpl::ResetParam()
 {
     status_ = InputWindowStatus::NONE;
@@ -34,43 +35,52 @@ void ImeSettingListenerTestImpl::ResetParam()
     property_ = {};
     isImeChange_ = false;
 }
+
 bool ImeSettingListenerTestImpl::WaitPanelHide()
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(TIMEOUT_SECONDS),
-        []() { return status_ == InputWindowStatus::HIDE; });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(TIMEOUT_SECONDS), []() {
+        return status_ == InputWindowStatus::HIDE;
+    });
     return status_ == InputWindowStatus::HIDE;
 }
+
 bool ImeSettingListenerTestImpl::WaitPanelShow()
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(TIMEOUT_SECONDS),
-        []() { return status_ == InputWindowStatus::SHOW; });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(TIMEOUT_SECONDS), []() {
+        return status_ == InputWindowStatus::SHOW;
+    });
     return status_ == InputWindowStatus::SHOW;
 }
 
 bool ImeSettingListenerTestImpl::WaitImeChange()
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), []() { return isImeChange_; });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), []() {
+        return isImeChange_;
+    });
     return isImeChange_;
 }
 
 bool ImeSettingListenerTestImpl::WaitTargetImeChange(const std::string &bundleName)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME),
-        [&bundleName]() { return bundleName == property_.name; });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), [&bundleName]() {
+        return bundleName == property_.name;
+    });
     return isImeChange_ && bundleName == property_.name;
 }
 
 bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME),
-        [&subProperty]() { return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name; });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), [&subProperty]() {
+        return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name;
+    });
     return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name;
 }
+
 void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
@@ -82,6 +92,7 @@ void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const Sub
     property_ = property;
     imeSettingListenerCv_.notify_one();
 }
+
 void ImeSettingListenerTestImpl::OnImeShow(const ImeWindowInfo &info)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
@@ -89,6 +100,7 @@ void ImeSettingListenerTestImpl::OnImeShow(const ImeWindowInfo &info)
     status_ = InputWindowStatus::SHOW;
     imeSettingListenerCv_.notify_one();
 }
+
 void ImeSettingListenerTestImpl::OnImeHide(const ImeWindowInfo &info)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);

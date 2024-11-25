@@ -45,8 +45,8 @@ private:
     ~FullImeInfoManager();
     std::mutex lock_;
     std::map<int32_t, std::vector<FullImeInfo>> fullImeInfos_;
-    Utils::Timer timer_{ "imeInfoCacheInitTimer" };
-    uint32_t timerId_{ 0 };
+    Utils::Timer timer_ { "imeInfoCacheInitTimer" };
+    uint32_t timerId_ { 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS
