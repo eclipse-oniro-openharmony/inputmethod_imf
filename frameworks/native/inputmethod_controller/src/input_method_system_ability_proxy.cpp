@@ -32,6 +32,11 @@ InputMethodSystemAbilityProxy::InputMethodSystemAbilityProxy(const sptr<IRemoteO
 
 int32_t InputMethodSystemAbilityProxy::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
+    if (inputClientInfo.client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     return SendRequest(
         static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT),
         [&inputClientInfo](MessageParcel &data) {
@@ -69,18 +74,33 @@ int32_t InputMethodSystemAbilityProxy::StopInputSession()
 
 int32_t InputMethodSystemAbilityProxy::ShowInput(sptr<IInputClient> client)
 {
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT),
         [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
 }
 
 int32_t InputMethodSystemAbilityProxy::HideInput(sptr<IInputClient> client)
 {
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_INPUT),
         [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
 }
 
 int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client)
 {
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT),
         [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
 }
@@ -108,6 +128,11 @@ int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
 int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(const sptr<IInputMethodCore> &core,
     const sptr<IRemoteObject> &agent)
 {
+    if (core == nullptr) {
+        IMSA_HILOGE("core is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SET_CORE_AND_AGENT),
         [core, agent](MessageParcel &data) {
             return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent);
@@ -139,6 +164,11 @@ int32_t InputMethodSystemAbilityProxy::GetSecurityMode(int32_t &security)
 
 int32_t InputMethodSystemAbilityProxy::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
 {
+    if (core == nullptr) {
+        IMSA_HILOGE("core is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTERED_PROXY_IME),
         [&type, &core](
             MessageParcel &data) { return ITypesUtil::Marshal(data, static_cast<int32_t>(type), core->AsObject()); });
@@ -254,6 +284,11 @@ int32_t InputMethodSystemAbilityProxy::PanelStatusChange(const InputWindowStatus
 
 int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
 {
+    if (clientInfo.client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG),
         [&clientInfo, eventFlag](MessageParcel &data) {
             return ITypesUtil::Marshal(data, clientInfo, clientInfo.client->AsObject(), clientInfo.channel, eventFlag);

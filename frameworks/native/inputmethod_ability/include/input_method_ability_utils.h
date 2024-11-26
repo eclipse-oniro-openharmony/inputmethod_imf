@@ -25,6 +25,7 @@ public:
     static sptr<IInputMethodSystemAbility> GetImsaProxy();
 
 private:
+    static std::mutex abilityLock_;
     static sptr<IInputMethodSystemAbility> abilityManager_; // for tdd test
 };
 } // namespace MiscServices

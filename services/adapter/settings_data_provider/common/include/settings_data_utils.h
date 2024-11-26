@@ -69,7 +69,7 @@ private:
 private:
     static std::mutex instanceMutex_;
     static sptr<SettingsDataUtils> instance_;
-    std::mutex tokenMutex_;
+    std::mutex remoteObjMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
     std::mutex observerListMutex_;
     std::vector<sptr<SettingsDataObserver>> observerList_;

@@ -25,7 +25,11 @@ std::mutex SettingsDataUtils::instanceMutex_;
 sptr<SettingsDataUtils> SettingsDataUtils::instance_ = nullptr;
 SettingsDataUtils::~SettingsDataUtils()
 {
-    remoteObj_ = nullptr;
+    {
+        std::lock_guard<std::mutex> autoLock(remoteObjMutex_);
+        remoteObj_ = nullptr;
+    }
+    std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
     if (!observerList_.empty()) {
         for (auto &iter : observerList_) {
             UnregisterObserver(iter);
@@ -198,7 +202,7 @@ int32_t SettingsDataUtils::GetStringValue(const std::string &uriProxy, const std
 
 sptr<IRemoteObject> SettingsDataUtils::GetToken()
 {
-    std::lock_guard<std::mutex> autoLock(tokenMutex_);
+    std::lock_guard<std::mutex> autoLock(remoteObjMutex_);
     if (remoteObj_ != nullptr) {
         return remoteObj_;
     }
