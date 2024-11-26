@@ -32,7 +32,7 @@ napi_value JsInputMethodPanel::Init(napi_env env, napi_value exports)
 napi_value JsInputMethodPanel::GetJsPanelTypeProperty(napi_env env)
 {
     napi_value obj = nullptr;
-    napi_create_object(env, &obj);
+    NAPI_CALL(env, napi_create_object(env, &obj));
 
     auto ret = JsUtil::Object::WriteProperty(env, obj, "SOFT_KEYBOARD", static_cast<int32_t>(PanelType::SOFT_KEYBOARD));
     ret = ret && JsUtil::Object::WriteProperty(env, obj, "STATUS_BAR", static_cast<int32_t>(PanelType::STATUS_BAR));
@@ -45,7 +45,7 @@ napi_value JsInputMethodPanel::GetJsPanelTypeProperty(napi_env env)
 napi_value JsInputMethodPanel::GetJsPanelFlagProperty(napi_env env)
 {
     napi_value obj = nullptr;
-    napi_create_object(env, &obj);
+    NAPI_CALL(env, napi_create_object(env, &obj));
 
     auto ret = JsUtil::Object::WriteProperty(env, obj, "FLAG_FIXED", static_cast<int32_t>(PanelFlag::FLG_FIXED));
     ret = ret &&

@@ -33,6 +33,11 @@ InputMethodCoreProxy::~InputMethodCoreProxy() = default;
 
 int32_t InputMethodCoreProxy::InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel)
 {
+    if (inputControlChannel == nullptr) {
+        IMSA_HILOGE("inputControlChannel is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     return SendRequest(INIT_INPUT_CONTROL_CHANNEL, [&inputControlChannel](MessageParcel &data) {
         return ITypesUtil::Marshal(data, inputControlChannel->AsObject());
     });

@@ -45,7 +45,7 @@ std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodSetting::handler_{ nul
 napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 {
     napi_value maxTypeNumber = nullptr;
-    napi_create_int32(env, MAX_TYPE_NUM, &maxTypeNumber);
+    NAPI_CALL(env, napi_create_int32(env, MAX_TYPE_NUM, &maxTypeNumber));
 
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetInputMethodSetting),

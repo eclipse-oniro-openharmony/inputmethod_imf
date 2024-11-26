@@ -20,9 +20,11 @@
 
 namespace OHOS {
 namespace MiscServices {
+std::mutex ImaUtils::abilityLock_;
 sptr<IInputMethodSystemAbility> ImaUtils::abilityManager_{ nullptr }; // for tdd test
 sptr<IInputMethodSystemAbility> ImaUtils::GetImsaProxy()
 {
+    std::lock_guard<std::mutex> lock(abilityLock_);
     IMSA_HILOGD("ImaUtils::GetImsaProxy start.");
     // for tdd test begin
     if (abilityManager_ != nullptr) {

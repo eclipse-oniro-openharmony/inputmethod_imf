@@ -268,15 +268,17 @@ export struct InputMethodListDialog {
       }
       Scroll() {
         Column() {
-          ForEach(this.subTypes, (item: InputMethodSubtype, index: number) => {
-            this.InputMethodItem(this.activeSubtypes[index].name,
-              this.isDefaultInputMethodCurrentSubType(item.id) ? this.selectedFontColor : this.fontColor,
-              this.isDefaultInputMethodCurrentSubType(item.id) ? this.selectedColor : this.listBgColor,
-              this.pressedColor, this.inputMethods.length > 1 || index < this.subTypes.length,
-              () => {
-                this.switchMethodSub(item);
-              })
-          }, (item: inputMethod.InputMethodProperty) => JSON.stringify(item));
+          if (this.activeSubtypes.length === this.subTypes.length) {
+            ForEach(this.subTypes, (item: InputMethodSubtype, index: number) => {
+              this.InputMethodItem(this.activeSubtypes[index].name,
+                this.isDefaultInputMethodCurrentSubType(item.id) ? this.selectedFontColor : this.fontColor,
+                this.isDefaultInputMethodCurrentSubType(item.id) ? this.selectedColor : this.listBgColor,
+                this.pressedColor, this.inputMethods.length > 1 || index < this.subTypes.length,
+                () => {
+                  this.switchMethodSub(item);
+                })
+            }, (item: inputMethod.InputMethodProperty) => JSON.stringify(item));
+          }
 
           ForEach(this.inputMethods, (item: inputMethod.InputMethodProperty, index: number) => {
             if (this.subTypes.length === 0 || (this.defaultInputMethod && item.name !== this.defaultInputMethod.name)) {

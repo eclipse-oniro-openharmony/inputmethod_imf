@@ -77,6 +77,10 @@ void InputEventCallback::SetKeyHandle(KeyHandle handle)
 void InputEventCallback::TriggerSwitch()
 {
     auto state = KeyboardEvent::META_MASK | KeyboardEvent::SPACE_MASK;
+    if (keyHandler_ == nullptr) {
+        IMSA_HILOGI("keyHandler_ is nullptr.");
+        return;
+    }
     int32_t ret = keyHandler_(state);
     IMSA_HILOGI("handle combinationkey ret: %{public}d.", ret);
 }

@@ -25,7 +25,10 @@ void LogTimeStamp()
     struct timeval tv;
     gettimeofday(&tv, nullptr);
     struct tm nowTime;
-    localtime_r(&tv.tv_sec, &nowTime);
+    auto localTime = localtime_r(&tv.tv_sec, &nowTime);
+    if (localTime == nullptr) {
+        return;
+    }
     int32_t millSec = 1000;
     printf("%02d-%02d %02d:%02d:%02d.%03d\t", nowTime.tm_mon, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min,
         nowTime.tm_sec, static_cast<int32_t>(tv.tv_usec) / millSec);

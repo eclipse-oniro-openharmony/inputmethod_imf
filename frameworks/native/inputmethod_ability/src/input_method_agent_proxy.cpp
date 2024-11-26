@@ -30,6 +30,11 @@ InputMethodAgentProxy::InputMethodAgentProxy(const sptr<IRemoteObject> &object)
 int32_t InputMethodAgentProxy::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
     sptr<IKeyEventConsumer> &consumer)
 {
+    if (consumer == nullptr) {
+        IMSA_HILOGE("consumer is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
     int32_t res = -1;
     int32_t ret = SendRequest(
         DISPATCH_KEY_EVENT,

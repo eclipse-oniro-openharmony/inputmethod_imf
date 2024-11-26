@@ -281,15 +281,15 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
 napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus)
 {
     napi_value KeyboardDelegate = nullptr;
-    napi_create_object(env, &KeyboardDelegate);
+    NAPI_CALL(env, napi_create_object(env, &KeyboardDelegate));
 
     napi_value jsKeyCode = nullptr;
-    napi_create_int32(env, keyCode, &jsKeyCode);
-    napi_set_named_property(env, KeyboardDelegate, "keyCode", jsKeyCode);
+    NAPI_CALL(env, napi_create_int32(env, keyCode, &jsKeyCode));
+    NAPI_CALL(env, napi_set_named_property(env, KeyboardDelegate, "keyCode", jsKeyCode));
 
     napi_value jsKeyAction = nullptr;
-    napi_create_int32(env, keyStatus, &jsKeyAction);
-    napi_set_named_property(env, KeyboardDelegate, "keyAction", jsKeyAction);
+    NAPI_CALL(env, napi_create_int32(env, keyStatus, &jsKeyAction));
+    NAPI_CALL(env, napi_set_named_property(env, KeyboardDelegate, "keyAction", jsKeyAction));
 
     return KeyboardDelegate;
 }
