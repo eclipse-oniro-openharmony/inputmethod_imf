@@ -353,6 +353,42 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
 }
 
 /**
+* @tc.name: testStartInputBeforeCreatePanel
+* @tc.desc: InputMethodAbility StartInput before create panel
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testStartInputBeforeCreatePanel start.");
+    inputMethodAbility_->panels_.Clear();
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    auto ret = imc_->Attach(textListener_);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    {
+        std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+        InputMethodAbilityTest::imeListenerCv_.wait_for(
+            lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
+    }
+    InputMethodAbilityTest::showKeyboard_ = false;
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
+    {
+        AccessScope scope(currentImeTokenId_, currentImeUid_);
+        PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+        ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel);
+        EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    }
+    {
+        std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+        InputMethodAbilityTest::imeListenerCv_.wait_for(
+            lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
+        EXPECT_TRUE(InputMethodAbilityTest::showKeyboard_);
+    }
+    imc_->Close();
+    inputMethodAbility_->DestroyPanel(softKeyboardPanel);
+}
+
+/**
 * @tc.name: testHideKeyboardSelf
 * @tc.desc: InputMethodAbility HideKeyboardSelf
 * @tc.type: FUNC

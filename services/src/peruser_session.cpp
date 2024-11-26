@@ -1660,7 +1660,7 @@ bool PerUserSession::StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime)
         }
         return StartInputService(ime);
     }
-    if (!StopExitingCurrentIme()) {
+    if (!ForceStopCurrentIme()) {
         return false;
     }
     return StartInputService(ime);
@@ -1705,10 +1705,7 @@ bool PerUserSession::StopCurrentIme()
     if (action == ImeAction::STOP_READY_IME) {
         return StopReadyCurrentIme();
     }
-    if (action == ImeAction::STOP_STARTING_IME) {
-        return ForceStopCurrentIme();
-    }
-    return StopExitingCurrentIme();
+    return ForceStopCurrentIme();
 }
 
 bool PerUserSession::StopReadyCurrentIme()
@@ -1741,11 +1738,6 @@ bool PerUserSession::StopReadyCurrentIme()
     return true;
 }
 
-bool PerUserSession::StopExitingCurrentIme()
-{
-    return ForceStopCurrentIme();
-}
-
 bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
 {
     auto imeData = GetImeData(ImeType::IME);
@@ -1753,7 +1745,7 @@ bool PerUserSession::ForceStopCurrentIme(bool isNeedWait)
         return true;
     }
     if (!ImeInfoInquirer::GetInstance().IsRunningIme(userId_, imeData->ime.first)) {
-        IMSA_HILOGD("already stop!");
+        IMSA_HILOGW("[%{public}s, %{public}s] already stop.", imeData->ime.first.c_str(), imeData->ime.second.c_str());
         RemoveImeData(ImeType::IME, true);
         return true;
     }
@@ -1806,22 +1798,17 @@ bool PerUserSession::HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, 
 int32_t PerUserSession::RestoreCurrentIme()
 {
     InputTypeManager::GetInstance().Set(false);
-    auto cfgIme = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     auto imeData = GetReadyImeData(ImeType::IME);
-    if (imeData != nullptr && imeData->ime.first == cfgIme->bundleName && imeData->ime.second == cfgIme->extName) {
+    if (imeData != nullptr && cfgIme != nullptr && imeData->ime.first == cfgIme->bundleName
+        && imeData->ime.second == cfgIme->extName) {
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGD("need restore!");
-    if (!StartIme(cfgIme)) {
+    if (!StartCurrentIme()) {
         IMSA_HILOGE("start ime failed!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    SubProperty subProp = { .name = cfgIme->bundleName, .id = cfgIme->subName };
-    auto subPropTemp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
-    if (subPropTemp != nullptr) {
-        subProp = *subPropTemp;
-    }
-    SwitchSubtype(subProp);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1872,38 +1859,34 @@ bool PerUserSession::GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToSta
     return true;
 }
 
-void PerUserSession::GetOldClientInfo(std::shared_ptr<InputClientInfo> &oldClientInfo, bool &isClientInactive)
-{
-    std::lock_guard<std::mutex> lock(focusedClientLock_);
-    auto currentClient = GetCurrentClient();
-    if (currentClient != nullptr) {
-        oldClientInfo = GetClientInfo(currentClient->AsObject());
-        if (oldClientInfo != nullptr) {
-            if (IsImeBindTypeChanged(oldClientInfo->bindImeType)) {
-                SetCurrentClient(nullptr);
-            }
-            return;
-        }
-    }
-    auto inactiveClient = GetInactiveClient();
-    if (inactiveClient != nullptr) {
-        oldClientInfo = GetClientInfo(inactiveClient->AsObject());
-        isClientInactive = true;
-    }
-}
-
 void PerUserSession::HandleImeBindTypeChanged(InputClientInfo &newClientInfo)
 {
     /* isClientInactive: true: represent the oldClientInfo is inactiveClient's
                          false: represent the oldClientInfo is currentClient's */
-    bool isClientInactive = false;
     std::shared_ptr<InputClientInfo> oldClientInfo = nullptr;
-    GetOldClientInfo(oldClientInfo, isClientInactive);
-    if (oldClientInfo == nullptr) {
-        return;
-    }
-    if (!IsImeBindTypeChanged(oldClientInfo->bindImeType)) {
-        return;
+    bool isClientInactive = false;
+    {
+        std::lock_guard<std::mutex> lock(focusedClientLock_);
+        auto currentClient = GetCurrentClient();
+        oldClientInfo = currentClient != nullptr ? GetClientInfo(currentClient->AsObject()) : nullptr;
+        if (oldClientInfo == nullptr) {
+            auto inactiveClient = GetInactiveClient();
+            oldClientInfo = inactiveClient != nullptr ? GetClientInfo(inactiveClient->AsObject()) : nullptr;
+            isClientInactive = true;
+        }
+        if (oldClientInfo == nullptr) {
+            return;
+        }
+        if (!IsImeBindTypeChanged(oldClientInfo->bindImeType)) {
+            return;
+        }
+        // has current client, but new client is not current client
+        if (!isClientInactive && !IsSameClient(newClientInfo.client, oldClientInfo->client)) {
+            SetCurrentClient(nullptr);
+            if (oldClientInfo->client != nullptr) {
+                RemoveClientInfo(oldClientInfo->client->AsObject());
+            }
+        }
     }
     IMSA_HILOGD("isClientInactive: %{public}d!", isClientInactive);
     if (IsSameClient(newClientInfo.client, oldClientInfo->client) && oldClientInfo->bindImeType == ImeType::IME) {

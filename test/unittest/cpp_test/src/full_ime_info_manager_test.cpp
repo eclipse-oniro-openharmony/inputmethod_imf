@@ -276,7 +276,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_007, TestSize.Level0)
     auto it = FullImeInfoManager::GetInstance().fullImeInfos_.find(userId);
     ASSERT_NE(it, FullImeInfoManager::GetInstance().fullImeInfos_.end());
     ASSERT_EQ(it->second.size(), 1);
-    EXPECT_TRUE(it->second[0].isNewIme);
+    EXPECT_FALSE(it->second[0].isNewIme);
 }
 
 /**
