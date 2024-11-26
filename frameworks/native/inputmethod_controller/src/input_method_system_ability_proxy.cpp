@@ -196,6 +196,14 @@ int32_t InputMethodSystemAbilityProxy::SetCallingWindow(uint32_t windowId, sptr<
         [windowId, client](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId, client->AsObject()); });
 }
 
+int32_t InputMethodSystemAbilityProxy::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_START_INFO), nullptr,
+        [&isInputStart, &callingWndId](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, isInputStart, callingWndId);
+        });
+}
+
 int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
     return SendRequest(

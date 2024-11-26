@@ -228,9 +228,7 @@ int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
  */
 void PerUserSession::OnClientDied(sptr<IInputClient> remote)
 {
-    IMSA_HILOGD("vkbtest onClientDied start.");
     if (IsNotifyInputStop(remote)) {
-        IMSA_HILOGD("vkbtest ClientDie notify input stop");
         NotifyInputStopToClients();
     }
     if (remote == nullptr) {
@@ -281,7 +279,6 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
-        IMSA_HILOGD("vkbtest imeDied notify input stop");
         NotifyInputStopToClients();
         StopClientInput(clientInfo);
         if (type == ImeType::IME) {
@@ -423,7 +420,6 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid)
         RemoveClient(inactiveClient, false, true);
     }
     RestoreCurrentImeSubType();
-    IMSA_HILOGD("vkbtest end requestHideInput");
     NotifyInputStopToClients();
     return ErrorCode::NO_ERROR;
 }
@@ -477,11 +473,10 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
     bool isReady = IsNotifyInputStop(client);
     int32_t ret = RemoveClient(client, true);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("vkbtest remove client failed");
+        IMSA_HILOGE("remove client failed");
         return ret;
     }
     if (isReady) {
-        IMSA_HILOGD("vkbtest notify input stop to clients");
         NotifyInputStopToClients();
     }
     return ErrorCode::NO_ERROR;
@@ -614,8 +609,7 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
         { { UpdateFlag::BINDIMETYPE, type }, { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard },
             { UpdateFlag::STATE, ClientState::ACTIVE } });
     ReplaceCurrentClient(clientInfo->client);
-    int32_t errorCode = NotifyInputStartToClients(clientInfo->config.windowId);
-    IMSA_HILOGD("vkbtest bind notify ret: %{public}d.", errorCode);
+    NotifyInputStartToClients(clientInfo->config.windowId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -698,13 +692,6 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
     }
     bool isStarted = true;
     isImeStarted_.SetValue(isStarted);
-    // if client exist, execute notify input start callback
-    if (client != nullptr && clientInfo != nullptr) {
-        ret = NotifyInputStartToClients(clientInfo->config.windowId);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("notifyInputStartToClients failed, ret: %{public}d.", ret);
-        }
-    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1213,6 +1200,23 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
     return ErrorCode::NO_ERROR;
 }
 
+int32_t PerUserSession::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+{
+    auto client = GetCurrentClient();
+    if (client == nullptr) {
+        IMSA_HILOGE("nullptr client!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("nullptr clientInfo!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    isInputStart = true;
+    callingWndId = clientInfo->config.windowId;
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t PerUserSession::NotifyInputStartToClients(uint32_t callingWndId)
 {
     IMSA_HILOGD("NotifyInputStartToClients enter");
@@ -1455,7 +1459,6 @@ int32_t PerUserSession::RemoveCurrentClient()
         IMSA_HILOGE("currentClient is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    IMSA_HILOGD("vkbtest abnormal remove current client");
     NotifyInputStopToClients();
     return RemoveClient(currentClient, false);
 }

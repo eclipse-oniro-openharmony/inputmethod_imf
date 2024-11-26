@@ -402,6 +402,16 @@ bool InputMethodController::WasAttached()
     return isBound_.load();
 }
 
+int32_t InputMethodController::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return false;
+    }
+    return proxy->GetInputStartInfo(isInputStart, callingWndId);
+}
+
 int32_t InputMethodController::ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props)
 {
     IMSA_HILOGD("InputMethodController::ListInputMethodCommon start.");
@@ -572,8 +582,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         IMSA_HILOGE("handler_ is nullptr!");
         return;
     }
-    RestoreListenInfoInSaDied();
-    RestoreAttachInfoInSaDied();
+    RestoreClientInfoInSaDied();
 }
 
 void InputMethodController::RestoreListenInfoInSaDied()
@@ -600,10 +609,11 @@ void InputMethodController::RestoreListenInfoInSaDied()
     }
 }
 
-void InputMethodController::RestoreAttachInfoInSaDied()
+void InputMethodController::RestoreClientInfoInSaDied()
 {
     if (!IsEditable()) {
         IMSA_HILOGD("not editable.");
+        RestoreListenInfoInSaDied();
         return;
     }
     auto attach = [=]() -> bool {

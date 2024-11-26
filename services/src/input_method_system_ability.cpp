@@ -579,6 +579,22 @@ int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInpu
     return session->OnSetCallingWindow(windowId, client);
 }
 
+int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+{
+    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
+        !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not system application!");
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+    auto callingUserId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(callingUserId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
+        return false;
+    }
+    return session->GetInputStartInfo(isInputStart, callingWndId);
+}
+
 bool InputMethodSystemAbility::IsCurrentIme()
 {
     return IsCurrentIme(GetCallingUserId());
