@@ -689,6 +689,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && IsImeStartInBind(clientInfo->bindImeType, imeType)) {
         BindClientWithIme(clientInfo, imeType);
+        SetInputType();
     }
     bool isStarted = true;
     isImeStarted_.SetValue(isStarted);
