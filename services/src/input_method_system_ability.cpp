@@ -207,7 +207,10 @@ void InputMethodSystemAbility::Initialize()
     identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = OsAccountAdapter::MAIN_USER_ID;
     UserSessionManager::GetInstance().SetEventHandler(serviceHandler_);
-    UserSessionManager::GetInstance().AddUserSession(userId_);
+    if (PerUserSession(userId_).IsSaReady(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID)) {
+        // if bms not start, AppMgrClient::GetProcessRunningInfosByUserId will blocked
+        UserSessionManager::GetInstance().AddUserSession(userId_);
+    }
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     IMSA_HILOGI("start get scene board enable status");
     isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
@@ -296,8 +299,9 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         // notify inputStart when caller pid different from both current client and inactive client
         inputClientInfo.isNotifyInputStart = true;
     }
-    if (inputClientInfo.isNotifyInputStart) {
-        inputClientInfo.needHide = session->CheckPwdInputPatternConv(inputClientInfo);
+    if (session->CheckPwdInputPatternConv(inputClientInfo)) {
+        inputClientInfo.needHide = true;
+        inputClientInfo.isNotifyInputStart = true;
     }
     if (!session->IsProxyImeEnable()) {
         auto ret = CheckInputTypeOption(userId, inputClientInfo);
@@ -573,6 +577,22 @@ int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInpu
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnSetCallingWindow(windowId, client);
+}
+
+int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+{
+    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
+        !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not system application!");
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+    auto callingUserId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(callingUserId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
+        return false;
+    }
+    return session->GetInputStartInfo(isInputStart, callingWndId);
 }
 
 bool InputMethodSystemAbility::IsCurrentIme()

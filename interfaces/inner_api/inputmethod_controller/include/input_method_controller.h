@@ -519,6 +519,17 @@ public:
     IMF_API bool WasAttached();
 
     /**
+     * @brief Query current client bound status, get client windowId
+     *
+     * This function is used to Query current client bound status.
+     *
+     * @param isInputStart Indicates imf bound status
+     * @param callingWndId Indicates the windows id of calling client.
+     * @return Returns true for imf upon bound state, return false for unbound status.
+     */
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId);
+
+    /**
      * @brief Set agent which will be used to communicate with IMA.
      *
      * This function is used to Set agent.
@@ -836,7 +847,7 @@ private:
     void ClearEditorCache(bool isNewEditor, sptr<OnTextChangedListener> lastListener);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void RestoreListenInfoInSaDied();
-    void RestoreAttachInfoInSaDied();
+    void RestoreClientInfoInSaDied();
     int32_t RestoreListenEventFlag();
     void SaveTextConfig(const TextConfig &textConfig);
     sptr<OnTextChangedListener> GetTextListener();

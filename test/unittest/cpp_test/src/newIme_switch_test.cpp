@@ -50,9 +50,9 @@ public:
 sptr<InputMethodController> NewImeSwitchTest::imc_;
 std::string NewImeSwitchTest::bundleName = "com.example.newTestIme";
 std::string NewImeSwitchTest::extName = "InputMethodExtAbility";
-std::vector<std::string> NewImeSwitchTest::subName{ "lowerInput", "upperInput", "chineseInput" };
-std::vector<std::string> NewImeSwitchTest::locale{ "en-US", "en-US", "zh-CN" };
-std::vector<std::string> NewImeSwitchTest::language{ "english", "english", "chinese" };
+std::vector<std::string> NewImeSwitchTest::subName { "lowerInput", "upperInput", "chineseInput" };
+std::vector<std::string> NewImeSwitchTest::locale { "en-US", "en-US", "zh-CN" };
+std::vector<std::string> NewImeSwitchTest::language { "english", "english", "chinese" };
 std::string NewImeSwitchTest::beforeValue;
 std::string NewImeSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\"]}}";
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
@@ -143,12 +143,12 @@ HWTEST_F(NewImeSwitchTest, testNewImeSwitch, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitch_001
-* @tc.desc: switch subtype with subName1.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitch_001
+ * @tc.desc: switch subtype with subName1.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_001 Test START");
@@ -162,12 +162,12 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitch_002
-* @tc.desc: switch subtype with subName2.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitch_002
+ * @tc.desc: switch subtype with subName2.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_002 Test START");
@@ -181,12 +181,12 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitch_003
-* @tc.desc: switch subtype with subName3.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitch_003
+ * @tc.desc: switch subtype with subName3.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_003 Test START");
@@ -200,12 +200,12 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitch_004
-* @tc.desc: switch subtype witch subName1.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitch_004
+ * @tc.desc: switch subtype witch subName1.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_004, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_004 Test START");
@@ -219,12 +219,12 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_004, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitchWithErrorSubName
-* @tc.desc: switch subtype with error subName.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitchWithErrorSubName
+ * @tc.desc: switch subtype with error subName.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitchWithErrorSubName Test START");
@@ -236,12 +236,12 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSwitchToCurrentImeWithEmptySubName
-* @tc.desc: switch to currentIme witch empty subName.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testSwitchToCurrentImeWithEmptySubName
+ * @tc.desc: switch to currentIme witch empty subName.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(NewImeSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSwitchToCurrentImeWithEmptySubName Test START");
@@ -255,12 +255,12 @@ HWTEST_F(NewImeSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Leve
 }
 
 /**
-* @tc.name: testSwitchInputMethod_001
-* @tc.desc: switch ime to newTestIme and switch the subtype to subName1.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: weishaoxiong
-*/
+ * @tc.name: testSwitchInputMethod_001
+ * @tc.desc: switch ime to newTestIme and switch the subtype to subName1.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: weishaoxiong
+ */
 HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_001, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSwitchInputMethod_001 Test START");
@@ -274,12 +274,12 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSwitchInputMethod_002
-* @tc.desc: switch the subtype to subName0.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: weishaoxiong
-*/
+ * @tc.name: testSwitchInputMethod_002
+ * @tc.desc: switch the subtype to subName0.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: weishaoxiong
+ */
 HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_002, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSwitchInputMethod_002 Test START");
@@ -293,12 +293,12 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSwitchInputMethod_003
-* @tc.desc: switch ime to newTestIme.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: weishaoxiong
-*/
+ * @tc.name: testSwitchInputMethod_003
+ * @tc.desc: switch ime to newTestIme.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: weishaoxiong
+ */
 HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_003, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSwitchInputMethod_003 Test START");
@@ -310,12 +310,12 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSwitchInputMethod_004
-* @tc.desc: The caller is not a system app.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: weishaoxiong
-*/
+ * @tc.name: testSwitchInputMethod_004
+ * @tc.desc: The caller is not a system app.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: weishaoxiong
+ */
 HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_004, TestSize.Level0)
 {
     TddUtil::SetTestTokenID(
@@ -326,12 +326,12 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_004, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSwitchInputMethod_005
-* @tc.desc: The caller has no permissions.
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: weishaoxiong
-*/
+ * @tc.name: testSwitchInputMethod_005
+ * @tc.desc: The caller has no permissions.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: weishaoxiong
+ */
 HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_005, TestSize.Level0)
 {
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", {}));

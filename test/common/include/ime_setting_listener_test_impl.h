@@ -24,8 +24,8 @@ namespace OHOS {
 namespace MiscServices {
 class ImeSettingListenerTestImpl : public ImeEventListener {
 public:
-    ImeSettingListenerTestImpl(){};
-    ~ImeSettingListenerTestImpl(){};
+    ImeSettingListenerTestImpl() {};
+    ~ImeSettingListenerTestImpl() {};
     void OnImeChange(const Property &property, const SubProperty &subProperty) override;
     void OnImeShow(const ImeWindowInfo &info) override;
     void OnImeHide(const ImeWindowInfo &info) override;

@@ -74,6 +74,10 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, ctrlShiftCallBack);
     SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT, ctrlShiftCallBack);
     SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, ctrlShiftCallBack);
+    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_SHIFT_LEFT, MMI::KeyEvent::KEYCODE_CTRL_LEFT, ctrlShiftCallBack);
+    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, MMI::KeyEvent::KEYCODE_CTRL_LEFT, ctrlShiftCallBack);
+    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_SHIFT_LEFT, MMI::KeyEvent::KEYCODE_CTRL_RIGHT, ctrlShiftCallBack);
+    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, MMI::KeyEvent::KEYCODE_CTRL_RIGHT, ctrlShiftCallBack);
     return ErrorCode::NO_ERROR;
 }
 

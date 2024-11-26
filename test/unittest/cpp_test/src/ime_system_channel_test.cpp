@@ -26,12 +26,8 @@ using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 class OnSystemCmdListenerImpl : public OnSystemCmdListener {
-    void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override
-    {
-    }
-    void NotifyPanelStatus(const SysPanelStatus &sysPanelStatus) override
-    {
-    }
+    void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override { }
+    void NotifyPanelStatus(const SysPanelStatus &sysPanelStatus) override { }
 };
 class ImeSystemChannelTest : public testing::Test {
 public:

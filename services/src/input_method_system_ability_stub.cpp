@@ -344,6 +344,15 @@ int32_t InputMethodSystemAbilityStub::SetCallingWindowOnRemote(MessageParcel &da
         ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::GetInputStartInfoOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    bool isInputStart = false;
+    uint32_t callingWndId = 0;
+    auto ret = GetInputStartInfo(isInputStart, callingWndId);
+    return ITypesUtil::Marshal(reply, ret, isInputStart, callingWndId) ?
+        ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)
 {
     int32_t ret = ShowCurrentInputDeprecated();

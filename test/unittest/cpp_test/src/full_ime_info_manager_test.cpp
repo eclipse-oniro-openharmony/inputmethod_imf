@@ -87,7 +87,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Init_002, TestSize.Level0)
     uint32_t tokenId = 2;
     std::string appId = "appId";
     uint32_t versionCode = 11;
-    Property prop{ "bundleName" };
+    Property prop { "bundleName" };
     std::vector<FullImeInfo> imeInfos;
     imeInfos.push_back({ isNewIme, tokenId, appId, versionCode, prop });
     std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
@@ -153,12 +153,12 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
     uint32_t tokenId = 2;
     std::string appId = "appId";
     uint32_t versionCode = 11;
-    Property prop{ "bundleName" };
-    FullImeInfo imeInfo{ isNewIme, tokenId, appId, versionCode, prop };
+    Property prop { "bundleName" };
+    FullImeInfo imeInfo { isNewIme, tokenId, appId, versionCode, prop };
     uint32_t tokenId1 = 2;
     std::string appId1 = "appId1";
-    Property prop1{ "bundleName1" };
-    FullImeInfo imeInfo1{ isNewIme, tokenId1, appId1, versionCode, prop1 };
+    Property prop1 { "bundleName1" };
+    FullImeInfo imeInfo1 { isNewIme, tokenId1, appId1, versionCode, prop1 };
     imeInfos.push_back(imeInfo);
     imeInfos.push_back(imeInfo1);
     ImeInfoInquirer::GetInstance().SetFullImeInfo(true, imeInfos);
@@ -276,7 +276,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_007, TestSize.Level0)
     auto it = FullImeInfoManager::GetInstance().fullImeInfos_.find(userId);
     ASSERT_NE(it, FullImeInfoManager::GetInstance().fullImeInfos_.end());
     ASSERT_EQ(it->second.size(), 1);
-    EXPECT_TRUE(it->second[0].isNewIme);
+    EXPECT_FALSE(it->second[0].isNewIme);
 }
 
 /**

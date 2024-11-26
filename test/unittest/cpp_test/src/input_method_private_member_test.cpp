@@ -30,6 +30,8 @@
 #include <vector>
 
 #include "application_info.h"
+#include "combination_key.h"
+#include "focus_change_listener.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
@@ -41,8 +43,6 @@
 #include "os_account_manager.h"
 #include "tdd_util.h"
 #include "user_session_manager.h"
-#include "combination_key.h"
-#include "focus_change_listener.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -92,11 +92,11 @@ void InputMethodPrivateMemberTest::TearDown(void)
 sptr<InputMethodSystemAbility> InputMethodPrivateMemberTest::service_;
 
 /**
-* @tc.name: SA_TestOnStart
-* @tc.desc: SA OnStart.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: SA_TestOnStart
+ * @tc.desc: SA OnStart.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnStart, TestSize.Level0)
 {
     InputMethodSystemAbility ability;
@@ -106,18 +106,23 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnStart, TestSize.Level0)
 }
 
 /**
-* @tc.name: SA_GetExtends
-* @tc.desc: SA GetExtends.
-* @tc.type: FUNC
-* @tc.require: issuesI640YZ
-*/
+ * @tc.name: SA_GetExtends
+ * @tc.desc: SA GetExtends.
+ * @tc.type: FUNC
+ * @tc.require: issuesI640YZ
+ */
 HWTEST_F(InputMethodPrivateMemberTest, SA_GetExtends, TestSize.Level0)
 {
     constexpr int32_t metaDataNums = 5;
     ImeInfoInquirer inquirer;
     std::vector<Metadata> metaData;
-    Metadata metadata[metaDataNums] = { { "language", "english", "" }, { "mode", "mode", "" },
-        { "locale", "local", "" }, { "icon", "icon", "" }, { "", "", "" } };
+    Metadata metadata[metaDataNums] = {
+        { "language", "english", "" },
+        { "mode",     "mode",    "" },
+        { "locale",   "local",   "" },
+        { "icon",     "icon",    "" },
+        { "",         "",        "" }
+    };
     for (auto const &data : metadata) {
         metaData.emplace_back(data);
     }
@@ -129,11 +134,11 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetExtends, TestSize.Level0)
 }
 
 /**
-* @tc.name: SA_TestOnUserStarted
-* @tc.desc: SA_TestOnUserStarted.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: SA_TestOnUserStarted
+ * @tc.desc: SA_TestOnUserStarted.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
 {
     // isScbEnable_ is true
@@ -179,11 +184,11 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
 }
 
 /**
-* @tc.name: SA_TestOnUserRemoved
-* @tc.desc: SA_TestOnUserRemoved.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: SA_TestOnUserRemoved
+ * @tc.desc: SA_TestOnUserRemoved.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserRemoved, TestSize.Level0)
 {
     // msg is nullptr
@@ -201,11 +206,11 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserRemoved, TestSize.Level0)
 }
 
 /**
-* @tc.name: SA_ListInputMethodInfoWithInexistentUserId
-* @tc.desc: SA ListInputMethodInfo With Inexistent UserId.
-* @tc.type: FUNC
-* @tc.require: issuesI669E8
-*/
+ * @tc.name: SA_ListInputMethodInfoWithInexistentUserId
+ * @tc.desc: SA ListInputMethodInfo With Inexistent UserId.
+ * @tc.type: FUNC
+ * @tc.require: issuesI669E8
+ */
 HWTEST_F(InputMethodPrivateMemberTest, SA_ListInputMethodInfoWithInexistentUserId, TestSize.Level0)
 {
     ImeInfoInquirer inquirer;
@@ -215,11 +220,11 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_ListInputMethodInfoWithInexistentUserI
 }
 
 /**
-* @tc.name: IMC_ListInputMethodCommonWithErrorStatus
-* @tc.desc: IMC ListInputMethodCommon With Error Status.
-* @tc.type: FUNC
-* @tc.require: issuesI669E8
-*/
+ * @tc.name: IMC_ListInputMethodCommonWithErrorStatus
+ * @tc.desc: IMC ListInputMethodCommon With Error Status.
+ * @tc.type: FUNC
+ * @tc.require: issuesI669E8
+ */
 HWTEST_F(InputMethodPrivateMemberTest, IMC_ListInputMethodCommonWithErrorStatus, TestSize.Level0)
 {
     std::vector<Property> props;
@@ -325,7 +330,10 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSi
     userSession->OnClientDied(nullptr);
     userSession->OnImeDied(nullptr, ImeType::IME);
     bool isShowKeyboard = false;
-    userSession->UpdateClientInfo(nullptr, { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+    userSession->UpdateClientInfo(nullptr,
+        {
+            { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard }
+    });
     int32_t ret = userSession->RemoveIme(nullptr, ImeType::IME);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
@@ -394,8 +402,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_003, TestSize.L
     info.prop = { .name = "testBundleName" };
     info.subProps = { { .id = "testSubName" } };
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName",
-        false });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back(
+        { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -414,10 +422,12 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.L
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_004 TEST START");
     FullImeInfo info;
     info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProps = { { .name = "testBundleName", .id = "testSubName", .language = "French" } };
+    info.subProps = {
+        { .name = "testBundleName", .id = "testSubName", .language = "French" }
+    };
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName",
-        false });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back(
+        { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -434,10 +444,12 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_005, TestSize.L
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_005 TEST START");
     FullImeInfo info;
     info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" } };
+    info.subProps = {
+        { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" }
+    };
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName",
-        false });
+    ImeCfgManager::GetInstance().imeConfigs_.push_back(
+        { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -456,12 +468,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.L
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_006 TEST START");
     FullImeInfo info;
     info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" },
-        { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
+    info.subProps = {
+        { .name = "testBundleName", .id = "testSubName",  .mode = "upper", .language = "english" },
+        { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" }
+    };
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
 
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ MAIN_USER_ID, "testBundleName/testExtName", "testSubName",
-        false});
+    ImeCfgManager::GetInstance().imeConfigs_.push_back(
+        { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
     // english->chinese
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
@@ -554,7 +568,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.L
     auto currentSubProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
     ImeCfgManager::GetInstance().imeConfigs_.clear();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { currentUserId, currentProp->name + "/" + currentProp->id, currentSubProp->id, false});
+        { currentUserId, currentProp->name + "/" + currentProp->id, currentSubProp->id, false });
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->id == currentSubProp->id);
@@ -578,7 +592,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentIme_001, TestSize.Level
     // get correct prop
     auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { currentUserId, currentProp->name + "/" + currentProp->id, currentProp->id, false});
+        { currentUserId, currentProp->name + "/" + currentProp->id, currentProp->id, false });
     prop = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(currentUserId);
     ASSERT_TRUE(prop != nullptr);
     EXPECT_TRUE(prop->id == currentProp->id);
@@ -659,7 +673,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestIsNewExtInfos_001, TestSize.Level
 HWTEST_F(InputMethodPrivateMemberTest, ICM_TestDeleteImeCfg_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestDeleteImeCfg_001 TEST START");
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 100, "testBundleName", "testSubName", false});
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 100, "testBundleName", "testSubName", false });
     ImeCfgManager::GetInstance().DeleteImeCfg(100);
     EXPECT_TRUE(ImeCfgManager::GetInstance().imeConfigs_.empty());
 }
@@ -809,15 +823,15 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsInputMethod, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
- /**
- @tc.name: TestHandlePackageEvent
- @tc.desc: TestHandlePackageEvent
- @tc.type: FUNC
- @tc.require:
- */
+/**
+@tc.name: TestHandlePackageEvent
+@tc.desc: TestHandlePackageEvent
+@tc.type: FUNC
+@tc.require:
+*/
 HWTEST_F(InputMethodPrivateMemberTest, TestHandlePackageEvent, TestSize.Level0)
 {
-// msg is nullptr
+    // msg is nullptr
     auto *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, nullptr);
     auto ret = service_->HandlePackageEvent(msg);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
@@ -841,7 +855,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestHandlePackageEvent, TestSize.Level0)
     auto ret2 = service_->HandlePackageEvent(msg2.get());
     EXPECT_EQ(ret2, ErrorCode::NO_ERROR);
 
-    //remove bundle not current ime
+    // remove bundle not current ime
     auto parcel3 = new (std::nothrow) MessageParcel();
     service_->userId_ = userId;
     ImeCfgManager::GetInstance().imeConfigs_.push_back({ 60, "testBundleName/testExtName", "testSubName", false });
@@ -937,11 +951,11 @@ HWTEST_F(InputMethodPrivateMemberTest, TestOnSecurityChange, TestSize.Level0)
 }
 
 /**
-* @tc.name: TestServiceStartInputType
-* @tc.desc: Test ServiceStartInputType
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: TestServiceStartInputType
+ * @tc.desc: Test ServiceStartInputType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodPrivateMemberTest, TestServiceStartInputType, TestSize.Level0)
 {
     auto ret = service_->ExitCurrentInputType();
@@ -955,11 +969,11 @@ HWTEST_F(InputMethodPrivateMemberTest, TestServiceStartInputType, TestSize.Level
 }
 
 /**
-* @tc.name: TestIsSupported
-* @tc.desc: Test IsSupported
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: TestIsSupported
+ * @tc.desc: Test IsSupported
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodPrivateMemberTest, TestIsSupported, TestSize.Level0)
 {
     auto ret = InputTypeManager::GetInstance().IsSupported(InputType::NONE);
@@ -967,11 +981,11 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsSupported, TestSize.Level0)
 }
 
 /**
-* @tc.name: TestGetImeByInputType
-* @tc.desc: Test GetImeByInputType
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: TestGetImeByInputType
+ * @tc.desc: Test GetImeByInputType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodPrivateMemberTest, TestGetImeByInputType, TestSize.Level0)
 {
     ImeIdentification ime;
@@ -1134,7 +1148,7 @@ HWTEST_F(InputMethodPrivateMemberTest, test_OnFocusedAndOnUnfocused001, TestSize
 HWTEST_F(InputMethodPrivateMemberTest, test_OnFocusedAndOnUnfocused002, TestSize.Level0)
 {
     IMSA_HILOGI("test_OnFocusedAndOnUnfocused002 TEST START");
-    const sptr<Rosen::FocusChangeInfo> focusChangeInfo = new Rosen::FocusChangeInfo();;
+    const sptr<Rosen::FocusChangeInfo> focusChangeInfo = new Rosen::FocusChangeInfo();
     FocusHandle handle = nullptr;
     FocusChangedListener focusChangedListener(handle);
     focusChangedListener.OnFocused(focusChangeInfo);
@@ -1167,7 +1181,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage001, TestSize.Level0)
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     sptr<IInputMethodCore> core = nullptr;
     sptr<IRemoteObject> agent = nullptr;
-    pid_t pid{ -1 };
+    pid_t pid { -1 };
     auto ret = userSession->UpdateImeData(core, agent, pid);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 

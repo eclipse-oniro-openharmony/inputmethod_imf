@@ -51,7 +51,7 @@ public:
     static constexpr int32_t MAX_WAIT_TIME = 5000;
     static bool timeout_;
     static std::shared_ptr<AppExecFwk::EventHandler> textConfigHandler_;
-    
+
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::SetUpTestCase");
@@ -122,8 +122,8 @@ sptr<InputMethodController> InputMethodAttachTest::inputMethodController_;
 sptr<InputMethodAbility> InputMethodAttachTest::inputMethodAbility_;
 sptr<InputMethodSystemAbilityProxy> InputMethodAttachTest::imsaProxy_;
 sptr<InputMethodSystemAbility> InputMethodAttachTest::imsa_;
-bool InputMethodAttachTest::timeout_{ false };
-std::shared_ptr<AppExecFwk::EventHandler> InputMethodAttachTest::textConfigHandler_{ nullptr };
+bool InputMethodAttachTest::timeout_ { false };
+std::shared_ptr<AppExecFwk::EventHandler> InputMethodAttachTest::textConfigHandler_ { nullptr };
 
 /**
  * @tc.name: testAttach001

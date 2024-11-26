@@ -64,9 +64,9 @@ enum class ImeEvent : uint32_t {
 enum class ImeAction : uint32_t {
     DO_NOTHING,
     HANDLE_STARTING_IME,
-    STOP_EXITING_IME,
+    FORCE_STOP_IME,
     STOP_READY_IME,
-    STOP_STARTING_IME,
+    START_AFTER_FORCE_STOP,
     DO_SET_CORE_AND_AGENT,
     DO_ACTION_IN_NULL_IME_DATA,
     DO_ACTION_IN_IME_EVENT_CONVERT_FAILED,
@@ -114,6 +114,7 @@ public:
     void OnHideSoftKeyBoardSelf();
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
     int32_t SwitchSubtype(const SubProperty &subProperty);
+    int32_t SwitchSubtypeWithoutStartIme(const SubProperty &subProperty);
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
     void OnScreenLocked();
@@ -151,6 +152,7 @@ public:
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
     int32_t OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client);
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId);
     bool IsSaReady(int32_t saId);
     void UpdateScreenLockState();
 
@@ -231,7 +233,7 @@ private:
     bool IsImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInImeBind(ImeType bindImeType, ImeType startImeType);
-    bool IsImeBindChanged(ImeType bindImeType);
+    bool IsImeBindTypeChanged(ImeType bindImeType);
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
 
@@ -247,7 +249,6 @@ private:
     bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
     bool ForceStopCurrentIme(bool isNeedWait = true);
     bool StopReadyCurrentIme();
-    bool StopExitingCurrentIme();
     bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
@@ -255,6 +256,7 @@ private:
     int32_t NotifyInputStartToClients(uint32_t callingWndId);
     int32_t NotifyInputStopToClients();
     bool IsNotifyInputStop(const sptr<IInputClient> &client);
+    void HandleImeBindTypeChanged(InputClientInfo &newClientInfo);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
@@ -275,13 +277,15 @@ private:
     static inline const std::map<std::pair<ImeStatus, ImeEvent>, std::pair<ImeStatus, ImeAction>> imeEventConverter_ = {
         { { ImeStatus::READY, ImeEvent::START_IME }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
         { { ImeStatus::STARTING, ImeEvent::START_IME }, { ImeStatus::STARTING, ImeAction::HANDLE_STARTING_IME } },
-        { { ImeStatus::EXITING, ImeEvent::START_IME }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::EXITING, ImeEvent::START_IME }, { ImeStatus::EXITING, ImeAction::START_AFTER_FORCE_STOP } },
         { { ImeStatus::READY, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
-        { { ImeStatus::STARTING, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
-        { { ImeStatus::EXITING, ImeEvent::START_IME_TIMEOUT }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::STARTING, ImeEvent::START_IME_TIMEOUT },
+            { ImeStatus::EXITING, ImeAction::START_AFTER_FORCE_STOP } },
+        { { ImeStatus::EXITING, ImeEvent::START_IME_TIMEOUT },
+            { ImeStatus::EXITING, ImeAction::START_AFTER_FORCE_STOP } },
         { { ImeStatus::READY, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_READY_IME } },
-        { { ImeStatus::STARTING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_STARTING_IME } },
-        { { ImeStatus::EXITING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::STOP_EXITING_IME } },
+        { { ImeStatus::STARTING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::FORCE_STOP_IME } },
+        { { ImeStatus::EXITING, ImeEvent::STOP_IME }, { ImeStatus::EXITING, ImeAction::FORCE_STOP_IME } },
         { { ImeStatus::READY, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::READY, ImeAction::DO_NOTHING } },
         { { ImeStatus::STARTING, ImeEvent::SET_CORE_AND_AGENT },
             { ImeStatus::READY, ImeAction::DO_SET_CORE_AND_AGENT } },

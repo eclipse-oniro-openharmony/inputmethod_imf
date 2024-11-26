@@ -31,7 +31,7 @@ class DataSharePredicates {
 public:
     DataSharePredicates *EqualTo(const std::string &field, const std::string &value);
 };
-class DatashareBusinessError {};
+class DatashareBusinessError { };
 class DataShareResultSet {
 public:
     DataShareResultSet() = default;

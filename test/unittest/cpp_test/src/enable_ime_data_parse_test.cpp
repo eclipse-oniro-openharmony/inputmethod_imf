@@ -56,9 +56,7 @@ void EnableImeDataParseTest::SetUpTestCase(void)
     ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp()->id = "defaultImeId";
 }
 
-void EnableImeDataParseTest::TearDownTestCase(void)
-{
-}
+void EnableImeDataParseTest::TearDownTestCase(void) { }
 
 void EnableImeDataParseTest::SetUp()
 {
@@ -70,9 +68,7 @@ void EnableImeDataParseTest::SetUp()
     EnableImeDataParser::GetInstance()->enableList_.clear();
 }
 
-void EnableImeDataParseTest::TearDown()
-{
-}
+void EnableImeDataParseTest::TearDown() { }
 
 /**
  * @tc.name: testGetEnableData_001

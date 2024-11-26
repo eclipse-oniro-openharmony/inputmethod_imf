@@ -1513,4 +1513,4 @@ HWTEST_F(InputMethodControllerCapiTest, TestAttachWithNorrmalParam_001, TestSize
     OH_AttachOptions_Destroy(options);
     OH_TextEditorProxy_Destroy(textEditorProxy);
 }
-}
+} // namespace
