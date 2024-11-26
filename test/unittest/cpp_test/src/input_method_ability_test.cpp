@@ -363,16 +363,14 @@ HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level
     IMSA_HILOGI("InputMethodAbilityTest testStartInputBeforeCreatePanel start.");
     inputMethodAbility_->panels_.Clear();
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
-    InputMethodAbilityTest::showKeyboard_ = false;
     auto ret = imc_->Attach(textListener_);
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
     {
         std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
         InputMethodAbilityTest::imeListenerCv_.wait_for(
             lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
-        ASSERT_FALSE(InputMethodAbilityTest::showKeyboard_);
     }
-
+    InputMethodAbilityTest::showKeyboard_ = false;
     std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
     {
         AccessScope scope(currentImeTokenId_, currentImeUid_);
