@@ -178,6 +178,10 @@ void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client, const s
 int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
 {
     IMSA_HILOGD("PerUserSession::HideKeyboard start.");
+    if (currentClient == nullptr) {
+        IMSA_HILOGE("current client is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto clientInfo = GetClientInfo(currentClient->AsObject());
     if (clientInfo == nullptr) {
         IMSA_HILOGE("client info is nullptr!");
@@ -202,6 +206,10 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
 int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
 {
     IMSA_HILOGD("PerUserSession::ShowKeyboard start.");
+    if (currentClient == nullptr) {
+        IMSA_HILOGE("current client is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto clientInfo = GetClientInfo(currentClient->AsObject());
     if (clientInfo == nullptr) {
         IMSA_HILOGE("client info is nullptr!");
