@@ -30,84 +30,110 @@ InputDataChannelProxy::InputDataChannelProxy(const sptr<IRemoteObject> &object)
 
 int32_t InputDataChannelProxy::InsertText(const std::u16string &text)
 {
-    return SendRequest(INSERT_TEXT, [&text](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text); });
+    return SendRequest(INSERT_TEXT, [&text](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, text);
+    });
 }
 
 int32_t InputDataChannelProxy::DeleteForward(int32_t length)
 {
-    return SendRequest(DELETE_FORWARD, [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); });
+    return SendRequest(DELETE_FORWARD, [length](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, length);
+    });
 }
 
 int32_t InputDataChannelProxy::DeleteBackward(int32_t length)
 {
-    return SendRequest(DELETE_BACKWARD,
-        [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); });
+    return SendRequest(DELETE_BACKWARD, [length](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, length);
+    });
 }
 
 int32_t InputDataChannelProxy::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
     return SendRequest(
-        GET_TEXT_BEFORE_CURSOR, [number](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, number); },
-        [&text](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, text); });
+        GET_TEXT_BEFORE_CURSOR,
+        [number](MessageParcel &parcel) {
+            return ITypesUtil::Marshal(parcel, number);
+        },
+        [&text](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(parcel, text);
+        });
 }
 
 int32_t InputDataChannelProxy::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
     return SendRequest(
-        GET_TEXT_AFTER_CURSOR, [number](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, number); },
-        [&text](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, text); });
+        GET_TEXT_AFTER_CURSOR,
+        [number](MessageParcel &parcel) {
+            return ITypesUtil::Marshal(parcel, number);
+        },
+        [&text](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(parcel, text);
+        });
 }
 
 void InputDataChannelProxy::SendKeyboardStatus(KeyboardStatus status)
 {
-    SendRequest(SEND_KEYBOARD_STATUS,
-        [status](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, static_cast<int32_t>(status)); });
+    SendRequest(SEND_KEYBOARD_STATUS, [status](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, static_cast<int32_t>(status));
+    });
 }
 
 void InputDataChannelProxy::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    SendRequest(NOTIFY_PANEL_STATUS_INFO, [&info](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, info); });
+    SendRequest(NOTIFY_PANEL_STATUS_INFO, [&info](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, info);
+    });
 }
 
 int32_t InputDataChannelProxy::SendFunctionKey(int32_t funcKey)
 {
-    return SendRequest(SEND_FUNCTION_KEY,
-        [funcKey](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, funcKey); });
+    return SendRequest(SEND_FUNCTION_KEY, [funcKey](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, funcKey);
+    });
 }
 
 int32_t InputDataChannelProxy::MoveCursor(int32_t keyCode)
 {
-    return SendRequest(MOVE_CURSOR, [keyCode](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, keyCode); });
+    return SendRequest(MOVE_CURSOR, [keyCode](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, keyCode);
+    });
 }
 
 int32_t InputDataChannelProxy::GetEnterKeyType(int32_t &keyType)
 {
-    return SendRequest(GET_ENTER_KEY_TYPE, nullptr,
-        [&keyType](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, keyType); });
+    return SendRequest(GET_ENTER_KEY_TYPE, nullptr, [&keyType](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(parcel, keyType);
+    });
 }
 
 int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
 {
-    return SendRequest(GET_INPUT_PATTERN, nullptr,
-        [&inputPattern](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, inputPattern); });
+    return SendRequest(GET_INPUT_PATTERN, nullptr, [&inputPattern](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(parcel, inputPattern);
+    });
 }
 
 int32_t InputDataChannelProxy::GetTextIndexAtCursor(int32_t &index)
 {
-    return SendRequest(GET_TEXT_INDEX_AT_CURSOR, nullptr,
-        [&index](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, index); });
+    return SendRequest(GET_TEXT_INDEX_AT_CURSOR, nullptr, [&index](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(parcel, index);
+    });
 }
 
 int32_t InputDataChannelProxy::GetTextConfig(TextTotalConfig &textConfig)
 {
-    return SendRequest(GET_TEXT_CONFIG, nullptr,
-        [&textConfig](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, textConfig); });
+    return SendRequest(GET_TEXT_CONFIG, nullptr, [&textConfig](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(parcel, textConfig);
+    });
 }
 
 int32_t InputDataChannelProxy::SelectByRange(int32_t start, int32_t end)
 {
-    return SendRequest(SELECT_BY_RANGE,
-        [start, end](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, start, end); });
+    return SendRequest(SELECT_BY_RANGE, [start, end](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, start, end);
+    });
 }
 
 int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
@@ -119,27 +145,31 @@ int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t curso
 
 int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
 {
-    return SendRequest(HANDLE_EXTEND_ACTION,
-        [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
+    return SendRequest(HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, action);
+    });
 }
 
 void InputDataChannelProxy::NotifyKeyboardHeight(uint32_t height)
 {
-    SendRequest(NOTIFY_KEYBOARD_HEIGHT,
-        [height](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, height); });
+    SendRequest(NOTIFY_KEYBOARD_HEIGHT, [height](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, height);
+    });
 }
 
 int32_t InputDataChannelProxy::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    return SendRequest(SEND_PRIVATE_COMMAND,
-        [&privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); });
+    return SendRequest(SEND_PRIVATE_COMMAND, [&privateCommand](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, privateCommand);
+    });
 }
 
 int32_t InputDataChannelProxy::SetPreviewText(const std::string &text, const Range &range)
 {
-    return SendRequest(SET_PREVIEW_TEXT,
-        [&text, &range](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text, range); });
+    return SendRequest(SET_PREVIEW_TEXT, [&text, &range](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, text, range);
+    });
 }
 
 int32_t InputDataChannelProxy::FinishTextPreview(bool isAsync)

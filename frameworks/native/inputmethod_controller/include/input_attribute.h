@@ -31,7 +31,7 @@ struct InputAttribute {
     int32_t inputPattern = 0;
     int32_t enterKeyType = 0;
     int32_t inputOption = 0;
-    bool isTextPreviewSupported{ false };
+    bool isTextPreviewSupported { false };
     std::string bundleName { "" };
 
     static bool Marshalling(const InputAttribute &in, MessageParcel &data)
@@ -49,13 +49,13 @@ struct InputAttribute {
     bool GetSecurityFlag() const
     {
         return inputPattern == PATTERN_PASSWORD || inputPattern == PATTERN_PASSWORD_SCREEN_LOCK ||
-               PATTERN_PASSWORD_NUMBER == inputPattern || PATTERN_NEWPASSWORD == inputPattern;
+            PATTERN_PASSWORD_NUMBER == inputPattern || PATTERN_NEWPASSWORD == inputPattern;
     }
 
     bool operator==(const InputAttribute &info) const
     {
         return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType &&
-               inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
+            inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
     }
 };
 } // namespace MiscServices

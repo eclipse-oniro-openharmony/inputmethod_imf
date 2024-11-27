@@ -31,28 +31,35 @@ enum class UpdateFlag : uint32_t {
     TEXT_CONFIG,
     UIEXTENSION_TOKENID,
 };
-enum class ImeType : int32_t { IME = 0, PROXY_IME, NONE };
-enum class ClientState : uint32_t { INACTIVE = 0, ACTIVE };
+enum class ImeType : int32_t {
+    IME = 0,
+    PROXY_IME,
+    NONE
+};
+enum class ClientState : uint32_t {
+    INACTIVE = 0,
+    ACTIVE
+};
 constexpr uint32_t NO_EVENT_ON = 0;
 constexpr uint32_t IMF_INVALID_TOKENID = 0;
 struct InputClientInfo {
-    pid_t pid{ -1 };                        // process id
-    pid_t uid{ -1 };                        // uid
-    int32_t userID{ 0 };                    // user id of input client
-    bool isShowKeyboard{ false };           // soft keyboard status
-    ImeType bindImeType{ ImeType::NONE };   // type of the ime client bind
-    TextTotalConfig config = {};            // text config
-    uint32_t eventFlag{ NO_EVENT_ON };      // the flag of the all listen event
-    InputAttribute attribute;               // the input client attribute
-    sptr<IInputClient> client{ nullptr };   // the remote object handler for service to callback input client
-    sptr<IRemoteObject> channel{ nullptr }; // the remote object handler for ime to callback input client
-    sptr<InputDeathRecipient> deathRecipient{ nullptr }; // death recipient of client
-    ClientState state{ ClientState::INACTIVE };          // the state of input client
-    bool isNotifyInputStart{ true };
+    pid_t pid { -1 };                        // process id
+    pid_t uid { -1 };                        // uid
+    int32_t userID { 0 };                    // user id of input client
+    bool isShowKeyboard { false };           // soft keyboard status
+    ImeType bindImeType { ImeType::NONE };   // type of the ime client bind
+    TextTotalConfig config = {};             // text config
+    uint32_t eventFlag { NO_EVENT_ON };      // the flag of the all listen event
+    InputAttribute attribute;                // the input client attribute
+    sptr<IInputClient> client { nullptr };   // the remote object handler for service to callback input client
+    sptr<IRemoteObject> channel { nullptr }; // the remote object handler for ime to callback input client
+    sptr<InputDeathRecipient> deathRecipient { nullptr }; // death recipient of client
+    ClientState state { ClientState::INACTIVE };          // the state of input client
+    bool isNotifyInputStart { true };
     bool needHide { false }; // panel needs to be hidden first, when input pattern is switched between pwd and normal
-    uint32_t uiExtensionTokenId{ IMF_INVALID_TOKENID }; // the value is valid only in curClient and only UIExtension
+    uint32_t uiExtensionTokenId { IMF_INVALID_TOKENID }; // the value is valid only in curClient and only UIExtension
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUTMETHOD_IMF_INPUT_CLIENT_INFO_H
+#endif // INPUTMETHOD_IMF_INPUT_CLIENT_INFO_H

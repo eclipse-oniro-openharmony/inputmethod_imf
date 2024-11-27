@@ -24,12 +24,12 @@
 #include "message.h"
 namespace OHOS {
 namespace MiscServices {
-InputDataChannelStub::InputDataChannelStub() {}
+InputDataChannelStub::InputDataChannelStub() { }
 
-InputDataChannelStub::~InputDataChannelStub() {}
+InputDataChannelStub::~InputDataChannelStub() { }
 
-int32_t InputDataChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputDataChannelStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGD("InputDataChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
@@ -84,8 +84,8 @@ int32_t InputDataChannelStub::GetTextBeforeCursorOnRemote(MessageParcel &data, M
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     std::u16string text;
-    return ITypesUtil::Marshal(reply, GetTextBeforeCursor(length, text), text) ? ErrorCode::NO_ERROR
-                                                                               : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, GetTextBeforeCursor(length, text), text) ? ErrorCode::NO_ERROR :
+                                                                                 ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputDataChannelStub::GetTextAfterCursorOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -96,15 +96,15 @@ int32_t InputDataChannelStub::GetTextAfterCursorOnRemote(MessageParcel &data, Me
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     std::u16string text;
-    return ITypesUtil::Marshal(reply, GetTextAfterCursor(length, text), text) ? ErrorCode::NO_ERROR
-                                                                              : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, GetTextAfterCursor(length, text), text) ? ErrorCode::NO_ERROR :
+                                                                                ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputDataChannelStub::GetTextConfigOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     TextTotalConfig config;
-    return ITypesUtil::Marshal(reply, GetTextConfig(config), config) ? ErrorCode::NO_ERROR
-                                                                     : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, GetTextConfig(config), config) ? ErrorCode::NO_ERROR :
+                                                                       ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputDataChannelStub::SendKeyboardStatusOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -141,15 +141,15 @@ int32_t InputDataChannelStub::MoveCursorOnRemote(MessageParcel &data, MessagePar
 int32_t InputDataChannelStub::GetEnterKeyTypeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     int32_t type = 0;
-    return ITypesUtil::Marshal(reply, GetEnterKeyType(type), type) ? ErrorCode::NO_ERROR
-                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, GetEnterKeyType(type), type) ? ErrorCode::NO_ERROR :
+                                                                     ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputDataChannelStub::GetInputPatternOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     int32_t pattern = 0;
-    return ITypesUtil::Marshal(reply, GetInputPattern(pattern), pattern) ? ErrorCode::NO_ERROR
-                                                                         : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, GetInputPattern(pattern), pattern) ? ErrorCode::NO_ERROR :
+                                                                           ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -187,13 +187,13 @@ int32_t InputDataChannelStub::HandleExtendActionOnRemote(MessageParcel &data, Me
 int32_t InputDataChannelStub::GetTextIndexAtCursorOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     int32_t index = -1;
-    return ITypesUtil::Marshal(reply, GetTextIndexAtCursor(index), index) ? ErrorCode::NO_ERROR
-                                                                          : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, GetTextIndexAtCursor(index), index) ? ErrorCode::NO_ERROR :
+                                                                            ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputDataChannelStub::NotifyPanelStatusInfoOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    PanelStatusInfo info{};
+    PanelStatusInfo info {};
     if (!ITypesUtil::Unmarshal(data, info)) {
         IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;

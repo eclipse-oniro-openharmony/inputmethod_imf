@@ -34,7 +34,7 @@ public:
         ON_SWITCH_INPUT,
         ON_PANEL_STATUS_CHANGE,
         ON_NOTIFY_INPUT_START, // IME start to input, no bind
-        ON_NOTIFY_INPUT_STOP, // IME stop to input
+        ON_NOTIFY_INPUT_STOP,  // IME stop to input
         DEACTIVATE_CLIENT
     };
 

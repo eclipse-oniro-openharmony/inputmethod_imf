@@ -29,10 +29,10 @@ KeyEventConsumerStub::KeyEventConsumerStub(KeyEventCallback callback, std::share
 {
 }
 
-KeyEventConsumerStub::~KeyEventConsumerStub() {}
+KeyEventConsumerStub::~KeyEventConsumerStub() { }
 
-int32_t KeyEventConsumerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t KeyEventConsumerStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGD("KeyEventConsumerStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());

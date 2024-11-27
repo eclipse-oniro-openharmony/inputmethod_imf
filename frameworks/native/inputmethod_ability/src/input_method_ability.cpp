@@ -31,9 +31,9 @@
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
+#include "task_manager.h"
 #include "tasks/task.h"
 #include "tasks/task_imsa.h"
-#include "task_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -46,9 +46,7 @@ constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
 constexpr uint32_t START_INPUT_CALLBACK_TIMEOUT_MS = 1000;
 
-InputMethodAbility::InputMethodAbility()
-{
-}
+InputMethodAbility::InputMethodAbility() { }
 
 InputMethodAbility::~InputMethodAbility()
 {
@@ -97,7 +95,9 @@ sptr<IInputMethodSystemAbility> InputMethodAbility::GetImsaProxy()
             return nullptr;
         }
     }
-    deathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) { OnRemoteSaDied(remote); });
+    deathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) {
+        OnRemoteSaDied(remote);
+    });
     if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
         IMSA_HILOGE("failed to add death recipient!");
         return nullptr;
@@ -207,8 +207,8 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("channelObject is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    IMSA_HILOGI("IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", clientInfo.isShowKeyboard,
-        isBindFromClient);
+    IMSA_HILOGI(
+        "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
     if (clientInfo.needHide) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
@@ -221,8 +221,8 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.bundleName = clientInfo.config.inputAttribute.bundleName;
     }
-    int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
-                                   : InvokeStartInputCallback(clientInfo.isNotifyInputStart);
+    int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart) :
+                                     InvokeStartInputCallback(clientInfo.isNotifyInputStart);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d!", ret);
         return ret;
@@ -297,8 +297,8 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-    sptr<KeyEventConsumerProxy> &consumer)
+int32_t InputMethodAbility::DispatchKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr!");
@@ -358,8 +358,7 @@ void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
         IMSA_HILOGE("kdListener_ is nullptr!");
         return;
     }
-    IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d.", attribute.enterKeyType,
-        attribute.inputPattern);
+    IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d.", attribute.enterKeyType, attribute.inputPattern);
     attribute.bundleName = GetInputAttribute().bundleName;
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
@@ -499,12 +498,12 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     if (kdListener_ != nullptr) {
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
-            kdListener_->OnCursorUpdate(textConfig.cursorInfo.left, textConfig.cursorInfo.top,
-                textConfig.cursorInfo.height);
+            kdListener_->OnCursorUpdate(
+                textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
         }
-        if (textConfig.textSelection.newBegin == INVALID_SELECTION_VALUE
-            || (textConfig.textSelection.newBegin == textConfig.textSelection.oldBegin
-                && textConfig.textSelection.newEnd == textConfig.textSelection.oldEnd)) {
+        if (textConfig.textSelection.newBegin == INVALID_SELECTION_VALUE ||
+            (textConfig.textSelection.newBegin == textConfig.textSelection.oldBegin &&
+                textConfig.textSelection.newEnd == textConfig.textSelection.oldEnd)) {
             IMSA_HILOGD("invalid selection or no selection change");
         } else {
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
@@ -827,9 +826,9 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
     auto panelHeightCallback = [this](uint32_t panelHeight, PanelFlag panelFlag) {
         NotifyKeyboardHeight(panelHeight, panelFlag);
     };
-    auto flag = panels_.ComputeIfAbsent(
-        panelInfo.panelType, [panelHeightCallback, &panelInfo, &context, &inputMethodPanel](
-                                 const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
+    auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
+        [panelHeightCallback, &panelInfo, &context, &inputMethodPanel](
+            const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
             inputMethodPanel = std::make_shared<InputMethodPanel>();
             inputMethodPanel->SetPanelHeightCallback(panelHeightCallback);
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
@@ -840,8 +839,8 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
             inputMethodPanel = nullptr;
             return false;
         });
-    if (flag && isShowAfterCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD
-        && panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
+    if (flag && isShowAfterCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD &&
+        panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
         isShowAfterCreate_.store(false);
         auto task = std::make_shared<TaskImsaShowKeyboard>();
         TaskManager::GetInstance().PostTask(task);
@@ -883,16 +882,16 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
         return ErrorCode::NO_ERROR;
     }
-    if (isShowAfterCreate_.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD
-        && inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_CANDIDATE_COLUMN) {
+    if (isShowAfterCreate_.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD &&
+        inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_CANDIDATE_COLUMN) {
         isShowAfterCreate_.store(false);
     }
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
 }
 
-int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag,
-    Trigger trigger)
+int32_t InputMethodAbility::ShowPanel(
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -912,13 +911,16 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
     NotifyPanelStatus(inputMethodPanel, sysPanelStatus);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
-        NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
+        NotifyPanelStatusInfo({
+            {inputMethodPanel->GetPanelType(), flag},
+            true, trigger
+        });
     }
     return ret;
 }
 
-int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag,
-                                      Trigger trigger)
+int32_t InputMethodAbility::HidePanel(
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -928,7 +930,10 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         IMSA_HILOGD("failed, ret: %{public}d", ret);
         return ret;
     }
-    NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
+    NotifyPanelStatusInfo({
+        {inputMethodPanel->GetPanelType(), flag},
+        false, trigger
+    });
     return ErrorCode::NO_ERROR;
 }
 

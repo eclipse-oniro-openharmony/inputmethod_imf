@@ -19,6 +19,10 @@
 #include "message_parcel.h"
 
 namespace OHOS ::MiscServices {
-enum InputMethodStatus : uint32_t { DISABLE = 0, ENABLE, ALL };
-}
+enum InputMethodStatus : uint32_t {
+    DISABLE = 0,
+    ENABLE,
+    ALL
+};
+} // namespace OHOS::MiscServices
 #endif // namespace OHOS::INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H

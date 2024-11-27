@@ -25,13 +25,9 @@
 
 namespace OHOS {
 namespace MiscServices {
-SystemCmdChannelStub::SystemCmdChannelStub()
-{
-}
+SystemCmdChannelStub::SystemCmdChannelStub() { }
 
-SystemCmdChannelStub::~SystemCmdChannelStub()
-{
-}
+SystemCmdChannelStub::~SystemCmdChannelStub() { }
 
 int32_t SystemCmdChannelStub::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
@@ -61,12 +57,11 @@ int32_t SystemCmdChannelStub::NotifyPanelStatusOnRemote(MessageParcel &data, Mes
         IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(NotifyPanelStatus(sysPanelStatus)) ? ErrorCode::NO_ERROR
-                                                                  : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(NotifyPanelStatus(sysPanelStatus)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t SystemCmdChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t SystemCmdChannelStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGI("SystemCmdChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());

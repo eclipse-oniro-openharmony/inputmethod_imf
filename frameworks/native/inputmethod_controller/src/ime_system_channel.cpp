@@ -28,13 +28,9 @@ namespace MiscServices {
 constexpr const char *SMART_MENU_METADATA_NAME = "ohos.extension.smart_menu";
 std::mutex ImeSystemCmdChannel::instanceLock_;
 sptr<ImeSystemCmdChannel> ImeSystemCmdChannel::instance_;
-ImeSystemCmdChannel::ImeSystemCmdChannel()
-{
-}
+ImeSystemCmdChannel::ImeSystemCmdChannel() { }
 
-ImeSystemCmdChannel::~ImeSystemCmdChannel()
-{
-}
+ImeSystemCmdChannel::~ImeSystemCmdChannel() { }
 
 sptr<ImeSystemCmdChannel> ImeSystemCmdChannel::GetInstance()
 {
@@ -77,7 +73,9 @@ sptr<IInputMethodSystemAbility> ImeSystemCmdChannel::GetSystemAbilityProxy()
             return nullptr;
         }
     }
-    deathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) { OnRemoteSaDied(remote); });
+    deathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) {
+        OnRemoteSaDied(remote);
+    });
     if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
         IMSA_HILOGE("failed to add death recipient!");
         return nullptr;
@@ -160,8 +158,9 @@ void ImeSystemCmdChannel::OnConnectCmdReady(const sptr<IRemoteObject> &agentObje
             return;
         }
     }
-    agentDeathRecipient_->SetDeathRecipient(
-        [this](const wptr<IRemoteObject> &remote) { OnSystemCmdAgentDied(remote); });
+    agentDeathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) {
+        OnSystemCmdAgentDied(remote);
+    });
     if (!agentObject->AddDeathRecipient(agentDeathRecipient_)) {
         IMSA_HILOGE("failed to add death recipient!");
         return;
@@ -268,8 +267,8 @@ std::string ImeSystemCmdChannel::GetSmartMenuCfg()
     return profiles[0];
 }
 
-void ImeSystemCmdChannel::GetExtensionInfo(std::vector<ExtensionAbilityInfo> extensionInfos,
-    ExtensionAbilityInfo &extInfo)
+void ImeSystemCmdChannel::GetExtensionInfo(
+    std::vector<ExtensionAbilityInfo> extensionInfos, ExtensionAbilityInfo &extInfo)
 {
     for (size_t i = 0; i < extensionInfos.size(); i++) {
         auto metadata = extensionInfos[i].metadata;

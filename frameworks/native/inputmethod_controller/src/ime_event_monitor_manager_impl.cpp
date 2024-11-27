@@ -21,13 +21,9 @@
 
 namespace OHOS {
 namespace MiscServices {
-ImeEventMonitorManagerImpl::ImeEventMonitorManagerImpl()
-{
-}
+ImeEventMonitorManagerImpl::ImeEventMonitorManagerImpl() { }
 
-ImeEventMonitorManagerImpl::~ImeEventMonitorManagerImpl()
-{
-}
+ImeEventMonitorManagerImpl::~ImeEventMonitorManagerImpl() { }
 
 ImeEventMonitorManagerImpl &ImeEventMonitorManagerImpl::GetInstance()
 {
@@ -35,8 +31,8 @@ ImeEventMonitorManagerImpl &ImeEventMonitorManagerImpl::GetInstance()
     return manager;
 }
 
-int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(uint32_t eventFlag,
-    const std::shared_ptr<ImeEventListener> &listener)
+int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     std::lock_guard<std::mutex> lock(lock_);
     uint32_t currentEventFlag = 0;
@@ -73,8 +69,8 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(uint32_t eventFlag,
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(uint32_t eventFlag,
-    const std::shared_ptr<ImeEventListener> &listener)
+int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     std::lock_guard<std::mutex> lock(lock_);
     bool isAbsentParam = false;

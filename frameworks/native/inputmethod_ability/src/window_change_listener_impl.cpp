@@ -20,8 +20,8 @@
 
 namespace OHOS {
 namespace MiscServices {
-void WindowChangeListenerImpl::OnSizeChange(Rosen::Rect rect, Rosen::WindowSizeChangeReason reason,
-    const std::shared_ptr<Rosen::RSTransaction> &rsTransaction)
+void WindowChangeListenerImpl::OnSizeChange(
+    Rosen::Rect rect, Rosen::WindowSizeChangeReason reason, const std::shared_ptr<Rosen::RSTransaction> &rsTransaction)
 {
     IMSA_HILOGD("OnSizeChange start.");
     changeHandler_({ rect.width_, rect.height_ });

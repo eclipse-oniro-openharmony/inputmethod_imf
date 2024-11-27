@@ -25,11 +25,11 @@ struct WindowSize {
 };
 class PanelStatusListener {
 public:
-    virtual ~PanelStatusListener(){};
+    virtual ~PanelStatusListener() {};
     virtual void OnPanelStatus(uint32_t windowId, bool isShow) = 0;
     virtual void OnSizeChange(uint32_t windowId, const WindowSize &size) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H
+#endif // INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H

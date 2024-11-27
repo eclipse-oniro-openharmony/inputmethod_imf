@@ -30,16 +30,16 @@ SystemCmdChannelProxy::SystemCmdChannelProxy(const sptr<IRemoteObject> &object)
 int32_t SystemCmdChannelProxy::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    return SendRequest(SEND_PRIVATE_COMMAND,
-        [&privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); });
+    return SendRequest(SEND_PRIVATE_COMMAND, [&privateCommand](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, privateCommand);
+    });
 }
 
 int32_t SystemCmdChannelProxy::NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
 {
-    return SendRequest(
-        SHOULD_SYSTEM_PANEL_SHOW, [sysPanelStatus](MessageParcel &parcel) {
-            return ITypesUtil::Marshal(parcel, sysPanelStatus);
-        });
+    return SendRequest(SHOULD_SYSTEM_PANEL_SHOW, [sysPanelStatus](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, sysPanelStatus);
+    });
 }
 
 int32_t SystemCmdChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
@@ -47,7 +47,7 @@ int32_t SystemCmdChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
     IMSA_HILOGD("SystemCmdChannelProxy run in, code = %{public}d.", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option{ MessageOption::TF_ASYNC };
+    MessageOption option { MessageOption::TF_ASYNC };
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("write interface token failed!");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;

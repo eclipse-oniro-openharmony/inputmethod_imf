@@ -31,17 +31,12 @@ public:
     using callback_t = std::function<void()>;
 
     ActionWait(uint64_t completeId, uint32_t timeoutMs)
-        : timeoutMs_(timeoutMs),
-          completeId_(completeId),
-          timeoutId_(Task::GetNextSeqId())
+        : timeoutMs_(timeoutMs), completeId_(completeId), timeoutId_(Task::GetNextSeqId())
     {
     }
 
     ActionWait(uint64_t completeId, uint32_t timeoutMs, callback_t onComplete, callback_t onTimeout)
-        : timeoutMs_(timeoutMs),
-          completeId_(completeId),
-          timeoutId_(Task::GetNextSeqId()),
-          onComplete_(onComplete),
+        : timeoutMs_(timeoutMs), completeId_(completeId), timeoutId_(Task::GetNextSeqId()), onComplete_(onComplete),
           onTimeout_(onTimeout)
     {
     }

@@ -43,11 +43,11 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodAgent");
 
-    virtual int32_t DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-        sptr<IKeyEventConsumer> &consumer) = 0;
+    virtual int32_t DispatchKeyEvent(
+        const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer) = 0;
     virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int height) = 0;
-    virtual void OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin,
-        int32_t newEnd) = 0;
+    virtual void OnSelectionChange(
+        std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
     virtual void SetCallingWindow(uint32_t windowId) = 0;
     virtual void OnAttributeChange(const InputAttribute &attribute) = 0;
     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;

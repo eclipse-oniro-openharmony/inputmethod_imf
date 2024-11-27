@@ -53,28 +53,38 @@ int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool
 
 int32_t InputMethodCoreProxy::OnSecurityChange(int32_t security)
 {
-    return SendRequest(SECURITY_CHANGE,
-        [security](MessageParcel &data) { return ITypesUtil::Marshal(data, security); });
+    return SendRequest(SECURITY_CHANGE, [security](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, security);
+    });
 }
 
 int32_t InputMethodCoreProxy::OnSetInputType(InputType inputType)
 {
-    return SendRequest(ON_SET_INPUT_TYPE,
-        [inputType](MessageParcel &data) { return ITypesUtil::Marshal(data, inputType); },
+    return SendRequest(
+        ON_SET_INPUT_TYPE,
+        [inputType](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, inputType);
+        },
         nullptr, MessageOption::TF_ASYNC);
 }
 
 int32_t InputMethodCoreProxy::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
     return SendRequest(
-        ON_CONNECT_SYSTEM_CMD, [channel](MessageParcel &data) { return data.WriteRemoteObject(channel); },
-        [&agent](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, agent); });
+        ON_CONNECT_SYSTEM_CMD,
+        [channel](MessageParcel &data) {
+            return data.WriteRemoteObject(channel);
+        },
+        [&agent](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, agent);
+        });
 }
 
 int32_t InputMethodCoreProxy::StopInputService(bool isTerminateIme)
 {
-    return SendRequest(STOP_INPUT_SERVICE,
-        [isTerminateIme](MessageParcel &data) { return ITypesUtil::Marshal(data, isTerminateIme); });
+    return SendRequest(STOP_INPUT_SERVICE, [isTerminateIme](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, isTerminateIme);
+    });
 }
 
 int32_t InputMethodCoreProxy::ShowKeyboard()
@@ -89,34 +99,47 @@ int32_t InputMethodCoreProxy::HideKeyboard()
 
 int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
 {
-    return SendRequest(SET_SUBTYPE, [&property](MessageParcel &data) { return ITypesUtil::Marshal(data, property); });
+    return SendRequest(SET_SUBTYPE, [&property](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, property);
+    });
 }
 
 int32_t InputMethodCoreProxy::StopInput(const sptr<IRemoteObject> &channel)
 {
-    return SendRequest(STOP_INPUT, [&channel](MessageParcel &data) { return ITypesUtil::Marshal(data, channel); });
+    return SendRequest(STOP_INPUT, [&channel](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, channel);
+    });
 }
 
 bool InputMethodCoreProxy::IsEnable()
 {
     bool isEnable = false;
-    SendRequest(IS_ENABLE, nullptr,
-        [&isEnable](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isEnable); });
+    SendRequest(IS_ENABLE, nullptr, [&isEnable](MessageParcel &reply) {
+        return ITypesUtil::Unmarshal(reply, isEnable);
+    });
     return isEnable;
 }
 
 int32_t InputMethodCoreProxy::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     return SendRequest(
-        IS_PANEL_SHOWN, [&panelInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, panelInfo); },
-        [&isShown](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isShown); });
+        IS_PANEL_SHOWN,
+        [&panelInfo](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, panelInfo);
+        },
+        [&isShown](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, isShown);
+        });
 }
 
 void InputMethodCoreProxy::OnClientInactive(const sptr<IRemoteObject> &channel)
 {
     SendRequest(
-        ON_CLIENT_INACTIVE, [&channel](MessageParcel &data) { return ITypesUtil::Marshal(data, channel); }, nullptr,
-        MessageOption::TF_ASYNC);
+        ON_CLIENT_INACTIVE,
+        [&channel](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, channel);
+        },
+        nullptr, MessageOption::TF_ASYNC);
 }
 
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)

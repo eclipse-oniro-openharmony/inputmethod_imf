@@ -117,19 +117,27 @@ struct CursorInfo {
     }
 };
 
-class KeyEvent {};
+class KeyEvent { };
 
-enum class KeyboardStatus : int32_t { NONE = 0, HIDE, SHOW }; // soft keyboard
+enum class KeyboardStatus : int32_t {
+    NONE = 0,
+    HIDE,
+    SHOW
+}; // soft keyboard
 
-enum Trigger : int32_t { IME_APP, IMF, END };
+enum Trigger : int32_t {
+    IME_APP,
+    IMF,
+    END
+};
 struct PanelStatusInfo {
     PanelInfo panelInfo;
-    bool visible{ false };
-    Trigger trigger{ END };
+    bool visible { false };
+    Trigger trigger { END };
     bool operator==(const PanelStatusInfo &info) const
     {
         return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType &&
-               info.visible == visible && info.trigger == trigger;
+            info.visible == visible && info.trigger == trigger;
     }
 };
 
@@ -165,7 +173,11 @@ struct TextSelection {
     int32_t newEnd = INVALID_VALUE;
 };
 
-enum PrivateDataValueType : int32_t { VALUE_TYPE_STRING = 0, VALUE_TYPE_BOOL, VALUE_TYPE_NUMBER };
+enum PrivateDataValueType : int32_t {
+    VALUE_TYPE_STRING = 0,
+    VALUE_TYPE_BOOL,
+    VALUE_TYPE_NUMBER
+};
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 
 struct TextTotalConfig {
@@ -182,16 +194,15 @@ public:
     {
         std::string config;
         config.append("pattern/enterKey/preview: " + std::to_string(inputAttribute.inputPattern) + "/" +
-                      std::to_string(inputAttribute.enterKeyType) + "/" +
-                      std::to_string(inputAttribute.isTextPreviewSupported));
+            std::to_string(inputAttribute.enterKeyType) + "/" + std::to_string(inputAttribute.isTextPreviewSupported));
         config.append(" windowId/y/height: " + std::to_string(windowId) + "/" + std::to_string(positionY) + "/" +
-                      std::to_string(height));
+            std::to_string(height));
         config.append(
             " oldRange: " + std::to_string(textSelection.oldBegin) + "/" + std::to_string(textSelection.oldEnd));
         config.append(
             " newRange: " + std::to_string(textSelection.newBegin) + "/" + std::to_string(textSelection.newEnd));
         config.append(" cursor: " + std::to_string(cursorInfo.left) + "/" + std::to_string(cursorInfo.top) + "/" +
-                      std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
+            std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
         return config;
     }
 };
@@ -208,21 +219,20 @@ struct TextConfig {
     {
         std::string config;
         config.append("pattern/enterKey/preview: " + std::to_string(inputAttribute.inputPattern) + "/" +
-                      std::to_string(inputAttribute.enterKeyType) + "/" +
-                      std::to_string(inputAttribute.isTextPreviewSupported));
+            std::to_string(inputAttribute.enterKeyType) + "/" + std::to_string(inputAttribute.isTextPreviewSupported));
         config.append(" windowId/y/height: " + std::to_string(windowId) + "/" + std::to_string(positionY) + "/" +
-                      std::to_string(height));
+            std::to_string(height));
         config.append(" range: " + std::to_string(range.start) + "/" + std::to_string(range.end));
         config.append(" cursor: " + std::to_string(cursorInfo.left) + "/" + std::to_string(cursorInfo.top) + "/" +
-                      std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
+            std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
         return config;
     }
 
     static bool IsPrivateCommandValid(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
     {
         size_t privateCommandSize = privateCommand.size();
-        size_t maxSize = IsSystemPrivateCommand(privateCommand) ? (MAX_PRIVATE_COMMAND_COUNT + 1)
-                                                                : MAX_PRIVATE_COMMAND_COUNT;
+        size_t maxSize =
+            IsSystemPrivateCommand(privateCommand) ? (MAX_PRIVATE_COMMAND_COUNT + 1) : MAX_PRIVATE_COMMAND_COUNT;
         if (privateCommandSize == 0 || privateCommandSize > maxSize) {
             IMSA_HILOGE("privateCommand size must more than 0 and less than 5.");
             return false;
@@ -277,9 +287,20 @@ struct TextConfig {
     }
 };
 
-enum class InputType : int32_t { NONE = -1, CAMERA_INPUT = 0, SECURITY_INPUT, VOICE_INPUT, END };
+enum class InputType : int32_t {
+    NONE = -1,
+    CAMERA_INPUT = 0,
+    SECURITY_INPUT,
+    VOICE_INPUT,
+    END
+};
 
-enum class SwitchTrigger : uint32_t { CURRENT_IME = 0, SYSTEM_APP, IMSA, NATIVE_SA};
+enum class SwitchTrigger : uint32_t {
+    CURRENT_IME = 0,
+    SYSTEM_APP,
+    IMSA,
+    NATIVE_SA
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

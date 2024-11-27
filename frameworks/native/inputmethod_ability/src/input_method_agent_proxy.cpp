@@ -27,8 +27,8 @@ InputMethodAgentProxy::InputMethodAgentProxy(const sptr<IRemoteObject> &object)
 {
 }
 
-int32_t InputMethodAgentProxy::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-    sptr<IKeyEventConsumer> &consumer)
+int32_t InputMethodAgentProxy::DispatchKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer)
 {
     if (consumer == nullptr) {
         IMSA_HILOGE("consumer is nullptr.");
@@ -41,7 +41,9 @@ int32_t InputMethodAgentProxy::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEv
         [&keyEvent, &consumer](MessageParcel &data) {
             return keyEvent->WriteToParcel(data) && data.WriteRemoteObject(consumer->AsObject());
         },
-        [&res](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, res); });
+        [&res](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, res);
+        });
     return ret == ErrorCode::NO_ERROR ? res : ret;
 }
 
@@ -53,8 +55,8 @@ void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY,
     IMSA_HILOGD("InputMethodAgentProxy::OnCursorUpdate ret: %{public}d.", ret);
 }
 
-void InputMethodAgentProxy::OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin,
-    int32_t newEnd)
+void InputMethodAgentProxy::OnSelectionChange(
+    std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
     auto ret = SendRequest(ON_SELECTION_CHANGE, [&text, oldBegin, oldEnd, newBegin, newEnd](MessageParcel &data) {
         return ITypesUtil::Marshal(data, text, oldBegin, oldEnd, newBegin, newEnd);
@@ -64,15 +66,17 @@ void InputMethodAgentProxy::OnSelectionChange(std::u16string text, int32_t oldBe
 
 void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
 {
-    auto ret = SendRequest(SET_CALLING_WINDOW_ID,
-        [windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
+    auto ret = SendRequest(SET_CALLING_WINDOW_ID, [windowId](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, windowId);
+    });
     IMSA_HILOGD("InputMethodAgentProxy::SetCallingWindow ret: %{public}d.", ret);
 }
 
 void InputMethodAgentProxy::OnAttributeChange(const InputAttribute &attribute)
 {
-    auto ret = SendRequest(ON_ATTRIBUTE_CHANGE,
-        [&attribute](MessageParcel &data) { return ITypesUtil::Marshal(data, attribute); });
+    auto ret = SendRequest(ON_ATTRIBUTE_CHANGE, [&attribute](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, attribute);
+    });
     IMSA_HILOGD("InputMethodAgentProxy, ret: %{public}d.", ret);
 }
 
@@ -82,8 +86,12 @@ int32_t InputMethodAgentProxy::SendPrivateCommand(
     int32_t res = -1;
     int32_t ret = SendRequest(
         SEND_PRIVATE_COMMAND,
-        [&privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); },
-        [&res](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, res); });
+        [&privateCommand](MessageParcel &parcel) {
+            return ITypesUtil::Marshal(parcel, privateCommand);
+        },
+        [&res](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, res);
+        });
     return ret == ErrorCode::NO_ERROR ? res : ret;
 }
 
@@ -92,7 +100,7 @@ int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, Parcel
     IMSA_HILOGD("InputMethodAgentProxy start, code: %{public}d.", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
+    MessageOption option { MessageOption::TF_SYNC };
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("InputMethodAgentProxy::write interface token failed!");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;

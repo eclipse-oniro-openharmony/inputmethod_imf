@@ -25,8 +25,8 @@ namespace MiscServices {
 using ChangeHandler = std::function<void(WindowSize size)>;
 class WindowChangeListenerImpl : public OHOS::Rosen::IWindowChangeListener {
 public:
-    explicit WindowChangeListenerImpl(ChangeHandler handler) : changeHandler_(std::move(handler)){};
-    virtual ~WindowChangeListenerImpl(){};
+    explicit WindowChangeListenerImpl(ChangeHandler handler) : changeHandler_(std::move(handler)) {};
+    virtual ~WindowChangeListenerImpl() {};
     void OnSizeChange(OHOS::Rosen::Rect rect, OHOS::Rosen::WindowSizeChangeReason reason,
         const std::shared_ptr<OHOS::Rosen::RSTransaction> &rsTransaction = nullptr) override;
 
@@ -36,4 +36,4 @@ private:
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUTMETHOD_IMF_WINDOW_CHANGE_LISTENER_H
+#endif // INPUTMETHOD_IMF_WINDOW_CHANGE_LISTENER_H

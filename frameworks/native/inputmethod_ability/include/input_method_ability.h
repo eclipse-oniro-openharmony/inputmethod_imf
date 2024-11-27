@@ -31,12 +31,12 @@
 #include "input_data_channel_proxy.h"
 #include "input_method_engine_listener.h"
 #include "input_method_panel.h"
+#include "input_method_types.h"
 #include "iremote_object.h"
 #include "keyboard_listener.h"
 #include "keyevent_consumer_proxy.h"
 #include "private_command_interface.h"
 #include "system_cmd_channel_proxy.h"
-#include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -55,7 +55,7 @@ public:
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
-   
+
     int32_t SendExtendAction(int32_t action);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
@@ -89,8 +89,8 @@ public:
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range);
     int32_t FinishTextPreview(bool isAsync);
-    int32_t NotifyPanelStatus(const std::shared_ptr<InputMethodPanel> &inputMethodPanel,
-        SysPanelStatus &sysPanelStatus);
+    int32_t NotifyPanelStatus(
+        const std::shared_ptr<InputMethodPanel> &inputMethodPanel, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     void OnSetInputType(InputType inputType);
 
@@ -106,7 +106,7 @@ public:
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height);
     void OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEndg);
     void OnAttributeChange(InputAttribute attribute);
-    
+
     int32_t OnStopInputService(bool isTerminateIme);
 
 private:
@@ -126,8 +126,8 @@ private:
     static std::mutex instanceLock_;
     static sptr<InputMethodAbility> instance_;
     std::mutex abilityLock_;
-    sptr<IInputMethodSystemAbility> abilityManager_{ nullptr };
-    sptr<InputDeathRecipient> deathRecipient_{ nullptr };
+    sptr<IInputMethodSystemAbility> abilityManager_ { nullptr };
+    sptr<InputDeathRecipient> deathRecipient_ { nullptr };
     sptr<IInputMethodSystemAbility> GetImsaProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
@@ -160,12 +160,12 @@ private:
     void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy);
     void ClearInputType();
 
-    ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
-    std::atomic_bool isBound_{ false };
+    ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
+    std::atomic_bool isBound_ { false };
 
-    sptr<IInputMethodCore> coreStub_{ nullptr };
-    sptr<IInputMethodAgent> agentStub_{ nullptr };
-    sptr<IInputMethodAgent> systemAgentStub_{ nullptr };
+    sptr<IInputMethodCore> coreStub_ { nullptr };
+    sptr<IInputMethodAgent> agentStub_ { nullptr };
+    sptr<IInputMethodAgent> systemAgentStub_ { nullptr };
     std::mutex imeCheckMutex_;
     bool isCurrentIme_ = false;
 
@@ -175,14 +175,14 @@ private:
     std::mutex defaultImeCheckMutex_;
     bool isDefaultIme_ = false;
     std::mutex inputAttrLock_;
-    InputAttribute inputAttribute_{};
+    InputAttribute inputAttribute_ {};
     std::recursive_mutex keyboardCmdLock_;
     int32_t cmdId_ = 0;
 
     std::mutex inputTypeLock_;
     InputType inputType_ = InputType::NONE;
     std::atomic<bool> isImeTerminating = false;
-    std::atomic_bool isShowAfterCreate_{ false };
+    std::atomic_bool isShowAfterCreate_ { false };
 };
 } // namespace MiscServices
 } // namespace OHOS
