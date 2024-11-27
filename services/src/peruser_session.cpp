@@ -775,6 +775,23 @@ void PerUserSession::StartImeInImeDied()
         IMSA_HILOGW("not ready to start ime.");
         return;
     }
+    StartImeIfInstalled();
+}
+
+void PerUserSession::StartImeIfInstalled()
+{
+    std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
+    if (!GetInputTypeToStart(imeToStart)) {
+        imeToStart = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    }
+    if (imeToStart == nullptr || imeToStart->imeId.empty()) {
+        IMSA_HILOGE("imeToStart is nullptr!");
+        return;
+    }
+    if (!ImeInfoInquirer::GetInstance().IsImeInstalled(userId_, imeToStart->bundleName, imeToStart->extName)) {
+        IMSA_HILOGE("imeToStart is not installed, imeId = %{public}s!", imeToStart->imeId.c_str());
+        return;
+    }
     StartCurrentIme();
 }
 

@@ -104,6 +104,7 @@ public:
     bool IsRunningIme(int32_t userId, const std::string &bundleName);
     std::vector<std::string> GetRunningIme(int32_t userId);
     bool IsDefaultImeSet(int32_t userId);
+    bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
 
 private:
     ImeInfoInquirer() = default;
@@ -123,7 +124,6 @@ private:
     int32_t GetExtInfosByBundleName(const int32_t userId, const std::string &bundleName,
         std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
     bool IsNewExtInfos(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
-    bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
     std::vector<InputMethodInfo> ListInputMethodInfo(const int32_t userId);
     int32_t ListInputMethod(const int32_t userId, std::vector<Property> &props);
     int32_t ListEnabledInputMethod(const int32_t userId, std::vector<Property> &props, bool enableOn);
