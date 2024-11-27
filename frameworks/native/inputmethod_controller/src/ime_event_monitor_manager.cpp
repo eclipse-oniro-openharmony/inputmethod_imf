@@ -22,13 +22,9 @@
 
 namespace OHOS {
 namespace MiscServices {
-ImeEventMonitorManager::ImeEventMonitorManager()
-{
-}
+ImeEventMonitorManager::ImeEventMonitorManager() { }
 
-ImeEventMonitorManager::~ImeEventMonitorManager()
-{
-}
+ImeEventMonitorManager::~ImeEventMonitorManager() { }
 
 ImeEventMonitorManager &ImeEventMonitorManager::GetInstance()
 {
@@ -36,8 +32,8 @@ ImeEventMonitorManager &ImeEventMonitorManager::GetInstance()
     return manager;
 }
 
-int32_t ImeEventMonitorManager::RegisterImeEventListener(uint32_t eventFlag,
-    const std::shared_ptr<ImeEventListener> &listener)
+int32_t ImeEventMonitorManager::RegisterImeEventListener(
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     if (!IsParamValid(eventFlag, listener)) {
         IMSA_HILOGE("param is invalid!");
@@ -46,8 +42,8 @@ int32_t ImeEventMonitorManager::RegisterImeEventListener(uint32_t eventFlag,
     return ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(eventFlag & ALL_EVENT_MASK, listener);
 }
 
-int32_t ImeEventMonitorManager::UnRegisterImeEventListener(uint32_t eventFlag,
-    const std::shared_ptr<ImeEventListener> &listener)
+int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     if (!IsParamValid(eventFlag, listener)) {
         IMSA_HILOGE("param is invalid!");

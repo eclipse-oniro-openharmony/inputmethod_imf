@@ -31,4 +31,4 @@ private:
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUT_METHOD_ABILITY_UTILS_H
+#endif // INPUT_METHOD_ABILITY_UTILS_H

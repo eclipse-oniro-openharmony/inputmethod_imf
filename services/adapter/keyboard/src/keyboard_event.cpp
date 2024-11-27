@@ -20,8 +20,8 @@
 
 #include "global.h"
 #include "input_event_callback.h"
-#include "key_event.h"
 #include "inputmethod_sysevent.h"
+#include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -58,8 +58,10 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
         }
         callback->TriggerSwitch();
     };
-    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_META_LEFT, MMI::KeyEvent::KEYCODE_SPACE, combinationKeyCallBack);
-    SubscribeCombinationKey(MMI::KeyEvent::KEYCODE_META_RIGHT, MMI::KeyEvent::KEYCODE_SPACE, combinationKeyCallBack);
+    SubscribeCombinationKey(
+        MMI::KeyEvent::KEYCODE_META_LEFT, MMI::KeyEvent::KEYCODE_SPACE, combinationKeyCallBack, true);
+    SubscribeCombinationKey(
+        MMI::KeyEvent::KEYCODE_META_RIGHT, MMI::KeyEvent::KEYCODE_SPACE, combinationKeyCallBack, true);
 
     CombinationKeyCallBack ctrlShiftCallBack = [callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
         InputMethodSysEvent::GetInstance().ReportSystemShortCut("usual.event.CTRL_SHIFT");
@@ -81,14 +83,15 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     return ErrorCode::NO_ERROR;
 }
 
-void KeyboardEvent::SubscribeCombinationKey(int32_t preKey, int32_t finalKey, CombinationKeyCallBack callback)
+void KeyboardEvent::SubscribeCombinationKey(
+    int32_t preKey, int32_t finalKey, CombinationKeyCallBack callback, bool setFinalKeyDown)
 {
     std::shared_ptr<KeyOption> keyOption = std::make_shared<KeyOption>();
     std::set<int32_t> preKeys;
     preKeys.insert(preKey);
     keyOption->SetPreKeys(preKeys);
     keyOption->SetFinalKey(finalKey);
-    keyOption->SetFinalKeyDown(true);
+    keyOption->SetFinalKeyDown(setFinalKeyDown);
     // 0 means press delay 0 ms
     keyOption->SetFinalKeyDownDuration(0);
     int32_t subscribeId = InputManager::GetInstance()->SubscribeKeyEvent(keyOption, callback);

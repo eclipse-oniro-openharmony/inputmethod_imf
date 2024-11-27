@@ -31,7 +31,7 @@ enum SourceType : uint32_t {
     SOURCE_TYPE_INNER,
 };
 
-#define TASK_TYPE_OFFSET(src) ((src) * 10000)
+#define TASK_TYPE_OFFSET(src) ((src)*10000)
 
 enum TaskType : uint32_t {
     // Task from AMS

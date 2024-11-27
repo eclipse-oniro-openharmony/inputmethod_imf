@@ -21,8 +21,8 @@
 namespace OHOS {
 namespace MiscServices {
 struct CallingWindowInfo {
-    Rosen::Rect rect{};
-    Rosen::WindowStatus status{ Rosen::WindowStatus::WINDOW_STATUS_UNDEFINED };
+    Rosen::Rect rect {};
+    Rosen::WindowStatus status { Rosen::WindowStatus::WINDOW_STATUS_UNDEFINED };
 };
 } // namespace MiscServices
 } // namespace OHOS

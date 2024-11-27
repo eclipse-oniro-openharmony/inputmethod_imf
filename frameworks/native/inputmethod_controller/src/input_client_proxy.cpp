@@ -23,13 +23,13 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace ErrorCode;
-InputClientProxy::InputClientProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IInputClient>(object)
-{
-}
+InputClientProxy::InputClientProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IInputClient>(object) { }
 
 int32_t InputClientProxy::OnInputReady(const sptr<IRemoteObject> &agent)
 {
-    return SendRequest(ON_INPUT_READY, [agent](MessageParcel &data) { return ITypesUtil::Marshal(data, agent); });
+    return SendRequest(ON_INPUT_READY, [agent](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, agent);
+    });
 }
 
 int32_t InputClientProxy::OnInputStop(bool isStopInactiveClient, bool isAsync)
@@ -37,14 +37,17 @@ int32_t InputClientProxy::OnInputStop(bool isStopInactiveClient, bool isAsync)
     MessageOption option = isAsync ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC;
     return SendRequest(
         ON_INPUT_STOP,
-        [isStopInactiveClient](MessageParcel &data) { return ITypesUtil::Marshal(data, isStopInactiveClient); },
+        [isStopInactiveClient](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, isStopInactiveClient);
+        },
         nullptr, option);
 }
 
 int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
-    return SendRequest(ON_SWITCH_INPUT,
-        [&property, &subProperty](MessageParcel &data) { return ITypesUtil::Marshal(data, property, subProperty); });
+    return SendRequest(ON_SWITCH_INPUT, [&property, &subProperty](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, property, subProperty);
+    });
 }
 
 int32_t InputClientProxy::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)

@@ -24,22 +24,18 @@
 #include "itypes_util.h"
 #include "message_parcel.h"
 #include "system_cmd_channel_proxy.h"
-#include "tasks/task_imsa.h"
 #include "task_manager.h"
+#include "tasks/task_imsa.h"
 
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
-InputMethodCoreStub::InputMethodCoreStub()
-{
-}
+InputMethodCoreStub::InputMethodCoreStub() { }
 
-InputMethodCoreStub::~InputMethodCoreStub()
-{
-}
+InputMethodCoreStub::~InputMethodCoreStub() { }
 
-int32_t InputMethodCoreStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputMethodCoreStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGD("InputMethodCoreStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
@@ -102,8 +98,8 @@ int32_t InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data
 
 int32_t InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("CoreStub, callingPid/Uid: %{public}d/%{public}d.", IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid());
+    IMSA_HILOGI(
+        "CoreStub, callingPid/Uid: %{public}d/%{public}d.", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     bool isBindFromClient = false;
     InputClientInfo clientInfo = {};
     sptr<IRemoteObject> channel = nullptr;
@@ -140,8 +136,8 @@ int32_t InputMethodCoreStub::OnConnectSystemCmdOnRemote(MessageParcel &data, Mes
     }
     sptr<IRemoteObject> agent = nullptr;
     auto ret = InputMethodAbility::GetInstance()->OnConnectSystemCmd(channelObject, agent);
-    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
-                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR :
+                                                                     ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -182,8 +178,8 @@ int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParce
 int32_t InputMethodCoreStub::IsEnableOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     bool isEnable = IsEnable();
-    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, isEnable) ? ErrorCode::NO_ERROR
-                                                                     : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, isEnable) ? ErrorCode::NO_ERROR :
+                                                                       ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -273,9 +269,7 @@ int32_t InputMethodCoreStub::IsPanelShown(const PanelInfo &panelInfo, bool &isSh
     return InputMethodAbility::GetInstance()->IsPanelShown(panelInfo, isShown);
 }
 
-void InputMethodCoreStub::OnClientInactive(const sptr<IRemoteObject> &channel)
-{
-}
+void InputMethodCoreStub::OnClientInactive(const sptr<IRemoteObject> &channel) { }
 
 } // namespace MiscServices
 } // namespace OHOS

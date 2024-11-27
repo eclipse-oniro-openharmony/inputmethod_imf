@@ -17,8 +17,8 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_EVENT_MONITOR_MANAGER_IMPL_H
 
 #include <map>
-#include <set>
 #include <memory>
+#include <set>
 
 #include "ime_event_listener.h"
 #include "visibility.h"
@@ -43,9 +43,9 @@ private:
     int32_t OnImeHide(const ImeWindowInfo &info);
     std::set<std::shared_ptr<ImeEventListener>> GetListeners(uint32_t eventMask);
     std::mutex lock_;
-    std::map<uint32_t, std::set<std::shared_ptr<ImeEventListener>>> listeners_{};
-    bool isInputStart_{ false };
-    uint32_t callingWindow_{ 0 };
+    std::map<uint32_t, std::set<std::shared_ptr<ImeEventListener>>> listeners_ {};
+    bool isInputStart_ { false };
+    uint32_t callingWindow_ { 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS

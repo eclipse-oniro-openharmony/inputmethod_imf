@@ -20,6 +20,7 @@
 
 #include "block_data.h"
 #include "global.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
 #include "input_method_agent_proxy.h"
@@ -34,14 +35,13 @@
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
-#include "ime_event_monitor_manager_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 using namespace std::chrono;
 sptr<InputMethodController> InputMethodController::instance_;
-std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_{ nullptr };
+std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_ { nullptr };
 std::mutex InputMethodController::instanceLock_;
 std::mutex InputMethodController::logLock_;
 int InputMethodController::keyEventCountInPeriod_ = 0;
@@ -55,9 +55,7 @@ InputMethodController::InputMethodController()
     IMSA_HILOGD("IMC structure.");
 }
 
-InputMethodController::~InputMethodController()
-{
-}
+InputMethodController::~InputMethodController() { }
 
 sptr<InputMethodController> InputMethodController::GetInstance()
 {
@@ -160,7 +158,9 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
             return nullptr;
         }
     }
-    deathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) { OnRemoteSaDied(remote); });
+    deathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) {
+        OnRemoteSaDied(remote);
+    });
     if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
         IMSA_HILOGE("failed to add death recipient!");
         return nullptr;
@@ -216,8 +216,8 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     return Attach(listener, isShowKeyboard, attribute);
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard,
-    const InputAttribute &attribute)
+int32_t InputMethodController::Attach(
+    sptr<OnTextChangedListener> listener, bool isShowKeyboard, const InputAttribute &attribute)
 {
     InputMethodSyncTrace tracer("InputMethodController Attach trace.");
     TextConfig textConfig;
@@ -225,8 +225,8 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     return Attach(listener, isShowKeyboard, textConfig);
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard,
-    const TextConfig &textConfig)
+int32_t InputMethodController::Attach(
+    sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d.", isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
@@ -341,7 +341,7 @@ int32_t InputMethodController::Close()
     if (IsBound()) {
         IMSA_HILOGI("start.");
     }
-    
+
     auto listener = GetTextListener();
     if (listener != nullptr) {
         listener->OnDetach();
@@ -402,7 +402,7 @@ bool InputMethodController::WasAttached()
     return isBound_.load();
 }
 
-int32_t InputMethodController::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+int32_t InputMethodController::GetInputStartInfo(bool &isInputStart, uint32_t &callingWndId)
 {
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -503,7 +503,7 @@ bool InputMethodController::IsDefaultImeSet()
     }
     return proxy->IsDefaultImeSet();
 }
- 
+
 bool InputMethodController::EnableIme(const std::string &bundleName)
 {
     IMSA_HILOGI("enter.");
@@ -617,7 +617,7 @@ void InputMethodController::RestoreClientInfoInSaDied()
         return;
     }
     auto attach = [=]() -> bool {
-        TextConfig tempConfig{};
+        TextConfig tempConfig {};
         {
             std::lock_guard<std::mutex> lock(textConfigLock_);
             tempConfig = textConfig_;
@@ -735,8 +735,8 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         IMSA_HILOGD("not editable.");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d.", attribute.enterKeyType,
-        attribute.inputPattern);
+    IMSA_HILOGI(
+        "IMC enterKeyType: %{public}d, textInputType: %{public}d.", attribute.enterKeyType, attribute.inputPattern);
     if (oldSecurityFlag != attribute.GetSecurityFlag()) {
         GetTextConfig(clientInfo_.config);
         sptr<IRemoteObject> agent = nullptr;
@@ -997,8 +997,8 @@ int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProp
     return proxy->ListCurrentInputMethodSubtype(subProps);
 }
 
-int32_t InputMethodController::SwitchInputMethod(SwitchTrigger trigger, const std::string &name,
-    const std::string &subName)
+int32_t InputMethodController::SwitchInputMethod(
+    SwitchTrigger trigger, const std::string &name, const std::string &subName)
 {
     InputMethodSyncTrace tracer("IMC_SwitchInputMethod");
     auto proxy = GetSystemAbilityProxy();
@@ -1048,8 +1048,8 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient)
 void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChangedListener> lastListener)
 {
     IMSA_HILOGD("isNewEditor: %{public}d.", isNewEditor);
-    if (isNewEditor && isBound_.load() && lastListener != nullptr
-        && textConfig_.inputAttribute.isTextPreviewSupported) {
+    if (isNewEditor && isBound_.load() && lastListener != nullptr &&
+        textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGD("last editor FinishTextPreview");
         lastListener->FinishTextPreview();
     }
@@ -1095,8 +1095,8 @@ void InputMethodController::SelectByRange(int32_t start, int32_t end)
 
 void InputMethodController::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
 {
-    IMSA_HILOGD("InputMethodController start, direction: %{public}d, cursorMoveSkip: %{public}d", direction,
-        cursorMoveSkip);
+    IMSA_HILOGD(
+        "InputMethodController start, direction: %{public}d, cursorMoveSkip: %{public}d", direction, cursorMoveSkip);
     auto listener = GetTextListener();
     if (IsEditable() && listener != nullptr) {
         listener->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
@@ -1253,8 +1253,7 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
         return;
     }
     if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD) {
-            info.visible ? SendKeyboardStatus(KeyboardStatus::SHOW)
-                         : SendKeyboardStatus(KeyboardStatus::HIDE);
+        info.visible ? SendKeyboardStatus(KeyboardStatus::SHOW) : SendKeyboardStatus(KeyboardStatus::HIDE);
     }
     listener->NotifyPanelStatusInfo(info);
     if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD &&

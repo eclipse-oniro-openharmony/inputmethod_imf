@@ -26,16 +26,12 @@
 
 namespace OHOS {
 namespace MiscServices {
-InputClientStub::InputClientStub()
-{
-}
+InputClientStub::InputClientStub() { }
 
-InputClientStub::~InputClientStub()
-{
-}
+InputClientStub::~InputClientStub() { }
 
-int32_t InputClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputClientStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGD("InputClientStub code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
@@ -98,8 +94,8 @@ int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParce
         IMSA_HILOGE("read message parcel failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(OnSwitchInput(property, subProperty)) ? ErrorCode::NO_ERROR
-                                                                  : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(OnSwitchInput(property, subProperty)) ? ErrorCode::NO_ERROR :
+                                                                    ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -110,9 +106,9 @@ int32_t InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, Messag
         IMSA_HILOGE("read message parcel failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(OnPanelStatusChange(static_cast<InputWindowStatus>(status), info))
-               ? ErrorCode::NO_ERROR
-               : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(OnPanelStatusChange(static_cast<InputWindowStatus>(status), info)) ?
+        ErrorCode::NO_ERROR :
+        ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputClientStub::DeactivateClientOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -128,8 +124,7 @@ int32_t InputClientStub::NotifyInputStartOnRemote(MessageParcel &data, MessagePa
         IMSA_HILOGE("read message parcel failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(NotifyInputStart(callingWndId)) ?
-           ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(NotifyInputStart(callingWndId)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputClientStub::NotifyInputStopOnRemote(MessageParcel &data, MessageParcel &reply)

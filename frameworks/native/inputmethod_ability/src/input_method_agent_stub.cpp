@@ -26,9 +26,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 
-InputMethodAgentStub::InputMethodAgentStub()
-{
-}
+InputMethodAgentStub::InputMethodAgentStub() { }
 
 InputMethodAgentStub::~InputMethodAgentStub() { }
 

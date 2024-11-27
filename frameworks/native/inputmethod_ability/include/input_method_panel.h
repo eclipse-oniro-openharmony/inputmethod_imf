@@ -58,7 +58,7 @@ struct PanelAdjustInfo {
     bool operator==(const PanelAdjustInfo &panelAdjust) const
     {
         return (top == panelAdjust.top && left == panelAdjust.left && right == panelAdjust.right &&
-                bottom == panelAdjust.bottom);
+            bottom == panelAdjust.bottom);
     }
 };
 
@@ -105,9 +105,7 @@ private:
     class KeyboardPanelInfoChangeListener : public Rosen::IKeyboardPanelInfoChangeListener {
     public:
         using ChangeHandler = std::function<void(const Rosen::KeyboardPanelInfo &keyboardPanelInfo)>;
-        explicit KeyboardPanelInfoChangeListener(ChangeHandler handler) : handler_(std::move(handler))
-        {
-        }
+        explicit KeyboardPanelInfoChangeListener(ChangeHandler handler) : handler_(std::move(handler)) { }
         ~KeyboardPanelInfoChangeListener() = default;
         void OnKeyboardPanelInfoChanged(const Rosen::KeyboardPanelInfo &keyboardPanelInfo) override
         {
@@ -151,8 +149,8 @@ private:
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 
     static std::atomic<uint32_t> sequenceId_;
-    sptr<Rosen::IKeyboardPanelInfoChangeListener> kbPanelInfoListener_{ nullptr };
-    bool isScbEnable_{ false };
+    sptr<Rosen::IKeyboardPanelInfoChangeListener> kbPanelInfoListener_ { nullptr };
+    bool isScbEnable_ { false };
 
     std::mutex panelAdjustLock_;
     std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
@@ -160,7 +158,7 @@ private:
     Rosen::KeyboardLayoutParams keyboardLayoutParams_;
 
     std::mutex keyboardSizeLock_;
-    WindowSize keyboardSize_{ 0, 0 };
+    WindowSize keyboardSize_ { 0, 0 };
     std::mutex windowListenerLock_;
     sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
     CallbackFunc panelHeightCallback_ = nullptr;
@@ -168,17 +166,17 @@ private:
     LayoutParams adjustPanelRectLayoutParams_;
 
     LayoutParams resizePanelFoldParams_ { // FoldDefaultValue
-        {FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, FOLD_BOTTOM},
-        {FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, COMMON_BOTTOM}
+        { FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, FOLD_BOTTOM },
+        { FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, COMMON_BOTTOM }
     };
 
     LayoutParams resizePanelUnfoldParams_ { // UnfoldDefaultValue
-        {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, UNFOLD_BOTTOM},
-        {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, COMMON_BOTTOM}
+        { UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, UNFOLD_BOTTOM },
+        { UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, COMMON_BOTTOM }
     };
-    std::atomic<bool> isWaitSetUiContent_{true};
+    std::atomic<bool> isWaitSetUiContent_ { true };
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUT_METHOD_PANEL_H
+#endif // INPUT_METHOD_PANEL_H
