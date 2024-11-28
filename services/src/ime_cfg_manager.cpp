@@ -108,8 +108,8 @@ void ImeCfgManager::ModifyImeCfg(const ImePersistInfo &cfg)
     if (it != imeConfigs_.end()) {
         ImePersistInfo imePersistInfo;
         imePersistInfo.userId = cfg.userId;
-        imePersistInfo.currentIme = cfg.currentIme;
-        imePersistInfo.currentSubName = cfg.currentSubName;
+        imePersistInfo.currentIme = it->tempScreenLockIme.empty() ? cfg.currentIme : it->currentIme;
+        imePersistInfo.currentSubName = it->tempScreenLockIme.empty() ? cfg.currentSubName : it->currentSubName;
         imePersistInfo.tempScreenLockIme = it->tempScreenLockIme;
         imePersistInfo.isDefaultImeSet = it->isDefaultImeSet ? true : cfg.isDefaultImeSet;
         *it = imePersistInfo;

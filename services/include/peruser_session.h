@@ -117,10 +117,7 @@ public:
     int32_t SwitchSubtypeWithoutStartIme(const SubProperty &subProperty);
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
-    void OnScrLockReady();
-    void OnScrLockSaReady();
-    void OnScrLockAppReady();
-    void OnScrLockStateChanged(bool isLocked);
+    void OnUserUnlocked();
     int64_t GetCurrentClientPid();
     int64_t GetInactiveClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
@@ -155,7 +152,7 @@ public:
     int32_t OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client);
     int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId);
     bool IsSaReady(int32_t saId);
-    void UpdateScreenLockState();
+    void UpdateUserLockState();
 
 private:
     struct ResetManager {
@@ -293,8 +290,7 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
-    std::atomic<bool> isScreenLockReady_{ false };
-    std::atomic<bool> isScreenLocked_{ false };
+    std::atomic<bool> isUserUnlocked_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

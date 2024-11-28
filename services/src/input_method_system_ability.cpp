@@ -39,7 +39,6 @@
 #include "message_handler.h"
 #include "native_token_info.h"
 #include "os_account_adapter.h"
-#include "parameter.h"
 #include "scene_board_judgement.h"
 #include "system_ability_definition.h"
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
@@ -62,7 +61,6 @@ constexpr const char *UNDEFINED = "undefined";
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
-constexpr const char *SCREEN_LOCK_READY = "bootevent.lockscreen.ready";
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
@@ -172,6 +170,21 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
+    UpdateUserLockState();
+}
+
+void InputMethodSystemAbility::UpdateUserLockState()
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId_);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+    session->UpdateUserLockState();
 }
 
 void InputMethodSystemAbility::OnStop()
@@ -209,10 +222,7 @@ void InputMethodSystemAbility::Initialize()
     identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = OsAccountAdapter::MAIN_USER_ID;
     UserSessionManager::GetInstance().SetEventHandler(serviceHandler_);
-    if (PerUserSession(userId_).IsSaReady(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID)) {
-        // if bms not start, AppMgrClient::GetProcessRunningInfosByUserId will blocked
-        UserSessionManager::GetInstance().AddUserSession(userId_);
-    }
+    UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     IMSA_HILOGI("start get scene board enable status");
     isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
@@ -1046,13 +1056,8 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
-            case MSG_ID_SCREEN_LOCKED: {
-                OnScreenLocked();
-                break;
-            }
-            case MSG_ID_SCREEN_UNLOCKED: {
-                OnScreenUnlocked();
-                break;
+            case MSG_ID_USER_UNLOCKED: {
+                OnUserUnlocked(msg);
             }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
@@ -1193,24 +1198,31 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::st
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodSystemAbility::OnScreenLocked()
+void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
 {
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("failed to get user session: %{public}d", userId_);
+    if (msg == nullptr || msg->msgContent_ == nullptr) {
+        IMSA_HILOGE("message is nullptr");
         return;
     }
-    session->OnScrLockStateChanged(true);
-}
-
-void InputMethodSystemAbility::OnScreenUnlocked()
-{
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("failed to get user session: %{public}d", userId_);
+    int32_t userId = 0;
+    if (!ITypesUtil::Unmarshal(*msg->msgContent_, userId)) {
+        IMSA_HILOGE("failed to read message");
         return;
     }
-    session->OnScrLockStateChanged(false);
+    IMSA_HILOGI("userId: %{public}d", userId);
+    if (userId != userId_) {
+        return;
+    }
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId_);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+    session->OnUserUnlocked();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -1423,10 +1435,6 @@ void InputMethodSystemAbility::InitMonitors()
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
-    ret = InitScrLockMgrMonitor();
-    IMSA_HILOGI("init ScreenLock monitor, ret: %{public}d.", ret);
-    ret = WatchScrLockParam();
-    IMSA_HILOGI("WatchScrLockParam, ret: %{public}d", ret);
 }
 
 void InputMethodSystemAbility::HandleDataShareReady()
@@ -1494,39 +1502,6 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
 {
     FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
         [this](bool isOnFocused, int32_t pid, int32_t uid) { HandleFocusChanged(isOnFocused, pid, uid); });
-}
-
-bool InputMethodSystemAbility::InitScrLockMgrMonitor()
-{
-    return ImCommonEventManager::GetInstance()->SubscribeScreenLockMgrService(
-        [this]() { HandleScreenLockMgrStarted(); });
-}
-
-void InputMethodSystemAbility::OnScrLockParamChange(const char *key, const char *value, void *context)
-{
-    if (key == nullptr || value == nullptr || context == nullptr) {
-        IMSA_HILOGE("key, value or context is nullptr");
-        return;
-    }
-    if (strcmp(key, SCREEN_LOCK_READY) != 0 || strcmp(value, "true") != 0) {
-        return;
-    }
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
-        return;
-    }
-    session->OnScrLockAppReady();
-}
-
-bool InputMethodSystemAbility::WatchScrLockParam()
-{
-    auto ret = WatchParameter(SCREEN_LOCK_READY, OnScrLockParamChange, this);
-    if (ret != 0) {
-        IMSA_HILOGE("WatchParameter failed");
-        return false;
-    }
-    return true;
 }
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
@@ -1767,7 +1742,6 @@ void InputMethodSystemAbility::HandleUserSwitched(int32_t userId)
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return;
     }
-    session->UpdateScreenLockState();
     auto imeData = session->GetReadyImeData(ImeType::IME);
     if (imeData == nullptr && session->IsWmsReady()) {
         session->StartCurrentIme();
@@ -1851,25 +1825,18 @@ void InputMethodSystemAbility::HandleMemStarted()
 
 void InputMethodSystemAbility::HandleOsAccountStarted()
 {
+    IMSA_HILOGI("account start");
     auto userId = OsAccountAdapter::GetForegroundOsAccountLocalId();
     if (userId_ != userId) {
         UpdateUserInfo(userId);
+    } else {
+        UpdateUserLockState();
     }
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_OS_ACCOUNT_STARTED, nullptr);
     if (msg == nullptr) {
         return;
     }
     MessageHandler::Instance()->SendMessage(msg);
-}
-
-void InputMethodSystemAbility::HandleScreenLockMgrStarted()
-{
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("failed to get user session: %{public}d", userId_);
-        return;
-    }
-    session->OnScrLockSaReady();
 }
 
 void InputMethodSystemAbility::StopImeInBackground()

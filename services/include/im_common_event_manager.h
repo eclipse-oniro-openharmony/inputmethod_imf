@@ -44,7 +44,6 @@ public:
     bool SubscribeWindowManagerService(const Handler &handler);
     bool SubscribeMemMgrService(const Handler &handler);
     bool SubscribeAccountManagerService(Handler handle);
-    bool SubscribeScreenLockMgrService(const Handler &handler);
     bool UnsubscribeEvent();
     // only public the status change of softKeyboard in FLG_FIXED or FLG_FLOATING
     int32_t PublishPanelStatusChangeEvent(int32_t userId, const InputWindowStatus &status, const ImeWindowInfo &info);
@@ -61,8 +60,7 @@ public:
         void AddPackage(const EventFwk::CommonEventData &data);
         void ChangePackage(const EventFwk::CommonEventData &data);
         void HandleBootCompleted(const EventFwk::CommonEventData &data);
-        void OnScreenLocked(const EventFwk::CommonEventData &data);
-        void OnScreenUnlocked(const EventFwk::CommonEventData &data);
+        void OnUserUnlocked(const EventFwk::CommonEventData &data);
 
     private:
         using EventListenerFunc = std::function<void(EventSubscriber *that, const EventFwk::CommonEventData &data)>;
