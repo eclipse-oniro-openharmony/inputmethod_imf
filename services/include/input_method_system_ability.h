@@ -144,6 +144,7 @@ private:
     void HandleScreenLockMgrStarted();
     void HandleFocusChanged(bool isFocused, int32_t pid, int32_t uid);
     void HandleImeCfgCapsState();
+    void OnScrLockParamChange(const char *key, const char *value, void *context);
     void StopImeInBackground();
     int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -159,7 +160,8 @@ private:
     bool InitMemMgrMonitor();
     void InitWmsConnectionMonitor();
     void InitFocusChangedMonitor();
-    bool InitScreenLockMgrMonitor();
+    bool InitScrLockMgrMonitor();
+    bool WatchScrLockParam();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();

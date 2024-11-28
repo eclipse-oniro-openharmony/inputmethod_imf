@@ -957,16 +957,13 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
-void PerUserSession::OnScreenLocked()
+void PerUserSession::OnScrLockStateChanged(bool isLocked)
 {
-    IMSA_HILOGD("useId: %{public}d", userId_);
-    isScreenLocked_.store(true);
-}
-
-void PerUserSession::OnScreenUnlocked()
-{
-    IMSA_HILOGD("useId: %{public}d", userId_);
-    isScreenLocked_.store(false);
+    IMSA_HILOGD("useId: %{public}d, isLocked: %{public}d", userId_, isLocked);
+    isScreenLocked_.store(isLocked);
+    if (isLocked) {
+        return;
+    }
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
     auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
@@ -986,12 +983,31 @@ void PerUserSession::OnScreenUnlocked()
     AddRestartIme();
 }
 
-void PerUserSession::OnScreenLockMgrStarted()
+void PerUserSession::OnScrLockSaReady()
+{
+    if (!isScreenLockReady_.load()) {
+        IMSA_HILOGI("screen lock app not ready");
+        return;
+    }
+    OnScrLockReady();
+}
+
+void PerUserSession::OnScrLockAppReady()
+{
+    isScreenLockReady_.store(true);
+    if (!IsSaReady(SCREENLOCK_SERVICE_ID)) {
+        IMSA_HILOGI("screen lock service not ready");
+        return;
+    }
+    OnScrLockReady();
+}
+
+void PerUserSession::OnScrLockReady()
 {
     UpdateScreenLockState();
     IMSA_HILOGI("start, isLocked: %{public}d", isScreenLocked_.load());
     if (!isScreenLocked_.load()) {
-        OnScreenUnlocked();
+        OnScrLockStateChanged(false);
         return;
     }
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
@@ -1114,7 +1130,8 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 bool PerUserSession::CanStartIme()
 {
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
-    return IsSaReady(SCREENLOCK_SERVICE_ID) && IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
+    return IsSaReady(SCREENLOCK_SERVICE_ID) && isScreenLockReady_.load() && IsSaReady(MEMORY_MANAGER_SA_ID)
+           && IsWmsReady() && runningIme_.empty();
 #endif
     return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
 }
@@ -1124,7 +1141,7 @@ void PerUserSession::UpdateScreenLockState()
     bool isScreenLocked = false;
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     int32_t ret = ScreenLock::ScreenLockManager::GetInstance()->IsLocked(isScreenLocked);
-    if (ret != ErrorCode::NO_ERROR) {
+    if (ret != ScreenLock::ScreenLockError::E_SCREENLOCK_OK) {
         IMSA_HILOGE("failed to query IsLocked, ret: %{public}d", ret);
     }
 #endif
