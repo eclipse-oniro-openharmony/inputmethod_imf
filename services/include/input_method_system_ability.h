@@ -121,6 +121,7 @@ private:
     int32_t OnStartInputType(int32_t userId, const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t HandlePackageEvent(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
+    void OnUserUnlocked(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
     void SubscribeCommonEvent();
     int32_t Switch(int32_t userId, const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
@@ -131,6 +132,7 @@ private:
     ServiceRunningState state_;
     void InitServiceHandler();
     void UpdateUserInfo(int32_t userId);
+    void UpdateUserLockState();
     void HandleWmsConnected(int32_t userId, int32_t screenId);
     void HandleWmsDisconnected(int32_t userId, int32_t screenId);
     void HandleScbStarted(int32_t userId, int32_t screenId);

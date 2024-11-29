@@ -56,9 +56,12 @@ PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
     : userId_(userId), eventHandler_(eventHandler)
 {
-    auto bundleNames = ImeInfoInquirer::GetInstance().GetRunningIme(userId_);
-    if (!bundleNames.empty()) {
-        runningIme_ = bundleNames[0]; // one user only has one ime at present
+    // if bms not start, AppMgrClient::GetProcessRunningInfosByUserId will blocked
+    if (IsSaReady(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID)) {
+        auto bundleNames = ImeInfoInquirer::GetInstance().GetRunningIme(userId_);
+        if (!bundleNames.empty()) {
+            runningIme_ = bundleNames[0]; // one user only has one ime at present
+        }
     }
 }
 
@@ -979,6 +982,37 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
+void PerUserSession::OnUserUnlocked()
+{
+    isUserUnlocked_.store(true);
+    ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentIme == nullptr) {
+        IMSA_HILOGE("currentIme nullptr");
+        return;
+    }
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData != nullptr && imeData->ime.first == currentIme->bundleName) {
+        IMSA_HILOGD("no need to switch");
+        return;
+    }
+    IMSA_HILOGI("user %{public}d unlocked, start current ime", userId_);
+    AddRestartIme();
+}
+
+void PerUserSession::UpdateUserLockState()
+{
+    bool isUnlocked = false;
+    if (OsAccountAdapter::IsOsAccountVerified(userId_, isUnlocked) != ErrorCode::NO_ERROR) {
+        return;
+    }
+    IMSA_HILOGI("isUnlocked: %{public}d", isUnlocked);
+    isUserUnlocked_.store(isUnlocked);
+    if (isUnlocked) {
+        OnUserUnlocked();
+    }
+}
+
 std::shared_ptr<InputClientInfo> PerUserSession::GetCurClientInfo()
 {
     auto client = GetCurrentClient();
@@ -1046,9 +1080,10 @@ bool PerUserSession::StartCurrentIme(bool isStopCurrentIme)
             imeToStart->imeId, "start ime failed!");
         return false;
     }
-    IMSA_HILOGI("current ime changed to %{public}s.", imeToStart->imeId.c_str());
+    currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    IMSA_HILOGI("current ime changed to %{public}s.", currentIme->imeId.c_str());
     auto currentImeInfo =
-        ImeInfoInquirer::GetInstance().GetImeInfo(userId_, imeToStart->bundleName, imeToStart->subName);
+        ImeInfoInquirer::GetInstance().GetImeInfo(userId_, currentIme->bundleName, currentIme->subName);
     if (currentImeInfo == nullptr) {
         IMSA_HILOGD("currentImeInfo is nullptr!");
         return true;
@@ -1080,6 +1115,29 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
     return true;
 }
 
+bool PerUserSession::CanStartIme()
+{
+    return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
+}
+
+int32_t PerUserSession::ChangeToDefaultImeIfNeed(
+    const std::shared_ptr<ImeNativeCfg> &targetIme, std::shared_ptr<ImeNativeCfg> &imeToStart)
+{
+    if (isUserUnlocked_.load()) {
+        IMSA_HILOGD("no need");
+        imeToStart = targetIme;
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGI("Screen is locked, start default ime");
+    imeToStart = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (imeToStart == nullptr) {
+        IMSA_HILOGE("failed to get default ime");
+        return ErrorCode::ERROR_PERSIST_CONFIG;
+    }
+    ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, imeToStart->imeId);
+    return ErrorCode::NO_ERROR;
+}
+
 AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     SecurityMode mode;
@@ -1096,8 +1154,8 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
     want.SetElementName(ime->bundleName, ime->extName);
     want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
     want.SetParam(ISOLATED_SANDBOX, isolatedSandBox);
-    IMSA_HILOGI("userId: %{public}d, ime: %{public}s, mode: %{public}d, isolatedSandbox: %{public}d", userId_,
-        ime->imeId.c_str(), static_cast<int32_t>(mode), isolatedSandBox);
+    IMSA_HILOGI("StartInputService userId: %{public}d, ime: %{public}s, mode: %{public}d, isolatedSandbox: %{public}d",
+        userId_, ime->imeId.c_str(), static_cast<int32_t>(mode), isolatedSandBox);
     return want;
 }
 
@@ -1106,26 +1164,30 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
     if (ime == nullptr) {
         return false;
     }
+    auto imeToStart = std::make_shared<ImeNativeCfg>();
+    if (ChangeToDefaultImeIfNeed(ime, imeToStart) != ErrorCode::NO_ERROR) {
+        return false;
+    }
+    InitImeData({ imeToStart->bundleName, imeToStart->extName });
     isImeStarted_.Clear(false);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
         IMSA_HILOGE("failed to create connection!");
         return false;
     }
-    auto want = GetWant(ime);
+    auto want = GetWant(imeToStart);
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("connect %{public}s failed, ret: %{public}d!", ime->imeId.c_str(), ret);
-        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED, ime->imeId,
-            "failed to start ability.");
+        IMSA_HILOGE("connect %{public}s failed, ret: %{public}d!", imeToStart->imeId.c_str(), ret);
+        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
+            ErrorCode::ERROR_IME_START_FAILED, imeToStart->imeId, "failed to start ability.");
         return false;
     }
-    InitImeData({ ime->bundleName, ime->extName });
     if (!isImeStarted_.GetValue()) {
-        IMSA_HILOGE("start %{public}s timeout!", ime->imeId.c_str());
+        IMSA_HILOGE("start %{public}s timeout!", imeToStart->imeId.c_str());
         return false;
     }
-    IMSA_HILOGI("%{public}s started successfully.", ime->imeId.c_str());
+    IMSA_HILOGI("%{public}s started successfully.", imeToStart->imeId.c_str());
     InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
     return true;
 }
@@ -1532,7 +1594,7 @@ void PerUserSession::AddRestartIme()
 bool PerUserSession::RestartIme()
 {
     auto task = [this]() {
-        if (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()) {
+        if (CanStartIme()) {
             auto ret = StartCurrentIme(true);
             if (!ret) {
                 IMSA_HILOGE("start ime failed!");

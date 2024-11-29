@@ -170,6 +170,21 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
+    UpdateUserLockState();
+}
+
+void InputMethodSystemAbility::UpdateUserLockState()
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId_);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+    session->UpdateUserLockState();
 }
 
 void InputMethodSystemAbility::OnStop()
@@ -207,10 +222,7 @@ void InputMethodSystemAbility::Initialize()
     identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = OsAccountAdapter::MAIN_USER_ID;
     UserSessionManager::GetInstance().SetEventHandler(serviceHandler_);
-    if (PerUserSession(userId_).IsSaReady(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID)) {
-        // if bms not start, AppMgrClient::GetProcessRunningInfosByUserId will blocked
-        UserSessionManager::GetInstance().AddUserSession(userId_);
-    }
+    UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     IMSA_HILOGI("start get scene board enable status");
     isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
@@ -1044,6 +1056,9 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
+            case MSG_ID_USER_UNLOCKED: {
+                OnUserUnlocked(msg);
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -1181,6 +1196,33 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::st
         IMSA_HILOGI("switch ret: %{public}d", ret);
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
+{
+    if (msg == nullptr || msg->msgContent_ == nullptr) {
+        IMSA_HILOGE("message is nullptr");
+        return;
+    }
+    int32_t userId = 0;
+    if (!ITypesUtil::Unmarshal(*msg->msgContent_, userId)) {
+        IMSA_HILOGE("failed to read message");
+        return;
+    }
+    IMSA_HILOGI("userId: %{public}d", userId);
+    if (userId != userId_) {
+        return;
+    }
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId_);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+    session->OnUserUnlocked();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -1783,9 +1825,12 @@ void InputMethodSystemAbility::HandleMemStarted()
 
 void InputMethodSystemAbility::HandleOsAccountStarted()
 {
+    IMSA_HILOGI("account start");
     auto userId = OsAccountAdapter::GetForegroundOsAccountLocalId();
     if (userId_ != userId) {
         UpdateUserInfo(userId);
+    } else {
+        UpdateUserLockState();
     }
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_OS_ACCOUNT_STARTED, nullptr);
     if (msg == nullptr) {
