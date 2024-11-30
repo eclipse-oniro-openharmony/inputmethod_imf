@@ -41,7 +41,7 @@ struct ImePersistInfo : public Serializable {
         auto ret = SetValue(node, GET_NAME(userId), userId);
         ret = SetValue(node, GET_NAME(currentIme), currentIme) && ret;
         ret = SetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
-        ret = SetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme) && ret;
+        SetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme);
         ret = SetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
         return ret;
     }
@@ -50,7 +50,7 @@ struct ImePersistInfo : public Serializable {
         auto ret = GetValue(node, GET_NAME(userId), userId);
         ret = GetValue(node, GET_NAME(currentIme), currentIme) && ret;
         ret = GetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
-        ret = GetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme) && ret;
+        GetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme);
         ret = GetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
         return ret;
     }

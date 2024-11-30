@@ -32,10 +32,11 @@ namespace MiscServices {
 class JsonOperateTest : public testing::Test {
 public:
     static constexpr const char *IME_PERSIST_CFG = "{\"imeCfgList\":[{\"userId\":100,\"currentIme\":\"bundleName/"
-                                                   "extName\",\"currentSubName\":\"subName\",\"isDefaultImeSet\":"
-                                                   "false},{\"userId\":104,\"currentIme\":\"bundleName1/"
-                                                   "extName1\",\"currentSubName\":\"subName1\","
-                                                   "\"isDefaultImeSet\":false}]}";
+                                                   "extName\",\"currentSubName\":\"subName\",\"tempScreenLockIme\":"
+                                                   "\"\",\"isDefaultImeSet\":false},{\"userId\":104,\"currentIme\":"
+                                                   "\"bundleName1/"
+                                                   "extName1\",\"currentSubName\":\"subName1\",\"tempScreenLockIme\":"
+                                                   "\"\",\"isDefaultImeSet\":false}]}";
     static constexpr const char *IME_PERSIST_CFG_NULL = "{\"imeCfgList\":[]}";
     static constexpr const char *IME_PERSIST_CFG_VALUE_TYPE_ERROR = "{\"imeCfgList\":[{\"userId\":100,\"currentIme\":"
                                                                     "\"bundleName/"
