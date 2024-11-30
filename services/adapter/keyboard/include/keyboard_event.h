@@ -47,7 +47,8 @@ private:
     KeyboardEvent(KeyboardEvent &&) = delete;
     KeyboardEvent &operator=(const KeyboardEvent &) = delete;
     KeyboardEvent &operator=(KeyboardEvent &&) = delete;
-    static void SubscribeCombinationKey(int32_t preKey, int32_t finalKey, CombinationKeyCallBack callback);
+    static void SubscribeCombinationKey(
+        int32_t preKey, int32_t finalKey, CombinationKeyCallBack callback, bool setFinalKeyDown = false);
 };
 } // namespace MiscServices
 } // namespace OHOS
