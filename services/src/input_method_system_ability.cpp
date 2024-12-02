@@ -1058,6 +1058,7 @@ void InputMethodSystemAbility::WorkThread()
             }
             case MSG_ID_USER_UNLOCKED: {
                 OnUserUnlocked(msg);
+                break;
             }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
