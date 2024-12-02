@@ -86,7 +86,8 @@
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi",
                   "//base/inputmethod/imf/frameworks/js/napi/keyboardpanelmanager:keyboardpanelmanager",
                   "//base/inputmethod/imf/frameworks/cj:cj_inputmethod_ffi",
-                  "//base/inputmethod/imf/seccomp_policy:imf_ext_secure_filter"
+                  "//base/inputmethod/imf/seccomp_policy:imf_ext_secure_filter",
+                  "//base/inputmethod/imf/services/dialog:input_method_choose_dialog"
               ]
           },
           "inner_api": [
