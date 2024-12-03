@@ -934,6 +934,9 @@ int32_t InputMethodAbility::HidePanel(
         {inputMethodPanel->GetPanelType(), flag},
         false, trigger
     });
+    if (trigger == Trigger::IMF && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+        FinishTextPreview(true);
+    }
     return ErrorCode::NO_ERROR;
 }
 
