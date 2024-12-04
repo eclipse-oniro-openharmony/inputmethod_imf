@@ -286,8 +286,9 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         // notify inputStart when caller pid different from both current client and inactive client
         inputClientInfo.isNotifyInputStart = true;
     }
-    if (inputClientInfo.isNotifyInputStart) {
-        inputClientInfo.needHide = session->CheckPwdInputPatternConv(inputClientInfo);
+    if (session->CheckPwdInputPatternConv(inputClientInfo)) {
+        inputClientInfo.needHide = true;
+        inputClientInfo.isNotifyInputStart = true;
     }
     if (!session->IsProxyImeEnable()) {
         auto ret = CheckInputTypeOption(userId, inputClientInfo);
