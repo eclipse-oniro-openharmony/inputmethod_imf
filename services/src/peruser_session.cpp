@@ -424,7 +424,7 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid)
     auto currentClient = GetCurrentClient();
     auto currentClientInfo = currentClient != nullptr ? GetClientInfo(currentClient->AsObject()) : nullptr;
     if (currentClientInfo != nullptr) {
-        RemoveClient(currentClient, false, false, currentClientInfo->pid != callingPid);
+        UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, false } });
     }
     auto inactiveClient = GetInactiveClient();
     if (inactiveClient != nullptr) {
