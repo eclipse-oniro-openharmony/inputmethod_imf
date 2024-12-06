@@ -21,6 +21,7 @@
 #include "input_method_system_ability.h"
 #include "peruser_session.h"
 #include "wms_connection_observer.h"
+#include "settings_data_utils.h"
 #undef private
 #include <gtest/gtest.h>
 #include <sys/time.h>
@@ -307,6 +308,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo clientInfo;
+    clientInfo.client = nullptr;
     int32_t ret = userSession->OnStartInput(clientInfo, agent);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->OnReleaseInput(nullptr);
@@ -948,6 +950,8 @@ HWTEST_F(InputMethodPrivateMemberTest, TestOnSecurityChange, TestSize.Level0)
     int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.client);
     userSession->OnSecurityChange(10);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+    ret = userSession->ShowKeyboard(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 
 /**
@@ -1186,6 +1190,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
     InputClientInfo clientInfo;
+    clientInfo.channel = nullptr;
     auto ret2 = service_->PrepareInput(INVALID_USER_ID, clientInfo);
     EXPECT_NE(ret2, ErrorCode::NO_ERROR);
 
@@ -1277,6 +1282,56 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage003, TestSize.Level0)
     uint32_t cacheCount = -1;
     ret = inquirer.GetSwitchInfoBySwitchCount(switchInfo, INVALID_USER_ID, false, cacheCount);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: BranchCoverage004
+ * @tc.desc: BranchCoverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest BranchCoverage003 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    sptr<SettingsDataObserver> observer;
+    std::shared_ptr<DataShare::DataShareHelper> helper;
+    std::string invaildString = "";
+    pid_t pid { -1 };
+    auto ret = SettingsDataUtils::GetInstance()->RegisterObserver(observer);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = SettingsDataUtils::GetInstance()->GetStringValue(invaildString, invaildString, invaildString);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = userSession->OnHideInput(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
+    ret = userSession->OnShowInput(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
+    ret = userSession->RemoveClient(nullptr, false, false, false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    ret = userSession->BindClientWithIme(nullptr, ImeType::IME, false);
+    userSession->UnBindClientWithIme(nullptr, false, false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = userSession->OnSetCallingWindow(0, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
+
+    auto ret2 = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    EXPECT_TRUE(ret2);
+    ret2 = SettingsDataUtils::GetInstance()->SetStringValue(invaildString, invaildString, invaildString);
+    EXPECT_FALSE(ret2);
+    ret2 = SettingsDataUtils::GetInstance()->EnableIme(INVALID_USER_ID, invaildString);
+    EXPECT_FALSE(ret2);
+    ret2 = userSession->IsCurClientFocused(-1, -1);
+    EXPECT_FALSE(ret2);
+    ret2 = userSession->IsCurClientUnFocused(-1, -1);
+    EXPECT_FALSE(ret2);
+    ret2 = userSession->StartInputService(nullptr);
+    EXPECT_FALSE(ret2);
+    ret2 = userSession->StartIme(nullptr, false);
+    EXPECT_FALSE(ret2);
+
+    auto ret3 = userSession->GetClientInfo(nullptr);
+    EXPECT_EQ(ret3, nullptr);
+    ret3 = userSession->GetClientInfo(pid);
+    EXPECT_EQ(ret3, nullptr);
 }
 } // namespace MiscServices
 } // namespace OHOS
