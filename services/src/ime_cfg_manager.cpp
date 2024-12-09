@@ -107,7 +107,16 @@ void ImeCfgManager::ModifyImeCfg(const ImePersistInfo &cfg)
     auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
         [&cfg](const ImePersistInfo &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
     if (it != imeConfigs_.end()) {
-        *it = cfg;
+        if (it->isDefaultImeSet) {
+            ImePersistInfo imePersistInfo;
+            imePersistInfo.userId = cfg.userId;
+            imePersistInfo.currentIme = cfg.currentIme;
+            imePersistInfo.currentSubName = cfg.currentSubName;
+            imePersistInfo.isDefaultImeSet = true;
+            *it = imePersistInfo;
+        } else {
+            *it = cfg;
+        }
     }
 
     WriteImeCfg();
@@ -148,6 +157,14 @@ std::shared_ptr<ImeNativeCfg> ImeCfgManager::GetCurrentImeCfg(int32_t userId)
         info.extName = info.imeId.substr(pos + 1);
     }
     return std::make_shared<ImeNativeCfg>(info);
+}
+
+bool ImeCfgManager::IsDefaultImeSet(int32_t userId)
+{
+    IMSA_HILOGI("ImeCfgManager::IsDefaultImeSet enter.");
+    auto cfg = GetImeCfg(userId);
+    IMSA_HILOGI("isDefaultImeSet: %{public}d", cfg.isDefaultImeSet);
+    return cfg.isDefaultImeSet;
 }
 } // namespace MiscServices
 } // namespace OHOS

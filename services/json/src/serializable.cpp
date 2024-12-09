@@ -122,6 +122,12 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const int32_t 
     return item != NULL;
 }
 
+bool Serializable::SetValue(cJSON *node, const std::string &name, const bool &value)
+{
+    auto item = cJSON_AddBoolToObject(node, name.c_str(), value);
+    return item != NULL;
+}
+
 cJSON *Serializable::GetSubNode(cJSON *node, const std::string &name)
 {
     if (name.empty()) {

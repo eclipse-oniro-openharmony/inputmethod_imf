@@ -91,6 +91,10 @@ private:
 
     int32_t GetDefaultInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t IsDefaultImeSetOnRemote(MessageParcel &data, MessageParcel &reply);
+ 
+    int32_t EnableImeOnRemote(MessageParcel &data, MessageParcel &reply);
+
     int32_t GetInputMethodConfigOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -176,6 +180,10 @@ private:
             &InputMethodSystemAbilityStub::IsCurrentImeByPidOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::INIT_CONNECT)] =
             &InputMethodSystemAbilityStub::InitConnectOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_DEFAULT_IME_SET)] =
+            &InputMethodSystemAbilityStub::IsDefaultImeSetOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::ENABLE_IME)] =
+            &InputMethodSystemAbilityStub::EnableImeOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

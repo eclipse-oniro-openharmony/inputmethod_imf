@@ -79,6 +79,8 @@ public:
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;
+    bool IsDefaultImeSet() override;
+    bool EnableIme(const std::string &bundleName) override;
 
 private:
     static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;

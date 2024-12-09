@@ -675,6 +675,16 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(
                : OnSwitchInputMethod(userId, switchInfo, trigger);
 }
 
+bool InputMethodSystemAbility::EnableIme(const std::string &bundleName)
+{
+    if (CheckEnableAndSwitchPermission() != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Check enable ime value failed!");
+        return false;
+    }
+    int32_t userId = GetCallingUserId();
+    return SettingsDataUtils::GetInstance()->EnableIme(userId, bundleName);
+}
+
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const SwitchInfo &switchInfo,
     SwitchTrigger trigger)
 {
@@ -705,7 +715,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
     {
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
         std::string targetImeName = info->prop.name + "/" + info->prop.id;
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id });
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id, true });
         auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg {
             targetImeName, info->prop.name, switchInfo.subName.empty() ? "" : info->subProp.id, info->prop.id });
         if (!session->StartIme(targetIme)) {
@@ -808,7 +818,7 @@ int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::sha
         return ErrorCode::ERROR_NULL_POINTER;
     }
     std::string targetImeName = info->prop.name + "/" + info->prop.id;
-    ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id });
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id, false });
     ImeNativeCfg targetIme = { targetImeName, info->prop.name, info->subProp.id, info->prop.id };
     if (!session->StartIme(std::make_shared<ImeNativeCfg>(targetIme))) {
         IMSA_HILOGE("start input method failed!");
@@ -834,7 +844,7 @@ int32_t InputMethodSystemAbility::SwitchSubType(int32_t userId, const std::share
         return ret;
     }
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->imeId;
-    ImeCfgManager::GetInstance().ModifyImeCfg({ userId, currentIme, info->subProp.id });
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId, currentIme, info->subProp.id, false });
     session->NotifyImeChangeToClients(info->prop, info->subProp);
     return ErrorCode::NO_ERROR;
 }
@@ -903,6 +913,11 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
     return ImeInfoInquirer::GetInstance().GetCurrentInputMethod(GetCallingUserId());
+}
+
+bool InputMethodSystemAbility::IsDefaultImeSet()
+{
+    return ImeInfoInquirer::GetInstance().IsDefaultImeSet(GetCallingUserId());
 }
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
@@ -1527,12 +1542,28 @@ int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, co
     return session->OnUnRegisteredProxyIme(type, core);
 }
 
+int32_t InputMethodSystemAbility::CheckEnableAndSwitchPermission()
+{
+    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingFullTokenID())) {
+        IMSA_HILOGE("not native sa!");
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+    if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+        IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY!");
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodSystemAbility::CheckSwitchPermission(int32_t userId, const SwitchInfo &switchInfo,
     SwitchTrigger trigger)
 {
     IMSA_HILOGD("trigger: %{public}d.", static_cast<int32_t>(trigger));
     if (trigger == SwitchTrigger::IMSA) {
         return ErrorCode::NO_ERROR;
+    }
+    if (trigger == SwitchTrigger::NATIVE_SA) {
+        return CheckEnableAndSwitchPermission();
     }
     if (trigger == SwitchTrigger::SYSTEM_APP) {
         if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {

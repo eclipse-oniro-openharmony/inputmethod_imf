@@ -90,6 +90,8 @@ public:
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
     int32_t IsDefaultIme() override;
+    bool IsDefaultImeSet() override;
+    bool EnableIme(const std::string &bundleName) override;
 
 protected:
     void OnStart() override;
@@ -110,6 +112,8 @@ private:
     int32_t OnUserStop(const Message *msg);
     int32_t OnHideKeyboardSelf(const Message *msg);
     bool IsNeedSwitch(int32_t userId, const std::string &bundleName, const std::string &subName);
+    int32_t CheckEnableAndSwitchPermission();
+    std::string SetSettingValues(const std::string &settingValue, const std::string &bundleName);
     int32_t CheckSwitchPermission(int32_t userId, const SwitchInfo &switchInfo, SwitchTrigger trigger);
     bool IsStartInputTypePermitted(int32_t userId);
     int32_t OnSwitchInputMethod(int32_t userId, const SwitchInfo &switchInfo, SwitchTrigger trigger);

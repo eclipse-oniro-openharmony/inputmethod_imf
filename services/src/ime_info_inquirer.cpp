@@ -699,7 +699,7 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
             return std::make_shared<SubProperty>(*iter);
         }
         IMSA_HILOGW("subtype %{public}s not found.", currentIme->subName.c_str());
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, currentIme->imeId, it->subProps[0].id });
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, currentIme->imeId, it->subProps[0].id, false });
         return std::make_shared<SubProperty>(it->subProps[0]);
     }
 
@@ -754,8 +754,8 @@ std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToStart(int32_t userId)
             newIme.subName = info->subProp.id;
         }
         currentImeCfg->imeId.empty()
-            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, newIme.subName })
-            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, newIme.subName });
+            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, newIme.subName, false })
+            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, newIme.subName, false});
         return std::make_shared<ImeNativeCfg>(newIme);
     }
     return currentImeCfg;
@@ -1102,6 +1102,11 @@ std::vector<std::string> ImeInfoInquirer::GetRunningIme(int32_t userId)
         }
     }
     return bundleNames;
+}
+
+bool ImeInfoInquirer::IsDefaultImeSet(int32_t userId)
+{
+    return ImeCfgManager::GetInstance().IsDefaultImeSet(userId);
 }
 
 bool ImeInfoInquirer::IsRunningIme(int32_t userId, const std::string &bundleName)
