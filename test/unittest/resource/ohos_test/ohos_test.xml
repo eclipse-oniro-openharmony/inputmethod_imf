@@ -16,6 +16,8 @@
 <configuration ver="2.0">
     <target name="InputMethodSwitchTest">
         <preparer>
+            <option name="shell" value="power-shell wakeup"/>
+            <option name="shell" value="power-shell setmode 602"/>
             <option name="push" value="extImfBundle/extImf.hap -> /data/test/resource/imf" src="res"/>
             <option name="shell" value="bm install -r -p /data/test/resource/imf/extImf.hap"/>
             <option name="push" value="newTestIme/newTestIme.hap -> /data/test/resource/imf" src="res"/>
@@ -42,6 +44,8 @@
     </target>
     <target name="NewImeSwitchTest">
         <preparer>
+            <option name="shell" value="power-shell wakeup"/>
+            <option name="shell" value="power-shell setmode 602"/>
             <option name="push" value="newTestIme/newTestIme.hap -> /data/test/resource/imf" src="res"/>
             <option name="shell" value="bm install -r -p /data/test/resource/imf/newTestIme.hap"/>
         </preparer>

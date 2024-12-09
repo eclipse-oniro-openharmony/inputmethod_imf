@@ -1440,5 +1440,39 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage001, TestSize.Level0)
     ret2 = InputMethodAbilityTest::inputMethodAbility_->IsEnable();
     EXPECT_FALSE(ret2);
 }
+
+/**
+ * @tc.name: BranchCoverage002
+ * @tc.desc: BranchCoverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest BranchCoverage002 TEST START");
+    int32_t vailidUserId = 100001;
+    SwitchInfo switchInfo;
+    std::string vailidString = "";
+    std::shared_ptr<ImeInfo> info;
+    bool needHide = false;
+    auto ret = imsa_->OnStartInputType(vailidUserId, switchInfo, true);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+
+    ret = imsa_->Switch(vailidUserId, vailidString, info);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    ret = imsa_->SwitchExtension(vailidUserId, info);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = imsa_->SwitchSubType(vailidUserId, info);
+    imsa_->NeedHideWhenSwitchInputType(vailidUserId, needHide);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = imsa_->SwitchInputType(vailidUserId, switchInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = imsa_->OnPackageRemoved(vailidUserId, vailidString);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    auto ret2 = imsa_->IsNeedSwitch(vailidUserId, vailidString, vailidString);
+    EXPECT_FALSE(ret2);
+    ret2 = imsa_->IsStartInputTypePermitted(vailidUserId);
+    EXPECT_FALSE(ret2);
+}
 } // namespace MiscServices
 } // namespace OHOS
