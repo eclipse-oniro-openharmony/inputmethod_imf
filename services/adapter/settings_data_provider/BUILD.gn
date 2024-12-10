@@ -55,6 +55,7 @@ ohos_static_library("settings_data_static") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "inputmethod"

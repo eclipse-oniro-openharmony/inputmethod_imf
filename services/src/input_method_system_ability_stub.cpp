@@ -181,6 +181,23 @@ int32_t InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote(MessageParce
     return ITypesUtil::Marshal(reply, ret, *prop) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::IsDefaultImeSetOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsDefaultImeSet()) ? ErrorCode::NO_ERROR
+                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
+}
+ 
+int32_t InputMethodSystemAbilityStub::EnableImeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName;
+    if (!ITypesUtil::Unmarshal(data, bundleName)) {
+        IMSA_HILOGE("unmarshal failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, EnableIme(bundleName)) ? ErrorCode::NO_ERROR
+                                                                        : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     OHOS::AppExecFwk::ElementName inputMethodConfig;

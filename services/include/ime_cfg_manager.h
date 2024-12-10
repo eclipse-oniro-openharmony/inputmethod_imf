@@ -26,25 +26,29 @@ namespace OHOS {
 namespace MiscServices {
 struct ImePersistInfo : public Serializable {
     ImePersistInfo() = default;
-    ImePersistInfo(int32_t userId, std::string currentIme, std::string currentSubName)
-        : userId(userId), currentIme(std::move(currentIme)), currentSubName(std::move(currentSubName)){};
+    ImePersistInfo(int32_t userId, std::string currentIme, std::string currentSubName, bool isDefaultImeSet)
+        : userId(userId), currentIme(std::move(currentIme)), currentSubName(std::move(currentSubName)),
+        isDefaultImeSet(isDefaultImeSet){};
     static constexpr int32_t INVALID_USERID = -1;
     int32_t userId{ INVALID_USERID };
     std::string currentIme;
     std::string currentSubName;
+    bool isDefaultImeSet{ false };
 
     bool Marshal(cJSON *node) const override
     {
         auto ret = SetValue(node, GET_NAME(userId), userId);
         ret = SetValue(node, GET_NAME(currentIme), currentIme) && ret;
-        SetValue(node, GET_NAME(currentSubName), currentSubName);
+        ret = SetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
+        ret = SetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
         return ret;
     }
     bool Unmarshal(cJSON *node) override
     {
         auto ret = GetValue(node, GET_NAME(userId), userId);
         ret = GetValue(node, GET_NAME(currentIme), currentIme) && ret;
-        GetValue(node, GET_NAME(currentSubName), currentSubName);
+        ret = GetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
+        ret = GetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
         return ret;
     }
 };
@@ -76,6 +80,7 @@ public:
     void ModifyImeCfg(const ImePersistInfo &cfg);
     void DeleteImeCfg(int32_t userId);
     std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId);
+    bool IsDefaultImeSet(int32_t userId);
 
 private:
     ImeCfgManager() = default;

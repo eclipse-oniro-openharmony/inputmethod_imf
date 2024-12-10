@@ -387,7 +387,7 @@ void TddUtil::InitCurrentImePermissionInfo()
     }
     currentBundleNameMock_ = property->name;
     session->InitImeData({ property->name, property->id });
-    ImeCfgManager::GetInstance().imeConfigs_ = { { userId, property->name + "/" + property->id, "" } };
+    ImeCfgManager::GetInstance().imeConfigs_ = { { userId, property->name + "/" + property->id, "", false } };
 }
 
 void TddUtil::WindowManager::CreateWindow()

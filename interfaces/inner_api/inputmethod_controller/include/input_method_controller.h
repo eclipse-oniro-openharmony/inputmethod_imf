@@ -802,6 +802,26 @@ public:
      */
     IMF_API void Reset();
 
+    /**
+     * @brief Query whether the default input method is setting.
+     *
+     * This function is used to query whether the default input method is setting.
+     * Do not call this interface unless you know what you are doing
+     *
+     * @since 13
+     */
+    IMF_API bool IsDefaultImeSet();
+ 
+    /**
+     * @brief Enable the ime called bundleName.
+     *
+     * This function is used to enable the ime called bundleName.
+     * Do not call this interface unless you know what you are doing
+     *
+     * @since 13
+     */
+    IMF_API bool EnableIme(const std::string &bundleName);
+
 private:
     InputMethodController();
     ~InputMethodController();
