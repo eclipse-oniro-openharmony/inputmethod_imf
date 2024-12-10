@@ -411,16 +411,14 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid)
 {
     IMSA_HILOGD("PerUserSession::OnRequestHideInput start.");
     auto data = GetReadyImeData(ImeType::IME);
-    if (data == nullptr) {
-        IMSA_HILOGE("ime: %{public}d doesn't exist!", ImeType::IME);
-        return ErrorCode::ERROR_IME_NOT_STARTED;
+    if (data != nullptr) {
+        auto ret = RequestIme(data, RequestType::REQUEST_HIDE, [&data] { return data->core->HideKeyboard(); });
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to hide keyboard, ret: %{public}d!", ret);
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
+        }
     }
 
-    auto ret = RequestIme(data, RequestType::REQUEST_HIDE, [&data] { return data->core->HideKeyboard(); });
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to hide keyboard, ret: %{public}d!", ret);
-        return ErrorCode::ERROR_KBD_HIDE_FAILED;
-    }
     auto currentClient = GetCurrentClient();
     auto currentClientInfo = currentClient != nullptr ? GetClientInfo(currentClient->AsObject()) : nullptr;
     if (currentClientInfo != nullptr) {
