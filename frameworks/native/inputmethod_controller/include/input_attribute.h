@@ -32,15 +32,18 @@ struct InputAttribute {
     int32_t enterKeyType = 0;
     int32_t inputOption = 0;
     bool isTextPreviewSupported{ false };
+    std::string bundleName { "" };
 
     static bool Marshalling(const InputAttribute &in, MessageParcel &data)
     {
-        return data.WriteInt32(in.inputPattern) && data.WriteInt32(in.enterKeyType) && data.WriteInt32(in.inputOption);
+        return data.WriteInt32(in.inputPattern) && data.WriteInt32(in.enterKeyType) &&
+            data.WriteInt32(in.inputOption) && data.WriteString(in.bundleName);
     }
 
     static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
     {
-        return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) && data.ReadInt32(out.inputOption);
+        return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) &&
+            data.ReadInt32(out.inputOption) && data.ReadString(out.bundleName);
     }
 
     bool GetSecurityFlag() const
