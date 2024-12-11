@@ -284,6 +284,10 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
             panel->HidePanel();
         }
     }
+    {
+        std::lock_guard<std::mutex> lock(inputAttrLock_);
+        inputAttribute_.bundleName = clientInfo.config.inputAttribute.bundleName;
+    }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
                                    : InvokeStartInputCallback(clientInfo.isNotifyInputStart);
     if (ret != ErrorCode::NO_ERROR) {
@@ -426,6 +430,7 @@ void InputMethodAbility::OnAttributeChange(Message *msg)
     }
     IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d.", attribute.enterKeyType,
         attribute.inputPattern);
+    attribute.bundleName = GetInputAttribute().bundleName;
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();
@@ -528,6 +533,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(bool isNotifyInputStart)
     TextTotalConfig textConfig = {};
     int32_t ret = GetTextConfig(textConfig);
     if (ret == ErrorCode::NO_ERROR) {
+        textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         return InvokeStartInputCallback(textConfig, isNotifyInputStart);
     }
     IMSA_HILOGW("failed to get text config, ret: %{public}d.", ret);
@@ -760,7 +766,11 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return channel->GetTextConfig(textConfig);
+    auto ret = channel->GetTextConfig(textConfig);
+    if (ret == ErrorCode::NO_ERROR) {
+        textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
+    }
+    return ret;
 }
 
 void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)

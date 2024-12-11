@@ -970,6 +970,8 @@ napi_value JsInputAttribute::Write(napi_env env, const InputAttribute &nativeObj
     ret =
         ret
         && JsUtil::Object::WriteProperty(env, jsObject, "isTextPreviewSupported", nativeObject.isTextPreviewSupported);
+    // not care write bundleName fail
+    JsUtil::Object::WriteProperty(env, jsObject, "bundleName", nativeObject.bundleName);
     return ret ? jsObject : JsUtil::Const::Null(env);
 }
 
@@ -979,6 +981,8 @@ bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &n
     ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "enterKeyType", nativeObject.enterKeyType);
     ret = ret
           && JsUtil::Object::ReadProperty(env, jsObject, "isTextPreviewSupported", nativeObject.isTextPreviewSupported);
+    // not care read bundleName fail
+    JsUtil::Object::ReadProperty(env, jsObject, "bundleName", nativeObject.bundleName);
     return ret;
 }
 } // namespace MiscServices

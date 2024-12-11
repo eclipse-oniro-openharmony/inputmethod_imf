@@ -259,6 +259,22 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testSerializedInputAttribute
+ * @tc.desc: Checkout the serialization of InputAttribute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute_WithSpecificBundleName, TestSize.Level0)
+{
+    InputAttribute inAttribute;
+    inAttribute.bundleName = "com.example.inputmethod";
+    MessageParcel data;
+    EXPECT_TRUE(InputAttribute::Marshalling(inAttribute, data));
+    InputAttribute outAttribute;
+    EXPECT_TRUE(InputAttribute::Unmarshalling(outAttribute, data));
+    EXPECT_EQ(inAttribute.bundleName, outAttribute.bundleName);
+}
+
+/**
 * @tc.name: testShowKeyboardInputMethodCoreProxy
 * @tc.desc: Test InputMethodCoreProxy ShowKeyboard
 * @tc.type: FUNC
