@@ -111,6 +111,19 @@ public:
     ~TaskImsaOnCursorUpdate() = default;
 };
 
+class TaskImsaSendPrivateCommand : public Task {
+public:
+    TaskImsaSendPrivateCommand(std::unordered_map<std::string, PrivateDataValue> privateCommand)
+        : Task(TASK_TYPE_IMSA_SEND_PRIVATE_COMMAND)
+    {
+        auto func = [privateCommand]() {
+            InputMethodAbility::GetInstance()->ReceivePrivateCommand(privateCommand);
+        };
+        actions_.emplace_back(std::make_unique<Action>(func));
+    }
+    ~TaskImsaSendPrivateCommand() = default;
+};
+
 class TaskImsaOnSelectionChange : public Task {
 public:
     TaskImsaOnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)

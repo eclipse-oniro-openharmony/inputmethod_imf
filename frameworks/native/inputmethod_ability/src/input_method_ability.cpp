@@ -489,12 +489,12 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
+    if (isNotifyInputStart) {
+        imeListener_->OnInputStart();
+    }
     if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
         IMSA_HILOGI("notify privateCommand.");
         imeListener_->ReceivePrivateCommand(textConfig.privateCommand);
-    }
-    if (isNotifyInputStart) {
-        imeListener_->OnInputStart();
     }
     if (kdListener_ != nullptr) {
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
