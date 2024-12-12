@@ -928,6 +928,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
         return ret;
     }
     InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
+    session->SetInputType();
     return ErrorCode::NO_ERROR;
 }
 

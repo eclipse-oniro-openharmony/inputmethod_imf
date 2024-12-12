@@ -179,13 +179,6 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
             jsQueue_.Pop();
             return;
         }
-        SysPanelStatus sysPanelStatus = {
-            InputType::NONE,
-            ctxt->inputMethodPanel->GetPanelFlag(),
-            ctxt->width,
-            ctxt->height
-        };
-        InputMethodAbility::GetInstance()->NotifyPanelStatus(ctxt->inputMethodPanel, sysPanelStatus);
         auto code = ctxt->inputMethodPanel->Resize(ctxt->width, ctxt->height);
         jsQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
@@ -457,15 +450,6 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
             jsQueue_.Pop();
             return;
         }
-        SysPanelStatus sysPanelStatus;
-        if (ctxt->inputMethodPanel->IsDisplayPortrait()) {
-            sysPanelStatus = { InputType::NONE, ctxt->panelFlag, ctxt->layoutParams.portraitRect.width_,
-                ctxt->layoutParams.portraitRect.height_ };
-        } else {
-            sysPanelStatus = { InputType::NONE, ctxt->panelFlag, ctxt->layoutParams.landscapeRect.width_,
-                ctxt->layoutParams.landscapeRect.height_ };
-        }
-        InputMethodAbility::GetInstance()->NotifyPanelStatus(ctxt->inputMethodPanel, sysPanelStatus);
         auto code = ctxt->inputMethodPanel->AdjustPanelRect(ctxt->panelFlag, ctxt->layoutParams);
         jsQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
