@@ -74,27 +74,19 @@ public:
                                                     "[{\"style\": [\"fix\",\"default\",\"landscape\"],"
                                                     "\"top\": 1,\"left\": 2,\"right\": 3,\"bottom\": 4}]}";
 
-    static void SetUpTestCase()
-    {
-    }
-    static void TearDownTestCase()
-    {
-    }
-    void SetUp()
-    {
-    }
-    void TearDown()
-    {
-    }
+    static void SetUpTestCase() { }
+    static void TearDownTestCase() { }
+    void SetUp() { }
+    void TearDown() { }
 };
 
 /**
-* @tc.name: testParseEnableIme001
-* @tc.desc: parse enableIme
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testParseEnableIme001
+ * @tc.desc: parse enableIme
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseEnableIme001 START");
@@ -123,12 +115,12 @@ HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level0)
     EXPECT_TRUE(enableVec3.empty());
 }
 /**
-* @tc.name: testParseEnableKeyboard001
-* @tc.desc: parse enableKeyboard
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testParseEnableKeyboard001
+ * @tc.desc: parse enableKeyboard
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(JsonOperateTest, testParseEnableKeyboard001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseEnableKeyboard001 START");
@@ -157,12 +149,12 @@ HWTEST_F(JsonOperateTest, testParseEnableKeyboard001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testParseSecurityMode001
-* @tc.desc: parse securityMode
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testParseSecurityMode001
+ * @tc.desc: parse securityMode
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(JsonOperateTest, testParseSecurityMode001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseSecurityMode001 START");
@@ -186,12 +178,12 @@ HWTEST_F(JsonOperateTest, testParseSecurityMode001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testParseImePersistCfg001
-* @tc.desc: parse imePersistCfg
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testParseImePersistCfg001
+ * @tc.desc: parse imePersistCfg
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(JsonOperateTest, testParseImePersistCfg001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseImePersistCfg001 START");
@@ -232,12 +224,12 @@ HWTEST_F(JsonOperateTest, testParseImePersistCfg001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testPackageImePersistCfg001
-* @tc.desc: package imePersistCfg
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testPackageImePersistCfg001
+ * @tc.desc: package imePersistCfg
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(JsonOperateTest, testPackageImePersistCfg001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testPackageImePersistCfg001 START");
@@ -249,12 +241,12 @@ HWTEST_F(JsonOperateTest, testPackageImePersistCfg001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testParseSystemConfig001
-* @tc.desc: parse systemConfig
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testParseSystemConfig001
+ * @tc.desc: parse systemConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(JsonOperateTest, testParseSystemConfig001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseSystemConfig001 START");
@@ -269,12 +261,12 @@ HWTEST_F(JsonOperateTest, testParseSystemConfig001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testParseInputType001
-* @tc.desc: parse inputType
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testParseInputType001
+ * @tc.desc: parse inputType
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(JsonOperateTest, testParseInputType001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseInputType001 START");
@@ -292,16 +284,16 @@ HWTEST_F(JsonOperateTest, testParseInputType001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testParseSubtype001
-* @tc.desc: parse subtype
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testParseSubtype001
+ * @tc.desc: parse subtype
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseSubtype001 START");
-    std::vector<std::string> profiles{ { JsonOperateTest::SUBTYPE } };
+    std::vector<std::string> profiles { { JsonOperateTest::SUBTYPE } };
     SubtypeCfg subtype;
     auto ret = ImeInfoInquirer::GetInstance().ParseSubtypeProfile(profiles, subtype);
     ASSERT_TRUE(ret);
@@ -318,7 +310,7 @@ HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level0)
     EXPECT_EQ(subtypes[1].locale, "en-US");
     EXPECT_EQ(subtypes[1].mode, "upper");
 
-    std::vector<std::string> profiles1{ { JsonOperateTest::SECURITY_MODE } };
+    std::vector<std::string> profiles1 { { JsonOperateTest::SECURITY_MODE } };
     SubtypeCfg subtype1;
     ret = ImeInfoInquirer::GetInstance().ParseSubtypeProfile(profiles1, subtype1);
     EXPECT_FALSE(ret);
@@ -326,11 +318,11 @@ HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testParseSysPanelAdjust001
-* @tc.desc: parse SysPanelAdjust
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testParseSysPanelAdjust001
+ * @tc.desc: parse SysPanelAdjust
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(JsonOperateTest, testParseSysPanelAdjust001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseSysPanelAdjust001 START");
@@ -348,11 +340,11 @@ HWTEST_F(JsonOperateTest, testParseSysPanelAdjust001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetDumpInfo
-* @tc.desc: parse GetDumpInfo
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testGetDumpInfo
+ * @tc.desc: parse GetDumpInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(JsonOperateTest, testGetDumpInfo, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testGetDumpInfo START");
@@ -362,11 +354,11 @@ HWTEST_F(JsonOperateTest, testGetDumpInfo, TestSize.Level0)
 }
 
 /**
-* @tc.name: testListDisabledInputMethod
-* @tc.desc: ListDisabledInputMethod
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testListDisabledInputMethod
+ * @tc.desc: ListDisabledInputMethod
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(JsonOperateTest, testListDisabledInputMethod, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testListDisabledInputMethod START");
@@ -381,11 +373,11 @@ HWTEST_F(JsonOperateTest, testListDisabledInputMethod, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetSwitchInfoBySwitchCount
-* @tc.desc: test GetSwitchInfoBySwitchCount
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testGetSwitchInfoBySwitchCount
+ * @tc.desc: test GetSwitchInfoBySwitchCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(JsonOperateTest, testGetSwitchInfoBySwitchCount, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testGetSwitchInfoBySwitchCount START");
@@ -398,11 +390,11 @@ HWTEST_F(JsonOperateTest, testGetSwitchInfoBySwitchCount, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetInputMethodConfig
-* @tc.desc: test GetInputMethodConfig
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testGetInputMethodConfig
+ * @tc.desc: test GetInputMethodConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(JsonOperateTest, testGetInputMethodConfig, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testGetInputMethodConfig START");
@@ -413,11 +405,11 @@ HWTEST_F(JsonOperateTest, testGetInputMethodConfig, TestSize.Level0)
 }
 
 /**
-* @tc.name: testFindTargetSubtypeByCondition
-* @tc.desc: test FindTargetSubtypeByCondition
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testFindTargetSubtypeByCondition
+ * @tc.desc: test FindTargetSubtypeByCondition
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(JsonOperateTest, testFindTargetSubtypeByCondition, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testFindTargetSubtypeByCondition START");
@@ -432,11 +424,11 @@ HWTEST_F(JsonOperateTest, testFindTargetSubtypeByCondition, TestSize.Level0)
 }
 
 /**
-* @tc.name: testParseSubtypeProfile
-* @tc.desc: test ParseSubtypeProfile
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testParseSubtypeProfile
+ * @tc.desc: test ParseSubtypeProfile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(JsonOperateTest, testParseSubtypeProfile, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseSubtypeProfile START");
@@ -447,11 +439,11 @@ HWTEST_F(JsonOperateTest, testParseSubtypeProfile, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetResMgr
-* @tc.desc: test GetResMgr
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testGetResMgr
+ * @tc.desc: test GetResMgr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(JsonOperateTest, testGetResMgr, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testGetResMgr START");
