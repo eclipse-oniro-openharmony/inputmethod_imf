@@ -53,6 +53,7 @@ ohos_static_library("inputmethod_test_common") {
   external_deps = [
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 
   subsystem_name = "inputmethod"
