@@ -58,7 +58,11 @@ constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf.input_panel_status_changed";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
-enum ListeningStatus : uint32_t { ON, OFF, NONE };
+enum ListeningStatus : uint32_t {
+    ON,
+    OFF,
+    NONE
+};
 class InputMethodPanelTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -102,7 +106,7 @@ public:
             InputMethodPanelTest::panelListenerCv_.notify_one();
             IMSA_HILOGI("PanelStatusListenerImpl OnPanelStatus in, isShow is %{public}s", isShow ? "true" : "false");
         }
-        void OnSizeChange(uint32_t windowId, const WindowSize &size) {}
+        void OnSizeChange(uint32_t windowId, const WindowSize &size) { }
     };
     static std::mutex imcPanelStatusListenerLock_;
     static std::condition_variable imcPanelStatusListenerCv_;
@@ -172,28 +176,28 @@ public:
         status_ = InputWindowStatus::NONE;
     }
     std::string action_;
-    InputWindowStatus status_{ InputWindowStatus::NONE };
+    InputWindowStatus status_ { InputWindowStatus::NONE };
 };
 
 std::condition_variable InputMethodPanelTest::panelListenerCv_;
 std::mutex InputMethodPanelTest::panelListenerLock_;
-std::shared_ptr<AppExecFwk::EventHandler> InputMethodPanelTest::panelHandler_{ nullptr };
+std::shared_ptr<AppExecFwk::EventHandler> InputMethodPanelTest::panelHandler_ { nullptr };
 std::condition_variable InputMethodPanelTest::imcPanelStatusListenerCv_;
 std::mutex InputMethodPanelTest::imcPanelStatusListenerLock_;
-InputWindowStatus InputMethodPanelTest::status_{ InputWindowStatus::NONE };
+InputWindowStatus InputMethodPanelTest::status_ { InputWindowStatus::NONE };
 InputWindowInfo InputMethodPanelTest::windowInfo_;
-uint32_t InputMethodPanelTest::imeShowCallbackNum_{ 0 };
-uint32_t InputMethodPanelTest::imeHideCallbackNum_{ 0 };
-sptr<InputMethodController> InputMethodPanelTest::imc_{ nullptr };
-sptr<InputMethodAbility> InputMethodPanelTest::ima_{ nullptr };
-sptr<InputMethodSystemAbility> InputMethodPanelTest::imsa_{ nullptr };
+uint32_t InputMethodPanelTest::imeShowCallbackNum_ { 0 };
+uint32_t InputMethodPanelTest::imeHideCallbackNum_ { 0 };
+sptr<InputMethodController> InputMethodPanelTest::imc_ { nullptr };
+sptr<InputMethodAbility> InputMethodPanelTest::ima_ { nullptr };
+sptr<InputMethodSystemAbility> InputMethodPanelTest::imsa_ { nullptr };
 uint32_t InputMethodPanelTest::windowWidth_ = 0;
 uint32_t InputMethodPanelTest::windowHeight_ = 0;
 uint64_t InputMethodPanelTest::currentImeTokenId_ = 0;
 int32_t InputMethodPanelTest::currentImeUid_ = 0;
-sptr<OnTextChangedListener> InputMethodPanelTest::textListener_{ nullptr };
-std::shared_ptr<InputMethodEngineListener> InputMethodPanelTest::imeListener_{ nullptr };
-bool InputMethodPanelTest::isScbEnable_{ false };
+sptr<OnTextChangedListener> InputMethodPanelTest::textListener_ { nullptr };
+std::shared_ptr<InputMethodEngineListener> InputMethodPanelTest::imeListener_ { nullptr };
+bool InputMethodPanelTest::isScbEnable_ { false };
 void InputMethodPanelTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
@@ -300,11 +304,16 @@ bool InputMethodPanelTest::TriggerShowCallback(std::shared_ptr<InputMethodPanel>
 {
     IMSA_HILOGI("start");
     status_ = InputWindowStatus::NONE;
-    panelHandler_->PostTask([&inputMethodPanel]() { TestShowPanel(inputMethodPanel); }, InputMethodPanelTest::INTERVAL);
+    panelHandler_->PostTask(
+        [&inputMethodPanel]() {
+            TestShowPanel(inputMethodPanel);
+        },
+        InputMethodPanelTest::INTERVAL);
     {
         std::unique_lock<std::mutex> lock(panelListenerLock_);
-        return panelListenerCv_.wait_for(lock, std::chrono::milliseconds(InputMethodPanelTest::DELAY_TIME),
-            [] { return status_ == InputWindowStatus::SHOW; });
+        return panelListenerCv_.wait_for(lock, std::chrono::milliseconds(InputMethodPanelTest::DELAY_TIME), [] {
+            return status_ == InputWindowStatus::SHOW;
+        });
     }
 }
 
@@ -312,11 +321,16 @@ bool InputMethodPanelTest::TriggerHideCallback(std::shared_ptr<InputMethodPanel>
 {
     IMSA_HILOGI("start");
     status_ = InputWindowStatus::NONE;
-    panelHandler_->PostTask([&inputMethodPanel]() { TestHidePanel(inputMethodPanel); }, InputMethodPanelTest::INTERVAL);
+    panelHandler_->PostTask(
+        [&inputMethodPanel]() {
+            TestHidePanel(inputMethodPanel);
+        },
+        InputMethodPanelTest::INTERVAL);
     {
         std::unique_lock<std::mutex> lock(panelListenerLock_);
-        return panelListenerCv_.wait_for(lock, std::chrono::milliseconds(InputMethodPanelTest::DELAY_TIME),
-            [] { return status_ == InputWindowStatus::HIDE; });
+        return panelListenerCv_.wait_for(lock, std::chrono::milliseconds(InputMethodPanelTest::DELAY_TIME), [] {
+            return status_ == InputWindowStatus::HIDE;
+        });
     }
 }
 
@@ -329,8 +343,10 @@ void InputMethodPanelTest::ImcPanelShowNumCheck(uint32_t num)
         EXPECT_EQ(ret, std::cv_status::timeout);
         return;
     }
-    bool ret = imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME),
-        [&num] { return num == imeShowCallbackNum_; });
+    bool ret =
+        imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [&num] {
+            return num == imeShowCallbackNum_;
+        });
     EXPECT_TRUE(ret);
 }
 
@@ -343,16 +359,20 @@ void InputMethodPanelTest::ImcPanelHideNumCheck(uint32_t num)
         EXPECT_EQ(ret, std::cv_status::timeout);
         return;
     }
-    bool ret = imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME),
-        [&num] { return num == imeHideCallbackNum_; });
+    bool ret =
+        imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [&num] {
+            return num == imeHideCallbackNum_;
+        });
     EXPECT_TRUE(ret);
 }
 
 void InputMethodPanelTest::ImcPanelShowInfoCheck(const InputWindowInfo &windowInfo)
 {
     std::unique_lock<std::mutex> lock(imcPanelStatusListenerLock_);
-    bool ret = imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME),
-        [] { return status_ == InputWindowStatus::SHOW; });
+    bool ret =
+        imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [] {
+            return status_ == InputWindowStatus::SHOW;
+        });
     EXPECT_TRUE(ret);
     IMSA_HILOGI("InputMethodPanelTest::name: %{public}s, ret:[%{public}d, %{public}d,%{public}d, %{public}d]",
         windowInfo_.name.c_str(), windowInfo_.top, windowInfo_.left, windowInfo_.width, windowInfo_.height);
@@ -362,8 +382,10 @@ void InputMethodPanelTest::ImcPanelShowInfoCheck(const InputWindowInfo &windowIn
 void InputMethodPanelTest::ImcPanelHideInfoCheck(const InputWindowInfo &windowInfo)
 {
     std::unique_lock<std::mutex> lock(imcPanelStatusListenerLock_);
-    bool ret = imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME),
-        [] { return status_ == InputWindowStatus::HIDE; });
+    bool ret =
+        imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [] {
+            return status_ == InputWindowStatus::HIDE;
+        });
     EXPECT_TRUE(ret);
     IMSA_HILOGI("InputMethodPanelTest::name: %{public}s, ret:[%{public}d, %{public}d,%{public}d, %{public}d]",
         windowInfo_.name.c_str(), windowInfo_.top, windowInfo_.left, windowInfo_.width, windowInfo_.height);
@@ -419,10 +441,10 @@ void InputMethodPanelTest::TriggerPanelStatusChangeToImc(
 }
 
 /**
-* @tc.name: testCreatePanel
-* @tc.desc: Test CreatePanel.
-* @tc.type: FUNC
-*/
+ * @tc.name: testCreatePanel
+ * @tc.desc: Test CreatePanel.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testCreatePanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testCreatePanel start.");
@@ -436,10 +458,10 @@ HWTEST_F(InputMethodPanelTest, testCreatePanel, TestSize.Level0)
 }
 
 /**
-* @tc.name: testDestroyPanel
-* @tc.desc: Test DestroyPanel.
-* @tc.type: FUNC
-*/
+ * @tc.name: testDestroyPanel
+ * @tc.desc: Test DestroyPanel.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testDestroyPanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testDestroyPanel start.");
@@ -450,10 +472,10 @@ HWTEST_F(InputMethodPanelTest, testDestroyPanel, TestSize.Level0)
 }
 
 /**
-* @tc.name: testResizePanel001
-* @tc.desc: Test Resize panel. Panels non fixed soft keyboard.
-* @tc.type: FUNC
-*/
+ * @tc.name: testResizePanel001
+ * @tc.desc: Test Resize panel. Panels non fixed soft keyboard.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testResizePanel001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testResizePanel001 start.");
@@ -491,10 +513,10 @@ HWTEST_F(InputMethodPanelTest, testResizePanel001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testResizePanel002
-* @tc.desc: Test Resize panel. Fixed soft keyboard panel .
-* @tc.type: FUNC
-*/
+ * @tc.name: testResizePanel002
+ * @tc.desc: Test Resize panel. Fixed soft keyboard panel .
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testResizePanel002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testResizePanel002 start.");
@@ -532,10 +554,10 @@ HWTEST_F(InputMethodPanelTest, testResizePanel002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testMovePanel
-* @tc.desc: Test Move panel. SOFT_KEYBOARD panel with FLG_FIXED can not be moved.
-* @tc.type: FUNC
-*/
+ * @tc.name: testMovePanel
+ * @tc.desc: Test Move panel. SOFT_KEYBOARD panel with FLG_FIXED can not be moved.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testMovePanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testMovePanel start.");
@@ -570,10 +592,10 @@ HWTEST_F(InputMethodPanelTest, testMovePanel, TestSize.Level0)
 }
 
 /**
-* @tc.name: testShowPanel
-* @tc.desc: Test Show panel.
-* @tc.type: FUNC
-*/
+ * @tc.name: testShowPanel
+ * @tc.desc: Test Show panel.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testShowPanel start.");
@@ -696,10 +718,10 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetPanelStatusListener01
-* @tc.desc: Test testSetPanelStatusListener01.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetPanelStatusListener01
+ * @tc.desc: Test testSetPanelStatusListener01.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener01, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testSetPanelStatusListener01 start.");
@@ -721,10 +743,10 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener01, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetPanelStatusListener02
-* @tc.desc: Test testSetPanelStatusListener02.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetPanelStatusListener02
+ * @tc.desc: Test testSetPanelStatusListener02.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener02, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testSetPanelStatusListener02 start.");
@@ -755,10 +777,10 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener02, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetPanelType
-* @tc.desc: Test GetPanelType.
-* @tc.type: FUNC
-*/
+ * @tc.name: testGetPanelType
+ * @tc.desc: Test GetPanelType.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testGetPanelType, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testGetPanelType start.");
@@ -799,10 +821,10 @@ HWTEST_F(InputMethodPanelTest, testGetPanelFlag, TestSize.Level0)
 }
 
 /**
-* @tc.name: testChangePanelFlag
-* @tc.desc: Test ChangePanelFlag.
-* @tc.type: FUNC
-*/
+ * @tc.name: testChangePanelFlag
+ * @tc.desc: Test ChangePanelFlag.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testChangePanelFlag start.");
@@ -840,10 +862,10 @@ HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
 }
 
 /**
-* @tc.name: testClearPanelListener
-* @tc.desc: Test ClearPanelListener.
-* @tc.type: FUNC
-*/
+ * @tc.name: testClearPanelListener
+ * @tc.desc: Test ClearPanelListener.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testClearPanelListener, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testClearPanelListener start.");
@@ -864,10 +886,10 @@ HWTEST_F(InputMethodPanelTest, testClearPanelListener, TestSize.Level0)
 }
 
 /**
-* @tc.name: testRegisterListener
-* @tc.desc: Test ClearPanelListener.
-* @tc.type: FUNC
-*/
+ * @tc.name: testRegisterListener
+ * @tc.desc: Test ClearPanelListener.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testRegisterListener, TestSize.Level0)
 {
     // on('show')->on('hide')->show->hide->off('show')->show->hide->on('show')->show
@@ -891,10 +913,10 @@ HWTEST_F(InputMethodPanelTest, testRegisterListener, TestSize.Level0)
 }
 
 /*
-* @tc.name: testImcPanelListening_001
-* @tc.desc: SOFT_KEYBOARD/FLG_FIXED, listener(system app)
-* @tc.type: FUNC
-*/
+ * @tc.name: testImcPanelListening_001
+ * @tc.desc: SOFT_KEYBOARD/FLG_FIXED, listener(system app)
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_001 start.");
@@ -924,10 +946,10 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 }
 
 /*
-* @tc.name: testImcPanelListening_002
-* @tc.desc: SOFT_KEYBOARD/FLG_FLOATING, listener(system app)
-* @tc.type: FUNC
-*/
+ * @tc.name: testImcPanelListening_002
+ * @tc.desc: SOFT_KEYBOARD/FLG_FLOATING, listener(system app)
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_002 start.");
@@ -960,10 +982,10 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 }
 
 /*
-* @tc.name: testImcPanelListening_003
-* @tc.desc: SOFT_KEYBOARD/FLG_CANDIDATE_COLUMN, listener(system app)
-* @tc.type: FUNC
-*/
+ * @tc.name: testImcPanelListening_003
+ * @tc.desc: SOFT_KEYBOARD/FLG_CANDIDATE_COLUMN, listener(system app)
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_003 start.");
@@ -996,10 +1018,10 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testImcPanelListening_004
-* @tc.desc: STATUS_BAR, listener(system app)
-* @tc.type: FUNC
-*/
+ * @tc.name: testImcPanelListening_004
+ * @tc.desc: STATUS_BAR, listener(system app)
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_004 start.");
@@ -1030,10 +1052,10 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 }
 
 /*
-* @tc.name: testPanelStatusChangeEventPublicTest
-* @tc.desc: test subscriber can receive the panel status change event published by IMSA
-* @tc.type: FUNC
-*/
+ * @tc.name: testPanelStatusChangeEventPublicTest
+ * @tc.desc: test subscriber can receive the panel status change event published by IMSA
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testPanelStatusChangeEventPublicTest, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testPanelStatusChangeEventPublicTest start.");
@@ -1056,8 +1078,8 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusChangeEventPublicTest, TestSize.Le
         std::unique_lock<std::mutex> lock(imcPanelStatusListenerLock_);
         auto waitRet = imcPanelStatusListenerCv_.wait_for(
             lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [subscriber]() {
-                return subscriber->action_ == COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED
-                       && subscriber->status_ == InputWindowStatus::SHOW;
+                return subscriber->action_ == COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED &&
+                    subscriber->status_ == InputWindowStatus::SHOW;
             });
         EXPECT_TRUE(waitRet);
     }
@@ -1069,8 +1091,8 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusChangeEventPublicTest, TestSize.Le
         std::unique_lock<std::mutex> lock(imcPanelStatusListenerLock_);
         auto waitRet = imcPanelStatusListenerCv_.wait_for(
             lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [subscriber]() {
-                return subscriber->action_ == COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED
-                       && subscriber->status_ == InputWindowStatus::HIDE;
+                return subscriber->action_ == COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED &&
+                    subscriber->status_ == InputWindowStatus::HIDE;
             });
         EXPECT_TRUE(waitRet);
     }
@@ -1079,10 +1101,10 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusChangeEventPublicTest, TestSize.Le
 }
 
 /**
-* @tc.name: testSetCallingWindow
-* @tc.desc: test SetCallingWindow
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetCallingWindow
+ * @tc.desc: test SetCallingWindow
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testSetCallingWindow start.");
@@ -1105,10 +1127,10 @@ HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
 }
 
 /*
-* @tc.name: testKeyboardPanelInfoChangeListenerRegister_001
-* @tc.desc: SOFT_KEYBOARD
-* @tc.type: FUNC
-*/
+ * @tc.name: testKeyboardPanelInfoChangeListenerRegister_001
+ * @tc.desc: SOFT_KEYBOARD
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testKeyboardPanelInfoChangeListenerRegister_001 start.");
@@ -1126,10 +1148,10 @@ HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_001, 
 }
 
 /*
-* @tc.name: testKeyboardPanelInfoChangeListenerRegister_002
-* @tc.desc: STATUS_BAR
-* @tc.type: FUNC
-*/
+ * @tc.name: testKeyboardPanelInfoChangeListenerRegister_002
+ * @tc.desc: STATUS_BAR
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testKeyboardPanelInfoChangeListenerRegister_002 start.");
@@ -1142,10 +1164,10 @@ HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_002, 
 }
 
 /**
-* @tc.name: testAdjustPanelRect_001
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_001
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_001, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1154,8 +1176,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_001, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, 0, 0};
-    layoutParams.portraitRect = {0, 0, 0, 0};
+    layoutParams.landscapeRect = { 0, 0, 0, 0 };
+    layoutParams.portraitRect = { 0, 0, 0, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1164,10 +1186,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_002
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_002
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_002, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1176,8 +1198,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_002, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {-1, 0, 0, 0};
-    layoutParams.portraitRect = {-1, 0, 0, 0};
+    layoutParams.landscapeRect = { -1, 0, 0, 0 };
+    layoutParams.portraitRect = { -1, 0, 0, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1186,10 +1208,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_003
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_003
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_003, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1198,8 +1220,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_003, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, -1, 0, 0};
-    layoutParams.portraitRect = {0, -1, 0, 0};
+    layoutParams.landscapeRect = { 0, -1, 0, 0 };
+    layoutParams.portraitRect = { 0, -1, 0, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1208,10 +1230,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_004
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_004
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_004, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1220,8 +1242,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_004, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, -1, 0};
-    layoutParams.portraitRect = {0, 0, -1, 0};
+    layoutParams.landscapeRect = { 0, 0, -1, 0 };
+    layoutParams.portraitRect = { 0, 0, -1, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1230,10 +1252,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_004, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_005
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_005
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_005, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1242,8 +1264,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_005, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, 0, -1};
-    layoutParams.portraitRect = {0, 0, 0, -1};
+    layoutParams.landscapeRect = { 0, 0, 0, -1 };
+    layoutParams.portraitRect = { 0, 0, 0, -1 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1252,10 +1274,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_005, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_006
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED valid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_006
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED valid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_006, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1268,8 +1290,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_006, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowHeight_, 0};
-    layoutParams.portraitRect = {0, 0, windowWidth_, 0};
+    layoutParams.landscapeRect = { 0, 0, windowHeight_, 0 };
+    layoutParams.portraitRect = { 0, 0, windowWidth_, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1278,10 +1300,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_006, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_007
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_007
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_007, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1294,8 +1316,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_007, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowHeight_ + 1, 0};
-    layoutParams.portraitRect = {0, 0, windowWidth_ + 1, 0};
+    layoutParams.landscapeRect = { 0, 0, windowHeight_ + 1, 0 };
+    layoutParams.portraitRect = { 0, 0, windowWidth_ + 1, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1303,12 +1325,11 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_007, TestSize.Level0)
     TddUtil::DestroyWindow();
 }
 
-
 /**
-* @tc.name: testAdjustPanelRect_008
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_008
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_008, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1321,8 +1342,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_008, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_*0.7 + 1};
-    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_*0.7 + 1};
+    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ * 0.7 + 1 };
+    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ * 0.7 + 1 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1331,10 +1352,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_008, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_009
-* @tc.desc: Test AdjustPanelRect with FLG_FIXED valid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_009
+ * @tc.desc: Test AdjustPanelRect with FLG_FIXED valid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_009, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1347,8 +1368,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_009, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_*0.7};
-    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_*0.7};
+    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ * 0.7 };
+    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ * 0.7 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1357,10 +1378,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_009, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_010
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_010
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_010, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1369,8 +1390,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_010, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, 0, 0};
-    layoutParams.portraitRect = {0, 0, 0, 0};
+    layoutParams.landscapeRect = { 0, 0, 0, 0 };
+    layoutParams.portraitRect = { 0, 0, 0, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1379,10 +1400,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_010, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_011
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_011
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_011, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1391,8 +1412,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_011, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {-1, 0, 0, 0};
-    layoutParams.portraitRect = {-1, 0, 0, 0};
+    layoutParams.landscapeRect = { -1, 0, 0, 0 };
+    layoutParams.portraitRect = { -1, 0, 0, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1401,10 +1422,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_011, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_012
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_012
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_012, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1413,8 +1434,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_012, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, -1, 0, 0};
-    layoutParams.portraitRect = {0, -1, 0, 0};
+    layoutParams.landscapeRect = { 0, -1, 0, 0 };
+    layoutParams.portraitRect = { 0, -1, 0, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1423,10 +1444,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_012, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_013
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_013
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_013, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1435,8 +1456,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_013, TestSize.Level0)
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, -1, 0};
-    layoutParams.portraitRect = {0, 0, -1, 0};
+    layoutParams.landscapeRect = { 0, 0, -1, 0 };
+    layoutParams.portraitRect = { 0, 0, -1, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1445,10 +1466,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_013, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_014
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_014
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_014, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1461,8 +1482,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_014, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowWidth_, 0};
-    layoutParams.portraitRect = {0, 0, windowWidth_, 0};
+    layoutParams.landscapeRect = { 0, 0, windowWidth_, 0 };
+    layoutParams.portraitRect = { 0, 0, windowWidth_, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1471,10 +1492,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_014, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_015
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_015
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_015, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1487,8 +1508,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_015, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowHeight_+1, 0};
-    layoutParams.portraitRect = {0, 0, windowWidth_+1, 0};
+    layoutParams.landscapeRect = { 0, 0, windowHeight_ + 1, 0 };
+    layoutParams.portraitRect = { 0, 0, windowWidth_ + 1, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1497,10 +1518,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_015, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_016
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_016
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_016, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1513,8 +1534,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_016, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_*0.7 + 1};
-    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_*0.7 + 1};
+    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ * 0.7 + 1 };
+    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ * 0.7 + 1 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1523,10 +1544,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_016, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_017
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_017
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_017, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1539,8 +1560,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_017, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_};
-    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_};
+    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ };
+    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1549,10 +1570,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_017, TestSize.Level0)
 }
 
 /**
-* @tc.name: testAdjustPanelRect_018
-* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
-* @tc.type: FUNC
-*/
+ * @tc.name: testAdjustPanelRect_018
+ * @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1565,8 +1586,8 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
     windowHeight_ = defaultDisplay->GetHeight();
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_ + 1};
-    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_ + 1};
+    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ + 1 };
+    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ + 1 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1575,10 +1596,10 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetPrivacyMode
-* @tc.desc: Test SetPrivacyMode.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetPrivacyMode
+ * @tc.desc: Test SetPrivacyMode.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetPrivacyMode, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1593,10 +1614,10 @@ HWTEST_F(InputMethodPanelTest, testSetPrivacyMode, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetPanelProperties
-* @tc.desc: Test SetPanelProperties.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetPanelProperties
+ * @tc.desc: Test SetPanelProperties.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetPanelProperties, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1608,10 +1629,10 @@ HWTEST_F(InputMethodPanelTest, testSetPanelProperties, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetKeyboardSize
-* @tc.desc: Test GetKeyboardSize.
-* @tc.type: FUNC
-*/
+ * @tc.name: testGetKeyboardSize
+ * @tc.desc: Test GetKeyboardSize.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testGetKeyboardSize, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1621,10 +1642,10 @@ HWTEST_F(InputMethodPanelTest, testGetKeyboardSize, TestSize.Level0)
 }
 
 /**
-* @tc.name: testMarkListener
-* @tc.desc: Test MarkListener.
-* @tc.type: FUNC
-*/
+ * @tc.name: testMarkListener
+ * @tc.desc: Test MarkListener.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testMarkListener, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1639,10 +1660,10 @@ HWTEST_F(InputMethodPanelTest, testMarkListener, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSizeChange
-* @tc.desc: Test SizeChange.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSizeChange
+ * @tc.desc: Test SizeChange.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSizeChange, TestSize.Level0)
 {
     AccessScope scope(currentImeTokenId_, currentImeUid_);
@@ -1660,10 +1681,10 @@ HWTEST_F(InputMethodPanelTest, testSizeChange, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetTextFieldAvoidInfo01
-* @tc.desc: Test SetTextFieldAvoidInfo.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetTextFieldAvoidInfo01
+ * @tc.desc: Test SetTextFieldAvoidInfo.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetTextFieldAvoidInfo01, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1672,10 +1693,10 @@ HWTEST_F(InputMethodPanelTest, testSetTextFieldAvoidInfo01, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetTextFieldAvoidInfo02
-* @tc.desc: Test SetTextFieldAvoidInfo.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetTextFieldAvoidInfo02
+ * @tc.desc: Test SetTextFieldAvoidInfo.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetTextFieldAvoidInfo02, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1690,10 +1711,10 @@ HWTEST_F(InputMethodPanelTest, testSetTextFieldAvoidInfo02, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetCallingWindowInfo01
-* @tc.desc: Test GetCallingWindowInfo.
-* @tc.type: FUNC
-*/
+ * @tc.name: testGetCallingWindowInfo01
+ * @tc.desc: Test GetCallingWindowInfo.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testGetCallingWindowInfo01, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1703,10 +1724,10 @@ HWTEST_F(InputMethodPanelTest, testGetCallingWindowInfo01, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetCallingWindowInfo02
-* @tc.desc: Test GetCallingWindowInfo.
-* @tc.type: FUNC
-*/
+ * @tc.name: testGetCallingWindowInfo02
+ * @tc.desc: Test GetCallingWindowInfo.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testGetCallingWindowInfo02, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1722,10 +1743,10 @@ HWTEST_F(InputMethodPanelTest, testGetCallingWindowInfo02, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetUiContent01
-* @tc.desc: Test SetUiContent.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetUiContent01
+ * @tc.desc: Test SetUiContent.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetUiContent01, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1734,10 +1755,10 @@ HWTEST_F(InputMethodPanelTest, testSetUiContent01, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetUiContent02
-* @tc.desc: Test SetUiContent.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSetUiContent02
+ * @tc.desc: Test SetUiContent.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testSetUiContent02, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
@@ -1752,10 +1773,10 @@ HWTEST_F(InputMethodPanelTest, testSetUiContent02, TestSize.Level0)
 }
 
 /**
-* @tc.name: testIsSizeValid
-* @tc.desc: Test IsSizeValid
-* @tc.type: FUNC
-*/
+ * @tc.name: testIsSizeValid
+ * @tc.desc: Test IsSizeValid
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testIsSizeValid, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1764,10 +1785,10 @@ HWTEST_F(InputMethodPanelTest, testIsSizeValid, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGenerateSequenceId
-* @tc.desc: Test GenerateSequenceId
-* @tc.type: FUNC
-*/
+ * @tc.name: testGenerateSequenceId
+ * @tc.desc: Test GenerateSequenceId
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testGenerateSequenceId, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1777,10 +1798,10 @@ HWTEST_F(InputMethodPanelTest, testGenerateSequenceId, TestSize.Level0)
 }
 
 /**
-* @tc.name: testPanelStatusListener01
-* @tc.desc: Test SetPanelStatusListener
-* @tc.type: FUNC
-*/
+ * @tc.name: testPanelStatusListener01
+ * @tc.desc: Test SetPanelStatusListener
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testPanelStatusListener01, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1799,10 +1820,10 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusListener01, TestSize.Level0)
 }
 
 /**
-* @tc.name: testPanelStatusListener02
-* @tc.desc: Test SetPanelStatusListener
-* @tc.type: FUNC
-*/
+ * @tc.name: testPanelStatusListener02
+ * @tc.desc: Test SetPanelStatusListener
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodPanelTest, testPanelStatusListener02, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();

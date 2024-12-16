@@ -203,13 +203,17 @@ public:
             } else {
                 EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
             }
-            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(
-                { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({
+                { info.panelInfo.panelType, info.panelInfo.panelFlag },
+                info.visible, info.trigger
+            }));
             return;
         }
         EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
-            { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback({
+            { info.panelInfo.panelType, info.panelInfo.panelFlag },
+            info.visible, info.trigger
+        }));
     }
     void CheckPanelInfoInHide(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
     {
@@ -222,13 +226,17 @@ public:
             } else {
                 EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
             };
-            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(
-                { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({
+                { info.panelInfo.panelType, info.panelInfo.panelFlag },
+                info.visible, info.trigger
+            }));
             return;
         }
         EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
-        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
-            { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback({
+            { info.panelInfo.panelType, info.panelInfo.panelFlag },
+            info.visible, info.trigger
+        }));
     }
 };
 
@@ -246,10 +254,10 @@ sptr<InputMethodSystemAbility> InputMethodAbilityTest::imsa_;
 sptr<InputMethodSystemAbilityProxy> InputMethodAbilityTest::imsaProxy_;
 
 /**
-* @tc.name: testSerializedInputAttribute
-* @tc.desc: Checkout the serialization of InputAttribute.
-* @tc.type: FUNC
-*/
+ * @tc.name: testSerializedInputAttribute
+ * @tc.desc: Checkout the serialization of InputAttribute.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 {
     InputAttribute inAttribute;
@@ -278,11 +286,11 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute_WithSpecificBundle
 }
 
 /**
-* @tc.name: testShowKeyboardInputMethodCoreProxy
-* @tc.desc: Test InputMethodCoreProxy ShowKeyboard
-* @tc.type: FUNC
-* @tc.require: issueI5NXHK
-*/
+ * @tc.name: testShowKeyboardInputMethodCoreProxy
+ * @tc.desc: Test InputMethodCoreProxy ShowKeyboard
+ * @tc.type: FUNC
+ * @tc.require: issueI5NXHK
+ */
 HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
 {
     IMSA_HILOGI("testShowKeyboardInputMethodCoreProxy start.");
@@ -307,11 +315,11 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
 }
 
 /**
-* @tc.name: testShowKeyboardWithoutImeListener
-* @tc.desc: InputMethodAbility ShowKeyboard without imeListener
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testShowKeyboardWithoutImeListener
+ * @tc.desc: InputMethodAbility ShowKeyboard without imeListener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testShowKeyboardWithoutImeListener, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testShowKeyboardWithoutImeListener start.");
@@ -320,11 +328,11 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardWithoutImeListener, TestSize.Le
 }
 
 /**
-* @tc.name: testHideKeyboardWithoutImeListener
-* @tc.desc: InputMethodAbility HideKeyboard without imeListener
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testHideKeyboardWithoutImeListener
+ * @tc.desc: InputMethodAbility HideKeyboard without imeListener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testHideKeyboardWithoutImeListener start.");
@@ -333,11 +341,11 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Le
 }
 
 /**
-* @tc.name: testStartInputWithoutPanel
-* @tc.desc: InputMethodAbility StartInput Without Panel
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testStartInputWithoutPanel
+ * @tc.desc: InputMethodAbility StartInput Without Panel
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testStartInputWithoutAttach start.");
@@ -353,11 +361,11 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
 }
 
 /**
-* @tc.name: testStartInputBeforeCreatePanel
-* @tc.desc: InputMethodAbility StartInput before create panel
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testStartInputBeforeCreatePanel
+ * @tc.desc: InputMethodAbility StartInput before create panel
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testStartInputBeforeCreatePanel start.");
@@ -367,8 +375,9 @@ HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
     {
         std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-        InputMethodAbilityTest::imeListenerCv_.wait_for(
-            lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
+        InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
+            return InputMethodAbilityTest::showKeyboard_;
+        });
     }
     InputMethodAbilityTest::showKeyboard_ = false;
     std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
@@ -380,8 +389,9 @@ HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level
     }
     {
         std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-        InputMethodAbilityTest::imeListenerCv_.wait_for(
-            lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_; });
+        InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
+            return InputMethodAbilityTest::showKeyboard_;
+        });
         EXPECT_TRUE(InputMethodAbilityTest::showKeyboard_);
     }
     imc_->Close();
@@ -389,12 +399,12 @@ HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level
 }
 
 /**
-* @tc.name: testHideKeyboardSelf
-* @tc.desc: InputMethodAbility HideKeyboardSelf
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
+ * @tc.name: testHideKeyboardSelf
+ * @tc.desc: InputMethodAbility HideKeyboardSelf
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
@@ -403,19 +413,20 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
     InputMethodAbilityTest::showKeyboard_ = true;
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     auto ret = inputMethodAbility_->HideKeyboardSelf();
-    InputMethodAbilityTest::imeListenerCv_.wait_for(
-        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_ == false; });
+    InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
+        return InputMethodAbilityTest::showKeyboard_ == false;
+    });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(InputMethodAbilityTest::showKeyboard_);
 }
 
 /**
-* @tc.name: testMoveCursor
-* @tc.desc: InputMethodAbility MoveCursor
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
+ * @tc.name: testMoveCursor
+ * @tc.desc: InputMethodAbility MoveCursor
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodAbilityTest, testMoveCursor, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility MoveCursor Test START");
@@ -430,12 +441,12 @@ HWTEST_F(InputMethodAbilityTest, testMoveCursor, TestSize.Level0)
 }
 
 /**
-* @tc.name: testInsertText
-* @tc.desc: InputMethodAbility InsertText
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
+ * @tc.name: testInsertText
+ * @tc.desc: InputMethodAbility InsertText
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodAbilityTest, testInsertText, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility InsertText Test START");
@@ -447,12 +458,12 @@ HWTEST_F(InputMethodAbilityTest, testInsertText, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSendFunctionKey
-* @tc.desc: InputMethodAbility SendFunctionKey
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
+ * @tc.name: testSendFunctionKey
+ * @tc.desc: InputMethodAbility SendFunctionKey
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodAbilityTest, testSendFunctionKey, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility SendFunctionKey Test START");
@@ -463,12 +474,12 @@ HWTEST_F(InputMethodAbilityTest, testSendFunctionKey, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSendExtendAction
-* @tc.desc: InputMethodAbility SendExtendAction
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testSendExtendAction
+ * @tc.desc: InputMethodAbility SendExtendAction
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodAbilityTest, testSendExtendAction, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility SendExtendAction Test START");
@@ -479,12 +490,12 @@ HWTEST_F(InputMethodAbilityTest, testSendExtendAction, TestSize.Level0)
 }
 
 /**
-* @tc.name: testDeleteText
-* @tc.desc: InputMethodAbility DeleteForward & DeleteBackward
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
+ * @tc.name: testDeleteText
+ * @tc.desc: InputMethodAbility DeleteForward & DeleteBackward
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodAbilityTest, testDeleteText, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testDelete Test START");
@@ -507,12 +518,12 @@ HWTEST_F(InputMethodAbilityTest, testDeleteText, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetEnterKeyType
-* @tc.desc: InputMethodAbility GetEnterKeyType & GetInputPattern
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
+ * @tc.name: testGetEnterKeyType
+ * @tc.desc: InputMethodAbility GetEnterKeyType & GetInputPattern
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetEnterKeyType START");
@@ -533,12 +544,12 @@ HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetTextConfig
-* @tc.desc: InputMethodAbility GetTextConfig
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
+ * @tc.name: testGetTextConfig
+ * @tc.desc: InputMethodAbility GetTextConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodAbilityTest, testGetTextConfig, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextConfig START");
@@ -553,12 +564,12 @@ HWTEST_F(InputMethodAbilityTest, testGetTextConfig, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSelectByRange_001
-* @tc.desc: InputMethodAbility SelectByRange
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Zhaolinglan
-*/
+ * @tc.name: testSelectByRange_001
+ * @tc.desc: InputMethodAbility SelectByRange
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
 HWTEST_F(InputMethodAbilityTest, testSelectByRange_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSelectByRange_001 START");
@@ -570,12 +581,12 @@ HWTEST_F(InputMethodAbilityTest, testSelectByRange_001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSelectByRange_002
-* @tc.desc: InputMethodAbility SelectByRange
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testSelectByRange_002
+ * @tc.desc: InputMethodAbility SelectByRange
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodAbilityTest, testSelectByRange_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSelectByRange_002 START");
@@ -591,12 +602,12 @@ HWTEST_F(InputMethodAbilityTest, testSelectByRange_002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSelectByMovement
-* @tc.desc: InputMethodAbility SelectByMovement
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Zhaolinglan
-*/
+ * @tc.name: testSelectByMovement
+ * @tc.desc: InputMethodAbility SelectByMovement
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
 HWTEST_F(InputMethodAbilityTest, testSelectByMovement, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSelectByMovement START");
@@ -607,11 +618,11 @@ HWTEST_F(InputMethodAbilityTest, testSelectByMovement, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetTextAfterCursor
-* @tc.desc:
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testGetTextAfterCursor
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor START");
@@ -623,11 +634,11 @@ HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetTextBeforeCursor
-* @tc.desc:
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testGetTextBeforeCursor
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor START");
@@ -639,11 +650,11 @@ HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetTextIndexAtCursor
-* @tc.desc:
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testGetTextIndexAtCursor
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextIndexAtCursor START");
@@ -654,11 +665,11 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor, TestSize.Level0)
 }
 
 /**
-* @tc.name: testCreatePanel001
-* @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testCreatePanel001
+ * @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel001 START. You can not create two SOFT_KEYBOARD panel.");
@@ -682,11 +693,11 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testCreatePanel002
-* @tc.desc: It's allowed to create one STATUS_BAR panel, but two is denied.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testCreatePanel002
+ * @tc.desc: It's allowed to create one STATUS_BAR panel, but two is denied.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testCreatePanel002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel002 START. You can not create two STATUS_BAR panel.");
@@ -710,11 +721,11 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testCreatePanel003
-* @tc.desc: It's allowed to create one STATUS_BAR panel and one SOFT_KEYBOARD panel.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testCreatePanel003
+ * @tc.desc: It's allowed to create one STATUS_BAR panel and one SOFT_KEYBOARD panel.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testCreatePanel003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START. Allowed to create one SOFT_KEYBOARD panel and "
@@ -740,11 +751,11 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testCreatePanel004
-* @tc.desc: It's allowed to create one STATUS_BAR panel and one SOFT_KEYBOARD panel.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testCreatePanel004
+ * @tc.desc: It's allowed to create one STATUS_BAR panel and one SOFT_KEYBOARD panel.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START. Allowed to create one SOFT_KEYBOARD panel and "
@@ -777,11 +788,11 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
 }
 
 /**
-* @tc.name: testCreatePanel005
-* @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testCreatePanel005
+ * @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testCreatePanel005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel005 START.");
@@ -805,11 +816,11 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel005, TestSize.Level0)
 }
 
 /**
-* @tc.name: testCreatePanel006
-* @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: testCreatePanel006
+ * @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodAbilityTest, testCreatePanel006, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START.");
@@ -842,12 +853,12 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel006, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetCallingWindow001
-* @tc.desc: InputMethodAbility SetCallingWindow
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
+ * @tc.name: testSetCallingWindow001
+ * @tc.desc: InputMethodAbility SetCallingWindow
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodAbilityTest, testSetCallingWindow001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSetCallingWindow001 START");
@@ -856,19 +867,20 @@ HWTEST_F(InputMethodAbilityTest, testSetCallingWindow001, TestSize.Level0)
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     uint32_t windowId = 10;
     inputMethodAbility_->SetCallingWindow(windowId);
-    InputMethodAbilityTest::imeListenerCv_.wait_for(
-        lock, std::chrono::seconds(DEALY_TIME), [windowId] { return InputMethodAbilityTest::windowId_ == windowId; });
+    InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [windowId] {
+        return InputMethodAbilityTest::windowId_ == windowId;
+    });
     EXPECT_EQ(InputMethodAbilityTest::windowId_, windowId);
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 /**
-* @tc.name: testNotifyPanelStatusInfo_001
-* @tc.desc: ShowKeyboard HideKeyboard SOFT_KEYBOARD FLG_FIXED
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testNotifyPanelStatusInfo_001
+ * @tc.desc: ShowKeyboard HideKeyboard SOFT_KEYBOARD FLG_FIXED
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_001 START");
@@ -903,12 +915,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testNotifyPanelStatusInfo_002
-* @tc.desc: ShowPanel HidePanel SOFT_KEYBOARD  FLG_FLOATING
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testNotifyPanelStatusInfo_002
+ * @tc.desc: ShowPanel HidePanel SOFT_KEYBOARD  FLG_FLOATING
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_002 START");
@@ -930,12 +942,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testNotifyPanelStatusInfo_003
-* @tc.desc: ShowPanel HidePanel STATUS_BAR
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testNotifyPanelStatusInfo_003
+ * @tc.desc: ShowPanel HidePanel STATUS_BAR
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_003 START");
@@ -957,12 +969,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testNotifyPanelStatusInfo_004
-* @tc.desc: ShowPanel HidePanel SOFT_KEYBOARD  FLG_CANDIDATE_COLUMN
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testNotifyPanelStatusInfo_004
+ * @tc.desc: ShowPanel HidePanel SOFT_KEYBOARD  FLG_CANDIDATE_COLUMN
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_004 START");
@@ -983,12 +995,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_004, TestSize.Level0)
 }
 
 /**
-* @tc.name: testNotifyPanelStatusInfo_005
-* @tc.desc: HideKeyboardSelf
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testNotifyPanelStatusInfo_005
+ * @tc.desc: HideKeyboardSelf
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_005 START");
@@ -1020,12 +1032,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
 }
 
 /**
-* @tc.name: testNotifyKeyboardHeight_001
-* @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_FIXED
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: mashaoyin
-*/
+ * @tc.name: testNotifyKeyboardHeight_001
+ * @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_FIXED
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_001 START");
@@ -1037,12 +1049,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testNotifyKeyboardHeight_002
-* @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_CANDIDATE_COLUMN
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: mashaoyin
-*/
+ * @tc.name: testNotifyKeyboardHeight_002
+ * @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_CANDIDATE_COLUMN
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_002 START");
@@ -1054,12 +1066,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testNotifyKeyboardHeight_003
-* @tc.desc: NotifyKeyboardHeight Attach with hard keyboard
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: mashaoyin
-*/
+ * @tc.name: testNotifyKeyboardHeight_003
+ * @tc.desc: NotifyKeyboardHeight Attach with hard keyboard
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_003 START");
@@ -1077,12 +1089,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testOnSecurityChange
-* @tc.desc: OnSecurityChange
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
+ * @tc.name: testOnSecurityChange
+ * @tc.desc: OnSecurityChange
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodAbilityTest, testOnSecurityChange, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testOnSecurityChange START");
