@@ -61,6 +61,7 @@ ohos_static_library("inputmethod_tdd_util") {
     "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
