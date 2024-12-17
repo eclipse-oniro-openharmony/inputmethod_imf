@@ -250,15 +250,24 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JsPanel_Show");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::SHOW };
+        jsQueue_.Push(ctxt->info);
+        return napi_ok;
+    };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        jsQueue_.Wait(ctxt->info);
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
         auto code = InputMethodAbility::GetInstance()->ShowPanel(ctxt->inputMethodPanel);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
+            jsQueue_.Pop();
             return;
         }
+        jsQueue_.Pop();
         ctxt->SetErrorCode(code);
     };
+    ctxt->SetAction(std::move(input));
     // 1 means JsAPI:show has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "show");
