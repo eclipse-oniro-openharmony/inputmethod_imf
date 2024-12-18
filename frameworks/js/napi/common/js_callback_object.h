@@ -15,9 +15,11 @@
 #ifndef JS_CALLBACK_OBJECT_H
 #define JS_CALLBACK_OBJECT_H
 
+#include <mutex>
 #include <thread>
 
 #include "block_data.h"
+#include "event_handler.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -31,6 +33,22 @@ public:
     napi_env env_{};
     std::thread::id threadId_;
     std::shared_ptr<BlockData<bool>> isDone_;
+};
+
+// Ensure this object abstract in constract thread.
+class JSMsgHandlerCallbackObject {
+public:
+    JSMsgHandlerCallbackObject(napi_env env, napi_value onTerminated, napi_value onMessage);
+    ~JSMsgHandlerCallbackObject();
+    napi_env env_{};
+    napi_ref onTerminatedCallback_ = nullptr;
+    napi_ref onMessageCallback_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
+
+private:
+    std::mutex eventHandlerMutex_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    std::thread::id threadId_;
 };
 } // namespace MiscServices
 } // namespace OHOS

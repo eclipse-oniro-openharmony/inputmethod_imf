@@ -170,6 +170,15 @@ int32_t SetPreviewTextFunc(
     return 0;
 }
 void FinishTextPreviewFunc(InputMethod_TextEditorProxy *proxy) { }
+int32_t OnMessageFunc(InputMethod_TextEditorProxy *proxy, const char16_t msgId[],
+    size_t msgIdLength, const uint8_t *msgParam, size_t msgParamLength)
+{
+    return 0;
+}
+int32_t OnTerminatedFunc(InputMethod_TextEditorProxy *proxy)
+{
+    return 0;
+}
 static void ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProxy)
 {
     EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetTextConfigFunc(textEditorProxy, GetTextConfigFunc));
@@ -187,6 +196,23 @@ static void ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProx
     EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetReceivePrivateCommandFunc(textEditorProxy, ReceivePrivateCommandFunc));
     EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetSetPreviewTextFunc(textEditorProxy, SetPreviewTextFunc));
     EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetFinishTextPreviewFunc(textEditorProxy, FinishTextPreviewFunc));
+}
+
+static void ConstructMessageHandlerProxy(InputMethod_MessageHandlerProxy *messageHandlerProxy)
+{
+    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_SetOnTerminatedFunc(messageHandlerProxy, OnMessageFunc));
+    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_SetOnMessageFunc(messageHandlerProxy, OnTerminatedFunc));
+}
+
+static void TestGetMessageHandlerProxyMember(InputMethod_MessageHandlerProxy *messageHandlerProxy)
+{
+    OH_MessageHandlerProxy_OnTerminatedFunc onTerminatedFunc = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_GetOnTerminatedFunc(messageHandlerProxy, &onTerminatedFunc));
+    EXPECT_EQ(OnTerminatedFunc, onTerminatedFunc);
+
+    OH_MessageHandlerProxy_OnMessageFunc onMessageFunc = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_GetOnMessageFunc(messageHandlerProxy, &onMessageFunc));
+    EXPECT_EQ(OnMessageFunc, onMessageFunc);
 }
 
 static void TestGetTextEditorProxyMember(InputMethod_TextEditorProxy *textEditorProxy)
@@ -1512,5 +1538,19 @@ HWTEST_F(InputMethodControllerCapiTest, TestAttachWithNorrmalParam_001, TestSize
 
     OH_AttachOptions_Destroy(options);
     OH_TextEditorProxy_Destroy(textEditorProxy);
+}
+
+/**
+ * @tc.name: TextMessageManagerProxy_001
+ * @tc.desc: create and destroy TextMessageManagerProxy success
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, TextEditorProxy_001, TestSize.Level0)
+{
+    auto messageHanlderProxy = OH_MessageHandlerProxy_Create();
+    ASSERT_NE(nullptr, messageHanlderProxy);
+    ConstructMessageHandlerProxy(messageHanlderProxy);
+    TestGetMessageHandlerProxyMember(messageHanlderProxy);
+    OH_MessageHandlerProxy_Destroy(messageHanlderProxy);
 }
 } // namespace

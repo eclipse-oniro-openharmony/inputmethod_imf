@@ -38,6 +38,7 @@ group("unittest") {
       "cpp_test:InputMethodSeccompTest",
       "cpp_test:InputMethodServiceTest",
       "cpp_test:InputMethodSwitchTest",
+      "cpp_test:InputMethodMessageHandlerTest",
       "cpp_test:JsonOperateTest",
       "cpp_test:NewImeSwitchTest",
       "cpp_test:SecurityModeParseTest",

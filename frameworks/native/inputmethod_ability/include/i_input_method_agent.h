@@ -38,6 +38,7 @@ public:
         SET_CALLING_WINDOW_ID,
         SEND_PRIVATE_COMMAND,
         ON_ATTRIBUTE_CHANGE,
+        SEND_MESSAGE,
         AGENT_CODE_END,
     };
 
@@ -51,6 +52,7 @@ public:
     virtual void SetCallingWindow(uint32_t windowId) = 0;
     virtual void OnAttributeChange(const InputAttribute &attribute) = 0;
     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
+    virtual int32_t SendMessage(const ArrayBuffer &arraybuffer) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

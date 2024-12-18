@@ -34,6 +34,7 @@ ohos_shared_library("ohinputmethod") {
     "src/inputmethod_texteditor_proxy_capi.cpp",
     "src/native_capi_utils.cpp",
     "src/native_text_changed_listener.cpp",
+    "src/native_message_handler_callback.cpp",
   ]
   include_dirs = [
     "include",

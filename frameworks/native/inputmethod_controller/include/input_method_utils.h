@@ -29,6 +29,8 @@ constexpr uint32_t INVALID_WINDOW_ID = 0;
 constexpr int32_t INVALID_VALUE = -1;
 constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
 constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
+constexpr size_t MAX_ARRAY_BUFFER_MSG_ID_SIZE = 256; // 256B
+constexpr size_t MAX_ARRAY_BUFFER_MSG_PARAM_SIZE = 128 * 1024; // 128KB
 const constexpr char *SYSTEM_CMD_KEY = "sys_cmd";
 enum class EnterKeyType {
     UNSPECIFIED = 0,
@@ -301,6 +303,28 @@ enum class SwitchTrigger : uint32_t {
     IMSA,
     NATIVE_SA
 };
+
+struct ArrayBuffer {
+    size_t jsArgc = 0;
+    std::string msgId;
+    std::vector<uint8_t> msgParam;
+    static bool IsSizeValid(const ArrayBuffer &arrayBuffer) {
+        if (arrayBuffer.msgId.size() > MAX_ARRAY_BUFFER_MSG_ID_SIZE) {
+            IMSA_HILOGE("Invalid msgId size: %{public}zu.", arrayBuffer.msgId.size());
+            return false;
+        }
+        if (arrayBuffer.msgParam.size() > MAX_ARRAY_BUFFER_MSG_PARAM_SIZE) {
+            IMSA_HILOGE("Invalid msgParam size: %{public}zu.", arrayBuffer.msgParam.size());
+            return false;
+        }
+        return true;
+    }
+    bool operator==(const ArrayBuffer &arrayBuffer) const
+    {
+        return jsArgc == arrayBuffer.jsArgc && msgId == arrayBuffer.msgId && msgParam == arrayBuffer.msgParam;
+    }
+};
+
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

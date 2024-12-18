@@ -39,6 +39,7 @@
 #include "inputmethod_types_capi.h"
 #include "inputmethod_cursor_info_capi.h"
 #include "inputmethod_private_command_capi.h"
+#include "inputmethod_message_handler_proxy_capi.h"
 #ifdef __cplusplus
 extern "C"{
 #endif /* __cplusplus */
@@ -166,6 +167,49 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
  */
 InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
     InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_PrivateCommand *privateCommand[], size_t size);
+
+/**
+ * @brief Send private command.
+ *
+ * @param inputMethodProxy Represents a pointer to an {@link OH_InputMethod_InputMethodProxy} instance.
+ *     The inputMethodProxy is obtained from {@link OH_InputMethodController_Attach}.
+ * @param msgId The ArrayBuffer.msgId, which is defined in {@link InputMethod_PrivateCommand}. Max size 256B.
+ * @param msgIdLength The size of ArrayBuffer.msgId. Max is 256B.
+ * @param msgParam The private commands, which is defined in {@link InputMethod_PrivateCommand}. Max size 128KB.
+ * @param msgParamLength The size of ArrayBuffer.msgParam. Max is 128KB.
+ * @param size The size of privateCommand. Max is 5.
+ * @return Returns a specific error code.
+ *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
+ *     {@link IME_ERR_DETACHED} - input method client detached.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
+ * @since 16
+ */
+InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(
+    InputMethod_InputMethodProxy *inputMethodProxy, char16_t *msgId, size_t msgIdLength, uint8_t *msgParam, size_t msgParamLength);
+
+/**
+ * @brief Register message handler.
+ *
+ * @param inputMethodProxy Represents a pointer to an {@link OH_InputMethod_InputMethodProxy} instance.
+ *     The inputMethodProxy is obtained from {@link OH_InputMethodController_Attach}.
+ * @param messageHandler Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance.
+ *     The caller needs to manage the lifecycle of messageHandler.
+ * @return Returns a specific error code.
+ *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_IMCLIENT} - input method client error.
+ *     {@link IME_ERR_IMMS} - input method manager service error.
+ *     {@link IME_ERR_DETACHED} - input method client detached.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
+ * @since 16
+ */
+InputMethod_ErrorCode OH_InputMethodProxy_RecvMessage(
+    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_MessageHandlerProxy *messageHandler);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

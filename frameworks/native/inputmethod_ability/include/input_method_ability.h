@@ -93,6 +93,8 @@ public:
         const std::shared_ptr<InputMethodPanel> &inputMethodPanel, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     void OnSetInputType(InputType inputType);
+    int32_t SendMessage(const ArrayBuffer &arrayBuffer);
+    int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
 
 public:
     /* called from TaskManager worker thread */
@@ -183,6 +185,7 @@ private:
     InputType inputType_ = InputType::NONE;
     std::atomic<bool> isImeTerminating = false;
     std::atomic_bool isShowAfterCreate_ { false };
+    std::atomic<int32_t> securityMode_ = -1;
 };
 } // namespace MiscServices
 } // namespace OHOS

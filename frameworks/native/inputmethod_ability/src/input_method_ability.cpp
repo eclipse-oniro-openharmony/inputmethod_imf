@@ -45,6 +45,7 @@ constexpr int32_t INVALID_SELECTION_VALUE = -1;
 constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
 constexpr uint32_t START_INPUT_CALLBACK_TIMEOUT_MS = 1000;
+constexpr uint32_t INVALID_SECURITY_MODE = -1;
 
 InputMethodAbility::InputMethodAbility() { }
 
@@ -764,12 +765,22 @@ void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
 int32_t InputMethodAbility::GetSecurityMode(int32_t &security)
 {
     IMSA_HILOGI("InputMethodAbility start.");
+    int32_t securityMode = securityMode_.load();
+    if (securityMode != INVALID_SECURITY_MODE) {
+        IMSA_HILOGD("Get cache security mode: %{public}d.", securityMode);
+        security = securityMode;
+        return ErrorCode::NO_ERROR;
+    }
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {
-        IMSA_HILOGE("failed to get imsa proxy!");
-        return false;
+        IMSA_HILOGE("Imsa proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
     }
-    return proxy->GetSecurityMode(security);
+    auto ret = proxy->GetSecurityMode(security);
+    if (ret == ErrorCode::NO_ERROR) {
+        securityMode_.store(security);
+    }
+    return ret;
 }
 
 void InputMethodAbility::ClearSystemCmdChannel()
@@ -811,6 +822,7 @@ int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channe
 int32_t InputMethodAbility::OnSecurityChange(int32_t security)
 {
     IMSA_HILOGI("InputMethodAbility start.");
+    securityMode_.store(security);
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -1285,6 +1297,51 @@ void InputMethodAbility::NotifyPanelStatusInfo(
     if (controlChannel != nullptr && info.trigger == Trigger::IME_APP && !info.visible) {
         controlChannel->HideKeyboardSelf();
     }
+}
+
+int32_t InputMethodAbility::SendMessage(const ArrayBuffer &arrayBuffer)
+{
+    int32_t securityMode = INVALID_SECURITY_MODE;
+    auto ret = GetSecurityMode(securityMode);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Get security mode failed!");
+        return ret;
+    }
+    if (!ArrayBuffer::IsSizeValid(arrayBuffer)) {
+        IMSA_HILOGE("arrayBuffer size is invalid!");
+        return ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE;
+    }
+    if (securityMode != static_cast<int32_t>(SecurityMode::FULL)) {
+        IMSA_HILOGE("Security mode must be FULL!.");
+        return ErrorCode::ERROR_SECURITY_MODE_OFF;
+    }
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("datachannel is nullptr.");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->SendMessage(arrayBuffer);
+}
+
+int32_t InputMethodAbility::RecvMessage(const ArrayBuffer &arrayBuffer)
+{
+    int32_t securityMode = -1;
+    auto ret = GetSecurityMode(securityMode);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Get security mode failed!");
+        return ret;
+    }
+    if (securityMode != static_cast<int32_t>(SecurityMode::FULL)) {
+        IMSA_HILOGE("Security mode must be FULL!.");
+        return ErrorCode::ERROR_SECURITY_MODE_OFF;
+    }
+    auto imeListener = GetImeListener();
+    if (imeListener == nullptr) {
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    std::string msgParam1(arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
+    IMSA_HILOGE("InputMethodAbility::RecvMessage msgId: %{public}s, msgParam: %{publid}s", arrayBuffer.msgId.c_str(), msgParam1.c_str());
+    return imeListener->OnMessage(arrayBuffer);
 }
 } // namespace MiscServices
 } // namespace OHOS

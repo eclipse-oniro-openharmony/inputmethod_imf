@@ -52,6 +52,7 @@ public:
         SEND_PRIVATE_COMMAND,
         SET_PREVIEW_TEXT,
         FINISH_TEXT_PREVIEW,
+        SEND_MESSAGE,
         DATA_CHANNEL_CMD_END
     };
 
@@ -77,6 +78,7 @@ public:
     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
     virtual int32_t SetPreviewText(const std::string &text, const Range &range) = 0;
     virtual int32_t FinishTextPreview(bool isAsync) = 0;
+    virtual int32_t SendMessage(const ArrayBuffer &arraybuffer) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

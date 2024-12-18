@@ -72,6 +72,9 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
         case ON_ATTRIBUTE_CHANGE: {
             return OnAttributeChangeOnRemote(data, reply);
         }
+        case SEND_MESSAGE: {
+            return RecvMessageOnRemote(data, reply);
+        }
         default: {
             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -162,5 +165,20 @@ void InputMethodAgentStub::OnAttributeChange(const InputAttribute &attribute)
     TaskManager::GetInstance().PostTask(task);
 }
 
+int32_t InputMethodAgentStub::RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    ArrayBuffer arrayBuffer;
+    if (!ITypesUtil::Unmarshal(data, arrayBuffer)) {
+        IMSA_HILOGE("Failed to read arrayBuffer parcel!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto ret = InputMethodAbility::GetInstance()->RecvMessage(arrayBuffer);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodAgentStub::SendMessage(const ArrayBuffer &arraybuffer)
+{
+    return ErrorCode::NO_ERROR;
+}
 } // namespace MiscServices
 } // namespace OHOS

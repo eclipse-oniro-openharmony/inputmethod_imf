@@ -36,11 +36,13 @@ public:
     void SetCallingWindow(uint32_t windowId) override;
     void OnAttributeChange(const InputAttribute &attribute) override;
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
 
 private:
     int32_t DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnAttributeChangeOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace MiscServices
 } // namespace OHOS

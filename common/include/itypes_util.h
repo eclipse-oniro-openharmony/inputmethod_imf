@@ -107,6 +107,9 @@ public:
     static bool Marshalling(const Range &input, MessageParcel &data);
     static bool Unmarshalling(Range &output, MessageParcel &data);
 
+    static bool Marshalling(const ArrayBuffer &input, MessageParcel &data);
+    static bool Unmarshalling(ArrayBuffer &output, MessageParcel &data);
+
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);
     template<class T>
