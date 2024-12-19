@@ -1465,11 +1465,13 @@ int32_t InputMethodSystemAbility::InitAccountMonitor()
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor start.");
-    auto handler = [this](){
-        auto switchTrigger = [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode);};
+    auto handler = [this]() {
+        auto switchTrigger = [this](uint32_t keyCode) {
+            return SwitchByCombinationKey(keyCode);
+        };
         int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(switchTrigger);
-        IMSA_HILOGI("SubscribeKeyboardEvent add monitor: %{public}s.",
-            ret == ErrorCode::NO_ERROR ? "success" : "failed");
+        IMSA_HILOGI(
+            "SubscribeKeyboardEvent add monitor: %{public}s.", ret == ErrorCode::NO_ERROR ? "success" : "failed");
         // Check device capslock status and ime cfg corrent, when device power-up.
         HandleImeCfgCapsState();
     };
