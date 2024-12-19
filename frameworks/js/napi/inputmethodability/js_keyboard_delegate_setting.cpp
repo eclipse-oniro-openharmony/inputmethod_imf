@@ -314,7 +314,7 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(const std::shared_ptr<MMI::KeyEve
     }
     IMSA_HILOGD("run in.");
     auto task = [keyEventEntry, keyCodeEntry, consumer]() { DealKeyEvent(keyEventEntry, keyCodeEntry, consumer); };
-    eventHandler->PostTask(task, "OnDealKeyEvent");
+    eventHandler->PostTask(task, "OnDealKeyEvent", 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
 }
 
@@ -412,7 +412,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         }
         FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
 }
 
@@ -461,7 +461,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, s
         }
         FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
 }
 
@@ -500,7 +500,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         // 3 means callback has three params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 3, paramGetter });
     };
-    handler_->PostTask(task, type);
+    handler_->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
@@ -541,7 +541,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         // 4 means callback has four params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 4, paramGetter });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
@@ -571,7 +571,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getTextChangeProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &inputAttribute)
@@ -605,7 +605,7 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)

@@ -296,7 +296,7 @@ void JsKeyboardPanelManager::ReceivePrivateCommand(
         // 1 means callback has 1 params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsKeyboardPanelManager::NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
@@ -330,7 +330,7 @@ void JsKeyboardPanelManager::NotifyPanelStatus(const SysPanelStatus &sysPanelSta
         // 1 means callback has 1 params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardPanelManager::GetEventHandler()

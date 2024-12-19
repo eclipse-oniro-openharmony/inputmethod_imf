@@ -433,7 +433,7 @@ void InputMethodControllerTest::TriggerConfigurationChangeCallback(Configuration
         [info]() {
             inputMethodController_->OnConfigurationChange(info);
         },
-        InputMethodControllerTest::TASK_DELAY_TIME);
+        InputMethodControllerTest::TASK_DELAY_TIME, AppExecFwk::EventQueue::Priority::VIP);
     {
         std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
         InputMethodControllerTest::keyboardListenerCv_.wait_for(
@@ -452,7 +452,7 @@ void InputMethodControllerTest::TriggerCursorUpdateCallback(CursorInfo &info)
         [info]() {
             inputMethodController_->OnCursorUpdate(info);
         },
-        InputMethodControllerTest::TASK_DELAY_TIME);
+        InputMethodControllerTest::TASK_DELAY_TIME, AppExecFwk::EventQueue::Priority::VIP);
     {
         std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
         InputMethodControllerTest::keyboardListenerCv_.wait_for(
@@ -469,7 +469,7 @@ void InputMethodControllerTest::TriggerSelectionChangeCallback(std::u16string &t
         [text, start, end]() {
             inputMethodController_->OnSelectionChange(text, start, end);
         },
-        InputMethodControllerTest::TASK_DELAY_TIME);
+        InputMethodControllerTest::TASK_DELAY_TIME, AppExecFwk::EventQueue::Priority::VIP);
     {
         std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
         InputMethodControllerTest::keyboardListenerCv_.wait_for(
