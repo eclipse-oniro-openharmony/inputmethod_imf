@@ -629,7 +629,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
         // 2 means callback has two params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 2, getImeChangeProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 PanelFlag JsGetInputMethodSetting::GetSoftKbShowingFlag()
@@ -702,7 +702,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getWindowInfo });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodSetting::GetEventHandler()
