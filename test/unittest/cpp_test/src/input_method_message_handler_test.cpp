@@ -53,6 +53,8 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+constexpr int32_t MAX_ARRAY_BUFFER_MSG_ID = 256; // 256B
+constexpr int32_t MAX_ARRAY_BUFFER_MSG_PARAM = 128 * 1024; // 128KB
 class MessageHandlerCallback : public MsgHandlerCallbackInterface {
 public:
     using onTerminatedFunc = std::function<void()>;
@@ -71,8 +73,10 @@ public:
     {
         std::string msgParam(arrayBuffer_.msgParam.begin(), arrayBuffer_.msgParam.end());
         std::string msgParam1(arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
-        IMSA_HILOGE("arrayBuffer_ msgId: %{public}s, msgParam: %{publid}s", arrayBuffer_.msgId.c_str(), msgParam.c_str());
-        IMSA_HILOGE("arrayBuffer msgId: %{public}s, msgParam: %{publid}s", arrayBuffer.msgId.c_str(), msgParam1.c_str());
+        IMSA_HILOGE("arrayBuffer_ msgId: %{public}s, msgParam: %{publid}s",
+            arrayBuffer_.msgId.c_str(), msgParam.c_str());
+        IMSA_HILOGE("arrayBuffer msgId: %{public}s, msgParam: %{publid}s",
+            arrayBuffer.msgId.c_str(), msgParam1.c_str());
         isTriggerOnMessage_ = true;
         if (onMessageFunc_ != nullptr) {
             onMessageFunc_(arrayBuffer);
@@ -90,13 +94,15 @@ public:
         return isOnTerminatedExcute == isTriggerOnTerminated_ && isOnMessageExcute == isTriggerOnMessage_;
     }
 
-    static void OnMessageCallback(const ArrayBuffer &arrayBuffer) {
+    static void OnMessageCallback(const ArrayBuffer &arrayBuffer)
+    {
         IMSA_HILOGI("OnMessageCallback");
         arrayBuffer_ = arrayBuffer;
         messageHandlerCv_.notify_one();
     }
 
-    static bool WaitSendMessage(const ArrayBuffer &arrayBuffer) {
+    static bool WaitSendMessage(const ArrayBuffer &arrayBuffer)
+    {
         std::unique_lock<std::mutex> lock(messageHandlerMutex_);
         messageHandlerCv_.wait_for(lock, std::chrono::seconds(1), [&arrayBuffer]() {
             return arrayBuffer_ == arrayBuffer;
@@ -136,8 +142,6 @@ public:
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static std::shared_ptr<AppExecFwk::EventHandler> textConfigHandler_;
     static sptr<OnTextChangedListener> textListener_;
-    static constexpr int32_t MAX_ARRAY_BUFFER_MSG_ID = 256; // 256B
-    static constexpr int32_t MAX_ARRAY_BUFFER_MSG_PARAM = 128 * 1024; // 128KB
 };
 sptr<InputMethodController> InputMethodMessageHandlerTest::inputMethodController_;
 sptr<InputMethodAbility> InputMethodMessageHandlerTest::inputMethodAbility_;

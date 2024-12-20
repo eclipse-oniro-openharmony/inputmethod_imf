@@ -71,7 +71,8 @@ typedef int32_t (*OH_MessageHandlerProxy_OnTerminatedFunc)(InputMethod_MessageHa
  * OH_TextEditorProxy_SetOnMessageFunc}, and use {@link OH_InputMethodProxy_RecvMessage} to complete the
  * registration.\n
  *
- * @param messageHandlerProxy Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance which will be set in.
+ * @param messageHandlerProxy Represents a pointer to an
+ *                            {@link InputMethod_MessageHandlerProxy} instance which will be set in.
  * @param msgId ArrayBuffer.msgId from input method.
  * @param msgIdLength Size of ArrayBuffer.msgId.
  * @param msgParam ArrayBuffer.msgId from input method.
@@ -142,7 +143,7 @@ InputMethod_ErrorCode OH_MessageHandlerProxy_GetOnTerminatedFunc(
  * @since 16
  */
 InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnMessageFunc(
-    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc *onMessageFunc);
+    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc onMessageFunc);
 
 /**
  * @brief Get function {@link OH_MessageHandlerProxy_GetOnMessageFunc} from {@link InputMethod_MessageHandlerProxy}.

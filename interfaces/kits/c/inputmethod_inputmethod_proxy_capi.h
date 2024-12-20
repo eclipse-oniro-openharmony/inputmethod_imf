@@ -188,8 +188,8 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 16
  */
-InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(
-    InputMethod_InputMethodProxy *inputMethodProxy, char16_t *msgId, size_t msgIdLength, uint8_t *msgParam, size_t msgParamLength);
+InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodProxy *inputMethodProxy,
+    char16_t *msgId, size_t msgIdLength, uint8_t *msgParam, size_t msgParamLength);
 
 /**
  * @brief Register message handler.

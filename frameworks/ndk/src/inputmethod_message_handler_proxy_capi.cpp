@@ -63,7 +63,7 @@ InputMethod_ErrorCode OH_MessageHandlerProxy_GetOnTerminatedFunc(
 }
 
 InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnMessageFunc(
-    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc *onMessageFunc)
+    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc onMessageFunc)
 {
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
