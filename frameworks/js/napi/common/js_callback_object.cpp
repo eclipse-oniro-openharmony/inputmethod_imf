@@ -47,7 +47,7 @@ JSCallbackObject::~JSCallbackObject()
                 bool isFinish = true;
                 jsObject->isDone_->SetValue(isFinish);
             },
-            uv_qos_user_initiated);
+            uv_qos_user_interactive);
         isDone_->GetValue();
     }
     env_ = nullptr;

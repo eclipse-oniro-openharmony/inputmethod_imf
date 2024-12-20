@@ -739,7 +739,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSecurityProperty });
         },
-        uv_qos_user_initiated);
+        uv_qos_user_interactive);
     FreeWorkIfFail(ret, work);
 }
 
