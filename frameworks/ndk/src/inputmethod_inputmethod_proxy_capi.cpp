@@ -22,6 +22,23 @@ extern "C" {
 #endif /* __cplusplus */
 using namespace OHOS;
 using namespace OHOS::MiscServices;
+static int32_t IsValidMessageHandlerProxy(InputMethod_MessageHandlerProxy *messageHandler)
+{
+    if (messageHandler == nullptr) {
+        IMSA_HILOGE("messageHandler is nullptr");
+        return IME_ERR_OK;
+    }
+    if (messageHandler->onTerminatedFunc == nullptr) {
+        IMSA_HILOGE("onTerminatedFunc is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (messageHandler->onMessageFunc == nullptr) {
+        IMSA_HILOGE("onMessageFunc is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return IME_ERR_OK;
+}
+
 InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
     auto errCode = IsValidInputMethodProxy(inputMethodProxy);
@@ -116,7 +133,7 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
 }
 
 InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodProxy *inputMethodProxy,
-    char16_t *msgId, size_t msgIdLength, uint8_t *msgParam, size_t msgParamLength)
+    const char16_t *msgId, size_t msgIdLength, const uint8_t *msgParam, size_t msgParamLength)
 {
     auto errCode = IsValidInputMethodProxy(inputMethodProxy);
     if (errCode != IME_ERR_OK) {
@@ -141,6 +158,10 @@ InputMethod_ErrorCode OH_InputMethodProxy_RecvMessage(
     if (errCode != IME_ERR_OK) {
         IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
         return errCode;
+    }
+    if (IsValidMessageHandlerProxy(messageHandler) != IME_ERR_OK) {
+        IMSA_HILOGE("invalid messageHandler");
+        return IME_ERR_NULL_POINTER;
     }
     if (messageHandler == nullptr) {
         IMSA_HILOGI("UnRegister message handler.");

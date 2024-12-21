@@ -22,6 +22,7 @@ namespace MiscServices {
 constexpr int32_t STR_MAX_LENGTH = 4096;
 constexpr size_t STR_TAIL_LENGTH = 1;
 constexpr size_t ARGC_MAX = 6;
+constexpr size_t ARGC_ONE = 1;
 const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED, EXCEPTION_CONTROLLER },
     { ErrorCode::ERROR_STATUS_PERMISSION_DENIED, EXCEPTION_PERMISSION },
@@ -86,8 +87,8 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED, "text preview not supported." },
     { EXCEPTION_PANEL_NOT_FOUND, "the input method panel does not exist." },
     { EXCEPTION_WINDOW_MANAGER, "window manager service error." },
-    { EXCEPTION_REQUEST_NOT_ACCEPT, "the intput method is basic mode." },
-    { EXCEPTION_BASIC_MODE, "the another side does not accept the request." },
+    { EXCEPTION_BASIC_MODE, "the intput method is basic mode." },
+    { EXCEPTION_REQUEST_NOT_ACCEPT, "the another side does not accept the request." },
     { EXCEPTION_EDITABLE, "the edit mode need enable." },
 };
 
@@ -472,6 +473,38 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::vector<uint8_t> 
     }
     IMSA_HILOGD("ArrayBuffer data size: %{public}zu.", length);
     out.assign(reinterpret_cast<const uint8_t *>(data), reinterpret_cast<const uint8_t *>(data) + length);
+    return napi_ok;
+}
+
+napi_status JsUtils::GetMessageHandlerCallbackParam(napi_value *argv,
+    const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer)
+{
+    if (argv == nullptr) {
+        IMSA_HILOGE("argv is nullptr!.");
+        return napi_generic_failure;
+    }
+    if (jsMessageHandler == nullptr) {
+        IMSA_HILOGE("jsMessageHandler is nullptr!.");
+        return napi_generic_failure;
+    }
+    napi_value jsMsgId = nullptr;
+    auto status = napi_create_string_utf8(
+        jsMessageHandler->env_, arrayBuffer.msgId.c_str(), NAPI_AUTO_LENGTH, &jsMsgId);
+    if (status != napi_ok) {
+        IMSA_HILOGE("napi_create_string_utf8 failed!.");
+        return napi_generic_failure;
+    }
+    // 0 means the first param index of callback.
+    argv[0] = { jsMsgId };
+    if (arrayBuffer.jsArgc > ARGC_ONE) {
+        napi_value jsMsgParam = JsUtils::GetValue(jsMessageHandler->env_, arrayBuffer.msgParam);
+        if (jsMsgParam == nullptr) {
+            IMSA_HILOGE("Get js messageParam object failed!.");
+            return napi_generic_failure;
+        }
+        // 0 means the second param index of callback.
+        argv[1] = { jsMsgParam };
+    }
     return napi_ok;
 }
 } // namespace MiscServices

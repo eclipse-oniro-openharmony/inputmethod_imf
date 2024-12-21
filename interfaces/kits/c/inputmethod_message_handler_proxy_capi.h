@@ -58,7 +58,8 @@ typedef struct InputMethod_MessageHandlerProxy InputMethod_MessageHandlerProxy;
  * OH_TextEditorProxy_SetOnTerminatedFunc}, and use {@link OH_InputMethodProxy_RecvMessage} to complete the
  * registration.\n
  *
- * @param messageHandlerProxy Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance which will be set in.
+ * @param messageHandlerProxy Represents a pointer to an
+ *                            {@link InputMethod_MessageHandlerProxy} instance which will be set in.
  * @return Returns the result of handling private command.
  * @since 16
  */
@@ -102,7 +103,8 @@ void OH_MessageHandlerProxy_Destroy(InputMethod_MessageHandlerProxy *proxy);
 /**
  * @brief Set function {@link OH_MessageHandlerProxy_SetOnTerminatedFunc} into {@link InputMethod_MessageHandlerProxy}.
  *
- * @param proxy Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance which will be set function in.
+ * @param proxy Represents a pointer to an
+ *              {@link InputMethod_MessageHandlerProxy} instance which will be set function in.
  * @param onTerminatedFunc Represents function {@link OH_MessageHandlerProxy_SetOnTerminatedFunc} which
  * will be set.
  * @return Returns a specific error code.
@@ -117,8 +119,8 @@ InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnTerminatedFunc(
 /**
  * @brief Get function {@link OH_MessageHandlerProxy_GetOnTerminatedFunc} from {@link InputMethod_MessageHandlerProxy}.
  *
- * @param proxy Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance which will be get function
- * from.
+ * @param proxy Represents a pointer to an
+ *              {@link InputMethod_MessageHandlerProxy} instance which will be get function from.
  * @param onTerminatedFunc Represents function {@link OH_MessageHandlerProxy_GetOnTerminatedFunc} which
  * will be get.
  * @return Returns a specific error code.
@@ -133,7 +135,8 @@ InputMethod_ErrorCode OH_MessageHandlerProxy_GetOnTerminatedFunc(
 /**
  * @brief Set function {@link OH_MessageHandlerProxy_SetOnMessageFunc} into {@link InputMethod_MessageHandlerProxy}.
  *
- * @param proxy Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance which will be set function in.
+ * @param proxy Represents a pointer to an
+ *              {@link InputMethod_MessageHandlerProxy} instance which will be set function in.
  * @param onMessageFunc Represents function {@link OH_MessageHandlerProxy_SetOnMessageFunc} which
  * will be set.
  * @return Returns a specific error code.

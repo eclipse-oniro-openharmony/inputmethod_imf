@@ -39,6 +39,7 @@ public:
     static bool isInputFinish_;
     static std::unordered_map<std::string, PrivateDataValue> privateCommand_;
     static ArrayBuffer arrayBuffer_;
+    static ArrayBuffer timingArrayBuffer_;
     static void ResetParam();
     static bool WaitInputStart();
     static bool WaitInputFinish();
@@ -46,6 +47,7 @@ public:
     static bool WaitSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     static bool WaitSendMessage(const ArrayBuffer &arrayBuffer);
     static bool WaitKeyboardStatus(bool state);
+    static ArrayBuffer GetTimingArrayBuffer();
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStart() override;
     int32_t OnInputStop() override;

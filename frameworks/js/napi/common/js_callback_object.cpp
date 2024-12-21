@@ -71,6 +71,8 @@ JSMsgHandlerCallbackObject::~JSMsgHandlerCallbackObject()
         if (onMessageCallback_ != nullptr) {
             napi_delete_reference(env_, onMessageCallback_);
         }
+        env_ = nullptr;
+        return;
     }
     IMSA_HILOGW("Thread id is not same, abstract destructor is run in muti-thread!");
     env_ = nullptr;

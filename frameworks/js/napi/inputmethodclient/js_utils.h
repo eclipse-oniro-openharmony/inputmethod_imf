@@ -49,9 +49,9 @@ enum IMFErrorCode : int32_t {
     EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED = 12800011,
     EXCEPTION_PANEL_NOT_FOUND = 12800012,
     EXCEPTION_WINDOW_MANAGER = 12800013,
-    EXCEPTION_REQUEST_NOT_ACCEPT = 12800014,
-    EXCEPTION_BASIC_MODE = 12800015,
-    EXCEPTION_EDITABLE = 12800018,
+    EXCEPTION_BASIC_MODE = 12800014,
+    EXCEPTION_REQUEST_NOT_ACCEPT = 12800015,
+    EXCEPTION_EDITABLE = 12800016,
 };
 
 enum TypeCode : int32_t {
@@ -123,6 +123,8 @@ public:
     static napi_value GetJsPrivateCommand(napi_env env, const std::unordered_map<std::string, PrivateDataValue> &in);
     static napi_value GetValue(napi_env env, const std::vector<uint8_t> &in);
     static napi_status GetValue(napi_env env, const std::string &in, napi_value &out);
+    static napi_status GetMessageHandlerCallbackParam(napi_value *argv,
+        const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer);
 
 private:
     static const std::string ToMessage(int32_t code);

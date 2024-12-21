@@ -21,7 +21,8 @@ namespace OHOS {
 namespace MiscServices {
 class NativeMessageHandlerCallback : public OHOS::MiscServices::MsgHandlerCallbackInterface {
 public:
-    explicit NativeMessageHandlerCallback(InputMethod_MessageHandlerProxy *messageHandler) : messageHandler_(messageHandler) {};
+    explicit NativeMessageHandlerCallback(InputMethod_MessageHandlerProxy *messageHandler)
+        : messageHandler_(messageHandler) {};
     virtual ~NativeMessageHandlerCallback() {};
     virtual int32_t OnTerminated() override;
     virtual int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;

@@ -40,7 +40,7 @@ int32_t NativeMessageHandlerCallback::OnTerminated()
 int32_t NativeMessageHandlerCallback::OnMessage(const ArrayBuffer &arrayBuffer)
 {
     if (messageHandler_ == nullptr) {
-        IMSA_HILOGE("onMessageFunc is nullptr");
+        IMSA_HILOGE("messageHandler_ is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
 

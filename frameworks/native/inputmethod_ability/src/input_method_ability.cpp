@@ -1339,8 +1339,6 @@ int32_t InputMethodAbility::RecvMessage(const ArrayBuffer &arrayBuffer)
     if (imeListener == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    std::string msgParam1(arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
-    IMSA_HILOGE("InputMethodAbility::RecvMessage msgId: %{public}s, msgParam: %{publid}s", arrayBuffer.msgId.c_str(), msgParam1.c_str());
     return imeListener->OnMessage(arrayBuffer);
 }
 } // namespace MiscServices

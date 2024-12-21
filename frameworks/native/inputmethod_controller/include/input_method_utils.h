@@ -308,7 +308,8 @@ struct ArrayBuffer {
     size_t jsArgc = 0;
     std::string msgId;
     std::vector<uint8_t> msgParam;
-    static bool IsSizeValid(const ArrayBuffer &arrayBuffer) {
+    static bool IsSizeValid(const ArrayBuffer &arrayBuffer)
+    {
         if (arrayBuffer.msgId.size() > MAX_ARRAY_BUFFER_MSG_ID_SIZE) {
             IMSA_HILOGE("Invalid msgId size: %{public}zu.", arrayBuffer.msgId.size());
             return false;

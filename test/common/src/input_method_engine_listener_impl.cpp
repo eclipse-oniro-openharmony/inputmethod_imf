@@ -30,6 +30,7 @@ bool InputMethodEngineListenerImpl::isInputFinish_ { false };
 std::unordered_map<std::string, PrivateDataValue> InputMethodEngineListenerImpl::privateCommand_ {};
 ArrayBuffer InputMethodEngineListenerImpl::arrayBuffer_;
 bool InputMethodEngineListenerImpl::isArrayBufferCallback_ = false;
+ArrayBuffer InputMethodEngineListenerImpl::timingArrayBuffer_;
 constexpr int32_t TIMEOUT_SECONDS = 2;
 
 void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
@@ -97,6 +98,8 @@ void InputMethodEngineListenerImpl::ResetParam()
     privateCommand_.clear();
     arrayBuffer_.msgId.clear();
     arrayBuffer_.msgParam.clear();
+    timingArrayBuffer_.msgId.clear();
+    timingArrayBuffer_.msgParam.clear();
 }
 
 bool InputMethodEngineListenerImpl::WaitInputStart()
@@ -141,10 +144,11 @@ bool InputMethodEngineListenerImpl::WaitSendMessage(const ArrayBuffer &arrayBuff
 {
     std::string msgParam(arrayBuffer_.msgParam.begin(), arrayBuffer_.msgParam.end());
     std::string msgParam1(arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
-    IMSA_HILOGE("arrayBuffer_ msgId: %{public}s, msgParam: %{publid}s", arrayBuffer_.msgId.c_str(), msgParam.c_str());
-    IMSA_HILOGE("arrayBuffer msgId: %{public}s, msgParam: %{publid}s", arrayBuffer.msgId.c_str(), msgParam1.c_str());
+    IMSA_HILOGE("arrayBuffer_ msgId: %{public}s, msgParam: %{public}s", arrayBuffer_.msgId.c_str(), msgParam.c_str());
+    IMSA_HILOGE("arrayBuffer msgId: %{public}s, msgParam: %{public}s", arrayBuffer.msgId.c_str(), msgParam1.c_str());
     std::unique_lock<std::mutex> lock(imeListenerMutex_);
     if (isArrayBufferCallback_ && arrayBuffer_ == arrayBuffer) {
+        IMSA_HILOGE("run in arrayBuffer_ == arrayBuffer");
         isArrayBufferCallback_ = false;
         return true;
     }
@@ -184,7 +188,15 @@ int32_t InputMethodEngineListenerImpl::OnMessage(const ArrayBuffer &arrayBuffer)
     arrayBuffer_ = arrayBuffer;
     isArrayBufferCallback_ = true;
     imeListenerCv_.notify_one();
+    timingArrayBuffer_.msgId += arrayBuffer.msgId;
+    timingArrayBuffer_.msgParam.insert(
+        timingArrayBuffer_.msgParam.end(), arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
     return ErrorCode::NO_ERROR;
+}
+
+ArrayBuffer InputMethodEngineListenerImpl::GetTimingArrayBuffer()
+{
+    return timingArrayBuffer_;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -908,11 +908,10 @@ napi_value JsInputMethodEngineSetting::SendMessage(napi_env env, napi_callback_i
 napi_value JsInputMethodEngineSetting::RecvMessage(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_MAX;
-    napi_value argv[] = {nullptr};
+    napi_value argv[ARGC_MAX] = {nullptr};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    std::string type;
     if (argc < 0) {
         IMSA_HILOGE("RecvMessage failed! argc abnormal.");
         return nullptr;
@@ -933,7 +932,7 @@ napi_value JsInputMethodEngineSetting::RecvMessage(napi_env env, napi_callback_i
     IMSA_HILOGI("RecvMessage on.");
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "msgHnadler (MessageHandler)",
         TYPE_OBJECT, nullptr);
-    
+
     napi_value onMessage = nullptr;
     napi_get_named_property(env, argv[0], "onMessage", &onMessage);
     CHECK_RETURN(JsUtil::GetType(env, onMessage) == napi_function, "onMessage is not napi_function!", nullptr);
@@ -1033,27 +1032,13 @@ int32_t JsInputMethodEngineSetting::OnMessage(const ArrayBuffer &arrayBuffer)
             napi_get_global(jsCallbackObject->env_, &global);
             napi_value output = nullptr;
             napi_value argv[ARGC_TWO] = { nullptr };
-            napi_value jsMsgId = nullptr;
-            auto status = napi_create_string_utf8(jsCallbackObject->env_,
-                arrayBuffer.msgId.c_str(), NAPI_AUTO_LENGTH, &jsMsgId);
-            if (status != napi_ok) {
-                IMSA_HILOGE("napi_create_string_utf8 failed!.");
+            if (JsUtils::GetMessageHandlerCallbackParam(argv, jsCallbackObject, arrayBuffer) != napi_ok) {
+                IMSA_HILOGE("Get message handler callback param failed!.");
                 return;
-            }
-            // 0 means the first param index of callback.
-            argv[0] = { jsMsgId };
-            if (arrayBuffer.jsArgc > ARGC_ONE) {
-                napi_value jsMsgParam = JsUtils::GetValue(jsCallbackObject->env_, arrayBuffer.msgParam);
-                if (jsMsgParam == nullptr) {
-                    IMSA_HILOGE("Get js messageParam object failed!.");
-                    return;
-                }
-                // 0 means the second param index of callback.
-                argv[1] = { jsMsgParam };
             }
             // The maximum valid parameters count of callback is 2.
             auto callbackArgc = arrayBuffer.jsArgc > ARGC_ONE ? ARGC_TWO : ARGC_ONE;
-            status = napi_call_function(jsCallbackObject->env_, global, callback, callbackArgc, argv, &output);
+            auto status = napi_call_function(jsCallbackObject->env_, global, callback, callbackArgc, argv, &output);
             if (status != napi_ok) {
                 IMSA_HILOGI("Call js function failed!.");
                 output = nullptr;

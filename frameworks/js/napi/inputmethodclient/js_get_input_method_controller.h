@@ -193,14 +193,14 @@ public:
 
     class JsMessageHandler : public MsgHandlerCallbackInterface {
     public:
-        explicit JsMessageHandler(napi_env env, napi_value onTerminated, napi_value onMessage) :
-            JsMessageHandler_(std::make_shared<JSMsgHandlerCallbackObject>(env, onTerminated, onMessage)) {};
+        explicit JsMessageHandler(napi_env env, napi_value onTerminated, napi_value onMessage)
+            : jsMessageHandler_(std::make_shared<JSMsgHandlerCallbackObject>(env, onTerminated, onMessage)) {};
         virtual ~JsMessageHandler() {};
         int32_t OnTerminated() override;
         int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
     private:
         std::mutex callbackObjectMutex_;
-        std::shared_ptr<JSMsgHandlerCallbackObject> JsMessageHandler_ = nullptr;
+        std::shared_ptr<JSMsgHandlerCallbackObject> jsMessageHandler_ = nullptr;
     };
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);

@@ -189,7 +189,7 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
  * @since 16
  */
 InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodProxy *inputMethodProxy,
-    char16_t *msgId, size_t msgIdLength, uint8_t *msgParam, size_t msgParamLength);
+    const char16_t *msgId, size_t msgIdLength, const uint8_t *msgParam, size_t msgParamLength);
 
 /**
  * @brief Register message handler.
