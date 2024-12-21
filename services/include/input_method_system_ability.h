@@ -120,6 +120,7 @@ private:
     int32_t OnStartInputType(int32_t userId, const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t HandlePackageEvent(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
+    void OnUserUnlocked(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     void SubscribeCommonEvent();
@@ -131,6 +132,7 @@ private:
     ServiceRunningState state_;
     void InitServiceHandler();
     void UpdateUserInfo(int32_t userId);
+    void UpdateUserLockState();
     void HandleWmsConnected(int32_t userId, int32_t screenId);
     void HandleWmsDisconnected(int32_t userId, int32_t screenId);
     void HandleScbStarted(int32_t userId, int32_t screenId);

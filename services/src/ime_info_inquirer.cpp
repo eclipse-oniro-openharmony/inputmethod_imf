@@ -936,6 +936,16 @@ std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
     return defaultIme;
 }
 
+std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetDefaultImeCfg()
+{
+    auto ime = GetDefaultIme();
+    if (ime.bundleName.empty() || ime.extName.empty()) {
+        IMSA_HILOGE("defaultIme is abnormal!");
+        return nullptr;
+    }
+    return std::make_shared<ImeNativeCfg>(ime);
+}
+
 std::shared_ptr<ResourceManager> ImeInfoInquirer::GetResMgr(const std::string &resourcePath)
 {
     if (resourcePath.empty()) {

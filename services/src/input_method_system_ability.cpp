@@ -162,6 +162,21 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
+    UpdateUserLockState();
+}
+
+void InputMethodSystemAbility::UpdateUserLockState()
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId_);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+    session->UpdateUserLockState();
 }
 
 void InputMethodSystemAbility::OnStop()
@@ -866,13 +881,12 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
         IMSA_HILOGE("start input method failed!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     int32_t ret = session->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
     if (ret != ErrorCode::NO_ERROR) {
-        InputTypeManager::GetInstance().Set(false);
         IMSA_HILOGE("switch subtype failed!");
         return ret;
     }
+    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     return ErrorCode::NO_ERROR;
 }
 
@@ -998,6 +1012,10 @@ void InputMethodSystemAbility::WorkThread()
             case MSG_ID_BOOT_COMPLETED:
             case MSG_ID_OS_ACCOUNT_STARTED: {
                 FullImeInfoManager::GetInstance().Init();
+                break;
+            }
+            case MSG_ID_USER_UNLOCKED: {
+                OnUserUnlocked(msg);
                 break;
             }
             default: {
@@ -1137,6 +1155,33 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::st
         IMSA_HILOGI("switch ret: %{public}d", ret);
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
+{
+    if (msg == nullptr || msg->msgContent_ == nullptr) {
+        IMSA_HILOGE("message is nullptr");
+        return;
+    }
+    int32_t userId = 0;
+    if (!ITypesUtil::Unmarshal(*msg->msgContent_, userId)) {
+        IMSA_HILOGE("failed to read message");
+        return;
+    }
+    IMSA_HILOGI("userId: %{public}d", userId);
+    if (userId != userId_) {
+        return;
+    }
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId_);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+    session->OnUserUnlocked();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -1755,9 +1800,12 @@ void InputMethodSystemAbility::HandleMemStarted()
 
 void InputMethodSystemAbility::HandleOsAccountStarted()
 {
+    IMSA_HILOGI("account start");
     auto userId = OsAccountAdapter::GetForegroundOsAccountLocalId();
     if (userId_ != userId) {
         UpdateUserInfo(userId);
+    } else {
+        UpdateUserLockState();
     }
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_OS_ACCOUNT_STARTED, nullptr);
     if (msg == nullptr) {

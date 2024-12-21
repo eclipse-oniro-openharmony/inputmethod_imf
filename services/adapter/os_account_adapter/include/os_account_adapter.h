@@ -29,6 +29,7 @@ public:
     static int32_t GetForegroundOsAccountLocalId();
     static std::vector<int32_t> QueryActiveOsAccountIds();
     static bool IsOsAccountForeground(int32_t userId);
+    static int32_t IsOsAccountVerified(int32_t userId, bool &isUnlocked);
 
 private:
     static constexpr uint32_t RETRY_INTERVAL = 100;

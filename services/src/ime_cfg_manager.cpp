@@ -107,18 +107,25 @@ void ImeCfgManager::ModifyImeCfg(const ImePersistInfo &cfg)
     auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
         [&cfg](const ImePersistInfo &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
     if (it != imeConfigs_.end()) {
-        if (it->isDefaultImeSet) {
-            ImePersistInfo imePersistInfo;
-            imePersistInfo.userId = cfg.userId;
-            imePersistInfo.currentIme = cfg.currentIme;
-            imePersistInfo.currentSubName = cfg.currentSubName;
-            imePersistInfo.isDefaultImeSet = true;
-            *it = imePersistInfo;
-        } else {
-            *it = cfg;
-        }
+        ImePersistInfo imePersistInfo;
+        imePersistInfo.userId = cfg.userId;
+        imePersistInfo.currentIme = it->tempScreenLockIme.empty() ? cfg.currentIme : it->currentIme;
+        imePersistInfo.currentSubName = it->tempScreenLockIme.empty() ? cfg.currentSubName : it->currentSubName;
+        imePersistInfo.tempScreenLockIme = it->tempScreenLockIme;
+        imePersistInfo.isDefaultImeSet = it->isDefaultImeSet ? true : cfg.isDefaultImeSet;
+        *it = imePersistInfo;
     }
+    WriteImeCfg();
+}
 
+void ImeCfgManager::ModifyTempScreenLockImeCfg(int32_t userId, const std::string &ime)
+{
+    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
+    auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
+        [userId, &ime](const ImePersistInfo &imeCfg) { return imeCfg.userId == userId; });
+    if (it != imeConfigs_.end()) {
+        it->tempScreenLockIme = ime;
+    }
     WriteImeCfg();
 }
 
@@ -149,8 +156,12 @@ std::shared_ptr<ImeNativeCfg> ImeCfgManager::GetCurrentImeCfg(int32_t userId)
 {
     auto cfg = GetImeCfg(userId);
     ImeNativeCfg info;
-    info.subName = cfg.currentSubName;
-    info.imeId = cfg.currentIme;
+    if (!cfg.tempScreenLockIme.empty()) {
+        info.imeId = cfg.tempScreenLockIme;
+    } else {
+        info.subName = cfg.currentSubName;
+        info.imeId = cfg.currentIme;
+    }
     auto pos = info.imeId.find('/');
     if (pos != std::string::npos && pos + 1 < info.imeId.size()) {
         info.bundleName = info.imeId.substr(0, pos);

@@ -33,6 +33,7 @@ struct ImePersistInfo : public Serializable {
     int32_t userId{ INVALID_USERID };
     std::string currentIme;
     std::string currentSubName;
+    std::string tempScreenLockIme;
     bool isDefaultImeSet{ false };
 
     bool Marshal(cJSON *node) const override
@@ -40,6 +41,7 @@ struct ImePersistInfo : public Serializable {
         auto ret = SetValue(node, GET_NAME(userId), userId);
         ret = SetValue(node, GET_NAME(currentIme), currentIme) && ret;
         ret = SetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
+        SetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme);
         ret = SetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
         return ret;
     }
@@ -48,6 +50,7 @@ struct ImePersistInfo : public Serializable {
         auto ret = GetValue(node, GET_NAME(userId), userId);
         ret = GetValue(node, GET_NAME(currentIme), currentIme) && ret;
         ret = GetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
+        GetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme);
         ret = GetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
         return ret;
     }
@@ -78,6 +81,7 @@ public:
     void Init();
     void AddImeCfg(const ImePersistInfo &cfg);
     void ModifyImeCfg(const ImePersistInfo &cfg);
+    void ModifyTempScreenLockImeCfg(int32_t userId, const std::string &ime);
     void DeleteImeCfg(int32_t userId);
     std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId);
     bool IsDefaultImeSet(int32_t userId);

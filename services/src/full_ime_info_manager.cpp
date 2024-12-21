@@ -25,7 +25,7 @@ constexpr uint32_t TIMER_TASK_INTERNAL = 3600000; // updated hourly
 FullImeInfoManager::~FullImeInfoManager()
 {
     timer_.Unregister(timerId_);
-    timer_.Shutdown(false);
+    timer_.Shutdown();
     fullImeInfos_.clear();
 }
 
