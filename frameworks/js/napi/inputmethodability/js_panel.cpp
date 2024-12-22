@@ -254,15 +254,24 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JsPanel_Show");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::SHOW };
+        jsQueue_.Push(ctxt->info);
+        return napi_ok;
+    };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        jsQueue_.Wait(ctxt->info);
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
         auto code = InputMethodAbility::GetInstance()->ShowPanel(ctxt->inputMethodPanel);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
+            jsQueue_.Pop();
             return;
         }
+        jsQueue_.Pop();
         ctxt->SetErrorCode(code);
     };
+    ctxt->SetAction(std::move(input));
     // 1 means JsAPI:show has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "show");
@@ -422,9 +431,7 @@ bool JsPanel::IsEnhancedAdjust(napi_env env, napi_value *argv)
 napi_status JsPanel::CheckParam(napi_env env, size_t argc, napi_value *argv, std::shared_ptr<PanelContentContext> ctxt)
 {
     ctxt->isEnhancedCall = false;
-    if (ParsePanelFlag(env, argv, ctxt->panelFlag, false) != napi_ok) {
-        return napi_generic_failure;
-    }
+    CHECK_RETURN(ParsePanelFlag(env, argv, ctxt->panelFlag, false) == napi_ok, "parse flag", napi_generic_failure);
     // 1 means the second param rect
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "param rect type must be PanelRect",
         TYPE_NONE, napi_generic_failure);
@@ -433,10 +440,11 @@ napi_status JsPanel::CheckParam(napi_env env, size_t argc, napi_value *argv, std
     return napi_ok;
 }
 
-napi_status JsPanel::CheckEnhancedParam(napi_env env, size_t argc, napi_value *argv, std::shared_ptr<PanelContentContext> ctxt)
+napi_status JsPanel::CheckEnhancedParam(
+    napi_env env, size_t argc, napi_value *argv, std::shared_ptr<PanelContentContext> ctxt)
 {
     ctxt->isEnhancedCall = true;
-    CHECK_RETURN(ParsePanelFlag(env, argv, ctxt->panelFlag, false), "parse flag", napi_generic_failure);
+    CHECK_RETURN(ParsePanelFlag(env, argv, ctxt->panelFlag, true) == napi_ok, "parse flag", napi_generic_failure);
     // 1 means the second param rect
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "param rect type must be PanelRect",
         TYPE_NONE, napi_generic_failure);
@@ -448,7 +456,7 @@ napi_status JsPanel::CheckEnhancedParam(napi_env env, size_t argc, napi_value *a
         CHECK_RETURN(JsHotArea::Read(env, jsObject, ctxt->hotAreas.landscape.keyboardHotArea), "read landscape region",
             napi_generic_failure);
     } else {
-        ctxt->hotAreas.landscape.keyboardHotArea.push_back(ctxt->enhancedLayoutParams.landscape.rect);
+        ctxt->hotAreas.landscape.keyboardHotArea.clear();
     }
     if (JsUtil::HasProperty(env, argv[1], PORTRAIT_REGION_PARAM_NAME)) {
         napi_value jsObject = nullptr;
@@ -456,43 +464,49 @@ napi_status JsPanel::CheckEnhancedParam(napi_env env, size_t argc, napi_value *a
         CHECK_RETURN(JsHotArea::Read(env, jsObject, ctxt->hotAreas.portrait.keyboardHotArea), "read portrait region",
             napi_generic_failure);
     } else {
-        ctxt->hotAreas.portrait.keyboardHotArea.push_back(ctxt->enhancedLayoutParams.portrait.rect);
+        ctxt->hotAreas.portrait.keyboardHotArea.clear();
     }
     int32_t ret = ctxt->inputMethodPanel->IsEnhancedParamValid(ctxt->panelFlag, ctxt->enhancedLayoutParams);
     if (ret == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
-        RESULT_CHECK_RETURN(env, false, ret,
+        RESULT_CHECK_RETURN(env, false, JsUtils::Convert(ret),
             "width limit:[0, displayWidth], avoidHeight limit:[0, 70 percent of displayHeight]", TYPE_NONE,
             napi_generic_failure);
     } else if (ret == ErrorCode::ERROR_INVALID_PANEL_TYPE) {
-        RESULT_CHECK_RETURN(env, false, ret, "only used for SOFT_KEYBOARD panel", TYPE_NONE, napi_generic_failure);
-    } else {
-        RESULT_CHECK_RETURN(env, false, ret, "adjust failed", TYPE_NONE, napi_generic_failure);
+        RESULT_CHECK_RETURN(
+            env, false, JsUtils::Convert(ret), "only used for SOFT_KEYBOARD panel", TYPE_NONE, napi_generic_failure);
+    } else if (ret != ErrorCode::NO_ERROR) {
+        RESULT_CHECK_RETURN(env, false, JsUtils::Convert(ret), "adjust failed", TYPE_NONE, napi_generic_failure);
     }
     return napi_ok;
 }
 
+bool JsPanel::IsPanelFlagValid(napi_env env, PanelFlag panelFlag, bool isEnhancedCalled)
+{
+    bool isValid = false;
+    if (InputMethodAbility::GetInstance()->IsDefaultIme()) {
+        isValid = panelFlag == FLG_FIXED || panelFlag == FLG_FLOATING || panelFlag == FLG_CANDIDATE_COLUMN;
+    } else {
+        isValid = panelFlag == FLG_FIXED || panelFlag == FLG_FLOATING;
+    }
+    IMSA_HILOGI("flag: %{public}d, isEnhanced: %{public}d, isValid: %{public}d", panelFlag, isEnhancedCalled, isValid);
+    if (!isEnhancedCalled) {
+        PARAM_CHECK_RETURN(env, isValid, "param flag type should be FLG_FIXED or FLG_FLOATING", TYPE_NONE, false);
+    } else {
+        RESULT_CHECK_RETURN(env, isValid, JsUtils::Convert(ErrorCode::ERROR_INVALID_PANEL_FLAG),
+            "param flag should be FIXED or FLOATING", TYPE_NONE, false);
+    }
+    return true;
+}
+
 napi_status JsPanel::ParsePanelFlag(napi_env env, napi_value *argv, PanelFlag &panelFlag, bool isEnhancedCalled)
 {
-    // 0 means the first param flag
     int32_t flag = 0;
+    // 0 means the first param flag
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "flag", TYPE_NUMBER, napi_generic_failure);
     PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], flag) == napi_ok, "js param flag covert failed", TYPE_NONE,
         napi_generic_failure);
     panelFlag = PanelFlag(flag);
-    bool isValidFlag = false;
-    if (InputMethodAbility::GetInstance()->IsDefaultIme()) {
-        isValidFlag = panelFlag == FLG_FIXED || panelFlag == FLG_FLOATING || panelFlag == FLG_CANDIDATE_COLUMN;
-    } else {
-        isValidFlag = panelFlag == FLG_FIXED || panelFlag == FLG_FLOATING;
-    }
-    IMSA_HILOGD("panelFlag: %{public}d, isEnhanced: %{public}d", flag, isEnhancedCalled);
-    if (!isEnhancedCalled) {
-        PARAM_CHECK_RETURN(
-            env, isValidFlag, "param flag type should be FLG_FIXED or FLG_FLOATING", TYPE_NONE, napi_generic_failure);
-    } else {
-        RESULT_CHECK_RETURN(env, isValidFlag, ErrorCode::ERROR_INVALID_PANEL_FLAG,
-            "param flag should be FIXED or FLOATING", TYPE_NONE, napi_generic_failure);
-    }
+    CHECK_RETURN(IsPanelFlagValid(env, panelFlag, isEnhancedCalled), "invalid panelFlag", napi_generic_failure);
     return napi_ok;
 }
 
@@ -562,6 +576,12 @@ napi_value JsPanel::UpdateRegion(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, ctxt->inputMethodPanel != nullptr, "panel is null", TYPE_NONE, napi_generic_failure);
+        RESULT_CHECK_RETURN(env, ctxt->inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD,
+            JsUtils::Convert(ErrorCode::ERROR_INVALID_PANEL_TYPE), "only used for SOFT_KEYBOARD panel", TYPE_NONE,
+            napi_generic_failure);
+        CHECK_RETURN(IsPanelFlagValid(env, ctxt->inputMethodPanel->GetPanelFlag(), true), "invalid panelFlag",
+            napi_generic_failure);
         PARAM_CHECK_RETURN(env, argc > 0, "at least one parameters is required", TYPE_NONE, napi_generic_failure);
         PARAM_CHECK_RETURN(env, JsHotArea::Read(env, argv[0], ctxt->hotArea), "failed to convert inputRegion",
             TYPE_NONE, napi_generic_failure);
@@ -632,19 +652,20 @@ bool JsEnhancedPanelRect::Read(napi_env env, napi_value object, EnhancedLayoutPa
 {
     napi_status status = napi_generic_failure;
     napi_value jsObject = nullptr;
-    bool ret =
-        JsUtils::ReadOptionalProperty(env, object, "fullScreenMode", napi_boolean, TYPE_BOOLEAN, params.isFullScreen);
+    bool ret = JsUtils::ReadOptionalProperty(
+        env, object, { napi_boolean, TYPE_BOOLEAN, "fullScreenMode" }, params.isFullScreen);
     if (ret && params.isFullScreen) {
         IMSA_HILOGD("full screen mode, no need to parse rect");
     } else {
         ret = JsUtils::ReadOptionalProperty(
-                  env, object, "landscapeRect", napi_object, TYPE_OBJECT, params.landscape.rect)
-              && JsUtils::ReadOptionalProperty(
-                  env, object, "portraitRect", napi_object, TYPE_OBJECT, params.portrait.rect);
+            env, object, { napi_object, TYPE_OBJECT, "landscapeRect" }, params.landscape.rect);
+        ret = ret && JsUtils::ReadOptionalProperty(
+            env, object, { napi_object, TYPE_OBJECT, "portraitRect" }, params.portrait.rect);
         PARAM_CHECK_RETURN(env, ret, "landscapeRect and portraitRect should not be empty", TYPE_NONE, false);
     }
-    JsUtils::ReadOptionalProperty(env, object, "landscapeAvoidY", napi_number, TYPE_NUMBER, params.landscape.avoidY);
-    JsUtils::ReadOptionalProperty(env, object, "portraitAvoidY", napi_number, TYPE_NUMBER, params.portrait.avoidY);
+    JsUtils::ReadOptionalProperty(
+        env, object, { napi_number, TYPE_NUMBER, "landscapeAvoidY" }, params.landscape.avoidY);
+    JsUtils::ReadOptionalProperty(env, object, { napi_number, TYPE_NUMBER, "portraitAvoidY" }, params.portrait.avoidY);
     return ret;
 }
 

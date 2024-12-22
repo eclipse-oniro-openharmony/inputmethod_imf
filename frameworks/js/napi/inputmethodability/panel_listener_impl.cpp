@@ -77,7 +77,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
     auto task = [entry]() {
         JsCallbackHandler::Traverse({ entry->cbCopy });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
@@ -108,7 +108,7 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
         };
         JsCallbackHandler::Traverse({ entry->cbCopy }, { 1, gitWindowSizeParams });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea)

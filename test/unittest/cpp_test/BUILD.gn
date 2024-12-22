@@ -729,6 +729,7 @@ ohos_unittest("EnableImeDataParseTest") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 }
@@ -780,6 +781,7 @@ ohos_unittest("SecurityModeParseTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 }
@@ -1048,5 +1050,6 @@ ohos_unittest("FullImeInfoManagerTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 }

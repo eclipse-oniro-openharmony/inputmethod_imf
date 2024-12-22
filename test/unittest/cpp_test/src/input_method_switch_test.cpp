@@ -51,11 +51,11 @@ public:
 };
 sptr<InputMethodController> InputMethodSwitchTest::imc_;
 std::string InputMethodSwitchTest::newImeBundleName = "com.example.newTestIme";
-std::vector<std::string> InputMethodSwitchTest::newImeSubName{ "lowerInput", "upperInput", "chineseInput" };
+std::vector<std::string> InputMethodSwitchTest::newImeSubName { "lowerInput", "upperInput", "chineseInput" };
 std::string InputMethodSwitchTest::bundleName = "com.example.testIme";
-std::vector<std::string> InputMethodSwitchTest::extName{ "InputMethodExtAbility", "InputMethodExtAbility2" };
-std::vector<std::string> InputMethodSwitchTest::language{ "chinese", "english" };
-std::vector<std::string> InputMethodSwitchTest::locale{ "zh-CN", "en-US" };
+std::vector<std::string> InputMethodSwitchTest::extName { "InputMethodExtAbility", "InputMethodExtAbility2" };
+std::vector<std::string> InputMethodSwitchTest::language { "chinese", "english" };
+std::vector<std::string> InputMethodSwitchTest::locale { "zh-CN", "en-US" };
 std::string InputMethodSwitchTest::beforeValue;
 std::string InputMethodSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\", "
                                                   "\"com.example.testIme\"]}}";
@@ -129,12 +129,12 @@ void InputMethodSwitchTest::CheckCurrentSubProps()
 }
 
 /**
-* @tc.name: testImeSwitch
-* @tc.desc: switch to testIme
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testImeSwitch
+ * @tc.desc: switch to testIme
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testImeSwitch, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testImeSwitch Test START");
@@ -150,12 +150,12 @@ HWTEST_F(InputMethodSwitchTest, testImeSwitch, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitch_001
-* @tc.desc: switch subtype with extName1
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitch_001
+ * @tc.desc: switch subtype with extName1
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitch_001 Test START");
@@ -169,12 +169,12 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitch_002
-* @tc.desc: switch subtype with extName2
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitch_002
+ * @tc.desc: switch subtype with extName2
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitch_002 Test START");
@@ -188,12 +188,12 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitch_003
-* @tc.desc: switch subtype with extName1
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitch_003
+ * @tc.desc: switch subtype with extName1
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitch_003 Test START");
@@ -207,12 +207,12 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitchWithErrorSubName
-* @tc.desc: switch subtype with error subName.
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testSubTypeSwitchWithErrorSubName
+ * @tc.desc: switch subtype with error subName.
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitchWithErrorSubName Test START");
@@ -225,12 +225,12 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Leve
 }
 
 /**
-* @tc.name: testSwitchToCurrentImeWithEmptySubName
-* @tc.desc: switch to currentIme witch empty subName.
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testSwitchToCurrentImeWithEmptySubName
+ * @tc.desc: switch to currentIme witch empty subName.
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSwitchToCurrentImeWithEmptySubName Test START");
@@ -245,12 +245,12 @@ HWTEST_F(InputMethodSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize
 }
 
 /**
-* @tc.name: testSwitchImeWithErrorBundleName
-* @tc.desc: switch ime witch error bundleName
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testSwitchImeWithErrorBundleName
+ * @tc.desc: switch ime witch error bundleName
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleName Test START");
@@ -263,12 +263,12 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level
 }
 
 /**
-* @tc.name: testSwitchImeWithErrorBundleNameWitchEmptySubName
-* @tc.desc: switch ime witch error bundleName and empty subName
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testSwitchImeWithErrorBundleNameWitchEmptySubName
+ * @tc.desc: switch ime witch error bundleName and empty subName
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleNameWitchEmptySubName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleNameWitchEmptySubName Test START");
@@ -281,12 +281,12 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleNameWitchEmptySubNam
 }
 
 /**
-* @tc.name: testIMCListInputMethod
-* @tc.desc: IMC ListInputMethod
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testIMCListInputMethod
+ * @tc.desc: IMC ListInputMethod
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testIMCListInputMethod, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCListInputMethod Test Start");
@@ -308,12 +308,12 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethod, TestSize.Level0)
 }
 
 /**
-* @tc.name: testIMCListInputMethodDisable
-* @tc.desc: IMC ListInputMethod
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testIMCListInputMethodDisable
+ * @tc.desc: IMC ListInputMethod
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodDisable, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCListInputMethodDisable Test Start");
@@ -324,12 +324,12 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodDisable, TestSize.Level0)
 }
 
 /**
-* @tc.name: testIMCListInputMethodEnable
-* @tc.desc: IMC ListInputMethod
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: testIMCListInputMethodEnable
+ * @tc.desc: IMC ListInputMethod
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodEnable, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCListInputMethodEnable Test Start");
@@ -341,12 +341,12 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodEnable, TestSize.Level0)
 }
 
 /**
-* @tc.name: tesIMCtListInputMethodSubtype_001
-* @tc.desc: ListInputMethodSubtype
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: tesIMCtListInputMethodSubtype_001
+ * @tc.desc: ListInputMethodSubtype
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype_001, TestSize.Level0)
 {
     IMSA_HILOGI("IMC tesIMCtListInputMethodSubtype_001 Test Start");
@@ -362,12 +362,12 @@ HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype_001, TestSize.Leve
 }
 
 /**
-* @tc.name: tesIMCtListInputMethodSubtype_002
-* @tc.desc: ListInputMethodSubtype
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
+ * @tc.name: tesIMCtListInputMethodSubtype_002
+ * @tc.desc: ListInputMethodSubtype
+ * @tc.type: FUNC
+ * @tc.require: issuesI62BHB
+ * @tc.author: chenyu
+ */
 HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype_002, TestSize.Level0)
 {
     IMSA_HILOGI("IMC tesIMCtListInputMethodSubtype_002 Test Start");
@@ -387,7 +387,7 @@ HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype_002, TestSize.Leve
  * @tc.desc: IMC ListInputMethodSubtype
  * @tc.type: FUNC
  * @tc.require: issuesI62BHB
-* @tc.author: chenyu
+ * @tc.author: chenyu
  */
 HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodSubtypeWithErrorBundleName, TestSize.Level0)
 {
@@ -400,10 +400,10 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodSubtypeWithErrorBundleName
 }
 
 /**
-* @tc.name: testShowOptionalInputMethod
-* @tc.desc: IMC ShowOptionalInputMethod
-* @tc.type: FUNC
-*/
+ * @tc.name: testShowOptionalInputMethod
+ * @tc.desc: IMC ShowOptionalInputMethod
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodSwitchTest, testShowOptionalInputMethod, TestSize.Level2)
 {
     IMSA_HILOGI("IMC ShowOptionalInputMethod Test START");
@@ -412,10 +412,10 @@ HWTEST_F(InputMethodSwitchTest, testShowOptionalInputMethod, TestSize.Level2)
 }
 
 /**
-* @tc.name: testDisplayOptionalInputMethod
-* @tc.desc: IMC DisplayOptionalInputMethod
-* @tc.type: FUNC
-*/
+ * @tc.name: testDisplayOptionalInputMethod
+ * @tc.desc: IMC DisplayOptionalInputMethod
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodSwitchTest, testDisplayOptionalInputMethod, TestSize.Level2)
 {
     IMSA_HILOGI("IMC DisplayOptionalInputMethod Test START");
@@ -425,12 +425,12 @@ HWTEST_F(InputMethodSwitchTest, testDisplayOptionalInputMethod, TestSize.Level2)
 }
 
 /**
-* @tc.name: testCombinationKeySwitchIme_001
-* @tc.desc: switch ime by combination key.
-* @tc.type: FUNC
-* @tc.require: issuesI8RPP3
-* @tc.author: mashaoyin
-*/
+ * @tc.name: testCombinationKeySwitchIme_001
+ * @tc.desc: switch ime by combination key.
+ * @tc.type: FUNC
+ * @tc.require: issuesI8RPP3
+ * @tc.author: mashaoyin
+ */
 HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_001, TestSize.Level0)
 {
     IMSA_HILOGI("testCombinationKeySwitchIme_001 Test START");
@@ -444,12 +444,12 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_001, TestSize.Level0
 }
 
 /**
-* @tc.name: testCombinationKeySwitchIme_002
-* @tc.desc: switch ime by combination key.
-* @tc.type: FUNC
-* @tc.require: issuesI8RPP3
-* @tc.author: mashaoyin
-*/
+ * @tc.name: testCombinationKeySwitchIme_002
+ * @tc.desc: switch ime by combination key.
+ * @tc.type: FUNC
+ * @tc.require: issuesI8RPP3
+ * @tc.author: mashaoyin
+ */
 HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_002, TestSize.Level0)
 {
     IMSA_HILOGI("testCombinationKeySwitchIme_002 Test START");
@@ -463,12 +463,12 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_002, TestSize.Level0
 }
 
 /**
-* @tc.name: testCombinationKeySwitchIme_003
-* @tc.desc: switch ime by combination key.
-* @tc.type: FUNC
-* @tc.require: issuesI8RPP3
-* @tc.author: mashaoyin
-*/
+ * @tc.name: testCombinationKeySwitchIme_003
+ * @tc.desc: switch ime by combination key.
+ * @tc.type: FUNC
+ * @tc.require: issuesI8RPP3
+ * @tc.author: mashaoyin
+ */
 HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_003, TestSize.Level0)
 {
     IMSA_HILOGI("testCombinationKeySwitchIme_003 Test START");

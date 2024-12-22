@@ -185,7 +185,7 @@ void InputMethodPanel::GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &lands
 void InputMethodPanel::UpdateResizeParams()
 {
     if (!IsDisplayFolded()) {
-        IMSA_HILOGI("set fold device and unfold state resize params");
+        IMSA_HILOGI("set unfold device and unfold state resize params");
         resizePanelUnfoldParams_ = { keyboardLayoutParams_.LandscapeKeyboardRect_,
             keyboardLayoutParams_.PortraitKeyboardRect_ };
     } else {
@@ -597,8 +597,8 @@ void InputMethodPanel::CalculateEnhancedHotAreas(
         HotArea::ToString(hotAreas.portrait.panelHotArea).c_str());
     CalculateEnhancedHotArea(layoutParams.landscape, adjustInfo.landscape, hotAreas.landscape);
     IMSA_HILOGD("landscape keyboard: %{public}s, panel: %{public}s",
-        HotArea::ToString(hotAreas.portrait.keyboardHotArea).c_str(),
-        HotArea::ToString(hotAreas.portrait.panelHotArea).c_str());
+        HotArea::ToString(hotAreas.landscape.keyboardHotArea).c_str(),
+        HotArea::ToString(hotAreas.landscape.panelHotArea).c_str());
     hotAreas.isSet = true;
 }
 

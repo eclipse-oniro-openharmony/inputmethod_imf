@@ -64,6 +64,7 @@ ohos_shared_library("cj_inputmethod_ffi") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
   ]

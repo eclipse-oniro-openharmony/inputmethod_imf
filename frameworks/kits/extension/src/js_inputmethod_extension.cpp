@@ -451,7 +451,7 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
             }
         };
         if (handler_ != nullptr) {
-            handler_->PostTask(task, "JsInputMethodExtension:OnChange");
+            handler_->PostTask(task, "JsInputMethodExtension:OnChange", 0, AppExecFwk::EventQueue::Priority::VIP);
         }
     }
 }

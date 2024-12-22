@@ -489,12 +489,12 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
+    if (isNotifyInputStart) {
+        imeListener_->OnInputStart();
+    }
     if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
         IMSA_HILOGI("notify privateCommand.");
         imeListener_->ReceivePrivateCommand(textConfig.privateCommand);
-    }
-    if (isNotifyInputStart) {
-        imeListener_->OnInputStart();
     }
     if (kdListener_ != nullptr) {
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
@@ -934,6 +934,9 @@ int32_t InputMethodAbility::HidePanel(
         {inputMethodPanel->GetPanelType(), flag},
         false, trigger
     });
+    if (trigger == Trigger::IMF && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+        FinishTextPreview(true);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1205,10 +1208,6 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
 int32_t InputMethodAbility::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    if (!IsDefaultIme()) {
-        IMSA_HILOGE("current is not default ime!");
-        return ErrorCode::ERROR_NOT_DEFAULT_IME;
-    }
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr!");
         return ErrorCode::ERROR_IME;

@@ -119,6 +119,12 @@ enum TypeCode : int32_t {
         }                                                          \
     } while (0)
 
+struct JsPropertyInfo {
+    napi_valuetype type;
+    TypeCode typeCode;
+    std::string propertyName;
+};
+
 class JsUtils {
 public:
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
@@ -134,17 +140,17 @@ public:
     static const std::string ToMessage(int32_t code);
 
     template<typename T>
-    static bool ReadOptionalProperty(napi_env env, napi_value object, const std::string &propertyName,
-        napi_valuetype type, TypeCode typeCode, T &value)
+    static bool ReadOptionalProperty(napi_env env, napi_value object, const JsPropertyInfo &jsPropInfo, T &value)
     {
-        if (!JsUtil::HasProperty(env, object, propertyName.c_str())) {
+        if (!JsUtil::HasProperty(env, object, jsPropInfo.propertyName.c_str())) {
             return false;
         }
         napi_value jsObject = nullptr;
-        napi_get_named_property(env, object, propertyName.c_str(), &jsObject);
-        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, jsObject) == type, propertyName, typeCode, false);
+        napi_get_named_property(env, object, jsPropInfo.propertyName.c_str(), &jsObject);
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, jsObject) == jsPropInfo.type, jsPropInfo.propertyName,
+            jsPropInfo.typeCode, false);
         PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, jsObject, value) == napi_ok,
-            "failed to convert " + propertyName, TYPE_NONE, false);
+            "failed to convert " + jsPropInfo.propertyName, TYPE_NONE, false);
         return true;
     }
 

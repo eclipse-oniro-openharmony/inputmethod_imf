@@ -120,6 +120,8 @@ ohos_shared_library("inputmethod_extension_module") {
     "ability_runtime:runtime",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_napi",
+    "ipc:ipc_single",
     "napi:ace_napi",
   ]
 

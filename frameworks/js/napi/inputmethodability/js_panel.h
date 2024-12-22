@@ -39,6 +39,7 @@ enum class JsEvent : uint32_t {
     ADJUST_PANEL_RECT,
     UPDATE_REGION,
     EVENT_END,
+    SHOW,
 };
 
 struct JsEventInfo {
@@ -128,6 +129,7 @@ private:
     static void PrintEditorQueueInfoIfTimeout(int64_t start, const JsEventInfo &currentInfo);
 
     static bool IsEnhancedAdjust(napi_env env, napi_value *argv);
+    static bool IsPanelFlagValid(napi_env env, PanelFlag panelFlag, bool isEnhancedCalled);
     static napi_status ParsePanelFlag(napi_env env, napi_value *argv, PanelFlag &panelFlag, bool isEnhancedCalled);
     static napi_status CheckParam(
         napi_env env, size_t argc, napi_value *argv, std::shared_ptr<PanelContentContext> ctxt);

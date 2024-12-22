@@ -745,7 +745,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
@@ -779,7 +779,7 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsGetInputMethodController::InsertText(const std::u16string &text)
@@ -810,7 +810,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsGetInputMethodController::DeleteRight(int32_t length)
@@ -841,7 +841,7 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsGetInputMethodController::DeleteLeft(int32_t length)
@@ -871,7 +871,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
@@ -901,7 +901,7 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 napi_value JsGetInputMethodController::CreateSendFunctionKey(napi_env env, int32_t functionKey)
@@ -949,7 +949,7 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsGetInputMethodController::MoveCursor(const Direction direction)
@@ -979,7 +979,7 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsGetInputMethodController::HandleExtendAction(int32_t action)
@@ -1009,7 +1009,7 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
         // 1 means the callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 std::u16string JsGetInputMethodController::GetText(const std::string &type, int32_t number)
@@ -1044,7 +1044,7 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
         entry->textResultHandler->SetValue(text);
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
     return Str8ToStr16(textResultHandler->GetValue());
 }
 
@@ -1070,7 +1070,7 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
         JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr }, index);
         entry->indexResultHandler->SetValue(index);
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
     return indexResultHandler->GetValue();
 }
 
