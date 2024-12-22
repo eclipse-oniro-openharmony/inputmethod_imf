@@ -62,6 +62,8 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_TEXT_LISTENER_ERROR, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED, EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED },
     { ErrorCode::ERROR_INVALID_RANGE, EXCEPTION_PARAMCHECK },
+    { ErrorCode::ERROR_INVALID_PANEL_TYPE, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
+    { ErrorCode::ERROR_INVALID_PANEL_FLAG, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -82,6 +84,7 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED, "text preview not supported." },
     { EXCEPTION_PANEL_NOT_FOUND, "the input method panel does not exist." },
     { EXCEPTION_WINDOW_MANAGER, "window manager service error." },
+    { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
@@ -95,6 +98,7 @@ const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
     { TYPE_FUNCTION, "napi_function." },
     { TYPE_EXTERNAL, "napi_external." },
     { TYPE_BIGINT, "napi_bigint." },
+    { TYPE_ARRAY, "napi_array." },
 };
 
 void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type)
@@ -433,6 +437,26 @@ napi_value JsUtils::GetJsPrivateCommand(napi_env env, const std::unordered_map<s
         NAPI_CALL(env, napi_set_named_property(env, jsPrivateCommand, iter.first.c_str(), value));
     }
     return jsPrivateCommand;
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, Rosen::Rect &out)
+{
+    bool ret = JsUtil::Object::ReadProperty(env, in, "left", out.posX_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "top", out.posY_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "width", out.width_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "height", out.height_);
+    return ret ? napi_ok : napi_generic_failure;
+}
+
+napi_value JsUtils::GetValue(napi_env env, const Rosen::Rect &in)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", in.posX_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", in.posY_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", in.width_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", in.height_);
+    return ret ? jsObject : JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
 } // namespace OHOS
