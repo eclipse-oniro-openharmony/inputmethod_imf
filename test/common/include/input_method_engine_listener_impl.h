@@ -38,16 +38,12 @@ public:
     static bool isEnable_;
     static bool isInputFinish_;
     static std::unordered_map<std::string, PrivateDataValue> privateCommand_;
-    static ArrayBuffer arrayBuffer_;
-    static ArrayBuffer timingArrayBuffer_;
     static void ResetParam();
     static bool WaitInputStart();
     static bool WaitInputFinish();
     static bool WaitSetCallingWindow(uint32_t windowId);
     static bool WaitSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
-    static bool WaitSendMessage(const ArrayBuffer &arrayBuffer);
     static bool WaitKeyboardStatus(bool state);
-    static ArrayBuffer GetTimingArrayBuffer();
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStart() override;
     int32_t OnInputStop() override;
@@ -58,11 +54,9 @@ public:
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsEnable() override;
     bool PostTaskToEventHandler(std::function<void()> task, const std::string &taskName) override;
-    int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
 
 private:
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
-    static bool isArrayBufferCallback_ ;
 };
 } // namespace MiscServices
 } // namespace OHOS

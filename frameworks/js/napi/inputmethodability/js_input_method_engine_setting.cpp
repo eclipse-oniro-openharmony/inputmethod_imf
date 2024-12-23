@@ -36,7 +36,6 @@ namespace MiscServices {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
-constexpr int32_t MAX_WAIT_TIME_MESSAGE_HANDLER = 2000;
 const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngine";
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 
@@ -44,7 +43,6 @@ std::mutex JsInputMethodEngineSetting::engineMutex_;
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::inputMethodEngine_{ nullptr };
 std::mutex JsInputMethodEngineSetting::eventHandlerMutex_;
 std::shared_ptr<AppExecFwk::EventHandler> JsInputMethodEngineSetting::handler_{ nullptr };
-BlockQueue<MessageHandlerInfo> JsInputMethodEngineSetting::messageHandlerQueue_{ MAX_WAIT_TIME_MESSAGE_HANDLER };
 
 napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 {
@@ -100,8 +98,6 @@ napi_value JsInputMethodEngineSetting::InitProperty(napi_env env, napi_value exp
         DECLARE_NAPI_FUNCTION("createPanel", CreatePanel),
         DECLARE_NAPI_FUNCTION("destroyPanel", DestroyPanel),
         DECLARE_NAPI_FUNCTION("getSecurityMode", GetSecurityMode),
-        DECLARE_NAPI_FUNCTION("sendMessage", SendMessage),
-        DECLARE_NAPI_FUNCTION("recvMessage", RecvMessage),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, IMES_CLASS_NAME.c_str(), IMES_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -861,199 +857,6 @@ bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> ta
     }
     handler_->PostTask(task, taskName, 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
-}
-
-napi_value JsInputMethodEngineSetting::SendMessage(napi_env env, napi_callback_info info)
-{
-    auto ctxt = std::make_shared<SendMessageContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_string, "msgId",
-            TYPE_STRING, napi_generic_failure);
-        CHECK_RETURN(JsUtils::GetValue(env, argv[0], ctxt->arrayBuffer.msgId) == napi_ok,
-            "msgId covert failed!", napi_generic_failure);
-        ctxt->arrayBuffer.jsArgc = argc;
-        // 1 means first param msgId.
-        if (argc > 1) {
-            bool isArryBuffer = false;
-            //  1 means second param msgParam index.
-            CHECK_RETURN(napi_is_arraybuffer(env, argv[1], &isArryBuffer) == napi_ok,
-                "napi_is_arraybuffer failed!", napi_generic_failure);
-            PARAM_CHECK_RETURN(env, isArryBuffer, "msgParam", TYPE_ARRAY_BUFFER, napi_generic_failure);
-            CHECK_RETURN(JsUtils::GetValue(env, argv[1], ctxt->arrayBuffer.msgParam) == napi_ok,
-                "msgParam covert failed!", napi_generic_failure);
-        }
-        PARAM_CHECK_RETURN(env, ArrayBuffer::IsSizeValid(ctxt->arrayBuffer),
-            "msgId limit 256B and msgParam limit 128KB.", TYPE_NONE, napi_generic_failure);
-        ctxt->info = { std::chrono::system_clock::now(), ctxt->arrayBuffer };
-        messageHandlerQueue_.Push(ctxt->info);
-        return napi_ok;
-    };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        messageHandlerQueue_.Wait(ctxt->info);
-        int32_t code = InputMethodAbility::GetInstance()->SendMessage(ctxt->arrayBuffer);
-        messageHandlerQueue_.Pop();
-        if (code == ErrorCode::NO_ERROR) {
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-        } else {
-            ctxt->SetErrorCode(code);
-        }
-    };
-    ctxt->SetAction(std::move(input), nullptr);
-    // 2 means JsAPI:sendMessage has 2 params at most.
-    AsyncCall asyncCall(env, info, ctxt, 2);
-    return asyncCall.Call(env, exec, "imaSendMessage");
-}
-
-napi_value JsInputMethodEngineSetting::RecvMessage(napi_env env, napi_callback_info info)
-{
-    size_t argc = ARGC_MAX;
-    napi_value argv[ARGC_MAX] = {nullptr};
-    napi_value thisVar = nullptr;
-    void *data = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc < 0) {
-        IMSA_HILOGE("RecvMessage failed! argc abnormal.");
-        return nullptr;
-    }
-    void *native = nullptr;
-    auto status = napi_unwrap(env, thisVar, &native);
-    CHECK_RETURN((status == napi_ok && native != nullptr), "napi_unwrap failed!", nullptr);
-    auto setting = reinterpret_cast<JsInputMethodEngineSetting *>(native);
-    if (setting == nullptr) {
-        IMSA_HILOGI("Unwrap js object self is nullptr.");
-        return nullptr;
-    }
-    if (argc == 0) {
-        IMSA_HILOGI("RecvMessage off.");
-        setting->RecvMessageOff();
-        return nullptr;
-    }
-    IMSA_HILOGI("RecvMessage on.");
-    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "msgHnadler (MessageHandler)",
-        TYPE_OBJECT, nullptr);
-
-    napi_value onMessage = nullptr;
-    napi_get_named_property(env, argv[0], "onMessage", &onMessage);
-    CHECK_RETURN(JsUtil::GetType(env, onMessage) == napi_function, "onMessage is not napi_function!", nullptr);
-    napi_value onTerminated = nullptr;
-    napi_get_named_property(env, argv[0], "onTerminated", &onTerminated);
-    CHECK_RETURN(JsUtil::GetType(env, onTerminated) == napi_function, "onTerminated is not napi_function!", nullptr);
-
-    std::shared_ptr<JSMsgHandlerCallbackObject> callback =
-        std::make_shared<JSMsgHandlerCallbackObject>(env, onTerminated, onMessage);
-    setting->RecvMessageOn(callback);
-    napi_value result = nullptr;
-    napi_get_null(env, &result);
-    return result;
-}
-
-void JsInputMethodEngineSetting::RecvMessageOn(std::shared_ptr<JSMsgHandlerCallbackObject> &callback)
-{
-    if (callback == nullptr) {
-        IMSA_HILOGI("Callback is nullptr, regist failed!.");
-        return;
-    }
-    std::shared_ptr<JSMsgHandlerCallbackObject> exJsObject = nullptr;
-    {
-        std::lock_guard<decltype(messageHandlerMutex_)> lock(messageHandlerMutex_);
-        exJsObject = jsMessageHandler_;
-        jsMessageHandler_ = callback;
-    }
-    if (exJsObject == nullptr) {
-        return;
-    }
-    IMSA_HILOGI("Trigger exMessageHandler OnTerminated!.");
-    OnTerminated(exJsObject);
-}
-
-void JsInputMethodEngineSetting::RecvMessageOff()
-{
-    std::lock_guard<decltype(messageHandlerMutex_)> lock(messageHandlerMutex_);
-    OnTerminated(std::move(jsMessageHandler_));
-    jsMessageHandler_ = nullptr;
-}
-
-int32_t JsInputMethodEngineSetting::OnTerminated(std::shared_ptr<JSMsgHandlerCallbackObject> jsCallbackObject)
-{
-    if (jsCallbackObject == nullptr) {
-        IMSA_HILOGI("jsCallbackObject is nullptr, can not call OnTerminated!.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    auto eventHandler = jsCallbackObject->GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGI("EventHandler is nullptr!.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    auto task = [jsCallback = std::move(jsCallbackObject)]() {
-        napi_value callback = nullptr;
-        napi_value global = nullptr;
-        if (jsCallback == nullptr) {
-            IMSA_HILOGI("jsCallback is nullptr!.");
-            return;
-        }
-        napi_get_reference_value(jsCallback->env_, jsCallback->onTerminatedCallback_, &callback);
-        if (callback != nullptr) {
-            napi_get_global(jsCallback->env_, &global);
-            napi_value output = nullptr;
-            // 0 means the callback has no param.
-            auto status = napi_call_function(jsCallback->env_, global, callback, 0, nullptr, &output);
-            if (status != napi_ok) {
-                IMSA_HILOGI("Call js function failed!.");
-                output = nullptr;
-            }
-        }
-    };
-    eventHandler->PostTask(task, "IMA_MsgHandler_OnTerminated");
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t JsInputMethodEngineSetting::OnMessage(const ArrayBuffer &arrayBuffer)
-{
-    auto jsCallbackObject = GetJsMessageHandler();
-    if (jsCallbackObject == nullptr) {
-        IMSA_HILOGE("MessageHandler was not regist!.");
-        return ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST;
-    }
-    auto eventHandler = jsCallbackObject->GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGI("EventHandler is nullptr!.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    auto task = [jsCallbackObject, arrayBuffer]() {
-        napi_value callback = nullptr;
-        napi_value global = nullptr;
-        if (jsCallbackObject == nullptr) {
-            IMSA_HILOGI("jsCallbackObject is nullptr!.");
-            return;
-        }
-        napi_get_reference_value(jsCallbackObject->env_, jsCallbackObject->onMessageCallback_, &callback);
-        if (callback != nullptr) {
-            napi_get_global(jsCallbackObject->env_, &global);
-            napi_value output = nullptr;
-            napi_value argv[ARGC_TWO] = { nullptr };
-            if (JsUtils::GetMessageHandlerCallbackParam(argv, jsCallbackObject, arrayBuffer) != napi_ok) {
-                IMSA_HILOGE("Get message handler callback param failed!.");
-                return;
-            }
-            // The maximum valid parameters count of callback is 2.
-            auto callbackArgc = arrayBuffer.jsArgc > ARGC_ONE ? ARGC_TWO : ARGC_ONE;
-            auto status = napi_call_function(jsCallbackObject->env_, global, callback, callbackArgc, argv, &output);
-            if (status != napi_ok) {
-                IMSA_HILOGI("Call js function failed!.");
-                output = nullptr;
-            }
-        }
-    };
-    eventHandler->PostTask(task, "IMA_MsgHandler_OnMessage");
-    return ErrorCode::NO_ERROR;
-}
-
-std::shared_ptr<JSMsgHandlerCallbackObject> JsInputMethodEngineSetting::GetJsMessageHandler()
-{
-    std::lock_guard<decltype(messageHandlerMutex_)> lock(messageHandlerMutex_);
-    return jsMessageHandler_;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -1334,11 +1334,34 @@ int32_t InputMethodAbility::RecvMessage(const ArrayBuffer &arrayBuffer)
         IMSA_HILOGE("Security mode must be FULL!.");
         return ErrorCode::ERROR_SECURITY_MODE_OFF;
     }
-    auto imeListener = GetImeListener();
-    if (imeListener == nullptr) {
-        return ErrorCode::ERROR_IME_NOT_STARTED;
+    auto msgHandlerCallback = GetMsgHandlerCallback();
+    if (msgHandlerCallback == nullptr) {
+        IMSA_HILOGW("Message handler was not regist!");
+        return ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST;
     }
-    return imeListener->OnMessage(arrayBuffer);
+    return msgHandlerCallback->OnMessage(arrayBuffer);
+}
+
+int32_t InputMethodAbility::RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler)
+{
+    IMSA_HILOGI("isRegist: %{public}d", msgHandler != nullptr);
+    std::shared_ptr<MsgHandlerCallbackInterface> exMsgHandler = nullptr;
+    {
+        std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
+        exMsgHandler = msgHandler_;
+        msgHandler_ = msgHandler;
+    }
+    if (exMsgHandler != nullptr) {
+        IMSA_HILOGI("Trigger exMessageHandler OnTerminated.");
+        exMsgHandler->OnTerminated();
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+std::shared_ptr<MsgHandlerCallbackInterface> InputMethodAbility::GetMsgHandlerCallback()
+{
+    std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
+    return msgHandler_;
 }
 } // namespace MiscServices
 } // namespace OHOS

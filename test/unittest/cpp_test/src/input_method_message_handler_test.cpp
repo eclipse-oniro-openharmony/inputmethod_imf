@@ -133,7 +133,8 @@ public:
     static void OnMessageCallback(const ArrayBuffer &arrayBuffer);
     static bool WaitSendMessage(const ArrayBuffer &arrayBuffer);
     static void ClearArrayBuffer();
-    ArrayBuffer GetTimingArrayBuffer();
+    static ArrayBuffer GetTimingArrayBuffer();
+    void ClearParam();
 private:
     onTerminatedFunc onTerminatedFunc_ = nullptr;
     onMessageFunc onMessageFunc_ = nullptr;
@@ -222,6 +223,12 @@ void MessageHandlerCallback::ClearArrayBuffer()
 ArrayBuffer MessageHandlerCallback::GetTimingArrayBuffer()
 {
     return timingArrayBuffer_;
+}
+
+void MessageHandlerCallback::ClearParam()
+{
+    isTriggerOnTerminated_ = false;
+    isTriggerOnMessage_ = false;
 }
 
 class InputMethodMessageHandlerTest : public testing::Test {
@@ -316,6 +323,7 @@ void InputMethodMessageHandlerTest::TearDown(void)
     IMSA_HILOGI("InputMethodMessageHandlerTest::TearDown");
     std::this_thread::sleep_for(std::chrono::seconds(1));
     TaskManager::GetInstance().Reset();
+    ResetParam();
 }
 
 void InputMethodMessageHandlerTest::SetSecurityModeEnable(int32_t securityMode)
@@ -333,6 +341,8 @@ void InputMethodMessageHandlerTest::ResetParam()
     }
     InputMethodEngineListenerImpl::ResetParam();
     MessageHandlerCallback::ClearArrayBuffer();
+    inputMethodAbility_->RegisterMsgHandler();
+    inputMethodController_->RegisterMsgHandler();
     g_onTerminated = false;
     g_onMessage = false;
     g_onTerminatedNew = false;
@@ -388,6 +398,9 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_001, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
@@ -396,7 +409,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_001, TestSize.Level0)
     ret = inputMethodController_->SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendMessage(arrayBuffer));
+    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
     InputMethodMessageHandlerTest::ResetParam();
 }
 
@@ -413,10 +426,14 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_002, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ArrayBuffer arrayBuffer;
     ret = inputMethodController_->SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendMessage(arrayBuffer));
+    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
     InputMethodMessageHandlerTest::ResetParam();
 }
 
@@ -433,11 +450,15 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_003, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
     ret = inputMethodController_->SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendMessage(arrayBuffer));
+    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
     InputMethodMessageHandlerTest::ResetParam();
 }
 
@@ -454,12 +475,16 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_004, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ArrayBuffer arrayBuffer;
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
     ret = inputMethodController_->SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendMessage(arrayBuffer));
+    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
     InputMethodMessageHandlerTest::ResetParam();
 }
 
@@ -476,13 +501,17 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_005, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE, 'a');
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
     ret = inputMethodController_->SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendMessage(arrayBuffer));
+    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
     InputMethodMessageHandlerTest::ResetParam();
 }
 
@@ -499,12 +528,16 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_006, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
     arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE, 'a');
     ret = inputMethodController_->SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendMessage(arrayBuffer));
+    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
     InputMethodMessageHandlerTest::ResetParam();
 }
 
@@ -521,6 +554,10 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_007, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
     arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
@@ -542,6 +579,10 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_008, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
@@ -564,6 +605,10 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_009, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
     arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
@@ -604,7 +649,11 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_011, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     inputMethodController_->isEditable_.store(false);
+
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
@@ -627,6 +676,9 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_012, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
@@ -638,15 +690,122 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_012, TestSize.Level0)
     InputMethodMessageHandlerTest::ResetParam();
 }
 
+
+/**
+ * @tc.name: testIMCSendMessage_013
+ * @tc.desc: IMC SendMessage, without register message handler another side.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_013, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCSendMessage_013 Test START");
+    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
+    auto ret = inputMethodController_->Attach(textListener_);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ArrayBuffer arrayBuffer;
+    arrayBuffer.msgId = "testMsgId";
+    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
+    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
+    ret = inputMethodController_->SendMessage(arrayBuffer);
+    EXPECT_EQ(ret, ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST);
+
+    InputMethodMessageHandlerTest::ResetParam();
+}
+
 /**
  * @tc.name: testIMCRegisterMsgHandler_001
- * @tc.desc: IMC RegisterMsgHandler, duplicate registration will triggers ex-callback OnTerminated.
+ * @tc.desc: IMA RegisterMsgHandler, duplicate registration will triggers ex-callback OnTerminated.
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_001, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_001 Test START");
+    auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    auto ret = inputMethodAbility_->RegisterMsgHandler(exMessageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
+
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, false));
+    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
+
+    ret = inputMethodAbility_->RegisterMsgHandler(nullptr);
+    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIMCRegisterMsgHandler_002
+ * @tc.desc: IMA RegisterMsgHandler, message handler is globally unique.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_002 Test START");
+    auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    auto ret = inputMethodAbility_->RegisterMsgHandler(exMessageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, false));
+    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
+    messageHandler->ClearParam();
+    exMessageHandler->ClearParam();
+
+    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
+    ret = inputMethodController_->Attach(textListener_);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ArrayBuffer arrayBuffer;
+    arrayBuffer.msgId = "testMsgId";
+    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
+    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
+    ret = inputMethodController_->SendMessage(arrayBuffer);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, true));
+    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
+    messageHandler->ClearParam();
+
+    ret = inputMethodAbility_->RegisterMsgHandler();
+    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
+    InputMethodMessageHandlerTest::ResetParam();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIMCRegisterMsgHandler_003
+ * @tc.desc: IMA RegisterMsgHandler, unregister message handle will trigger OnTerminated.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_003, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_003 Test START");
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    auto ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_->RegisterMsgHandler(nullptr);
+    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIMCRegisterMsgHandler_004
+ * @tc.desc: IMC RegisterMsgHandler, duplicate registration will triggers ex-callback OnTerminated.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_004, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_004 Test START");
     auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
     auto ret = inputMethodController_->RegisterMsgHandler(exMessageHandler);
@@ -664,14 +823,14 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_001, TestSize.
 }
 
 /**
- * @tc.name: testIMCRegisterMsgHandler_002
+ * @tc.name: testIMCRegisterMsgHandler_005
  * @tc.desc: IMC RegisterMsgHandler, message handler is globally unique.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_005, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_002 Test START");
+    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_005 Test START");
     auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
     auto ret = inputMethodController_->RegisterMsgHandler(exMessageHandler);
@@ -702,14 +861,14 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.
 }
 
 /**
- * @tc.name: testIMCRegisterMsgHandler_003
+ * @tc.name: testIMCRegisterMsgHandler_006
  * @tc.desc: IMC RegisterMsgHandler, unregister message handle will trigger OnTerminated.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_003, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_006, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_003 Test START");
+    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_006 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
     auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
     ret = inputMethodController_->RegisterMsgHandler(nullptr);
@@ -1114,6 +1273,9 @@ HWTEST_F(InputMethodMessageHandlerTest, testCallbackTiming_001, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = inputMethodController_->SendMessage(arrayBufferA);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1122,7 +1284,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testCallbackTiming_001, TestSize.Level0)
     ret = inputMethodController_->SendMessage(arrayBufferC);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    EXPECT_EQ(InputMethodEngineListenerImpl::GetTimingArrayBuffer(), arrayBuffer);
+    EXPECT_EQ(MessageHandlerCallback::GetTimingArrayBuffer(), arrayBuffer);
     InputMethodMessageHandlerTest::ResetParam();
 }
 
@@ -1203,6 +1365,9 @@ HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_002, TestSize.Level0
     ASSERT_NE(nullptr, imeProxy);
     std::this_thread::sleep_for(std::chrono::seconds(1));
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
+    auto messageHandler = std::make_shared<MessageHandlerCallback>();
+    auto res = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    EXPECT_EQ(res, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "msgId";
@@ -1214,10 +1379,12 @@ HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_002, TestSize.Level0
         imeProxy, msgIdStr.c_str(), msgIdStr.length(), arrayBuffer.msgParam.data(), msgParamStr.size());
     EXPECT_EQ(ret, IME_ERR_OK);
 
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendMessage(arrayBuffer));
+    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
     ret = OH_InputMethodController_Detach(imeProxy);
     EXPECT_EQ(ret, IME_ERR_OK);
     InputMethodMessageHandlerTest::ResetParam();
+    res = inputMethodAbility_->RegisterMsgHandler();
+    EXPECT_EQ(res, ErrorCode::NO_ERROR);
 }
 
 /**

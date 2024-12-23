@@ -44,11 +44,6 @@ public:
     {
         return false;
     }
-    virtual int32_t OnMessage(const ArrayBuffer &arrayBuffer)
-    {
-        IMSA_HILOGD("start.");
-        return ErrorCode::NO_ERROR;
-    }
 };
 } // namespace MiscServices
 } // namespace OHOS

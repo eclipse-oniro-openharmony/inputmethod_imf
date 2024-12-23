@@ -24,14 +24,12 @@
 #include <uv.h>
 
 #include "async_call.h"
-#include "block_queue.h"
 #include "event_handler.h"
 #include "global.h"
 #include "input_method_engine_listener.h"
 #include "input_method_panel.h"
 #include "input_method_property.h"
 #include "js_callback_object.h"
-#include "js_message_handler_info.h"
 #include "js_panel.h"
 #include "napi/native_api.h"
 
@@ -50,8 +48,6 @@ public:
     static napi_value CreatePanel(napi_env env, napi_callback_info info);
     static napi_value DestroyPanel(napi_env env, napi_callback_info info);
     static napi_value GetSecurityMode(napi_env env, napi_callback_info info);
-    static napi_value SendMessage(napi_env env, napi_callback_info info);
-    static napi_value RecvMessage(napi_env env, napi_callback_info info);
     void OnInputStart() override;
     void OnKeyboardStatus(bool isShow) override;
     int32_t OnInputStop() override;
@@ -60,7 +56,6 @@ public:
     void OnSecurityChange(int32_t security) override;
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool PostTaskToEventHandler(std::function<void()> task, const std::string &taskName) override;
-    int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
 
 private:
     struct PanelContext : public AsyncCall::Context {
@@ -119,10 +114,6 @@ private:
     std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
     void FreeWorkIfFail(int ret, uv_work_t *work);
-    void RecvMessageOn(std::shared_ptr<JSMsgHandlerCallbackObject> &callback);
-    void RecvMessageOff();
-    std::shared_ptr<JSMsgHandlerCallbackObject> GetJsMessageHandler();
-    int32_t OnTerminated(std::shared_ptr<JSMsgHandlerCallbackObject> jsObject);
 
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
@@ -131,9 +122,6 @@ private:
     static std::shared_ptr<JsInputMethodEngineSetting> inputMethodEngine_;
     static std::mutex eventHandlerMutex_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
-    static BlockQueue<MessageHandlerInfo> messageHandlerQueue_;
-    std::mutex messageHandlerMutex_;
-    std::shared_ptr<JSMsgHandlerCallbackObject> jsMessageHandler_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -28,9 +28,6 @@ std::condition_variable InputMethodEngineListenerImpl::imeListenerCv_;
 bool InputMethodEngineListenerImpl::isEnable_ { false };
 bool InputMethodEngineListenerImpl::isInputFinish_ { false };
 std::unordered_map<std::string, PrivateDataValue> InputMethodEngineListenerImpl::privateCommand_ {};
-ArrayBuffer InputMethodEngineListenerImpl::arrayBuffer_;
-bool InputMethodEngineListenerImpl::isArrayBufferCallback_ = false;
-ArrayBuffer InputMethodEngineListenerImpl::timingArrayBuffer_;
 constexpr int32_t TIMEOUT_SECONDS = 2;
 
 void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
@@ -96,10 +93,6 @@ void InputMethodEngineListenerImpl::ResetParam()
     isInputFinish_ = false;
     windowId_ = 0;
     privateCommand_.clear();
-    arrayBuffer_.msgId.clear();
-    arrayBuffer_.msgParam.clear();
-    timingArrayBuffer_.msgId.clear();
-    timingArrayBuffer_.msgParam.clear();
 }
 
 bool InputMethodEngineListenerImpl::WaitInputStart()
@@ -140,25 +133,6 @@ bool InputMethodEngineListenerImpl::WaitSendPrivateCommand(
     return privateCommand_ == privateCommand;
 }
 
-bool InputMethodEngineListenerImpl::WaitSendMessage(const ArrayBuffer &arrayBuffer)
-{
-    std::string msgParam(arrayBuffer_.msgParam.begin(), arrayBuffer_.msgParam.end());
-    std::string msgParam1(arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
-    IMSA_HILOGE("arrayBuffer_ msgId: %{public}s, msgParam: %{public}s", arrayBuffer_.msgId.c_str(), msgParam.c_str());
-    IMSA_HILOGE("arrayBuffer msgId: %{public}s, msgParam: %{public}s", arrayBuffer.msgId.c_str(), msgParam1.c_str());
-    std::unique_lock<std::mutex> lock(imeListenerMutex_);
-    if (isArrayBufferCallback_ && arrayBuffer_ == arrayBuffer) {
-        IMSA_HILOGE("run in arrayBuffer_ == arrayBuffer");
-        isArrayBufferCallback_ = false;
-        return true;
-    }
-    imeListenerCv_.wait_for(lock, std::chrono::seconds(1), [&arrayBuffer]() {
-        return arrayBuffer_ == arrayBuffer;
-    });
-    isArrayBufferCallback_ = false;
-    return arrayBuffer_ == arrayBuffer;
-}
-
 bool InputMethodEngineListenerImpl::WaitKeyboardStatus(bool state)
 {
     std::unique_lock<std::mutex> lock(imeListenerMutex_);
@@ -179,24 +153,6 @@ bool InputMethodEngineListenerImpl::PostTaskToEventHandler(std::function<void()>
         },
         taskName, 0);
     return true;
-}
-
-int32_t InputMethodEngineListenerImpl::OnMessage(const ArrayBuffer &arrayBuffer)
-{
-    std::unique_lock<std::mutex> lock(imeListenerMutex_);
-    IMSA_HILOGI("OnMessage");
-    arrayBuffer_ = arrayBuffer;
-    isArrayBufferCallback_ = true;
-    imeListenerCv_.notify_one();
-    timingArrayBuffer_.msgId += arrayBuffer.msgId;
-    timingArrayBuffer_.msgParam.insert(
-        timingArrayBuffer_.msgParam.end(), arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
-    return ErrorCode::NO_ERROR;
-}
-
-ArrayBuffer InputMethodEngineListenerImpl::GetTimingArrayBuffer()
-{
-    return timingArrayBuffer_;
 }
 } // namespace MiscServices
 } // namespace OHOS
