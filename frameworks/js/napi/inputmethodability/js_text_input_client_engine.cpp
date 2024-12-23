@@ -1104,7 +1104,7 @@ int32_t JsTextInputClientEngine::JsMessageHandler::OnTerminated()
             }
         }
     };
-	eventHandler->PostTask(task, "IMA_MsgHandler_OnTerminated", 0, AppExecFwk::EventQueue::Priority::VIP);
+    eventHandler->PostTask(task, "IMA_MsgHandler_OnTerminated", 0, AppExecFwk::EventQueue::Priority::VIP);
     return ErrorCode::NO_ERROR;
 }
 
