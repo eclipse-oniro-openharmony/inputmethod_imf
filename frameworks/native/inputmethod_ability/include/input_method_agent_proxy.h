@@ -44,6 +44,7 @@ public:
     void SetCallingWindow(uint32_t windowId) override;
     void OnAttributeChange(const InputAttribute &attribute) override;
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
 
 private:
     static inline BrokerDelegator<InputMethodAgentProxy> delegator_;

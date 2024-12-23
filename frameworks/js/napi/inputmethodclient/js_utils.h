@@ -50,7 +50,10 @@ enum IMFErrorCode : int32_t {
     EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED = 12800011,
     EXCEPTION_PANEL_NOT_FOUND = 12800012,
     EXCEPTION_WINDOW_MANAGER = 12800013,
-    EXCEPTION_INVALID_PANEL_TYPE_FLAG = 12800016,
+    EXCEPTION_BASIC_MODE = 12800014,
+    EXCEPTION_REQUEST_NOT_ACCEPT = 12800015,
+    EXCEPTION_EDITABLE = 12800016,
+    EXCEPTION_INVALID_PANEL_TYPE_FLAG = 12800017,
 };
 
 enum TypeCode : int32_t {
@@ -65,6 +68,7 @@ enum TypeCode : int32_t {
     TYPE_FUNCTION,
     TYPE_EXTERNAL,
     TYPE_BIGINT,
+    TYPE_ARRAY_BUFFER,
     TYPE_ARRAY,
 };
 
@@ -163,12 +167,16 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, PrivateDataValue &out);
     static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
+    static napi_status GetValue(napi_env env, napi_value in, std::vector<uint8_t> &out);
     static napi_status GetValue(napi_env env, napi_value in, Rosen::Rect &out);
     static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
     static napi_value GetValue(napi_env env, const InputWindowInfo &in);
     static napi_value GetValue(napi_env env, const Rosen::Rect &in);
     static napi_value GetJsPrivateCommand(napi_env env, const std::unordered_map<std::string, PrivateDataValue> &in);
+    static napi_value GetValue(napi_env env, const std::vector<uint8_t> &in);
     static napi_status GetValue(napi_env env, const std::string &in, napi_value &out);
+    static napi_status GetMessageHandlerCallbackParam(napi_value *argv,
+        const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer);
 
 private:
     static const std::map<int32_t, int32_t> ERROR_CODE_MAP;

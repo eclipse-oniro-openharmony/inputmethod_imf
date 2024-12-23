@@ -21,7 +21,9 @@
 #include "block_queue.h"
 #include "calling_window_info.h"
 #include "global.h"
+#include "js_message_handler_info.h"
 #include "js_util.h"
+#include "msg_handler_callback_interface.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "wm_common.h"
@@ -394,7 +396,20 @@ public:
     static napi_value SetPreviewTextSync(napi_env env, napi_callback_info info);
     static napi_value FinishTextPreview(napi_env env, napi_callback_info info);
     static napi_value FinishTextPreviewSync(napi_env env, napi_callback_info info);
+    static napi_value SendMessage(napi_env env, napi_callback_info info);
+    static napi_value RecvMessage(napi_env env, napi_callback_info info);
+    class JsMessageHandler : public MsgHandlerCallbackInterface {
+    public:
+        explicit JsMessageHandler(napi_env env, napi_value onTerminated, napi_value onMessage)
+            : jsMessageHandler_(std::make_shared<JSMsgHandlerCallbackObject>(env, onTerminated, onMessage)) {};
+        virtual ~JsMessageHandler() {};
+        int32_t OnTerminated() override;
+        int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
 
+    private:
+        std::mutex callbackObjectMutex_;
+        std::shared_ptr<JSMsgHandlerCallbackObject> jsMessageHandler_ = nullptr;
+    };
 private:
     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
     static napi_status GetSelectMovement(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
@@ -417,6 +432,8 @@ private:
         return std::to_string(traceId);
     }
     static uint32_t traceId_;
+
+    static BlockQueue<MessageHandlerInfo> messageHandlerQueue_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -13,12 +13,34 @@
  * limitations under the License.
  */
 #include "input_method_controller.h"
+#include "native_message_handler_callback.h"
 #include "native_inputmethod_types.h"
 #include "native_inputmethod_utils.h"
+#include "string_ex.h"
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+using namespace OHOS;
 using namespace OHOS::MiscServices;
+constexpr size_t INVALID_MSG_ID_SIZE = 256; // 256B
+constexpr size_t INVALID_MSG_PARAM_SIZE = 128 * 1024; // 128KB
+static int32_t IsValidMessageHandlerProxy(InputMethod_MessageHandlerProxy *messageHandler)
+{
+    if (messageHandler == nullptr) {
+        IMSA_HILOGE("messageHandler is nullptr");
+        return IME_ERR_OK;
+    }
+    if (messageHandler->onTerminatedFunc == nullptr) {
+        IMSA_HILOGE("onTerminatedFunc is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (messageHandler->onMessageFunc == nullptr) {
+        IMSA_HILOGE("onMessageFunc is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return IME_ERR_OK;
+}
+
 InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
     auto errCode = IsValidInputMethodProxy(inputMethodProxy);
@@ -110,6 +132,52 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
         command.emplace(privateCommand[i]->key, privateCommand[i]->value);
     }
     return ErrorCodeConvert(InputMethodController::GetInstance()->SendPrivateCommand(command));
+}
+
+InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodProxy *inputMethodProxy,
+    const char16_t *msgId, size_t msgIdLength, const uint8_t *msgParam, size_t msgParamLength)
+{
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
+    }
+    if (msgId == nullptr || msgParam == nullptr) {
+        IMSA_HILOGE("msgId or msgParam is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (msgIdLength > INVALID_MSG_ID_SIZE || msgParamLength > INVALID_MSG_PARAM_SIZE) {
+        IMSA_HILOGE("ArrayBuffer size is invalid, msgIdLength: %{public}zu, msgParamLength: %{public}zu",
+            msgIdLength, msgParamLength);
+        return IME_ERR_PARAMCHECK;
+    }
+    ArrayBuffer arrayBuffer;
+    std::u16string msgIdStr(msgId, msgIdLength);
+    arrayBuffer.msgId = Str16ToStr8(msgIdStr);
+    arrayBuffer.msgParam.assign(msgParam, msgParam + msgParamLength);
+    return ErrorCodeConvert(InputMethodController::GetInstance()->SendMessage(arrayBuffer));
+}
+
+InputMethod_ErrorCode OH_InputMethodProxy_RecvMessage(
+    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_MessageHandlerProxy *messageHandler)
+{
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
+    }
+    if (IsValidMessageHandlerProxy(messageHandler) != IME_ERR_OK) {
+        IMSA_HILOGE("invalid messageHandler");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (messageHandler == nullptr) {
+        IMSA_HILOGI("UnRegister message handler.");
+        return ErrorCodeConvert(InputMethodController::GetInstance()->RegisterMsgHandler(nullptr));
+    }
+    IMSA_HILOGI("Register message handler.");
+    std::shared_ptr<MsgHandlerCallbackInterface> msgHandler =
+        std::make_shared<NativeMessageHandlerCallback>(messageHandler);
+    return ErrorCodeConvert(InputMethodController::GetInstance()->RegisterMsgHandler(msgHandler));
 }
 #ifdef __cplusplus
 }

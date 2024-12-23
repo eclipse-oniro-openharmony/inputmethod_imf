@@ -80,6 +80,15 @@ void InputMethodAgentProxy::OnAttributeChange(const InputAttribute &attribute)
     IMSA_HILOGD("InputMethodAgentProxy, ret: %{public}d.", ret);
 }
 
+int32_t InputMethodAgentProxy::SendMessage(const ArrayBuffer &arraybuffer)
+{
+    int32_t ret = 0;
+    SendRequest(SEND_MESSAGE, [&arraybuffer](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, arraybuffer);
+    }, [&ret](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, ret); });
+    return ret;
+}
+
 int32_t InputMethodAgentProxy::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {

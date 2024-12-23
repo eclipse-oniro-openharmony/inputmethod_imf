@@ -35,6 +35,7 @@
 #include "iremote_object.h"
 #include "keyboard_listener.h"
 #include "keyevent_consumer_proxy.h"
+#include "msg_handler_callback_interface.h"
 #include "private_command_interface.h"
 #include "system_cmd_channel_proxy.h"
 
@@ -93,6 +94,9 @@ public:
         const std::shared_ptr<InputMethodPanel> &inputMethodPanel, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     void OnSetInputType(InputType inputType);
+    int32_t SendMessage(const ArrayBuffer &arrayBuffer);
+    int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
+    int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
 
 public:
     /* called from TaskManager worker thread */
@@ -159,6 +163,7 @@ private:
     int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
     void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy);
     void ClearInputType();
+    std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
     std::atomic_bool isBound_ { false };
@@ -183,6 +188,9 @@ private:
     InputType inputType_ = InputType::NONE;
     std::atomic<bool> isImeTerminating = false;
     std::atomic_bool isShowAfterCreate_ { false };
+    std::atomic<int32_t> securityMode_ = -1;
+    std::mutex msgHandlerMutex_;
+    std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

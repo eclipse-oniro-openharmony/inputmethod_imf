@@ -45,6 +45,11 @@ struct InputMethod_TextConfig {
     int32_t windowId;
 };
 
+struct InputMethod_MessageHandlerProxy {
+    OH_MessageHandlerProxy_OnTerminatedFunc onTerminatedFunc;
+    OH_MessageHandlerProxy_OnMessageFunc onMessageFunc;
+};
+
 struct InputMethod_TextEditorProxy {
     OH_TextEditorProxy_GetTextConfigFunc getTextConfigFunc;
     OH_TextEditorProxy_InsertTextFunc insertTextFunc;
