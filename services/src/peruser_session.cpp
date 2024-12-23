@@ -530,10 +530,6 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
     }
     SetInactiveClient(client);
     client->DeactivateClient();
-    if (InputTypeManager::GetInstance().IsStarted()) {
-        RestoreCurrentImeSubType();
-        return;
-    }
     auto data = GetReadyImeData(clientInfo->bindImeType);
     if (data == nullptr) {
         IMSA_HILOGE("ime %{public}d doesn't exist!", clientInfo->bindImeType);
