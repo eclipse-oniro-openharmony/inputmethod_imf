@@ -1168,10 +1168,12 @@ napi_value JsGetInputMethodController::RecvMessage(napi_env env, napi_callback_i
         TYPE_OBJECT, nullptr);
 
     napi_value onMessage = nullptr;
-    napi_get_named_property(env, argv[0], "onMessage", &onMessage);
+    CHECK_RETURN(napi_get_named_property(env, argv[0], "onMessage", &onMessage) == napi_ok,
+        "Get onMessage property failed!", nullptr);
     CHECK_RETURN(JsUtil::GetType(env, onMessage) == napi_function, "onMessage is not napi_function!", nullptr);
     napi_value onTerminated = nullptr;
-    napi_get_named_property(env, argv[0], "onTerminated", &onTerminated);
+    CHECK_RETURN(napi_get_named_property(env, argv[0], "onTerminated", &onTerminated) == napi_ok,
+        "Get onTerminated property failed!", nullptr);
     CHECK_RETURN(JsUtil::GetType(env, onTerminated) == napi_function, "onTerminated is not napi_function!", nullptr);
 
     std::shared_ptr<MsgHandlerCallbackInterface> callback =
@@ -1214,7 +1216,7 @@ int32_t JsGetInputMethodController::JsMessageHandler::OnTerminated()
             }
         }
     };
-    eventHandler->PostTask(task, "IMC_MsgHandler_OnTerminated");
+    eventHandler->PostTask(task, "IMC_MsgHandler_OnTerminated", 0, AppExecFwk::EventQueue::Priority::VIP);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1255,7 +1257,7 @@ int32_t JsGetInputMethodController::JsMessageHandler::OnMessage(const ArrayBuffe
             }
         }
     };
-    eventHandler->PostTask(task, "IMC_MsgHandler_OnMessage");
+    eventHandler->PostTask(task, "IMC_MsgHandler_OnMessage", 0, AppExecFwk::EventQueue::Priority::VIP);
     return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices

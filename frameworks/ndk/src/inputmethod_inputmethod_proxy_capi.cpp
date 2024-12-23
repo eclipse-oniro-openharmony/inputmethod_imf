@@ -22,6 +22,8 @@ extern "C" {
 #endif /* __cplusplus */
 using namespace OHOS;
 using namespace OHOS::MiscServices;
+constexpr size_t INVALID_MSG_ID_SIZE = 256; // 256B
+constexpr size_t INVALID_MSG_PARAM_SIZE = 128 * 1024; // 128KB
 static int32_t IsValidMessageHandlerProxy(InputMethod_MessageHandlerProxy *messageHandler)
 {
     if (messageHandler == nullptr) {
@@ -143,6 +145,11 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodPro
     if (msgId == nullptr || msgParam == nullptr) {
         IMSA_HILOGE("msgId or msgParam is nullptr");
         return IME_ERR_NULL_POINTER;
+    }
+    if (msgIdLength > INVALID_MSG_ID_SIZE || msgParamLength > INVALID_MSG_PARAM_SIZE) {
+        IMSA_HILOGE("ArrayBuffer size is invalid, msgIdLength: %{public}zu, msgParamLength: %{public}zu",
+            msgIdLength, msgParamLength);
+        return IME_ERR_PARAMCHECK;
     }
     ArrayBuffer arrayBuffer;
     std::u16string msgIdStr(msgId, msgIdLength);

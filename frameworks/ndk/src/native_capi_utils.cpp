@@ -24,7 +24,7 @@ static const std::map<int32_t, InputMethod_ErrorCode> ERROR_CODE_MAP = {
     { ErrorCode::ERROR_CLIENT_NOT_FOUND,              IME_ERR_IMCLIENT            },
     { ErrorCode::ERROR_CLIENT_NULL_POINTER,           IME_ERR_IMCLIENT            },
     { ErrorCode::ERROR_CLIENT_NOT_FOCUSED,            IME_ERR_IMCLIENT            },
-    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE,           IME_ERR_IMCLIENT            },
+    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE,           IME_ERR_EDITABLE            },
     { ErrorCode::ERROR_CLIENT_NOT_BOUND,              IME_ERR_DETACHED            },
     { ErrorCode::ERROR_CLIENT_ADD_FAILED,             IME_ERR_IMCLIENT            },
     { ErrorCode::ERROR_NULL_POINTER,                  IME_ERR_IMMS                },
@@ -52,7 +52,6 @@ static const std::map<int32_t, InputMethod_ErrorCode> ERROR_CODE_MAP = {
     { ErrorCode::ERROR_INVALID_RANGE,                 IME_ERR_PARAMCHECK          },
     { ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST,        IME_ERR_REQUEST_NOT_ACCEPT  },
     { ErrorCode::ERROR_SECURITY_MODE_OFF,             IME_ERR_BASIC_MODE          },
-    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE,           IME_ERR_EDITABLE            },
     { ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE,     IME_ERR_PARAMCHECK          },
 };
 

@@ -76,7 +76,7 @@ typedef int32_t (*OH_MessageHandlerProxy_OnTerminatedFunc)(InputMethod_MessageHa
  *                            {@link InputMethod_MessageHandlerProxy} instance which will be set in.
  * @param msgId ArrayBuffer.msgId from input method.
  * @param msgIdLength Size of ArrayBuffer.msgId.
- * @param msgParam ArrayBuffer.msgId from input method.
+ * @param msgParam ArrayBuffer.msgParam from input method.
  * @param msgParamLength Size of ArrayBuffer.msgParam.
  * @since 16
  */
@@ -101,7 +101,7 @@ InputMethod_MessageHandlerProxy *OH_MessageHandlerProxy_Create(void);
 void OH_MessageHandlerProxy_Destroy(InputMethod_MessageHandlerProxy *proxy);
 
 /**
- * @brief Set function {@link OH_MessageHandlerProxy_SetOnTerminatedFunc} into {@link InputMethod_MessageHandlerProxy}.
+ * @brief Set function {@link OH_MessageHandlerProxy_OnTerminatedFunc} into {@link InputMethod_MessageHandlerProxy}.
  *
  * @param proxy Represents a pointer to an
  *              {@link InputMethod_MessageHandlerProxy} instance which will be set function in.
@@ -117,7 +117,7 @@ InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnTerminatedFunc(
     InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnTerminatedFunc onTerminatedFunc);
 
 /**
- * @brief Get function {@link OH_MessageHandlerProxy_GetOnTerminatedFunc} from {@link InputMethod_MessageHandlerProxy}.
+ * @brief Get function {@link OH_MessageHandlerProxy_OnTerminatedFunc} from {@link InputMethod_MessageHandlerProxy}.
  *
  * @param proxy Represents a pointer to an
  *              {@link InputMethod_MessageHandlerProxy} instance which will be get function from.
@@ -133,7 +133,7 @@ InputMethod_ErrorCode OH_MessageHandlerProxy_GetOnTerminatedFunc(
     InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnTerminatedFunc *onTerminatedFunc);
 
 /**
- * @brief Set function {@link OH_MessageHandlerProxy_SetOnMessageFunc} into {@link InputMethod_MessageHandlerProxy}.
+ * @brief Set function {@link OH_MessageHandlerProxy_OnMessageFunc} into {@link InputMethod_MessageHandlerProxy}.
  *
  * @param proxy Represents a pointer to an
  *              {@link InputMethod_MessageHandlerProxy} instance which will be set function in.
@@ -149,7 +149,7 @@ InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnMessageFunc(
     InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc onMessageFunc);
 
 /**
- * @brief Get function {@link OH_MessageHandlerProxy_GetOnMessageFunc} from {@link InputMethod_MessageHandlerProxy}.
+ * @brief Get function {@link OH_MessageHandlerProxy_OnMessageFunc} from {@link InputMethod_MessageHandlerProxy}.
  *
  * @param proxy Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance which will be get function
  * from.

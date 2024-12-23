@@ -52,7 +52,7 @@ int32_t NativeMessageHandlerCallback::OnMessage(const ArrayBuffer &arrayBuffer)
     auto ret = messageHandler_->onMessageFunc(messageHandler_, msgIdStr16.c_str(), msgIdStr16.length(),
         arrayBuffer.msgParam.data(), arrayBuffer.msgParam.size());
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("onTerminatedFunc execute failed! ret: %{public}d", ret);
+        IMSA_HILOGE("onMessageFunc execute failed! ret: %{public}d", ret);
         return ErrorCode::ERROR_MESSAGE_HANDLER;
     }
     return ErrorCode::NO_ERROR;
