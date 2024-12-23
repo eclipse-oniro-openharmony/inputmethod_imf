@@ -110,7 +110,10 @@ int32_t InputMethodAgentStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
         IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-
+    if (!InputMethodAbility::GetInstance()->IsDefaultIme()) {
+        IMSA_HILOGE("current is not default ime!");
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    }
     auto task = std::make_shared<TaskImsaSendPrivateCommand>(privateCommand);
     TaskManager::GetInstance().PostTask(task);
 

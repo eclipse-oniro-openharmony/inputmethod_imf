@@ -496,7 +496,7 @@ void JSInputMethodExtensionConnection::OnAbilityConnectDone(const AppExecFwk::El
         }
         connectionSptr->HandleOnAbilityConnectDone(element, remoteObject, resultCode);
     };
-    handler_->PostTask(task, "OnAbilityConnectDone");
+    handler_->PostTask(task, "OnAbilityConnectDone", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JSInputMethodExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName &element,
@@ -553,7 +553,7 @@ void JSInputMethodExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk:
         }
         connectionSptr->HandleOnAbilityDisconnectDone(element, resultCode);
     };
-    handler_->PostTask(task, "OnAbilityDisconnectDone");
+    handler_->PostTask(task, "OnAbilityDisconnectDone", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element,

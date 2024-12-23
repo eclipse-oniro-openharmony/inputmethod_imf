@@ -605,7 +605,8 @@ void InputMethodController::RestoreListenInfoInSaDied()
         }
     };
     for (int i = 0; i < LOOP_COUNT; i++) {
-        handler_->PostTask(restoreListenTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));
+        handler_->PostTask(restoreListenTask, "OnRemoteSaDied", DELAY_TIME * (i + 1),
+            AppExecFwk::EventQueue::Priority::VIP);
     }
 }
 
@@ -646,7 +647,7 @@ void InputMethodController::RestoreClientInfoInSaDied()
         attach();
     };
     for (int i = 0; i < LOOP_COUNT; i++) {
-        handler_->PostTask(attachTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));
+        handler_->PostTask(attachTask, "OnRemoteSaDied", DELAY_TIME * (i + 1), AppExecFwk::EventQueue::Priority::VIP);
     }
 }
 

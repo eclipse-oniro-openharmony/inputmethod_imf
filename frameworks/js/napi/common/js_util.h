@@ -25,6 +25,7 @@ namespace MiscServices {
 class JsUtil {
 public:
     static napi_valuetype GetType(napi_env env, napi_value in);
+    static bool HasProperty(napi_env env, napi_value object, const std::string &property);
     // js to native
     static bool GetValue(napi_env env, napi_value in, std::string &out);
     static bool GetValue(napi_env env, napi_value in, std::u16string &out);

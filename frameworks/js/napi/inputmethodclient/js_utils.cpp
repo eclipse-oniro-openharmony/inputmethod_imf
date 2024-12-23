@@ -67,6 +67,8 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST, EXCEPTION_REQUEST_NOT_ACCEPT },
     { ErrorCode::ERROR_MESSAGE_HANDLER, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE, EXCEPTION_PARAMCHECK },
+    { ErrorCode::ERROR_INVALID_PANEL_TYPE, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
+    { ErrorCode::ERROR_INVALID_PANEL_FLAG, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -90,6 +92,7 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_BASIC_MODE, "the intput method is basic mode." },
     { EXCEPTION_REQUEST_NOT_ACCEPT, "the another side does not accept the request." },
     { EXCEPTION_EDITABLE, "the edit mode need enable." },
+    { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
@@ -104,6 +107,7 @@ const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
     { TYPE_EXTERNAL, "napi_external." },
     { TYPE_BIGINT, "napi_bigint." },
     { TYPE_ARRAY_BUFFER, "ArrayBuffer." },
+    { TYPE_ARRAY, "napi_array." },
 };
 
 void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type)
@@ -506,6 +510,26 @@ napi_status JsUtils::GetMessageHandlerCallbackParam(napi_value *argv,
         argv[1] = { jsMsgParam };
     }
     return napi_ok;
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, Rosen::Rect &out)
+{
+    bool ret = JsUtil::Object::ReadProperty(env, in, "left", out.posX_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "top", out.posY_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "width", out.width_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "height", out.height_);
+    return ret ? napi_ok : napi_generic_failure;
+}
+
+napi_value JsUtils::GetValue(napi_env env, const Rosen::Rect &in)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", in.posX_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", in.posY_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", in.width_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", in.height_);
+    return ret ? jsObject : JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -610,7 +610,7 @@ void JsInputMethodEngineSetting::OnInputStart()
         JsCallbackHandler::Traverse(entry->vecCopy, { 2, paramGetter });
         IMSA_HILOGI("OnInputStart task end!");
     };
-    auto ret = handler_->PostTask(task, type);
+    auto ret = handler_->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
     if (!ret) {
         IMSA_HILOGE("OnInputStart PostTask failed!");
     }
@@ -630,7 +630,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
     }
 
     auto task = [entry]() { JsCallbackHandler::Traverse(entry->vecCopy); };
-    handler_->PostTask(task, type);
+    handler_->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 int32_t JsInputMethodEngineSetting::OnInputStop()
@@ -646,7 +646,8 @@ int32_t JsInputMethodEngineSetting::OnInputStop()
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto task = [entry]() { JsCallbackHandler::Traverse(entry->vecCopy); };
-    return handler_->PostTask(task, type) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME;
+    return handler_->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP)
+        ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME;
 }
 
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
@@ -674,7 +675,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
-    handler_->PostTask(task, type);
+    handler_->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
@@ -708,7 +709,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
@@ -742,7 +743,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSecurityProperty });
         },
-        uv_qos_user_initiated);
+        uv_qos_user_interactive);
     FreeWorkIfFail(ret, work);
 }
 
@@ -777,7 +778,7 @@ void JsInputMethodEngineSetting::ReceivePrivateCommand(
         // 1 means callback has 1 params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
@@ -858,7 +859,7 @@ bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> ta
         IMSA_HILOGE("in current thread!");
         return false;
     }
-    handler_->PostTask(task, taskName);
+    handler_->PostTask(task, taskName, 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
 }
 
