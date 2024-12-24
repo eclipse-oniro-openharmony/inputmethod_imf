@@ -38,8 +38,8 @@ enum class JsEvent : uint32_t {
     CHANGE_FLAG,
     ADJUST_PANEL_RECT,
     UPDATE_REGION,
-    EVENT_END,
     SHOW,
+    EVENT_END,
 };
 
 struct JsEventInfo {
