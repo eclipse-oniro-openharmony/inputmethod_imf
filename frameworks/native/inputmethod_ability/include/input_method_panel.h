@@ -145,7 +145,7 @@ private:
     int32_t MoveEnhancedPanelRect(int32_t x, int32_t y);
 
     bool IsDisplayPortrait();
-    bool IsDisplayFolded();
+    bool IsDisplayUnfolded();
     int32_t GetDisplaySize(DisplaySize &size);
     int32_t GetDensityDpi(float &densityDpi);
 
