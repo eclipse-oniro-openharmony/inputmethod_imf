@@ -49,6 +49,7 @@ public:
     InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate);
     InputMethodSystemAbility();
     ~InputMethodSystemAbility();
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
     int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) override;
     int32_t ShowCurrentInput() override;
@@ -177,7 +178,9 @@ private:
     bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
-
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    int64_t GetTickCount();
+#endif
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     std::atomic<bool> enableImeOn_ = false;

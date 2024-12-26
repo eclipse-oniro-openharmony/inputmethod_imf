@@ -109,5 +109,11 @@ void FreezeManager::SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandl
 {
     eventHandler_ = eventHandler;
 }
+
+bool FreezeManager::IsImeInUse()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return isImeInUse_;
+}
 } // namespace MiscServices
 } // namespace OHOS

@@ -44,7 +44,16 @@ ohos_shared_library("inputmethod_common") {
     "src/itypes_util.cpp",
     "src/message.cpp",
     "src/message_handler.cpp",
+    "src/on_demand_start_stop_sa.cpp",
   ]
+
+  if (imf_on_demand_start_stop_sa_enable) {
+    if (defined(defines)) {
+      defines += [ "IMF_ON_DEMAND_START_STOP_SA_ENABLE" ]
+    } else {
+      defines = [ "IMF_ON_DEMAND_START_STOP_SA_ENABLE" ]
+    }
+  }
 
   configs = [ ":inputmethod_common_native_config" ]
 
@@ -59,6 +68,7 @@ ohos_shared_library("inputmethod_common") {
     "hitrace:libhitracechain",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "inputmethod"

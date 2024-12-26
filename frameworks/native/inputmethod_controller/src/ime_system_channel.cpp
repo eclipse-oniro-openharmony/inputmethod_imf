@@ -20,6 +20,7 @@
 #include "input_method_controller.h"
 #include "input_method_system_ability_proxy.h"
 #include "iservice_registry.h"
+#include "on_demand_start_stop_sa.h"
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
 
@@ -55,15 +56,9 @@ sptr<IInputMethodSystemAbility> ImeSystemCmdChannel::GetSystemAbilityProxy()
         return systemAbility_;
     }
     IMSA_HILOGI("get input method service proxy.");
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("system ability manager is nullptr!");
-        return nullptr;
-    }
-    auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+    auto systemAbility = OnDemandStartStopSa::GetInputMethodSystemAbility();
     if (systemAbility == nullptr) {
-        IMSA_HILOGE("system ability is nullptr!");
+        IMSA_HILOGE("systemAbility is nullptr!");
         return nullptr;
     }
     if (deathRecipient_ == nullptr) {

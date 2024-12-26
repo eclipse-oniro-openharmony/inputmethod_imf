@@ -61,6 +61,10 @@ constexpr const char *UNDEFINED = "undefined";
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+const std::string UNLOAD_SA_TASK = "unloadInputMethodSaTask";
+constexpr int64_t DELAY_UNLOAD_SA_TIME = 20000; // 20s
+#endif
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
@@ -79,6 +83,47 @@ InputMethodSystemAbility::~InputMethodSystemAbility()
     if (workThreadHandler.joinable()) {
         workThreadHandler.join();
     }
+}
+
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+int64_t InputMethodSystemAbility::GetTickCount()
+{
+    auto now = std::chrono::system_clock::now();
+    auto durationSinceEpoch = now.time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(durationSinceEpoch).count();
+}
+#endif
+
+int32_t InputMethodSystemAbility::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    auto ret = InputMethodSystemAbilityStub::OnRemoteRequest(code, data, reply, option);
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    auto task = [this]() {
+        IMSA_HILOGI("start unload task");
+        auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+        if (session != nullptr) {
+            session->TryUnloadSystemAbility();
+        }
+    };
+
+    static std::mutex lastPostTimeLock;
+    std::lock_guard<std::mutex> lock(lastPostTimeLock);
+    static int64_t lastPostTime = 0;
+    if (code == static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT) ||
+        code == static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_HIDE_INPUT)) {
+        if (lastPostTime != 0 && (GetTickCount() - lastPostTime) < DELAY_UNLOAD_SA_TIME) {
+            IMSA_HILOGD("no need post unload task repeat");
+            return ret;
+        }
+    }
+
+    serviceHandler_->RemoveTask(UNLOAD_SA_TASK);
+    IMSA_HILOGD("post unload task");
+    lastPostTime = GetTickCount();
+    serviceHandler_->PostTask(task, UNLOAD_SA_TASK, DELAY_UNLOAD_SA_TIME);
+#endif
+    return ret;
 }
 
 void InputMethodSystemAbility::OnStart()

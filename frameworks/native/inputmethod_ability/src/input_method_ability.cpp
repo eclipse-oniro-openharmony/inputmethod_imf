@@ -28,6 +28,7 @@
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "message_parcel.h"
+#include "on_demand_start_stop_sa.h"
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
@@ -78,13 +79,7 @@ sptr<IInputMethodSystemAbility> InputMethodAbility::GetImsaProxy()
         return abilityManager_;
     }
     IMSA_HILOGI("InputMethodAbility get imsa proxy.");
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("systemAbilityManager is nullptr!");
-        return nullptr;
-    }
-    auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+    auto systemAbility = OnDemandStartStopSa::GetInputMethodSystemAbility();
     if (systemAbility == nullptr) {
         IMSA_HILOGE("systemAbility is nullptr!");
         return nullptr;
