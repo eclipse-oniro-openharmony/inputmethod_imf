@@ -33,4 +33,5 @@ declare_args() {
       defined(global_parts_info.theme_screenlock_mgr)) {
     imf_screenlock_mgr_enable = true
   }
+  imf_on_demand_start_stop_sa_enable = false
 }

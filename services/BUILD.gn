@@ -130,6 +130,10 @@ ohos_shared_library("inputmethod_service") {
   } else {
     external_deps += [ "window_manager:libwm" ]
   }
+
+  if (imf_on_demand_start_stop_sa_enable) {
+    defines += [ "IMF_ON_DEMAND_START_STOP_SA_ENABLE" ]
+  }
   subsystem_name = "inputmethod"
   part_name = "imf"
 }

@@ -83,6 +83,14 @@ ohos_shared_library("inputmethod_client") {
   ]
   public_external_deps = [ "ability_base:want" ]
 
+  if (imf_on_demand_start_stop_sa_enable) {
+    if (defined(defines)) {
+      defines += [ "IMF_ON_DEMAND_START_STOP_SA_ENABLE" ]
+    } else {
+      defines = [ "IMF_ON_DEMAND_START_STOP_SA_ENABLE" ]
+    }
+  }
+
   configs = [ ":inputmethod_client_native_config" ]
 
   public_configs = [ ":inputmethod_client_native_public_config" ]

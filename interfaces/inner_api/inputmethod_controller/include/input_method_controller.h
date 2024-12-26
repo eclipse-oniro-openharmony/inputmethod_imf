@@ -863,7 +863,8 @@ private:
     ~InputMethodController();
 
     int32_t Initialize();
-    sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
+    sptr<IInputMethodSystemAbility> GetSystemAbilityProxy(bool ifRetry = true);
+    sptr<IInputMethodSystemAbility> TryGetSystemAbilityProxy();
     void RemoveDeathRecipient();
     int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
     int32_t ShowInput(sptr<IInputClient> &client);

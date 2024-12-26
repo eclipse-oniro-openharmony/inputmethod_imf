@@ -11,9 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos/sa_profile/sa_profile.gni")
 
 ohos_sa_profile("inputmethod_inputmethod_sa_profiles") {
-  sources = [ "3703.json" ]
+  if (imf_on_demand_start_stop_sa_enable) {
+    sources = [ "3703_ondemand.json" ]
+  } else {
+    sources = [ "3703.json" ]
+  }
   part_name = "imf"
 }

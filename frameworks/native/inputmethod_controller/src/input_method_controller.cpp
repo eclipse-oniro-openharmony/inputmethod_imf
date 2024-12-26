@@ -31,6 +31,7 @@
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
 #include "keyevent_consumer_stub.h"
+#include "on_demand_start_stop_sa.h"
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
@@ -133,24 +134,28 @@ int32_t InputMethodController::Initialize()
     return ErrorCode::NO_ERROR;
 }
 
-sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
+sptr<IInputMethodSystemAbility> InputMethodController::TryGetSystemAbilityProxy()
+{
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    return GetSystemAbilityProxy(false);
+#else
+    return GetSystemAbilityProxy(true);
+#endif
+}
+
+sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy(bool ifRetry)
 {
     std::lock_guard<std::mutex> lock(abilityLock_);
     if (abilityManager_ != nullptr) {
         return abilityManager_;
     }
     IMSA_HILOGI("get input method service proxy.");
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("system ability manager is nullptr!");
-        return nullptr;
-    }
-    auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+    auto systemAbility = OnDemandStartStopSa::GetInputMethodSystemAbility(ifRetry);
     if (systemAbility == nullptr) {
-        IMSA_HILOGE("system ability is nullptr!");
+        IMSA_HILOGE("systemAbility is nullptr!");
         return nullptr;
     }
+
     if (deathRecipient_ == nullptr) {
         deathRecipient_ = new (std::nothrow) InputDeathRecipient();
         if (deathRecipient_ == nullptr) {
@@ -377,7 +382,7 @@ int32_t InputMethodController::RequestShowInput()
 
 int32_t InputMethodController::RequestHideInput()
 {
-    auto proxy = GetSystemAbilityProxy();
+    auto proxy = TryGetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
@@ -529,7 +534,7 @@ int32_t InputMethodController::StartInput(InputClientInfo &inputClientInfo, sptr
 int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
 {
     IMSA_HILOGD("InputMethodController::ReleaseInput start.");
-    auto proxy = GetSystemAbilityProxy();
+    auto proxy = TryGetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_SERVICE_START_FAILED;

@@ -32,6 +32,7 @@ public:
     bool IsIpcNeeded(RequestType type);
     void BeforeIpc(RequestType type);
     void AfterIpc(RequestType type, bool isSuccess);
+    bool IsImeInUse();
 
 private:
     static std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;

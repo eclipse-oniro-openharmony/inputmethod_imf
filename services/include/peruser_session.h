@@ -153,6 +153,7 @@ public:
     int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId);
     bool IsSaReady(int32_t saId);
     void UpdateUserLockState();
+    void TryUnloadSystemAbility();
 
 private:
     struct ResetManager {

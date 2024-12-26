@@ -31,6 +31,7 @@
 #include "iservice_registry.h"
 #include "mem_mgr_client.h"
 #include "message_parcel.h"
+#include "on_demand_start_stop_sa.h"
 #include "os_account_adapter.h"
 #include "parcel.h"
 #include "running_process_info.h"
@@ -1985,6 +1986,23 @@ void PerUserSession::HandleImeBindTypeChanged(InputClientInfo &newClientInfo)
         return;
     }
     UnBindClientWithIme(oldClientInfo);
+}
+
+void PerUserSession::TryUnloadSystemAbility()
+{
+    auto data = GetReadyImeData(ImeType::IME);
+    if (data != nullptr && data->freezeMgr != nullptr) {
+        if (data->freezeMgr->IsImeInUse()) {
+            return;
+        }
+    }
+
+    auto onDemandStartStopSa = std::make_shared<OnDemandStartStopSa>();
+    if (onDemandStartStopSa == nullptr) {
+        IMSA_HILOGE("onDemandStartStopSa is nullptr!");
+        return;
+    }
+    onDemandStartStopSa->UnloadInputMethodSystemAbility();
 }
 } // namespace MiscServices
 } // namespace OHOS

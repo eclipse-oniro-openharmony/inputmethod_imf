@@ -16,7 +16,8 @@
           "SystemCapability.MiscServices.InputMethodFramework"
       ], 
       "features": [
-          "imf_screenlock_mgr_enable"
+          "imf_screenlock_mgr_enable",
+          "imf_on_demand_start_stop_sa_enable"
       ], 
       "hisysevent_config": [
           "//base/inputmethod/imf/hisysevent.yaml",
