@@ -84,6 +84,7 @@ public:
     std::shared_ptr<ImeInfo> GetImeInfo(int32_t userId, const std::string &bundleName, const std::string &subName);
     std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
     std::shared_ptr<Property> GetDefaultImeCfgProp();
+    std::shared_ptr<ImeNativeCfg> GetDefaultImeCfg();
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(const std::vector<SubProperty> &subProps,
         const Condition &condition);
     bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId);

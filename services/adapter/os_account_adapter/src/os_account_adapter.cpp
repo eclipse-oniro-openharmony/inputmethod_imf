@@ -59,5 +59,15 @@ int32_t OsAccountAdapter::GetOsAccountLocalIdFromUid(int32_t uid)
     }
     return userId;
 }
+
+int32_t OsAccountAdapter::IsOsAccountVerified(int32_t userId, bool &isUnlocked)
+{
+    auto errCode = OsAccountManager::IsOsAccountVerified(userId, isUnlocked);
+    if (errCode != ERR_OK) {
+        IMSA_HILOGE("IsOsAccountVerified failed, userId: %{public}d, errCode: %{public}d", userId, errCode);
+        return ErrorCode::ERROR_OS_ACCOUNT;
+    }
+    return ErrorCode::NO_ERROR;
+}
 } // namespace MiscServices
 } // namespace OHOS

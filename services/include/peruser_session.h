@@ -114,8 +114,10 @@ public:
     void OnHideSoftKeyBoardSelf();
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
     int32_t SwitchSubtype(const SubProperty &subProperty);
+    int32_t SwitchSubtypeWithoutStartIme(const SubProperty &subProperty);
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
+    void OnUserUnlocked();
     int64_t GetCurrentClientPid();
     int64_t GetInactiveClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
@@ -146,6 +148,7 @@ public:
     int32_t RestoreCurrentIme();
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
+    void UpdateUserLockState();
 
 private:
     struct ResetManager {
@@ -230,6 +233,9 @@ private:
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
     bool GetCurrentUsingImeId(ImeIdentification &imeId);
+    bool CanStartIme();
+    int32_t ChangeToDefaultImeIfNeed(
+        const std::shared_ptr<ImeNativeCfg> &ime, std::shared_ptr<ImeNativeCfg> &imeToStart);
     bool IsReady(int32_t saId);
     AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
     bool StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
@@ -240,7 +246,7 @@ private:
     bool StopExitingCurrentIme();
     bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool CheckInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
+    bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
@@ -274,6 +280,7 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
+    std::atomic<bool> isUserUnlocked_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS
