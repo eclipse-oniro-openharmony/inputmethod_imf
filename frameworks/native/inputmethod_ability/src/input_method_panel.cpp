@@ -160,11 +160,11 @@ int32_t InputMethodPanel::DestroyPanel()
 void InputMethodPanel::GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height)
 {
     LayoutParams currParams;
-    if (!IsDisplayFolded()) {
-        IMSA_HILOGI("is fold device and unfold state");
+    if (IsDisplayUnfolded()) {
+        IMSA_HILOGI("foldable device without fold state");
         currParams = resizePanelUnfoldParams_;
     } else {
-        IMSA_HILOGI("is fold device and fold state or other");
+        IMSA_HILOGI("foldable device with fold state or non-foldable device");
         currParams = resizePanelFoldParams_;
     }
     if (IsDisplayPortrait()) {
@@ -184,12 +184,12 @@ void InputMethodPanel::GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &lands
 
 void InputMethodPanel::UpdateResizeParams()
 {
-    if (!IsDisplayFolded()) {
-        IMSA_HILOGI("set unfold device and unfold state resize params");
+    if (IsDisplayUnfolded()) {
+        IMSA_HILOGI("foldable device without fold state");
         resizePanelUnfoldParams_ = { keyboardLayoutParams_.LandscapeKeyboardRect_,
             keyboardLayoutParams_.PortraitKeyboardRect_ };
     } else {
-        IMSA_HILOGI("set fold device and fold state or other resize params");
+        IMSA_HILOGI("foldable device in fold state or non-foldable device");
         resizePanelFoldParams_ = { keyboardLayoutParams_.LandscapeKeyboardRect_,
             keyboardLayoutParams_.PortraitKeyboardRect_ };
     }
@@ -577,7 +577,7 @@ void InputMethodPanel::UpdateHotAreas()
     CalculateHotArea(keyboardLayoutParams_.LandscapeKeyboardRect_, keyboardLayoutParams_.LandscapePanelRect_,
         adjustInfo.landscape, hotAreas.landscape);
     CalculateHotArea(keyboardLayoutParams_.PortraitKeyboardRect_, keyboardLayoutParams_.PortraitPanelRect_,
-        adjustInfo.landscape, hotAreas.landscape);
+        adjustInfo.portrait, hotAreas.portrait);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
     WMError result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
     if (result != WMError::WM_OK) {
@@ -1500,10 +1500,10 @@ bool InputMethodPanel::IsDisplayPortrait()
     return width < height;
 }
 
-bool InputMethodPanel::IsDisplayFolded()
+bool InputMethodPanel::IsDisplayUnfolded()
 {
     return Rosen::DisplayManager::GetInstance().IsFoldable()
-           && Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::FOLDED;
+           && Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED;
 }
 
 bool InputMethodPanel::CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t height, bool isDataPortrait)

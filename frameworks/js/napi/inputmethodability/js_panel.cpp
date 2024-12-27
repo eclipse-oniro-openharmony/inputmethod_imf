@@ -611,7 +611,7 @@ napi_value JsPanel::UpdateRegion(napi_env env, napi_callback_info info)
     ctxt->SetAction(std::move(input));
     // 1 means JsAPI:updateRegion has 1 params at most
     AsyncCall asyncCall(env, info, ctxt, 1);
-    return asyncCall.Call(env, exec, "adjustPanelRect");
+    return asyncCall.Call(env, exec, "updateRegion");
 }
 
 std::shared_ptr<InputMethodPanel> JsPanel::UnwrapPanel(napi_env env, napi_value thisVar)
