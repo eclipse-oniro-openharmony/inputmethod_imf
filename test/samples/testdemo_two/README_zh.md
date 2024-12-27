@@ -4,10 +4,6 @@
 
 kikainput是一个轻量级的输入法应用，支持在运行OpenHarmony OS的智能终端上。
 
-实现效果如下：
-
-![](screenshot/device/main.png)
-
 ### 目录
 
 ```
