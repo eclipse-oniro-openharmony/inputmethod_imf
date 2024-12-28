@@ -53,7 +53,7 @@ ohos_unittest("ImeMixedTest") {
     "sys_cfg_parser_test.cpp",
     "system_language_observer_test.cpp",
     "user_session_manager_test.cpp",
-    "wms_connection_observer_test.cpp"
+    "wms_connection_observer_test.cpp",
   ]
 
   configs = [ ":module_private_config" ]
@@ -93,4 +93,3 @@ ohos_unittest("ImeMixedTest") {
     external_deps += [ "window_manager:libwm" ]
   }
 }
-
