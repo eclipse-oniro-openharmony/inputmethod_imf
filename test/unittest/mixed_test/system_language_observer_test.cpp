@@ -50,7 +50,9 @@ protected:
         MessageHandler::SetInstance(nullptr);
         Parameter::SetInstance(nullptr);
         delete messageHandler;
+        messageHandler = nullptr;
         delete parameter;
+        parameter = nullptr;
     }
 
     MockMessageHandler *messageHandler;
