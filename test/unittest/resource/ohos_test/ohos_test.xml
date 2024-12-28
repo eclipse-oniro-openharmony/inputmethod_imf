@@ -122,6 +122,7 @@
             <option name="shell" value="power-shell setmode 602"/>
             <option name="shell" value="uinput -T -m 300 720 300 360 200"/>
             <option name="shell" value="uinput -T -m 650 2760 650 1380 200"/>
+            <option name="shell" value="power-shell timeout -o 86400000"/>
             <option name="push" value="editorBox/editorBox.hap -> /data/test/resource/imf" src="res"/>
             <option name="shell" value="bm install -r -p /data/test/resource/imf/editorBox.hap"/>
             <option name="push" value="extImfBundle/extImf.hap -> /data/test/resource/imf" src="res"/>
