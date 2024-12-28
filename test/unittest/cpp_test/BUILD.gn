@@ -1123,7 +1123,10 @@ ohos_unittest("OnDemandStartStopSaTest") {
     "${inputmethod_path}/common/src/on_demand_start_stop_sa.cpp",
     "src/on_demand_start_stop_sa_test.cpp",
   ]
-  include_dirs = [ "${inputmethod_path}/common/include" ]
+  include_dirs = [
+    "${inputmethod_path}/common/include",
+    "mock/",
+  ]
 
   external_deps = [
     "c_utils:utils",

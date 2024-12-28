@@ -49,6 +49,9 @@
 #include "wms_connection_observer.h"
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+#include "on_demand_start_stop_sa.h"
+#endif
 
 namespace OHOS {
 namespace MiscServices {
@@ -64,6 +67,7 @@ constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 const std::string UNLOAD_SA_TASK = "unloadInputMethodSaTask";
 constexpr int64_t DELAY_UNLOAD_SA_TIME = 20000; // 20s
+constexpr int32_t REFUSE_UNLOAD_DELAY_TIME = 1000; // 1s
 #endif
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
@@ -88,17 +92,12 @@ InputMethodSystemAbility::~InputMethodSystemAbility()
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 int64_t InputMethodSystemAbility::GetTickCount()
 {
-    auto now = std::chrono::system_clock::now();
+    auto now = std::chrono::steady_clock::now();
     auto durationSinceEpoch = now.time_since_epoch();
     return std::chrono::duration_cast<std::chrono::milliseconds>(durationSinceEpoch).count();
 }
-#endif
-
-int32_t InputMethodSystemAbility::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+void InputMethodSystemAbility::ResetDelayUnloadTask(uint32_t code)
 {
-    auto ret = InputMethodSystemAbilityStub::OnRemoteRequest(code, data, reply, option);
-#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     auto task = [this]() {
         IMSA_HILOGI("start unload task");
         auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
@@ -114,14 +113,50 @@ int32_t InputMethodSystemAbility::OnRemoteRequest(
         code == static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_HIDE_INPUT)) {
         if (lastPostTime != 0 && (GetTickCount() - lastPostTime) < DELAY_UNLOAD_SA_TIME) {
             IMSA_HILOGD("no need post unload task repeat");
-            return ret;
+            return;
         }
+    }
+
+    if (serviceHandler_ == nullptr) {
+        IMSA_HILOGE("serviceHandler_ is nullptr code:%{public}u", code);
+        return;
     }
 
     serviceHandler_->RemoveTask(UNLOAD_SA_TASK);
     IMSA_HILOGD("post unload task");
     lastPostTime = GetTickCount();
-    serviceHandler_->PostTask(task, UNLOAD_SA_TASK, DELAY_UNLOAD_SA_TIME);
+    bool ret = serviceHandler_->PostTask(task, UNLOAD_SA_TASK, DELAY_UNLOAD_SA_TIME);
+    if (!ret) {
+        IMSA_HILOGE("post unload task fail code:%{public}u", code);
+    }
+}
+bool InputMethodSystemAbility::IsImeInUse()
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("session is nullptr userId: %{public}d", userId_);
+        return false;
+    }
+
+    auto data = session->GetReadyImeData(ImeType::IME);
+    if (data == nullptr || data->freezeMgr == nullptr) {
+        IMSA_HILOGE("data or freezeMgr is nullptr");
+        return false;
+    }
+    return data->freezeMgr->IsImeInUse();
+}
+#endif
+
+int32_t InputMethodSystemAbility::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    OnDemandStartStopSa::IncreaseProcessingIpcCnt();
+#endif
+    auto ret = InputMethodSystemAbilityStub::OnRemoteRequest(code, data, reply, option);
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    OnDemandStartStopSa::DecreaseProcessingIpcCnt();
+    ResetDelayUnloadTask(code);
 #endif
     return ret;
 }
@@ -230,6 +265,19 @@ void InputMethodSystemAbility::UpdateUserLockState()
         return;
     }
     session->UpdateUserLockState();
+}
+
+int32_t InputMethodSystemAbility::OnIdle(const SystemAbilityOnDemandReason &idleReason)
+{
+    IMSA_HILOGI("OnIdle start.");
+    (void)idleReason;
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    if (OnDemandStartStopSa::IsSaBusy() || IsImeInUse()) {
+        IMSA_HILOGW("sa is busy, refuse stop imsa.");
+        return REFUSE_UNLOAD_DELAY_TIME;
+    }
+#endif
+    return 0;
 }
 
 void InputMethodSystemAbility::OnStop()

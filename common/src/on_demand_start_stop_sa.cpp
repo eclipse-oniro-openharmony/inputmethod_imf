@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+std::atomic<uint32_t> OnDemandStartStopSa::processingIpcCount_ { 0 };
 sptr<IRemoteObject> OnDemandStartStopSa::LoadInputMethodSystemAbility()
 {
     std::unique_lock<std::mutex> lock(loadSaMtx_);
@@ -116,24 +117,32 @@ sptr<IRemoteObject> OnDemandStartStopSa::GetInputMethodSystemAbility(bool ifRetr
 
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     auto onDemandStartStopSa = std::make_shared<OnDemandStartStopSa>();
-    if (onDemandStartStopSa == nullptr) {
-        IMSA_HILOGE("onDemandStartStopSa is nullptr!");
-        return nullptr;
-    }
-
     systemAbility = onDemandStartStopSa->LoadInputMethodSystemAbility();
     if (systemAbility == nullptr) {
         IMSA_HILOGE("load system ability fail");
         return nullptr;
     }
 #else
-    systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+    systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID);
     if (systemAbility == nullptr) {
         IMSA_HILOGE("get system ability is nullptr!");
         return nullptr;
     }
 #endif
     return systemAbility;
+}
+
+void OnDemandStartStopSa::IncreaseProcessingIpcCnt()
+{
+    processingIpcCount_.fetch_add(1);
+}
+void OnDemandStartStopSa::DecreaseProcessingIpcCnt()
+{
+    processingIpcCount_.fetch_sub(1);
+}
+bool OnDemandStartStopSa::IsSaBusy()
+{
+    return processingIpcCount_.load() > 0;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -29,6 +29,9 @@ public:
     ~OnDemandStartStopSa() = default;
     void UnloadInputMethodSystemAbility();
     static sptr<IRemoteObject> GetInputMethodSystemAbility(bool ifRetry = true);
+    static void IncreaseProcessingIpcCnt();
+    static void DecreaseProcessingIpcCnt();
+    static bool IsSaBusy();
 
 private:
     sptr<IRemoteObject> LoadInputMethodSystemAbility();
@@ -45,6 +48,7 @@ private:
     std::condition_variable loadSaCv_;
     std::mutex loadSaMtx_;
     static constexpr int32_t LOAD_SA_MAX_WAIT_TIME = 5; // 5s
+    static std::atomic<uint32_t> processingIpcCount_;
 };
 } // namespace MiscServices
 } // namespace OHOS
