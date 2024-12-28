@@ -1088,11 +1088,17 @@ int32_t PerUserSession::ChangeToDefaultImeIfNeed(
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGI("Screen is locked, start default ime");
-    imeToStart = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
-    if (imeToStart == nullptr) {
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (defaultIme == nullptr) {
         IMSA_HILOGE("failed to get default ime");
         return ErrorCode::ERROR_PERSIST_CONFIG;
     }
+    if (defaultIme->bundleName == targetIme->bundleName) {
+        IMSA_HILOGD("no need");
+        imeToStart = targetIme;
+        return ErrorCode::NO_ERROR;
+    }
+    imeToStart = defaultIme;
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, imeToStart->imeId);
     return ErrorCode::NO_ERROR;
 }
