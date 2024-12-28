@@ -279,6 +279,7 @@ void JsKeyboardPanelManager::ReceivePrivateCommand(
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
+    InputMethodSyncTrace tracer("ReceivePrivateCommand trace");
     auto task = [entry]() {
         auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 1) {
