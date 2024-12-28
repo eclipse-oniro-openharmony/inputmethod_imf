@@ -211,6 +211,7 @@ private:
 
     int32_t InitInputControlChannel();
     void StartImeInImeDied();
+    void StartImeIfInstalled();
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
     void ReplaceCurrentClient(const sptr<IInputClient> &client);
