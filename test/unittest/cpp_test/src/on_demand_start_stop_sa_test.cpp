@@ -16,7 +16,9 @@
 #include <gtest/gtest.h>
 
 #define private public
+#include "mock_iremote_object.h"
 #include "on_demand_start_stop_sa.h"
+#include "system_ability_definition.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -30,7 +32,8 @@ class OnDemandStartStopSaTest : public testing::Test { };
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(OnDemandStartStopSaTest, OnDemandStartSaTest, TestSize.Level1) {
+HWTEST_F(OnDemandStartStopSaTest, OnDemandStartSaTest, TestSize.Level1)
+{
     auto remote = OnDemandStartStopSa::GetInputMethodSystemAbility();
     EXPECT_NE(nullptr, remote);
 
@@ -88,8 +91,12 @@ HWTEST_F(OnDemandStartStopSaTest, SaLoadCallBackTest, TestSize.Level1)
         new (std::nothrow) OnDemandStartStopSa::SaLoadCallback(onDemandStartStopSa);
     ASSERT_NE(nullptr, callback);
 
-    callback->OnLoadSystemAbilitySuccess(0, nullptr);
-    callback->OnLoadSystemAbilityFail(0);
+    sptr<IRemoteObject> object = new (std::nothrow) MockIRemoteObject();
+    ASSERT_NE(nullptr, object);
+    callback->OnLoadSystemAbilitySuccess(INPUT_METHOD_SYSTEM_ABILITY_ID, object);
+    EXPECT_NE(nullptr, onDemandStartStopSa->remoteObj_);
+    callback->OnLoadSystemAbilityFail(INPUT_METHOD_SYSTEM_ABILITY_ID);
+    EXPECT_EQ(nullptr, onDemandStartStopSa->remoteObj_);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -98,6 +98,7 @@ public:
 protected:
     void OnStart() override;
     void OnStop() override;
+    int32_t OnIdle(const SystemAbilityOnDemandReason &idleReason) override;
 
 private:
     int32_t Init();
@@ -180,6 +181,8 @@ private:
     void HandleBundleScanFinished();
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
+    void ResetDelayUnloadTask(uint32_t code = 0);
+    bool IsImeInUse();
 #endif
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);

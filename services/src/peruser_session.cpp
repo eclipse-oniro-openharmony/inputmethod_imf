@@ -1998,10 +1998,6 @@ void PerUserSession::TryUnloadSystemAbility()
     }
 
     auto onDemandStartStopSa = std::make_shared<OnDemandStartStopSa>();
-    if (onDemandStartStopSa == nullptr) {
-        IMSA_HILOGE("onDemandStartStopSa is nullptr!");
-        return;
-    }
     onDemandStartStopSa->UnloadInputMethodSystemAbility();
 }
 } // namespace MiscServices
