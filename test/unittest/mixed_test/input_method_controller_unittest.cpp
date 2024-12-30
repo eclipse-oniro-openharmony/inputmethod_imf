@@ -149,12 +149,13 @@ TEST_F(InputMethodControllerTest, GetRight_EditableAndListenerNotNull_ReturnsTex
 TEST_F(InputMethodControllerTest, GetTextIndexAtCursor_EditableAndListenerNotNull_ReturnsIndex)
 {
     int32_t index;
-    EXPECT_CALL(*mockTextListener_, GetTextIndexAtCursor()).WillOnce(testing::Return(10));
+    auto indexCursor = 10;
+    EXPECT_CALL(*mockTextListener_, GetTextIndexAtCursor()).WillOnce(testing::Return(indexCursor));
     controller_->SetTextListener(mockTextListener_);
     controller_->SetAgent(mockAgent_);
     int32_t result = controller_->GetTextIndexAtCursor(index);
     EXPECT_EQ(result, ErrorCode::NO_ERROR);
-    EXPECT_EQ(index, 10);
+    EXPECT_EQ(index, indexCursor);
 }
 
 TEST_F(InputMethodControllerTest, DispatchKeyEvent_EditableAndValidKeyEvent_ReturnsNoError)
