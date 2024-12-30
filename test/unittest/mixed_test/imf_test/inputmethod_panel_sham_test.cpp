@@ -12,8 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#define private public
-#define protected public
 #include "input_method_panel.h"
 
 #include "input_method_ability.h"
@@ -21,7 +19,6 @@
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
 #include "task_manager.h"
-#undef private
 
 #include <gtest/gtest.h>
 #include <sys/time.h>
@@ -124,8 +121,8 @@ public:
     static uint32_t windowHeightSham_;
     static std::condition_variable panelListenerCv_;
     static std::mutex panelListenerLock_;
-    static constexpr uint32_t DELAY_TIME = 100;
-    static constexpr int32_t INTERVAL = 10;
+    static constexpr uint32_t delayTime = 100;
+    static constexpr int32_t interval = 10;
     static std::shared_ptr<AppExecFwk::EventHandler> panelHandler_;
     static int32_t currentImeUid_;
     static uint64_t currentImeTokenId_;
@@ -310,7 +307,7 @@ bool InputMethodPanelShamTest::TriggerShowCallback(std::shared_ptr<InputMethodPa
         [&inputMethodPanelSham]() {
             TestShowPanel(inputMethodPanelSham);
         },
-        InputMethodPanelShamTest::INTERVAL);
+        InputMethodPanelShamTest::interval);
     {
         std::unique_lock<std::mutex> lock(panelListenerLock_);
         return panelListenerCv_.wait_for(lock, std::chrono::milliseconds(InputMethodPanelShamTest::DELAY_TIME), [] {
@@ -327,7 +324,7 @@ bool InputMethodPanelShamTest::TriggerHideCallback(std::shared_ptr<InputMethodPa
         [&inputMethodPanelSham]() {
             TestHidePanel(inputMethodPanelSham);
         },
-        InputMethodPanelShamTest::INTERVAL);
+        InputMethodPanelShamTest::interval);
     {
         std::unique_lock<std::mutex> lock(panelListenerLock_);
         return panelListenerCv_.wait_for(lock, std::chrono::milliseconds(InputMethodPanelShamTest::DELAY_TIME), [] {
