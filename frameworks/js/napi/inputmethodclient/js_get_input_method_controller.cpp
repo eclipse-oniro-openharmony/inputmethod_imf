@@ -66,6 +66,7 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         DECLARE_NAPI_STATIC_PROPERTY("TextInputType", GetJsTextInputTypeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("EnabledState", GetJsEnabledStateProperty(env)),
     };
     NAPI_CALL(env,
         napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -220,6 +221,22 @@ napi_value JsGetInputMethodController::GetJsExtendActionProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, action, "COPY", actionCopy));
     NAPI_CALL(env, napi_set_named_property(env, action, "PASTE", actionPaste));
     return action;
+}
+
+napi_value JsGetInputMethodController::GetJsEnabledStateProperty(napi_env env)
+{
+    napi_value status = nullptr;
+    napi_value disabled = nullptr;
+    napi_value basicMode = nullptr;
+    napi_value fullExperience = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnabledStatus::DISABLED), &disabled));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnabledStatus::BASIC_MODE), &basicMode));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnabledStatus::FULL_EXPERIENCE_MODE), &fullExperience));
+    NAPI_CALL(env, napi_create_object(env, &status));
+    NAPI_CALL(env, napi_set_named_property(env, status, "DISABLED", disabled));
+    NAPI_CALL(env, napi_set_named_property(env, status, "BASIC_MODE", basicMode));
+    NAPI_CALL(env, napi_set_named_property(env, status, "FULL_EXPERIENCE_MODE", fullExperience));
+    return status;
 }
 
 napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback_info cbinfo)

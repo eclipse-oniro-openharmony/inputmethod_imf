@@ -94,6 +94,7 @@ public:
     int32_t IsDefaultIme() override;
     bool IsDefaultImeSet() override;
     bool EnableIme(const std::string &bundleName) override;
+    int32_t GetInputMethodState(EnabledStatus &status) override;
 
 protected:
     void OnStart() override;
@@ -179,6 +180,9 @@ private:
     bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
+    int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+    bool IsSecurityMode(int32_t userId, const std::string &bundleName);
+    int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
     void ResetDelayUnloadTask(uint32_t code = 0);

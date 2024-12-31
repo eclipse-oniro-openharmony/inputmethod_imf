@@ -16,6 +16,7 @@
 #include "input_method_system_ability.h"
 
 #include <unistd.h>
+#include <algorithm>
 
 #include "ability_manager_client.h"
 #include "application_info.h"
@@ -2090,6 +2091,96 @@ void InputMethodSystemAbility::HandleImeCfgCapsState()
     if (!ModifyImeCfgWithWrongCaps()) {
         IMSA_HILOGE("Check ImeCfg capslock state correct failed!");
     }
+}
+
+int32_t InputMethodSystemAbility::GetInputMethodState(EnabledStatus &status)
+{
+    auto userId = GetCallingUserId();
+    auto bundleName = FullImeInfoManager::GetInstance().Get(userId, IPCSkeleton::GetCallingTokenID());
+    if (bundleName.empty()) {
+        bundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
+        if (!ImeInfoInquirer::GetInstance().IsInputMethod(userId, bundleName)) {
+            IMSA_HILOGE("[%{public}d, %{public}s] not an ime.", userId, bundleName.c_str());
+            return ErrorCode::ERROR_NOT_IME;
+        }
+    }
+
+    auto ret = GetInputMethodState(userId, bundleName, status);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::GetInputMethodState(
+    int32_t userId, const std::string &bundleName, EnabledStatus &status)
+{
+    auto isDefaultBasicMode = !ImeInfoInquirer::GetInstance().IsEnableInputMethod();
+    auto isDefaultFullExperience = !ImeInfoInquirer::GetInstance().IsEnableSecurityMode();
+    IMSA_HILOGI("sys cfg:[%{public}d, %{public}d].", isDefaultBasicMode, isDefaultFullExperience);
+    auto isSecurityMode = IsSecurityMode(userId, bundleName);
+    if (isDefaultBasicMode) {
+        if (isDefaultFullExperience) {
+        status = EnabledStatus::FULL_EXPERIENCE_MODE;
+        return ErrorCode::NO_ERROR;
+        }
+        status = isSecurityMode ? EnabledStatus::FULL_EXPERIENCE_MODE : EnabledStatus::BASIC_MODE;
+        return ErrorCode::NO_ERROR;
+    }
+
+    if (isDefaultFullExperience) {
+        auto ret = GetImeEnablePattern(userId, bundleName, status);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
+        if (status == EnabledStatus::BASIC_MODE) {
+            status = EnabledStatus::FULL_EXPERIENCE_MODE;
+        }
+        return ErrorCode::NO_ERROR;
+    }
+
+    if (isSecurityMode) {
+        status = EnabledStatus::FULL_EXPERIENCE_MODE;
+        return ErrorCode::NO_ERROR;
+    }
+
+    auto ret = GetImeEnablePattern(userId, bundleName, status);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodSystemAbility::IsSecurityMode(int32_t userId, const std::string &bundleName)
+{
+    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(bundleName, userId);
+    if (mode == SecurityMode::FULL) {
+        return true;
+    }
+    return false;
+}
+
+int32_t InputMethodSystemAbility::GetImeEnablePattern(
+    int32_t userId, const std::string &bundleName, EnabledStatus &status)
+{
+    if (ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName == bundleName) {
+        status = EnabledStatus::BASIC_MODE;
+        return ErrorCode::NO_ERROR;
+    }
+    std::vector<std::string> bundleNames;
+    auto ret = EnableImeDataParser::GetInstance()->GetEnableIme(userId, bundleNames);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("[%{public}d, %{public}s] GetEnableIme failed:%{public}d.", userId, bundleName.c_str(), ret);
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
+    auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
+        [&bundleName](const std::string &bundleNameTmp) { return bundleNameTmp == bundleName; });
+    if (it == bundleNames.end()) {
+        status = EnabledStatus::DISABLED;
+        return ErrorCode::NO_ERROR;
+    }
+    status = EnabledStatus::BASIC_MODE;
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

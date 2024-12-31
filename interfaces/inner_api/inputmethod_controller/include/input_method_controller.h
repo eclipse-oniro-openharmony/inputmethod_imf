@@ -858,6 +858,17 @@ public:
      */
     IMF_API int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
 
+    /**
+     * @brief Get ime state.
+     *
+     * This function is used to get it's enabled state by ime.
+     *
+     * @param status Indicates the enabled state
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t GetInputMethodState(EnabledStatus &status);
+
 private:
     InputMethodController();
     ~InputMethodController();
