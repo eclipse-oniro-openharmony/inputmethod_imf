@@ -37,9 +37,12 @@ config("imf_public_config") {
 ohos_shared_library("cj_inputmethod_ffi") {
   branch_protector_ret = "pac_ret"
   sanitize = {
+    boundary_sanitize = true
     cfi = true
     cfi_cross_dso = true
     debug = false
+    integer_overflow = true
+    ubsan = true
   }
   sources = [
     "src/cj_input_method_controller.cpp",
