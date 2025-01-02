@@ -83,7 +83,7 @@ public:
     virtual int32_t ShowCurrentInputDeprecated() = 0;
 
     virtual int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) = 0;
-    virtual int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId) = 0;
+    virtual int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

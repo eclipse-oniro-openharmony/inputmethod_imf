@@ -32,7 +32,7 @@ public:
     IMF_API int32_t UnRegisterImeEventListener(uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener);
     int32_t OnImeChange(const Property &property, const SubProperty &subProperty);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
-    int32_t OnInputStart(uint32_t callingWndId);
+    int32_t OnInputStart(uint32_t callingWndId, int32_t requestKeyboardReason);
     int32_t OnInputStop();
 
 private:
@@ -46,6 +46,7 @@ private:
     std::map<uint32_t, std::set<std::shared_ptr<ImeEventListener>>> listeners_ {};
     bool isInputStart_ { false };
     uint32_t callingWindow_ { 0 };
+    int32_t requestKeyboardReason_ { 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS
