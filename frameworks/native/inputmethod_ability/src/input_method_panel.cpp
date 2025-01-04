@@ -500,7 +500,7 @@ bool InputMethodPanel::IsRectValid(const Rosen::Rect &rect, const WindowSize &di
 {
     if (rect.posX_ < 0 || rect.posY_ < 0) {
         IMSA_HILOGE("posX_ and posY_ cannot be less than 0!");
-        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+        return false;
     }
     if (rect.width_ > INT32_MAX || rect.height_ > INT32_MAX) {
         IMSA_HILOGE("width or height over maximum!");
@@ -585,7 +585,9 @@ void InputMethodPanel::UpdateHotAreas()
         return;
     }
     hotAreas_ = std::move(hotAreas);
-    IMSA_HILOGI("update success");
+    IMSA_HILOGI("success, portrait: %{public}s, landscape: %{public}s",
+        HotArea::ToString(hotAreas_.portrait.keyboardHotArea).c_str(),
+        HotArea::ToString(hotAreas_.landscape.keyboardHotArea).c_str());
 }
 
 void InputMethodPanel::CalculateEnhancedHotAreas(

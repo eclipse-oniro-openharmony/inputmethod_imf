@@ -228,6 +228,10 @@ void InputMethodPanelTest::SetUpTestCase(void)
     imc_->abilityManager_ = imsa_;
 
     ima_ = InputMethodAbility::GetInstance();
+    {
+        TokenScope scope(currentImeTokenId_);
+        ima_->InitConnect();
+    }
     ima_->abilityManager_ = imsa_;
     TddUtil::InitCurrentImePermissionInfo();
     IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);

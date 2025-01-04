@@ -44,6 +44,12 @@ enum TEST_FUNCTION {
   CHANGE_FLAG_TO_FLOATING,
   SETPRIVACYMODE_WITHOUT_PERMISSION,
   SETPRIVACYMODE_ERROR_PARAM,
+  ADJUST_WITH_INVALID_FLAG,
+  ADJUST_WITH_NON_FULL_SCREEN_NO_PANEL_RECT,
+  ADJUST_WITH_FULL_SCREEN_NO_AVOID_Y,
+  ADJUST_WITH_INVALID_AVOID_Y,
+  ADJUST_WITH_INVALID_TYPE,
+  ADJUST_SUCCESS,
 }
 
 export class KeyboardController {
@@ -160,6 +166,24 @@ export class KeyboardController {
           case TEST_FUNCTION.SETPRIVACYMODE_ERROR_PARAM:
             this.setPrivacyModeErrorParam();
             break;
+          case TEST_FUNCTION.ADJUST_WITH_INVALID_FLAG:
+            this.adjustWithInvalidFlag();
+            break;
+          case TEST_FUNCTION.ADJUST_WITH_NON_FULL_SCREEN_NO_PANEL_RECT:
+            this.adjustWithNonFullScreenNoPanelRect();
+            break;
+          case TEST_FUNCTION.ADJUST_WITH_FULL_SCREEN_NO_AVOID_Y:
+            this.adjustWithFullScreenNoAvoidY();
+            break;
+          case TEST_FUNCTION.ADJUST_WITH_INVALID_AVOID_Y:
+            this.adjustWithInvalidAvoidY();
+            break;
+          case TEST_FUNCTION.ADJUST_WITH_INVALID_TYPE:
+            this.adjustWithInvalidPanelType();
+            break;
+          case TEST_FUNCTION.ADJUST_SUCCESS:
+            this.adjustEnhancedPanelRect();
+            break;
           default:
             break;
         }
@@ -270,6 +294,169 @@ export class KeyboardController {
         this.publishCommonEvent('setPrivacyModeErrorParamResult', TEST_RESULT_CODE.SUCCESS);
         return;
       }
+    }
+  }
+
+  adjustWithInvalidFlag() {
+    try {
+      let defaultDisplay = display.getDefaultDisplaySync();
+      let displayWidth = defaultDisplay.width;
+      let displayHeight = defaultDisplay.height;
+      let heightRate = 0.7;
+      let portraitAvoidY = 0;
+      let landscapeAvoidY = 0;
+      if (displayWidth < displayHeight) {
+        portraitAvoidY = displayHeight - (displayHeight * heightRate - 1);
+        landscapeAvoidY = displayWidth - (displayWidth * heightRate - 1);
+      } else {
+        portraitAvoidY = displayWidth - (displayWidth * heightRate - 1);
+        landscapeAvoidY = displayHeight - (displayHeight * heightRate - 1);
+      }
+      let panelRect: inputMethodEngine.EnhancedPanelRect = {
+        landscapeAvoidY: landscapeAvoidY,
+        portraitAvoidY: portraitAvoidY,
+        fullScreenMode: true
+      }
+      this.panel.adjustPanelRect(2, panelRect);
+      this.publishCommonEvent('adjustWithInvalidFlagResult', TEST_RESULT_CODE.FAILED);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      if (err.code === 12800017) {
+        this.publishCommonEvent('adjustWithInvalidFlagResult', TEST_RESULT_CODE.SUCCESS);
+        return;
+      }
+    }
+  }
+
+  adjustWithNonFullScreenNoPanelRect() {
+    try {
+      let panelRect: inputMethodEngine.EnhancedPanelRect = {
+        fullScreenMode: false
+      }
+      this.panel.adjustPanelRect(inputMethodEngine.PanelFlag.FLG_FIXED, panelRect);
+      this.publishCommonEvent('adjustWithNonFullScreenNoPanelRectResult', TEST_RESULT_CODE.FAILED);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      if (err.code === 401) {
+        this.publishCommonEvent('adjustWithNonFullScreenNoPanelRectResult', TEST_RESULT_CODE.SUCCESS);
+        return;
+      }
+    }
+  }
+
+  adjustWithFullScreenNoAvoidY() {
+    try {
+      let panelRect: inputMethodEngine.EnhancedPanelRect = {
+        fullScreenMode: true
+      }
+      this.panel.adjustPanelRect(inputMethodEngine.PanelFlag.FLG_FIXED, panelRect);
+      this.publishCommonEvent('adjustWithFullScreenNoAvoidYResult', TEST_RESULT_CODE.FAILED);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      if (err.code === 401) {
+        this.publishCommonEvent('adjustWithFullScreenNoAvoidYResult', TEST_RESULT_CODE.SUCCESS);
+        return;
+      }
+    }
+  }
+
+  adjustWithInvalidAvoidY() {
+    try {
+      let defaultDisplay = display.getDefaultDisplaySync();
+      let displayWidth = defaultDisplay.width;
+      let displayHeight = defaultDisplay.height;
+      let heightRate = 0.7;
+      let portraitAvoidY = 0;
+      let landscapeAvoidY = 0;
+      if (displayWidth < displayHeight) {
+        portraitAvoidY = displayHeight - (displayHeight * heightRate + 1);
+        landscapeAvoidY = displayWidth - (displayWidth * heightRate + 1);
+      } else {
+        portraitAvoidY = displayWidth - (displayWidth * heightRate + 1);
+        landscapeAvoidY = displayHeight - (displayHeight * heightRate + 1);
+      }
+      let panelRect: inputMethodEngine.EnhancedPanelRect = {
+        landscapeAvoidY: landscapeAvoidY,
+        portraitAvoidY: portraitAvoidY,
+        fullScreenMode: true
+      }
+      this.panel.adjustPanelRect(inputMethodEngine.PanelFlag.FLG_FIXED, panelRect);
+      this.publishCommonEvent('adjustWithInvalidAvoidYResult', TEST_RESULT_CODE.FAILED);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      if (err.code === 401) {
+        this.publishCommonEvent('adjustWithInvalidAvoidYResult', TEST_RESULT_CODE.SUCCESS);
+        return;
+      }
+    }
+  }
+
+  adjustWithInvalidPanelType() {
+    let panelInfo: inputMethodEngine.PanelInfo = {
+      type: inputMethodEngine.PanelType.STATUS_BAR
+    };
+    inputMethodAbility.createPanel(this.mContext, panelInfo).then(async (inputPanel: inputMethodEngine.Panel) => {
+      try {
+        let defaultDisplay = display.getDefaultDisplaySync();
+        let displayWidth = defaultDisplay.width;
+        let displayHeight = defaultDisplay.height;
+        let heightRate = 0.7;
+        let portraitAvoidY = 0;
+        let landscapeAvoidY = 0;
+        if (displayWidth < displayHeight) {
+          portraitAvoidY = displayHeight - (displayHeight * heightRate - 1);
+          landscapeAvoidY = displayWidth - (displayWidth * heightRate - 1);
+        } else {
+          portraitAvoidY = displayWidth - (displayWidth * heightRate - 1);
+          landscapeAvoidY = displayHeight - (displayHeight * heightRate - 1);
+        }
+        let panelRect: inputMethodEngine.EnhancedPanelRect = {
+          landscapeAvoidY: landscapeAvoidY,
+          portraitAvoidY: portraitAvoidY,
+          fullScreenMode: true
+        }
+        inputPanel.adjustPanelRect(inputMethodEngine.PanelFlag.FLG_FIXED, panelRect);
+        this.addLog('adjustPanelRect success');
+        this.publishCommonEvent('adjustWithInvalidTypeResult', TEST_RESULT_CODE.FAILED);
+        inputMethodAbility.destroyPanel(inputPanel);
+      } catch (err) {
+        this.addLog(`failed: ${JSON.stringify(err)}`);
+        inputMethodAbility.destroyPanel(inputPanel);
+        if (err.code === 12800017) {
+          this.publishCommonEvent('adjustWithInvalidTypeResult', TEST_RESULT_CODE.SUCCESS);
+          return;
+        }
+      }
+    });
+  }
+
+  adjustEnhancedPanelRect() {
+    try {
+      let defaultDisplay = display.getDefaultDisplaySync();
+      let displayWidth = defaultDisplay.width;
+      let displayHeight = defaultDisplay.height;
+      let heightRate = 0.7;
+      let portraitAvoidY = 0;
+      let landscapeAvoidY = 0;
+      if (displayWidth < displayHeight) {
+        portraitAvoidY = displayHeight - (displayHeight * heightRate - 1);
+        landscapeAvoidY = displayWidth - (displayWidth * heightRate - 1);
+      } else {
+        portraitAvoidY = displayWidth - (displayWidth * heightRate - 1);
+        landscapeAvoidY = displayHeight - (displayHeight * heightRate - 1);
+      }
+      let panelRect: inputMethodEngine.EnhancedPanelRect = {
+        landscapeAvoidY: landscapeAvoidY,
+        portraitAvoidY: portraitAvoidY,
+        fullScreenMode: true
+      }
+      this.panel.adjustPanelRect(inputMethodEngine.PanelFlag.FLG_FIXED, panelRect);
+      this.addLog('adjustPanelRect success');
+      this.publishCommonEvent('adjustSuccessResult', TEST_RESULT_CODE.SUCCESS);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      this.publishCommonEvent('adjustSuccessResult', TEST_RESULT_CODE.FAILED);
+      return;
     }
   }
 
