@@ -44,7 +44,7 @@ public:
     virtual int32_t OnInputStop(bool isStopInactiveClient, bool isAsync = false) = 0;
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
     virtual int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) = 0;
-    virtual int32_t NotifyInputStart(uint32_t callingWndId) = 0;
+    virtual int32_t NotifyInputStart(uint32_t callingWndId, int32_t requestKeyboardReason) = 0;
     virtual int32_t NotifyInputStop() = 0;
     virtual void DeactivateClient() = 0;
 };

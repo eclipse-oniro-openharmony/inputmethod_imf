@@ -684,7 +684,8 @@ int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInpu
     return session->OnSetCallingWindow(windowId, client);
 }
 
-int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart,
+    uint32_t& callingWndId, int32_t &requestKeyboardReason)
 {
     if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
         !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
@@ -697,7 +698,7 @@ int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart, uint32_t
         IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
         return false;
     }
-    return session->GetInputStartInfo(isInputStart, callingWndId);
+    return session->GetInputStartInfo(isInputStart, callingWndId, requestKeyboardReason);
 }
 
 bool InputMethodSystemAbility::IsCurrentIme()

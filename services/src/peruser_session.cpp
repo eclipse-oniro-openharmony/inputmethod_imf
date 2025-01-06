@@ -568,6 +568,7 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
     HandleImeBindTypeChanged(infoTemp);
     infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
     infoTemp.needHide = inputClientInfo.needHide;
+    infoTemp.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     if (ret != ErrorCode::NO_ERROR) {
@@ -615,7 +616,7 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
         { { UpdateFlag::BINDIMETYPE, type }, { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard },
             { UpdateFlag::STATE, ClientState::ACTIVE } });
     ReplaceCurrentClient(clientInfo->client);
-    NotifyInputStartToClients(clientInfo->config.windowId);
+    NotifyInputStartToClients(clientInfo->config.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     return ErrorCode::NO_ERROR;
 }
 
@@ -1284,12 +1285,12 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
     if (clientInfo->config.windowId != callingWindowId) {
         IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
         clientInfo->config.windowId = callingWindowId;
-        return NotifyInputStartToClients(callingWindowId);
+        return NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     }
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+int32_t PerUserSession::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason)
 {
     auto client = GetCurrentClient();
     if (client == nullptr) {
@@ -1303,10 +1304,11 @@ int32_t PerUserSession::GetInputStartInfo(bool& isInputStart, uint32_t& callingW
     }
     isInputStart = true;
     callingWndId = clientInfo->config.windowId;
+    requestKeyboardReason = static_cast<int32_t>(clientInfo->requestKeyboardReason);
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::NotifyInputStartToClients(uint32_t callingWndId)
+int32_t PerUserSession::NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("NotifyInputStartToClients enter");
     auto clientMap = GetClientMap();
@@ -1317,7 +1319,7 @@ int32_t PerUserSession::NotifyInputStartToClients(uint32_t callingWndId)
             IMSA_HILOGE("nullptr clientInfo or no need to notify");
             continue;
         }
-        int32_t ret = clientInfo->client->NotifyInputStart(callingWndId);
+        int32_t ret = clientInfo->client->NotifyInputStart(callingWndId, requestKeyboardReason);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to notify OnInputStart, errorCode: %{public}d", ret);
             continue;
