@@ -1846,5 +1846,68 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusListener02, TestSize.Level0)
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: testStartMoving01
+ * @tc.desc: Test StartMoving
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testStartMoving01, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testStartMoving start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    panelInfo.panelType = SOFT_KEYBOARD;
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_TYPE);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    panelInfo.panelType = STATUS_BAR;
+    panelInfo.panelFlag = FLG_FIXED;
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_FLAG);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testGetDisplayId01
+ * @tc.desc: Test GetDisplayId
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetDisplayId01, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetDisplayId start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodPanel->GetDisplayId();
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->GetDisplayId();
+    EXPECT_GT(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

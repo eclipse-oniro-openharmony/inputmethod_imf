@@ -54,6 +54,8 @@ public:
 
     int32_t Resize(uint32_t width, uint32_t height);
     int32_t MoveTo(int32_t x, int32_t y);
+    int32_t StartMoving();
+    uint64_t GetDisplayId();
     int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
     int32_t AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas);
     int32_t UpdateRegion(std::vector<Rosen::Rect> region);

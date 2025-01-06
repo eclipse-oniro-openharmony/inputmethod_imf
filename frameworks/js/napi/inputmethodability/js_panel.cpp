@@ -59,6 +59,8 @@ napi_value JsPanel::Init(napi_env env)
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
         DECLARE_NAPI_FUNCTION("adjustPanelRect", AdjustPanelRect),
         DECLARE_NAPI_FUNCTION("updateRegion", UpdateRegion),
+        DECLARE_NAPI_FUNCTION("startMoving", StartMoving),
+        DECLARE_NAPI_FUNCTION("getDisplayId", GetDisplayId),
     };
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
@@ -235,6 +237,66 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     // 3 means JsAPI:moveTo has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec, "moveTo");
+}
+
+napi_value JsPanel::StartMoving(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    napi_status status = napi_get_cb_info(env, info, 0, nullptr, &self, nullptr);
+    CHECK_RETURN((status == napi_ok) && (self != nullptr), "get callback info failed.", nullptr);
+    void *native = nullptr;
+    status = napi_unwrap(env, self, &native);
+    CHECK_RETURN((status == napi_ok) && (native != nullptr), "get jsPanel failed.", nullptr);
+    auto inputMethodPanel = reinterpret_cast<JsPanel *>(native)->GetNative();
+    auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr!");
+        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NULL_POINTER),
+            "failed to start moving, inputMethodPanel is nullptr", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+
+    auto ret = inputMethodPanel->StartMoving();
+    if (code == ErrorCode::ERROR_NULL_POINTER ||
+        code == ErrorCode::ERROR_INVALID_PANEL_FLAG ||
+        code == ErrorCode::ERROR_INVALID_PANEL_TYPE ||
+        code == ErrorCode::ERROR_WINDOW_MANAGER) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to start moving", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    return JsUtil::Const::Null(env);
+}
+
+napi_value JsPanel::GetDisplayId(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::GET_DISPLAYID };
+        jsQueue_.Push(ctxt->info);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel_ is nullptr!");
+            jsQueue_.Pop();
+            return;
+        }
+        ctxt->displayId = ctxt->inputMethodPanel->GetDisplayId();
+        jsQueue_.Pop();
+        if (ctxt->displayId == ErrorCode::ERROR_NULL_POINTER) {
+            ctxt->SetErrorCode(ctxt->displayId);
+            return;
+        }
+        ctxt->SetState(napi_ok);
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        return napi_create_bigint_uint64(env, ctxt->displayId, result);
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    // 1 means JsAPI:GetDisplayId has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec, "getDisplayId");
 }
 
 void JsPanel::PrintEditorQueueInfoIfTimeout(int64_t start, const JsEventInfo &currentInfo)

@@ -316,6 +316,42 @@ int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
     }
 }
 
+int32_t InputMethodPanel::StartMoving()
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (panelType_ != STATUS_BAR) {
+        IMSA_HILOGE("SOFT_KEYBOARD panel can not move!");
+        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
+    }
+    if (panelFlag_ != FLG_FLOATING) {
+        IMSA_HILOGE("FLG_FIXED panel can not move!");
+        return ErrorCode::ERROR_INVALID_PANEL_FLAG;
+    }
+    auto ret = window_->StartMoveInputBar();
+    switch (ret) {
+        case WMError::WM_ERROR_DEVICE_NOT_SUPPORT:
+        case WMError::WM_ERROR_REPEAT_OPERATION:
+        case WMError::WM_ERROR_STATE_ABNORMALLY:
+        case WMError::WM_ERROR_SYSTEM_ABNORMALLY:
+            return ErrorCode::ERROR_WINDOW_MANAGER;
+        default:
+            return ErrorCode::NO_ERROR;
+    }
+}
+
+uint64_t InputMethodPanel::GetDisplayId()
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto ret = window_->GetDisplayId();
+    return ret;
+}
+
 int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
 {
     if (window_ == nullptr) {
