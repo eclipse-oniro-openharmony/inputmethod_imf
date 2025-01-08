@@ -233,7 +233,16 @@ int32_t InputMethodController::Attach(
 int32_t InputMethodController::Attach(
     sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig)
 {
-    IMSA_HILOGI("isShowKeyboard %{public}d.", isShowKeyboard);
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = isShowKeyboard;
+    attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
+    return Attach(listener, attachOptions, textConfig);
+}
+
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, AttachOptions attachOptions,
+    const TextConfig &textConfig)
+{
+    IMSA_HILOGI("isShowKeyboard %{public}d.", attachOptions.isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     auto lastListener = GetTextListener();
     clientInfo_.isNotifyInputStart = lastListener != listener;
@@ -244,10 +253,11 @@ int32_t InputMethodController::Attach(
     SetTextListener(listener);
     {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-        clientInfo_.isShowKeyboard = isShowKeyboard;
+        clientInfo_.isShowKeyboard = attachOptions.isShowKeyboard;
     }
     SaveTextConfig(textConfig);
     GetTextConfig(clientInfo_.config);
+    clientInfo_.requestKeyboardReason = attachOptions.requestKeyboardReason;
 
     sptr<IRemoteObject> agent = nullptr;
     int32_t ret = StartInput(clientInfo_, agent);
@@ -256,7 +266,7 @@ int32_t InputMethodController::Attach(
     }
     clientInfo_.state = ClientState::ACTIVE;
     OnInputReady(agent);
-    if (isShowKeyboard) {
+    if (attachOptions.isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
     }
     IMSA_HILOGI("bind imf successfully.");
@@ -407,14 +417,15 @@ bool InputMethodController::WasAttached()
     return isBound_.load();
 }
 
-int32_t InputMethodController::GetInputStartInfo(bool &isInputStart, uint32_t &callingWndId)
+int32_t InputMethodController::GetInputStartInfo(bool &isInputStart,
+    uint32_t &callingWndId, int32_t &requestKeyboardReason)
 {
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr!");
         return false;
     }
-    return proxy->GetInputStartInfo(isInputStart, callingWndId);
+    return proxy->GetInputStartInfo(isInputStart, callingWndId, requestKeyboardReason);
 }
 
 int32_t InputMethodController::ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props)

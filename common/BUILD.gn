@@ -26,9 +26,12 @@ config("inputmethod_common_native_config") {
 ohos_shared_library("inputmethod_common") {
   branch_protector_ret = "pac_ret"
   sanitize = {
+    boundary_sanitize = true
     cfi = true
     cfi_cross_dso = true
     debug = false
+    integer_overflow = true
+    ubsan = true
   }
   cflags_cc = [
     "-fdata-sections",

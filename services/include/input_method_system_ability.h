@@ -76,7 +76,7 @@ public:
     int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) override;
     int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) override;
-    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId) override;
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason) override;
 
     bool IsCurrentIme() override;
     bool IsInputTypeSupported(InputType type) override;

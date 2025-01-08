@@ -120,11 +120,13 @@ int32_t InputClientStub::DeactivateClientOnRemote(MessageParcel &data, MessagePa
 int32_t InputClientStub::NotifyInputStartOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     uint32_t callingWndId = 0;
-    if (!ITypesUtil::Unmarshal(data, callingWndId)) {
+    int32_t requestKeyboardReason = 0;
+    if (!ITypesUtil::Unmarshal(data, callingWndId, requestKeyboardReason)) {
         IMSA_HILOGE("read message parcel failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(NotifyInputStart(callingWndId)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(NotifyInputStart(callingWndId, requestKeyboardReason)) ? ErrorCode::NO_ERROR
+                                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputClientStub::NotifyInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -153,9 +155,9 @@ int32_t InputClientStub::OnPanelStatusChange(const InputWindowStatus &status, co
     return ImeEventMonitorManagerImpl::GetInstance().OnPanelStatusChange(status, info);
 }
 
-int32_t InputClientStub::NotifyInputStart(uint32_t callingWndId)
+int32_t InputClientStub::NotifyInputStart(uint32_t callingWndId, int32_t requestKeyboardReason)
 {
-    return ImeEventMonitorManagerImpl::GetInstance().OnInputStart(callingWndId);
+    return ImeEventMonitorManagerImpl::GetInstance().OnInputStart(callingWndId, requestKeyboardReason);
 }
 
 int32_t InputClientStub::NotifyInputStop()

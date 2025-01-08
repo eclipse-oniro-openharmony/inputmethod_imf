@@ -226,6 +226,17 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 int32_t InputMethodSystemAbility::Init()
 {
     IMSA_HILOGI("InputMethodSystemAbility::Init start.");
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    ImeCfgManager::GetInstance().Init();
+    ImeInfoInquirer::GetInstance().InitSystemConfig();
+    bool isSuccess = Publish(this);
+    if (!isSuccess) {
+        IMSA_HILOGE("publish failed");
+        return -1;
+    }
+    state_ = ServiceRunningState::STATE_RUNNING;
+    IMSA_HILOGI("publish success");
+#else
     bool isSuccess = Publish(this);
     if (!isSuccess) {
         IMSA_HILOGE("publish failed");
@@ -235,6 +246,7 @@ int32_t InputMethodSystemAbility::Init()
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitSystemConfig();
+#endif
     InitMonitors();
     return ErrorCode::NO_ERROR;
 }
@@ -685,7 +697,8 @@ int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInpu
     return session->OnSetCallingWindow(windowId, client);
 }
 
-int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId)
+int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart,
+    uint32_t& callingWndId, int32_t &requestKeyboardReason)
 {
     if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
         !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
@@ -698,7 +711,7 @@ int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart, uint32_t
         IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
         return false;
     }
-    return session->GetInputStartInfo(isInputStart, callingWndId);
+    return session->GetInputStartInfo(isInputStart, callingWndId, requestKeyboardReason);
 }
 
 bool InputMethodSystemAbility::IsCurrentIme()
@@ -1825,7 +1838,9 @@ void InputMethodSystemAbility::HandleScbStarted(int32_t userId, int32_t screenId
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return;
     }
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     session->AddRestartIme();
+#endif
 }
 
 void InputMethodSystemAbility::HandleUserSwitched(int32_t userId)
@@ -1888,7 +1903,9 @@ void InputMethodSystemAbility::HandleWmsStarted()
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return;
     }
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     session->AddRestartIme();
+#endif
     StopImeInBackground();
 }
 
@@ -1917,7 +1934,9 @@ void InputMethodSystemAbility::HandleMemStarted()
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return;
     }
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     session->AddRestartIme();
+#endif
     StopImeInBackground();
 }
 
@@ -2118,18 +2137,18 @@ int32_t InputMethodSystemAbility::GetInputMethodState(
     auto isDefaultBasicMode = !ImeInfoInquirer::GetInstance().IsEnableInputMethod();
     auto isDefaultFullExperience = !ImeInfoInquirer::GetInstance().IsEnableSecurityMode();
     IMSA_HILOGI("sys cfg:[%{public}d, %{public}d].", isDefaultBasicMode, isDefaultFullExperience);
-    auto isSecurityMode = IsSecurityMode(userId, bundleName);
+    auto isSecurityMode = SecurityModeParser::GetInstance()->IsSecurityMode(userId, bundleName);
     if (isDefaultBasicMode) {
         if (isDefaultFullExperience) {
-        status = EnabledStatus::FULL_EXPERIENCE_MODE;
-        return ErrorCode::NO_ERROR;
+            status = EnabledStatus::FULL_EXPERIENCE_MODE;
+            return ErrorCode::NO_ERROR;
         }
         status = isSecurityMode ? EnabledStatus::FULL_EXPERIENCE_MODE : EnabledStatus::BASIC_MODE;
         return ErrorCode::NO_ERROR;
     }
 
     if (isDefaultFullExperience) {
-        auto ret = GetImeEnablePattern(userId, bundleName, status);
+        auto ret = EnableImeDataParser::GetInstance()->GetImeEnablePattern(userId, bundleName, status);
         if (ret != ErrorCode::NO_ERROR) {
             return ret;
         }
@@ -2144,43 +2163,8 @@ int32_t InputMethodSystemAbility::GetInputMethodState(
         return ErrorCode::NO_ERROR;
     }
 
-    auto ret = GetImeEnablePattern(userId, bundleName, status);
-    if (ret != ErrorCode::NO_ERROR) {
-        return ret;
-    }
-    return ErrorCode::NO_ERROR;
-}
-
-bool InputMethodSystemAbility::IsSecurityMode(int32_t userId, const std::string &bundleName)
-{
-    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(bundleName, userId);
-    if (mode == SecurityMode::FULL) {
-        return true;
-    }
-    return false;
-}
-
-int32_t InputMethodSystemAbility::GetImeEnablePattern(
-    int32_t userId, const std::string &bundleName, EnabledStatus &status)
-{
-    if (ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName == bundleName) {
-        status = EnabledStatus::BASIC_MODE;
-        return ErrorCode::NO_ERROR;
-    }
-    std::vector<std::string> bundleNames;
-    auto ret = EnableImeDataParser::GetInstance()->GetEnableIme(userId, bundleNames);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("[%{public}d, %{public}s] GetEnableIme failed:%{public}d.", userId, bundleName.c_str(), ret);
-        return ErrorCode::ERROR_ENABLE_IME;
-    }
-    auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
-        [&bundleName](const std::string &bundleNameTmp) { return bundleNameTmp == bundleName; });
-    if (it == bundleNames.end()) {
-        status = EnabledStatus::DISABLED;
-        return ErrorCode::NO_ERROR;
-    }
-    status = EnabledStatus::BASIC_MODE;
-    return ErrorCode::NO_ERROR;
+    auto ret = EnableImeDataParser::GetInstance()->GetImeEnablePattern(userId, bundleName, status);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

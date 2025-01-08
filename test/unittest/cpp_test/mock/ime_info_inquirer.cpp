@@ -100,5 +100,11 @@ void ImeInfoInquirer::SetFullImeInfo(
     isQueryAllFullImeInfosOk_ = isReturnOk;
     allFullImeInfos_ = fullImeInfos;
 }
+
+ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
+{
+    ImeNativeCfg imeCfg;
+    return imeCfg;
+}
 } // namespace MiscServices
 } // namespace OHOS

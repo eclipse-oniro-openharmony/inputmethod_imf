@@ -31,7 +31,7 @@ public:
     virtual void OnImeChange(const Property &property, const SubProperty &subProperty){};
     virtual void OnImeShow(const ImeWindowInfo &info){};
     virtual void OnImeHide(const ImeWindowInfo &info){};
-    virtual void OnInputStart(uint32_t callingWndId) {};
+    virtual void OnInputStart(uint32_t callingWndId, int32_t requestKeyboardReason) {};
     virtual void OnInputStop() {};
 };
 } // namespace MiscServices

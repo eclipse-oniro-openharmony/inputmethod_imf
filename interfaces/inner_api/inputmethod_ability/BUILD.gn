@@ -41,9 +41,12 @@ config("inputmethod_ability_native_public_config") {
 ohos_shared_library("inputmethod_ability") {
   branch_protector_ret = "pac_ret"
   sanitize = {
+    boundary_sanitize = true
     cfi = true
     cfi_cross_dso = true
     debug = false
+    integer_overflow = true
+    ubsan = true
   }
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability.cpp",

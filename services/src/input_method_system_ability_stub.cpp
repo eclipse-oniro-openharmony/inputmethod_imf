@@ -348,8 +348,9 @@ int32_t InputMethodSystemAbilityStub::GetInputStartInfoOnRemote(MessageParcel &d
 {
     bool isInputStart = false;
     uint32_t callingWndId = 0;
-    auto ret = GetInputStartInfo(isInputStart, callingWndId);
-    return ITypesUtil::Marshal(reply, ret, isInputStart, callingWndId) ?
+    int32_t requestKeyboardReason = 0;
+    auto ret = GetInputStartInfo(isInputStart, callingWndId, requestKeyboardReason);
+    return ITypesUtil::Marshal(reply, ret, isInputStart, callingWndId, requestKeyboardReason) ?
         ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

@@ -35,7 +35,13 @@ describe('InputMethodWithAttachTest', function () {
     CHANGE_FLAG_TO_FIXED: 10,
     CHANGE_FLAG_TO_FLOATING: 11,
     SETPRIVACYMODE_WITHOUT_PERMISSION: 12,
-    SETPRIVACYMODE_ERROR_PARAM: 13
+    SETPRIVACYMODE_ERROR_PARAM: 13,
+    ADJUST_WITH_INVALID_FLAG: 14,
+    ADJUST_WITH_NON_FULL_SCREEN_NO_PANEL_RECT: 15,
+    ADJUST_WITH_FULL_SCREEN_NO_AVOID_Y: 16,
+    ADJUST_WITH_INVALID_AVOID_Y:17,
+    ADJUST_WITH_INVALID_TYPE:18,
+    ADJUST_SUCCESS: 19,
   }
 
   beforeAll(async function (done) {
@@ -944,4 +950,124 @@ describe('InputMethodWithAttachTest', function () {
         done();
       }
     });
+
+  /*
+   * @tc.number  inputmethod_test_adjustPanelRect_001
+   * @tc.name    Test Indicates adjustPanelRect with invalid panel flag.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_adjustPanelRect_001', 0, async function (done) {
+    console.info('************* inputmethod_test_adjustPanelRect_001 Test start*************');
+    try {
+      let subscribeInfo = {
+        events: ['adjustWithInvalidFlagResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.ADJUST_WITH_INVALID_FLAG, done);
+    } catch(error) {
+      console.info(`inputmethod_test_adjustPanelRect_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_adjustPanelRect_002
+   * @tc.name    Test Indicates adjustPanelRect with non full screen mode but panel rect is not provided.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_adjustPanelRect_002', 0, async function (done) {
+    console.info('************* inputmethod_test_adjustPanelRect_002 Test start*************');
+    try {
+      let subscribeInfo = {
+        events: ['adjustWithNonFullScreenNoPanelRectResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.ADJUST_WITH_NON_FULL_SCREEN_NO_PANEL_RECT, done);
+    } catch(error) {
+      console.info(`inputmethod_test_adjustPanelRect_002 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_adjustPanelRect_003
+   * @tc.name    Test Indicates adjustPanelRect with full screen mode but no avoid Y.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_adjustPanelRect_003', 0, async function (done) {
+    console.info('************* inputmethod_test_adjustPanelRect_003 Test start*************');
+    try {
+      let subscribeInfo = {
+        events: ['adjustWithFullScreenNoAvoidYResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.ADJUST_WITH_FULL_SCREEN_NO_AVOID_Y, done);
+    } catch(error) {
+      console.info(`inputmethod_test_adjustPanelRect_003 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_adjustPanelRect_004
+   * @tc.name    Test Indicates adjustPanelRect with invalid avoid Y.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_adjustPanelRect_004', 0, async function (done) {
+    console.info('************* inputmethod_test_adjustPanelRect_004 Test start*************');
+    try {
+      let subscribeInfo = {
+        events: ['adjustWithInvalidAvoidYResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.ADJUST_WITH_INVALID_AVOID_Y, done);
+    } catch(error) {
+      console.info(`inputmethod_test_adjustPanelRect_004 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_adjustPanelRect_005
+   * @tc.name    Test Indicates adjustPanelRect with invalid panel type.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_adjustPanelRect_005', 0, async function (done) {
+    console.info('************* inputmethod_test_adjustPanelRect_005 Test start*************');
+    try {
+      let subscribeInfo = {
+        events: ['adjustWithInvalidTypeResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.ADJUST_WITH_INVALID_TYPE, done);
+    } catch(error) {
+      console.info(`inputmethod_test_adjustPanelRect_005 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_adjustPanelRect_006
+   * @tc.name    Test Indicates adjustPanelRect successfully.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_adjustPanelRect_006', 0, async function (done) {
+    console.info('************* inputmethod_test_adjustPanelRect_006 Test start*************');
+    try {
+      let subscribeInfo = {
+        events: ['adjustSuccessResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.ADJUST_SUCCESS, done);
+    } catch(error) {
+      console.info(`inputmethod_test_adjustPanelRect_006 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
 });
