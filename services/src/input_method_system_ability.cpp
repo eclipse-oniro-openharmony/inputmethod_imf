@@ -225,6 +225,17 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 int32_t InputMethodSystemAbility::Init()
 {
     IMSA_HILOGI("InputMethodSystemAbility::Init start.");
+#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    ImeCfgManager::GetInstance().Init();
+    ImeInfoInquirer::GetInstance().InitSystemConfig();
+    bool isSuccess = Publish(this);
+    if (!isSuccess) {
+        IMSA_HILOGE("publish failed");
+        return -1;
+    }
+    state_ = ServiceRunningState::STATE_RUNNING;
+    IMSA_HILOGI("publish success");
+#else
     bool isSuccess = Publish(this);
     if (!isSuccess) {
         IMSA_HILOGE("publish failed");
@@ -234,6 +245,7 @@ int32_t InputMethodSystemAbility::Init()
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitSystemConfig();
+#endif
     InitMonitors();
     return ErrorCode::NO_ERROR;
 }
@@ -1825,7 +1837,9 @@ void InputMethodSystemAbility::HandleScbStarted(int32_t userId, int32_t screenId
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return;
     }
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     session->AddRestartIme();
+#endif
 }
 
 void InputMethodSystemAbility::HandleUserSwitched(int32_t userId)
@@ -1888,7 +1902,9 @@ void InputMethodSystemAbility::HandleWmsStarted()
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return;
     }
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     session->AddRestartIme();
+#endif
     StopImeInBackground();
 }
 
@@ -1917,7 +1933,9 @@ void InputMethodSystemAbility::HandleMemStarted()
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return;
     }
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     session->AddRestartIme();
+#endif
     StopImeInBackground();
 }
 

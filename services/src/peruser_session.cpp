@@ -993,7 +993,9 @@ void PerUserSession::OnUserUnlocked()
         return;
     }
     IMSA_HILOGI("user %{public}d unlocked, start current ime", userId_);
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     AddRestartIme();
+#endif
 }
 
 void PerUserSession::UpdateUserLockState()
