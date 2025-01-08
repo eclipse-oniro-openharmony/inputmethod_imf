@@ -473,6 +473,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::vector<uint8_t> 
     }
     if (data == nullptr && length == 0) {
         IMSA_HILOGE("Empty ArrayBuffer.");
+        out.clear();
         return napi_ok;
     }
     if (data == nullptr) {
