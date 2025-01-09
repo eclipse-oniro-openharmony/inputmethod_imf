@@ -349,6 +349,9 @@ uint64_t InputMethodPanel::GetDisplayId()
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto ret = window_->GetDisplayId();
+    if (ret ==  WMError::DISPLAY_ID_INVAID) {
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
     return ret;
 }
 
