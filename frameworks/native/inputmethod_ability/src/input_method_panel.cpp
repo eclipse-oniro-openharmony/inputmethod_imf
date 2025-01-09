@@ -332,13 +332,10 @@ int32_t InputMethodPanel::StartMoving()
     }
     auto ret = window_->StartMoveInputBar();
     switch (ret) {
-        case WMError::WM_ERROR_DEVICE_NOT_SUPPORT:
-        case WMError::WM_ERROR_REPEAT_OPERATION:
-        case WMError::WM_ERROR_STATE_ABNORMALLY:
-        case WMError::WM_ERROR_SYSTEM_ABNORMALLY:
-            return ErrorCode::ERROR_WINDOW_MANAGER;
-        default:
+        case WMError::WM_OK:
             return ErrorCode::NO_ERROR;
+        default:
+            return ErrorCode::ERROR_WINDOW_MANAGER;
     }
 }
 
