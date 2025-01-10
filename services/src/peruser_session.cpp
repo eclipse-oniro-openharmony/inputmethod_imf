@@ -1982,7 +1982,7 @@ void PerUserSession::HandleImeBindTypeChanged(InputClientInfo &newClientInfo)
         }
     }
     IMSA_HILOGD("isClientInactive: %{public}d!", isClientInactive);
-    if (IsSameClient(newClientInfo.client, oldClientInfo->client) && oldClientInfo->bindImeType == ImeType::IME) {
+    if (IsSameClient(newClientInfo.client, oldClientInfo->client)) {
         newClientInfo.isNotifyInputStart = true;
     }
     if (isClientInactive) {
