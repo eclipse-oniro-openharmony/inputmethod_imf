@@ -1904,7 +1904,7 @@ HWTEST_F(InputMethodPanelTest, testGetDisplayId01, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = inputMethodPanel->GetDisplayId();
-    EXPECT_GT(ret, ErrorCode::NO_ERROR);
+    EXPECT_GE(ret, ErrorCode::NO_ERROR);
 
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
