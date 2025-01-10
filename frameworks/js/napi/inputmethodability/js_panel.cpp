@@ -244,11 +244,11 @@ napi_value JsPanel::StartMoving(napi_env env, napi_callback_info info)
     napi_value self = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, 0, nullptr, &self, nullptr));
     RESULT_CHECK_RETURN(env, (self != nullptr), JsUtils::Convert(ErrorCode::ERROR_NULL_POINTER),
-                        "get callback info failed", TYPE_NONE, JsUtil::Const::Null(env));
+                        "", TYPE_NONE, JsUtil::Const::Null(env));
     void *native = nullptr;
     NAPI_CALL(env, napi_unwrap(env, self, &native));
     RESULT_CHECK_RETURN(env, (native != nullptr), JsUtils::Convert(ErrorCode::ERROR_NULL_POINTER),
-                        "get jsPanel failed", TYPE_NONE, JsUtil::Const::Null(env));
+                        "", TYPE_NONE, JsUtil::Const::Null(env));
     auto inputMethodPanel = reinterpret_cast<JsPanel *>(native)->GetNative();
     if (inputMethodPanel == nullptr) {
         IMSA_HILOGE("inputMethodPanel is nullptr!");
@@ -282,7 +282,8 @@ napi_value JsPanel::GetDisplayId(napi_env env, napi_callback_info info)
         }
         ctxt->displayId = ctxt->inputMethodPanel->GetDisplayId();
         jsQueue_.Pop();
-        if (ctxt->displayId == ErrorCode::ERROR_WINDOW_MANAGER) {
+        if (ctxt->displayId == ErrorCode::ERROR_WINDOW_MANAGER ||
+            ctxt->displayId == ErrorCode::ERROR_NULL_POINTER) {
             ctxt->SetErrorCode(ctxt->displayId);
             return;
         }
