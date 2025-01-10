@@ -331,12 +331,11 @@ int32_t InputMethodPanel::StartMoving()
         return ErrorCode::ERROR_INVALID_PANEL_FLAG;
     }
     auto ret = window_->StartMoveInputBar();
-    switch (ret) {
-        case WMError::WM_OK:
-            return ErrorCode::NO_ERROR;
-        default:
-            return ErrorCode::ERROR_WINDOW_MANAGER;
+    if (ret != WMErrorCode::WM_OK) {
+        IMSA_HILOGE("window manager service error.");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+    return ErrorCode::NO_ERROR;
 }
 
 uint64_t InputMethodPanel::GetDisplayId()
