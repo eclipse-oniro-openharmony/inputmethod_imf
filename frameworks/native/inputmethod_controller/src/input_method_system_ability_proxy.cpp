@@ -398,6 +398,18 @@ int32_t InputMethodSystemAbilityProxy::IsDefaultIme()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_DEFAULT_IME));
 }
 
+int32_t InputMethodSystemAbilityProxy::GetInputMethodState(EnabledStatus &status)
+{
+    int32_t statusTmp = 0;
+    auto ret = SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_IME_STATE), nullptr,
+        [&statusTmp](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, statusTmp); });
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    status = static_cast<EnabledStatus>(statusTmp);
+    return ErrorCode::NO_ERROR;
+}
+
 void InputMethodSystemAbilityProxy::GetMessageOption(int32_t code, MessageOption &option)
 {
     switch (code) {

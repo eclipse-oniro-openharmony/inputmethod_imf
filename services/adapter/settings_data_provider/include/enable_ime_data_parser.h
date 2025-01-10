@@ -26,6 +26,7 @@
 #include "datashare_helper.h"
 #include "global.h"
 #include "input_method_property.h"
+#include "input_method_status.h"
 #include "serializable.h"
 #include "settings_data_utils.h"
 
@@ -80,7 +81,8 @@ public:
     bool CheckNeedSwitch(const SwitchInfo &info, const int32_t userId);
     void OnUserChanged(const int32_t userId);
     void OnConfigChanged(int32_t userId, const std::string &key);
-
+    int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+    
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *ENABLE_KEYBOARD = "settings.inputmethod.enable_keyboard";
     static constexpr const char *TEMP_IME = "settings.inputmethod.temp_ime";

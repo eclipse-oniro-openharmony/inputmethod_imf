@@ -46,6 +46,7 @@ public:
     SecurityMode GetSecurityMode(const std::string &bundleName, int32_t userId);
     int32_t UpdateFullModeList(int32_t userId);
     bool IsDefaultFullMode(const std::string &bundleName, int32_t userId);
+    bool IsSecurityMode(int32_t userId, const std::string &bundleName);
     static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
 
 private:

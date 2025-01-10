@@ -94,6 +94,22 @@ struct GetInputMethodControllerContext : public AsyncCall::Context {
     }
 };
 
+struct GetInputMethodStateContext : public AsyncCall::Context {
+    napi_status status = napi_generic_failure;
+    EnabledStatus enableStatus = EnabledStatus::DISABLED;
+    GetInputMethodStateContext() : Context(nullptr, nullptr){};
+    GetInputMethodStateContext(InputAction input, OutputAction output)
+        : Context(std::move(input), std::move(output)){};
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            output_ = nullptr;
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 class JsGetInputMethodSetting : public ImeEventListener {
 public:
     JsGetInputMethodSetting() = default;
@@ -111,6 +127,7 @@ public:
     static napi_value DisplayOptionalInputMethod(napi_env env, napi_callback_info info);
     static napi_value ShowOptionalInputMethods(napi_env env, napi_callback_info info);
     static napi_value IsPanelShown(napi_env env, napi_callback_info info);
+    static napi_value GetInputMethodState(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static std::shared_ptr<JsGetInputMethodSetting> GetInputMethodSettingInstance();
