@@ -346,6 +346,7 @@ uint64_t InputMethodPanel::GetDisplayId()
     }
     auto ret = window_->GetDisplayId();
     if (ret ==  DISPLAY_ID_INVALID) {
+        IMSA_HILOGE("display id invalid!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     return ret;
