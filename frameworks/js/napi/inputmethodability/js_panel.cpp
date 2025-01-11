@@ -285,6 +285,7 @@ napi_value JsPanel::GetDisplayId(napi_env env, napi_callback_info info)
         if (ctxt->displayId == DISPLAY_ID_INVALID) {
             IMSA_HILOGE("display id invalid!");
             ctxt->SetErrorCode(ErrorCode::ERROR_WINDOW_MANAGER);
+            return;
         }
         if (ctxt->displayId == ErrorCode::ERROR_EX_NULL_POINTER) {
             ctxt->SetErrorCode(ctxt->displayId);
