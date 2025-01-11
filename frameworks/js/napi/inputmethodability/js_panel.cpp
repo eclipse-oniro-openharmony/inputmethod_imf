@@ -277,12 +277,14 @@ napi_value JsPanel::GetDisplayId(napi_env env, napi_callback_info info)
         jsQueue_.Wait(ctxt->info);
         if (ctxt->inputMethodPanel == nullptr) {
             IMSA_HILOGE("inputMethodPanel_ is nullptr!");
+            ctxt->SetErrorCode(ErrorCode::ERROR_NULL_POINTER);
             jsQueue_.Pop();
             return;
         }
         auto ret = ctxt->inputMethodPanel->GetDisplayId(ctxt->displayId);
         jsQueue_.Pop();
         if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed get displayId!");
             ctxt->SetErrorCode(ret);
             return;
         }
