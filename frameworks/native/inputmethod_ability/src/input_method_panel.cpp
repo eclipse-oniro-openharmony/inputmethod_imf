@@ -338,7 +338,7 @@ int32_t InputMethodPanel::StartMoving()
     return ErrorCode::NO_ERROR;
 }
 
-uint64_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
+int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
