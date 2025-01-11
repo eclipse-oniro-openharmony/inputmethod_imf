@@ -342,13 +342,9 @@ uint64_t InputMethodPanel::GetDisplayId()
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = window_->GetDisplayId();
-    if (ret ==  DISPLAY_ID_INVALID) {
-        IMSA_HILOGE("display id invalid!");
-        return ErrorCode::ERROR_WINDOW_MANAGER;
-    }
     return ret;
 }
 
