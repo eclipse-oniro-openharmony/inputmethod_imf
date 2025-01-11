@@ -280,15 +280,10 @@ napi_value JsPanel::GetDisplayId(napi_env env, napi_callback_info info)
             jsQueue_.Pop();
             return;
         }
-        ctxt->displayId = ctxt->inputMethodPanel->GetDisplayId();
+        auto ret = ctxt->inputMethodPanel->GetDisplayId(ctxt->displayId);
         jsQueue_.Pop();
-        if (ctxt->displayId == Rosen::DISPLAY_ID_INVALID) {
-            IMSA_HILOGE("display id invalid!");
-            ctxt->SetErrorCode(ErrorCode::ERROR_WINDOW_MANAGER);
-            return;
-        }
-        if (ctxt->displayId == ErrorCode::ERROR_EX_NULL_POINTER) {
-            ctxt->SetErrorCode(ctxt->displayId);
+        if (ret != ErrorCode::NO_ERROR) {
+            ctxt->SetErrorCode(ret);
             return;
         }
         ctxt->SetState(napi_ok);

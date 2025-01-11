@@ -338,14 +338,18 @@ int32_t InputMethodPanel::StartMoving()
     return ErrorCode::NO_ERROR;
 }
 
-uint64_t InputMethodPanel::GetDisplayId()
+uint64_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    auto ret = window_->GetDisplayId();
-    return ret;
+    displayId = window_->GetDisplayId();
+    if (displayId == Rosen::DISPLAY_ID_INVALID) {
+        IMSA_HILOGE("display id invalid!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
