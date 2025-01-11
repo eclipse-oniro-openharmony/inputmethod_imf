@@ -282,7 +282,7 @@ napi_value JsPanel::GetDisplayId(napi_env env, napi_callback_info info)
         }
         ctxt->displayId = ctxt->inputMethodPanel->GetDisplayId();
         jsQueue_.Pop();
-        if (ctxt->displayId == DISPLAY_ID_INVALID) {
+        if (ctxt->displayId == Rosen::DISPLAY_ID_INVALID) {
             IMSA_HILOGE("display id invalid!");
             ctxt->SetErrorCode(ErrorCode::ERROR_WINDOW_MANAGER);
             return;
