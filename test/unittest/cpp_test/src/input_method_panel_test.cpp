@@ -1896,7 +1896,7 @@ HWTEST_F(InputMethodPanelTest, testGetDisplayId01, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testGetDisplayId start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodPanel->GetDisplayId();
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
