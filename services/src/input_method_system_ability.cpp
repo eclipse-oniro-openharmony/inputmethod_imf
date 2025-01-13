@@ -2087,8 +2087,12 @@ bool InputMethodSystemAbility::GetDeviceFunctionKeyState(int32_t functionKey, bo
         IMSA_HILOGE("multiInputMgr is nullptr");
         return false;
     }
-    isEnable = multiInputMgr->GetFunctionKeyState(functionKey);
+    int32_t ret = multiInputMgr->GetFunctionKeyState(functionKey, isEnable);
     IMSA_HILOGD("The function key: %{public}d, isEnable: %{public}d", functionKey, isEnable);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("multiInputMgr get function key state error: %{public}d", ret);
+        return false;
+    }
     return true;
 }
 
