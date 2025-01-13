@@ -72,8 +72,13 @@ int32_t InputClientStub::OnRemoteRequest(
 void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGI("ClientStub start.");
-    auto object = data.ReadRemoteObject();
-    InputMethodController::GetInstance()->OnInputReady(object);
+    std::pair<int64_t, std::string> imeInfo{ 0, "" };
+    sptr<IRemoteObject> agent = nullptr;
+    if (!ITypesUtil::Unmarshal(data, agent, imeInfo.first, imeInfo.second)) {
+        IMSA_HILOGE("Unmarshal failed");
+        return;
+    }
+    InputMethodController::GetInstance()->OnInputReady(agent, imeInfo);
 }
 
 int32_t InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -134,7 +139,7 @@ int32_t InputClientStub::NotifyInputStopOnRemote(MessageParcel &data, MessagePar
     return reply.WriteInt32(NotifyInputStop()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputClientStub::OnInputReady(const sptr<IRemoteObject> &agent)
+int32_t InputClientStub::OnInputReady(const sptr<IRemoteObject> &agent, const std::pair<int64_t, std::string> &imeInfo)
 {
     return ErrorCode::NO_ERROR;
 }

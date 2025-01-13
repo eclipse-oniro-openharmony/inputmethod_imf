@@ -28,15 +28,17 @@
 #include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
+#include "imf_hisysevent_reporter.h"
+#include "imsa_hisysevent_reporter.h"
 #include "input_method_status.h"
 #include "input_method_system_ability_stub.h"
+#include "input_method_types.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
 #include "message.h"
 #include "security_mode_parser.h"
 #include "settings_data_utils.h"
 #include "system_ability.h"
-#include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -51,7 +53,8 @@ public:
     ~InputMethodSystemAbility();
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) override;
+    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent,
+        std::pair<int64_t, std::string> &imeInfo) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
     int32_t ShowInput(sptr<IInputClient> client) override;
@@ -197,6 +200,7 @@ private:
     std::mutex modeChangeMutex_;
     bool isChangeHandling_ = false;
     bool hasPendingChanges_ = false;
+    std::shared_ptr<ImfHiSysEventReporter> imfHiSysEvent_ = std::make_shared<ImsaHiSysEventReporter>();
 };
 } // namespace MiscServices
 } // namespace OHOS

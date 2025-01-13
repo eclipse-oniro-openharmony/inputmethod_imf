@@ -545,12 +545,13 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
             "showKeyboard covert failed, type must be boolean!", TYPE_NONE, napi_generic_failure);
         PARAM_CHECK_RETURN(env, JsGetInputMethodController::GetValue(env, argv[1], ctxt->textConfig),
             "textConfig covert failed, type must be TextConfig!", TYPE_NONE, napi_generic_failure);
+        // TODO  report errCode:ERROR_JS_PARAM
         return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
         ctxt->textListener = JsGetInputMethodTextChangedListener::GetInstance();
-        auto status =
-            InputMethodController::GetInstance()->Attach(ctxt->textListener, ctxt->showKeyboard, ctxt->textConfig);
+        auto status = InputMethodController::GetInstance()->Attach(
+            ctxt->textListener, ctxt->showKeyboard, ctxt->textConfig, ClientType::JS);
         ctxt->SetErrorCode(status);
         CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "attach return error!");
         ctxt->SetState(napi_ok);
@@ -793,6 +794,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
     auto entry = GetEntry(type, [&insertText](UvEntry &entry) { entry.text = insertText; });
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
+        // TODO  report ERROR_JS_CB_NOT_REGISTER
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -1027,14 +1029,7 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         IMSA_HILOGE("failed to get uv entry.");
         return u"";
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return u"";
-    }
-    IMSA_HILOGI("type: %{public}s, number: %{public}d.", type.c_str(), number);
-    auto task = [entry]() {
-        auto fillArguments = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+
             if (argc < 1) {
                 IMSA_HILOGE("argc is err.");
                 return false;
@@ -1046,10 +1041,6 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         std::string text;
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
-        entry->textResultHandler->SetValue(text);
-    };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
-    return Str8ToStr16(textResultHandler->GetValue());
 }
 
 int32_t JsGetInputMethodController::GetTextIndexAtCursor()

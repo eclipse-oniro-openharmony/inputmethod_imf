@@ -152,7 +152,7 @@ int32_t InputMethodPanel::DestroyPanel()
     if (panelType_ == SOFT_KEYBOARD) {
         UnregisterKeyboardPanelInfoChangeListener();
     }
-    auto result = window_->Destroy();
+    // auto result = window_->Destroy();
     IMSA_HILOGI("destroy ret: %{public}d", result);
     return ErrorCode::NO_ERROR;
 }
@@ -1077,7 +1077,7 @@ int32_t InputMethodPanel::ShowPanel()
     }
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMA_NULLPTR;  // ERROR_NULL_POINTER
     }
     if (IsShowing()) {
         IMSA_HILOGI("panel already shown.");

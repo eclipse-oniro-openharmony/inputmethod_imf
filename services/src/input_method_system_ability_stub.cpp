@@ -78,9 +78,10 @@ int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, Me
     }
     clientInfo.client = iface_cast<IInputClient>(client);
     sptr<IRemoteObject> agent = nullptr;
-    int32_t ret = StartInput(clientInfo, agent);
-    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
-                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
+    std::pair<int64_t, std::string> imeInfo{ 0, "" };
+    int32_t ret = StartInput(clientInfo, agent, imeInfo);
+    return ITypesUtil::Marshal(reply, ret, agent, imeInfo.first, imeInfo.second) ? ErrorCode::NO_ERROR
+                                                                                 : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply)

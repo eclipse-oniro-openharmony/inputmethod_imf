@@ -191,6 +191,10 @@ private:
     std::atomic<int32_t> securityMode_ = -1;
     std::mutex msgHandlerMutex_;
     std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_;
+
+    std::mutex bindClientInfoLock_;
+    std::tuple<int64_t, std::string, ClientType> bindClientInfo_{ 0, "", ClientType::CLIENT_TYPE_END }; // for hiSysEvent
+    void SetBindClientInfo(const InputClientInfo &clientInfo);
 };
 } // namespace MiscServices
 } // namespace OHOS

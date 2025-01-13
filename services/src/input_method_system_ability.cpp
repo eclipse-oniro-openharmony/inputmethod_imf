@@ -345,7 +345,7 @@ int32_t InputMethodSystemAbility::PrepareInput(int32_t userId, InputClientInfo &
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;  // ERROR_NULL_POINTER::ERRIMMS
     }
     return session->OnPrepareInput(clientInfo);
 }
@@ -354,12 +354,12 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
 {
     if (clientInfo.client == nullptr || clientInfo.channel == nullptr) {
         IMSA_HILOGE("client or channel is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_NULLPTR; // ERROR_NULL_POINTER:ERRIMMS
     }
     auto deathRecipient = new (std::nothrow) InputDeathRecipient();
     if (deathRecipient == nullptr) {
         IMSA_HILOGE("failed to new deathRecipient!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_MALLOC_FAILED; // ERROR_EX_NULL_POINTER:ERRIMMS
     }
     clientInfo.pid = IPCSkeleton::GetCallingPid();
     clientInfo.uid = IPCSkeleton::GetCallingUid();
@@ -369,6 +369,7 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     if (identityChecker_->IsFocusedUIExtension(tokenId)) {
         clientInfo.uiExtensionTokenId = tokenId;
     }
+    clientInfo.name = ImfHiSysEventReporter::GetAppName(tokenId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -387,7 +388,8 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return session->OnReleaseInput(client);
 }
 
-int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
+int32_t InputMethodSystemAbility::StartInput(
+    InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId) && !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
@@ -397,7 +399,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;  // ERROR_NULL_POINTER:EXCEPTION_IMMS
     }
     if (session->GetCurrentClientPid() != IPCSkeleton::GetCallingPid()
         && session->GetInactiveClientPid() != IPCSkeleton::GetCallingPid()) {
@@ -422,7 +424,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         return ret;
     }
     session->SetInputType();
-    return session->OnStartInput(inputClientInfo, agent);
+    return session->OnStartInput(inputClientInfo, agent, imeInfo);
 }
 
 int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo)
@@ -457,7 +459,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;  // ERROR_NULL_POINTER
     }
     if (InputTypeManager::GetInstance().IsStarted()) {
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
@@ -473,7 +475,7 @@ int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND; //ERROR_NULL_POINTER
     }
     if (!identityChecker_->IsBroker(tokenId)) {
         if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, session->GetCurrentClientPid())) {
@@ -536,7 +538,7 @@ int32_t InputMethodSystemAbility::RequestShowInput()
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;  // ERROR_NULL_POINTER
     }
     return session->OnRequestShowInput();
 }
@@ -617,7 +619,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;  //ERROR_NULL_POINTER
     }
     if (identityChecker_->IsBroker(tokenId)) {
         return session->OnShowCurrentInput();
@@ -860,7 +862,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
     auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId, switchInfo.bundleName, switchInfo.subName);
     if (info == nullptr) {
         session->GetSwitchQueue().Pop();
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+        return ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED;
     }
     InputTypeManager::GetInstance().Set(false);
     {
@@ -869,11 +871,12 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
         ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id, true });
         auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg {
             targetImeName, info->prop.name, switchInfo.subName.empty() ? "" : info->subProp.id, info->prop.id });
-        if (!session->StartIme(targetIme)) {
+        ret = session->StartIme(targetIme);
+        if (ret != ErrorCode::NO_ERROR) {
             InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ret, switchInfo.bundleName,
                 "switch input method failed!");
             session->GetSwitchQueue().Pop();
-            return ErrorCode::ERROR_IME_START_FAILED;
+            return ret;
         }
         GetValidSubtype(switchInfo.subName, info);
         session->NotifyImeChangeToClients(info->prop, info->subProp);
@@ -903,7 +906,7 @@ int32_t InputMethodSystemAbility::OnStartInputType(int32_t userId, const SwitchI
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;  //ERROR_NULL_POINTER::ERRIMMS
     }
     if (!session->GetSwitchQueue().IsReady(switchInfo)) {
         IMSA_HILOGD("start wait.");
@@ -971,9 +974,10 @@ int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::sha
     std::string targetImeName = info->prop.name + "/" + info->prop.id;
     ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id, false });
     ImeNativeCfg targetIme = { targetImeName, info->prop.name, info->subProp.id, info->prop.id };
-    if (!session->StartIme(std::make_shared<ImeNativeCfg>(targetIme))) {
+    auto ret = session->StartIme(std::make_shared<ImeNativeCfg>(targetIme)));
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start input method failed!");
-        return ErrorCode::ERROR_IME_START_FAILED;
+        return ret;
     }
     session->NotifyImeChangeToClients(info->prop, info->subProp);
     GetValidSubtype("", info);
@@ -1005,18 +1009,19 @@ int32_t InputMethodSystemAbility::SwitchInputType(int32_t userId, const SwitchIn
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;  // ERROR_NULL_POINTER:ERRIMMS
     }
     auto targetIme = session->GetImeNativeCfg(userId, switchInfo.bundleName, switchInfo.subName);
     if (targetIme == nullptr) {
         IMSA_HILOGE("targetIme is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED;// ERROR_NULL_POINTER:ERRIMMS
     }
-    if (!session->StartIme(targetIme)) {
+    auto ret = session->StartIme(targetIme);
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start input method failed!");
-        return ErrorCode::ERROR_IME_START_FAILED;
+        return ret;   // ERROR_IME_START_FAILED::ERRIMMS
     }
-    int32_t ret = session->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
+    ret = session->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("switch subtype failed!");
         return ret;
@@ -1989,7 +1994,7 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;  // ERROR_NULL_POINTER:ERRIMMS
     }
     ImeIdentification ime;
     int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);

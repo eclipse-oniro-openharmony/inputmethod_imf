@@ -18,8 +18,8 @@
 
 #include <atomic>
 #include <chrono>
-#include <ctime>
 #include <condition_variable>
+#include <ctime>
 #include <mutex>
 #include <thread>
 #include <variant>
@@ -31,6 +31,7 @@
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "imc_hisysevent_reporter.h"
 #include "ime_event_listener.h"
 #include "input_client_info.h"
 #include "input_method_property.h"
@@ -39,12 +40,11 @@
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
-#include "msg_handler_callback_interface.h"
 #include "message_handler.h"
+#include "msg_handler_callback_interface.h"
 #include "panel_info.h"
 #include "private_command_interface.h"
 #include "visibility.h"
-
 namespace OHOS {
 namespace MiscServices {
 class OnTextChangedListener : public virtual RefBase {
@@ -140,7 +140,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, ClientType type = ClientType::INNER_KIT);
 
     /**
      * @brief Set listener and bind IMSA with given states and default attribute.
@@ -153,7 +153,8 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 8
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard);
+    IMF_API int32_t Attach(
+        sptr<OnTextChangedListener> listener, bool isShowKeyboard, ClientType type = ClientType::INNER_KIT);
 
     /**
      * @brief Set listener and bind IMSA with given states and attribute.
@@ -167,7 +168,8 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 8
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, const InputAttribute &attribute);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, const InputAttribute &attribute,
+        ClientType type = ClientType::INNER_KIT);
 
     /**
      * @brief Set listener and bind IMSA with given states and textConfig.
@@ -182,9 +184,10 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig);
-	
-	/**
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig,
+        ClientType type = ClientType::INNER_KIT);
+
+    /**
      * @brief Set listener and bind IMSA with given states and textConfig.
      *
      * This function is used to set listener and bind IMSA.
@@ -198,8 +201,8 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 16
      */
-    IMF_API int32_t Attach(
-        sptr<OnTextChangedListener> listener, AttachOptions attachOptions, const TextConfig &textConfig);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, AttachOptions attachOptions,
+        const TextConfig &textConfig, ClientType type = ClientType::INNER_KIT);
     /**
      * @brief Show soft keyboard.
      *
@@ -554,7 +557,7 @@ public:
      *
      * @since 10
      */
-    void OnInputReady(sptr<IRemoteObject> agentObject);
+    void OnInputReady(sptr<IRemoteObject> agentObject, const std::pair<int64_t, std::string> &imeInfo = {});
 
     /**
      * @brief Unbind IMC with Service.
@@ -839,7 +842,7 @@ public:
      * @since 13
      */
     IMF_API bool IsDefaultImeSet();
- 
+
     /**
      * @brief Enable the ime called bundleName.
      *
@@ -883,7 +886,8 @@ private:
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy(bool ifRetry = true);
     sptr<IInputMethodSystemAbility> TryGetSystemAbilityProxy();
     void RemoveDeathRecipient();
-    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
+    int32_t StartInput(
+        InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     int32_t ShowInput(sptr<IInputClient> &client);
     int32_t HideInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
@@ -960,6 +964,8 @@ private:
 
     std::mutex msgHandlerMutex_;
     std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_ = nullptr;
+    std::shared_ptr<ImfHiSysEventReporter> imcHiSysEvent_ = nullptr;
+    std::pair<int64_t, std::string> bindImeInfo_{ 0, "" };    // for hiSysEvent
 };
 } // namespace MiscServices
 } // namespace OHOS

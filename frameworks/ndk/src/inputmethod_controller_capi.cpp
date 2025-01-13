@@ -171,7 +171,7 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
         }
     }
 
-    int32_t err = controller->Attach(listener, options->showKeyboard, textConfig);
+    int32_t err = controller->Attach(listener, options->showKeyboard, textConfig, ClientType::NDK);
     if (err == ErrorCode::NO_ERROR) {
         errCode = IME_ERR_OK;
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);

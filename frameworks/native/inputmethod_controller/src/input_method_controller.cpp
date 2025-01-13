@@ -131,6 +131,7 @@ int32_t InputMethodController::Initialize()
 
     // make AppExecFwk::EventHandler handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    imcHiSysEvent_ = std::make_shared<ImcHiSysEventReporter>();
     return ErrorCode::NO_ERROR;
 }
 
@@ -209,38 +210,38 @@ void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
     }
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, ClientType type)
 {
-    return Attach(listener, true);
+    return Attach(listener, true, type);
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, ClientType type)
 {
     InputAttribute attribute;
     attribute.inputPattern = InputAttribute::PATTERN_TEXT;
-    return Attach(listener, isShowKeyboard, attribute);
+    return Attach(listener, isShowKeyboard, attribute, type);
 }
 
 int32_t InputMethodController::Attach(
-    sptr<OnTextChangedListener> listener, bool isShowKeyboard, const InputAttribute &attribute)
+    sptr<OnTextChangedListener> listener, bool isShowKeyboard, const InputAttribute &attribute, ClientType type)
 {
     InputMethodSyncTrace tracer("InputMethodController Attach trace.");
     TextConfig textConfig;
     textConfig.inputAttribute = attribute;
-    return Attach(listener, isShowKeyboard, textConfig);
+    return Attach(listener, isShowKeyboard, textConfig, type);
 }
 
 int32_t InputMethodController::Attach(
-    sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig)
+    sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig, ClientType type)
 {
     AttachOptions attachOptions;
     attachOptions.isShowKeyboard = isShowKeyboard;
     attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
-    return Attach(listener, attachOptions, textConfig);
+    return Attach(listener, attachOptions, textConfig, type);
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, AttachOptions attachOptions,
-    const TextConfig &textConfig)
+int32_t InputMethodController::Attach(
+    sptr<OnTextChangedListener> listener, AttachOptions attachOptions, const TextConfig &textConfig, ClientType type)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d.", attachOptions.isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
@@ -258,14 +259,23 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, Atta
     SaveTextConfig(textConfig);
     GetTextConfig(clientInfo_.config);
     clientInfo_.requestKeyboardReason = attachOptions.requestKeyboardReason;
+    clientInfo_.type = type;
 
     sptr<IRemoteObject> agent = nullptr;
-    int32_t ret = StartInput(clientInfo_, agent);
+    std::pair<int64_t, std::string> imeInfo{ 0, "" };
+    int32_t ret = StartInput(clientInfo_, agent, imeInfo);
     if (ret != ErrorCode::NO_ERROR) {
+        auto info = HiSysOriginalInfo::Builder()
+                        .SetErrCode(ret)
+                        .SetInputPattern(textConfig.inputAttribute.inputPattern)
+                        .SetIsShowKeyboard(attachOptions.isShowKeyboard)
+                        .SetClientType(type)
+                        .Build();
+        imcHiSysEvent_->ReportEvent(ImfEventType::CLIENT_ATTACH, *info);
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;
-    OnInputReady(agent);
+    OnInputReady(agent, imeInfo);
     if (attachOptions.isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
     }
@@ -384,7 +394,7 @@ int32_t InputMethodController::RequestShowInput()
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;  // ERROR_EX_NULL_POINTER
     }
     IMSA_HILOGI("InputMethodController start.");
     return proxy->RequestShowInput();
@@ -531,7 +541,8 @@ bool InputMethodController::EnableIme(const std::string &bundleName)
     return proxy->EnableIme(bundleName);
 }
 
-int32_t InputMethodController::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
+int32_t InputMethodController::StartInput(
+    InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo)
 {
     IMSA_HILOGD("InputMethodController::StartInput start.");
     auto proxy = GetSystemAbilityProxy();
@@ -539,7 +550,7 @@ int32_t InputMethodController::StartInput(InputClientInfo &inputClientInfo, sptr
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->StartInput(inputClientInfo, agent);
+    return proxy->StartInput(inputClientInfo, agent, imeInfo);
 }
 
 int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
@@ -757,11 +768,12 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     if (oldSecurityFlag != attribute.GetSecurityFlag()) {
         GetTextConfig(clientInfo_.config);
         sptr<IRemoteObject> agent = nullptr;
-        int32_t ret = StartInput(clientInfo_, agent);
+        std::pair<int64_t, std::string> imeInfo{ 0, "" };
+        int32_t ret = StartInput(clientInfo_, agent, imeInfo);
         if (ret != ErrorCode::NO_ERROR) {
             return ret;
         }
-        OnInputReady(agent);
+        OnInputReady(agent, imeInfo);
     }
     auto agent = GetAgent();
     if (agent == nullptr) {
@@ -942,7 +954,7 @@ int32_t InputMethodController::ShowSoftKeyboard()
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;  // ERROR_EX_NULL_POINTER
     }
     IMSA_HILOGI("start.");
     {
@@ -1028,9 +1040,10 @@ int32_t InputMethodController::SwitchInputMethod(
     return proxy->SwitchInputMethod(name, subName, trigger);
 }
 
-void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
+void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject, const std::pair<int64_t, std::string> &imeInfo)
 {
     IMSA_HILOGI("InputMethodController start.");
+    bindImeInfo_ = imeInfo;
     isBound_.store(true);
     isEditable_.store(true);
     if (agentObject == nullptr) {
@@ -1187,6 +1200,7 @@ int32_t InputMethodController::InsertText(const std::u16string &text)
     auto listener = GetTextListener();
     if (!IsEditable() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr!");
+        // TODO  report ERROR_CLIENT_NOT_EDITABLE
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -1195,6 +1209,7 @@ int32_t InputMethodController::InsertText(const std::u16string &text)
         IMSA_HILOGD("ACE InsertText.");
         listener->InsertText(text);
     }
+
     PrintLogIfAceTimeout(start);
     return ErrorCode::NO_ERROR;
 }
@@ -1371,6 +1386,7 @@ void InputMethodController::PrintLogIfAceTimeout(int64_t start)
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     if (end - start > ACE_DEAL_TIME_OUT) {
         IMSA_HILOGW("timeout: [%{public}" PRId64 ", %{public}" PRId64 "].", start, end);
+        // TODO  report ERROR_DEAL_TIMEOUT
     }
 }
 

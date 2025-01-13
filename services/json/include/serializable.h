@@ -67,6 +67,26 @@ public:
     static bool SetValue(cJSON *node, const std::string &name, const std::string &value);
     static bool SetValue(cJSON *node, const std::string &name, const int32_t &value);
     static bool SetValue(cJSON *node, const std::string &name, const bool &value);
+    static bool SetValue(cJSON *node, const std::string &name, const std::vector<std::vector<std::string>> &values)
+    {
+        auto array = cJSON_CreateArray();
+        for (const auto &value : values) {
+            auto stringArray = cJSON_CreateStringArray();
+            for (const auto &valueTmp : value) {
+                cJSON_AddItemToArray(stringArray, valueTmp);
+            }
+            auto ret = cJSON_AddItemToArray(array, stringArray);
+            if (!ret) {
+                cJSON_Delete(stringArray);
+            }
+        }
+        auto ret = cJSON_AddItemToObject(node, name.c_str(), array);
+        if (!ret) {
+            cJSON_Delete(array);
+        }
+        return ret;
+    }
+
     template<typename T> static bool SetValue(cJSON *node, const std::string &name, const std::vector<T> &values)
     {
         auto array = cJSON_CreateArray();

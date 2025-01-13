@@ -199,9 +199,11 @@ void InputMethodAbility::OnInitInputControlChannel(sptr<IRemoteObject> channelOb
 
 int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
+    SetBindClientInfo(clientInfo);
     if (clientInfo.channel == nullptr) {
         IMSA_HILOGE("channelObject is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        // TODO  report errCode:ERROR_IMA_CHANNEL_NULLPTR
+        return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;  // ERROR_CLIENT_NULL_POINTER
     }
     IMSA_HILOGI(
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
@@ -216,18 +218,22 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     {
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.bundleName = clientInfo.config.inputAttribute.bundleName;
+        IInputMethodCore::ON_CLIENT_INACTIVE
     }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart) :
                                      InvokeStartInputCallback(clientInfo.isNotifyInputStart);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d!", ret);
+        // TODO  report errCode:ret
         return ret;
     }
 
     auto showPanel = [&, needShow = clientInfo.isShowKeyboard] {
         if (needShow) {
-            ShowKeyboardImplWithoutLock(cmdId_);
+            auto ret = ShowKeyboardImplWithoutLock(cmdId_);
+            // TODO  report errCode:ret
         }
+        // TODO  report behaviour attach
         isImeTerminating.store(false);
     };
 
@@ -526,9 +532,11 @@ int32_t InputMethodAbility::InsertText(const std::string text)
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        // TODO  report errCode:ERROR_IMA_CHANNEL_NULLPTR
+        return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;   //ERROR_CLIENT_NULL_POINTER
     }
     return channel->InsertText(Str8ToStr16(text));
+    // TODO  report ret
 }
 
 int32_t InputMethodAbility::DeleteForward(int32_t length)
@@ -538,7 +546,7 @@ int32_t InputMethodAbility::DeleteForward(int32_t length)
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;  //ERROR_CLIENT_NULL_POINTER
     }
     return channel->DeleteForward(length);
 }
@@ -901,11 +909,11 @@ int32_t InputMethodAbility::ShowPanel(
     const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+        return ErrorCode::ERROR_IMA_NULLPTR; // ERROR_BAD_PARAMETERS
     }
     if (trigger == Trigger::IME_APP && GetInputDataChannelProxy() == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR; // ERROR_CLIENT_NULL_POINTER
     }
     if (flag == FLG_FIXED && inputMethodPanel->GetPanelType() == SOFT_KEYBOARD) {
         auto ret = inputMethodPanel->SetTextFieldAvoidInfo(positionY_, height_);
@@ -1229,7 +1237,7 @@ int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range 
     auto dataChannel = GetInputDataChannelProxy();
     if (dataChannel == nullptr) {
         IMSA_HILOGE("dataChannel is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;  // ERROR_CLIENT_NULL_POINTER
     }
     return dataChannel->SetPreviewText(text, range);
 }
@@ -1240,7 +1248,7 @@ int32_t InputMethodAbility::FinishTextPreview(bool isAsync)
     auto dataChannel = GetInputDataChannelProxy();
     if (dataChannel == nullptr) {
         IMSA_HILOGE("dataChannel is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;// ERROR_CLIENT_NULL_POINTER
     }
     return dataChannel->FinishTextPreview(isAsync);
 }
@@ -1357,6 +1365,12 @@ std::shared_ptr<MsgHandlerCallbackInterface> InputMethodAbility::GetMsgHandlerCa
 {
     std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
     return msgHandler_;
+}
+
+void InputMethodAbility::SetBindClientInfo(const InputClientInfo &clientInfo)
+{
+    std::lock_guard<std::mutex> lock(bindClientInfoLock_);
+    bindClientInfo_ = { clientInfo.pid, clientInfo.name, clientInfo.type };
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -25,10 +25,10 @@ namespace MiscServices {
 using namespace ErrorCode;
 InputClientProxy::InputClientProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IInputClient>(object) { }
 
-int32_t InputClientProxy::OnInputReady(const sptr<IRemoteObject> &agent)
+int32_t InputClientProxy::OnInputReady(const sptr<IRemoteObject> &agent, const std::pair<int64_t, std::string> &imeInfo)
 {
-    return SendRequest(ON_INPUT_READY, [agent](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, agent);
+    return SendRequest(ON_INPUT_READY, [agent, imeInfo](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, agent, imeInfo.first, imeInfo.second);
     });
 }
 
@@ -91,7 +91,7 @@ int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandl
     auto remote = Remote();
     if (remote == nullptr) {
         IMSA_HILOGE("remote is nullptr!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_IPC_REMOTE_NULLPTR;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {

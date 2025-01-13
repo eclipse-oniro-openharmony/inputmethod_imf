@@ -222,7 +222,7 @@ int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
     auto remote = Remote();
     if (remote == nullptr) {
         IMSA_HILOGE("remote is nullptr!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_IPC_REMOTE_NULLPTR;  //ERROR_EX_NULL_POINTER
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {

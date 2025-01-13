@@ -83,7 +83,7 @@ int32_t CjInputMethodController::Attach(const CTextConfig &txtCfg, bool showKeyb
     if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
-    return controller->Attach(textListener, showKeyboard, textCfg);
+    return controller->Attach(textListener, showKeyboard, textCfg, ClientType::CJ);
 }
 
 int32_t CjInputMethodController::Detach()

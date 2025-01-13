@@ -30,7 +30,8 @@ InputMethodSystemAbilityProxy::InputMethodSystemAbilityProxy(const sptr<IRemoteO
 {
 }
 
-int32_t InputMethodSystemAbilityProxy::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
+int32_t InputMethodSystemAbilityProxy::StartInput(
+    InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo)
 {
     if (inputClientInfo.client == nullptr) {
         IMSA_HILOGE("client is nullptr.");
@@ -43,10 +44,8 @@ int32_t InputMethodSystemAbilityProxy::StartInput(InputClientInfo &inputClientIn
             return ITypesUtil::Marshal(
                 data, inputClientInfo, inputClientInfo.client->AsObject(), inputClientInfo.channel);
         },
-        [&agent](MessageParcel &reply) {
-            agent = reply.ReadRemoteObject();
-            return true;
-        });
+        [&agent, &imeInfo](
+            MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, agent, imeInfo.first, imeInfo.second) });
 }
 
 int32_t InputMethodSystemAbilityProxy::ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
@@ -422,7 +421,7 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("write interface token failed!");
-        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
+        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;  // CY:ERROR_EX_ILLEGAL_ARGUMENT:ERRIMMS
     }
     if (input != nullptr && (!input(data))) {
         IMSA_HILOGE("write data failed!");
@@ -431,7 +430,7 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
     auto remote = Remote();
     if (remote == nullptr) {
         IMSA_HILOGE("remote is nullptr!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_IPC_REMOTE_NULLPTR; // CY: ERROR_EX_NULL_POINTER:ERRIMMS
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {

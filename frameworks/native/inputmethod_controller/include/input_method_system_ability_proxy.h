@@ -44,7 +44,8 @@ public:
     ~InputMethodSystemAbilityProxy() = default;
     DISALLOW_COPY_AND_MOVE(InputMethodSystemAbilityProxy);
 
-    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) override;
+    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent,
+        std::pair<int64_t, std::string> &imeInfo) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
     int32_t StopInputSession() override;

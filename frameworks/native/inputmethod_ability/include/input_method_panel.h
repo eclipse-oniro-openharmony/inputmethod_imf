@@ -174,12 +174,12 @@ private:
     bool isScbEnable_ { false };
 
     std::mutex panelAdjustLock_;
-    std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
+    std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;   // 不随display
     std::mutex adjustInfoInitLock_;
     std::atomic<bool> isAdjustInfoInitialized_{ false };
 
     HotAreas hotAreas_;
-    EnhancedLayoutParams enhancedLayoutParams_;
+    EnhancedLayoutParams enhancedLayoutParams_;   //输入法面板和软键盘在当前屏幕下的大小位置信息
     Rosen::KeyboardLayoutParams keyboardLayoutParams_;
 
     std::mutex keyboardSizeLock_;
