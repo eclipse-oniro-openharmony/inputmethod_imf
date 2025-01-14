@@ -224,6 +224,11 @@ AsyncCall::InnerTask::InnerTask(napi_env env, napi_async_work work, const char *
 
 AsyncCall::InnerTask::~InnerTask()
 {
+    if (startTime > endTime) {
+        IMSA_HILOGE("startTime:%{public}" PRIu64 ", endTime:%{public}" PRIu64,
+            ", isThisNullptr: %{public}d" startTime, endTime, this == nullptr);
+        return;
+    }
     auto endTime = GetTimeStamp();
     if (endTime - startTime > MAX_WAIT_TIME) {
         IMSA_HILOGW("async work timeout! func:%{public}s, startTime:%{public}" PRIu64 ", endTime:%{public}" PRIu64
