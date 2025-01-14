@@ -52,6 +52,9 @@ constexpr const char *STRICT_MODE = "strictMode";
 constexpr const char *ISOLATED_SANDBOX = "isolatedSandbox";
 constexpr uint32_t CHECK_IME_RUNNING_RETRY_INTERVAL = 60;
 constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
+constexpr int32_t MAX_RESTART_NUM = 3;
+constexpr int32_t IME_RESET_TIME_OUT = 3;
+constexpr int32_t MAX_RESTART_TASKS = 2;
 PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)

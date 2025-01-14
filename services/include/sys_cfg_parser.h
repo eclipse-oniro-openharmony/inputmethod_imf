@@ -126,7 +126,6 @@ public:
     static bool ParseDefaultFullIme(std::vector<DefaultFullImeInfo> &defaultFullImeList);
 
 private:
-    static constexpr const char *SYS_CFG_FILE_PATH = "etc/inputmethod/inputmethod_framework_config.json";
     static std::string GetSysCfgContent(const std::string &key);
 };
 } // namespace MiscServices

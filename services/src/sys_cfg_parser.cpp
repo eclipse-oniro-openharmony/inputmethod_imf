@@ -21,6 +21,7 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
+constexpr const char *SYS_CFG_FILE_PATH = "etc/inputmethod/inputmethod_framework_config.json";
 bool SysCfgParser::ParseSystemConfig(SystemConfig &systemConfig)
 {
     auto content = GetSysCfgContent(GET_NAME(systemConfig));

@@ -24,6 +24,7 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
+constexpr int32_t SUCCESS = 0;
 bool FileOperator::Create(const std::string &path, mode_t mode)
 {
     auto ret = mkdir(path.c_str(), mode);
