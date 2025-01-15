@@ -268,7 +268,6 @@ napi_value JsPanel::StartMoving(napi_env env, napi_callback_info info)
     auto ret = inputMethodPanel->StartMoving();
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to start moving", TYPE_NONE);
-        return JsUtil::Const::Null(env);
     }
     return JsUtil::Const::Null(env);
 }

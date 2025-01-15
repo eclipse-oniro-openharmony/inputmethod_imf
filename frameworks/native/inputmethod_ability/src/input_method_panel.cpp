@@ -327,14 +327,15 @@ int32_t InputMethodPanel::StartMoving()
         return ErrorCode::ERROR_INVALID_PANEL_TYPE;
     }
     if (panelFlag_ != FLG_FLOATING) {
-        IMSA_HILOGE("FLG_FIXED panel can not move!");
+        IMSA_HILOGE("invalid panel flag: %{public}d", panelFlag_);
         return ErrorCode::ERROR_INVALID_PANEL_FLAG;
     }
     auto ret = window_->StartMoveInputBar();
     if (ret != WmErrorCode::WM_OK) {
-        IMSA_HILOGE("window manager service error.");
+        IMSA_HILOGE("window manager service error ret = %{public}d.", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+    IMSA_HILOGI("StartMoving  success!");
     return ErrorCode::NO_ERROR;
 }
 
@@ -349,6 +350,7 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
         IMSA_HILOGE("display id invalid!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+    IMSA_HILOGI("GetDisplayId success dispalyId = %{public}lu.", displayId);
     return ErrorCode::NO_ERROR;
 }
 
