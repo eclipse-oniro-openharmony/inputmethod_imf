@@ -40,6 +40,7 @@ enum class ClientState : uint32_t {
     INACTIVE = 0,
     ACTIVE
 };
+
 constexpr uint32_t NO_EVENT_ON = 0;
 constexpr uint32_t IMF_INVALID_TOKENID = 0;
 struct InputClientInfo {
@@ -58,6 +59,7 @@ struct InputClientInfo {
     bool isNotifyInputStart { true };
     bool needHide { false }; // panel needs to be hidden first, when input pattern is switched between pwd and normal
     uint32_t uiExtensionTokenId { IMF_INVALID_TOKENID }; // the value is valid only in curClient and only UIExtension
+    RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE }; // show keyboard reason
 };
 } // namespace MiscServices
 } // namespace OHOS

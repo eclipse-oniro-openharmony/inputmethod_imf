@@ -141,13 +141,21 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
                 ctxt->contentStorage = contentStorage;
             }
         }
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::SET_UI_CONTENT };
+        jsQueue_.Push(ctxt->info);
         return napi_ok;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel is nullptr!");
+            jsQueue_.Pop();
+            return napi_generic_failure;
+        }
         auto code = ctxt->inputMethodPanel->SetUiContent(ctxt->path, env, ctxt->contentStorage);
+        jsQueue_.Pop();
         if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
             ctxt->SetErrorCode(code);
             ctxt->SetErrorMessage("path should be a path to specific page.");
@@ -323,7 +331,11 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         jsQueue_.Wait(ctxt->info);
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel is nullptr!");
+            jsQueue_.Pop();
+            return;
+        }
         auto code = InputMethodAbility::GetInstance()->ShowPanel(ctxt->inputMethodPanel);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
@@ -343,15 +355,28 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JsPanel_Hide");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::HIDE };
+        jsQueue_.Push(ctxt->info);
+        return napi_ok;
+    };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel is nullptr!");
+            jsQueue_.Pop();
+            return;
+        }
         auto code = InputMethodAbility::GetInstance()->HidePanel(ctxt->inputMethodPanel);
+        jsQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;
         }
         ctxt->SetErrorCode(code);
     };
+    ctxt->SetAction(std::move(input));
     // 1 means JsAPI:hide has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "panel.hide");
@@ -377,11 +402,7 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
         (panelFlag == PanelFlag::FLG_FIXED || panelFlag == PanelFlag::FLG_FLOATING ||
             panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN),
         "flag type must be one of PanelFlag!", TYPE_NONE, nullptr);
-    JsEventInfo eventInfo = { std::chrono::system_clock::now(), JsEvent::CHANGE_FLAG };
-    jsQueue_.Push(eventInfo);
-    jsQueue_.Wait(eventInfo);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
-    jsQueue_.Pop();
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "failed to ChangePanelFlag!", nullptr);
     return nullptr;
 }

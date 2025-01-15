@@ -348,8 +348,9 @@ int32_t InputMethodSystemAbilityStub::GetInputStartInfoOnRemote(MessageParcel &d
 {
     bool isInputStart = false;
     uint32_t callingWndId = 0;
-    auto ret = GetInputStartInfo(isInputStart, callingWndId);
-    return ITypesUtil::Marshal(reply, ret, isInputStart, callingWndId) ?
+    int32_t requestKeyboardReason = 0;
+    auto ret = GetInputStartInfo(isInputStart, callingWndId, requestKeyboardReason);
+    return ITypesUtil::Marshal(reply, ret, isInputStart, callingWndId, requestKeyboardReason) ?
         ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -453,6 +454,14 @@ int32_t InputMethodSystemAbilityStub::IsCurrentImeByPidOnRemote(MessageParcel &d
 int32_t InputMethodSystemAbilityStub::InitConnectOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     return reply.WriteInt32(InitConnect()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::GetInputMethodStateOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    EnabledStatus status = EnabledStatus::DISABLED;
+    int32_t ret = GetInputMethodState(status);
+    return ITypesUtil::Marshal(reply, ret, static_cast<int32_t>(status)) ? ErrorCode::NO_ERROR
+                                                                         : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -251,7 +251,7 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
-                 input.state, input.isNotifyInputStart, input.needHide)) {
+                 input.state, input.isNotifyInputStart, input.needHide, input.requestKeyboardReason)) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed.");
         return false;
     }
@@ -261,7 +261,7 @@ bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config,
-                   output.state, output.isNotifyInputStart, output.needHide)) {
+                   output.state, output.isNotifyInputStart, output.needHide, output.requestKeyboardReason)) {
         IMSA_HILOGE("read InputClientInfo from message parcel failed.");
         return false;
     }
@@ -502,6 +502,21 @@ bool ITypesUtil::Unmarshalling(ArrayBuffer &output, MessageParcel &data)
         IMSA_HILOGE("failed to read ArrayBuffer from message parcel.");
         return false;
     }
+    return true;
+}
+
+bool ITypesUtil::Marshalling(RequestKeyboardReason input, MessageParcel &data)
+{
+    return data.WriteInt32(static_cast<int32_t>(input));
+}
+
+bool ITypesUtil::Unmarshalling(RequestKeyboardReason &output, MessageParcel &data)
+{
+    int32_t ret = 0;
+    if (!data.ReadInt32(ret)) {
+        return false;
+    }
+    output = static_cast<RequestKeyboardReason>(ret);
     return true;
 }
 } // namespace MiscServices

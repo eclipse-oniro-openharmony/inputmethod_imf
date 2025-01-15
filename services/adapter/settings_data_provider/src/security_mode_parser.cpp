@@ -151,6 +151,12 @@ bool SecurityModeParser::IsDefaultFullMode(const std::string &bundleName, int32_
     return isDefaultFull;
 }
 
+bool SecurityModeParser::IsSecurityMode(int32_t userId, const std::string &bundleName)
+{
+    SecurityMode mode = GetSecurityMode(bundleName, userId);
+    return mode == SecurityMode::FULL;
+}
+
 bool SecurityModeParser::IsExpired(const std::string &expirationTime)
 {
     std::istringstream expirationTimeStr(expirationTime);

@@ -39,6 +39,8 @@ enum class JsEvent : uint32_t {
     ADJUST_PANEL_RECT,
     UPDATE_REGION,
     SHOW,
+    HIDE,
+    SET_UI_CONTENT,
     GET_DISPLAYID,
     EVENT_END,
 };

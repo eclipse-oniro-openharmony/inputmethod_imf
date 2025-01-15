@@ -671,11 +671,8 @@ void InputMethodPanel::CalculateHotArea(
     const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
 {
     // calculate keyboard hot area
-    if (hotArea.keyboardHotArea.empty()) {
-        hotArea.keyboardHotArea.push_back({ ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ });
-    }
-    std::vector<Rosen::Rect> availableAreas = { { { ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ } } };
-    RectifyAreas(availableAreas, hotArea.keyboardHotArea);
+    hotArea.keyboardHotArea.clear();
+    hotArea.keyboardHotArea.push_back({ ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ });
     // calculate panel hot area
     Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
     Rosen::Rect right = { .posX_ = static_cast<int32_t>(panel.width_) - adjustInfo.right,

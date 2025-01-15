@@ -249,11 +249,12 @@ int32_t InputMethodSystemAbilityProxy::SetCallingWindow(uint32_t windowId, sptr<
         });
 }
 
-int32_t InputMethodSystemAbilityProxy::GetInputStartInfo(bool &isInputStart, uint32_t &callingWndId)
+int32_t InputMethodSystemAbilityProxy::GetInputStartInfo(bool &isInputStart,
+    uint32_t &callingWndId, int32_t &requestKeyboardReason)
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_START_INFO), nullptr,
-        [&isInputStart, &callingWndId](MessageParcel &reply) {
-            return ITypesUtil::Unmarshal(reply, isInputStart, callingWndId);
+        [&isInputStart, &callingWndId, &requestKeyboardReason](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, isInputStart, callingWndId, requestKeyboardReason);
         });
 }
 
@@ -395,6 +396,18 @@ int32_t InputMethodSystemAbilityProxy::IsPanelShown(const PanelInfo &panelInfo, 
 int32_t InputMethodSystemAbilityProxy::IsDefaultIme()
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_DEFAULT_IME));
+}
+
+int32_t InputMethodSystemAbilityProxy::GetInputMethodState(EnabledStatus &status)
+{
+    int32_t statusTmp = 0;
+    auto ret = SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_IME_STATE), nullptr,
+        [&statusTmp](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, statusTmp); });
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    status = static_cast<EnabledStatus>(statusTmp);
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodSystemAbilityProxy::GetMessageOption(int32_t code, MessageOption &option)

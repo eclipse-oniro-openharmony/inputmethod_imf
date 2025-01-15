@@ -145,7 +145,7 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size, 
         // 2 means 'sizeChange' has 2 params
         JsCallbackHandler::Traverse({ entry->cbCopy }, { 2, getWindowSizeParams });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void PanelListenerImpl::SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler)

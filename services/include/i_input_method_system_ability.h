@@ -77,13 +77,14 @@ public:
     virtual bool IsDefaultImeSet() = 0;
     virtual bool EnableIme(const std::string &bundleName) = 0;
     virtual int32_t ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0;
+    virtual int32_t GetInputMethodState(EnabledStatus &status) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;
     virtual int32_t ShowCurrentInputDeprecated() = 0;
 
     virtual int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) = 0;
-    virtual int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId) = 0;
+    virtual int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

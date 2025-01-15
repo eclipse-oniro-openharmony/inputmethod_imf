@@ -76,7 +76,7 @@ public:
     int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) override;
     int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) override;
-    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId) override;
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason) override;
 
     bool IsCurrentIme() override;
     bool IsInputTypeSupported(InputType type) override;
@@ -94,6 +94,7 @@ public:
     int32_t IsDefaultIme() override;
     bool IsDefaultImeSet() override;
     bool EnableIme(const std::string &bundleName) override;
+    int32_t GetInputMethodState(EnabledStatus &status) override;
 
 protected:
     void OnStart() override;
@@ -179,6 +180,9 @@ private:
     bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
+    int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+    bool IsSecurityMode(int32_t userId, const std::string &bundleName);
+    int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
     void ResetDelayUnloadTask(uint32_t code = 0);

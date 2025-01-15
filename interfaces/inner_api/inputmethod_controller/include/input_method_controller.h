@@ -183,7 +183,23 @@ public:
      * @since 10
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig);
-
+	
+	/**
+     * @brief Set listener and bind IMSA with given states and textConfig.
+     *
+     * This function is used to set listener and bind IMSA.
+     * Show soft keyboard when state is true, and customized attribute.
+     *
+     * @param listener                  Indicates the listener in order to manipulate text.
+     * @param attachOptions             Indicates the attachOptions, if you want to show soft keyboard,
+     *                                  please pass in true.
+     * @param textConfig                Indicates the textConfig, such as input attribute, cursorInfo, range of
+     *                                  text selection,windowId.
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t Attach(
+        sptr<OnTextChangedListener> listener, AttachOptions attachOptions, const TextConfig &textConfig);
     /**
      * @brief Show soft keyboard.
      *
@@ -524,11 +540,12 @@ public:
      *
      * This function is used to Query current client bound status.
      *
-     * @param isInputStart Indicates imf bound status
-     * @param callingWndId Indicates the windows id of calling client.
+     * @param isInputStart 			Indicates imf bound status
+     * @param callingWndId 			Indicates the windows id of calling client.
+	 * @param requestKeyboardReason Indicates requestKeyboardReason for show keyboard
      * @return Returns true for imf upon bound state, return false for unbound status.
      */
-    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId);
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason);
 
     /**
      * @brief Set agent which will be used to communicate with IMA.
@@ -857,6 +874,17 @@ public:
      * @since 16
      */
     IMF_API int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
+
+    /**
+     * @brief Get ime state.
+     *
+     * This function is used to get it's enabled state by ime.
+     *
+     * @param status Indicates the enabled state
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t GetInputMethodState(EnabledStatus &status);
 
 private:
     InputMethodController();
