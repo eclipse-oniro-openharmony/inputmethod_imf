@@ -35,7 +35,6 @@ namespace MiscServices {
 enum class JsEvent : uint32_t {
     RESIZE = 0,
     MOVE_TO,
-    CHANGE_FLAG,
     ADJUST_PANEL_RECT,
     UPDATE_REGION,
     SHOW,
