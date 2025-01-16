@@ -350,7 +350,7 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
         IMSA_HILOGE("display id invalid!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    IMSA_HILOGI("GetDisplayId success dispalyId = %{public}llu.", displayId);
+    IMSA_HILOGI("GetDisplayId success dispalyId = %{public}" PRIu64 "", displayId);
     return ErrorCode::NO_ERROR;
 }
 
