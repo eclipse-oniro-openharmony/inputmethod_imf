@@ -1857,7 +1857,7 @@ HWTEST_F(InputMethodPanelTest, testStartMoving01, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testStartMoving start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodPanel->StartMoving();
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
@@ -1897,7 +1897,7 @@ HWTEST_F(InputMethodPanelTest, testGetDisplayId01, TestSize.Level0)
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     uint64_t displayId;
     auto ret = inputMethodPanel->GetDisplayId(displayId);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };

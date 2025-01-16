@@ -320,7 +320,7 @@ int32_t InputMethodPanel::StartMoving()
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IME;
     }
     if (panelType_ != STATUS_BAR) {
         IMSA_HILOGE("SOFT_KEYBOARD panel can not move!");
@@ -343,7 +343,7 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_IME;
     }
     displayId = window_->GetDisplayId();
     if (displayId == Rosen::DISPLAY_ID_INVALID) {
