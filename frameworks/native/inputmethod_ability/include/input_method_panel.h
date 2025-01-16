@@ -119,7 +119,7 @@ private:
     int32_t CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
         PanelAdjustInfo &porIterValue);
     int32_t CalculateNoConfigRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
-    void GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height);
+    int32_t GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height);
 
     int32_t ParseEnhancedParams(
         PanelFlag panelFlag, const FullPanelAdjustInfo &adjustInfo, EnhancedLayoutParams &params);
