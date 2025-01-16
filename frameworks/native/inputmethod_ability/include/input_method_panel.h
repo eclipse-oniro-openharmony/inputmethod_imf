@@ -54,7 +54,7 @@ public:
 
     int32_t Resize(uint32_t width, uint32_t height);
     int32_t MoveTo(int32_t x, int32_t y);
-    int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
+    int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion = true);
     int32_t AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas);
     int32_t UpdateRegion(std::vector<Rosen::Rect> region);
     int32_t ParsePanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
@@ -128,14 +128,17 @@ private:
     int32_t CalculateAvoidHeight(EnhancedLayoutParam &layoutParam, const WindowSize &displaySize, PanelFlag panelFlag,
         const PanelAdjustInfo &adjustInfo);
 
+    void CalculateHotAreas(const EnhancedLayoutParams &enhancedParams, const Rosen::KeyboardLayoutParams &params,
+        const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas);
+    void CalculateDefaultHotArea(
+        const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
     void CalculateHotArea(
         const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
-    void CalculateEnhancedHotAreas(
-        const EnhancedLayoutParams &layoutParams, const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas);
     void CalculateEnhancedHotArea(
         const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
     void RectifyAreas(const std::vector<Rosen::Rect> availableAreas, std::vector<Rosen::Rect> &areas);
     Rosen::Rect GetRectIntersection(Rosen::Rect a, Rosen::Rect b);
+    uint32_t SafeSubtract(uint32_t minuend, uint32_t subtrahend);
 
     int32_t ResizePanel(uint32_t width, uint32_t height);
     int32_t ResizeWithoutAdjust(uint32_t width, uint32_t height);

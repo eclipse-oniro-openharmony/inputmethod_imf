@@ -132,10 +132,13 @@ void InputMethodPanelAdjustTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest::SetUp");
     TaskManager::GetInstance().SetInited(true);
+    InputMethodPanelAdjustTest::Attach();
 }
 
 void InputMethodPanelAdjustTest::TearDown(void)
 {
+    InputMethodPanelAdjustTest::imc_->Close();
+    TddUtil::DestroyWindow();
     TddUtil::RestoreSelfTokenID();
     IMSA_HILOGI("InputMethodPanelAdjustTest::TearDown");
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -210,7 +213,6 @@ int32_t InputMethodPanelAdjustTest::GetDisplaySize(DisplaySize &size)
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_001 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = STATUS_BAR };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -220,8 +222,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_001, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_TYPE);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -232,7 +232,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_001, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_002 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -248,8 +247,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_002, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -260,7 +257,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_002, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_003 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -276,8 +272,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_003, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -288,7 +282,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_003, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_004 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -306,8 +299,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_004, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -318,7 +309,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_004, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_005 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -336,8 +326,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_005, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -348,7 +336,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_005, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_006, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_006 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -366,8 +353,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_006, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -378,7 +363,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_006, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_007, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_007 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -396,8 +380,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_007, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -408,7 +390,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_007, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_008, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_008 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -426,8 +407,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_008, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -438,7 +417,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_008, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_009, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_009 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -456,8 +434,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_009, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -468,7 +444,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_009, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_010, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_010 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -486,8 +461,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_010, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -498,7 +471,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_010, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_011, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_011 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -516,8 +488,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_011, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -528,7 +498,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_011, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_012, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_012 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -548,8 +517,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_012, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -560,7 +527,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_012, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_013, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_013 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -580,8 +546,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_013, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -592,7 +556,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_013, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_014, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_014 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -614,8 +577,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_014, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -626,7 +587,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_014, TestSize.L
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_015, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_015 Test START");
-    InputMethodPanelAdjustTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -648,8 +608,6 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_015, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -659,8 +617,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_015, TestSize.L
  */
 HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_016, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_015 Test START");
-    InputMethodPanelAdjustTest::Attach();
+    IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_016 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
@@ -682,8 +639,187 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_016, TestSize.L
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
-    InputMethodPanelAdjustTest::imc_->Close();
-    TddUtil::DestroyWindow();
+}
+
+/**
+ * @tc.name: testAdjustEnhancedPanelRect_017
+ * @tc.desc: Test old AdjustPanelRect with 0 width input, then UpdateRegion success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_017, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_017 Test START");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    DisplaySize display;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    Rosen::Rect portraitRect = { 0, 0, 0, static_cast<uint32_t>(display.portrait.height * 0.4) };
+    Rosen::Rect landscapeRect = { 0, 0, 0, static_cast<uint32_t>(display.landscape.height * 0.4) };
+    LayoutParams layoutParams = { .landscapeRect = landscapeRect, .portraitRect = portraitRect };
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams, true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    Rosen::Rect keyboardHotArea = {};
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
+    if (isPortrait) {
+        keyboardHotArea = { 0, 0, static_cast<uint32_t>(display.portrait.width * 0.5), portraitRect.height_ };
+    } else {
+        keyboardHotArea = { 0, 0, static_cast<uint32_t>(display.landscape.width * 0.5), landscapeRect.height_ };
+    }
+    std::vector<Rosen::Rect> region = { keyboardHotArea };
+    ret = inputMethodPanel->UpdateRegion(region);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    if (isPortrait) {
+        EXPECT_EQ(inputMethodPanel->hotAreas_.portrait.keyboardHotArea.size(), 1);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.portrait.keyboardHotArea[0], keyboardHotArea);
+    } else {
+        EXPECT_EQ(inputMethodPanel->hotAreas_.landscape.keyboardHotArea.size(), 1);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.landscape.keyboardHotArea[0], keyboardHotArea);
+    }
+    InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testAdjustEnhancedPanelRect_018
+ * @tc.desc: Test old AdjustPanelRect, then UpdateRegion, then moveTo can not change hot Areas.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_018, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_018 Test START");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    DisplaySize display;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    Rosen::Rect portraitRect = { 0, 0, display.portrait.width, static_cast<uint32_t>(display.portrait.height * 0.5) };
+    Rosen::Rect landscapeRect = { 0, 0, display.landscape.width,
+        static_cast<uint32_t>(display.landscape.height * 0.5) };
+    LayoutParams layoutParams = { .landscapeRect = landscapeRect, .portraitRect = portraitRect };
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams, true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    Rosen::Rect keyboardHotArea = {};
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
+    if (isPortrait) {
+        keyboardHotArea = { 0, 0, static_cast<uint32_t>(portraitRect.width_ * 0.5), portraitRect.height_ };
+    } else {
+        keyboardHotArea = { 0, 0, static_cast<uint32_t>(landscapeRect.width_ * 0.5), landscapeRect.height_ };
+    }
+    std::vector<Rosen::Rect> region = { keyboardHotArea };
+    ret = inputMethodPanel->UpdateRegion(region);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->MoveTo(1, 1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    if (isPortrait) {
+        EXPECT_EQ(inputMethodPanel->hotAreas_.portrait.keyboardHotArea.size(), 1);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.portrait.keyboardHotArea[0], keyboardHotArea);
+    } else {
+        EXPECT_EQ(inputMethodPanel->hotAreas_.landscape.keyboardHotArea.size(), 1);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.landscape.keyboardHotArea[0], keyboardHotArea);
+    }
+    InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testAdjustEnhancedPanelRect_019
+ * @tc.desc: Test old AdjustPanelRect, then Resize.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_019, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_019 Test START");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    inputMethodPanel->isScbEnable_ = true;
+    DisplaySize display;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    Rosen::Rect portraitRect = { 0, 0, display.portrait.width, static_cast<uint32_t>(display.portrait.height * 0.5) };
+    Rosen::Rect landscapeRect = { 0, 0, display.landscape.width,
+        static_cast<uint32_t>(display.landscape.height * 0.5) };
+    LayoutParams layoutParams = { .landscapeRect = landscapeRect, .portraitRect = portraitRect };
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams, true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    WindowSize size = {};
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
+    if (isPortrait) {
+        size = { static_cast<uint32_t>(portraitRect.width_ * 0.5), static_cast<uint32_t>(portraitRect.height_ * 0.5) };
+    } else {
+        size = { static_cast<uint32_t>(landscapeRect.width_ * 0.5),
+            static_cast<uint32_t>(landscapeRect.height_ * 0.5) };
+    }
+    ret = inputMethodPanel->Resize(size.width, size.height);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    Rosen::Rect newRect = { 0, 0, size.width, size.height };
+    if (isPortrait) {
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.PortraitKeyboardRect_, newRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.LandscapeKeyboardRect_, landscapeRect);
+    } else {
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.PortraitKeyboardRect_, portraitRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.LandscapeKeyboardRect_, newRect);
+    }
+    InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testAdjustEnhancedPanelRect_020
+ * @tc.desc: Test new AdjustPanelRect, then Resize.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_020, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_020 Test START");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    InputMethodPanelAdjustTest::ImaCreatePanel({ .panelType = SOFT_KEYBOARD }, inputMethodPanel);
+    inputMethodPanel->isScbEnable_ = true;
+    DisplaySize display;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    Rosen::Rect portraitRect = { 0, 0, 0, static_cast<uint32_t>(display.portrait.height * 0.8) };
+    Rosen::Rect landscapeRect = { 0, 0, 0, static_cast<uint32_t>(display.landscape.height * 0.8) };
+    uint32_t portraitAvoidHeight = display.portrait.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO - 1;
+    uint32_t portraitAvoidY = display.portrait.height - portraitAvoidHeight;
+    uint32_t landscapeAvoidHeight = display.landscape.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO - 1;
+    uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
+    EnhancedLayoutParams params = {
+        .isFullScreen = false,
+        .portrait = { portraitRect, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { landscapeRect, static_cast<int32_t>(landscapeAvoidY), 0 },
+    };
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, {});
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    WindowSize size = {};
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
+    if (isPortrait) {
+        size = { 100, static_cast<uint32_t>(portraitRect.height_ * 0.5) };
+    } else {
+        size = { 100, static_cast<uint32_t>(landscapeRect.height_ * 0.5) };
+    }
+    ret = inputMethodPanel->Resize(size.width, size.height);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    if (isPortrait) {
+        Rosen::Rect newPortraitRect = { 0, static_cast<int32_t>(display.portrait.height - size.height),
+            display.portrait.width, size.height };
+        Rosen::Rect newLandRect = { 0, static_cast<int32_t>(display.landscape.height - landscapeRect.height_),
+            display.landscape.width, landscapeRect.height_ };
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.PortraitKeyboardRect_, newPortraitRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.LandscapeKeyboardRect_, newLandRect);
+    } else {
+        Rosen::Rect newPortraitRect = { 0, static_cast<int32_t>(display.portrait.height - portraitRect.height_),
+            display.portrait.width, portraitRect.height_ };
+        Rosen::Rect newLandRect = { 0, static_cast<int32_t>(display.landscape.height - size.height),
+            display.landscape.width, size.height };
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.PortraitKeyboardRect_, newPortraitRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.LandscapeKeyboardRect_, newLandRect);
+    }
+    InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
 }
 } // namespace MiscServices
 } // namespace OHOS
