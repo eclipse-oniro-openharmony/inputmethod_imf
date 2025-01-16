@@ -330,7 +330,7 @@ int32_t InputMethodPanel::StartMoving()
         IMSA_HILOGE("invalid panel flag: %{public}d", panelFlag_);
         return ErrorCode::ERROR_INVALID_PANEL_FLAG;
     }
-    auto ret = window_->StartMoveInputBar();
+    auto ret = window_->StartMoveWindow();
     if (ret != WmErrorCode::WM_OK) {
         IMSA_HILOGE("window manager service error ret = %{public}d.", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
