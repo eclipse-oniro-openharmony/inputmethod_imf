@@ -157,14 +157,33 @@ int32_t InputMethodPanel::DestroyPanel()
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodPanel::GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height)
+int32_t InputMethodPanel::GetResizeParams(
+    Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height)
 {
     LayoutParams currParams;
+    DisplaySize displaySize;
+    auto ret = GetDisplaySize(displaySize);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to GetDisplaySize ret: %{public}d", ret);
+        return ret;
+    }
     if (IsDisplayUnfolded()) {
         IMSA_HILOGI("foldable device without fold state");
+        resizePanelUnfoldParams_.portraitRect.height_ =
+            std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+                static_cast<float>(resizePanelUnfoldParams_.portraitRect.height_));
+        resizePanelUnfoldParams_.landscapeRect.height_ =
+            std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+                static_cast<float>(resizePanelUnfoldParams_.landscapeRect.height_));
         currParams = resizePanelUnfoldParams_;
     } else {
         IMSA_HILOGI("foldable device with fold state or non-foldable device");
+        resizePanelFoldParams_.portraitRect.height_ =
+            std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+                static_cast<float>(resizePanelFoldParams_.portraitRect.height_));
+        resizePanelFoldParams_.landscapeRect.height_ =
+            std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+                static_cast<float>(resizePanelFoldParams_.landscapeRect.height_));
         currParams = resizePanelFoldParams_;
     }
     if (IsDisplayPortrait()) {
@@ -180,6 +199,7 @@ void InputMethodPanel::GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &lands
         landscape.width_ = width;
         IMSA_HILOGI("isLandscapeRect now, update landscape size");
     }
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodPanel::UpdateResizeParams()
@@ -198,8 +218,12 @@ void InputMethodPanel::UpdateResizeParams()
 int32_t InputMethodPanel::ResizeEnhancedPanel(uint32_t width, uint32_t height)
 {
     EnhancedLayoutParams layoutParam = enhancedLayoutParams_;
-    GetResizeParams(layoutParam.portrait.rect, layoutParam.landscape.rect, width, height);
-    auto ret = AdjustPanelRect(panelFlag_, layoutParam, hotAreas_);
+    auto ret = GetResizeParams(layoutParam.portrait.rect, layoutParam.landscape.rect, width, height);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to GetResizeParams, ret: %{public}d", ret);
+        return ret;
+    }
+    ret = AdjustPanelRect(panelFlag_, layoutParam, hotAreas_);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to AdjustPanelRect, ret: %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
@@ -235,8 +259,12 @@ int32_t InputMethodPanel::ResizePanel(uint32_t width, uint32_t height)
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     LayoutParams params = { enhancedLayoutParams_.landscape.rect, enhancedLayoutParams_.portrait.rect };
-    GetResizeParams(params.portraitRect, params.landscapeRect, width, height);
-    auto ret = AdjustPanelRect(panelFlag_, params);
+    auto ret = GetResizeParams(params.portraitRect, params.landscapeRect, width, height);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to GetResizeParams, ret: %{public}d", ret);
+        return ret;
+    }
+    ret = AdjustPanelRect(panelFlag_, params);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to resize, ret: %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
