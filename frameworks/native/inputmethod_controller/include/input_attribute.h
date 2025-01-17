@@ -33,17 +33,18 @@ struct InputAttribute {
     int32_t inputOption = 0;
     bool isTextPreviewSupported { false };
     std::string bundleName { "" };
+    int32_t immersiveMode = 0;
 
     static bool Marshalling(const InputAttribute &in, MessageParcel &data)
     {
         return data.WriteInt32(in.inputPattern) && data.WriteInt32(in.enterKeyType) &&
-            data.WriteInt32(in.inputOption) && data.WriteString(in.bundleName);
+            data.WriteInt32(in.inputOption) && data.WriteString(in.bundleName) && data.WriteInt32(in.immersiveMode);
     }
 
     static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
     {
         return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) &&
-            data.ReadInt32(out.inputOption) && data.ReadString(out.bundleName);
+            data.ReadInt32(out.inputOption) && data.ReadString(out.bundleName) && data.ReadInt32(out.immersiveMode);
     }
 
     bool GetSecurityFlag() const

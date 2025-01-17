@@ -41,6 +41,8 @@ enum class JsEvent : uint32_t {
     HIDE,
     SET_UI_CONTENT,
     GET_DISPLAYID,
+    SET_IMMERSIVE_MODE,
+    GET_IMMERSIVE_MODE,
     EVENT_END,
 };
 
@@ -86,6 +88,8 @@ public:
     static napi_value GetDisplayId(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> GetNative();
+    static napi_value SetImmersiveMode(napi_env env, napi_callback_info info);
+    static napi_value GetImmersiveMode(napi_env env, napi_callback_info info);
 
 private:
     struct PanelContentContext : public AsyncCall::Context {

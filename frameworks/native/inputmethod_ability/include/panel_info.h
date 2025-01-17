@@ -33,6 +33,14 @@ struct PanelInfo {
     PanelType panelType = SOFT_KEYBOARD;
     PanelFlag panelFlag = FLG_FIXED;
 };
+
+enum class ImmersiveMode : int32_t {
+    NONE_IMMERSIVE = 0,
+    IMMERSIVE = 1,
+    LIGHT_IMMERSIVE = 2,
+    DARK_IMMERSIVE = 3,
+    END,
+};
 } // namespace MiscServices
 } // namespace OHOS
 
