@@ -39,7 +39,7 @@ const DISPLAY_SCALE: number = 0.35;
 const MIN_SIZE: number = 350;
 const MAX_SZIE: number = 550;
 const DIALOG_POSITION_X: number = 50;
-const DIALOG_POSITION_Y_SCALE: number = 0.5;
+const DIALOG_POSITION_Y_SCALE: number = 0.3;
 
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   private extensionWin: window.Window | undefined = undefined;
@@ -66,7 +66,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     };
     let windowConfig: window.Configuration = {
       name: 'inputmethod Dialog',
-      windowType: window.WindowType.TYPE_FLOAT,
+      windowType: window.WindowType.TYPE_GLOBAL_SEARCH,
       ctx: this.mContext
     };
     this.getInputMethods().then(() => {
