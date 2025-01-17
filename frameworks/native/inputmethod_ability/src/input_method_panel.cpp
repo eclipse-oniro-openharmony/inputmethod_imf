@@ -303,7 +303,7 @@ int32_t InputMethodPanel::MovePanelRect(int32_t x, int32_t y)
         params.landscapeRect.posY_ = y;
         IMSA_HILOGI("isLandscapeRect now, updata landscape size");
     }
-    auto ret = AdjustPanelRect(panelFlag_, params);
+    auto ret = AdjustPanelRect(panelFlag_, params, false);
     IMSA_HILOGI("x/y: %{public}d/%{public}d, ret = %{public}d", x, y, ret);
     return ret == ErrorCode::NO_ERROR ? ErrorCode::NO_ERROR : ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
 }
@@ -382,7 +382,8 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
+int32_t InputMethodPanel::AdjustPanelRect(
+    const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
@@ -414,7 +415,9 @@ int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const Layou
     }
     UpdateResizeParams();
     UpdateLayoutInfo(panelFlag, layoutParams, {}, keyboardLayoutParams_, false);
-    UpdateHotAreas();
+    if (needUpdateRegion) {
+        UpdateHotAreas();
+    }
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     return ErrorCode::NO_ERROR;
@@ -495,7 +498,8 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     // set hot area
-    CalculateEnhancedHotAreas(params, adjustInfo, hotAreas);
+    isInEnhancedAdjust_.store(true);
+    CalculateHotAreas(params, wmsParams, adjustInfo, hotAreas);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
     result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
     if (result != WMError::WM_OK) {
@@ -620,7 +624,7 @@ int32_t InputMethodPanel::CalculateAvoidHeight(EnhancedLayoutParam &layoutParam,
     }
     if (avoidHeight < static_cast<uint32_t>(adjustInfo.bottom)) {
         avoidHeight = adjustInfo.bottom;
-        layoutParam.avoidY = layoutParam.rect.height_ - avoidHeight;
+        layoutParam.avoidY = static_cast<int32_t>(layoutParam.rect.height_) - static_cast<int32_t>(avoidHeight);
         IMSA_HILOGI("rectify avoidY to %{public}d", layoutParam.avoidY);
     }
     layoutParam.avoidHeight = avoidHeight;
@@ -640,9 +644,9 @@ void InputMethodPanel::UpdateHotAreas()
         return;
     }
     auto hotAreas = hotAreas_;
-    CalculateHotArea(keyboardLayoutParams_.LandscapeKeyboardRect_, keyboardLayoutParams_.LandscapePanelRect_,
+    CalculateDefaultHotArea(keyboardLayoutParams_.LandscapeKeyboardRect_, keyboardLayoutParams_.LandscapePanelRect_,
         adjustInfo.landscape, hotAreas.landscape);
-    CalculateHotArea(keyboardLayoutParams_.PortraitKeyboardRect_, keyboardLayoutParams_.PortraitPanelRect_,
+    CalculateDefaultHotArea(keyboardLayoutParams_.PortraitKeyboardRect_, keyboardLayoutParams_.PortraitPanelRect_,
         adjustInfo.portrait, hotAreas.portrait);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
     WMError result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
@@ -656,18 +660,47 @@ void InputMethodPanel::UpdateHotAreas()
         HotArea::ToString(hotAreas_.landscape.keyboardHotArea).c_str());
 }
 
-void InputMethodPanel::CalculateEnhancedHotAreas(
-    const EnhancedLayoutParams &layoutParams, const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas)
+void InputMethodPanel::CalculateHotAreas(const EnhancedLayoutParams &enhancedParams,
+    const Rosen::KeyboardLayoutParams &params, const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas)
 {
-    CalculateEnhancedHotArea(layoutParams.portrait, adjustInfo.portrait, hotAreas.portrait);
+    if (isInEnhancedAdjust_.load()) {
+        CalculateEnhancedHotArea(enhancedParams.portrait, adjustInfo.portrait, hotAreas.portrait);
+        CalculateEnhancedHotArea(enhancedParams.landscape, adjustInfo.landscape, hotAreas.landscape);
+    } else {
+        CalculateHotArea(
+            params.PortraitKeyboardRect_, params.PortraitPanelRect_, adjustInfo.portrait, hotAreas.portrait);
+        CalculateHotArea(
+            params.LandscapeKeyboardRect_, params.LandscapePanelRect_, adjustInfo.landscape, hotAreas.landscape);
+    }
+    hotAreas.isSet = true;
     IMSA_HILOGD("portrait keyboard: %{public}s, panel: %{public}s",
         HotArea::ToString(hotAreas.portrait.keyboardHotArea).c_str(),
         HotArea::ToString(hotAreas.portrait.panelHotArea).c_str());
-    CalculateEnhancedHotArea(layoutParams.landscape, adjustInfo.landscape, hotAreas.landscape);
     IMSA_HILOGD("landscape keyboard: %{public}s, panel: %{public}s",
         HotArea::ToString(hotAreas.landscape.keyboardHotArea).c_str(),
         HotArea::ToString(hotAreas.landscape.panelHotArea).c_str());
-    hotAreas.isSet = true;
+}
+
+void InputMethodPanel::CalculateHotArea(
+    const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
+{
+    // calculate keyboard hot area
+    if (hotArea.keyboardHotArea.empty()) {
+        hotArea.keyboardHotArea.push_back({ ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ });
+    }
+    std::vector<Rosen::Rect> availableAreas = { { { ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ } } };
+    RectifyAreas(availableAreas, hotArea.keyboardHotArea);
+    // calculate panel hot area
+    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
+    Rosen::Rect right = { .posX_ = static_cast<int32_t>(panel.width_) - adjustInfo.right,
+        .posY_ = ORIGIN_POS_Y,
+        .width_ = static_cast<uint32_t>(adjustInfo.right),
+        .height_ = panel.height_ };
+    Rosen::Rect bottom = { .posX_ = ORIGIN_POS_X,
+        .posY_ = static_cast<int32_t>(panel.height_) - adjustInfo.bottom,
+        .width_ = panel.width_,
+        .height_ = static_cast<uint32_t>(adjustInfo.bottom) };
+    hotArea.panelHotArea = { left, right, bottom };
 }
 
 void InputMethodPanel::CalculateEnhancedHotArea(
@@ -681,8 +714,8 @@ void InputMethodPanel::CalculateEnhancedHotArea(
     availableAreas.push_back({ ORIGIN_POS_X, ORIGIN_POS_Y, layout.rect.width_, static_cast<uint32_t>(layout.avoidY) });
     availableAreas.push_back({ .posX_ = adjustInfo.left,
         .posY_ = layout.avoidY,
-        .width_ = layout.rect.width_ - static_cast<uint32_t>(adjustInfo.left + adjustInfo.right),
-        .height_ = layout.avoidHeight - adjustInfo.bottom });
+        .width_ = SafeSubtract(layout.rect.width_, static_cast<uint32_t>(adjustInfo.left + adjustInfo.right)),
+        .height_ = SafeSubtract(layout.avoidHeight, static_cast<uint32_t>(adjustInfo.bottom)) });
     RectifyAreas(availableAreas, hotArea.keyboardHotArea);
     // calculate panel hot area
     Rosen::Rect left = { ORIGIN_POS_X, layout.avoidY, static_cast<uint32_t>(adjustInfo.left), layout.avoidHeight };
@@ -697,7 +730,7 @@ void InputMethodPanel::CalculateEnhancedHotArea(
     hotArea.panelHotArea = { left, right, bottom };
 }
 
-void InputMethodPanel::CalculateHotArea(
+void InputMethodPanel::CalculateDefaultHotArea(
     const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
 {
     // calculate keyboard hot area
@@ -739,14 +772,22 @@ void InputMethodPanel::RectifyAreas(const std::vector<Rosen::Rect> availableArea
 Rosen::Rect InputMethodPanel::GetRectIntersection(Rosen::Rect a, Rosen::Rect b)
 {
     int32_t left = std::max(a.posX_, b.posX_);
-    int32_t right = std::min(a.posX_ + a.width_, b.posX_ + b.width_);
+    int32_t right = std::min(a.posX_ + static_cast<int32_t>(a.width_), b.posX_ + static_cast<int32_t>(b.width_));
     int32_t top = std::max(a.posY_, b.posY_);
-    int32_t bottom = std::min(a.posY_ + a.height_, b.posY_ + b.height_);
+    int32_t bottom = std::min(a.posY_ + static_cast<int32_t>(a.height_), b.posY_ + static_cast<int32_t>(b.height_));
     if (left < right && top < bottom) {
         return { left, top, static_cast<uint32_t>(right - left), static_cast<uint32_t>(bottom - top) };
     } else {
         return { 0, 0, 0, 0 };
     }
+}
+
+uint32_t InputMethodPanel::SafeSubtract(uint32_t minuend, uint32_t subtrahend)
+{
+    if (minuend < subtrahend) {
+        return 0;
+    }
+    return minuend - subtrahend;
 }
 
 int32_t InputMethodPanel::UpdateRegion(std::vector<Rosen::Rect> region)
@@ -777,7 +818,7 @@ int32_t InputMethodPanel::UpdateRegion(std::vector<Rosen::Rect> region)
     } else {
         hotAreas.landscape.keyboardHotArea = region;
     }
-    CalculateEnhancedHotAreas(enhancedLayoutParams_, adjustInfo, hotAreas);
+    CalculateHotAreas(enhancedLayoutParams_, keyboardLayoutParams_, adjustInfo, hotAreas);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
     WMError result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
     if (result != WMError::WM_OK) {
@@ -1476,7 +1517,7 @@ int32_t InputMethodPanel::SizeChange(const WindowSize &size)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (!isInEnhancedAdjust_.load()) {
-        listener->OnSizeChange(windowId_, size);
+        listener->OnSizeChange(windowId_, size, {});
         return ErrorCode::NO_ERROR;
     }
     FullPanelAdjustInfo adjustInfo;
