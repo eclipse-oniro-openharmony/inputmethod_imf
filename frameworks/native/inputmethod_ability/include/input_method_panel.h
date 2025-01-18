@@ -83,6 +83,8 @@ public:
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
     void SetPanelHeightCallback(CallbackFunc heightCallback);
     int32_t IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayoutParams &params);
+    int32_t SetImmersiveMode(ImmersiveMode mode);
+    ImmersiveMode GetImmersiveMode();
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -204,6 +206,7 @@ private:
     };
     std::atomic<bool> isWaitSetUiContent_ { true };
     std::atomic<bool> isInEnhancedAdjust_{ false };
+    ImmersiveMode immersiveMode_ { ImmersiveMode::NONE_IMMERSIVE };
 };
 } // namespace MiscServices
 } // namespace OHOS

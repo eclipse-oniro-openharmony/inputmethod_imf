@@ -89,7 +89,7 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED, "text preview not supported." },
     { EXCEPTION_PANEL_NOT_FOUND, "the input method panel does not exist." },
     { EXCEPTION_WINDOW_MANAGER, "window manager service error." },
-    { EXCEPTION_BASIC_MODE, "the intput method is basic mode." },
+    { EXCEPTION_BASIC_MODE, "the input method is basic mode." },
     { EXCEPTION_REQUEST_NOT_ACCEPT, "the another side does not accept the request." },
     { EXCEPTION_EDITABLE, "the edit mode need enable." },
     { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },

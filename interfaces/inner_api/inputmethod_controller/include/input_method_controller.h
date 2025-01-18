@@ -914,6 +914,7 @@ private:
     void PrintLogIfAceTimeout(int64_t start);
     void PrintKeyEventLog();
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
+    int32_t IsValidTextConfig(const TextConfig &textConfig);
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
