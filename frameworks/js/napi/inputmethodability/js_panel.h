@@ -35,10 +35,14 @@ namespace MiscServices {
 enum class JsEvent : uint32_t {
     RESIZE = 0,
     MOVE_TO,
-    CHANGE_FLAG,
     ADJUST_PANEL_RECT,
     UPDATE_REGION,
     SHOW,
+    HIDE,
+    SET_UI_CONTENT,
+    GET_DISPLAYID,
+    SET_IMMERSIVE_MODE,
+    GET_IMMERSIVE_MODE,
     EVENT_END,
 };
 
@@ -80,8 +84,12 @@ public:
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static napi_value AdjustPanelRect(napi_env env, napi_callback_info info);
     static napi_value UpdateRegion(napi_env env, napi_callback_info info);
+    static napi_value StartMoving(napi_env env, napi_callback_info info);
+    static napi_value GetDisplayId(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> GetNative();
+    static napi_value SetImmersiveMode(napi_env env, napi_callback_info info);
+    static napi_value GetImmersiveMode(napi_env env, napi_callback_info info);
 
 private:
     struct PanelContentContext : public AsyncCall::Context {
@@ -96,6 +104,7 @@ private:
         uint32_t height = 0;
         int32_t x = 0;
         int32_t y = 0;
+        uint64_t displayId;
         std::shared_ptr<InputMethodPanel> inputMethodPanel = nullptr;
         std::shared_ptr<NativeReference> contentStorage = nullptr;
         JsEventInfo info;

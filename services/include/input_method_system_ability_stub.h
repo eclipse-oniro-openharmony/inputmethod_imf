@@ -113,6 +113,8 @@ private:
 
     int32_t GetInputStartInfoOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t GetInputMethodStateOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static inline constexpr RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_END)] = {
         &InputMethodSystemAbilityStub::InvalidRequest,
@@ -192,6 +194,8 @@ private:
             &InputMethodSystemAbilityStub::SetCallingWindowOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_START_INFO)] =
             &InputMethodSystemAbilityStub::GetInputStartInfoOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::GET_IME_STATE)] =
+            &InputMethodSystemAbilityStub::GetInputMethodStateOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

@@ -878,6 +878,17 @@ public:
      */
     IMF_API int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
 
+    /**
+     * @brief Get ime state.
+     *
+     * This function is used to get it's enabled state by ime.
+     *
+     * @param status Indicates the enabled state
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t GetInputMethodState(EnabledStatus &status);
+
 private:
     InputMethodController();
     ~InputMethodController();
@@ -907,6 +918,7 @@ private:
     void PrintLogIfAceTimeout(int64_t start);
     void PrintKeyEventLog();
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
+    int32_t IsValidTextConfig(const TextConfig &textConfig);
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
@@ -964,8 +976,7 @@ private:
 
     std::mutex msgHandlerMutex_;
     std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_ = nullptr;
-    std::shared_ptr<ImfHiSysEventReporter> imcHiSysEvent_ = nullptr;
-    std::pair<int64_t, std::string> bindImeInfo_{ 0, "" };    // for hiSysEvent
+    std::pair<int64_t, std::string> bindImeInfo_{ 0, "" }; // for hiSysEvent
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -1005,7 +1005,9 @@ void PerUserSession::OnUserUnlocked()
         return;
     }
     IMSA_HILOGI("user %{public}d unlocked, start current ime", userId_);
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     AddRestartIme();
+#endif
 }
 
 void PerUserSession::UpdateUserLockState()
@@ -1997,7 +1999,7 @@ void PerUserSession::HandleImeBindTypeChanged(InputClientInfo &newClientInfo)
         }
     }
     IMSA_HILOGD("isClientInactive: %{public}d!", isClientInactive);
-    if (IsSameClient(newClientInfo.client, oldClientInfo->client) && oldClientInfo->bindImeType == ImeType::IME) {
+    if (IsSameClient(newClientInfo.client, oldClientInfo->client)) {
         newClientInfo.isNotifyInputStart = true;
     }
     if (isClientInactive) {

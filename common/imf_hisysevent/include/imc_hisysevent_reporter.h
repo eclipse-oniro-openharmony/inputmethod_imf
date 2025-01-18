@@ -17,20 +17,22 @@
 #define IMC_HISYSEVENT_H
 
 #include <cstdint>
-#include <map>
-#include <vector>
 
-#include "global.h"
 #include "imf_hisysevent_reporter.h"
 
 namespace OHOS {
 namespace MiscServices {
 class ImcHiSysEventReporter : public ImfHiSysEventReporter {
 public:
+    static std::shared_ptr<ImcHiSysEventReporter> GetInstance();
+    ~ImcHiSysEventReporter() override;
+
+private:
     ImcHiSysEventReporter();
-    ~ImcHiSysEventReporter();
     bool IsValidErrCode(int32_t errCode) override;
     bool IsFault(int32_t errCode) override;
+    static std::mutex instanceLock_;
+    static std::shared_ptr<ImcHiSysEventReporter> instance_;
 };
 } // namespace MiscServices
 } // namespace OHOS

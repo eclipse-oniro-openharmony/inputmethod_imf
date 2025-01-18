@@ -18,12 +18,22 @@
 #include "user_session_manager.h"
 namespace OHOS {
 namespace MiscServices {
+std::shared_ptr<ImsaHiSysEventReporter> ImsaHiSysEventReporter::instance_;
+std::shared_ptr<ImsaHiSysEventReporter> ImsaHiSysEventReporter::GetInstance()
+{
+    if (instance_ == nullptr) {
+        std::lock_guard<std::mutex> lock(instanceLock_);
+        if (instance_ == nullptr) {
+            instance_ = std::make_shared<ImsaHiSysEventReporter>();
+        }
+    }
+    return instance_;
+}
+
 ImsaHiSysEventReporter::ImsaHiSysEventReporter()
 {
-    clientAttachInfo_.statistics.succeedInfo.countDistributions.resize(COUNT_STATISTICS_INTERVAL_NUM);
-    clientAttachInfo_.statistics.succeedInfo.countDistributions.resize(COUNT_STATISTICS_INTERVAL_NUM);
-    clientShowInfo_.statistics.succeedInfo.countDistributions.resize(COUNT_STATISTICS_INTERVAL_NUM);
-    clientShowInfo_.statistics.succeedInfo.countDistributions.resize(COUNT_STATISTICS_INTERVAL_NUM);
+    clientAttachInfo_ = ClientAttachAllInfo(COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM);
+    clientShowInfo_ = ClientShowAllInfo(COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM);
 }
 
 ImsaHiSysEventReporter::~ImsaHiSysEventReporter()
@@ -44,11 +54,11 @@ void ImsaHiSysEventReporter::RecordStatisticsEvent(ImfStatisticsEvent event, con
 {
     switch (event) {
         case ImfStatisticsEvent::CLIENT_ATTACH_STATISTICS: {
-            RecordClientAttachEvent(info);
+            RecordClientAttachStatistics(info);
             break;
         }
         case ImfStatisticsEvent::CLIENT_SHOW_STATISTICS: {
-            RecordClientShowEvent(info);
+            RecordClientShowStatistics(info);
             break;
         }
         default:
@@ -59,69 +69,62 @@ void ImsaHiSysEventReporter::RecordStatisticsEvent(ImfStatisticsEvent event, con
 void ImsaHiSysEventReporter::ReportStatisticsEvent()
 {
     std::string attachStatistics;
-    clientAttachInfo_.statistics.Marshal(attachStatistics);
+    clientAttachInfo_.succeedRateInfo.Marshal(attachStatistics);
     ImfHiSysEventUtil::ReportStatisticsEvent(
         GET_NAME(CLIENT_ATTACH_STATISTICS), clientAttachInfo_.imeNames, clientAttachInfo_.appNames, attachStatistics);
-    // todo clientAttachInfo_清空
+    clientAttachInfo_ = ClientAttachAllInfo(COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM);
     std::string showStatistics;
-    clientShowInfo_.statistics.Marshal(showStatistics);
+    clientShowInfo_.succeedRateInfo.Marshal(showStatistics);
     ImfHiSysEventUtil::ReportStatisticsEvent(
         GET_NAME(CLIENT_SHOW_STATISTICS), clientShowInfo_.imeNames, clientShowInfo_.appNames, showStatistics);
-    // todo clientShowInfo_
+    clientShowInfo_ = ClientShowAllInfo(COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM);
 }
 
-void ImsaHiSysEventReporter::RecordClientAttachEvent(const HiSysOriginalInfo &info)
+void ImsaHiSysEventReporter::RecordClientAttachStatistics(const HiSysOriginalInfo &info)
 {
     std::lock_guard<std::mutex> lock(clientAttachInfoLock_);
     clientAttachInfo_.appNames.insert(info.peerName);
     clientAttachInfo_.imeNames.insert(info.imeName);
     auto intervalIndex = GetStatisticalIntervalIndex();
     auto appIndex = GetIndexInSet(info.peerName, clientAttachInfo_.appNames);
+    std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
-        auto key = appIndex;
-        ModCountDistributionInfo(intervalIndex, key, clientAttachInfo_.statistics.succeedInfo);
+        clientAttachInfo_.succeedRateInfo.succeedInfo.Mod(intervalIndex, key);
         return;
     }
-
     auto imeIndex = GetIndexInSet(info.imeName, clientAttachInfo_.imeNames);
-    auto key = appIndex + "/" + imeIndex + "/" + std::to_string(info.clientType) + "/" + std::to_string(info.errCode);
-    ModCountDistributionInfo(intervalIndex, key, clientAttachInfo_.statistics.failedInfo);
+    key.append("/")
+        .append(imeIndex)
+        .append("/")
+        .append(std::to_string(info.clientType))
+        .append("/")
+        .append(std::to_string(info.errCode));
+    clientAttachInfo_.succeedRateInfo.failedInfo.Mod(intervalIndex, key);
 }
 
-void ImsaHiSysEventReporter::RecordClientShowEvent(const HiSysOriginalInfo &info)
+void ImsaHiSysEventReporter::RecordClientShowStatistics(const HiSysOriginalInfo &info)
 {
     std::lock_guard<std::mutex> lock(clientShowInfoLock_);
     clientShowInfo_.appNames.insert(info.peerName);
     clientShowInfo_.imeNames.insert(info.imeName);
     auto intervalIndex = GetStatisticalIntervalIndex();
     auto appIndex = GetIndexInSet(info.peerName, clientShowInfo_.appNames);
+    std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
-        auto key = appIndex + "/" + std::to_string(info.eventCode);
-        ModCountDistributionInfo(intervalIndex, key, clientAttachInfo_.statistics.succeedInfo);
+        key.append("/").append(std::to_string(info.errCode));
+        clientAttachInfo_.succeedRateInfo.succeedInfo.Mod(intervalIndex, key);
         return;
     }
     auto imeIndex = GetIndexInSet(info.imeName, clientShowInfo_.imeNames);
-    auto key = appIndex + "/" + imeIndex + "/" + std::to_string(info.clientType) + "/" + std::to_string(info.eventCode)
-               + "/" + std::to_string(info.errCode);
-    ModCountDistributionInfo(intervalIndex, key, clientAttachInfo_.statistics.failedInfo);
-}
-
-std::pair<int64_t, std::string> ImsaHiSysEventReporter::GetCurrentImeInfo(int32_t userId)
-{
-    std::pair<int64_t, std::string> imeInfo{ 0, "" };
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
-    if (session == nullptr) {
-        auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-        imeInfo.second = currentImeCfg != nullptr ? currentImeCfg->bundleName : "";
-        return imeInfo;
-    }
-    auto imeType = session->IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
-    auto imeData = session->GetImeData(imeType);
-    if (imeData != nullptr) {
-        imeInfo.first = imeData->pid;
-        imeInfo.second = imeData->ime.first;
-    }
-    return imeInfo;
+    key.append("/")
+        .append(imeIndex)
+        .append("/")
+        .append(std::to_string(info.clientType))
+        .append("/")
+        .append(std::to_string(info.eventCode))
+        .append("/")
+        .append(std::to_string(info.errCode));
+    clientAttachInfo_.succeedRateInfo.failedInfo.Mod(intervalIndex, key);
 }
 } // namespace MiscServices
 } // namespace OHOS

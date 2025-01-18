@@ -38,33 +38,6 @@ void ImfHiSysEventReporter::ReportEvent(ImfEventType eventType, const HiSysOrigi
     }
 }
 
-std::string ImfHiSysEventReporter::GetIndexInSet(
-    const std::string &bundleName, const std::unordered_set<std::string> &bundleNames)
-{
-    int32_t index = 0;
-    for (const auto &name : bundleNames) {
-        if (name == bundleName) {
-            break;
-        }
-        index++;
-    }
-    return std::to_string(index);
-}
-
-void ImfHiSysEventReporter::ModCountDistributionInfo(
-    uint8_t intervalIndex, const std::string &key, CountDistributionInfo &info)
-{
-    info.count++;
-    auto &intervalInfos = info.countDistributions[intervalIndex];
-    auto it = std::find_if(intervalInfos.begin(), intervalInfos.end(),
-        [key](const std::pair<std::string, uint64_t> &infoTmp) { return infoTmp.first == key; });
-    if (it == intervalInfos.end()) {
-        intervalInfos.emplace_back(key, 1);
-        return;
-    }
-    it->second++;
-}
-
 void ImfHiSysEventReporter::ReportFaultEvent(ImfFaultEvent event, const HiSysOriginalInfo &info)
 {
     if (event < ImfFaultEvent::HI_SYS_FAULT_EVENT_BEGIN || event >= ImfFaultEvent::HI_SYS_FAULT_EVENT_END) {
@@ -89,7 +62,7 @@ void ImfHiSysEventReporter::StartTimer()
         return;
     }
     auto callback = [this]() { TimerCallback(); };
-    timerId_ = timer_.Register(callback(), CountDistributionInfo::HISYSEVENT_TIMER_TASK_INTERNAL, false);
+    timerId_ = timer_.Register(callback(), HISYSEVENT_TIMER_TASK_INTERNAL, false);
     timerStartTime_ = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
@@ -148,8 +121,16 @@ std::pair<bool, int64_t> ImfHiSysEventReporter::GenerateFaultReportInfo(
 
 std::string ImfHiSysEventReporter::GenerateFaultEventKey(ImfFaultEvent event, const HiSysOriginalInfo &info)
 {
-    std::string key = std::to_string(event) + "/" + std::to_string(info.eventCode) + "/" + std::to_string(info.errCode)
-                      + "/" + info.peerName + "/" + std::to_string(info.peerUserId);
+    std::string key(std::to_string(event));
+    key.append("/")
+        .append(std::to_string(info.peerUserId))
+        .append("/")
+        .append(info.peerName)
+        .append("/")
+        .append(std::to_string(info.eventCode))
+        .append("/")
+        .append(std::to_string(info.errCode));
+    return key;
 }
 
 void ImfHiSysEventReporter::ClearFaultEventInfo()
@@ -172,152 +153,6 @@ std::string ImfHiSysEventReporter::GetSelfName()
     auto selfToken = GetSelfTokenID();
     selfName_ = ImfHiSysEventUtil::GetAppName(selfToken);
     return selfName_;
-}
-
-HiSysOriginalInfo::Builder::Builder()
-{
-    info_ = std::make_shared<HiSysOriginalInfo>();
-    info_->eventCode = 0;
-    info_->errCode = 0;
-    info_->peerPid = 0;
-    info_->peerUserId = 0;
-    info_->clientType = ClientType::CLIENT_TYPE_END;
-    info_->inputPattern = 0;
-    info_->isShowKeyboard = true;
-    info_->imeCbTime = -1;
-    info_->baseTextOperatorTime = -1;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetEventCode(uint8_t eventCode)
-{
-    info_->eventCode = eventCode;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetErrCode(int32_t errCode)
-{
-    info_->errCode = errCode;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetPeerName(std::string peerName)
-{
-    info_->peerName = peerName;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetPeerPid(int64_t peerPid)
-{
-    info_->peerPid = peerPid;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetPeerUserId(int32_t peerUserId)
-{
-    info_->peerUserId = peerUserId;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetClientType(ClientType clientType)
-{
-    info_->clientType = clientType;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetInputPattern(int32_t inputPattern)
-{
-    info_->inputPattern = inputPattern;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetIsShowKeyboard(bool isShowKeyboard)
-{
-    info_->isShowKeyboard = isShowKeyboard;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetImeName(const std::string &imeName)
-{
-    info_->imeName = imeName;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetImeCbTime(int32_t imeCbTime)
-{
-    info_->imeCbTime = imeCbTime;
-    return *this;
-}
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetBaseTextOperatorTime(int32_t baseTextOperatorTime)
-{
-    info_->baseTextOperatorTime = baseTextOperatorTime;
-    return *this;
-}
-std::shared_ptr<HiSysOriginalInfo> HiSysOriginalInfo::Builder::Build()
-{
-    return info_;
-}
-
-void ImfHiSysEventUtil::ReportClientAttachFault(
-    const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
-{
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID",
-        info.peerPid, "PEER_USERID", info.peerUserId, "CLIENT_TYPE", info.clientType, "INPUT_PATTERN",
-        info.inputPattern, "ISSHOWKEYBOARD", info.isShowKeyboard, "IME_NAME", info.imeName, "ERR_CODE", info.eventCode,
-        "FAULT_NUM", faultNum);
-}
-
-void ImfHiSysEventUtil::ReportClientShowFault(
-    const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
-{
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID",
-        info.peerPid, "PEER_USERID", info.peerUserId, "CLIENT_TYPE", info.clientType, "INPUT_PATTERN",
-        info.inputPattern, "IME_NAME", info.imeName, "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode,
-        "FAULT_NUM", faultNum);
-}
-
-void ImfHiSysEventUtil::ReportImeStartInputFault(
-    const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
-{
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID",
-        info.peerPid, "ISSHOWKEYBOARD", info.isShowKeyboard, "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode,
-        "FAULT_NUM", faultNum);
-}
-
-void ImfHiSysEventUtil::ReportBaseTextOperationFault(
-    const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
-{
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID",
-        info.peerPid, "CLIENT_TYPE", info.clientType, "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode,
-        "FAULT_NUM", faultNum);
-}
-
-void ImfHiSysEventUtil::ReportStatisticsEvent(const std::string &eventName,
-    const std::unordered_set<std::string> &imeNames, const std::unordered_set<std::string> &appNames,
-    const std::string &statistics)
-{
-}
-
-std::string ImfHiSysEventUtil::GetAppName(uint32_t tokenId)
-{
-    std::string name;
-    auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
-    switch (tokenType) {
-        case ATokenTypeEnum::TOKEN_HAP: {
-            HapTokenInfo hapInfo;
-            if (AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo) != 0) {
-                return name;
-            }
-            name = hapInfo.bundleName;
-            break;
-        }
-        case ATokenTypeEnum::TOKEN_NATIVE:
-        case ATokenTypeEnum::TOKEN_SHELL: {
-            NativeTokenInfo tokenInfo;
-            if (AccessTokenKit::GetNativeTokenInfo(tokenId, tokenInfo) != 0) {
-                return name;
-            }
-            name = tokenInfo.processName;
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-    return name;
 }
 } // namespace MiscServices
 } // namespace OHOS

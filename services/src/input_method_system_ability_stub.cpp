@@ -456,5 +456,13 @@ int32_t InputMethodSystemAbilityStub::InitConnectOnRemote(MessageParcel &data, M
 {
     return reply.WriteInt32(InitConnect()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
+
+int32_t InputMethodSystemAbilityStub::GetInputMethodStateOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    EnabledStatus status = EnabledStatus::DISABLED;
+    int32_t ret = GetInputMethodState(status);
+    return ITypesUtil::Marshal(reply, ret, static_cast<int32_t>(status)) ? ErrorCode::NO_ERROR
+                                                                         : ErrorCode::ERROR_EX_PARCELABLE;
+}
 } // namespace MiscServices
 } // namespace OHOS

@@ -1408,6 +1408,20 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_003, TestSize.Level0)
 }
 
 /**
+ *@tc.name: testGetInputMethodState_001
+ *@tc.desc: IMA
+ *@tc.type: FUNC
+ *@tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testGetInputMethodState_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest GetInputMethodState_001 Test START");
+    EnabledStatus status = EnabledStatus::DISABLED;
+    auto ret = InputMethodAbilityTest::imsa_->GetInputMethodState(status);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NOT_IME);
+}
+
+/**
  * @tc.name: BranchCoverage001
  * @tc.desc: BranchCoverage
  * @tc.type: FUNC

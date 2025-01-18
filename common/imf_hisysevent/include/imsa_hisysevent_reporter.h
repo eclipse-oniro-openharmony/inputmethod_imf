@@ -26,31 +26,40 @@
 namespace OHOS {
 namespace MiscServices {
 struct ClientAttachAllInfo {
+    ClientAttachAllInfo(uint8_t succeedIntervalNum, uint8_t failedIntervalNum)
+    {
+        succeedRateInfo = SuccessRateStatistics(succeedIntervalNum, failedIntervalNum);
+    }
     std::unordered_set<std::string> appNames;
     std::unordered_set<std::string> imeNames;
-    SuccessRateStatistics statistics;
+    SuccessRateStatistics succeedRateInfo;
 };
 
 struct ClientShowAllInfo {
+    ClientShowAllInfo(uint8_t succeedIntervalNum, uint8_t failedIntervalNum)
+    {
+        succeedRateInfo = SuccessRateStatistics(succeedIntervalNum, failedIntervalNum);
+    }
     std::unordered_set<std::string> appNames;
     std::unordered_set<std::string> imeNames;
-    SuccessRateStatistics statistics;
+    SuccessRateStatistics succeedRateInfo;
 };
 
 class ImsaHiSysEventReporter : public ImfHiSysEventReporter {
 public:
+    ~ImsaHiSysEventReporter() override;
+    static std::shared_ptr<ImsaHiSysEventReporter> GetInstance();
+
+private:
     ImsaHiSysEventReporter();
-    ~ImsaHiSysEventReporter();
     bool IsValidErrCode(int32_t errCode) override;
     bool IsFault(int32_t errCode) override;
     void RecordStatisticsEvent(ImfStatisticsEvent event, const HiSysOriginalInfo &info) override;
     void ReportStatisticsEvent() override;
-    std::pair<int64_t, std::string> GetCurrentImeInfo(int32_t userId);
-
-private:
-    void RecordClientAttachEvent(const HiSysOriginalInfo &info);
-    void RecordClientShowEvent(const HiSysOriginalInfo &info);
-
+    void RecordClientAttachStatistics(const HiSysOriginalInfo &info);
+    void RecordClientShowStatistics(const HiSysOriginalInfo &info);
+    static std::mutex instanceLock_;
+    static std::shared_ptr<ImsaHiSysEventReporter> instance_;
     std::mutex clientAttachInfoLock_;
     ClientAttachAllInfo clientAttachInfo_;
 

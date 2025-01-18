@@ -17,6 +17,17 @@
 
 namespace OHOS {
 namespace MiscServices {
+std::shared_ptr<ImcHiSysEventReporter> ImcHiSysEventReporter::instance_;
+std::shared_ptr<ImcHiSysEventReporter> ImcHiSysEventReporter::GetInstance()
+{
+    if (instance_ == nullptr) {
+        std::lock_guard<std::mutex> lock(instanceLock_);
+        if (instance_ == nullptr) {
+            instance_ = std::make_shared<ImcHiSysEventReporter>();
+        }
+    }
+    return instance_;
+}
 ImcHiSysEventReporter::ImcHiSysEventReporter()
 {
 }

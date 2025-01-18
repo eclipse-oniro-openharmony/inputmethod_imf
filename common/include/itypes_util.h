@@ -47,6 +47,9 @@ public:
     static bool Marshalling(uint64_t input, MessageParcel &data);
     static bool Unmarshalling(uint64_t &output, MessageParcel &data);
 
+    static bool Marshalling(int64_t input, MessageParcel &data);
+    static bool Unmarshalling(int64_t &output, MessageParcel &data);
+
     static bool Marshalling(double input, MessageParcel &data);
     static bool Unmarshalling(double &output, MessageParcel &data);
 

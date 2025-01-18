@@ -59,6 +59,10 @@ napi_value JsPanel::Init(napi_env env)
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
         DECLARE_NAPI_FUNCTION("adjustPanelRect", AdjustPanelRect),
         DECLARE_NAPI_FUNCTION("updateRegion", UpdateRegion),
+        DECLARE_NAPI_FUNCTION("startMoving", StartMoving),
+        DECLARE_NAPI_FUNCTION("getDisplayId", GetDisplayId),
+        DECLARE_NAPI_FUNCTION("setImmersiveMode", SetImmersiveMode),
+        DECLARE_NAPI_FUNCTION("getImmersiveMode", GetImmersiveMode),
     };
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
@@ -139,13 +143,21 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
                 ctxt->contentStorage = contentStorage;
             }
         }
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::SET_UI_CONTENT };
+        jsQueue_.Push(ctxt->info);
         return napi_ok;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel is nullptr!");
+            jsQueue_.Pop();
+            return napi_generic_failure;
+        }
         auto code = ctxt->inputMethodPanel->SetUiContent(ctxt->path, env, ctxt->contentStorage);
+        jsQueue_.Pop();
         if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
             ctxt->SetErrorCode(code);
             ctxt->SetErrorMessage("path should be a path to specific page.");
@@ -237,6 +249,65 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     return asyncCall.Call(env, exec, "moveTo");
 }
 
+napi_value JsPanel::StartMoving(napi_env env, napi_callback_info info)
+{
+    napi_value self = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, 0, nullptr, &self, nullptr));
+    RESULT_CHECK_RETURN(env, (self != nullptr), JsUtils::Convert(ErrorCode::ERROR_IME),
+                        "", TYPE_NONE, JsUtil::Const::Null(env));
+    void *native = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, self, &native));
+    RESULT_CHECK_RETURN(env, (native != nullptr), JsUtils::Convert(ErrorCode::ERROR_IME),
+                        "", TYPE_NONE, JsUtil::Const::Null(env));
+    auto inputMethodPanel = reinterpret_cast<JsPanel *>(native)->GetNative();
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr!");
+        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_IME),
+            "failed to start moving, inputMethodPanel is nullptr", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+
+    auto ret = inputMethodPanel->StartMoving();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to start moving", TYPE_NONE);
+    }
+    return JsUtil::Const::Null(env);
+}
+
+napi_value JsPanel::GetDisplayId(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::GET_DISPLAYID };
+        jsQueue_.Push(ctxt->info);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel_ is nullptr!");
+            ctxt->SetErrorCode(ErrorCode::ERROR_IME);
+            jsQueue_.Pop();
+            return;
+        }
+        auto ret = ctxt->inputMethodPanel->GetDisplayId(ctxt->displayId);
+        jsQueue_.Pop();
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed get displayId!");
+            ctxt->SetErrorCode(ret);
+            return;
+        }
+        ctxt->SetState(napi_ok);
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        return napi_create_bigint_uint64(env, ctxt->displayId, result);
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    // 1 means JsAPI:GetDisplayId has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec, "getDisplayId");
+}
+
 void JsPanel::PrintEditorQueueInfoIfTimeout(int64_t start, const JsEventInfo &currentInfo)
 {
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -261,7 +332,11 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         jsQueue_.Wait(ctxt->info);
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel is nullptr!");
+            jsQueue_.Pop();
+            return;
+        }
         auto code = InputMethodAbility::GetInstance()->ShowPanel(ctxt->inputMethodPanel);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
@@ -281,15 +356,28 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JsPanel_Hide");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::HIDE };
+        jsQueue_.Push(ctxt->info);
+        return napi_ok;
+    };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!");
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel is nullptr!");
+            jsQueue_.Pop();
+            return;
+        }
         auto code = InputMethodAbility::GetInstance()->HidePanel(ctxt->inputMethodPanel);
+        jsQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;
         }
         ctxt->SetErrorCode(code);
     };
+    ctxt->SetAction(std::move(input));
     // 1 means JsAPI:hide has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "panel.hide");
@@ -315,11 +403,7 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
         (panelFlag == PanelFlag::FLG_FIXED || panelFlag == PanelFlag::FLG_FLOATING ||
             panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN),
         "flag type must be one of PanelFlag!", TYPE_NONE, nullptr);
-    JsEventInfo eventInfo = { std::chrono::system_clock::now(), JsEvent::CHANGE_FLAG };
-    jsQueue_.Push(eventInfo);
-    jsQueue_.Wait(eventInfo);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
-    jsQueue_.Pop();
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "failed to ChangePanelFlag!", nullptr);
     return nullptr;
 }
@@ -690,6 +774,50 @@ bool JsHotArea::Read(napi_env env, napi_value object, std::vector<Rosen::Rect> &
         hotAreas.push_back(element);
     }
     return true;
+}
+napi_value JsPanel::SetImmersiveMode(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
+    napi_value thisVar = nullptr;
+    napi_value retVal = JsUtil::Const::Null(env);
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
+    PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required", TYPE_NONE, retVal);
+    int32_t immersiveMode = 0;
+    // 0 means the first param immersiveMode<ImmersiveMode>
+    bool result = JsUtil::GetValue(env, argv[0], immersiveMode);
+    PARAM_CHECK_RETURN(env, result, "immersiveMode type must be ImmersiveMode", TYPE_NONE, retVal);
+    auto panel = UnwrapPanel(env, thisVar);
+    RESULT_CHECK_RETURN(env, panel != nullptr, JsUtils::Convert(ErrorCode::ERROR_IME), "", TYPE_NONE, retVal);
+    PARAM_CHECK_RETURN(env,
+        (immersiveMode == static_cast<int32_t>(ImmersiveMode::NONE_IMMERSIVE) ||
+        immersiveMode == static_cast<int32_t>(ImmersiveMode::LIGHT_IMMERSIVE) ||
+        immersiveMode == static_cast<int32_t>(ImmersiveMode::DARK_IMMERSIVE)),
+        "immersiveMode type must be ImmersiveMode and can not be IMMERSIVE", TYPE_NONE, retVal);
+    JsEventInfo eventInfo = { std::chrono::system_clock::now(), JsEvent::SET_IMMERSIVE_MODE };
+    jsQueue_.Push(eventInfo);
+    jsQueue_.Wait(eventInfo);
+    auto ret = panel->SetImmersiveMode(ImmersiveMode(immersiveMode));
+    jsQueue_.Pop();
+    RESULT_CHECK_RETURN(env, ret == ErrorCode::NO_ERROR, JsUtils::Convert(ret), "", TYPE_NONE, retVal);
+    return retVal;
+}
+
+napi_value JsPanel::GetImmersiveMode(napi_env env, napi_callback_info info)
+{
+    napi_value thisVar = nullptr;
+    napi_value retVal = JsUtil::Const::Null(env);
+    NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
+    auto panel = UnwrapPanel(env, thisVar);
+    RESULT_CHECK_RETURN(env, panel != nullptr, JsUtils::Convert(ErrorCode::ERROR_IME), "", TYPE_NONE, retVal);
+    JsEventInfo eventInfo = { std::chrono::system_clock::now(), JsEvent::GET_IMMERSIVE_MODE };
+    jsQueue_.Push(eventInfo);
+    jsQueue_.Wait(eventInfo);
+    auto immersiveMode = panel->GetImmersiveMode();
+    jsQueue_.Pop();
+    napi_value jsImmersiveMode = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(immersiveMode), &jsImmersiveMode));
+    return jsImmersiveMode;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -70,6 +70,16 @@ bool ITypesUtil::Unmarshalling(uint64_t &output, MessageParcel &data)
     return data.ReadUint64(output);
 }
 
+bool ITypesUtil::Marshalling(int64_t input, MessageParcel &data)
+{
+    return data.WriteInt64(input);
+}
+
+bool ITypesUtil::Unmarshalling(int64_t &output, MessageParcel &data)
+{
+    return data.ReadInt64(output);
+}
+
 bool ITypesUtil::Marshalling(double input, MessageParcel &data)
 {
     return data.WriteDouble(input);
@@ -162,7 +172,7 @@ bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 {
     if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption, input.isTextPreviewSupported,
-        input.bundleName)) {
+        input.bundleName, input.immersiveMode)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed.");
         return false;
     }
@@ -172,7 +182,7 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption, output.isTextPreviewSupported,
-        output.bundleName)) {
+        output.bundleName, output.immersiveMode)) {
         IMSA_HILOGE("read InputAttribute from message parcel failed.");
         return false;
     }

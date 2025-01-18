@@ -1846,5 +1846,129 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusListener02, TestSize.Level0)
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: testStartMoving01
+ * @tc.desc: Test StartMoving
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testStartMoving01, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testStartMoving start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_GE(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    panelInfo.panelType = SOFT_KEYBOARD;
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_TYPE);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    panelInfo.panelType = STATUS_BAR;
+    panelInfo.panelFlag = FLG_FIXED;
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_FLAG);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testGetDisplayId01
+ * @tc.desc: Test GetDisplayId
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetDisplayId01, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetDisplayId start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    uint64_t displayId;
+    auto ret = inputMethodPanel->GetDisplayId(displayId);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->GetDisplayId(displayId);
+    EXPECT_GE(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testSetImmersiveMode
+ * @tc.desc: Test set immersive mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testSetImmersiveMode, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testSetImmersiveMode start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+
+    ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::NONE_IMMERSIVE);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::LIGHT_IMMERSIVE);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::DARK_IMMERSIVE);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::IMMERSIVE);
+    EXPECT_EQ(ErrorCode::ERROR_PARAMETER_CHECK_FAILED, ret);
+
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+}
+
+/**
+ * @tc.name: testGetImmersiveMode
+ * @tc.desc: Test get immersive mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetImmersiveMode, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetImmersiveMode start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+
+    ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::NONE_IMMERSIVE);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    auto mode = inputMethodPanel->GetImmersiveMode();
+    EXPECT_EQ(ImmersiveMode::NONE_IMMERSIVE, mode);
+
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+}
 } // namespace MiscServices
 } // namespace OHOS

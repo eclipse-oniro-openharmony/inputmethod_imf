@@ -84,6 +84,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("SecurityMode", GetJsSecurityModeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("ImmersiveMode", GetJsImmersiveModeProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -139,11 +140,14 @@ napi_value JsInputMethodEngineSetting::GetJsPanelFlagProperty(napi_env env)
     napi_value panelFlag = nullptr;
     napi_value flagFixed = nullptr;
     napi_value flagFloating = nullptr;
+    napi_value flagCandidate = nullptr;
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_FIXED), &flagFixed));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_FLOATING), &flagFloating));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_CANDIDATE_COLUMN), &flagCandidate));
     NAPI_CALL(env, napi_create_object(env, &panelFlag));
     NAPI_CALL(env, napi_set_named_property(env, panelFlag, "FLG_FIXED", flagFixed));
     NAPI_CALL(env, napi_set_named_property(env, panelFlag, "FLG_FLOATING", flagFloating));
+    NAPI_CALL(env, napi_set_named_property(env, panelFlag, "FLAG_CANDIDATE", flagCandidate));
     return panelFlag;
 }
 
@@ -196,6 +200,23 @@ napi_value JsInputMethodEngineSetting::GetJsSecurityModeProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, securityMode, "BASIC", basic));
     NAPI_CALL(env, napi_set_named_property(env, securityMode, "FULL", full));
     return securityMode;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsImmersiveModeProperty(napi_env env)
+{
+    napi_value immersive = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &immersive));
+    bool ret = JsUtil::Object::WriteProperty(
+        env, immersive, "NONE_IMMERSIVE", static_cast<int32_t>(ImmersiveMode::NONE_IMMERSIVE));
+    ret = ret &&
+        JsUtil::Object::WriteProperty(env, immersive, "IMMERSIVE", static_cast<int32_t>(ImmersiveMode::IMMERSIVE));
+    ret = ret &&
+        JsUtil::Object::WriteProperty(
+            env, immersive, "LIGHT_IMMERSIVE", static_cast<int32_t>(ImmersiveMode::LIGHT_IMMERSIVE));
+    ret = ret &&
+        JsUtil::Object::WriteProperty(
+            env, immersive, "DARK_IMMERSIVE", static_cast<int32_t>(ImmersiveMode::DARK_IMMERSIVE));
+    return ret ? immersive : JsUtil::Const::Null(env);
 }
 
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineSetting()

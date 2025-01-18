@@ -131,7 +131,6 @@ int32_t InputMethodController::Initialize()
 
     // make AppExecFwk::EventHandler handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
-    imcHiSysEvent_ = std::make_shared<ImcHiSysEventReporter>();
     return ErrorCode::NO_ERROR;
 }
 
@@ -240,11 +239,25 @@ int32_t InputMethodController::Attach(
     return Attach(listener, attachOptions, textConfig, type);
 }
 
+int32_t InputMethodController::IsValidTextConfig(const TextConfig &textConfig)
+{
+    if (textConfig.inputAttribute.immersiveMode < static_cast<int32_t>(ImmersiveMode::NONE_IMMERSIVE) ||
+        textConfig.inputAttribute.immersiveMode >= static_cast<int32_t>(ImmersiveMode::END)) {
+        IMSA_HILOGE("invalid immersiveMode: %{public}d", textConfig.inputAttribute.immersiveMode);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodController::Attach(
     sptr<OnTextChangedListener> listener, AttachOptions attachOptions, const TextConfig &textConfig, ClientType type)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d.", attachOptions.isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
+    if (IsValidTextConfig(textConfig) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("invalid textConfig.");
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
     auto lastListener = GetTextListener();
     clientInfo_.isNotifyInputStart = lastListener != listener;
     if (clientInfo_.isNotifyInputStart && lastListener != nullptr) {
@@ -271,7 +284,7 @@ int32_t InputMethodController::Attach(
                         .SetIsShowKeyboard(attachOptions.isShowKeyboard)
                         .SetClientType(type)
                         .Build();
-        imcHiSysEvent_->ReportEvent(ImfEventType::CLIENT_ATTACH, *info);
+        ImcHiSysEventReporter::GetInstance()->ReportEvent(ImfEventType::CLIENT_ATTACH, *info);
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;
@@ -1538,6 +1551,16 @@ std::shared_ptr<MsgHandlerCallbackInterface> InputMethodController::GetMsgHandle
 {
     std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
     return msgHandler_;
+}
+
+int32_t InputMethodController::GetInputMethodState(EnabledStatus &state)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->GetInputMethodState(state);
 }
 } // namespace MiscServices
 } // namespace OHOS
