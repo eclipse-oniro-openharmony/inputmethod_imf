@@ -173,6 +173,7 @@ private:
     bool showRegistered_ = false;
     bool hideRegistered_ = false;
     bool sizeChangeRegistered_ = false;
+    bool sizeUpdateRegistered_ = false;
     uint32_t invalidGravityPercent = 0;
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 

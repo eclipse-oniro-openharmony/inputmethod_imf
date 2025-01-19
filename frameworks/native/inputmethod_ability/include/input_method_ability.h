@@ -77,6 +77,7 @@ public:
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
     bool IsEnable();
+    bool IsSystemApp();
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     int32_t GetSecurityMode(int32_t &security);
@@ -191,6 +192,9 @@ private:
     std::atomic<int32_t> securityMode_ = -1;
     std::mutex msgHandlerMutex_;
     std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_;
+
+    std::mutex systemAppCheckMutex_;
+    bool isSystemApp_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

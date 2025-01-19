@@ -1427,7 +1427,7 @@ void InputMethodPanel::ClearPanelListener(const std::string &type)
         return;
     }
     IMSA_HILOGD("type: %{public}s.", type.c_str());
-    if (type == "sizeChange" && windowChangedListener_ != nullptr && window_ != nullptr) {
+    if (!sizeChangeRegistered_ && !sizeUpdateRegistered_ && windowChangedListener_ != nullptr && window_ != nullptr) {
         auto ret = window_->UnregisterWindowChangeListener(windowChangedListener_);
         IMSA_HILOGI("UnregisterWindowChangeListener ret: %{public}d.", ret);
         windowChangedListener_ = nullptr;
@@ -1436,7 +1436,7 @@ void InputMethodPanel::ClearPanelListener(const std::string &type)
         IMSA_HILOGD("panelStatusListener_ not set, don't need to remove.");
         return;
     }
-    if (showRegistered_ || hideRegistered_ || sizeChangeRegistered_) {
+    if (showRegistered_ || hideRegistered_ || sizeChangeRegistered_ || sizeUpdateRegistered_) {
         return;
     }
     panelStatusListener_ = nullptr;
@@ -1455,6 +1455,8 @@ bool InputMethodPanel::MarkListener(const std::string &type, bool isRegister)
         hideRegistered_ = isRegister;
     } else if (type == "sizeChange") {
         sizeChangeRegistered_ = isRegister;
+    } else if (type == "sizeUpdate") {
+        sizeUpdateRegistered_ = isRegister;
     } else {
         IMSA_HILOGE("type error!");
         return false;
@@ -1515,6 +1517,12 @@ int32_t InputMethodPanel::SizeChange(const WindowSize &size)
     if (listener == nullptr) {
         IMSA_HILOGD("panelStatusListener_ is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (sizeChangeRegistered_) {
+        listener->OnSizeChange(windowId_, size);
+    }
+    if (!sizeUpdateRegistered_) {
+        return ErrorCode::NO_ERROR;
     }
     if (!isInEnhancedAdjust_.load()) {
         listener->OnSizeChange(windowId_, size, {});
