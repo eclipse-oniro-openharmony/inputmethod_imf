@@ -1090,6 +1090,28 @@ bool InputMethodAbility::IsEnable()
     return imeListener_->IsEnable();
 }
 
+bool InputMethodAbility::IsSystemApp()
+{
+    IMSA_HILOGD("InputMethodAbility start");
+    if (isSystemApp_) {
+        return true;
+    }
+    std::lock_guard<std::mutex> lock(systemAppCheckMutex_);
+    if (isSystemApp_) {
+        return true;
+    }
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("failed to get imsa proxy!");
+        return false;
+    }
+    if (proxy->IsSystemApp()) {
+        isSystemApp_ = true;
+        return true;
+    }
+    return false;
+}
+
 int32_t InputMethodAbility::ExitCurrentInputType()
 {
     IMSA_HILOGD("InputMethodAbility start.");

@@ -450,6 +450,10 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
         return nullptr;
     }
     IMSA_HILOGD("subscribe type: %{public}s.", type.c_str());
+    if (type == "sizeUpdate") {
+        RESULT_CHECK_RETURN(env, InputMethodAbility::GetInstance()->IsSystemApp(), EXCEPTION_SYSTEM_PERMISSION, "",
+            TYPE_NONE, nullptr);
+    }
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     // 1 means the second param callback.
@@ -629,6 +633,8 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
         if (!IsEnhancedAdjust(env, argv)) {
             CHECK_RETURN(CheckParam(env, argc, argv, ctxt) == napi_ok, "check param", napi_generic_failure);
         } else {
+            RESULT_CHECK_RETURN(env, InputMethodAbility::GetInstance()->IsSystemApp(), EXCEPTION_SYSTEM_PERMISSION, "",
+                TYPE_NONE, napi_generic_failure);
             CHECK_RETURN(CheckEnhancedParam(env, argc, argv, ctxt) == napi_ok, "check param", napi_generic_failure);
         }
         ctxt->info = { std::chrono::system_clock::now(), JsEvent::ADJUST_PANEL_RECT };
@@ -660,6 +666,8 @@ napi_value JsPanel::UpdateRegion(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        RESULT_CHECK_RETURN(env, InputMethodAbility::GetInstance()->IsSystemApp(), EXCEPTION_SYSTEM_PERMISSION, "",
+            TYPE_NONE, napi_generic_failure);
         PARAM_CHECK_RETURN(env, ctxt->inputMethodPanel != nullptr, "panel is null", TYPE_NONE, napi_generic_failure);
         RESULT_CHECK_RETURN(env, ctxt->inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD,
             JsUtils::Convert(ErrorCode::ERROR_INVALID_PANEL_TYPE), "only used for SOFT_KEYBOARD panel", TYPE_NONE,

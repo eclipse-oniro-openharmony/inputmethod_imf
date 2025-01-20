@@ -463,5 +463,11 @@ int32_t InputMethodSystemAbilityStub::GetInputMethodStateOnRemote(MessageParcel 
     return ITypesUtil::Marshal(reply, ret, static_cast<int32_t>(status)) ? ErrorCode::NO_ERROR
                                                                          : ErrorCode::ERROR_EX_PARCELABLE;
 }
+
+int32_t InputMethodSystemAbilityStub::IsSystemAppOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsSystemApp()) ? ErrorCode::NO_ERROR
+                                                                          : ErrorCode::ERROR_EX_PARCELABLE;
+}
 } // namespace MiscServices
 } // namespace OHOS

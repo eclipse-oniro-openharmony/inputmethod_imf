@@ -113,7 +113,7 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
 
 void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea)
 {
-    std::string type = "sizeChange";
+    std::string type = "sizeUpdate";
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr!");
