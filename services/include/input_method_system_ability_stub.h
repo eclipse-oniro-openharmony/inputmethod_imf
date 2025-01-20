@@ -115,6 +115,8 @@ private:
 
     int32_t GetInputMethodStateOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t IsSystemAppOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static inline constexpr RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_END)] = {
         &InputMethodSystemAbilityStub::InvalidRequest,
@@ -196,6 +198,8 @@ private:
             &InputMethodSystemAbilityStub::GetInputStartInfoOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::GET_IME_STATE)] =
             &InputMethodSystemAbilityStub::GetInputMethodStateOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_SYSTEM_APP)] =
+            &InputMethodSystemAbilityStub::IsSystemAppOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

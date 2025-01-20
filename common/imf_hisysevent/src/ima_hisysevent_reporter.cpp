@@ -20,24 +20,25 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
-std::shared_ptr<ImaHiSysEventReporter> ImaHiSysEventReporter::instance_;
-std::shared_ptr<ImaHiSysEventReporter> ImaHiSysEventReporter::GetInstance()
+std::mutex ImaHiSysEventReporter::instanceLock_;
+sptr<ImaHiSysEventReporter> ImaHiSysEventReporter::instance_;
+sptr<ImaHiSysEventReporter> ImaHiSysEventReporter::GetInstance()
 {
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> lock(instanceLock_);
         if (instance_ == nullptr) {
-            instance_ = std::make_shared<ImaHiSysEventReporter>();
+            instance_ = new (std::nothrow) ImaHiSysEventReporter();
         }
     }
     return instance_;
 }
 
 ImaHiSysEventReporter::ImaHiSysEventReporter()
+    : imeStartInputAllInfo_(ImeStartInputAllInfo(
+        COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM, IME_CB_TIME_INTERVAL.size())),
+      baseTextOperationAllInfo_(
+          BaseTextOperationAllInfo(BASE_TEXT_OPERATION_TIME_INTERVAL.size(), COUNT_STATISTICS_INTERVAL_NUM))
 {
-    imeStartInputAllInfo_ = ImeStartInputAllInfo(
-        COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM, IME_CB_TIME_INTERVAL.size());
-    baseTextOperationAllInfo_ =
-        BaseTextOperationAllInfo(BASE_TEXT_OPERATION_TIME_INTERVAL.size(), COUNT_STATISTICS_INTERVAL_NUM);
 }
 
 ImaHiSysEventReporter::~ImaHiSysEventReporter()
@@ -74,15 +75,15 @@ void ImaHiSysEventReporter::RecordStatisticsEvent(ImfStatisticsEvent event, cons
 void ImaHiSysEventReporter::ReportStatisticsEvent()
 {
     std::string imeStartInputStatistics;
-    imeStartInputAllInfo_.Marshal(imeStartInputStatistics);
-    ImfHiSysEventUtil::ReportStatisticsEvent(
-        GET_NAME(IME_START_INPUT_STATISTICS), GetSelfName(), imeStartInputAllInfo_.appNames, imeStartInputStatistics);
+    imeStartInputAllInfo_.Marshall(imeStartInputStatistics);
+    ImfHiSysEventUtil::ReportStatisticsEvent(GET_NAME(IME_START_INPUT_STATISTICS), GetSelfName(),
+        imeStartInputAllInfo_.appNames, { imeStartInputStatistics });
     imeStartInputAllInfo_ = ImeStartInputAllInfo(
         COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM, IME_CB_TIME_INTERVAL.size());
     std::string baseTextOperationStatistics;
-    baseTextOperationAllInfo_.succeedRateInfo.Marshal(baseTextOperationStatistics);
+    baseTextOperationAllInfo_.succeedRateInfo.Marshall(baseTextOperationStatistics);
     ImfHiSysEventUtil::ReportStatisticsEvent(GET_NAME(BASE_TEXT_OPERATION_STATISTICS), GetSelfName(),
-        baseTextOperationAllInfo_.appNames, baseTextOperationStatistics);
+        baseTextOperationAllInfo_.appNames, { baseTextOperationStatistics });
     baseTextOperationAllInfo_ =
         BaseTextOperationAllInfo(BASE_TEXT_OPERATION_TIME_INTERVAL.size(), COUNT_STATISTICS_INTERVAL_NUM);
 }
@@ -93,7 +94,7 @@ void ImaHiSysEventReporter::RecordImeStartInputStatistics(const HiSysOriginalInf
     imeStartInputAllInfo_.appNames.insert(info.peerName);
     ModImeCbTimeConsumeInfo(info.imeCbTime);
     auto intervalIndex = GetStatisticalIntervalIndex();
-    auto appIndex = GetIndexInSet(info.peerName, imeStartInputAllInfo_.appNames);
+    auto appIndex = ImfHiSysEventUtil::GetIndexInSet(info.peerName, imeStartInputAllInfo_.appNames);
     std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
         key.append("/").append(std::to_string(info.isShowKeyboard));
@@ -109,7 +110,7 @@ void ImaHiSysEventReporter::ModImeCbTimeConsumeInfo(int32_t imeCbTime)
     if (imeCbTime < 0) {
         return;
     }
-    int8_t index = -1;
+    int32_t index = -1;
     for (auto i = 0; i < IME_CB_TIME_INTERVAL.size() - 1; i++) {
         if (IME_CB_TIME_INTERVAL[i].first <= imeCbTime && imeCbTime <= IME_CB_TIME_INTERVAL[i].second) {
             index = i;
@@ -144,12 +145,12 @@ void ImaHiSysEventReporter::RecordBaseTextOperationStatistics(const HiSysOrigina
         GetBaseTextOperationSucceedIntervalIndex(info.baseTextOperationTime), key);
 }
 
-uint8_t ImaHiSysEventReporter::GetBaseTextOperationSucceedIntervalIndex(int32_t baseTextOperationTime)
+uint32_t ImaHiSysEventReporter::GetBaseTextOperationSucceedIntervalIndex(int32_t baseTextOperationTime)
 {
     if (baseTextOperationTime < 0) {
         return 0;
     }
-    int8_t index = -1;
+    int32_t index = -1;
     for (auto i = 0; i < BASE_TEXT_OPERATION_TIME_INTERVAL.size() - 1; i++) {
         if (BASE_TEXT_OPERATION_TIME_INTERVAL[i].first <= baseTextOperationTime
             && baseTextOperationTime <= BASE_TEXT_OPERATION_TIME_INTERVAL[i].second) {

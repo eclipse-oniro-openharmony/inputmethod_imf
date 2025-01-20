@@ -1046,7 +1046,14 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         IMSA_HILOGE("failed to get uv entry.");
         return u"";
     }
-
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return u"";
+    }
+    IMSA_HILOGI("type: %{public}s, number: %{public}d.", type.c_str(), number);
+    auto task = [entry]() {
+        auto fillArguments = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 1) {
                 IMSA_HILOGE("argc is err.");
                 return false;
@@ -1058,6 +1065,10 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         std::string text;
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
+        entry->textResultHandler->SetValue(text);
+    };
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    return Str8ToStr16(textResultHandler->GetValue());
 }
 
 int32_t JsGetInputMethodController::GetTextIndexAtCursor()

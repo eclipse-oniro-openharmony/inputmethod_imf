@@ -173,6 +173,7 @@ private:
     bool showRegistered_ = false;
     bool hideRegistered_ = false;
     bool sizeChangeRegistered_ = false;
+    bool sizeUpdateRegistered_ = false;
     uint32_t invalidGravityPercent = 0;
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 
@@ -181,12 +182,12 @@ private:
     bool isScbEnable_ { false };
 
     std::mutex panelAdjustLock_;
-    std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;   // 不随display
+    std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
     std::mutex adjustInfoInitLock_;
     std::atomic<bool> isAdjustInfoInitialized_{ false };
 
     HotAreas hotAreas_;
-    EnhancedLayoutParams enhancedLayoutParams_;   //输入法面板和软键盘在当前屏幕下的大小位置信息
+    EnhancedLayoutParams enhancedLayoutParams_;
     Rosen::KeyboardLayoutParams keyboardLayoutParams_;
 
     std::mutex keyboardSizeLock_;

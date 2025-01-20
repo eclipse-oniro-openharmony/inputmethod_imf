@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "global.h"
@@ -26,9 +27,9 @@
 namespace OHOS {
 namespace MiscServices {
 struct ClientAttachAllInfo {
-    ClientAttachAllInfo(uint8_t succeedIntervalNum, uint8_t failedIntervalNum)
+    ClientAttachAllInfo(uint32_t succeedIntervalNum, uint32_t failedIntervalNum)
+        : succeedRateInfo(SuccessRateStatistics(succeedIntervalNum, failedIntervalNum))
     {
-        succeedRateInfo = SuccessRateStatistics(succeedIntervalNum, failedIntervalNum);
     }
     std::unordered_set<std::string> appNames;
     std::unordered_set<std::string> imeNames;
@@ -36,19 +37,21 @@ struct ClientAttachAllInfo {
 };
 
 struct ClientShowAllInfo {
-    ClientShowAllInfo(uint8_t succeedIntervalNum, uint8_t failedIntervalNum)
+    ClientShowAllInfo(uint32_t succeedIntervalNum, uint32_t failedIntervalNum)
+        : succeedRateInfo(SuccessRateStatistics(succeedIntervalNum, failedIntervalNum))
     {
-        succeedRateInfo = SuccessRateStatistics(succeedIntervalNum, failedIntervalNum);
     }
     std::unordered_set<std::string> appNames;
     std::unordered_set<std::string> imeNames;
     SuccessRateStatistics succeedRateInfo;
 };
 
-class ImsaHiSysEventReporter : public ImfHiSysEventReporter {
+class ImsaHiSysEventReporter
+    : public RefBase
+    , public ImfHiSysEventReporter {
 public:
     ~ImsaHiSysEventReporter() override;
-    static std::shared_ptr<ImsaHiSysEventReporter> GetInstance();
+    static sptr<ImsaHiSysEventReporter> GetInstance();
 
 private:
     ImsaHiSysEventReporter();
@@ -59,7 +62,7 @@ private:
     void RecordClientAttachStatistics(const HiSysOriginalInfo &info);
     void RecordClientShowStatistics(const HiSysOriginalInfo &info);
     static std::mutex instanceLock_;
-    static std::shared_ptr<ImsaHiSysEventReporter> instance_;
+    static sptr<ImsaHiSysEventReporter> instance_;
     std::mutex clientAttachInfoLock_;
     ClientAttachAllInfo clientAttachInfo_;
 

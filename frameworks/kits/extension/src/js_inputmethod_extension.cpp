@@ -292,7 +292,6 @@ void JsInputMethodExtension::OnStop()
     InputMethodExtension::OnStop();
     IMSA_HILOGI("JsInputMethodExtension OnStop start.");
     CallObjectMethod("onDestroy");
-
     bool ret = ConnectionManager::GetInstance().DisconnectCaller(GetContext()->GetToken());
     if (ret) {
         IMSA_HILOGI("the input method extension connection is not disconnected.");

@@ -17,60 +17,62 @@
 
 #include <algorithm>
 
+#include "accesstoken_kit.h"
+#include "hisysevent.h"
 namespace OHOS {
 namespace MiscServices {
-
+using HiSysEvent = OHOS::HiviewDFX::HiSysEvent;
+using namespace Security::AccessToken;
 void ImfHiSysEventUtil::ReportClientAttachFault(
     const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
 {
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID",
-        info.peerPid, "PEER_USERID", info.peerUserId, "CLIENT_TYPE", info.clientType, "INPUT_PATTERN",
-        info.inputPattern, "ISSHOWKEYBOARD", info.isShowKeyboard, "IME_NAME", info.imeName, "ERR_CODE", info.eventCode,
-        "FAULT_COUNT", faultNum);
+    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED", HiSysEvent::EventType::FAULT,
+        "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid, "PEER_USERID", info.peerUserId,
+        "CLIENT_TYPE", info.clientType, "INPUT_PATTERN", info.inputPattern, "ISSHOWKEYBOARD", info.isShowKeyboard,
+        "IME_NAME", info.imeName, "ERR_CODE", info.eventCode, "FAULT_COUNT", faultNum);
 }
 
 void ImfHiSysEventUtil::ReportClientShowFault(
     const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
 {
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID",
-        info.peerPid, "PEER_USERID", info.peerUserId, "CLIENT_TYPE", info.clientType, "INPUT_PATTERN",
-        info.inputPattern, "IME_NAME", info.imeName, "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode,
-        "FAULT_COUNT", faultNum);
+    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED", HiSysEvent::EventType::FAULT,
+        "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid, "PEER_USERID", info.peerUserId,
+        "CLIENT_TYPE", info.clientType, "INPUT_PATTERN", info.inputPattern, "IME_NAME", info.imeName, "EVENT_CODE",
+        info.eventCode, "ERR_CODE", info.eventCode, "FAULT_COUNT", faultNum);
 }
 
 void ImfHiSysEventUtil::ReportImeStartInputFault(
     const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
 {
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID",
-        info.peerPid, "ISSHOWKEYBOARD", info.isShowKeyboard, "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode,
-        "FAULT_COUNT", faultNum);
+    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED", HiSysEvent::EventType::FAULT,
+        "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid, "ISSHOWKEYBOARD",
+        info.isShowKeyboard, "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode, "FAULT_COUNT", faultNum);
 }
 
 void ImfHiSysEventUtil::ReportBaseTextOperationFault(
     const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
 {
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID",
-        info.peerPid, "CLIENT_TYPE", info.clientType, "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode,
-        "FAULT_COUNT", faultNum);
+    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED", HiSysEvent::EventType::FAULT,
+        "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid, "CLIENT_TYPE", info.clientType,
+        "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode, "FAULT_COUNT", faultNum);
 }
 
 void ImfHiSysEventUtil::ReportStatisticsEvent(const std::string &eventName,
     const std::unordered_set<std::string> &imeNames, const std::unordered_set<std::string> &appNames,
     const std::vector<std::string> &statistics)
 {
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, eventName, HiSysEventNameSpace::EventType::STATISTIC,
-        "IME_NAME", imeNames, "APP_NAME", appNames, "INFOS", statistics);
+    std::vector<std::string> finalImeNames(imeNames.begin(), imeNames.end());
+    std::vector<std::string> finalAppNames(appNames.begin(), appNames.end());
+    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, eventName, HiSysEvent::EventType::STATISTIC, "IME_NAME",
+        finalImeNames, "APP_NAME", finalAppNames, "INFOS", statistics);
 }
 
 void ImfHiSysEventUtil::ReportStatisticsEvent(const std::string &eventName, const std::string &imeName,
     const std::unordered_set<std::string> &appNames, const std::vector<std::string> &statistics)
 {
-    HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, eventName, HiSysEventNameSpace::EventType::STATISTIC,
-        "SELF_NAME", imeName, "APP_NAME", appNames, "INFOS", statistics);
+    std::vector<std::string> finalAppNames(appNames.begin(), appNames.end());
+    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, eventName, HiSysEvent::EventType::STATISTIC, "SELF_NAME", imeName,
+        "APP_NAME", finalAppNames, "INFOS", statistics);
 }
 
 std::string ImfHiSysEventUtil::GetAppName(uint32_t tokenId)

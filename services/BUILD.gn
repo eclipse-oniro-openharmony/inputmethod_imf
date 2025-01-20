@@ -84,6 +84,7 @@ ohos_shared_library("inputmethod_service") {
 
   deps = [
     "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
     "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/services/file:imf_file_static",
@@ -182,6 +183,7 @@ ohos_static_library("inputmethod_service_static") {
 
   public_deps = [
     "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
     "adapter/keyboard:keboard_event_static",
     "adapter/settings_data_provider:settings_data_static",
     "file:imf_file_static",

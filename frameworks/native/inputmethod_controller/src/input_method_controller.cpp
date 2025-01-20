@@ -20,6 +20,7 @@
 
 #include "block_data.h"
 #include "global.h"
+#include "imc_hisysevent_reporter.h"
 #include "ime_event_monitor_manager_impl.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
@@ -284,7 +285,10 @@ int32_t InputMethodController::Attach(
                         .SetIsShowKeyboard(attachOptions.isShowKeyboard)
                         .SetClientType(type)
                         .Build();
-        ImcHiSysEventReporter::GetInstance()->ReportEvent(ImfEventType::CLIENT_ATTACH, *info);
+        auto instance = ImcHiSysEventReporter::GetInstance();
+        if (instance != nullptr) {
+            instance->ReportEvent(ImfEventType::CLIENT_ATTACH, *info);
+        }
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;

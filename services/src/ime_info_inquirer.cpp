@@ -21,7 +21,7 @@
 #include "app_mgr_client.h"
 #include "application_info.h"
 #include "bundle_mgr_client_impl.h"
-#include "file_operato
+#include "file_operator.h"
 #include "full_ime_info_manager.h"
 #include "global.h"
 #include "if_system_ability_manager.h"

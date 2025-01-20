@@ -18,6 +18,9 @@ config("imf_hisysevent_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/services/json/include",
   ]
 }
 
@@ -37,13 +40,12 @@ ohos_shared_library("imf_hisysevent") {
     "-Os",
   ]
   sources = [
-    "src/imsa_hisysevent_info.cpp",
     "src/ima_hisysevent_reporter.cpp",
     "src/imc_hisysevent_reporter.cpp",
+    "src/imf_hisysevent_info.cpp",
     "src/imf_hisysevent_reporter.cpp",
-    "src/imsa_hisysevent_reporter.cpp",
     "src/imf_hisysevent_util.cpp",
-
+    "src/imsa_hisysevent_reporter.cpp",
   ]
 
   deps = [ "${inputmethod_path}/services/json:imf_json_static" ]
@@ -55,9 +57,11 @@ ohos_shared_library("imf_hisysevent") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "ipc:ipc_single",
   ]
 
   subsystem_name = "inputmethod"

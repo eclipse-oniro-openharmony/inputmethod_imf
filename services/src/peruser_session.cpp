@@ -620,7 +620,7 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
         ret = clientInfo->client->OnInputReady(data->agent, { data->pid, data->ime.first });
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("start client input failed, ret: %{public}d!", ret);
-            return ErrorCode::ERROR_CLIENT_INPUT_READY_FAILED; //  ERROR_EX_PARCELABLE:ERRIMMS
+            return ErrorCode::ERROR_IMSA_CLIENT_INPUT_READY_FAILED; //  ERROR_EX_PARCELABLE:ERRIMMS
         }
     }
     UpdateClientInfo(clientInfo->client->AsObject(),
@@ -1142,7 +1142,7 @@ int32_t PerUserSession::ChangeToDefaultImeIfNeed(
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
     if (defaultIme == nullptr) {
         IMSA_HILOGE("failed to get default ime");
-        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
+        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;  //ERROR_PERSIST_CONFIG
     }
     if (defaultIme->bundleName == targetIme->bundleName) {
         IMSA_HILOGD("no need");

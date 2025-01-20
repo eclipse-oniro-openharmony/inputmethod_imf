@@ -98,6 +98,7 @@ public:
     bool IsDefaultImeSet() override;
     bool EnableIme(const std::string &bundleName) override;
     int32_t GetInputMethodState(EnabledStatus &status) override;
+    bool IsSystemApp() override;
 
 protected:
     void OnStart() override;
@@ -186,6 +187,8 @@ private:
     int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     bool IsSecurityMode(int32_t userId, const std::string &bundleName);
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+    int32_t StartInputInner(
+        InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     std::pair<int64_t, std::string> GetCurrentImeInfoForHiSysEvent(int32_t userId);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
@@ -205,7 +208,6 @@ private:
     std::mutex modeChangeMutex_;
     bool isChangeHandling_ = false;
     bool hasPendingChanges_ = false;
-    std::shared_ptr<ImfHiSysEventReporter> imfHiSysEvent_ = std::make_shared<ImsaHiSysEventReporter>();
 };
 } // namespace MiscServices
 } // namespace OHOS

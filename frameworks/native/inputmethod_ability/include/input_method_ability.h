@@ -77,6 +77,7 @@ public:
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
     bool IsEnable();
+    bool IsSystemApp();
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     int32_t GetSecurityMode(int32_t &security);
@@ -192,6 +193,9 @@ private:
     std::mutex msgHandlerMutex_;
     std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_;
 
+    std::mutex systemAppCheckMutex_;
+    bool isSystemApp_ = false;
+    
     std::mutex bindClientInfoLock_;
     std::tuple<int64_t, std::string, ClientType> bindClientInfo_{ 0, "", ClientType::CLIENT_TYPE_END }; // for hiSysEvent
     void SetBindClientInfo(const InputClientInfo &clientInfo);

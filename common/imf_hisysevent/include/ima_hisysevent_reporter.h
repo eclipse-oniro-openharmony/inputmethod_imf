@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace MiscServices {
 struct ImeCbTimeConsumeStatistics : public Serializable {
-    explicit ImeCbTimeConsumeStatistics(uint8_t num)
+    explicit ImeCbTimeConsumeStatistics(uint32_t num)
     {
         countDistributions.resize(num);
     }
@@ -39,7 +39,7 @@ struct ImeCbTimeConsumeStatistics : public Serializable {
         }
         return SetValue(node, GET_NAME(COUNT_DISTRIBUTION), countInfo) && ret;
     }
-    void Mod(uint8_t intervalIndex)
+    void Mod(uint32_t intervalIndex)
     {
         count++;
         if (intervalIndex >= countDistributions.size()) {
@@ -52,10 +52,10 @@ struct ImeCbTimeConsumeStatistics : public Serializable {
 };
 
 struct ImeStartInputAllInfo : public Serializable {
-    ImeStartInputAllInfo(uint8_t succeedIntervalNum, uint8_t failedIntervalNum, uint8_t timeConsumeIntervalNum)
+    ImeStartInputAllInfo(uint32_t succeedIntervalNum, uint32_t failedIntervalNum, uint32_t timeConsumeIntervalNum)
+        : succeedRateInfo(SuccessRateStatistics(succeedIntervalNum, failedIntervalNum)),
+          imeCbTimeConsumeInfo(ImeCbTimeConsumeStatistics(timeConsumeIntervalNum))
     {
-        succeedRateInfo = SuccessRateStatistics(succeedIntervalNum, failedIntervalNum);
-        imeCbTimeConsumeInfo = ImeCbTimeConsumeStatistics(timeConsumeIntervalNum);
     }
     bool Marshal(cJSON *node) const override
     {
@@ -68,25 +68,27 @@ struct ImeStartInputAllInfo : public Serializable {
 };
 
 struct BaseTextOperationAllInfo : public Serializable {
-    BaseTextOperationAllInfo(uint8_t succeedIntervalNum, uint8_t failedIntervalNum)
+    BaseTextOperationAllInfo(uint32_t succeedIntervalNum, uint32_t failedIntervalNum)
+        : succeedRateInfo(SuccessRateStatistics(succeedIntervalNum, failedIntervalNum))
     {
-        succeedRateInfo = SuccessRateStatistics(succeedIntervalNum, failedIntervalNum);
     }
     std::unordered_set<std::string> appNames;
     SuccessRateStatistics succeedRateInfo;
 };
 
-class ImaHiSysEventReporter : public ImfHiSysEventReporter {
+class ImaHiSysEventReporter
+    : public RefBase
+    , public ImfHiSysEventReporter {
 public:
     ~ImaHiSysEventReporter() override;
-    std::shared_ptr<ImaHiSysEventReporter> GetInstance();
+    static sptr<ImaHiSysEventReporter> GetInstance();
 
 private:
-    const std::vector<std::pair<uint8_t, uint8_t>> BASE_TEXT_OPERATION_TIME_INTERVAL = { { 0, 4 }, { 4, 8 }, { 8, 16 },
-        { 16, 24 }, { 24, 500 } }; // 0-4ms 4-8ms 8-16  16-24  24+
-    const std::vector<std::pair<uint8_t, uint8_t>> IME_CB_TIME_INTERVAL = { { 0, 10 }, { 10, 50 }, { 50, 100 },
-        { 100, 300 }, { 300, 500 }, { 500, 1000 } }; // 0-10ms 10-50ms 50-100  100-300 300-500 500+
     ImaHiSysEventReporter();
+    const std::vector<std::pair<uint32_t, uint32_t>> BASE_TEXT_OPERATION_TIME_INTERVAL = { { 0, 4 }, { 4, 8 },
+        { 8, 16 }, { 16, 24 }, { 24, 500 } }; // 0-4ms 4-8ms 8-16  16-24  24+
+    const std::vector<std::pair<uint32_t, uint32_t>> IME_CB_TIME_INTERVAL = { { 0, 10 }, { 10, 50 }, { 50, 100 },
+        { 100, 300 }, { 300, 500 }, { 500, 1000 } }; // 0-10ms 10-50ms 50-100  100-300 300-500 500+
     bool IsValidErrCode(int32_t errCode) override;
     bool IsFault(int32_t errCode) override;
     void RecordStatisticsEvent(ImfStatisticsEvent event, const HiSysOriginalInfo &info) override;
@@ -94,9 +96,9 @@ private:
     void RecordImeStartInputStatistics(const HiSysOriginalInfo &info);
     void ModImeCbTimeConsumeInfo(int32_t imeCbTime);
     void RecordBaseTextOperationStatistics(const HiSysOriginalInfo &info);
-    uint8_t GetBaseTextOperationSucceedIntervalIndex(int32_t baseTextOperationTime);
+    uint32_t GetBaseTextOperationSucceedIntervalIndex(int32_t baseTextOperationTime);
     static std::mutex instanceLock_;
-    static std::shared_ptr<ImaHiSysEventReporter> instance_;
+    static sptr<ImaHiSysEventReporter> instance_;
     std::mutex imeStartInputInfoLock_;
     ImeStartInputAllInfo imeStartInputAllInfo_;
     std::mutex baseTextOperationLock_;

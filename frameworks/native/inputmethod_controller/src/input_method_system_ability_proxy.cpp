@@ -45,7 +45,7 @@ int32_t InputMethodSystemAbilityProxy::StartInput(
                 data, inputClientInfo, inputClientInfo.client->AsObject(), inputClientInfo.channel);
         },
         [&agent, &imeInfo](
-            MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, agent, imeInfo.first, imeInfo.second) });
+            MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, agent, imeInfo.first, imeInfo.second); });
 }
 
 int32_t InputMethodSystemAbilityProxy::ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
@@ -395,6 +395,14 @@ int32_t InputMethodSystemAbilityProxy::IsPanelShown(const PanelInfo &panelInfo, 
 int32_t InputMethodSystemAbilityProxy::IsDefaultIme()
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_DEFAULT_IME));
+}
+
+bool InputMethodSystemAbilityProxy::IsSystemApp()
+{
+    bool isSystemApp = false;
+    SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_SYSTEM_APP), nullptr,
+        [&isSystemApp](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isSystemApp); });
+    return isSystemApp;
 }
 
 int32_t InputMethodSystemAbilityProxy::GetInputMethodState(EnabledStatus &status)

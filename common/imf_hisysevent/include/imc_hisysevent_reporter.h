@@ -22,17 +22,17 @@
 
 namespace OHOS {
 namespace MiscServices {
-class ImcHiSysEventReporter : public ImfHiSysEventReporter {
+class ImcHiSysEventReporter : public RefBase, public ImfHiSysEventReporter {
 public:
-    static std::shared_ptr<ImcHiSysEventReporter> GetInstance();
     ~ImcHiSysEventReporter() override;
+    static sptr<ImcHiSysEventReporter> GetInstance();
 
 private:
     ImcHiSysEventReporter();
     bool IsValidErrCode(int32_t errCode) override;
     bool IsFault(int32_t errCode) override;
     static std::mutex instanceLock_;
-    static std::shared_ptr<ImcHiSysEventReporter> instance_;
+    static sptr<ImcHiSysEventReporter> instance_;
 };
 } // namespace MiscServices
 } // namespace OHOS

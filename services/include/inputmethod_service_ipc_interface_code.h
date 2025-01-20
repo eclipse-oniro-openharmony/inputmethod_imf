@@ -60,6 +60,7 @@ enum class InputMethodInterfaceCode {
     SET_CALLING_WINDOW,
     GET_INPUT_START_INFO,
     GET_IME_STATE,
+    IS_SYSTEM_APP,
     
     IMS_CMD_END,
 };

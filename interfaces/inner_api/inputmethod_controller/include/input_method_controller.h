@@ -31,7 +31,6 @@
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
-#include "imc_hisysevent_reporter.h"
 #include "ime_event_listener.h"
 #include "input_client_info.h"
 #include "input_method_property.h"

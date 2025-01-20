@@ -42,7 +42,7 @@ enum class ClientState : uint32_t {
     ACTIVE
 };
 
-enum ClientType : uint8_t {
+enum ClientType : uint32_t {
     NDK,
     JS,
     CJ,

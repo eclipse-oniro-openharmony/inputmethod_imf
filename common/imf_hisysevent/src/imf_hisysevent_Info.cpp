@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-#include <imf_hisysevent_info.h>
+#include "imf_hisysevent_info.h"
 
 #include <algorithm>
-
-#include "imf_hisysevent_util.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -34,7 +32,7 @@ HiSysOriginalInfo::Builder::Builder()
     info_->imeCbTime = -1;
     info_->baseTextOperationTime = -1;
 }
-HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetEventCode(uint8_t eventCode)
+HiSysOriginalInfo::Builder &HiSysOriginalInfo::Builder::SetEventCode(int32_t eventCode)
 {
     info_->eventCode = eventCode;
     return *this;
@@ -94,11 +92,7 @@ std::shared_ptr<HiSysOriginalInfo> HiSysOriginalInfo::Builder::Build()
     return info_;
 }
 
-CountDistributionInfo::CountDistributionInfo(uint8_t num)
-{
-    countDistributions.resize(num);
-}
-void CountDistributionInfo::Mod(uint8_t intervalIndex, const std::string &key)
+void CountDistributionInfo::Mod(uint32_t intervalIndex, const std::string &key)
 {
     count++;
     if (intervalIndex >= countDistributions.size()) {
@@ -128,18 +122,6 @@ bool CountDistributionInfo::Marshal(cJSON *node) const
         distributions.push_back(infos);
     }
     return SetValue(node, GET_NAME(COUNT_DISTRIBUTION), distributions) && ret;
-}
-
-SuccessRateStatistics::SuccessRateStatistics(uint8_t succeedIntervalNum, uint8_t failedIntervalNum)
-{
-    succeedInfo = CountDistributionInfo(succeedIntervalNum);
-    failedInfo = CountDistributionInfo(failedIntervalNum);
-}
-
-bool SuccessRateStatistics::Marshal(cJSON *node) const
-{
-    auto ret = SetValue(node, GET_NAME(SUCCEED), succeedInfo);
-    return SetValue(node, GET_NAME(FAILED), failedInfo) && ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

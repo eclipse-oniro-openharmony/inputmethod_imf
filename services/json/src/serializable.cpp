@@ -128,6 +128,42 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const bool &va
     return item != NULL;
 }
 
+bool Serializable::SetValue(cJSON *node, const std::string &name, const Serializable &value)
+{
+    auto *item = cJSON_CreateObject();
+    if (!value.Marshal(item)) {
+        cJSON_Delete(item);
+        return false;
+    }
+    auto ret = cJSON_AddItemToObject(node, name.c_str(), item);
+    if (!ret) {
+        cJSON_Delete(item);
+    }
+    return ret;
+}
+
+bool Serializable::SetValue(cJSON *node, const std::string &name, const std::vector<std::vector<std::string>> &values)
+{
+    auto array = cJSON_CreateArray();
+    for (const auto &value : values) {
+        const char **cStrArr = new const char *[value.size()];
+        for (auto i = 0; i < value.size(); i++) {
+            cStrArr[i] = value[i].c_str();
+        }
+        auto stringArray = cJSON_CreateStringArray(cStrArr, value.size());
+        auto ret = cJSON_AddItemToArray(array, stringArray);
+        if (!ret) {
+            cJSON_Delete(stringArray);
+        }
+        delete[] cStrArr;
+    }
+    auto ret = cJSON_AddItemToObject(node, name.c_str(), array);
+    if (!ret) {
+        cJSON_Delete(array);
+    }
+    return ret;
+}
+
 cJSON *Serializable::GetSubNode(cJSON *node, const std::string &name)
 {
     if (name.empty()) {

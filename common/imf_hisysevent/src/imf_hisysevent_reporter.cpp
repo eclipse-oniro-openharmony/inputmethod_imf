@@ -16,6 +16,9 @@
 
 #include <algorithm>
 #include <chrono>
+
+#include "common_timer_errors.h"
+#include "ipc_skeleton.h"
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
@@ -62,7 +65,7 @@ void ImfHiSysEventReporter::StartTimer()
         return;
     }
     auto callback = [this]() { TimerCallback(); };
-    timerId_ = timer_.Register(callback(), HISYSEVENT_TIMER_TASK_INTERNAL, false);
+    timerId_ = timer_.Register(callback, HISYSEVENT_TIMER_TASK_INTERNAL, false);
     timerStartTime_ = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
@@ -83,7 +86,7 @@ void ImfHiSysEventReporter::StopTimer()
     timer_.Shutdown();
 }
 
-uint8_t ImfHiSysEventReporter::GetStatisticalIntervalIndex()
+uint32_t ImfHiSysEventReporter::GetStatisticalIntervalIndex()
 {
     auto time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto index = (time - timerStartTime_) / HISYSEVENT_STATISTICS_INTERNAL;
@@ -115,7 +118,7 @@ std::pair<bool, int64_t> ImfHiSysEventReporter::GenerateFaultReportInfo(
     }
     faultReportInfo.second = it != faultEventRecords_.end() ? it->second.second : 1;
     faultReportInfo.first = true;
-    faultEventRecords_.insert_or_assign(key, { curTime, 1 });
+    faultEventRecords_.insert_or_assign(key, std::make_pair(curTime, 1));
     return faultReportInfo;
 }
 
@@ -150,8 +153,7 @@ std::string ImfHiSysEventReporter::GetSelfName()
     if (!selfName_.empty()) {
         return selfName_;
     }
-    auto selfToken = GetSelfTokenID();
-    selfName_ = ImfHiSysEventUtil::GetAppName(selfToken);
+    selfName_ = ImfHiSysEventUtil::GetAppName(IPCSkeleton::GetSelfTokenID());
     return selfName_;
 }
 } // namespace MiscServices

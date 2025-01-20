@@ -16,20 +16,21 @@
 #ifndef IMF_HISYSEVENT_INFO_H
 #define IMF_HISYSEVENT_INFO_H
 #include <algorithm>
+#include <utility>
 
 #include "input_client_info.h"
 #include "serializable.h"
 namespace OHOS {
 namespace MiscServices {
 
-enum ImfEventType : uint8_t {
+enum ImfEventType : uint32_t {
     CLIENT_ATTACH,
     CLIENT_SHOW,
     IME_START_INPUT,
     BASE_TEXT_OPERATOR,
 };
 
-enum ImfFaultEvent : uint8_t {
+enum ImfFaultEvent : uint32_t {
     HI_SYS_FAULT_EVENT_BEGIN,
     CLIENT_ATTACH_FAILED = HI_SYS_FAULT_EVENT_BEGIN,
     CLIENT_SHOW_FAILED,
@@ -38,7 +39,7 @@ enum ImfFaultEvent : uint8_t {
     HI_SYS_FAULT_EVENT_END,
 };
 
-enum ImfStatisticsEvent : uint8_t {
+enum ImfStatisticsEvent : uint32_t {
     HI_SYS_STATISTICS_EVENT_BEGIN,
     CLIENT_ATTACH_STATISTICS = HI_SYS_STATISTICS_EVENT_BEGIN,
     CLIENT_SHOW_STATISTICS,
@@ -48,7 +49,7 @@ enum ImfStatisticsEvent : uint8_t {
 };
 
 struct HiSysOriginalInfo {
-    uint8_t eventCode;
+    int32_t eventCode;
     int32_t errCode;
     std::string peerName;
     int64_t peerPid;
@@ -62,7 +63,7 @@ struct HiSysOriginalInfo {
     class Builder {
     public:
         Builder();
-        Builder &SetEventCode(uint8_t eventCode);
+        Builder &SetEventCode(int32_t eventCode);
         Builder &SetErrCode(int32_t errCode);
         Builder &SetPeerName(const std::string &peerName);
         Builder &SetPeerUserId(int32_t peerUserId);
@@ -81,16 +82,26 @@ struct HiSysOriginalInfo {
 };
 
 struct CountDistributionInfo : public Serializable {
-    explicit CountDistributionInfo(uint8_t num);
-    void Mod(uint8_t intervalIndex, const std::string &key);
+    explicit CountDistributionInfo(uint32_t intervalNum)
+    {
+        countDistributions.resize(intervalNum);
+    };
+    void Mod(uint32_t intervalIndex, const std::string &key);
     bool Marshal(cJSON *node) const override;
     uint32_t count{ 0 };
     std::vector<std::vector<std::pair<std::string, uint32_t>>> countDistributions;
 };
 
 struct SuccessRateStatistics : public Serializable {
-    SuccessRateStatistics(uint8_t succeedIntervalNum, uint8_t failedIntervalNum);
-    bool Marshal(cJSON *node) const override;
+    SuccessRateStatistics(uint32_t succeedIntervalNum, uint32_t failedIntervalNum)
+        : succeedInfo(CountDistributionInfo(succeedIntervalNum)), failedInfo(CountDistributionInfo(failedIntervalNum))
+    {
+    }
+    bool Marshal(cJSON *node) const override
+    {
+        auto ret = SetValue(node, GET_NAME(SUCCEED), succeedInfo);
+        return SetValue(node, GET_NAME(FAILED), failedInfo) && ret;
+    }
     CountDistributionInfo succeedInfo;
     CountDistributionInfo failedInfo;
 };

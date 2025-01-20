@@ -31,20 +31,26 @@ public:
     virtual ~ImfHiSysEventReporter();
     static constexpr uint32_t HISYSEVENT_TIMER_TASK_INTERNAL = 3 * 60 * 60 * 1000; // updated three hourly
     static constexpr uint32_t HISYSEVENT_STATISTICS_INTERNAL = 30 * 60 * 1000;
-    static constexpr uint8_t COUNT_STATISTICS_INTERVAL_NUM =
+    static constexpr uint32_t COUNT_STATISTICS_INTERVAL_NUM =
         HISYSEVENT_TIMER_TASK_INTERNAL / HISYSEVENT_STATISTICS_INTERNAL; // 6
     void ReportEvent(ImfEventType eventType, const HiSysOriginalInfo &info);
     std::string GetSelfName();
+    uint32_t GetStatisticalIntervalIndex();
 
 private:
-    virtual bool IsValidErrCode(int32_t errCode){};
-    virtual bool IsFault(int32_t errCode){};
+    virtual bool IsValidErrCode(int32_t errCode)
+    {
+        return false;
+    }
+    virtual bool IsFault(int32_t errCode)
+    {
+        return false;
+    }
     virtual void RecordStatisticsEvent(ImfStatisticsEvent event, const HiSysOriginalInfo &info){};
     virtual void ReportStatisticsEvent(){};
     void StartTimer();
     void StopTimer();
     void TimerCallback();
-    uint8_t GetStatisticalIntervalIndex();
     void ReportFaultEvent(ImfFaultEvent event, const HiSysOriginalInfo &info);
     std::string GenerateFaultEventKey(ImfFaultEvent event, const HiSysOriginalInfo &info);
     std::pair<bool, int64_t> GenerateFaultReportInfo(ImfFaultEvent event, const HiSysOriginalInfo &info);
@@ -56,7 +62,7 @@ private:
         { IME_START_INPUT, { IME_START_INPUT_FAILED, IME_START_INPUT_STATISTICS } },
         { BASE_TEXT_OPERATOR, { BASE_TEXT_OPERATION_FAILED, BASE_TEXT_OPERATION_STATISTICS } },
     };
-    using FaultEventHandler = void (*)(const std::string selfName, int64_t faultNum, const HiSysOriginalInfo &info);
+    using FaultEventHandler = void (*)(const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info);
     static constexpr FaultEventHandler FAULT_EVENT_HANDLERS[HI_SYS_FAULT_EVENT_END] = {
         [CLIENT_ATTACH_FAILED] = ImfHiSysEventUtil::ReportClientAttachFault,
         [CLIENT_SHOW_FAILED] = ImfHiSysEventUtil::ReportClientShowFault,
