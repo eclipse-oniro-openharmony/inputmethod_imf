@@ -761,7 +761,7 @@ int32_t InputMethodAbility::GetSecurityMode(int32_t &security)
 {
     IMSA_HILOGI("InputMethodAbility start.");
     int32_t securityMode = securityMode_.load();
-    if (securityMode != INVALID_SECURITY_MODE) {
+    if (securityMode != static_cast<int32_t>(INVALID_SECURITY_MODE)) {
         IMSA_HILOGD("Get cache security mode: %{public}d.", securityMode);
         security = securityMode;
         return ErrorCode::NO_ERROR;

@@ -388,7 +388,8 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
         return nullptr;
     }
     std::shared_ptr<JSCallbackObject> callback =
-        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
+        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id(),
+            AppExecFwk::EventHandler::Current());
     engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;
@@ -1261,7 +1262,8 @@ int32_t JsGetInputMethodController::JsMessageHandler::OnMessage(const ArrayBuffe
             napi_get_global(jsCallbackObject->env_, &global);
             napi_value output = nullptr;
             napi_value argv[ARGC_TWO] = { nullptr };
-            if (JsUtils::GetMessageHandlerCallbackParam(argv, jsCallbackObject, arrayBuffer) != napi_ok) {
+            // 2 means just use the first two parameters
+            if (JsUtils::GetMessageHandlerCallbackParam(argv, jsCallbackObject, arrayBuffer, 2) != napi_ok) {
                 IMSA_HILOGE("Get message handler callback param failed!.");
                 return;
             }

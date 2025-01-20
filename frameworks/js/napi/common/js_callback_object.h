@@ -27,12 +27,14 @@ namespace OHOS {
 namespace MiscServices {
 class JSCallbackObject {
 public:
-    JSCallbackObject(napi_env env, napi_value callback, std::thread::id threadId);
+    JSCallbackObject(napi_env env, napi_value callback, std::thread::id threadId,
+        std::shared_ptr<AppExecFwk::EventHandler> jsHandler);
     ~JSCallbackObject();
     napi_ref callback_ = nullptr;
     napi_env env_{};
     std::thread::id threadId_;
     std::shared_ptr<BlockData<bool>> isDone_;
+    std::shared_ptr<AppExecFwk::EventHandler> jsHandler_;
 };
 
 // Ensure this object abstract in constract thread.

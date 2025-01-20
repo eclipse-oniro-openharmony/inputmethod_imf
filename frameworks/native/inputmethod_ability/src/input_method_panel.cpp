@@ -616,7 +616,7 @@ int32_t InputMethodPanel::CalculateAvoidHeight(EnhancedLayoutParam &layoutParam,
     }
     auto ratio = panelFlag == PanelFlag::FLG_FIXED ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
                                                    : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
-    uint32_t avoidHeight = layoutParam.rect.height_ - layoutParam.avoidY;
+    uint32_t avoidHeight = layoutParam.rect.height_ -  static_cast<uint32_t>(layoutParam.avoidY);
     if (static_cast<float>(avoidHeight) > displaySize.height * ratio) {
         IMSA_HILOGE("invalid avoidY: %{public}d, avoidHeight: %{public}u, displayHeight: %{public}u",
             layoutParam.avoidY, avoidHeight, displaySize.height);

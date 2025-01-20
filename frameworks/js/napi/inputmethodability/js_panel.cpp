@@ -454,7 +454,8 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     // 1 means the second param callback.
     std::shared_ptr<JSCallbackObject> cbObject =
-        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id());
+        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id(),
+            AppExecFwk::EventHandler::Current());
     observer->Subscribe(inputMethodPanel->windowId_, type, cbObject);
     bool ret = inputMethodPanel->SetPanelStatusListener(observer, type);
     if (!ret) {
