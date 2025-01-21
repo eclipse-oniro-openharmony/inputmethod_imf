@@ -229,7 +229,7 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitchWithErrorSubName Test START");
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, "errorSubName");
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED);
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();

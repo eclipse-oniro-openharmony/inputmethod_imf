@@ -1181,7 +1181,7 @@ int32_t InputMethodPanel::ShowPanel()
     }
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_IMA_NULLPTR;  // ERROR_NULL_POINTER
+        return ErrorCode::ERROR_IMA_NULLPTR;
     }
     if (IsShowing()) {
         IMSA_HILOGI("panel already shown.");

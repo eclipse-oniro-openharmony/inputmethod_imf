@@ -28,7 +28,9 @@ InputClientProxy::InputClientProxy(const sptr<IRemoteObject> &object) : IRemoteP
 int32_t InputClientProxy::OnInputReady(const sptr<IRemoteObject> &agent, const std::pair<int64_t, std::string> &imeInfo)
 {
     return SendRequest(ON_INPUT_READY, [agent, imeInfo](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, agent, imeInfo.first, imeInfo.second);
+        auto ret = ITypesUtil::Marshal(data, agent);
+        ITypesUtil::Marshal(data, imeInfo.first, imeInfo.second);
+        return ret;
     });
 }
 

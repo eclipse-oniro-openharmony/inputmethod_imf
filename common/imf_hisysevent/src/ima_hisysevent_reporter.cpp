@@ -20,17 +20,14 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
-std::mutex ImaHiSysEventReporter::instanceLock_;
-sptr<ImaHiSysEventReporter> ImaHiSysEventReporter::instance_;
-sptr<ImaHiSysEventReporter> ImaHiSysEventReporter::GetInstance()
+const std::vector<std::pair<uint32_t, uint32_t>> ImaHiSysEventReporter::BASE_TEXT_OPERATION_TIME_INTERVAL = { { 0, 4 },
+    { 4, 8 }, { 8, 16 }, { 16, 24 }, { 24, 500 } }; // 0-4ms 4-8ms 8-16ms 16-24ms  24ms+
+const std::vector<std::pair<uint32_t, uint32_t>> ImaHiSysEventReporter::IME_CB_TIME_INTERVAL = { { 0, 10 }, { 10, 50 },
+    { 50, 100 }, { 100, 500 }, { 500, 1000 }, { 1000, 2000 } }; // 0-10ms 10-50ms 50-100  100-500 500-500 1000+
+ImaHiSysEventReporter &ImaHiSysEventReporter::GetInstance()
 {
-    if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> lock(instanceLock_);
-        if (instance_ == nullptr) {
-            instance_ = new (std::nothrow) ImaHiSysEventReporter();
-        }
-    }
-    return instance_;
+    static ImaHiSysEventReporter instance;
+    return instance;
 }
 
 ImaHiSysEventReporter::ImaHiSysEventReporter()
@@ -48,7 +45,7 @@ ImaHiSysEventReporter::~ImaHiSysEventReporter()
 bool MiscServices::ImaHiSysEventReporter::IsValidErrCode(int32_t errCode)
 {
     return !((ErrorCode::ERROR_IMC_BEGIN < errCode && errCode < ErrorCode::ERROR_IMC_END)
-             || (ErrorCode::ERROR_IMSA_BEGIN < errCode && errCode < ErrorCode::ERROR_IMSA_END));
+         || (ErrorCode::ERROR_IMSA_BEGIN < errCode && errCode < ErrorCode::ERROR_IMSA_END));
 }
 
 bool ImaHiSysEventReporter::IsFault(int32_t errCode)
@@ -58,6 +55,7 @@ bool ImaHiSysEventReporter::IsFault(int32_t errCode)
 
 void ImaHiSysEventReporter::RecordStatisticsEvent(ImfStatisticsEvent event, const HiSysOriginalInfo &info)
 {
+    std::lock_guard<std::mutex> lock(statisticsEventLock_);
     switch (event) {
         case ImfStatisticsEvent::IME_START_INPUT_STATISTICS: {
             RecordImeStartInputStatistics(info);
@@ -74,27 +72,41 @@ void ImaHiSysEventReporter::RecordStatisticsEvent(ImfStatisticsEvent event, cons
 
 void ImaHiSysEventReporter::ReportStatisticsEvent()
 {
-    std::string imeStartInputStatistics;
-    imeStartInputAllInfo_.Marshall(imeStartInputStatistics);
-    ImfHiSysEventUtil::ReportStatisticsEvent(GET_NAME(IME_START_INPUT_STATISTICS), GetSelfName(),
-        imeStartInputAllInfo_.appNames, { imeStartInputStatistics });
-    imeStartInputAllInfo_ = ImeStartInputAllInfo(
+    ImeStartInputAllInfo imeStartInputInfo(
         COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM, IME_CB_TIME_INTERVAL.size());
-    std::string baseTextOperationStatistics;
-    baseTextOperationAllInfo_.succeedRateInfo.Marshall(baseTextOperationStatistics);
-    ImfHiSysEventUtil::ReportStatisticsEvent(GET_NAME(BASE_TEXT_OPERATION_STATISTICS), GetSelfName(),
-        baseTextOperationAllInfo_.appNames, { baseTextOperationStatistics });
-    baseTextOperationAllInfo_ =
-        BaseTextOperationAllInfo(BASE_TEXT_OPERATION_TIME_INTERVAL.size(), COUNT_STATISTICS_INTERVAL_NUM);
+    BaseTextOperationAllInfo baseTextOperationInfo(
+        BASE_TEXT_OPERATION_TIME_INTERVAL.size(), COUNT_STATISTICS_INTERVAL_NUM);
+    {
+        std::lock_guard<std::mutex> lock(statisticsEventLock_);
+        auto time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+        ResetTimerStartTime(time);
+        imeStartInputInfo = imeStartInputAllInfo_;
+        baseTextOperationInfo = baseTextOperationAllInfo_;
+        imeStartInputAllInfo_ = ImeStartInputAllInfo(
+            COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM, IME_CB_TIME_INTERVAL.size());
+        baseTextOperationAllInfo_ =
+            BaseTextOperationAllInfo(BASE_TEXT_OPERATION_TIME_INTERVAL.size(), COUNT_STATISTICS_INTERVAL_NUM);
+    }
+    if (!imeStartInputInfo.appNames.empty()) {
+        std::string imeStartInputStatistics;
+        imeStartInputInfo.Marshall(imeStartInputStatistics);
+        ImfHiSysEventUtil::ReportStatisticsEvent(GET_NAME(IME_START_INPUT_STATISTICS), GetSelfName(),
+            imeStartInputInfo.appNames, { imeStartInputStatistics });
+    }
+    if (!baseTextOperationInfo.appNames.empty()) {
+        std::string baseTextOperationStatistics;
+        baseTextOperationInfo.succeedRateInfo.Marshall(baseTextOperationStatistics);
+        ImfHiSysEventUtil::ReportStatisticsEvent(GET_NAME(BASE_TEXT_OPERATION_STATISTICS), GetSelfName(),
+            baseTextOperationInfo.appNames, { baseTextOperationStatistics });
+    }
 }
 
 void ImaHiSysEventReporter::RecordImeStartInputStatistics(const HiSysOriginalInfo &info)
 {
-    std::lock_guard<std::mutex> lock(imeStartInputInfoLock_);
-    imeStartInputAllInfo_.appNames.insert(info.peerName);
+    std::string appName = "*";  // for security reasons, the package name is not printed at this time
+    auto appIndex = ImfHiSysEventUtil::AddIfAbsent(appName, imeStartInputAllInfo_.appNames);
     ModImeCbTimeConsumeInfo(info.imeCbTime);
     auto intervalIndex = GetStatisticalIntervalIndex();
-    auto appIndex = ImfHiSysEventUtil::GetIndexInSet(info.peerName, imeStartInputAllInfo_.appNames);
     std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
         key.append("/").append(std::to_string(info.isShowKeyboard));
@@ -126,13 +138,13 @@ void ImaHiSysEventReporter::ModImeCbTimeConsumeInfo(int32_t imeCbTime)
 
 void ImaHiSysEventReporter::RecordBaseTextOperationStatistics(const HiSysOriginalInfo &info)
 {
-    std::lock_guard<std::mutex> lock(baseTextOperationLock_);
-    baseTextOperationAllInfo_.appNames.insert(info.peerName);
-    auto appIndex = ImfHiSysEventUtil::GetIndexInSet(info.peerName, baseTextOperationAllInfo_.appNames);
+    std::string appName = "*";
+    auto appIndex = ImfHiSysEventUtil::AddIfAbsent(appName, baseTextOperationAllInfo_.appNames);
     std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
         key.append("/").append(std::to_string(info.eventCode));
-        baseTextOperationAllInfo_.succeedRateInfo.succeedInfo.Mod(GetStatisticalIntervalIndex(), key);
+        baseTextOperationAllInfo_.succeedRateInfo.succeedInfo.Mod(
+            GetBaseTextOperationSucceedIntervalIndex(info.baseTextOperationTime), key);
         return;
     }
     key.append("/")
@@ -141,8 +153,7 @@ void ImaHiSysEventReporter::RecordBaseTextOperationStatistics(const HiSysOrigina
         .append(std::to_string(info.eventCode))
         .append("/")
         .append(std::to_string(info.errCode));
-    baseTextOperationAllInfo_.succeedRateInfo.failedInfo.Mod(
-        GetBaseTextOperationSucceedIntervalIndex(info.baseTextOperationTime), key);
+    baseTextOperationAllInfo_.succeedRateInfo.failedInfo.Mod(GetStatisticalIntervalIndex(), key);
 }
 
 uint32_t ImaHiSysEventReporter::GetBaseTextOperationSucceedIntervalIndex(int32_t baseTextOperationTime)

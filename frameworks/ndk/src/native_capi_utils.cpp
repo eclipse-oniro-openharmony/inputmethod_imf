@@ -65,11 +65,12 @@ static const std::map<int32_t, InputMethod_ErrorCode> ERROR_CODE_MAP = {
     { ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR,      IME_ERR_IMMS               },
     { ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP,   IME_ERR_IMMS               },
     { ErrorCode::ERROR_IMSA_IME_EVENT_CONVERT_FAILED,  IME_ERR_IMMS               },
-    { ErrorCode::ERROR_IMSA_AMS_CONNECT_FAILED,        IME_ERR_IMMS               },
-    { ErrorCode::ERROR_IMSA_AMS_DISCONNECT_FAILED,     IME_ERR_IMMS               },
+    { ErrorCode::ERROR_IMSA_IME_CONNECT_FAILED,        IME_ERR_IMMS               },
+    { ErrorCode::ERROR_IMSA_IME_DISCONNECT_FAILED,     IME_ERR_IMMS               },
     { ErrorCode::ERROR_IMSA_IME_START_TIMEOUT,         IME_ERR_IMMS               },
     { ErrorCode::ERROR_IMSA_IME_START_MORE_THAN_EIGHT_SECOND, IME_ERR_IMMS        },
     { ErrorCode::ERROR_IMSA_FORCE_STOP_IME_TIMEOUT,    IME_ERR_IMMS               },
+    { ErrorCode::ERROR_IMC_NULLPTR,                    IME_ERR_IMMS               },
 };
 
 InputMethod_ErrorCode ErrorCodeConvert(int32_t code)

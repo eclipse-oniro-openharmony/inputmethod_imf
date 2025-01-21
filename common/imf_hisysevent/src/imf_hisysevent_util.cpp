@@ -26,53 +26,82 @@ using namespace Security::AccessToken;
 void ImfHiSysEventUtil::ReportClientAttachFault(
     const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
 {
-    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED", HiSysEvent::EventType::FAULT,
+    IMSA_HILOGD("run in.");
+    auto ret = HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "CLIENT_ATTACH_FAILED", HiSysEvent::EventType::FAULT,
         "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid, "PEER_USERID", info.peerUserId,
         "CLIENT_TYPE", info.clientType, "INPUT_PATTERN", info.inputPattern, "ISSHOWKEYBOARD", info.isShowKeyboard,
-        "IME_NAME", info.imeName, "ERR_CODE", info.eventCode, "FAULT_COUNT", faultNum);
+        "IME_NAME", info.imeName, "ERR_CODE", info.errCode, "FAULT_COUNT", faultNum);
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("report failed! ret: %{public}d", ret);
+    }
 }
 
 void ImfHiSysEventUtil::ReportClientShowFault(
     const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
 {
-    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED", HiSysEvent::EventType::FAULT,
+    IMSA_HILOGD("run in.");
+    auto ret = HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "CLIENT_SHOW_FAILED", HiSysEvent::EventType::FAULT,
         "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid, "PEER_USERID", info.peerUserId,
         "CLIENT_TYPE", info.clientType, "INPUT_PATTERN", info.inputPattern, "IME_NAME", info.imeName, "EVENT_CODE",
-        info.eventCode, "ERR_CODE", info.eventCode, "FAULT_COUNT", faultNum);
+        info.eventCode, "ERR_CODE", info.errCode, "FAULT_COUNT", faultNum);
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("report failed! ret: %{public}d", ret);
+    }
 }
 
 void ImfHiSysEventUtil::ReportImeStartInputFault(
     const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
 {
-    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED", HiSysEvent::EventType::FAULT,
+    IMSA_HILOGD("run in.");
+    auto ret = HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "IME_START_INPUT_FAILED", HiSysEvent::EventType::FAULT,
         "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid, "ISSHOWKEYBOARD",
-        info.isShowKeyboard, "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode, "FAULT_COUNT", faultNum);
+        info.isShowKeyboard, "EVENT_CODE", info.eventCode, "ERR_CODE", info.errCode, "FAULT_COUNT", faultNum);
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("report failed! ret: %{public}d", ret);
+    }
 }
 
 void ImfHiSysEventUtil::ReportBaseTextOperationFault(
     const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info)
 {
-    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATOR_FAILED", HiSysEvent::EventType::FAULT,
-        "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid, "CLIENT_TYPE", info.clientType,
-        "EVENT_CODE", info.eventCode, "ERR_CODE", info.eventCode, "FAULT_COUNT", faultNum);
+    IMSA_HILOGD("run in.");
+    auto ret = HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, "BASE_TEXT_OPERATION_FAILED",
+        HiSysEvent::EventType::FAULT, "SELF_NAME", selfName, "PEER_NAME", info.peerName, "PEER_PID", info.peerPid,
+        "CLIENT_TYPE", info.clientType, "EVENT_CODE", info.eventCode, "ERR_CODE", info.errCode, "FAULT_COUNT",
+        faultNum);
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("report failed! ret: %{public}d", ret);
+    }
 }
 
-void ImfHiSysEventUtil::ReportStatisticsEvent(const std::string &eventName,
-    const std::unordered_set<std::string> &imeNames, const std::unordered_set<std::string> &appNames,
-    const std::vector<std::string> &statistics)
+void ImfHiSysEventUtil::ReportStatisticsEvent(const std::string &eventName, const std::vector<std::string> &imeNames,
+    const std::vector<std::string> &appNames, const std::vector<std::string> &statistics)
 {
-    std::vector<std::string> finalImeNames(imeNames.begin(), imeNames.end());
-    std::vector<std::string> finalAppNames(appNames.begin(), appNames.end());
-    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, eventName, HiSysEvent::EventType::STATISTIC, "IME_NAME",
-        finalImeNames, "APP_NAME", finalAppNames, "INFOS", statistics);
+    std::string infoStr;
+    if (!statistics.empty()) {
+        infoStr = statistics[0];
+    }
+    IMSA_HILOGD("run in, [%{public}s, %{public}s].", eventName.c_str(), infoStr.c_str());
+    auto ret = HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, eventName, HiSysEvent::EventType::STATISTIC,
+        "IME_NAME", imeNames, "APP_NAME", appNames, "INFOS", statistics);
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("report failed! ret: %{public}d", ret);
+    }
 }
 
 void ImfHiSysEventUtil::ReportStatisticsEvent(const std::string &eventName, const std::string &imeName,
-    const std::unordered_set<std::string> &appNames, const std::vector<std::string> &statistics)
+    const std::vector<std::string> &appNames, const std::vector<std::string> &statistics)
 {
-    std::vector<std::string> finalAppNames(appNames.begin(), appNames.end());
-    HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, eventName, HiSysEvent::EventType::STATISTIC, "SELF_NAME", imeName,
-        "APP_NAME", finalAppNames, "INFOS", statistics);
+    std::string infoStr;
+    if (!statistics.empty()) {
+        infoStr = statistics[0];
+    }
+    IMSA_HILOGD("run in, [%{public}s, %{public}s].", eventName.c_str(), infoStr.c_str());
+    auto ret = HiSysEventWrite(HiSysEvent::Domain::INPUTMETHOD, eventName, HiSysEvent::EventType::STATISTIC,
+        "SELF_NAME", imeName, "APP_NAME", appNames, "INFOS", statistics);
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("report failed! ret: %{public}d", ret);
+    }
 }
 
 std::string ImfHiSysEventUtil::GetAppName(uint32_t tokenId)
@@ -104,15 +133,16 @@ std::string ImfHiSysEventUtil::GetAppName(uint32_t tokenId)
     return name;
 }
 
-std::string ImfHiSysEventUtil::GetIndexInSet(
-    const std::string &bundleName, const std::unordered_set<std::string> &bundleNames)
+std::string ImfHiSysEventUtil::AddIfAbsent(const std::string &bundleName, std::vector<std::string> &bundleNames)
 {
-    int32_t index = 0;
-    for (const auto &name : bundleNames) {
-        if (name == bundleName) {
-            break;
-        }
-        index++;
+    uint32_t index = 0;
+    auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
+        [&bundleName](const std::string &bundleNameTmp) { return bundleName == bundleNameTmp; });
+    if (it == bundleNames.end()) {
+        bundleNames.push_back(bundleName);
+        index = bundleNames.size() - 1;
+    } else {
+        index = it - bundleNames.begin();
     }
     return std::to_string(index);
 }

@@ -35,7 +35,7 @@ int32_t InputMethodSystemAbilityProxy::StartInput(
 {
     if (inputClientInfo.client == nullptr) {
         IMSA_HILOGE("client is nullptr.");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_IMC_NULLPTR;
     }
 
     return SendRequest(
@@ -44,8 +44,11 @@ int32_t InputMethodSystemAbilityProxy::StartInput(
             return ITypesUtil::Marshal(
                 data, inputClientInfo, inputClientInfo.client->AsObject(), inputClientInfo.channel);
         },
-        [&agent, &imeInfo](
-            MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, agent, imeInfo.first, imeInfo.second); });
+        [&agent, &imeInfo](MessageParcel &reply) {
+            agent = reply.ReadRemoteObject();
+            ITypesUtil::Unmarshal(reply, imeInfo.first, imeInfo.second);
+            return true;
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
@@ -60,9 +63,13 @@ int32_t InputMethodSystemAbilityProxy::ConnectSystemCmd(const sptr<IRemoteObject
         });
 }
 
-int32_t InputMethodSystemAbilityProxy::ShowCurrentInput()
+int32_t InputMethodSystemAbilityProxy::ShowCurrentInput(ClientType type)
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT));
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT), [&type](MessageParcel &data) {
+            ITypesUtil::Marshal(data, type);
+            return true;
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::HideCurrentInput()
@@ -75,16 +82,19 @@ int32_t InputMethodSystemAbilityProxy::StopInputSession()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION));
 }
 
-int32_t InputMethodSystemAbilityProxy::ShowInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbilityProxy::ShowInput(sptr<IInputClient> client, ClientType type)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr.");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_IMC_NULLPTR;
     }
 
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT), [client](MessageParcel &data) {
-        return data.WriteRemoteObject(client->AsObject());
-    });
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT), [client, &type](MessageParcel &data) {
+            auto ret = data.WriteRemoteObject(client->AsObject());
+            ITypesUtil::Marshal(data, type);
+            return ret;
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::HideInput(sptr<IInputClient> client)
@@ -441,7 +451,7 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("write interface token failed!");
-        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;  // CY:ERROR_EX_ILLEGAL_ARGUMENT:ERRIMMS
+        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
     if (input != nullptr && (!input(data))) {
         IMSA_HILOGE("write data failed!");
@@ -450,7 +460,7 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
     auto remote = Remote();
     if (remote == nullptr) {
         IMSA_HILOGE("remote is nullptr!");
-        return ErrorCode::ERROR_IPC_REMOTE_NULLPTR; // CY: ERROR_EX_NULL_POINTER:ERRIMMS
+        return ErrorCode::ERROR_IPC_REMOTE_NULLPTR;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {

@@ -562,7 +562,6 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
             "showKeyboard covert failed, type must be boolean!", TYPE_NONE, napi_generic_failure);
         PARAM_CHECK_RETURN(env, JsGetInputMethodController::GetValue(env, argv[1], ctxt->textConfig),
             "textConfig covert failed, type must be TextConfig!", TYPE_NONE, napi_generic_failure);
-        // TODO  report errCode:ERROR_JS_PARAM
         return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
@@ -589,7 +588,7 @@ napi_value JsGetInputMethodController::ShowTextInput(napi_env env, napi_callback
 {
     InputMethodSyncTrace tracer("JsGetInputMethodController_ShowTextInput");
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->ShowTextInput(); }, false, true);
+        env, info, [] { return InputMethodController::GetInstance()->ShowTextInput(ClientType::JS); }, false, true);
 }
 
 napi_value JsGetInputMethodController::HideTextInput(napi_env env, napi_callback_info info)
@@ -712,7 +711,7 @@ napi_value JsGetInputMethodController::ShowSoftKeyboard(napi_env env, napi_callb
 {
     InputMethodSyncTrace tracer("JsGetInputMethodController_ShowSoftKeyboard");
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->ShowSoftKeyboard(); }, false, true);
+        env, info, [] { return InputMethodController::GetInstance()->ShowSoftKeyboard(ClientType::JS); }, false, true);
 }
 
 napi_value JsGetInputMethodController::HideSoftKeyboard(napi_env env, napi_callback_info info)
@@ -811,7 +810,8 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
     auto entry = GetEntry(type, [&insertText](UvEntry &entry) { entry.text = insertText; });
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
-        // TODO  report ERROR_JS_CB_NOT_REGISTER
+        InputMethodController::GetInstance()->ReportBaseTextOperation(
+            IInputDataChannel::INSERT_TEXT, ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -842,6 +842,8 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
     auto entry = GetEntry(type, [&length](UvEntry &entry) { entry.length = length; });
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
+        InputMethodController::GetInstance()->ReportBaseTextOperation(
+            IInputDataChannel::DELETE_FORWARD, ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -873,6 +875,8 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
     auto entry = GetEntry(type, [&length](UvEntry &entry) { entry.length = length; });
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
+        InputMethodController::GetInstance()->ReportBaseTextOperation(
+            IInputDataChannel::DELETE_BACKWARD, ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
     auto eventHandler = GetEventHandler();

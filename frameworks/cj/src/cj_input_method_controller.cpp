@@ -101,7 +101,7 @@ int32_t CjInputMethodController::ShowTextInput()
     if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
-    return controller->ShowTextInput();
+    return controller->ShowTextInput(ClientType::CJ);
 }
 
 int32_t CjInputMethodController::HideTextInput()
@@ -166,7 +166,7 @@ int32_t CjInputMethodController::ShowSoftKeyboard()
     if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
-    return controller->ShowSoftKeyboard();
+    return controller->ShowSoftKeyboard(ClientType::CJ);
 }
 
 int32_t CjInputMethodController::HideSoftKeyboard()

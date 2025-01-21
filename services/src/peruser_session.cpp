@@ -136,9 +136,8 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
     IMSA_HILOGI("client[%{public}d] is removed.", clientInfo->pid);
 }
 
-void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
-    const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>>
-        &updateInfos)
+void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client, const std::unordered_map<UpdateFlag,
+    std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>>&updateInfos)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr!");
@@ -218,7 +217,7 @@ int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
     IMSA_HILOGD("PerUserSession::ShowKeyboard start.");
     if (currentClient == nullptr) {
         IMSA_HILOGE("current client is nullptr!");
-        return ErrorCode::ERROR_IMSA_NULLPTR; //ERROR_NULL_POINTER
+        return ErrorCode::ERROR_IMSA_NULLPTR;
     }
     auto clientInfo = GetClientInfo(currentClient->AsObject());
     if (clientInfo == nullptr) {
@@ -597,7 +596,7 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
 {
     if (clientInfo == nullptr) {
         IMSA_HILOGE("clientInfo is nullptr!");
-        return ErrorCode::ERROR_IMSA_NULLPTR;  // ERROR_NULL_POINTER
+        return ErrorCode::ERROR_IMSA_NULLPTR;
     }
     IMSA_HILOGD("imeType: %{public}d, isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", type,
         clientInfo->isShowKeyboard, isBindFromClient);
@@ -620,7 +619,7 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
         ret = clientInfo->client->OnInputReady(data->agent, { data->pid, data->ime.first });
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("start client input failed, ret: %{public}d!", ret);
-            return ErrorCode::ERROR_IMSA_CLIENT_INPUT_READY_FAILED; //  ERROR_EX_PARCELABLE:ERRIMMS
+            return ErrorCode::ERROR_IMSA_CLIENT_INPUT_READY_FAILED;
         }
     }
     UpdateClientInfo(clientInfo->client->AsObject(),
@@ -1142,7 +1141,7 @@ int32_t PerUserSession::ChangeToDefaultImeIfNeed(
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
     if (defaultIme == nullptr) {
         IMSA_HILOGE("failed to get default ime");
-        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;  //ERROR_PERSIST_CONFIG
+        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
     }
     if (defaultIme->bundleName == targetIme->bundleName) {
         IMSA_HILOGD("no need");
@@ -1197,8 +1196,8 @@ int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &i
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("connect %{public}s failed, ret: %{public}d!", imeToStart->imeId.c_str(), ret);
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
-            ErrorCode::ERROR_IMSA_AMS_CONNECT_FAILED, imeToStart->imeId, "failed to start ability.");
-        return ErrorCode::ERROR_IMSA_AMS_CONNECT_FAILED;
+            ErrorCode::ERROR_IMSA_IME_CONNECT_FAILED, imeToStart->imeId, "failed to start ability.");
+        return ErrorCode::ERROR_IMSA_IME_CONNECT_FAILED;
     }
     if (!isImeStarted_.GetValue()) {
         IMSA_HILOGE("start %{public}s timeout!", imeToStart->imeId.c_str());
@@ -1871,7 +1870,7 @@ int32_t PerUserSession::ForceStopCurrentIme(bool isNeedWait)
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("StopExtensionAbility [%{public}s, %{public}s] failed, ret: %{public}d!",
             imeData->ime.first.c_str(), imeData->ime.second.c_str(), ret);
-        return ErrorCode::ERROR_IMSA_AMS_DISCONNECT_FAILED;
+        return ErrorCode::ERROR_IMSA_IME_DISCONNECT_FAILED;
     }
     if (!isNeedWait) {
         return ErrorCode::ERROR_IMSA_IME_START_MORE_THAN_EIGHT_SECOND;

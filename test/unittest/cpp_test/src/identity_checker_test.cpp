@@ -143,7 +143,8 @@ HWTEST_F(IdentityCheckerTest, testStartInput_001, TestSize.Level0)
     service_->identityChecker_ = identityCheckerImpl_;
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
+    std::pair<int64_t, std::string> imeInfo;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, imeInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
 
@@ -161,8 +162,9 @@ HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    std::pair<int64_t, std::string> imeInfo;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, imeInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
 /**
@@ -179,8 +181,9 @@ HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    std::pair<int64_t, std::string> imeInfo;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, imeInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
 /**
@@ -197,8 +200,9 @@ HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    std::pair<int64_t, std::string> imeInfo;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, imeInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
 /**
@@ -586,7 +590,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_CHANGE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 }
 
 /**
@@ -603,13 +607,13 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_002, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
     InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_HIDE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_CHANGE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 }
 
 /**
@@ -626,13 +630,13 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_003, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
     InputClientInfo clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_HIDE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_CHANGE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 }
 
 /**
@@ -680,7 +684,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
         CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED);
 }
 
 /**
@@ -697,7 +701,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
         CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED);
 }
 
 /**

@@ -28,12 +28,12 @@ public:
     static void ReportImeStartInputFault(const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info);
     static void ReportBaseTextOperationFault(
         const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info);
-    static void ReportStatisticsEvent(const std::string &eventName, const std::unordered_set<std::string> &imeNames,
-        const std::unordered_set<std::string> &appNames, const std::vector<std::string> &statistics);
+    static void ReportStatisticsEvent(const std::string &eventName, const std::vector<std::string> &imeNames,
+        const std::vector<std::string> &appNames, const std::vector<std::string> &statistics);
     static void ReportStatisticsEvent(const std::string &eventName, const std::string &imeName,
-        const std::unordered_set<std::string> &appNames, const std::vector<std::string> &statistics);
+        const std::vector<std::string> &appNames, const std::vector<std::string> &statistics);
     static std::string GetAppName(uint32_t tokenId);
-    static std::string GetIndexInSet(const std::string &bundleName, const std::unordered_set<std::string> &bundleNames);
+    static std::string AddIfAbsent(const std::string &bundleName, std::vector<std::string> &bundleNames);
 };
 } // namespace MiscServices
 } // namespace OHOS

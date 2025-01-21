@@ -158,7 +158,7 @@ int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelH
     auto remote = Remote();
     if (remote == nullptr) {
         IMSA_HILOGE("InputMethodCoreProxy::remote is nullptr!");
-        return ErrorCode::ERROR_IPC_REMOTE_NULLPTR;  // ERROR_EX_NULL_POINTER:ERRIMMS
+        return ErrorCode::ERROR_IPC_REMOTE_NULLPTR;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {

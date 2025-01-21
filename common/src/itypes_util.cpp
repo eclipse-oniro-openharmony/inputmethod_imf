@@ -80,6 +80,21 @@ bool ITypesUtil::Unmarshalling(int64_t &output, MessageParcel &data)
     return data.ReadInt64(output);
 }
 
+bool ITypesUtil::Marshalling(ClientType input, MessageParcel &data)
+{
+    return data.WriteUint32(static_cast<uint32_t>(input));
+}
+
+bool ITypesUtil::Unmarshalling(ClientType &output, MessageParcel &data)
+{
+    uint32_t ret = 0;
+    if (!data.ReadUint32(ret)) {
+        return false;
+    }
+    output = static_cast<ClientType>(ret);
+    return true;
+}
+
 bool ITypesUtil::Marshalling(double input, MessageParcel &data)
 {
     return data.WriteDouble(input);
@@ -261,23 +276,22 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
-            input.state, input.isNotifyInputStart, input.needHide, input.requestKeyboardReason, input.name,
-            static_cast<uint32_t>(input.type))) {
+                 input.state, input.isNotifyInputStart, input.needHide, input.requestKeyboardReason)) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed.");
         return false;
     }
+    Marshal(data, input.type, input.name);
     return true;
 }
 
 bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
-    uint32_t type = 0;
     if (!Unmarshal(data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config,
-            output.state, output.isNotifyInputStart, output.needHide, output.requestKeyboardReason, output.name, type)) {
+                   output.state, output.isNotifyInputStart, output.needHide, output.requestKeyboardReason)) {
         IMSA_HILOGE("read InputClientInfo from message parcel failed.");
         return false;
     }
-    output.type = static_cast<ClientType>(type);
+    Unmarshal(data, output.type, output.name);
     return true;
 }
 

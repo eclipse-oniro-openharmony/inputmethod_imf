@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef IMF_HISYSEVENT_H
-#define IMF_HISYSEVENT_H
+#ifndef IMF_HISYSEVENT_REPORTER_H
+#define IMF_HISYSEVENT_REPORTER_H
 
 #include <cstdint>
 #include <unordered_map>
@@ -27,8 +27,6 @@ namespace OHOS {
 namespace MiscServices {
 class ImfHiSysEventReporter {
 public:
-    ImfHiSysEventReporter() = default;
-    virtual ~ImfHiSysEventReporter();
     static constexpr uint32_t HISYSEVENT_TIMER_TASK_INTERNAL = 3 * 60 * 60 * 1000; // updated three hourly
     static constexpr uint32_t HISYSEVENT_STATISTICS_INTERNAL = 30 * 60 * 1000;
     static constexpr uint32_t COUNT_STATISTICS_INTERVAL_NUM =
@@ -36,6 +34,11 @@ public:
     void ReportEvent(ImfEventType eventType, const HiSysOriginalInfo &info);
     std::string GetSelfName();
     uint32_t GetStatisticalIntervalIndex();
+    void ResetTimerStartTime(int64_t time);
+
+protected:
+    ImfHiSysEventReporter() = default;
+    virtual ~ImfHiSysEventReporter();
 
 private:
     virtual bool IsValidErrCode(int32_t errCode)
@@ -55,7 +58,8 @@ private:
     std::string GenerateFaultEventKey(ImfFaultEvent event, const HiSysOriginalInfo &info);
     std::pair<bool, int64_t> GenerateFaultReportInfo(ImfFaultEvent event, const HiSysOriginalInfo &info);
     void ClearFaultEventInfo();
-    static constexpr uint32_t FAULT_REPORT_INTERVAL = 300000;
+    static constexpr uint32_t FAULT_REPORT_INTERVAL = 5 * 60 * 1000;
+    static constexpr uint32_t FAULT_RETENTION_PERIOD = 10 * 60 * 1000;
     const std::unordered_map<ImfEventType, std::pair<ImfFaultEvent, ImfStatisticsEvent>> EVENT_MAPPING = {
         { CLIENT_ATTACH, { CLIENT_ATTACH_FAILED, CLIENT_ATTACH_STATISTICS } },
         { CLIENT_SHOW, { CLIENT_SHOW_FAILED, CLIENT_SHOW_STATISTICS } },
@@ -78,9 +82,8 @@ private:
     std::mutex timerLock_;
     Utils::Timer timer_{ "imfHiSysEventTimer" };
     uint32_t timerId_{ 0 };
-    std::mutex statisticsEventLock_;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // IMF_HISYSEVENT_H
+#endif // IMF_HISYSEVENT_REPORTER_H

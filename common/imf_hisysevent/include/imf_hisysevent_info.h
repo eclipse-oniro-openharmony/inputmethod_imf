@@ -60,6 +60,13 @@ struct HiSysOriginalInfo {
     std::string imeName;
     int32_t imeCbTime;             // ms
     int32_t baseTextOperationTime; // ms
+    bool operator==(const HiSysOriginalInfo &info) const
+    {
+        return (eventCode == info.eventCode && errCode == info.errCode && peerName == info.peerName
+                && peerUserId == info.peerUserId && clientType == info.clientType && inputPattern == info.inputPattern
+                && isShowKeyboard == info.isShowKeyboard && imeName == info.imeName && imeCbTime == info.imeCbTime
+                && baseTextOperationTime == info.baseTextOperationTime);
+    }
     class Builder {
     public:
         Builder();
@@ -88,7 +95,7 @@ struct CountDistributionInfo : public Serializable {
     };
     void Mod(uint32_t intervalIndex, const std::string &key);
     bool Marshal(cJSON *node) const override;
-    uint32_t count{ 0 };
+    int32_t count{ 0 };
     std::vector<std::vector<std::pair<std::string, uint32_t>>> countDistributions;
 };
 

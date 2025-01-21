@@ -35,10 +35,7 @@ void ImfHiSysEventReporter::ReportEvent(ImfEventType eventType, const HiSysOrigi
     }
     StartTimer();
     ReportFaultEvent(it->second.first, info);
-    {
-        std::lock_guard<std::mutex> lock(statisticsEventLock_);
-        RecordStatisticsEvent(it->second.second, info);
-    }
+    RecordStatisticsEvent(it->second.second, info);
 }
 
 void ImfHiSysEventReporter::ReportFaultEvent(ImfFaultEvent event, const HiSysOriginalInfo &info)
@@ -71,13 +68,8 @@ void ImfHiSysEventReporter::StartTimer()
 
 void ImfHiSysEventReporter::TimerCallback()
 {
-    auto time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    ReportStatisticsEvent();
     ClearFaultEventInfo();
-    {
-        std::lock_guard<std::mutex> lock(statisticsEventLock_);
-        ReportStatisticsEvent();
-        timerStartTime_ = time;
-    }
 }
 
 void ImfHiSysEventReporter::StopTimer()
@@ -90,13 +82,18 @@ uint32_t ImfHiSysEventReporter::GetStatisticalIntervalIndex()
 {
     auto time = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto index = (time - timerStartTime_) / HISYSEVENT_STATISTICS_INTERNAL;
-    if (index >= COUNT_STATISTICS_INTERVAL_NUM) {
-        return COUNT_STATISTICS_INTERVAL_NUM - 1;
-    }
     if (index < 0) {
         return 0;
     }
+    if (index >= COUNT_STATISTICS_INTERVAL_NUM) {
+        return COUNT_STATISTICS_INTERVAL_NUM - 1;
+    }
     return index;
+}
+
+void ImfHiSysEventReporter::ResetTimerStartTime(int64_t time)
+{
+    timerStartTime_ = time;
 }
 
 std::pair<bool, int64_t> ImfHiSysEventReporter::GenerateFaultReportInfo(
@@ -104,15 +101,17 @@ std::pair<bool, int64_t> ImfHiSysEventReporter::GenerateFaultReportInfo(
 {
     std::pair<bool, int64_t> faultReportInfo{ false, 0 };
     if (info.errCode == ErrorCode::NO_ERROR || !IsValidErrCode(info.errCode) || !IsFault(info.errCode)) {
+        IMSA_HILOGD("%{public}d not err or fault.", info.errCode);
         return faultReportInfo;
     }
     auto key = GenerateFaultEventKey(event, info);
-    auto curTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     std::lock_guard<std::mutex> lock(faultEventRecordsLock_);
+    auto curTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto it = faultEventRecords_.find(key);
     if (it != faultEventRecords_.end()) {
         if (curTime - it->second.first < FAULT_REPORT_INTERVAL) {
             it->second.second++;
+            IMSA_HILOGD("%{public}s fault report within five minutes:%{public}d.", key.c_str(), it->second.second);
             return faultReportInfo;
         }
     }
@@ -138,13 +137,16 @@ std::string ImfHiSysEventReporter::GenerateFaultEventKey(ImfFaultEvent event, co
 
 void ImfHiSysEventReporter::ClearFaultEventInfo()
 {
-    auto curTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     std::lock_guard<std::mutex> lock(faultEventRecordsLock_);
-    for (const auto &record : faultEventRecords_) {
-        if (curTime - record.second.first > FAULT_REPORT_INTERVAL) {
-            faultEventRecords_.erase(record.first);
-        }
+    auto curTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    auto it = std::find_if(faultEventRecords_.begin(), faultEventRecords_.end(),
+        [&curTime](const std::pair<std::string, std::pair<int64_t, uint32_t>> &record) {
+            return curTime - record.second.first > FAULT_RETENTION_PERIOD;
+        });
+    if (it == faultEventRecords_.end()) {
+        return;
     }
+    faultEventRecords_.erase(it);
 }
 
 std::string ImfHiSysEventReporter::GetSelfName()

@@ -73,12 +73,9 @@ void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &r
 {
     IMSA_HILOGI("ClientStub start.");
     std::pair<int64_t, std::string> imeInfo{ 0, "" };
-    sptr<IRemoteObject> agent = nullptr;
-    if (!ITypesUtil::Unmarshal(data, agent, imeInfo.first, imeInfo.second)) {
-        IMSA_HILOGE("Unmarshal failed");
-        return;
-    }
-    InputMethodController::GetInstance()->OnInputReady(agent, imeInfo);
+    sptr<IRemoteObject> agentObject = nullptr;
+    ITypesUtil::Unmarshal(data, agentObject, imeInfo.first, imeInfo.second);
+    InputMethodController::GetInstance()->OnInputReady(agentObject, imeInfo);
 }
 
 int32_t InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply)

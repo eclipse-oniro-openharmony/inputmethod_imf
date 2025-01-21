@@ -17,17 +17,10 @@
 
 namespace OHOS {
 namespace MiscServices {
-std::mutex ImcHiSysEventReporter::instanceLock_;
-sptr<ImcHiSysEventReporter> ImcHiSysEventReporter::instance_;
-sptr<ImcHiSysEventReporter> ImcHiSysEventReporter::GetInstance()
+ImcHiSysEventReporter &ImcHiSysEventReporter::GetInstance()
 {
-    if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> lock(instanceLock_);
-        if (instance_ == nullptr) {
-            instance_ = new (std::nothrow) ImcHiSysEventReporter();
-        }
-    }
-    return instance_;
+    static ImcHiSysEventReporter instance;
+    return instance;
 }
 
 ImcHiSysEventReporter::ImcHiSysEventReporter()
@@ -46,7 +39,7 @@ bool ImcHiSysEventReporter::IsValidErrCode(int32_t errCode)
 
 bool ImcHiSysEventReporter::IsFault(int32_t errCode)
 {
-    return IsValidErrCode(errCode);
+    return errCode != ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
 }
 } // namespace MiscServices
 } // namespace OHOS

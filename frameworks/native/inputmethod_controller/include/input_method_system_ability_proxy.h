@@ -46,10 +46,10 @@ public:
 
     int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent,
         std::pair<int64_t, std::string> &imeInfo) override;
-    int32_t ShowCurrentInput() override;
+    int32_t ShowCurrentInput(ClientType type = ClientType::INNER_KIT) override;
     int32_t HideCurrentInput() override;
     int32_t StopInputSession() override;
-    int32_t ShowInput(sptr<IInputClient> client) override;
+    int32_t ShowInput(sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT) override;
     int32_t HideInput(sptr<IInputClient> client) override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     int32_t RequestShowInput() override;

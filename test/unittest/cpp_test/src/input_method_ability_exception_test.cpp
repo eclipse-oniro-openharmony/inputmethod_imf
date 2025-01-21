@@ -77,7 +77,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testInsertTextException, TestSize.Leve
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest InsertText Test START");
     auto ret = inputMethodAbility_->InsertText("text");
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
 }
 
 /**
@@ -168,10 +168,10 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDeleteExceptionText, TestSize.Leve
     IMSA_HILOGI("InputMethodAbilityExceptionTest testDelete Test START");
     int32_t deleteForwardLenth = 1;
     auto ret = inputMethodAbility_->DeleteForward(deleteForwardLenth);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
     int32_t deleteBackwardLenth = 2;
     ret = inputMethodAbility_->DeleteBackward(deleteBackwardLenth);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
 }
 
 /**

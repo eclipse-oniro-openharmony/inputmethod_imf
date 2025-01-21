@@ -28,6 +28,7 @@ group("unittest") {
       "cpp_test:ImeFreezeManagerTest",
       "cpp_test:ImeProxyTest",
       "cpp_test:ImeSystemChannelTest",
+      "cpp_test:ImfHisysEventReporterTest",
       "cpp_test:InputMethodAbilityTest",
       "cpp_test:InputMethodAttachTest",
       "cpp_test:InputMethodControllerTest",

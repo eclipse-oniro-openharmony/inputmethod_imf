@@ -65,6 +65,9 @@ public:
     static bool Marshalling(const sptr<IRemoteObject> &input, MessageParcel &data);
     static bool Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data);
 
+    static bool Marshalling(ClientType input, MessageParcel &data);
+    static bool Unmarshalling(ClientType &output, MessageParcel &data);
+
     static bool Marshalling(const Property &input, MessageParcel &data);
     static bool Unmarshalling(Property &output, MessageParcel &data);
 

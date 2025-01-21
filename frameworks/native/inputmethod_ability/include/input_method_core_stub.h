@@ -41,12 +41,12 @@ public:
     int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) override;
     int32_t StopInputService(bool isTerminateIme) override;
     int32_t SetSubtype(const SubProperty &property) override;
-    bool IsEnable() override;  // no 默认返回成功
-    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;// no 默认返回成功
-    int32_t OnSecurityChange(int32_t security) override; // no 直接从服务侧发起的
-    int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;// no scb发起的
+    bool IsEnable() override;
+    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
+    int32_t OnSecurityChange(int32_t security) override;
+    int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
     void OnClientInactive(const sptr<IRemoteObject> &channel) override;
-    int32_t OnSetInputType(InputType inputType) override;// no   默认返回成功
+    int32_t OnSetInputType(InputType inputType) override;
 
 private:
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);

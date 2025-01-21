@@ -43,7 +43,7 @@ enum class ClientState : uint32_t {
 };
 
 enum ClientType : uint32_t {
-    NDK,
+    CAPI,
     JS,
     CJ,
     INNER_KIT,
@@ -69,8 +69,14 @@ struct InputClientInfo {
     bool needHide { false }; // panel needs to be hidden first, when input pattern is switched between pwd and normal
     uint32_t uiExtensionTokenId { IMF_INVALID_TOKENID }; // the value is valid only in curClient and only UIExtension
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE }; // show keyboard reason
-    std::string name;      // for hiSysEvent, client name:SA/processName app/bundleName
-    ClientType type;       // for hiSysEvent
+    ClientType type{ INNER_KIT };                                               // for hiSysEvent
+    std::string name; // for hiSysEvent, client name:SA/processName app/bundleName
+};
+
+struct HiSysEventClientInfo {
+    int64_t pid{ -1 };
+    ClientType type{ INNER_KIT };
+    std::string name;
 };
 } // namespace MiscServices
 } // namespace OHOS

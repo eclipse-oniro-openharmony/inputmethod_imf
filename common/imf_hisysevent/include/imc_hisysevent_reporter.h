@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef IMC_HISYSEVENT_H
-#define IMC_HISYSEVENT_H
+#ifndef IMC_HISYSEVENT_REPORTER_H
+#define IMC_HISYSEVENT_REPORTER_H
 
 #include <cstdint>
 
@@ -22,19 +22,17 @@
 
 namespace OHOS {
 namespace MiscServices {
-class ImcHiSysEventReporter : public RefBase, public ImfHiSysEventReporter {
+class ImcHiSysEventReporter : public ImfHiSysEventReporter {
 public:
     ~ImcHiSysEventReporter() override;
-    static sptr<ImcHiSysEventReporter> GetInstance();
+    static ImcHiSysEventReporter &GetInstance();
 
 private:
     ImcHiSysEventReporter();
     bool IsValidErrCode(int32_t errCode) override;
     bool IsFault(int32_t errCode) override;
-    static std::mutex instanceLock_;
-    static sptr<ImcHiSysEventReporter> instance_;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // IMC_HISYSEVENT_H
+#endif // IMC_HISYSEVENT_REPORTER_H

@@ -89,25 +89,25 @@ BASE_TEXT_OPERATION_FAILED:
   FAULT_COUNT: {type: INT64, desc: The fault count within five minutes}
 
 CLIENT_ATTACH_STATISTICS:
-  __BASE: {type: STATISTICS, level: MINOR, desc: Client attach statistics}
+  __BASE: {type: STATISTIC, level: MINOR, desc: Client attach statistics}
   IME_NAME: {type: STRING, arrsize: 100, desc: All ime that use in a statistical period}
   APP_NAME: {type: STRING, arrsize: 100, desc: All app that use ime in a statistical period}
   INFOS: {type: STRING, arrsize: 100, desc: Statistics of client attach events}
 
 CLIENT_SHOW_STATISTICS:
-  __BASE: {type: STATISTICS, level: MINOR, desc: Client show statistics}
+  __BASE: {type: STATISTIC, level: MINOR, desc: Client show statistics}
   IME_NAME: {type: STRING, arrsize: 100, desc: All ime that use in a statistical period}
   APP_NAME: {type: STRING, arrsize: 100, desc: All app that use ime in a statistical period}
   INFOS: {type: STRING, arrsize: 100, desc: Statistics of client show events}
 
 IME_START_INPUT_STATISTICS:
-  __BASE: {type: STATISTICS, level: MINOR, desc: Ime start input statistics}
+  __BASE: {type: STATISTIC, level: MINOR, desc: Ime start input statistics}
   SELF_NAME: {type: STRING, desc: self Name}
   APP_NAME: {type: STRING, arrsize: 100, desc: All app that use ime in a statistical period}
   INFOS: {type: STRING, arrsize: 100, desc: Statistics of ime start input events}
 
 BASE_TEXT_OPERATION_STATISTICS:
-  __BASE: {type: STATISTICS, level: MINOR, desc: Base text operation statistics}
+  __BASE: {type: STATISTIC, level: MINOR, desc: Base text operation statistics}
   SELF_NAME: {type: STRING, desc: self Name}
   APP_NAME: {type: STRING, arrsize: 100, desc: All app that use ime in a statistical period}
   INFOS: {type: STRING, arrsize: 100, desc: Statistics of base text operation events}

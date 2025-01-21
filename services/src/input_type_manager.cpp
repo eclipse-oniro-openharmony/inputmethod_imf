@@ -70,7 +70,7 @@ int32_t InputTypeManager::GetImeByInputType(InputType type, ImeIdentification &i
     auto iter = inputTypes_.find(type);
     if (iter == inputTypes_.end()) {
         IMSA_HILOGE("type: %{public}d not supported!", type);
-        return ErrorCode::ERROR_IMSA_INPUT_TYPE_NOT_FOUND; //ERROR_BAD_PARAMETERS::ERRIMMS
+        return ErrorCode::ERROR_IMSA_INPUT_TYPE_NOT_FOUND;
     }
     ime = iter->second;
     IMSA_HILOGI("type: %{public}d find ime: %{public}s|%{public}s.", type, ime.bundleName.c_str(), ime.subName.c_str());

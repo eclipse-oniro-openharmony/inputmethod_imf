@@ -285,7 +285,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     ret = InputMethodAbilityInterface::GetInstance().InsertText("b");
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
 
     // RegisteredProxy proxy, rebind proxy
     InputMethodEngineListenerImpl::ResetParam();
@@ -455,7 +455,7 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level0)
     Close(false);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     ret = InputMethodAbilityInterface::GetInstance().InsertText("d");
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
 
     ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
     TddUtil::GetUnfocused();
@@ -483,7 +483,7 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level0)
     Close(true);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     ret = InputMethodAbilityInterface::GetInstance().InsertText("d");
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
 
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
     TddUtil::GetUnfocused();

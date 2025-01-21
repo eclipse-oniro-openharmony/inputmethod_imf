@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef IMSA_HISYSEVENT_H
-#define IMSA_HISYSEVENT_H
+#ifndef IMSA_HISYSEVENT_REPORTER_H
+#define IMSA_HISYSEVENT_REPORTER_H
 
 #include <cstdint>
 #include <map>
@@ -31,8 +31,8 @@ struct ClientAttachAllInfo {
         : succeedRateInfo(SuccessRateStatistics(succeedIntervalNum, failedIntervalNum))
     {
     }
-    std::unordered_set<std::string> appNames;
-    std::unordered_set<std::string> imeNames;
+    std::vector<std::string> appNames;
+    std::vector<std::string> imeNames;
     SuccessRateStatistics succeedRateInfo;
 };
 
@@ -41,17 +41,15 @@ struct ClientShowAllInfo {
         : succeedRateInfo(SuccessRateStatistics(succeedIntervalNum, failedIntervalNum))
     {
     }
-    std::unordered_set<std::string> appNames;
-    std::unordered_set<std::string> imeNames;
+    std::vector<std::string> appNames;
+    std::vector<std::string> imeNames;
     SuccessRateStatistics succeedRateInfo;
 };
 
-class ImsaHiSysEventReporter
-    : public RefBase
-    , public ImfHiSysEventReporter {
+class ImsaHiSysEventReporter : public ImfHiSysEventReporter {
 public:
     ~ImsaHiSysEventReporter() override;
-    static sptr<ImsaHiSysEventReporter> GetInstance();
+    static ImsaHiSysEventReporter &GetInstance();
 
 private:
     ImsaHiSysEventReporter();
@@ -61,15 +59,11 @@ private:
     void ReportStatisticsEvent() override;
     void RecordClientAttachStatistics(const HiSysOriginalInfo &info);
     void RecordClientShowStatistics(const HiSysOriginalInfo &info);
-    static std::mutex instanceLock_;
-    static sptr<ImsaHiSysEventReporter> instance_;
-    std::mutex clientAttachInfoLock_;
+    std::mutex statisticsEventLock_;
     ClientAttachAllInfo clientAttachInfo_;
-
-    std::mutex clientShowInfoLock_;
     ClientShowAllInfo clientShowInfo_;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // IMSA_HISYSEVENT_H
+#endif // IMSA_HISYSEVENT_REPORTER_H

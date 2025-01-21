@@ -80,13 +80,16 @@ int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, Me
     sptr<IRemoteObject> agent = nullptr;
     std::pair<int64_t, std::string> imeInfo{ 0, "" };
     int32_t ret = StartInput(clientInfo, agent, imeInfo);
-    return ITypesUtil::Marshal(reply, ret, agent, imeInfo.first, imeInfo.second) ? ErrorCode::NO_ERROR
-                                                                                 : ErrorCode::ERROR_EX_PARCELABLE;
+    auto marshalRet = reply.WriteInt32(ret) && reply.WriteRemoteObject(agent);
+    ITypesUtil::Marshal(reply, imeInfo.first, imeInfo.second);
+    return marshalRet ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = ShowCurrentInput();
+    ClientType type = ClientType::INNER_KIT;
+    ITypesUtil::Unmarshal(data, type);
+    int32_t ret = ShowCurrentInput(type);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -109,7 +112,9 @@ int32_t InputMethodSystemAbilityStub::ShowInputOnRemote(MessageParcel &data, Mes
         IMSA_HILOGE("clientObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = ShowInput(iface_cast<IInputClient>(clientObject));
+    ClientType type = ClientType::INNER_KIT;
+    ITypesUtil::Unmarshal(data, type);
+    int32_t ret = ShowInput(iface_cast<IInputClient>(clientObject), type);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
