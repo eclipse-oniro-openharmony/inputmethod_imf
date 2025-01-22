@@ -176,7 +176,8 @@ public:
     static napi_value GetValue(napi_env env, const std::vector<uint8_t> &in);
     static napi_status GetValue(napi_env env, const std::string &in, napi_value &out);
     static napi_status GetMessageHandlerCallbackParam(napi_value *argv,
-        const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer);
+        const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer,
+            size_t size);
 
 private:
     static const std::map<int32_t, int32_t> ERROR_CODE_MAP;

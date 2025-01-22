@@ -105,7 +105,8 @@ napi_value JsKeyboardPanelManager::Subscribe(napi_env env, napi_callback_info in
     auto manager = JsKeyboardPanelManager::GetInstance();
     IMSA_HILOGD("subscribe type: %{public}s.", type.c_str());
     std::shared_ptr<JSCallbackObject> callback =
-        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id());
+        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id(),
+            AppExecFwk::EventHandler::Current());
     manager->RegisterListener(argv[1], type, callback);
     return JsUtil::Const::Null(env);
 }

@@ -1134,7 +1134,8 @@ int32_t JsTextInputClientEngine::JsMessageHandler::OnMessage(const ArrayBuffer &
             napi_get_global(jsCallbackObject->env_, &global);
             napi_value output = nullptr;
             napi_value argv[ARGC_TWO] = { nullptr };
-            if (JsUtils::GetMessageHandlerCallbackParam(argv, jsCallbackObject, arrayBuffer) != napi_ok) {
+            // 2 means just use the first two parameters
+            if (JsUtils::GetMessageHandlerCallbackParam(argv, jsCallbackObject, arrayBuffer, 2) != napi_ok) {
                 IMSA_HILOGE("Get message handler callback param failed!.");
                 return;
             }

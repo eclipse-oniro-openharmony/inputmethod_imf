@@ -236,7 +236,8 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
         return nullptr;
     }
     std::shared_ptr<JSCallbackObject> callback =
-        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id());
+        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id(),
+            AppExecFwk::EventHandler::Current());
     engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;

@@ -373,7 +373,8 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
         return nullptr;
     }
     std::shared_ptr<JSCallbackObject> callback =
-        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
+        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id(),
+            AppExecFwk::EventHandler::Current());
     engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;
@@ -732,38 +733,31 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
 void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
 {
     std::string type = "securityModeChange";
-    uv_work_t *work = GetUVwork(type, [&security](UvEntry &entry) { entry.security = security; });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&security](UvEntry &entry) { entry.security = security; });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("run in: %{public}s", type.c_str());
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("entry is nullptr!");
-                return;
+    auto task = [entry]() {
+        auto getSecurityProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
             }
-            auto getSecurityProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == 0) {
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, entry->security, &args[0]);
-                return true;
-            };
+            // 0 means the first param of callback.
+            napi_create_int32(env, entry->security, &args[0]);
+            return true;
+        };
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSecurityProperty });
-        },
-        uv_qos_user_interactive);
-    FreeWorkIfFail(ret, work);
+    };
+    eventHandler->PostTask(task, type);
 }
-
 void JsInputMethodEngineSetting::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
