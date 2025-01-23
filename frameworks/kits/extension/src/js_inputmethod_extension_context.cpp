@@ -99,12 +99,8 @@ private:
     {
         IMSA_HILOGI("InputMethodExtensionContext OnStartAbility.");
         // only support one or two or three params
-        if (argc != ARGC_ONE && argc != ARGC_TWO && argc != ARGC_THREE) {
-            IMSA_HILOGE("not enough params!");
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "number of param should in [1,3]",
-                TYPE_NONE);
-            return CreateJsUndefined(env);
-        }
+        PARAM_CHECK_RETURN(env, argc == ARGC_ONE || argc == ARGC_TWO || argc == ARGC_THREE,
+            "number of param should in [1,3]", TYPE_NONE, CreateJsUndefined(env));
         PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "param want type must be Want",
             TYPE_NONE, JsUtil::Const::Null(env));
         decltype(argc) unwrapArgc = 0;
@@ -154,10 +150,8 @@ private:
     napi_value OnStartAbilityWithAccount(napi_env env, size_t argc, napi_value *argv)
     {
         // only support two or three or four params
-        if (argc != ARGC_TWO && argc != ARGC_THREE && argc != ARGC_FOUR) {
-            IMSA_HILOGE("not enough params!");
-            return CreateJsUndefined(env);
-        }
+        CHECK_RETURN(argc == ARGC_TWO || argc == ARGC_THREE || argc == ARGC_FOUR,
+            "not enough params!", CreateJsUndefined(env));
         decltype(argc) unwrapArgc = 0;
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
@@ -247,10 +241,7 @@ private:
     {
         IMSA_HILOGI("OnConnectAbility start.");
         // only support two params
-        if (argc != ARGC_TWO) {
-            IMSA_HILOGE("not enough params!");
-            return CreateJsUndefined(env);
-        }
+        CHECK_RETURN(argc == ARGC_TWO, "not enough params!", CreateJsUndefined(env));
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("%{public}s bundleName: %{public}s abilityName: %{public}s", __func__, want.GetBundle().c_str(),
@@ -283,7 +274,7 @@ private:
                 delete task;
                 return;
             }
-            IMSA_HILOGI("context->ConnectAbility connection: %{public}d.", (int32_t)connectId);
+            IMSA_HILOGI("context->ConnectAbility connection: %{public}d.", static_cast<int32_t>(connectId));
             if (!context->ConnectAbility(want, connection)) {
                 connection->CallJsFailed(ERROR_CODE_ONE);
             }
@@ -299,12 +290,17 @@ private:
         return connectResult;
     }
 
+    void CheckSerialNumber(int64_t serialNumber)
+    {
+        if (serialNumber < INT64_MAX) {
+            serialNumber++;
+        } else {
+            serialNumber = 0;
+        }
+    }
     napi_value OnConnectAbilityWithAccount(napi_env env, size_t argc, napi_value *argv)
     {
-        if (argc != ARGC_THREE) {
-            IMSA_HILOGE("not enough params.");
-            return CreateJsUndefined(env);
-        }
+        CHECK_RETURN(argc == ARGC_THREE, "not enough params!", CreateJsUndefined(env));
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("%{public}s bundleName: %{public}s, abilityName: %{public}s", __func__, want.GetBundle().c_str(),
@@ -324,11 +320,7 @@ private:
             std::lock_guard<std::mutex> lock(g_connectMapMtx);
             connects_.emplace(key, connection);
         }
-        if (serialNumber_ < INT64_MAX) {
-            serialNumber_++;
-        } else {
-            serialNumber_ = 0;
-        }
+        CheckSerialNumber(serialNumber_);
         napi_value result = nullptr;
         napi_value lastParam = nullptr;
         napi_value connectResult = nullptr;
@@ -342,7 +334,7 @@ private:
                 delete task;
                 return;
             }
-            IMSA_HILOGI("context->ConnectAbilityWithAccount connection:%{public}d.", (int32_t)connectId);
+            IMSA_HILOGI("context->ConnectAbilityWithAccount connection:%{public}d.", static_cast<int32_t>(connectId));
             if (!context->ConnectAbilityWithAccount(want, accountId, connection)) {
                 connection->CallJsFailed(ERROR_CODE_ONE);
             }
@@ -362,10 +354,7 @@ private:
     {
         IMSA_HILOGI("OnDisconnectAbility is called.");
         // only support one or two params
-        if (argc != ARGC_ONE && argc != ARGC_TWO) {
-            IMSA_HILOGE("not enough params.");
-            return CreateJsUndefined(env);
-        }
+        CHECK_RETURN(argc == ARGC_ONE || argc == ARGC_TWO, "not enough params!", CreateJsUndefined(env));
         AAFwk::Want want;
         int64_t connectId = -1;
         sptr<JSInputMethodExtensionConnection> connection = nullptr;
