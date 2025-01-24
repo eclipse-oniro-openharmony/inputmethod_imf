@@ -169,21 +169,25 @@ int32_t InputMethodPanel::GetResizeParams(
     }
     if (IsDisplayUnfolded()) {
         IMSA_HILOGI("foldable device without fold state");
-        resizePanelUnfoldParams_.portraitRect.height_ =
-            std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
-                static_cast<float>(resizePanelUnfoldParams_.portraitRect.height_));
-        resizePanelUnfoldParams_.landscapeRect.height_ =
-            std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
-                static_cast<float>(resizePanelUnfoldParams_.landscapeRect.height_));
+        if (!isInEnhancedAdjust_) {
+            resizePanelUnfoldParams_.portraitRect.height_ =
+                std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+                    static_cast<float>(resizePanelUnfoldParams_.portraitRect.height_));
+            resizePanelUnfoldParams_.landscapeRect.height_ =
+                std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+                    static_cast<float>(resizePanelUnfoldParams_.landscapeRect.height_));
+        }
         currParams = resizePanelUnfoldParams_;
     } else {
         IMSA_HILOGI("foldable device with fold state or non-foldable device");
-        resizePanelFoldParams_.portraitRect.height_ =
-            std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
-                static_cast<float>(resizePanelFoldParams_.portraitRect.height_));
-        resizePanelFoldParams_.landscapeRect.height_ =
-            std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
-                static_cast<float>(resizePanelFoldParams_.landscapeRect.height_));
+        if (!isInEnhancedAdjust_) {
+            resizePanelFoldParams_.portraitRect.height_ =
+                std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+                    static_cast<float>(resizePanelFoldParams_.portraitRect.height_));
+            resizePanelFoldParams_.landscapeRect.height_ =
+                std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+                    static_cast<float>(resizePanelFoldParams_.landscapeRect.height_));
+        }
         currParams = resizePanelFoldParams_;
     }
     if (IsDisplayPortrait()) {
