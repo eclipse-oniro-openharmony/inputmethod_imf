@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-const std::string INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
+constexpr const char *INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
 constexpr const char *STOP_TASK_NAME = "ReportStop";
 constexpr std::int32_t DELAY_TIME = 3000L;
 std::shared_ptr<AppExecFwk::EventHandler> FreezeManager::eventHandler_ = nullptr;
@@ -98,7 +98,7 @@ void FreezeManager::ReportRss(bool shouldFreeze, pid_t pid)
     auto status = shouldFreeze ? ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP
                                : ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
     std::unordered_map<std::string, std::string> payload = { { "saId", std::to_string(INPUT_METHOD_SYSTEM_ABILITY_ID) },
-        { "saName", INPUT_METHOD_SERVICE_SA_NAME },
+        { "saName", std::string(INPUT_METHOD_SERVICE_SA_NAME) },
         { "extensionType", std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD)) },
         { "pid", std::to_string(pid) } };
     IMSA_HILOGD("report RSS should freeze: %{public}d.", shouldFreeze);

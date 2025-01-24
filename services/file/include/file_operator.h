@@ -34,7 +34,6 @@ public:
     static std::string GetRealPath(const char *path);
 
 private:
-    static constexpr int32_t SUCCESS = 0;
     static std::string Read(const std::string &path, const std::string &key);
 };
 } // namespace MiscServices

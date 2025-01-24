@@ -32,10 +32,11 @@ namespace OHOS {
 namespace MiscServices {
 constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
 constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
-const std::string SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/entry/settingsdata/"
+constexpr const char *SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/entry/settingsdata/"
                                           "SETTINGSDATA?Proxy=true";
-const std::string SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
-const std::string SETTINGS_USER_DATA_URI = "datashare:///com.ohos.settingsdata/entry/settingsdata/USER_SETTINGSDATA_";
+constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
+constexpr const char *SETTINGS_USER_DATA_URI = "datashare:///com.ohos.settingsdata/"
+                                               "entry/settingsdata/USER_SETTINGATA_";
 struct UserImeConfig : public Serializable {
     std::string userId;
     std::vector<std::string> identities;

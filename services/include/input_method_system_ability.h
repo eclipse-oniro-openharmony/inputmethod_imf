@@ -151,9 +151,6 @@ private:
     int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
-    static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
-    static constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
-    static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
     bool stop_ = false;
     void InitMonitors();
     int32_t InitKeyEventMonitor();

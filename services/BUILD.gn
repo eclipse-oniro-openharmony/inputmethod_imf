@@ -50,7 +50,7 @@ ohos_shared_library("inputmethod_service") {
     "-fvisibility-inlines-hidden",
     "-fdata-sections",
     "-ffunction-sections",
-    "-Os",
+    "-Oz",
     "-Wno-c99-designator",
   ]
   sources = [
@@ -151,7 +151,7 @@ ohos_static_library("inputmethod_service_static") {
   cflags_cc = [
     "-fdata-sections",
     "-ffunction-sections",
-    "-Os",
+    "-Oz",
   ]
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_proxy.cpp",
