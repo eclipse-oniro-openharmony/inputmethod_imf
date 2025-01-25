@@ -21,7 +21,7 @@
 #include "i_input_client.h"
 #include "ime_event_monitor_manager.h"
 #include "iremote_stub.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "message_option.h"
 #include "message_parcel.h"
 #include "nocopyable.h"

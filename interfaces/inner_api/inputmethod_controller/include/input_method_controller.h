@@ -40,7 +40,7 @@
 #include "iremote_object.h"
 #include "key_event.h"
 #include "msg_handler_callback_interface.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "panel_info.h"
 #include "private_command_interface.h"
 #include "visibility.h"

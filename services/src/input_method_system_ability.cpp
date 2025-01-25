@@ -37,7 +37,7 @@
 #include "itypes_util.h"
 #include "key_event.h"
 #include "mem_mgr_client.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "native_token_info.h"
 #include "os_account_adapter.h"
 #include "scene_board_judgement.h"

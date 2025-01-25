@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "message.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "parameter.h"
 
 using namespace testing;

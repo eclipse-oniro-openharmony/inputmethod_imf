@@ -44,7 +44,7 @@
 #include "input_method_core_stub.h"
 #include "input_method_panel.h"
 #include "input_method_system_ability_proxy.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "scope_utils.h"
 #include "tdd_util.h"
 #include "text_listener.h"

@@ -1713,6 +1713,10 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
 
     // call window manager to set immersive mode
     auto ret = window_->ChangeKeyboardViewMode(static_cast<KeyboardViewMode>(mode));
+    if (ret == WMError::WM_DO_NOTHING) {
+        IMSA_HILOGW("repeat set mode new:%{public}d, old:%{public}d", mode, immersiveMode_);
+        return ErrorCode::NO_ERROR;
+    }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ChangeKeyboardViewMode failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;

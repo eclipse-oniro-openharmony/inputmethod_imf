@@ -15,7 +15,7 @@
 
 // message_handler_test.cpp
 #include <gtest/gtest.h>
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "message.h"
 #include "message_parcel.h"
 
