@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "im_common_event_manager.h"
-#include "mock_message_handler.h"
+#include "mock_inputmethod_message_handler.h"
 #include "mock_system_ability_manager_client.h"
 
 using namespace OHOS;

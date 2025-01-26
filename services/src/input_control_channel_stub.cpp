@@ -16,7 +16,7 @@
 #include "input_control_channel_stub.h"
 
 #include "ipc_skeleton.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "message_parcel.h"
 #include "os_account_adapter.h"
 

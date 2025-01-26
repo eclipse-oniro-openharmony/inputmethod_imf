@@ -47,7 +47,7 @@
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
 #include "message.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "panel_info.h"
 #include "input_method_types.h"
 #include "want.h"

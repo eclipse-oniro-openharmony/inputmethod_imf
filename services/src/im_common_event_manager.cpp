@@ -23,7 +23,7 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "os_account_adapter.h"
 #include "system_ability_definition.h"
 

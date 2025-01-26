@@ -21,7 +21,7 @@
 
 #include "i_system_cmd_channel.h"
 #include "iremote_stub.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "message_option.h"
 #include "message_parcel.h"
 #include "nocopyable.h"

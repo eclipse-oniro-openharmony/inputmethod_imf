@@ -21,7 +21,7 @@
 #include "iremote_broker.h"
 #include "iremote_proxy.h"
 #include "itypes_util.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "message_parcel.h"
 #include "parcel.h"
 
