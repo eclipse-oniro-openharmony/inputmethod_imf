@@ -297,10 +297,17 @@ napi_value JsPanel::GetDisplayId(napi_env env, napi_callback_info info)
             ctxt->SetErrorCode(ret);
             return;
         }
+
+        if (ctxt->displayId > UINT32_MAX) {
+            IMSA_HILOGE("displayId is too large, displayId: %{public}" PRIu64 "", ctxt->displayId);
+            ctxt->SetErrorCode(ErrorCode::ERROR_WINDOW_MANAGER);
+            return;
+        }
         ctxt->SetState(napi_ok);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        return napi_create_bigint_uint64(env, ctxt->displayId, result);
+        uint32_t displayId = static_cast<uint32_t>(ctxt->displayId);
+        return napi_create_uint32(env, displayId, result);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     // 1 means JsAPI:GetDisplayId has 1 params at most.
