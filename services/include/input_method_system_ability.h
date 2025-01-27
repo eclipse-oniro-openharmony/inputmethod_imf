@@ -28,17 +28,15 @@
 #include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
-#include "imf_hisysevent_reporter.h"
-#include "imsa_hisysevent_reporter.h"
 #include "input_method_status.h"
 #include "input_method_system_ability_stub.h"
-#include "input_method_types.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
 #include "message.h"
 #include "security_mode_parser.h"
 #include "settings_data_utils.h"
 #include "system_ability.h"
+#include "input_method_types.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -154,9 +152,6 @@ private:
     int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
-    static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
-    static constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
-    static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
     bool stop_ = false;
     void InitMonitors();
     int32_t InitKeyEventMonitor();

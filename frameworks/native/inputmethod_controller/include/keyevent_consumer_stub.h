@@ -22,7 +22,7 @@
 #include "i_keyevent_consumer.h"
 #include "iremote_stub.h"
 #include "key_event.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "message_option.h"
 #include "message_parcel.h"
 #include "nocopyable.h"

@@ -96,7 +96,7 @@ void ImsaHiSysEventReporter::RecordClientAttachStatistics(const HiSysOriginalInf
     auto intervalIndex = GetStatisticalIntervalIndex();
     std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
-        clientAttachInfo_.succeedRateInfo.succeedInfo.Mod(intervalIndex, key);
+        clientAttachInfo_.succeedRateInfo.succeedInfo.ModCountDistributions(intervalIndex, key);
         return;
     }
     key.append("/")
@@ -105,7 +105,7 @@ void ImsaHiSysEventReporter::RecordClientAttachStatistics(const HiSysOriginalInf
         .append(std::to_string(info.clientType))
         .append("/")
         .append(std::to_string(info.errCode));
-    clientAttachInfo_.succeedRateInfo.failedInfo.Mod(intervalIndex, key);
+    clientAttachInfo_.succeedRateInfo.failedInfo.ModCountDistributions(intervalIndex, key);
 }
 
 void ImsaHiSysEventReporter::RecordClientShowStatistics(const HiSysOriginalInfo &info)
@@ -117,7 +117,7 @@ void ImsaHiSysEventReporter::RecordClientShowStatistics(const HiSysOriginalInfo 
     std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
         key.append("/").append(std::to_string(info.errCode));
-        clientShowInfo_.succeedRateInfo.succeedInfo.Mod(intervalIndex, key);
+        clientShowInfo_.succeedRateInfo.succeedInfo.ModCountDistributions(intervalIndex, key);
         return;
     }
     key.append("/")
@@ -128,7 +128,7 @@ void ImsaHiSysEventReporter::RecordClientShowStatistics(const HiSysOriginalInfo 
         .append(std::to_string(info.eventCode))
         .append("/")
         .append(std::to_string(info.errCode));
-    clientShowInfo_.succeedRateInfo.failedInfo.Mod(intervalIndex, key);
+    clientShowInfo_.succeedRateInfo.failedInfo.ModCountDistributions(intervalIndex, key);
 }
 } // namespace MiscServices
 } // namespace OHOS

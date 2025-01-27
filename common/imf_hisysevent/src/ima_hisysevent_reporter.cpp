@@ -110,11 +110,11 @@ void ImaHiSysEventReporter::RecordImeStartInputStatistics(const HiSysOriginalInf
     std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
         key.append("/").append(std::to_string(info.isShowKeyboard));
-        imeStartInputAllInfo_.succeedRateInfo.succeedInfo.Mod(intervalIndex, key);
+        imeStartInputAllInfo_.succeedRateInfo.succeedInfo.ModCountDistributions(intervalIndex, key);
         return;
     }
     key.append("/").append(std::to_string(info.eventCode)).append("/").append(std::to_string(info.errCode));
-    imeStartInputAllInfo_.succeedRateInfo.failedInfo.Mod(intervalIndex, key);
+    imeStartInputAllInfo_.succeedRateInfo.failedInfo.ModCountDistributions(intervalIndex, key);
 }
 
 void ImaHiSysEventReporter::ModImeCbTimeConsumeInfo(int32_t imeCbTime)
@@ -133,7 +133,7 @@ void ImaHiSysEventReporter::ModImeCbTimeConsumeInfo(int32_t imeCbTime)
         index = IME_CB_TIME_INTERVAL.size() - 1;
     }
 
-    imeStartInputAllInfo_.imeCbTimeConsumeInfo.Mod(index);
+    imeStartInputAllInfo_.imeCbTimeConsumeInfo.ModCountDistributions(index);
 }
 
 void ImaHiSysEventReporter::RecordBaseTextOperationStatistics(const HiSysOriginalInfo &info)
@@ -143,7 +143,7 @@ void ImaHiSysEventReporter::RecordBaseTextOperationStatistics(const HiSysOrigina
     std::string key(appIndex);
     if (info.errCode == ErrorCode::NO_ERROR) {
         key.append("/").append(std::to_string(info.eventCode));
-        baseTextOperationAllInfo_.succeedRateInfo.succeedInfo.Mod(
+        baseTextOperationAllInfo_.succeedRateInfo.succeedInfo.ModCountDistributions(
             GetBaseTextOperationSucceedIntervalIndex(info.baseTextOperationTime), key);
         return;
     }
@@ -153,7 +153,7 @@ void ImaHiSysEventReporter::RecordBaseTextOperationStatistics(const HiSysOrigina
         .append(std::to_string(info.eventCode))
         .append("/")
         .append(std::to_string(info.errCode));
-    baseTextOperationAllInfo_.succeedRateInfo.failedInfo.Mod(GetStatisticalIntervalIndex(), key);
+    baseTextOperationAllInfo_.succeedRateInfo.failedInfo.ModCountDistributions(GetStatisticalIntervalIndex(), key);
 }
 
 uint32_t ImaHiSysEventReporter::GetBaseTextOperationSucceedIntervalIndex(int32_t baseTextOperationTime)

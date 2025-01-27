@@ -616,7 +616,7 @@ int32_t InputMethodPanel::CalculateAvoidHeight(EnhancedLayoutParam &layoutParam,
     }
     auto ratio = panelFlag == PanelFlag::FLG_FIXED ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
                                                    : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
-    uint32_t avoidHeight = layoutParam.rect.height_ - layoutParam.avoidY;
+    uint32_t avoidHeight = layoutParam.rect.height_ -  static_cast<uint32_t>(layoutParam.avoidY);
     if (static_cast<float>(avoidHeight) > displaySize.height * ratio) {
         IMSA_HILOGE("invalid avoidY: %{public}d, avoidHeight: %{public}u, displayHeight: %{public}u",
             layoutParam.avoidY, avoidHeight, displaySize.height);
@@ -1713,6 +1713,10 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
 
     // call window manager to set immersive mode
     auto ret = window_->ChangeKeyboardViewMode(static_cast<KeyboardViewMode>(mode));
+    if (ret == WMError::WM_DO_NOTHING) {
+        IMSA_HILOGW("repeat set mode new:%{public}d, old:%{public}d", mode, immersiveMode_);
+        return ErrorCode::NO_ERROR;
+    }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ChangeKeyboardViewMode failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;

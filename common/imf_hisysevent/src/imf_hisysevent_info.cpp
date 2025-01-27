@@ -92,7 +92,7 @@ std::shared_ptr<HiSysOriginalInfo> HiSysOriginalInfo::Builder::Build()
     return info_;
 }
 
-void CountDistributionInfo::Mod(uint32_t intervalIndex, const std::string &key)
+void CountDistributionInfo::ModCountDistributions(uint32_t intervalIndex, const std::string &key)
 {
     count++;
     if (intervalIndex >= countDistributions.size()) {

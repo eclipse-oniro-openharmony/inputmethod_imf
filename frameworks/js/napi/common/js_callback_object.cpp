@@ -21,8 +21,9 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t MAX_TIMEOUT = 2000;
-JSCallbackObject::JSCallbackObject(napi_env env, napi_value callback, std::thread::id threadId)
-    : env_(env), threadId_(threadId)
+JSCallbackObject::JSCallbackObject(napi_env env, napi_value callback, std::thread::id threadId,
+    std::shared_ptr<AppExecFwk::EventHandler> jsHandler)
+    : env_(env), threadId_(threadId), jsHandler_(jsHandler)
 {
     napi_create_reference(env, callback, 1, &callback_);
 }
@@ -35,20 +36,19 @@ JSCallbackObject::~JSCallbackObject()
             env_ = nullptr;
             return;
         }
-        std::shared_ptr<uv_work_t> work = std::make_shared<uv_work_t>();
         isDone_ = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-        work->data = this;
-        uv_loop_s *loop = nullptr;
-        napi_get_uv_event_loop(env_, &loop);
-        uv_queue_work_with_qos(
-            loop, work.get(), [](uv_work_t *work) {},
-            [](uv_work_t *work, int status) {
-                JSCallbackObject *jsObject = static_cast<JSCallbackObject *>(work->data);
-                napi_delete_reference(jsObject->env_, jsObject->callback_);
-                bool isFinish = true;
-                jsObject->isDone_->SetValue(isFinish);
-            },
-            uv_qos_user_interactive);
+        std::string type = "~JSCallbackObject";
+        auto eventHandler = jsHandler_;
+        if (eventHandler == nullptr) {
+            IMSA_HILOGE("eventHandler is nullptr!");
+            return;
+        }
+        auto task = [env = env_, callback = callback_, isDone = isDone_]() {
+            napi_delete_reference(env, callback);
+            bool isFinish = true;
+            isDone->SetValue(isFinish);
+        };
+        eventHandler->PostTask(task, type);
         isDone_->GetValue();
     }
     env_ = nullptr;

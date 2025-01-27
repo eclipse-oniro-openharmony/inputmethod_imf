@@ -47,7 +47,7 @@
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
 #include "message.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "panel_info.h"
 #include "input_method_types.h"
 #include "want.h"
@@ -168,14 +168,11 @@ private:
     int32_t userId_; // the id of the user to whom the object is linking
     std::recursive_mutex mtx;
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
-    static const int MAX_RESTART_NUM = 3;
-    static const int IME_RESET_TIME_OUT = 3;
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     static const int MAX_IME_START_TIME = 2000;
 #else
     static const int MAX_IME_START_TIME = 1500;
 #endif
-    static constexpr int32_t MAX_RESTART_TASKS = 2;
     std::mutex clientLock_;
     sptr<IInputClient> currentClient_; // the current input client
     std::mutex resetLock;

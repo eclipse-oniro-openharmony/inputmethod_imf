@@ -42,7 +42,7 @@ struct ImeCbTimeConsumeStatistics : public Serializable {
         }
         return SetValue(node, GET_NAME(COUNT_DISTRIBUTION), countInfo) && ret;
     }
-    void Mod(uint32_t intervalIndex)
+    void ModCountDistributions(uint32_t intervalIndex)
     {
         count++;
         if (intervalIndex >= countDistributions.size()) {

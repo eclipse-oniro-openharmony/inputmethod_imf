@@ -504,10 +504,14 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::vector<uint8_t> 
 }
 
 napi_status JsUtils::GetMessageHandlerCallbackParam(napi_value *argv,
-    const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer)
+    const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer, size_t size)
 {
     if (argv == nullptr) {
         IMSA_HILOGE("argv is nullptr!.");
+        return napi_generic_failure;
+    }
+    if (size < ARGC_ONE) {
+        IMSA_HILOGE("argv size is less than 1!.");
         return napi_generic_failure;
     }
     if (jsMessageHandler == nullptr) {

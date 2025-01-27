@@ -28,6 +28,7 @@
 #include "im_common_event_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
+#include "imsa_hisysevent_reporter.h"
 #include "input_manager.h"
 #include "input_client_info.h"
 #include "input_method_utils.h"
@@ -37,7 +38,7 @@
 #include "itypes_util.h"
 #include "key_event.h"
 #include "mem_mgr_client.h"
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 #include "native_token_info.h"
 #include "os_account_adapter.h"
 #include "scene_board_judgement.h"
@@ -62,11 +63,14 @@ using namespace Security::AccessToken;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr const char *UNDEFINED = "undefined";
-static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
+static const char *PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
+constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
+constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
+constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
-const std::string UNLOAD_SA_TASK = "unloadInputMethodSaTask";
+constexpr const char *UNLOAD_SA_TASK = "unloadInputMethodSaTask";
 constexpr int64_t DELAY_UNLOAD_SA_TIME = 20000; // 20s
 constexpr int32_t REFUSE_UNLOAD_DELAY_TIME = 1000; // 1s
 #endif
@@ -123,10 +127,10 @@ void InputMethodSystemAbility::ResetDelayUnloadTask(uint32_t code)
         return;
     }
 
-    serviceHandler_->RemoveTask(UNLOAD_SA_TASK);
+    serviceHandler_->RemoveTask(std::string(UNLOAD_SA_TASK));
     IMSA_HILOGD("post unload task");
     lastPostTime = GetTickCount();
-    bool ret = serviceHandler_->PostTask(task, UNLOAD_SA_TASK, DELAY_UNLOAD_SA_TIME);
+    bool ret = serviceHandler_->PostTask(task, std::string(UNLOAD_SA_TASK), DELAY_UNLOAD_SA_TIME);
     if (!ret) {
         IMSA_HILOGE("post unload task fail code:%{public}u", code);
     }
@@ -565,7 +569,7 @@ int32_t InputMethodSystemAbility::RequestShowInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) &&
-        !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        !identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     auto userId = GetCallingUserId();
@@ -582,7 +586,7 @@ int32_t InputMethodSystemAbility::RequestHideInput()
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     auto pid = IPCSkeleton::GetCallingPid();
     if (!identityChecker_->IsFocused(pid, tokenId) &&
-        !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        !identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     auto userId = GetCallingUserId();
@@ -640,7 +644,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
     if (identityChecker_->IsBroker(tokenId)) {
         return session->OnHideCurrentInput();
     }
-    if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return session->OnHideCurrentInput();
@@ -658,7 +662,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInputInner()
     if (identityChecker_->IsBroker(tokenId)) {
         return session->OnShowCurrentInput();
     }
-    if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return session->OnShowCurrentInput();
@@ -1761,7 +1765,8 @@ int32_t InputMethodSystemAbility::CheckEnableAndSwitchPermission()
         IMSA_HILOGE("not native sa!");
         return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
     }
-    if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(),
+        std::string(PERMISSION_CONNECT_IME_ABILITY))) {
         IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY!");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
@@ -1783,7 +1788,8 @@ int32_t InputMethodSystemAbility::CheckSwitchPermission(int32_t userId, const Sw
             IMSA_HILOGE("not system app!");
             return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
         }
-        if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+        if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(),
+            std::string(PERMISSION_CONNECT_IME_ABILITY))) {
             IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY!");
             return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
         }
@@ -1791,7 +1797,8 @@ int32_t InputMethodSystemAbility::CheckSwitchPermission(int32_t userId, const Sw
     }
     if (trigger == SwitchTrigger::CURRENT_IME) {
         // PERMISSION_CONNECT_IME_ABILITY check temporarily reserved for application adaptation, will be deleted soon
-        if (identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+        if (identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(),
+            std::string(PERMISSION_CONNECT_IME_ABILITY))) {
             return ErrorCode::NO_ERROR;
         }
         IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY!");
@@ -1820,7 +1827,7 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted(int32_t userId)
     if (identityChecker_->IsBundleNameValid(tokenId, defaultIme->prop.name)) {
         return true;
     }
-    if (identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+    if (identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
         return true;
     }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
@@ -1834,7 +1841,7 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted(int32_t userId)
 int32_t InputMethodSystemAbility::ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
         IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY!");
         return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
     }

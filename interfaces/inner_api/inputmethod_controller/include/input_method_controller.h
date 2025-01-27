@@ -18,8 +18,8 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <ctime>
+#include <condition_variable>
 #include <mutex>
 #include <thread>
 #include <variant>
@@ -39,11 +39,12 @@
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
-#include "message_handler.h"
 #include "msg_handler_callback_interface.h"
+#include "inputmethod_message_handler.h"
 #include "panel_info.h"
 #include "private_command_interface.h"
 #include "visibility.h"
+
 namespace OHOS {
 namespace MiscServices {
 class OnTextChangedListener : public virtual RefBase {

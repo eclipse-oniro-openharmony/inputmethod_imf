@@ -526,7 +526,8 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
         return nullptr;
     }
     std::shared_ptr<JSCallbackObject> callback =
-        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
+        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id(),
+            AppExecFwk::EventHandler::Current());
     auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(iter->second, inputMethod_);
     if (ret == ErrorCode::NO_ERROR) {
         engine->RegisterListener(argv[ARGC_ONE], type, callback);

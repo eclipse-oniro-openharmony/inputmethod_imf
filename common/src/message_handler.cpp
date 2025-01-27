@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "message_handler.h"
+#include "inputmethod_message_handler.h"
 
 namespace OHOS {
 namespace MiscServices {

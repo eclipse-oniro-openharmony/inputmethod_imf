@@ -72,8 +72,8 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    auto uri = GenerateTargetUri(SETTING_URI_PROXY, observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(SETTING_URI_PROXY);
+    auto uri = GenerateTargetUri(std::string(SETTING_URI_PROXY), observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(SETTING_URI_PROXY));
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -89,8 +89,8 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
 
 int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &observer)
 {
-    auto uri = GenerateTargetUri(SETTING_URI_PROXY, observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(SETTING_URI_PROXY);
+    auto uri = GenerateTargetUri(std::string(SETTING_URI_PROXY), observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(SETTING_URI_PROXY));
     if (helper == nullptr) {
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -108,7 +108,7 @@ std::shared_ptr<DataShare::DataShareHelper> SettingsDataUtils::CreateDataShareHe
         return nullptr;
     }
 
-    auto helper = DataShare::DataShareHelper::Creator(remoteObj_, uriProxy, SETTINGS_DATA_EXT_URI);
+    auto helper = DataShare::DataShareHelper::Creator(remoteObj_, uriProxy, std::string(SETTINGS_DATA_EXT_URI));
     if (helper == nullptr) {
         IMSA_HILOGE("create helper failed, uri: %{public}s!", uriProxy.c_str());
         return nullptr;
@@ -229,7 +229,7 @@ bool SettingsDataUtils::EnableIme(int32_t userId, const std::string &bundleName)
     }
     const char *settingKey = "settings.inputmethod.enable_ime";
     std::string settingValue = "";
-    GetStringValue(SETTING_URI_PROXY, settingKey, settingValue);
+    GetStringValue(std::string(SETTING_URI_PROXY), settingKey, settingValue);
     IMSA_HILOGI("settingValue: %{public}s", settingValue.c_str());
     std::string value = "";
     if (settingValue == "") {
@@ -238,7 +238,7 @@ bool SettingsDataUtils::EnableIme(int32_t userId, const std::string &bundleName)
         value = SetSettingValues(settingValue, bundleName);
     }
     IMSA_HILOGI("value: %{public}s", value.c_str());
-    return SetStringValue(SETTING_URI_PROXY, settingKey, value);
+    return SetStringValue(std::string(SETTING_URI_PROXY), settingKey, value);
 }
  
 std::vector<std::string> SettingsDataUtils::split(const std::string &text, char delim)

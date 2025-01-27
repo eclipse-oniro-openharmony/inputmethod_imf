@@ -93,7 +93,7 @@ struct CountDistributionInfo : public Serializable {
     {
         countDistributions.resize(intervalNum);
     };
-    void Mod(uint32_t intervalIndex, const std::string &key);
+    void ModCountDistributions(uint32_t intervalIndex, const std::string &key);
     bool Marshal(cJSON *node) const override;
     int32_t count{ 0 };
     std::vector<std::vector<std::pair<std::string, uint32_t>>> countDistributions;
