@@ -234,7 +234,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
         if (needShow) {
             ret = ShowKeyboardImplWithoutLock(cmdId_);
         }
-        ReportImeStartInput(IInputMethodCore::START_INPUT, ret, clientInfo.isShowKeyboard, endTime - startTime);
+        ReportImeStartInput(IInputMethodCore::START_INPUT, ret, needShow, endTime - startTime);
         isImeTerminating.store(false);
     };
     if (!imeListener_) {
