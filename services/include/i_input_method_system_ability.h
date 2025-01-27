@@ -42,11 +42,12 @@ class IInputMethodSystemAbility : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
 
-    virtual int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) = 0;
-    virtual int32_t ShowCurrentInput() = 0;
+    virtual int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent,
+        std::pair<int64_t, std::string> &imeInfo) = 0;
+    virtual int32_t ShowCurrentInput(ClientType type = ClientType::INNER_KIT) = 0;
     virtual int32_t HideCurrentInput() = 0;
     virtual int32_t StopInputSession() = 0;
-    virtual int32_t ShowInput(sptr<IInputClient> client) = 0;
+    virtual int32_t ShowInput(sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT) = 0;
     virtual int32_t HideInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
     virtual int32_t RequestShowInput() = 0;

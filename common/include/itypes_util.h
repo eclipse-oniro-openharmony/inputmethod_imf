@@ -47,6 +47,9 @@ public:
     static bool Marshalling(uint64_t input, MessageParcel &data);
     static bool Unmarshalling(uint64_t &output, MessageParcel &data);
 
+    static bool Marshalling(int64_t input, MessageParcel &data);
+    static bool Unmarshalling(int64_t &output, MessageParcel &data);
+
     static bool Marshalling(double input, MessageParcel &data);
     static bool Unmarshalling(double &output, MessageParcel &data);
 
@@ -61,6 +64,9 @@ public:
 
     static bool Marshalling(const sptr<IRemoteObject> &input, MessageParcel &data);
     static bool Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data);
+
+    static bool Marshalling(ClientType input, MessageParcel &data);
+    static bool Unmarshalling(ClientType &output, MessageParcel &data);
 
     static bool Marshalling(const Property &input, MessageParcel &data);
     static bool Unmarshalling(Property &output, MessageParcel &data);

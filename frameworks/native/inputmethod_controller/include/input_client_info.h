@@ -30,6 +30,7 @@ enum class UpdateFlag : uint32_t {
     STATE,
     TEXT_CONFIG,
     UIEXTENSION_TOKENID,
+    CLIENT_TYPE,
 };
 enum class ImeType : int32_t {
     IME = 0,
@@ -39,6 +40,14 @@ enum class ImeType : int32_t {
 enum class ClientState : uint32_t {
     INACTIVE = 0,
     ACTIVE
+};
+
+enum ClientType : uint32_t {
+    CAPI,
+    JS,
+    CJ,
+    INNER_KIT,
+    CLIENT_TYPE_END,
 };
 
 constexpr uint32_t NO_EVENT_ON = 0;
@@ -60,6 +69,14 @@ struct InputClientInfo {
     bool needHide { false }; // panel needs to be hidden first, when input pattern is switched between pwd and normal
     uint32_t uiExtensionTokenId { IMF_INVALID_TOKENID }; // the value is valid only in curClient and only UIExtension
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE }; // show keyboard reason
+    ClientType type{ INNER_KIT };                                               // for hiSysEvent
+    std::string name; // for hiSysEvent, client name:SA/processName app/bundleName
+};
+
+struct HiSysEventClientInfo {
+    int64_t pid{ -1 };
+    ClientType type{ INNER_KIT };
+    std::string name;
 };
 } // namespace MiscServices
 } // namespace OHOS

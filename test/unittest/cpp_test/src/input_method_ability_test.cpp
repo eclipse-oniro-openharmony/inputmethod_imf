@@ -1324,7 +1324,7 @@ HWTEST_F(InputMethodAbilityTest, testSetPreviewText_002, TestSize.Level0)
     InputMethodAbilityTest::inputMethodAbility_->ClearDataChannel(
         InputMethodAbilityTest::inputMethodAbility_->dataChannelObject_);
     auto ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
     EXPECT_NE(TextListener::previewText_, text);
     EXPECT_FALSE(TextListener::previewRange_ == range);
 }
@@ -1384,7 +1384,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_002, TestSize.Level0)
     InputMethodAbilityTest::inputMethodAbility_->ClearDataChannel(
         InputMethodAbilityTest::inputMethodAbility_->dataChannelObject_);
     auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview(false);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
 
@@ -1451,7 +1451,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage001, TestSize.Level0)
     PanelFlag flag = PanelFlag::FLG_FIXED;
     Trigger trigger = Trigger::IME_APP;
     ret = InputMethodAbilityTest::inputMethodAbility_->ShowPanel(nullptr, flag, trigger);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_NULLPTR);
 
     ret = InputMethodAbilityTest::inputMethodAbility_->HidePanel(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
@@ -1491,7 +1491,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     imsa_->NeedHideWhenSwitchInputType(vailidUserId, needHide);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchInputType(vailidUserId, switchInfo);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND);
     ret = imsa_->OnPackageRemoved(vailidUserId, vailidString);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 

@@ -78,11 +78,15 @@ ohos_shared_library("inputmethod_client") {
 
   innerapi_tags = [ "platformsdk" ]
 
-  deps = [ "${inputmethod_path}/common:inputmethod_common" ]
+  deps = [
+    "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
+  ]
 
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
@@ -135,11 +139,15 @@ ohos_static_library("inputmethod_client_static") {
 
   public_configs = [ ":inputmethod_client_native_public_config" ]
 
-  deps = [ "${inputmethod_path}/common:inputmethod_common" ]
+  deps = [
+    "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
+  ]
 
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

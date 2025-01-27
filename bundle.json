@@ -57,7 +57,8 @@
               "memmgr",
               "hicollie",
               "resource_management",
-              "screenlock_mgr"
+              "screenlock_mgr",
+              "cJSON"
           ], 
           "third_party": [
               "cJSON"

@@ -101,7 +101,8 @@ public:
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
-    int32_t OnStartInput(const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
+    int32_t OnStartInput(
+        const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnHideCurrentInput();
@@ -126,9 +127,9 @@ public:
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     int32_t InitConnect(pid_t pid);
 
-    bool StartCurrentIme(bool isStopCurrentIme = false);
-    bool StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme = false);
-    bool StopCurrentIme();
+    int32_t StartCurrentIme(bool isStopCurrentIme = false);
+    int32_t StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme = false);
+    int32_t StopCurrentIme();
     bool RestartIme();
     void AddRestartIme();
 
@@ -198,8 +199,8 @@ private:
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
     std::shared_ptr<InputClientInfo> GetCurClientInfo();
     void UpdateClientInfo(const sptr<IRemoteObject> &client,
-        const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>>
-            &updateInfos);
+        const std::unordered_map<UpdateFlag,
+            std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>> &updateInfos);
 
     int32_t InitImeData(const std::pair<std::string, std::string> &ime);
     int32_t UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
@@ -245,13 +246,13 @@ private:
     int32_t ChangeToDefaultImeIfNeed(
         const std::shared_ptr<ImeNativeCfg> &ime, std::shared_ptr<ImeNativeCfg> &imeToStart);
     AAFwk::Want GetWant(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
-    bool ForceStopCurrentIme(bool isNeedWait = true);
-    bool StopReadyCurrentIme();
-    bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
-    bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
+    int32_t StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime);
+    int32_t StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime);
+    int32_t StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
+    int32_t ForceStopCurrentIme(bool isNeedWait = true);
+    int32_t StopReadyCurrentIme();
+    int32_t HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
+    int32_t HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
     // from service notify clients input start and stop
     int32_t NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason = 0);

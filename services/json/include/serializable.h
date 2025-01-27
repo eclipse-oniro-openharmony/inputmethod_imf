@@ -30,7 +30,10 @@ public:
     virtual ~Serializable(){};
     bool Unmarshall(const std::string &content);
     bool Marshall(std::string &content) const;
-    virtual bool Unmarshal(cJSON *node) = 0;
+    virtual bool Unmarshal(cJSON *node)
+    {
+        return false;
+    }
     virtual bool Marshal(cJSON *node) const
     {
         return false;
@@ -40,6 +43,7 @@ public:
     static bool GetValue(cJSON *node, const std::string &name, uint32_t &value);
     static bool GetValue(cJSON *node, const std::string &name, bool &value);
     static bool GetValue(cJSON *node, const std::string &name, Serializable &value);
+    static bool GetValue(cJSON *node, const std::string &name, std::vector<std::vector<std::string>> &values);
     template<typename T>
     static bool GetValue(cJSON *node, const std::string &name, std::vector<T> &values, int32_t maxNum = 0)
     {
@@ -67,6 +71,8 @@ public:
     static bool SetValue(cJSON *node, const std::string &name, const std::string &value);
     static bool SetValue(cJSON *node, const std::string &name, const int32_t &value);
     static bool SetValue(cJSON *node, const std::string &name, const bool &value);
+    static bool SetValue(cJSON *node, const std::string &name, const Serializable &value);
+    static bool SetValue(cJSON *node, const std::string &name, const std::vector<std::vector<std::string>> &values);
     template<typename T> static bool SetValue(cJSON *node, const std::string &name, const std::vector<T> &values)
     {
         auto array = cJSON_CreateArray();

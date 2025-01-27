@@ -309,7 +309,8 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo clientInfo;
     clientInfo.client = nullptr;
-    int32_t ret = userSession->OnStartInput(clientInfo, agent);
+    std::pair<int64_t, std::string> imeInfo;
+    int32_t ret = userSession->OnStartInput(clientInfo, agent, imeInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->OnReleaseInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
@@ -480,10 +481,10 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.L
         { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
     // english->chinese
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
     // lower->upper
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
 /**
@@ -951,7 +952,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestOnSecurityChange, TestSize.Level0)
     userSession->OnSecurityChange(10);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     ret = userSession->ShowKeyboard(nullptr);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 }
 
 /**
@@ -1201,7 +1202,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage001, TestSize.Level0)
 
     clientInfo.isNotifyInputStart = true;
     ret2 = service_->CheckInputTypeOption(INVALID_USER_ID, clientInfo);
-    EXPECT_EQ(ret2, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret2, ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND);
 
     const std::string bundleName;
     const std::string subName;
@@ -1242,7 +1243,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage002, TestSize.Level0)
     const SwitchInfo switchInfo;
     UserSessionManager::GetInstance().RemoveUserSession(INVALID_USER_ID);
     auto ret2 = service_->OnStartInputType(INVALID_USER_ID, switchInfo, false);
-    EXPECT_EQ(ret2, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret2, ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND);
 
     bool needHide = false;
     auto ret3 = service_->IsCurrentIme(INVALID_USER_ID);
@@ -1309,7 +1310,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->BindClientWithIme(nullptr, ImeType::IME, false);
     userSession->UnBindClientWithIme(nullptr, false, false);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
     ret = userSession->OnSetCallingWindow(0, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 
@@ -1323,10 +1324,10 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     EXPECT_FALSE(ret2);
     ret2 = userSession->IsCurClientUnFocused(-1, -1);
     EXPECT_FALSE(ret2);
-    ret2 = userSession->StartInputService(nullptr);
-    EXPECT_FALSE(ret2);
-    ret2 = userSession->StartIme(nullptr, false);
-    EXPECT_FALSE(ret2);
+    auto startRet = userSession->StartInputService(nullptr);
+    EXPECT_EQ(startRet, ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR);
+    startRet = userSession->StartIme(nullptr, false);
+    EXPECT_EQ(startRet, ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR);
 
     auto ret3 = userSession->GetClientInfo(nullptr);
     EXPECT_EQ(ret3, nullptr);

@@ -608,7 +608,7 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     // 0、not create panel, show panel failed.
     auto ret = inputMethodPanel->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_NULLPTR);
 
     // 1 create panel, show success
     AccessScope scope(currentImeTokenId_, currentImeUid_);

@@ -165,6 +165,19 @@ private:
     void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy);
     void ClearInputType();
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
+    int32_t StartInputInner(const InputClientInfo &clientInfo, bool isBindFromClient);
+    int32_t InsertTextInner(const std::string &text);
+    int32_t SetPreviewTextInner(const std::string &text, const Range &range);
+    int32_t DeleteForwardInner(int32_t length);
+    int32_t DeleteBackwardInner(int32_t length);
+    int32_t FinishTextPreviewInner(bool isAsync);
+    int32_t GetTextBeforeCursorInner(int32_t number, std::u16string &text);
+    int32_t GetTextAfterCursorInner(int32_t number, std::u16string &text);
+    int32_t GetTextIndexAtCursorInner(int32_t &index);
+    void SetBindClientInfo(const InputClientInfo &clientInfo);
+    HiSysEventClientInfo GetBindClientInfo();
+    void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);
+    void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
     std::atomic_bool isBound_ { false };
@@ -195,6 +208,9 @@ private:
 
     std::mutex systemAppCheckMutex_;
     bool isSystemApp_ = false;
+    
+    std::mutex bindClientInfoLock_;
+    HiSysEventClientInfo bindClientInfo_;
 };
 } // namespace MiscServices
 } // namespace OHOS
