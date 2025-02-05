@@ -48,11 +48,11 @@ struct ClientShowAllInfo {
 
 class ImsaHiSysEventReporter : public ImfHiSysEventReporter {
 public:
-    ~ImsaHiSysEventReporter() override;
     static ImsaHiSysEventReporter &GetInstance();
 
 private:
     ImsaHiSysEventReporter();
+    ~ImsaHiSysEventReporter();
     bool IsValidErrCode(int32_t errCode) override;
     bool IsFault(int32_t errCode) override;
     void RecordStatisticsEvent(ImfStatisticsEvent event, const HiSysOriginalInfo &info) override;

@@ -190,13 +190,19 @@ public:
     virtual void OnEvent(std::shared_ptr<HiSysEventRecord> sysEvent) final
     {
         std::unique_lock<std::mutex> lock(ImfHiSysEventReporterTest::cvMutex_);
+        if (sysEvent == nullptr) {
+            IMSA_HILOGE("sysEvent is nullptr.");
+            return;
+        }
         ImfHiSysEventReporterTest::eventName_ = sysEvent->GetEventName();
         IMSA_HILOGI("HiSysEventWatcher::OnEvent:%{public}s", ImfHiSysEventReporterTest::eventName_.c_str());
         auto it = TEST_EVENT_MAPPING.find(ImfHiSysEventReporterTest::eventName_);
         if (it == TEST_EVENT_MAPPING.end()) {
             return;
         }
-        it->second(sysEvent);
+        if (it->second != nullptr) {
+            it->second(sysEvent);
+        }
         ImfHiSysEventReporterTest::watcherCv_.notify_one();
     }
     virtual void OnServiceDied() final
@@ -286,6 +292,10 @@ void ImfHiSysEventReporterTest::AddListenerRules(const std::string &eventName, s
 
 void ImfHiSysEventWatcher::NotifyFaultEvent(std::shared_ptr<HiSysEventRecord> sysEvent)
 {
+    if (sysEvent == nullptr) {
+        IMSA_HILOGE("sysEvent is nullptr.");
+        return;
+    }
     sysEvent->GetParamValue(GET_NAME(PEER_NAME), ImfHiSysEventReporterTest::faultInfo_->peerName);
     int64_t param = 0;
     sysEvent->GetParamValue(GET_NAME(PEER_USERID), param);
@@ -310,37 +320,65 @@ void ImfHiSysEventWatcher::NotifyFaultEvent(std::shared_ptr<HiSysEventRecord> sy
 }
 void ImfHiSysEventWatcher::NotifyClientAttachStatistic(std::shared_ptr<HiSysEventRecord> sysEvent)
 {
+    if (sysEvent == nullptr) {
+        IMSA_HILOGE("sysEvent is nullptr.");
+        return;
+    }
     sysEvent->GetParamValue(GET_NAME(IME_NAME), ImfHiSysEventReporterTest::clientAttachStatistics_.imeNames);
     sysEvent->GetParamValue(GET_NAME(APP_NAME), ImfHiSysEventReporterTest::clientAttachStatistics_.appNames);
     std::vector<std::string> infos;
     sysEvent->GetParamValue(GET_NAME(INFOS), infos);
-    ASSERT_EQ(infos.size(), 1);
+    if (infos.size() != 1) {
+        IMSA_HILOGE("infos size is %{public}u.", infos.size());
+        return;
+    }
     ImfHiSysEventReporterTest::clientAttachStatistics_.Unmarshall(infos[0]);
 }
 void ImfHiSysEventWatcher::NotifyClientShowStatistic(std::shared_ptr<HiSysEventRecord> sysEvent)
 {
+    if (sysEvent == nullptr) {
+        IMSA_HILOGE("sysEvent is nullptr.");
+        return;
+    }
     sysEvent->GetParamValue(GET_NAME(IME_NAME), ImfHiSysEventReporterTest::clientShowStatistics_.imeNames);
     sysEvent->GetParamValue(GET_NAME(APP_NAME), ImfHiSysEventReporterTest::clientShowStatistics_.appNames);
     std::vector<std::string> infos;
     sysEvent->GetParamValue(GET_NAME(INFOS), infos);
-    ASSERT_EQ(infos.size(), 1);
+    if (infos.size() != 1) {
+        IMSA_HILOGE("infos size is %{public}u.", infos.size());
+        return;
+    }
     ImfHiSysEventReporterTest::clientShowStatistics_.Unmarshall(infos[0]);
 }
 
 void ImfHiSysEventWatcher::NotifyImeStartInputStatistic(std::shared_ptr<HiSysEventRecord> sysEvent)
 {
+    if (sysEvent == nullptr) {
+        IMSA_HILOGE("sysEvent is nullptr.");
+        return;
+    }
     sysEvent->GetParamValue(GET_NAME(APP_NAME), ImfHiSysEventReporterTest::imeStartInputStatistics_.appNames);
     std::vector<std::string> infos;
     sysEvent->GetParamValue(GET_NAME(INFOS), infos);
-    ASSERT_EQ(infos.size(), 1);
+    if (infos.size() != 1) {
+        IMSA_HILOGE("infos size is %{public}u.", infos.size());
+        return;
+    }
     ImfHiSysEventReporterTest::imeStartInputStatistics_.Unmarshall(infos[0]);
 }
 void ImfHiSysEventWatcher::NotifyBaseTextOperatorStatistic(std::shared_ptr<HiSysEventRecord> sysEvent)
 {
+    if (sysEvent == nullptr) {
+        IMSA_HILOGE("sysEvent is nullptr.");
+        return;
+    }
     sysEvent->GetParamValue(GET_NAME(APP_NAME), ImfHiSysEventReporterTest::baseTextOperationStatistics_.appNames);
     std::vector<std::string> infos;
     sysEvent->GetParamValue(GET_NAME(INFOS), infos);
-    ASSERT_EQ(infos.size(), 1);
+    if (infos.size() != 1) {
+        IMSA_HILOGE("infos size is %{public}u.", infos.size());
+        return;
+    }
     ImfHiSysEventReporterTest::baseTextOperationStatistics_.Unmarshall(infos[0]);
 }
 

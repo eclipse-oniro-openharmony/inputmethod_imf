@@ -26,8 +26,12 @@
 namespace OHOS {
 namespace MiscServices {
 struct ImeCbTimeConsumeStatistics : public Serializable {
+    static constexpr uint32_t MAX_COUNT_DISTRIBUTIONS_INTERVAL = 10;
     explicit ImeCbTimeConsumeStatistics(uint32_t num)
     {
+        if (num > MAX_COUNT_DISTRIBUTIONS_INTERVAL) {
+            num = MAX_COUNT_DISTRIBUTIONS_INTERVAL;
+        }
         countDistributions.resize(num);
     }
     bool Marshal(cJSON *node) const override
@@ -81,11 +85,11 @@ struct BaseTextOperationAllInfo : public Serializable {
 
 class ImaHiSysEventReporter : public ImfHiSysEventReporter {
 public:
-    ~ImaHiSysEventReporter() override;
     static ImaHiSysEventReporter &GetInstance();
 
 private:
     ImaHiSysEventReporter();
+    ~ImaHiSysEventReporter();
     static const std::vector<std::pair<uint32_t, uint32_t>> BASE_TEXT_OPERATION_TIME_INTERVAL;
     static const std::vector<std::pair<uint32_t, uint32_t>> IME_CB_TIME_INTERVAL;
     bool IsValidErrCode(int32_t errCode) override;

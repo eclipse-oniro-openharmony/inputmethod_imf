@@ -18,9 +18,13 @@
 #include <algorithm>
 
 #include "accesstoken_kit.h"
+#include "app_mgr_client.h"
 #include "hisysevent.h"
+#include "ipc_skeleton.h"
+#include "running_process_info.h"
 namespace OHOS {
 namespace MiscServices {
+using namespace OHOS::AppExecFwk;
 using HiSysEvent = OHOS::HiviewDFX::HiSysEvent;
 using namespace Security::AccessToken;
 void ImfHiSysEventUtil::ReportClientAttachFault(
@@ -110,20 +114,26 @@ std::string ImfHiSysEventUtil::GetAppName(uint32_t tokenId)
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
     switch (tokenType) {
         case ATokenTypeEnum::TOKEN_HAP: {
-            HapTokenInfo hapInfo;
-            if (AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo) != 0) {
-                return name;
+            if (tokenId == IPCSkeleton::GetSelfTokenID()) {
+                RunningProcessInfo info;
+                AppMgrClient client;
+                if (client.GetProcessRunningInformation(info) == 0) {
+                    name = info.processName_;
+                }
+                break;
             }
-            name = hapInfo.bundleName;
+            HapTokenInfo hapInfo;
+            if (AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo) == 0) {
+                name = hapInfo.bundleName;
+            }
             break;
         }
         case ATokenTypeEnum::TOKEN_NATIVE:
         case ATokenTypeEnum::TOKEN_SHELL: {
             NativeTokenInfo tokenInfo;
-            if (AccessTokenKit::GetNativeTokenInfo(tokenId, tokenInfo) != 0) {
-                return name;
+            if (AccessTokenKit::GetNativeTokenInfo(tokenId, tokenInfo) == 0) {
+                name = tokenInfo.processName;
             }
-            name = tokenInfo.processName;
             break;
         }
         default: {

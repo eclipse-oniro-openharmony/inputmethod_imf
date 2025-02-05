@@ -24,11 +24,11 @@ namespace OHOS {
 namespace MiscServices {
 class ImcHiSysEventReporter : public ImfHiSysEventReporter {
 public:
-    ~ImcHiSysEventReporter() override;
     static ImcHiSysEventReporter &GetInstance();
 
 private:
     ImcHiSysEventReporter();
+    ~ImcHiSysEventReporter();
     bool IsValidErrCode(int32_t errCode) override;
     bool IsFault(int32_t errCode) override;
 };
