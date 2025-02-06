@@ -40,6 +40,12 @@ const MIN_SIZE: number = 350;
 const MAX_SZIE: number = 550;
 const DIALOG_POSITION_X: number = 50;
 const DIALOG_POSITION_Y_SCALE: number = 0.3;
+const DEFAULT_DIALOG_RECT: DialogRect = {
+  left: DIALOG_POSITION_X,
+  top: DIALOG_POSITION_X,
+  width: MIN_SIZE,
+  height: MIN_SIZE
+};
 
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   private extensionWin: window.Window | undefined = undefined;
@@ -54,16 +60,21 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
 
   onRequest(want: Want, startId: number): void {
     console.log(TAG, 'onRequest execute');
-    let defaultDisplay = display.getDefaultDisplaySync();
-    let size = defaultDisplay.width * DISPLAY_SCALE > MIN_SIZE ? defaultDisplay.width * DISPLAY_SCALE : MIN_SIZE;
-    size = size < MAX_SZIE ? size : MAX_SZIE;
-    let dialogTop = defaultDisplay.height * DIALOG_POSITION_Y_SCALE;
-    let dialogRect: DialogRect = {
-      left: DIALOG_POSITION_X,
-      top: dialogTop,
-      width: size,
-      height: size
-    };
+    let dialogRect: DialogRect = DEFAULT_DIALOG_RECT;
+    try {
+      let defaultDisplay = display.getDefaultDisplaySync();
+      let size = defaultDisplay.width * DISPLAY_SCALE > MIN_SIZE ? defaultDisplay.width * DISPLAY_SCALE : MIN_SIZE;
+      size = size < MAX_SZIE ? size : MAX_SZIE;
+      let dialogTop = defaultDisplay.height * DIALOG_POSITION_Y_SCALE;
+      dialogRect = {
+        left: DIALOG_POSITION_X,
+        top: dialogTop,
+        width: size,
+        height: size
+      };
+    } catch (error) {
+      console.error(TAG + 'getDefaultDisplaySync error use default dialogRect:' + JSON.stringify(error));
+    }
     let windowConfig: window.Configuration = {
       name: 'inputmethod Dialog',
       windowType: window.WindowType.TYPE_GLOBAL_SEARCH,
