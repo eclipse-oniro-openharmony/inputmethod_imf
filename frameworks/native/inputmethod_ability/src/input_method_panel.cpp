@@ -176,9 +176,8 @@ int32_t InputMethodPanel::GetResizeParams(
             resizePanelUnfoldParams_.landscapeRect.height_ =
                 std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
                     static_cast<float>(resizePanelUnfoldParams_.landscapeRect.height_));
-        } else {
-            currParams = resizePanelUnfoldParams_;
         }
+        currParams = resizePanelUnfoldParams_;
     } else {
         IMSA_HILOGI("foldable device with fold state or non-foldable device");
         if (!isInEnhancedAdjust_) {
@@ -188,9 +187,8 @@ int32_t InputMethodPanel::GetResizeParams(
             resizePanelFoldParams_.landscapeRect.height_ =
                 std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
                     static_cast<float>(resizePanelFoldParams_.landscapeRect.height_));
-        } else {
-            currParams = resizePanelFoldParams_;
         }
+        currParams = resizePanelFoldParams_;
     }
     if (IsDisplayPortrait()) {
         landscape.height_ = currParams.landscapeRect.height_;
