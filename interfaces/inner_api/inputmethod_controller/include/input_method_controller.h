@@ -137,6 +137,7 @@ public:
      * default state is 'true', default attribute is 'InputAttribute::PATTERN_TEXT'.
      *
      * @param listener Indicates the listener in order to manipulate text.
+     * @param type Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
      * @since 6
      */
@@ -150,6 +151,7 @@ public:
      *
      * @param listener          Indicates the listener in order to manipulate text.
      * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
+     * @param type              Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
      * @since 8
      */
@@ -165,6 +167,7 @@ public:
      * @param listener          Indicates the listener in order to manipulate text.
      * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
      * @param attribute         Indicates the attribute, such as input pattern, enter eyType, input option.
+     * @param type              Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
      * @since 8
      */
@@ -181,6 +184,7 @@ public:
      * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
      * @param textConfig        Indicates the textConfig, such as input attribute, cursorInfo, range of text selection,
      *                          windowId.
+     * @param type              Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
@@ -198,6 +202,7 @@ public:
      *                                  please pass in true.
      * @param textConfig                Indicates the textConfig, such as input attribute, cursorInfo, range of
      *                                  text selection,windowId.
+     * @param type                      Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
      * @since 16
      */
@@ -208,6 +213,7 @@ public:
      *
      * This function is used to show soft keyboard of current client.
      *
+     * @param type   Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
      * @since 6
      */
@@ -438,6 +444,7 @@ public:
      *
      * This function is used to show soft keyboard of current client.
      *
+     * @param type   Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
      * @since 6
      */

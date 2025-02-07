@@ -89,8 +89,12 @@ struct HiSysOriginalInfo {
 };
 
 struct CountDistributionInfo : public Serializable {
+    static constexpr uint32_t MAX_COUNT_DISTRIBUTIONS_INTERVAL = 10;
     explicit CountDistributionInfo(uint32_t intervalNum)
     {
+        if (intervalNum > MAX_COUNT_DISTRIBUTIONS_INTERVAL) {
+            intervalNum = MAX_COUNT_DISTRIBUTIONS_INTERVAL;
+        }
         countDistributions.resize(intervalNum);
     };
     void ModCountDistributions(uint32_t intervalIndex, const std::string &key);
