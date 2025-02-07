@@ -329,7 +329,7 @@ void ImfHiSysEventWatcher::NotifyClientAttachStatistic(std::shared_ptr<HiSysEven
     std::vector<std::string> infos;
     sysEvent->GetParamValue(GET_NAME(INFOS), infos);
     if (infos.size() != 1) {
-        IMSA_HILOGE("infos size is %{public}u.", infos.size());
+        IMSA_HILOGE("infos size is %{public}zu.", infos.size());
         return;
     }
     ImfHiSysEventReporterTest::clientAttachStatistics_.Unmarshall(infos[0]);
@@ -345,7 +345,7 @@ void ImfHiSysEventWatcher::NotifyClientShowStatistic(std::shared_ptr<HiSysEventR
     std::vector<std::string> infos;
     sysEvent->GetParamValue(GET_NAME(INFOS), infos);
     if (infos.size() != 1) {
-        IMSA_HILOGE("infos size is %{public}u.", infos.size());
+        IMSA_HILOGE("infos size is %{public}zu.", infos.size());
         return;
     }
     ImfHiSysEventReporterTest::clientShowStatistics_.Unmarshall(infos[0]);
@@ -361,7 +361,7 @@ void ImfHiSysEventWatcher::NotifyImeStartInputStatistic(std::shared_ptr<HiSysEve
     std::vector<std::string> infos;
     sysEvent->GetParamValue(GET_NAME(INFOS), infos);
     if (infos.size() != 1) {
-        IMSA_HILOGE("infos size is %{public}u.", infos.size());
+        IMSA_HILOGE("infos size is %{public}zu.", infos.size());
         return;
     }
     ImfHiSysEventReporterTest::imeStartInputStatistics_.Unmarshall(infos[0]);
@@ -376,7 +376,7 @@ void ImfHiSysEventWatcher::NotifyBaseTextOperatorStatistic(std::shared_ptr<HiSys
     std::vector<std::string> infos;
     sysEvent->GetParamValue(GET_NAME(INFOS), infos);
     if (infos.size() != 1) {
-        IMSA_HILOGE("infos size is %{public}u.", infos.size());
+        IMSA_HILOGE("infos size is %{public}zu.", infos.size());
         return;
     }
     ImfHiSysEventReporterTest::baseTextOperationStatistics_.Unmarshall(infos[0]);
