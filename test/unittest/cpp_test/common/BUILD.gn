@@ -50,13 +50,13 @@ ohos_static_library("inputmethod_tdd_util") {
   deps = [
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
-    "//third_party/cJSON:cjson",
   ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "hilog:libhilog",

@@ -59,9 +59,6 @@
               "resource_management",
               "screenlock_mgr",
               "cJSON"
-          ], 
-          "third_party": [
-              "cJSON"
           ]
       }, 
       "build": {
