@@ -92,6 +92,7 @@ public:
     int32_t IsDefaultIme() override;
     bool IsDefaultImeSet() override;
     bool EnableIme(const std::string &bundleName) override;
+    int32_t GetInputMethodState(EnabledStatus &status) override;
 
 protected:
     void OnStart() override;
@@ -173,7 +174,10 @@ private:
     int32_t StartInputType(int32_t userId, InputType type);
     // if switch input type need to switch ime, then no need to hide panel first.
     void NeedHideWhenSwitchInputType(int32_t userId, bool &needHide);
-
+    int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+    bool IsSecurityMode(int32_t userId, const std::string &bundleName);
+    int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+    
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     std::atomic<bool> enableImeOn_ = false;

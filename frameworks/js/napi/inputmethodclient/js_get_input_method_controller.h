@@ -204,6 +204,7 @@ private:
     static napi_value GetJsTextInputTypeProperty(napi_env env);
     static napi_value GetJsDirectionProperty(napi_env env);
     static napi_value GetJsExtendActionProperty(napi_env env);
+    static napi_value GetJsEnabledStateProperty(napi_env env);
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     static const std::set<std::string> TEXT_EVENT_TYPE;
     static constexpr int32_t MAX_TIMEOUT = 2500;

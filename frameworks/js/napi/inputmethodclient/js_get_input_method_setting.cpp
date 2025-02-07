@@ -66,6 +66,7 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("displayOptionalInputMethod", DisplayOptionalInputMethod),
         DECLARE_NAPI_FUNCTION("showOptionalInputMethods", ShowOptionalInputMethods),
         DECLARE_NAPI_FUNCTION("isPanelShown", IsPanelShown),
+        DECLARE_NAPI_FUNCTION("getInputMethodState", GetInputMethodState),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
     };
@@ -725,6 +726,29 @@ std::shared_ptr<JsGetInputMethodSetting::UvEntry> JsGetInputMethodSetting::GetEn
         entrySetter(*entry);
     }
     return entry;
+}
+
+napi_value JsGetInputMethodSetting::GetInputMethodState(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<GetInputMethodStateContext>();
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        int32_t enableStatus = static_cast<int32_t>(ctxt->enableStatus);
+        *result = JsUtil::GetValue(env, enableStatus);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t errCode = InputMethodController::GetInstance()->GetInputMethodState(ctxt->enableStatus);
+        if (errCode == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+        ctxt->SetErrorCode(errCode);
+    };
+    ctxt->SetAction(nullptr, std::move(output));
+    // 0 means JsAPI:GetInputMethodState has no param.
+    AsyncCall asyncCall(env, info, ctxt, 0);
+    return asyncCall.Call(env, exec, "GetInputMethodState");
 }
 } // namespace MiscServices
 } // namespace OHOS

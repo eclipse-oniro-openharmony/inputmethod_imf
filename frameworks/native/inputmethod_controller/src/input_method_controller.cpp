@@ -1418,5 +1418,15 @@ int32_t InputMethodController::FinishTextPreview()
     }
     return ErrorCode::NO_ERROR;
 }
+
+int32_t InputMethodController::GetInputMethodState(EnabledStatus &state)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->GetInputMethodState(state);
+}
 } // namespace MiscServices
 } // namespace OHOS
