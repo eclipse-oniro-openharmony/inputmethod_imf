@@ -797,5 +797,67 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_003, TestSize.Level
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInputDeprecated();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
+
+TEST_F(IdentityCheckerTest, OnExtension_extensionIsEmpty_ReturnsOK)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    EXPECT_EQ(service_->OnExtension("", data, reply), 0);
+}
+
+TEST_F(IdentityCheckerTest, OnExtension_dataIsEmpty_ReturnsBadParam)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    EXPECT_EQ(service_->OnExtension("restore", data, reply), ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+TEST_F(IdentityCheckerTest, OnExtension_BundleNameIsInvalid_ReturnsBadParam)
+{
+    MessageParcel data;
+    data.WriteString("[{\"type\":\"default_input_method\",\"detail\":\"com.invalid.bundleName\"}]");
+    MessageParcel reply;
+    EXPECT_EQ(service_->OnExtension("restore", data, reply), ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+TEST_F(IdentityCheckerTest, GetRestoreBundleName_EmptyJsonString_ReturnsEmpty)
+{
+    MessageParcel data;
+    data.WriteString("");
+    std::string bundleName = service_->GetRestoreBundleName(data);
+    EXPECT_EQ(bundleName, "");
+}
+
+TEST_F(IdentityCheckerTest, GetRestoreBundleName_InvalidJsonString_ReturnsEmpty)
+{
+    MessageParcel data;
+    data.WriteString("{invalid json}");
+    std::string bundleName = service_->GetRestoreBundleName(data);
+    EXPECT_EQ(bundleName, "");
+}
+
+TEST_F(IdentityCheckerTest, GetRestoreBundleName_ValidJsonWithoutDefaultInputMethod_ReturnsEmpty)
+{
+    MessageParcel data;
+    data.WriteString("[{\"type\":\"other_type\",\"detail\":\"some_detail\"}]");
+    std::string bundleName = service_->GetRestoreBundleName(data);
+    EXPECT_EQ(bundleName, "");
+}
+
+TEST_F(IdentityCheckerTest, GetRestoreBundleName_ValidJsonWithDefaultInputMethod_ReturnsBundleName)
+{
+    MessageParcel data;
+    data.WriteString("[{\"type\":\"default_input_method\",\"detail\":\"com.example.inputmethod\"}]");
+    std::string bundleName = service_->GetRestoreBundleName(data);
+    EXPECT_EQ(bundleName, "com.example.inputmethod");
+}
+
+TEST_F(IdentityCheckerTest, GetRestoreBundleName_MissingTypeOrDetail_ReturnsEmpty)
+{
+    MessageParcel data;
+    data.WriteString("[{\"type\":\"default_input_method\"}]");
+    std::string bundleName = service_->GetRestoreBundleName(data);
+    EXPECT_EQ(bundleName, "");
+}
 } // namespace MiscServices
 } // namespace OHOS
