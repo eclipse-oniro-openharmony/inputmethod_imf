@@ -38,7 +38,7 @@ struct ImeCbTimeConsumeStatistics : public Serializable {
     {
         auto ret = SetValue(node, GET_NAME(COUNT), count);
         std::string countInfo;
-        for (auto i = 0; i < countDistributions.size(); i++) {
+        for (size_t i = 0; i < countDistributions.size(); i++) {
             countInfo.append(std::to_string(countDistributions[i]));
             if (i != countDistributions.size() - 1) {
                 countInfo.append("/");
@@ -90,8 +90,8 @@ public:
 private:
     ImaHiSysEventReporter();
     ~ImaHiSysEventReporter();
-    static const std::vector<std::pair<uint32_t, uint32_t>> BASE_TEXT_OPERATION_TIME_INTERVAL;
-    static const std::vector<std::pair<uint32_t, uint32_t>> IME_CB_TIME_INTERVAL;
+    static const std::vector<std::pair<int32_t, int32_t>> BASE_TEXT_OPERATION_TIME_INTERVAL;
+    static const std::vector<std::pair<int32_t, int32_t>> IME_CB_TIME_INTERVAL;
     bool IsValidErrCode(int32_t errCode) override;
     bool IsFault(int32_t errCode) override;
     void RecordStatisticsEvent(ImfStatisticsEvent event, const HiSysOriginalInfo &info) override;

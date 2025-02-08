@@ -108,13 +108,14 @@ void ImfHiSysEventUtil::ReportStatisticsEvent(const std::string &eventName, cons
     }
 }
 
-std::string ImfHiSysEventUtil::GetAppName(uint32_t tokenId)
+std::string ImfHiSysEventUtil::GetAppName(uint64_t fullTokenId)
 {
     std::string name;
+    uint32_t tokenId = static_cast<uint32_t>(fullTokenId);
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
     switch (tokenType) {
         case ATokenTypeEnum::TOKEN_HAP: {
-            if (tokenId == IPCSkeleton::GetSelfTokenID()) {
+            if (fullTokenId == IPCSkeleton::GetSelfTokenID()) {
                 RunningProcessInfo info;
                 AppMgrClient client;
                 if (client.GetProcessRunningInformation(info) == 0) {
@@ -145,16 +146,13 @@ std::string ImfHiSysEventUtil::GetAppName(uint32_t tokenId)
 
 std::string ImfHiSysEventUtil::AddIfAbsent(const std::string &bundleName, std::vector<std::string> &bundleNames)
 {
-    uint32_t index = 0;
     auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
         [&bundleName](const std::string &bundleNameTmp) { return bundleName == bundleNameTmp; });
     if (it == bundleNames.end()) {
         bundleNames.push_back(bundleName);
-        index = bundleNames.size() - 1;
-    } else {
-        index = it - bundleNames.begin();
+        return std::to_string(bundleNames.size() - 1);
     }
-    return std::to_string(index);
+    return std::to_string(it - bundleNames.begin());
 }
 } // namespace MiscServices
 } // namespace OHOS

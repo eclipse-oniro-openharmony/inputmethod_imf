@@ -183,7 +183,7 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const std::vec
         if (strArr == nullptr) {
             continue;
         }
-        for (auto i = 0; i < value.size(); i++) {
+        for (size_t i = 0; i < value.size(); i++) {
             strArr[i] = value[i].c_str();
         }
         cJSON *stringArray = cJSON_CreateStringArray(strArr, value.size());

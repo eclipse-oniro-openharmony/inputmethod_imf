@@ -20,9 +20,9 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
-const std::vector<std::pair<uint32_t, uint32_t>> ImaHiSysEventReporter::BASE_TEXT_OPERATION_TIME_INTERVAL = { { 0, 4 },
+const std::vector<std::pair<int32_t, int32_t>> ImaHiSysEventReporter::BASE_TEXT_OPERATION_TIME_INTERVAL = { { 0, 4 },
     { 4, 8 }, { 8, 16 }, { 16, 24 }, { 24, 500 } }; // 0-4ms 4-8ms 8-16ms 16-24ms  24ms+
-const std::vector<std::pair<uint32_t, uint32_t>> ImaHiSysEventReporter::IME_CB_TIME_INTERVAL = { { 0, 10 }, { 10, 50 },
+const std::vector<std::pair<int32_t, int32_t>> ImaHiSysEventReporter::IME_CB_TIME_INTERVAL = { { 0, 10 }, { 10, 50 },
     { 50, 100 }, { 100, 500 }, { 500, 1000 }, { 1000, 2000 } }; // 0-10ms 10-50ms 50-100  100-500 500-500 1000+
 ImaHiSysEventReporter &ImaHiSysEventReporter::GetInstance()
 {
@@ -122,17 +122,13 @@ void ImaHiSysEventReporter::ModImeCbTimeConsumeInfo(int32_t imeCbTime)
     if (imeCbTime < 0) {
         return;
     }
-    int32_t index = -1;
-    for (auto i = 0; i < IME_CB_TIME_INTERVAL.size() - 1; i++) {
+    auto index = IME_CB_TIME_INTERVAL.size() - 1;
+    for (size_t i = 0; i < IME_CB_TIME_INTERVAL.size() - 1; i++) {
         if (IME_CB_TIME_INTERVAL[i].first <= imeCbTime && imeCbTime <= IME_CB_TIME_INTERVAL[i].second) {
             index = i;
             break;
         }
     }
-    if (index == -1) {
-        index = IME_CB_TIME_INTERVAL.size() - 1;
-    }
-
     imeStartInputAllInfo_.imeCbTimeConsumeInfo.ModCountDistributions(index);
 }
 
@@ -161,16 +157,13 @@ uint32_t ImaHiSysEventReporter::GetBaseTextOperationSucceedIntervalIndex(int32_t
     if (baseTextOperationTime < 0) {
         return 0;
     }
-    int32_t index = -1;
-    for (auto i = 0; i < BASE_TEXT_OPERATION_TIME_INTERVAL.size() - 1; i++) {
+    auto index = BASE_TEXT_OPERATION_TIME_INTERVAL.size() - 1;
+    for (size_t i = 0; i < BASE_TEXT_OPERATION_TIME_INTERVAL.size() - 1; i++) {
         if (BASE_TEXT_OPERATION_TIME_INTERVAL[i].first <= baseTextOperationTime
             && baseTextOperationTime <= BASE_TEXT_OPERATION_TIME_INTERVAL[i].second) {
             index = i;
             break;
         }
-    }
-    if (index == -1) {
-        index = BASE_TEXT_OPERATION_TIME_INTERVAL.size() - 1;
     }
     return index;
 }

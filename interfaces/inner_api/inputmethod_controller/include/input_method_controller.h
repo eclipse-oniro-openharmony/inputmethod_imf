@@ -928,6 +928,8 @@ private:
     void PrintKeyEventLog();
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
     int32_t IsValidTextConfig(const TextConfig &textConfig);
+    void SetBindImeInfo(const std::pair<int64_t, std::string> &imeInfo);
+    std::pair<int64_t, std::string> GetBindImeInfo();
     int32_t SetPreviewTextInner(const std::string &text, const Range &range);
     int32_t ShowTextInputInner(ClientType type);
     int32_t ShowSoftKeyboardInner(ClientType type);
@@ -989,6 +991,7 @@ private:
 
     std::mutex msgHandlerMutex_;
     std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_ = nullptr;
+    std::mutex bindImeInfoLock_;
     std::pair<int64_t, std::string> bindImeInfo_{ 0, "" }; // for hiSysEvent
 };
 } // namespace MiscServices

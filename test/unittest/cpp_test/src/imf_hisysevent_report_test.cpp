@@ -24,11 +24,13 @@
 #undef private
 
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 #include <sys/time.h>
 #include <unistd.h>
 
 #include <condition_variable>
 #include <cstdint>
+#include <sstream>
 #include <string>
 
 #include "global.h"
@@ -41,6 +43,7 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace testing::ext;
+using namespace testing::mt;
 using namespace OHOS::HiviewDFX;
 constexpr const char *EVENT_NAME_CLIENT_ATTACH_FAILED = GET_NAME(CLIENT_ATTACH_FAILED);
 constexpr const char *EVENT_NAME_CLIENT_SHOW_FAILED = GET_NAME(CLIENT_SHOW_FAILED);
@@ -159,6 +162,8 @@ struct BaseTextOperationStatistics : public BaseStatistics {
 
 class ImfHiSysEventReporterTest : public testing::Test {
 public:
+    static constexpr int32_t THREAD_NUM = 5;
+    static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 100;
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp();
@@ -168,6 +173,11 @@ public:
     static bool WaitClientShowStatistic(const ClientShowStatistics &statistic);
     static bool WaitImeStartInputStatistic(const ImeStartInputStatistics &statistic);
     static bool WaitBaseTextOperatorStatistic(const BaseTextOperationStatistics &statistic);
+    static void TestStatisticsEventConcurrent();
+    static void TestClientAttach(const uint8_t *data, size_t size);
+    static void TestClientShow(const uint8_t *data, size_t size);
+    static void TestStartInput(const uint8_t *data, size_t size);
+    static void TestBaseTextOperation(const uint8_t *data, size_t size);
     static std::mutex cvMutex_;
     static std::condition_variable watcherCv_;
     static std::string eventName_;
@@ -176,6 +186,7 @@ public:
     static ClientShowStatistics clientShowStatistics_;
     static ImeStartInputStatistics imeStartInputStatistics_;
     static BaseTextOperationStatistics baseTextOperationStatistics_;
+    static int32_t multiThreadExecTotalNum_;
 
 private:
     static void WatchHiSysEvent();
@@ -430,6 +441,119 @@ bool ImfHiSysEventReporterTest::WaitBaseTextOperatorStatistic(const BaseTextOper
     return baseTextOperationStatistics_ == statistic;
 }
 
+void ImfHiSysEventReporterTest::TestClientAttach(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    std::string testString(reinterpret_cast<const char *>(data), size);
+    auto paramPeerName = testString;
+    auto paramPeerUserId = static_cast<int32_t>(size);
+    auto paramPeerPid = static_cast<int64_t>(size);
+    auto errCode = static_cast<int32_t>(size);
+    auto paramIsShowkeyboard = static_cast<bool>(data[0] % 2); // remainder 2 can generate a random number of 0 or 1
+    auto paramImeName = testString;
+    auto info = HiSysOriginalInfo::Builder()
+                    .SetPeerName(paramPeerName)
+                    .SetPeerPid(paramPeerPid)
+                    .SetPeerUserId(paramPeerUserId)
+                    .SetClientType(PARAM_CLIENT_TYPE)
+                    .SetInputPattern(PARAM_INPUT_PATTERN)
+                    .SetIsShowKeyboard(paramIsShowkeyboard)
+                    .SetImeName(paramImeName)
+                    .SetErrCode(errCode)
+                    .Build();
+    ImsaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::CLIENT_ATTACH, *info);
+}
+
+void ImfHiSysEventReporterTest::TestClientShow(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    std::string testString(reinterpret_cast<const char *>(data), size);
+    auto paramPeerName = testString;
+    auto paramPeerUserId = static_cast<int32_t>(size);
+    auto paramPeerPid = static_cast<int64_t>(size);
+    auto errCode = static_cast<int32_t>(size);
+    auto paramIEventCode = static_cast<int32_t>(size);
+    auto paramImeName = testString;
+    auto info = HiSysOriginalInfo::Builder()
+                    .SetPeerName(paramPeerName)
+                    .SetPeerPid(paramPeerPid)
+                    .SetPeerUserId(paramPeerUserId)
+                    .SetClientType(PARAM_CLIENT_TYPE)
+                    .SetImeName(paramImeName)
+                    .SetEventCode(paramIEventCode)
+                    .SetErrCode(errCode)
+                    .Build();
+    ImsaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::CLIENT_SHOW, *info);
+}
+
+void ImfHiSysEventReporterTest::TestStartInput(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    std::string testString(reinterpret_cast<const char *>(data), size);
+    auto paramPeerName = testString;
+    auto paramPeerPid = static_cast<int64_t>(size);
+    auto errCode = static_cast<int32_t>(size);
+    auto paramIsShowkeyboard = static_cast<bool>(data[0] % 2); // remainder 2 can generate a random number of 0 or 1
+    auto paramIEventCode = static_cast<int32_t>(size);
+    auto info = HiSysOriginalInfo::Builder()
+                    .SetPeerName(paramPeerName)
+                    .SetPeerPid(paramPeerPid)
+                    .SetIsShowKeyboard(paramIsShowkeyboard)
+                    .SetEventCode(paramIEventCode)
+                    .SetErrCode(errCode)
+                    .Build();
+    ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::IME_START_INPUT, *info);
+}
+
+void ImfHiSysEventReporterTest::TestBaseTextOperation(const uint8_t *data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    std::string testString(reinterpret_cast<const char *>(data), size);
+    auto paramPeerName = testString;
+    auto paramPeerPid = static_cast<int64_t>(size);
+    auto errCode = static_cast<int32_t>(size);
+    auto paramIEventCode = static_cast<int32_t>(size);
+    auto info = HiSysOriginalInfo::Builder()
+                    .SetPeerName(paramPeerName)
+                    .SetPeerPid(paramPeerPid)
+                    .SetClientType(PARAM_CLIENT_TYPE)
+                    .SetEventCode(paramIEventCode)
+                    .SetErrCode(errCode)
+                    .Build();
+    ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *info);
+}
+
+void ImfHiSysEventReporterTest::TestStatisticsEventConcurrent()
+{
+    for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; i++) {
+        size_t size = static_cast<size_t>(rand() % 100); // A remainder of 100 can generate a random number from 0-99
+        uint8_t *data = static_cast<uint8_t *>(malloc(size * sizeof(uint8_t)));
+        if (data == nullptr) {
+            return;
+        }
+        for (auto j = 0; j < size; j++) {
+            data[j] = static_cast<uint8_t>(rand() % 100); // A remainder of 100 can generate a random number from 0-99
+        }
+
+        TestClientAttach(data, size);
+        TestClientShow(data, size);
+        TestStartInput(data, size);
+        TestBaseTextOperation(data, size);
+        ImaHiSysEventReporter::GetInstance().TimerCallback();
+        ImsaHiSysEventReporter::GetInstance().TimerCallback();
+        free(data);
+        multiThreadExecTotalNum_++;
+    }
+}
+
 std::mutex ImfHiSysEventReporterTest::cvMutex_;
 std::condition_variable ImfHiSysEventReporterTest::watcherCv_;
 std::shared_ptr<HiSysOriginalInfo> ImfHiSysEventReporterTest::faultInfo_ = HiSysOriginalInfo::Builder().Build();
@@ -438,6 +562,7 @@ ClientAttachStatistics ImfHiSysEventReporterTest::clientAttachStatistics_;
 ClientShowStatistics ImfHiSysEventReporterTest::clientShowStatistics_;
 ImeStartInputStatistics ImfHiSysEventReporterTest::imeStartInputStatistics_;
 BaseTextOperationStatistics ImfHiSysEventReporterTest::baseTextOperationStatistics_;
+int32_t ImfHiSysEventReporterTest::multiThreadExecTotalNum_{ 0 };
 
 /**
  * @tc.name: ImcClientAttachFailed_001
@@ -865,6 +990,21 @@ HWTEST_F(ImfHiSysEventReporterTest, BaseTextOperationStatistic_012, TestSize.Lev
     ImaHiSysEventReporter::GetInstance().TimerCallback();
     EXPECT_TRUE(ImfHiSysEventReporterTest::WaitBaseTextOperatorStatistic(statistics));
     EXPECT_TRUE(ImaHiSysEventReporter::GetInstance().baseTextOperationAllInfo_.appNames.empty());
+}
+
+/**
+ * @tc.name: StatisticsEventConcurrentTest_013
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(ImfHiSysEventReporterTest, StatisticsEventConcurrentTest_013, TestSize.Level0)
+{
+    IMSA_HILOGI("StatisticsEventConcurrentTest_013");
+    SET_THREAD_NUM(THREAD_NUM);
+    GTEST_RUN_TASK(TestStatisticsEventConcurrent);
+    EXPECT_EQ(multiThreadExecTotalNum_, THREAD_NUM * EACH_THREAD_CIRCULATION_TIME);
 }
 } // namespace MiscServices
 } // namespace OHOS
