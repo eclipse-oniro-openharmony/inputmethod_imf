@@ -19,7 +19,6 @@
 #include "input_data_channel_stub.h"
 #include "input_method_ability.h"
 #include "input_method_system_ability.h"
-#include "task_manager.h"
 #undef private
 
 #include <event_handler.h>
@@ -315,14 +314,12 @@ void InputMethodMessageHandlerTest::TearDownTestCase(void)
 void InputMethodMessageHandlerTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodMessageHandlerTest::SetUp");
-    TaskManager::GetInstance().SetInited(true);
 }
 
 void InputMethodMessageHandlerTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodMessageHandlerTest::TearDown");
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    TaskManager::GetInstance().Reset();
     ResetParam();
 }
 
