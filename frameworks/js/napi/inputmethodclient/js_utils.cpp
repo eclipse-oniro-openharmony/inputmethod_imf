@@ -62,6 +62,8 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_TEXT_LISTENER_ERROR, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED, EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED },
     { ErrorCode::ERROR_INVALID_RANGE, EXCEPTION_PARAMCHECK },
+    { ErrorCode::ERROR_INVALID_PANEL_TYPE, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
+    { ErrorCode::ERROR_INVALID_PANEL_FLAG, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -82,6 +84,7 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED, "text preview is not supported." },
     { EXCEPTION_PANEL_NOT_FOUND, "soft keyboard panel doesn't exist." },
     { EXCEPTION_WINDOW_MANAGER, "window manager service error." },
+    { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {

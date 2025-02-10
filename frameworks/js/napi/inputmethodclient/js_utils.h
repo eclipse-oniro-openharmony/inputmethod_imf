@@ -49,6 +49,7 @@ enum IMFErrorCode : int32_t {
     EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED = 12800011,
     EXCEPTION_PANEL_NOT_FOUND = 12800012,
     EXCEPTION_WINDOW_MANAGER = 12800013,
+    EXCEPTION_INVALID_PANEL_TYPE_FLAG = 12800017,
 };
 
 enum TypeCode : int32_t {
@@ -74,22 +75,6 @@ enum TypeCode : int32_t {
         }                                                                                        \
     } while (0)
 
-#define RESULT_CHECK_RETURN(env, condition, errCode, message, typeCode, retVal) \
-    do {                                                                       \
-        if (!(condition)) {                                                    \
-            JsUtils::ThrowException(env, errCode, message, typeCode);          \
-            return retVal;                                                     \
-        }                                                                      \
-    } while (0)
-
-#define RESULT_CHECK_RETURN_VOID(env, condition, errCode, message, typeCode) \
-    do {                                                                     \
-        if (!(condition)) {                                                  \
-            JsUtils::ThrowException(env, errCode, message, typeCode);        \
-            return;                                                          \
-        }                                                                    \
-    } while (0)
-
 /* check condition, return and logging. */
 #define CHECK_RETURN_VOID(condition, message)                      \
     do {                                                           \
@@ -107,6 +92,15 @@ enum TypeCode : int32_t {
             return retVal;                                         \
         }                                                          \
     } while (0)
+
+#define RESULT_CHECK_RETURN(env, condition, errCode, message, typeCode, retVal) \
+    do {                                                                       \
+        if (!(condition)) {                                                    \
+            JsUtils::ThrowException(env, errCode, message, typeCode);          \
+            return retVal;                                                     \
+        }                                                                      \
+    } while (0)
+
 
 class JsUtils {
 public:
