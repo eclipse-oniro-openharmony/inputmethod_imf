@@ -246,7 +246,6 @@ public:
     static sptr<InputMethodSystemAbility> imsa_;
     static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
-    static std::shared_ptr<AppExecFwk::EventHandler> textConfigHandler_;
     static sptr<OnTextChangedListener> textListener_;
     static InputMethod_AttachOptions *option_;
     static InputMethod_TextEditorProxy *textEditorProxy_;
@@ -258,7 +257,6 @@ sptr<InputMethodSystemAbility> InputMethodMessageHandlerTest::imsa_;
 sptr<InputMethodSystemAbilityProxy> InputMethodMessageHandlerTest::imsaProxy_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodMessageHandlerTest::imeListener_;
 sptr<OnTextChangedListener> InputMethodMessageHandlerTest::textListener_;
-std::shared_ptr<AppExecFwk::EventHandler> InputMethodMessageHandlerTest::textConfigHandler_ { nullptr };
 InputMethod_AttachOptions *InputMethodMessageHandlerTest::option_ = nullptr;
 InputMethod_TextEditorProxy *InputMethodMessageHandlerTest::textEditorProxy_ = nullptr;
 InputMethod_MessageHandlerProxy *InputMethodMessageHandlerTest::messageHanlderProxy_ = nullptr;
@@ -287,7 +285,7 @@ void InputMethodMessageHandlerTest::SetUpTestCase(void)
     TddUtil::InitCurrentImePermissionInfo();
     IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
     inputMethodAbility_->SetCoreAndAgent();
-    imeListener_ = std::make_shared<InputMethodEngineListenerImpl>(textConfigHandler_);
+    imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetImeListener(imeListener_);
 
     inputMethodController_ = InputMethodController::GetInstance();
