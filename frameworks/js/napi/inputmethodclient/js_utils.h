@@ -74,6 +74,22 @@ enum TypeCode : int32_t {
         }                                                                                        \
     } while (0)
 
+#define RESULT_CHECK_RETURN(env, condition, errCode, message, typeCode, retVal) \
+    do {                                                                       \
+        if (!(condition)) {                                                    \
+            JsUtils::ThrowException(env, errCode, message, typeCode);          \
+            return retVal;                                                     \
+        }                                                                      \
+    } while (0)
+
+#define RESULT_CHECK_RETURN_VOID(env, condition, errCode, message, typeCode) \
+    do {                                                                     \
+        if (!(condition)) {                                                  \
+            JsUtils::ThrowException(env, errCode, message, typeCode);        \
+            return;                                                          \
+        }                                                                    \
+    } while (0)
+
 /* check condition, return and logging. */
 #define CHECK_RETURN_VOID(condition, message)                      \
     do {                                                           \
