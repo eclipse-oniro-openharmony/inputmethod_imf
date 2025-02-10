@@ -34,6 +34,7 @@
 #include "iremote_object.h"
 #include "keyboard_listener.h"
 #include "keyevent_consumer_proxy.h"
+#include "msg_handler_callback_interface.h"
 #include "message.h"
 #include "message_handler.h"
 #include "private_command_interface.h"
@@ -100,6 +101,9 @@ public:
         SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     int32_t OnStopInputService(bool isTerminateIme);
+    int32_t SendMessage(const ArrayBuffer &arrayBuffer);
+    int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
+    int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
 
 private:
     std::thread workThreadHandler;
@@ -136,6 +140,7 @@ private:
     void SetInputControlChannel(sptr<IRemoteObject> &object);
     void ClearInputControlChannel();
     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
+    std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
 
     void Initialize();
     void WorkThread();
@@ -184,6 +189,9 @@ private:
     std::recursive_mutex keyboardCmdLock_;
     int32_t cmdId_ = 0;
     std::atomic<bool> isImeTerminating_ = false;
+    std::atomic<int32_t> securityMode_ = -1;
+    std::mutex msgHandlerMutex_;
+    std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

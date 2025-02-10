@@ -1,0 +1,3771 @@
+diff --git a/common/include/global.h b/common/include/global.h
+index aa4e5603e184c0db3229180dae38ef18b28c61ee..70fd33e18589d35e1215b4eb120d6c89374bc0f1 100644
+--- a/common/include/global.h
++++ b/common/include/global.h
+@@ -113,6 +113,10 @@ enum {
+     ERROR_INVALID_PRIVATE_COMMAND = 43,
+     ERROR_OS_ACCOUNT = 44,
+     ERROR_RES_ERROR = 46,
++    ERROR_MSG_HANDLER_NOT_REGIST = 49,
++    ERROR_SECURITY_MODE_OFF = 50,
++    ERROR_MESSAGE_HANDLER = 51,
++    ERROR_INVALID_ARRAY_BUFFER_SIZE = 52,
+ };
+ }; // namespace ErrorCode
+ 
+diff --git a/common/include/itypes_util.h b/common/include/itypes_util.h
+index b58dea13fcf1a5dfa907cddf7977dab55c48de1a..59708246ae7e207eec9ed266abf7402090170b23 100644
+--- a/common/include/itypes_util.h
++++ b/common/include/itypes_util.h
+@@ -107,6 +107,9 @@ public:
+     static bool Marshalling(const Range &input, MessageParcel &data);
+     static bool Unmarshalling(Range &output, MessageParcel &data);
+ 
++    static bool Marshalling(const ArrayBuffer &input, MessageParcel &data);
++    static bool Unmarshalling(ArrayBuffer &output, MessageParcel &data);
++
+     template<class T>
+     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);
+     template<class T>
+diff --git a/common/src/itypes_util.cpp b/common/src/itypes_util.cpp
+index 20109ce8c4d03208bceb8382197c75b96d104505..2270f86126a13f6c9f141d4d52f294f5c01cd3fc 100644
+--- a/common/src/itypes_util.cpp
++++ b/common/src/itypes_util.cpp
+@@ -480,5 +480,23 @@ bool ITypesUtil::Unmarshalling(Range &output, MessageParcel &data)
+     }
+     return true;
+ }
++
++bool ITypesUtil::Marshalling(const ArrayBuffer &input, MessageParcel &data)
++{
++    if (!Marshal(data, input.msgId, input.msgParam, input.jsArgc)) {
++        IMSA_HILOGE("failed to write ArrayBuffer into message parcel.");
++        return false;
++    }
++    return true;
++}
++
++bool ITypesUtil::Unmarshalling(ArrayBuffer &output, MessageParcel &data)
++{
++    if (!Unmarshal(data, output.msgId, output.msgParam, output.jsArgc)) {
++        IMSA_HILOGE("failed to read ArrayBuffer from message parcel.");
++        return false;
++    }
++    return true;
++}
+ } // namespace MiscServices
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/js/napi/common/js_callback_object.cpp b/frameworks/js/napi/common/js_callback_object.cpp
+index 58b3d36bb4fb843e133bcb101998a72f902a242f..8502306c43d12b01646c2fc377cd5ac0595028fb 100644
+--- a/frameworks/js/napi/common/js_callback_object.cpp
++++ b/frameworks/js/napi/common/js_callback_object.cpp
+@@ -16,6 +16,7 @@
+ #include <uv.h>
+ 
+ #include "js_callback_object.h"
++#include "global.h"
+ 
+ namespace OHOS {
+ namespace MiscServices {
+@@ -52,5 +53,35 @@ JSCallbackObject::~JSCallbackObject()
+     }
+     env_ = nullptr;
+ }
++
++
++JSMsgHandlerCallbackObject::JSMsgHandlerCallbackObject(napi_env env, napi_value onTerminated, napi_value onMessage)
++    : env_(env), handler_(AppExecFwk::EventHandler::Current()), threadId_(std::this_thread::get_id())
++{
++    napi_create_reference(env, onTerminated, 1, &onTerminatedCallback_);
++    napi_create_reference(env, onMessage, 1, &onMessageCallback_);
++}
++
++JSMsgHandlerCallbackObject::~JSMsgHandlerCallbackObject()
++{
++    if (threadId_ == std::this_thread::get_id()) {
++        if (onTerminatedCallback_ != nullptr) {
++            napi_delete_reference(env_, onTerminatedCallback_);
++        }
++        if (onMessageCallback_ != nullptr) {
++            napi_delete_reference(env_, onMessageCallback_);
++        }
++        env_ = nullptr;
++        return;
++    }
++    IMSA_HILOGW("Thread id is not same, abstract destructor is run in muti-thread!");
++    env_ = nullptr;
++}
++
++std::shared_ptr<AppExecFwk::EventHandler> JSMsgHandlerCallbackObject::GetEventHandler()
++{
++    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
++    return handler_;
++}
+ } // namespace MiscServices
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/js/napi/common/js_callback_object.h b/frameworks/js/napi/common/js_callback_object.h
+index 5f9a5ca36e69f34e173598c40b5402e87f38418e..5663a1c89628cd6ef5b527fbca624393bf9179c8 100644
+--- a/frameworks/js/napi/common/js_callback_object.h
++++ b/frameworks/js/napi/common/js_callback_object.h
+@@ -15,9 +15,11 @@
+ #ifndef JS_CALLBACK_OBJECT_H
+ #define JS_CALLBACK_OBJECT_H
+ 
++#include <mutex>
+ #include <thread>
+ 
+ #include "block_data.h"
++#include "event_handler.h"
+ #include "napi/native_api.h"
+ #include "napi/native_node_api.h"
+ 
+@@ -32,6 +34,22 @@ public:
+     std::thread::id threadId_;
+     std::shared_ptr<BlockData<bool>> isDone_;
+ };
++
++// Ensure this object abstract in constract thread.
++class JSMsgHandlerCallbackObject {
++public:
++    JSMsgHandlerCallbackObject(napi_env env, napi_value onTerminated, napi_value onMessage);
++    ~JSMsgHandlerCallbackObject();
++    napi_env env_{};
++    napi_ref onTerminatedCallback_ = nullptr;
++    napi_ref onMessageCallback_ = nullptr;
++    std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
++
++private:
++    std::mutex eventHandlerMutex_;
++    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
++    std::thread::id threadId_;
++};
+ } // namespace MiscServices
+ } // namespace OHOS
+ #endif // JS_CALLBACK_OBJECT_H
+diff --git a/frameworks/js/napi/inputmethodability/js_text_input_client_engine.cpp b/frameworks/js/napi/inputmethodability/js_text_input_client_engine.cpp
+index 12a8ec5278ca26f738cd7accb44381090bf1a95f..da36abac31e20db149b4c339c737859de9c4cd20 100644
+--- a/frameworks/js/napi/inputmethodability/js_text_input_client_engine.cpp
++++ b/frameworks/js/napi/inputmethodability/js_text_input_client_engine.cpp
+@@ -32,8 +32,12 @@ thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
+ const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
+ constexpr int32_t MAX_WAIT_TIME = 5000;
+ constexpr int32_t MAX_WAIT_TIME_PRIVATE_COMMAND = 2000;
++constexpr int32_t MAX_WAIT_TIME_MESSAGE_HANDLER = 2000;
++constexpr size_t ARGC_TWO = 2;
++constexpr size_t ARGC_ONE = 1;
+ std::shared_ptr<AsyncCall::TaskQueue> JsTextInputClientEngine::taskQueue_ = std::make_shared<AsyncCall::TaskQueue>();
+ BlockQueue<PrivateCommandInfo> JsTextInputClientEngine::privateCommandQueue_{ MAX_WAIT_TIME_PRIVATE_COMMAND };
++BlockQueue<MessageHandlerInfo> JsTextInputClientEngine::messageHandlerQueue_{ MAX_WAIT_TIME_MESSAGE_HANDLER };
+ uint32_t JsTextInputClientEngine::traceId_{ 0 };
+ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
+ {
+@@ -66,7 +70,9 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
+         DECLARE_NAPI_FUNCTION("setPreviewText", SetPreviewText),
+         DECLARE_NAPI_FUNCTION("setPreviewTextSync", SetPreviewTextSync),
+         DECLARE_NAPI_FUNCTION("finishTextPreview", FinishTextPreview),
+-        DECLARE_NAPI_FUNCTION("finishTextPreviewSync", FinishTextPreviewSync)
++        DECLARE_NAPI_FUNCTION("finishTextPreviewSync", FinishTextPreviewSync),
++        DECLARE_NAPI_FUNCTION("sendMessage", SendMessage),
++        DECLARE_NAPI_FUNCTION("recvMessage", RecvMessage),
+     };
+     napi_value cons = nullptr;
+     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
+@@ -981,5 +987,169 @@ bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &n
+           && JsUtil::Object::ReadProperty(env, jsObject, "isTextPreviewSupported", nativeObject.isTextPreviewSupported);
+     return ret;
+ }
++
++napi_value JsTextInputClientEngine::SendMessage(napi_env env, napi_callback_info info)
++{
++    auto ctxt = std::make_shared<SendMessageContext>();
++    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
++        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_generic_failure);
++        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_string, "msgId",
++            TYPE_STRING, napi_generic_failure);
++        CHECK_RETURN(JsUtils::GetValue(env, argv[0], ctxt->arrayBuffer.msgId) == napi_ok,
++            "msgId covert failed!", napi_generic_failure);
++        ctxt->arrayBuffer.jsArgc = argc;
++        // 1 means first param msgId.
++        if (argc > 1) {
++            bool isArryBuffer = false;
++            //  1 means second param msgParam index.
++            CHECK_RETURN(napi_is_arraybuffer(env, argv[1], &isArryBuffer) == napi_ok,
++                "napi_is_arraybuffer failed!", napi_generic_failure);
++            PARAM_CHECK_RETURN(env, isArryBuffer, "msgParam", TYPE_ARRAY_BUFFER, napi_generic_failure);
++            CHECK_RETURN(JsUtils::GetValue(env, argv[1], ctxt->arrayBuffer.msgParam) == napi_ok,
++                "msgParam covert failed!", napi_generic_failure);
++        }
++        PARAM_CHECK_RETURN(env, ArrayBuffer::IsSizeValid(ctxt->arrayBuffer),
++            "msgId limit 256B and msgParam limit 128KB.", TYPE_NONE, napi_generic_failure);
++        ctxt->info = { std::chrono::system_clock::now(), ctxt->arrayBuffer };
++        messageHandlerQueue_.Push(ctxt->info);
++        return napi_ok;
++    };
++    auto exec = [ctxt](AsyncCall::Context *ctx) {
++        messageHandlerQueue_.Wait(ctxt->info);
++        int32_t code = InputMethodAbility::GetInstance()->SendMessage(ctxt->arrayBuffer);
++        messageHandlerQueue_.Pop();
++        if (code == ErrorCode::NO_ERROR) {
++            ctxt->status = napi_ok;
++            ctxt->SetState(ctxt->status);
++        } else {
++            ctxt->SetErrorCode(code);
++        }
++    };
++    ctxt->SetAction(std::move(input), nullptr);
++    // 2 means JsAPI:sendMessage has 2 params at most.
++    AsyncCall asyncCall(env, info, ctxt, 2);
++    return asyncCall.Call(env, exec, "imaSendMessage");
++}
++
++napi_value JsTextInputClientEngine::RecvMessage(napi_env env, napi_callback_info info)
++{
++    size_t argc = ARGC_TWO;
++    napi_value argv[ARGC_TWO] = {nullptr};
++    napi_value thisVar = nullptr;
++    void *data = nullptr;
++    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
++    if (argc < 0) {
++        IMSA_HILOGE("RecvMessage failed! argc abnormal.");
++        return nullptr;
++    }
++    void *native = nullptr;
++    auto status = napi_unwrap(env, thisVar, &native);
++    CHECK_RETURN((status == napi_ok && native != nullptr), "napi_unwrap failed!", nullptr);
++    auto inputClient = reinterpret_cast<JsTextInputClientEngine *>(native);
++    if (inputClient == nullptr) {
++        IMSA_HILOGI("Unwrap js object self is nullptr.");
++        return nullptr;
++    }
++    if (argc == 0) {
++        IMSA_HILOGI("RecvMessage off.");
++        InputMethodAbility::GetInstance()->RegisterMsgHandler();
++        return nullptr;
++    }
++    IMSA_HILOGI("RecvMessage on.");
++    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "msgHnadler (MessageHandler)",
++        TYPE_OBJECT, nullptr);
++
++    napi_value onMessage = nullptr;
++    CHECK_RETURN(napi_get_named_property(env, argv[0], "onMessage", &onMessage) == napi_ok,
++        "Get onMessage property failed!", nullptr);
++    CHECK_RETURN(JsUtil::GetType(env, onMessage) == napi_function, "onMessage is not napi_function!", nullptr);
++    napi_value onTerminated = nullptr;
++    CHECK_RETURN(napi_get_named_property(env, argv[0], "onTerminated", &onTerminated) == napi_ok,
++        "Get onMessage property failed!", nullptr);
++    CHECK_RETURN(JsUtil::GetType(env, onTerminated) == napi_function, "onTerminated is not napi_function!", nullptr);
++
++    std::shared_ptr<MsgHandlerCallbackInterface> callback =
++        std::make_shared<JsTextInputClientEngine::JsMessageHandler>(env, onTerminated, onMessage);
++    InputMethodAbility::GetInstance()->RegisterMsgHandler(callback);
++    napi_value result = nullptr;
++    napi_get_null(env, &result);
++    return result;
++}
++
++int32_t JsTextInputClientEngine::JsMessageHandler::OnTerminated()
++{
++    std::lock_guard<decltype(callbackObjectMutex_)> lock(callbackObjectMutex_);
++    if (jsMessageHandler_ == nullptr) {
++        IMSA_HILOGI("jsCallbackObject is nullptr, can not call OnTerminated!.");
++        return ErrorCode::ERROR_NULL_POINTER;
++    }
++    auto eventHandler = jsMessageHandler_->GetEventHandler();
++    if (eventHandler == nullptr) {
++        IMSA_HILOGI("EventHandler is nullptr!.");
++        return ErrorCode::ERROR_NULL_POINTER;
++    }
++    auto task = [jsCallback = std::move(jsMessageHandler_)]() {
++        napi_value callback = nullptr;
++        napi_value global = nullptr;
++        if (jsCallback == nullptr) {
++            IMSA_HILOGI("jsCallback is nullptr!.");
++            return;
++        }
++        napi_get_reference_value(jsCallback->env_, jsCallback->onTerminatedCallback_, &callback);
++        if (callback != nullptr) {
++            napi_get_global(jsCallback->env_, &global);
++            napi_value output = nullptr;
++            // 0 means the callback has no param.
++            auto status = napi_call_function(jsCallback->env_, global, callback, 0, nullptr, &output);
++            if (status != napi_ok) {
++                IMSA_HILOGI("Call js function failed!.");
++                output = nullptr;
++            }
++        }
++    };
++    eventHandler->PostTask(task, "IMA_MsgHandler_OnTerminated", 0, AppExecFwk::EventQueue::Priority::VIP);
++    return ErrorCode::NO_ERROR;
++}
++
++int32_t JsTextInputClientEngine::JsMessageHandler::OnMessage(const ArrayBuffer &arrayBuffer)
++{
++    std::lock_guard<decltype(callbackObjectMutex_)> lock(callbackObjectMutex_);
++    if (jsMessageHandler_ == nullptr) {
++        IMSA_HILOGE("MessageHandler was not regist!.");
++        return ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST;
++    }
++    auto eventHandler = jsMessageHandler_->GetEventHandler();
++    if (eventHandler == nullptr) {
++        IMSA_HILOGI("EventHandler is nullptr!.");
++        return ErrorCode::ERROR_NULL_POINTER;
++    }
++    auto task = [jsCallbackObject = jsMessageHandler_, arrayBuffer]() {
++        napi_value callback = nullptr;
++        napi_value global = nullptr;
++        if (jsCallbackObject == nullptr) {
++            IMSA_HILOGI("jsCallbackObject is nullptr!.");
++            return;
++        }
++        napi_get_reference_value(jsCallbackObject->env_, jsCallbackObject->onMessageCallback_, &callback);
++        if (callback != nullptr) {
++            napi_get_global(jsCallbackObject->env_, &global);
++            napi_value output = nullptr;
++            napi_value argv[ARGC_TWO] = { nullptr };
++            if (JsUtils::GetMessageHandlerCallbackParam(argv, jsCallbackObject, arrayBuffer) != napi_ok) {
++                IMSA_HILOGE("Get message handler callback param failed!.");
++                return;
++            }
++            // The maximum valid parameters count of callback is 2.
++            auto callbackArgc = arrayBuffer.jsArgc > ARGC_ONE ? ARGC_TWO : ARGC_ONE;
++            auto status = napi_call_function(jsCallbackObject->env_, global, callback, callbackArgc, argv, &output);
++            if (status != napi_ok) {
++                IMSA_HILOGI("Call js function failed!.");
++                output = nullptr;
++            }
++        }
++    };
++    eventHandler->PostTask(task, "IMC_MsgHandler_OnMessage", 0, AppExecFwk::EventQueue::Priority::VIP);
++    return ErrorCode::NO_ERROR;
++}
+ } // namespace MiscServices
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/js/napi/inputmethodability/js_text_input_client_engine.h b/frameworks/js/napi/inputmethodability/js_text_input_client_engine.h
+index 537a7bec08b8dede64d773f43fcd40ceb9f14750..69a5ad5d54e24ac704ca20c5ba5bb8f1ca224c82 100644
+--- a/frameworks/js/napi/inputmethodability/js_text_input_client_engine.h
++++ b/frameworks/js/napi/inputmethodability/js_text_input_client_engine.h
+@@ -21,7 +21,9 @@
+ #include "block_queue.h"
+ #include "calling_window_info.h"
+ #include "global.h"
++#include "js_message_handler_info.h"
+ #include "js_util.h"
++#include "msg_handler_callback_interface.h"
+ #include "native_engine/native_engine.h"
+ #include "native_engine/native_value.h"
+ #include "wm_common.h"
+@@ -394,7 +396,20 @@ public:
+     static napi_value SetPreviewTextSync(napi_env env, napi_callback_info info);
+     static napi_value FinishTextPreview(napi_env env, napi_callback_info info);
+     static napi_value FinishTextPreviewSync(napi_env env, napi_callback_info info);
+-
++    static napi_value SendMessage(napi_env env, napi_callback_info info);
++    static napi_value RecvMessage(napi_env env, napi_callback_info info);
++    class JsMessageHandler : public MsgHandlerCallbackInterface {
++    public:
++        explicit JsMessageHandler(napi_env env, napi_value onTerminated, napi_value onMessage)
++            : jsMessageHandler_(std::make_shared<JSMsgHandlerCallbackObject>(env, onTerminated, onMessage)) {};
++        virtual ~JsMessageHandler() {};
++        int32_t OnTerminated() override;
++        int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
++
++    private:
++        std::mutex callbackObjectMutex_;
++        std::shared_ptr<JSMsgHandlerCallbackObject> jsMessageHandler_ = nullptr;
++    };
+ private:
+     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
+     static napi_status GetSelectMovement(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
+@@ -417,6 +432,8 @@ private:
+         return std::to_string(traceId);
+     }
+     static uint32_t traceId_;
++
++    static BlockQueue<MessageHandlerInfo> messageHandlerQueue_;
+ };
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/frameworks/js/napi/inputmethodclient/js_get_input_method_controller.cpp b/frameworks/js/napi/inputmethodclient/js_get_input_method_controller.cpp
+index 332c181640ba963f449e938e02d9503854dcffe7..c22555b35e11860945dd1f0ca559059c4d099528 100644
+--- a/frameworks/js/napi/inputmethodclient/js_get_input_method_controller.cpp
++++ b/frameworks/js/napi/inputmethodclient/js_get_input_method_controller.cpp
+@@ -32,6 +32,7 @@ namespace MiscServices {
+ constexpr size_t ARGC_ZERO = 0;
+ constexpr size_t ARGC_ONE = 1;
+ constexpr size_t ARGC_TWO = 2;
++constexpr int32_t MAX_WAIT_TIME_MESSAGE_HANDLER = 2000;
+ const std::set<std::string> EVENT_TYPE{
+     "selectByRange",
+     "selectByMovement",
+@@ -54,6 +55,7 @@ std::mutex JsGetInputMethodController::controllerMutex_;
+ std::shared_ptr<JsGetInputMethodController> JsGetInputMethodController::controller_{ nullptr };
+ std::mutex JsGetInputMethodController::eventHandlerMutex_;
+ std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodController::handler_{ nullptr };
++BlockQueue<MessageHandlerInfo> JsGetInputMethodController::messageHandlerQueue_{ MAX_WAIT_TIME_MESSAGE_HANDLER };
+ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
+ {
+     napi_property_descriptor descriptor[] = {
+@@ -83,6 +85,8 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
+         DECLARE_NAPI_FUNCTION("showSoftKeyboard", ShowSoftKeyboard),
+         DECLARE_NAPI_FUNCTION("on", Subscribe),
+         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
++        DECLARE_NAPI_FUNCTION("sendMessage", SendMessage),
++        DECLARE_NAPI_FUNCTION("recvMessage", RecvMessage),
+     };
+     napi_value cons = nullptr;
+     NAPI_CALL(env, napi_define_class(env, IMC_CLASS_NAME.c_str(), IMC_CLASS_NAME.size(), JsConstructor, nullptr,
+@@ -1090,5 +1094,163 @@ std::shared_ptr<JsGetInputMethodController::UvEntry> JsGetInputMethodController:
+     }
+     return entry;
+ }
++
++napi_value JsGetInputMethodController::SendMessage(napi_env env, napi_callback_info info)
++{
++    auto ctxt = std::make_shared<SendMessageContext>();
++    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
++        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_generic_failure);
++        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_string, "msgId",
++            TYPE_STRING, napi_generic_failure);
++        CHECK_RETURN(JsUtils::GetValue(env, argv[0], ctxt->arrayBuffer.msgId) == napi_ok,
++            "msgId covert failed!", napi_generic_failure);
++        ctxt->arrayBuffer.jsArgc = argc;
++        // 1 means first param msgId.
++        if (argc > 1) {
++            bool isArryBuffer = false;
++            //  1 means second param msgParam index.
++            CHECK_RETURN(napi_is_arraybuffer(env, argv[1], &isArryBuffer) == napi_ok,
++                "napi_is_arraybuffer failed!", napi_generic_failure);
++            PARAM_CHECK_RETURN(env, isArryBuffer, "msgParam", TYPE_ARRAY_BUFFER, napi_generic_failure);
++            CHECK_RETURN(JsUtils::GetValue(env, argv[1], ctxt->arrayBuffer.msgParam) == napi_ok,
++                "msgParam covert failed!", napi_generic_failure);
++        }
++        PARAM_CHECK_RETURN(env, ArrayBuffer::IsSizeValid(ctxt->arrayBuffer),
++            "msgId limit 256B and msgParam limit 128KB.", TYPE_NONE, napi_generic_failure);
++        ctxt->info = { std::chrono::system_clock::now(), ctxt->arrayBuffer };
++        messageHandlerQueue_.Push(ctxt->info);
++        return napi_ok;
++    };
++    auto exec = [ctxt](AsyncCall::Context *ctx) {
++        messageHandlerQueue_.Wait(ctxt->info);
++        int32_t code = InputMethodController::GetInstance()->SendMessage(ctxt->arrayBuffer);
++        messageHandlerQueue_.Pop();
++        if (code == ErrorCode::NO_ERROR) {
++            ctxt->status = napi_ok;
++            ctxt->SetState(ctxt->status);
++        } else {
++            ctxt->SetErrorCode(code);
++        }
++    };
++    ctxt->SetAction(std::move(input), nullptr);
++    // 2 means JsAPI:sendMessage has 2 params at most.
++    AsyncCall asyncCall(env, info, ctxt, 2);
++    return asyncCall.Call(env, exec, "imcSendMessage");
++}
++
++napi_value JsGetInputMethodController::RecvMessage(napi_env env, napi_callback_info info)
++{
++    size_t argc = ARGC_ONE;
++    napi_value argv[ARGC_TWO] = {nullptr};
++    napi_value thisVar = nullptr;
++    void *data = nullptr;
++    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
++    std::string type;
++    if (argc < 0) {
++        IMSA_HILOGE("RecvMessage failed! argc abnormal.");
++        return nullptr;
++    }
++    if (argc == 0) {
++        IMSA_HILOGI("RecvMessage off.");
++        InputMethodController::GetInstance()->RegisterMsgHandler();
++        return nullptr;
++    }
++    IMSA_HILOGI("RecvMessage on.");
++    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "msgHnadler (MessageHandler)",
++        TYPE_OBJECT, nullptr);
++
++    napi_value onMessage = nullptr;
++    CHECK_RETURN(napi_get_named_property(env, argv[0], "onMessage", &onMessage) == napi_ok,
++        "Get onMessage property failed!", nullptr);
++    CHECK_RETURN(JsUtil::GetType(env, onMessage) == napi_function, "onMessage is not napi_function!", nullptr);
++    napi_value onTerminated = nullptr;
++    CHECK_RETURN(napi_get_named_property(env, argv[0], "onTerminated", &onTerminated) == napi_ok,
++        "Get onTerminated property failed!", nullptr);
++    CHECK_RETURN(JsUtil::GetType(env, onTerminated) == napi_function, "onTerminated is not napi_function!", nullptr);
++
++    std::shared_ptr<MsgHandlerCallbackInterface> callback =
++        std::make_shared<JsGetInputMethodController::JsMessageHandler>(env, onTerminated, onMessage);
++    InputMethodController::GetInstance()->RegisterMsgHandler(callback);
++    napi_value result = nullptr;
++    napi_get_null(env, &result);
++    return result;
++}
++
++int32_t JsGetInputMethodController::JsMessageHandler::OnTerminated()
++{
++    std::lock_guard<decltype(callbackObjectMutex_)> lock(callbackObjectMutex_);
++    if (jsMessageHandler_ == nullptr) {
++        IMSA_HILOGI("jsCallbackObject is nullptr, can not call OnTerminated!.");
++        return ErrorCode::ERROR_NULL_POINTER;
++    }
++    auto eventHandler = jsMessageHandler_->GetEventHandler();
++    if (eventHandler == nullptr) {
++        IMSA_HILOGI("EventHandler is nullptr!.");
++        return ErrorCode::ERROR_NULL_POINTER;
++    }
++    // Ensure jsMessageHandler_ destructor run in current thread.
++    auto task = [jsCallback = std::move(jsMessageHandler_)]() {
++        napi_value callback = nullptr;
++        napi_value global = nullptr;
++        if (jsCallback == nullptr) {
++            IMSA_HILOGI("jsCallback is nullptr!.");
++            return;
++        }
++        napi_get_reference_value(jsCallback->env_, jsCallback->onTerminatedCallback_, &callback);
++        if (callback != nullptr) {
++            napi_get_global(jsCallback->env_, &global);
++            napi_value output = nullptr;
++            // 0 means the callback has no param.
++            auto status = napi_call_function(jsCallback->env_, global, callback, 0, nullptr, &output);
++            if (status != napi_ok) {
++                IMSA_HILOGI("Call js function failed!.");
++                output = nullptr;
++            }
++        }
++    };
++    eventHandler->PostTask(task, "IMC_MsgHandler_OnTerminated", 0, AppExecFwk::EventQueue::Priority::VIP);
++    return ErrorCode::NO_ERROR;
++}
++
++int32_t JsGetInputMethodController::JsMessageHandler::OnMessage(const ArrayBuffer &arrayBuffer)
++{
++    std::lock_guard<decltype(callbackObjectMutex_)> lock(callbackObjectMutex_);
++    if (jsMessageHandler_ == nullptr) {
++        IMSA_HILOGI("jsCallbackObject is nullptr, can not call OnTerminated!.");
++        return ErrorCode::ERROR_NULL_POINTER;
++    }
++    auto eventHandler = jsMessageHandler_->GetEventHandler();
++    if (eventHandler == nullptr) {
++        IMSA_HILOGI("EventHandler is nullptr!.");
++        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
++    }
++    auto task = [jsCallbackObject = jsMessageHandler_, arrayBuffer]() {
++        napi_value callback = nullptr;
++        napi_value global = nullptr;
++        if (jsCallbackObject == nullptr) {
++            IMSA_HILOGI("jsCallbackObject is nullptr!.");
++            return;
++        }
++        napi_get_reference_value(jsCallbackObject->env_, jsCallbackObject->onMessageCallback_, &callback);
++        if (callback != nullptr) {
++            napi_get_global(jsCallbackObject->env_, &global);
++            napi_value output = nullptr;
++            napi_value argv[ARGC_TWO] = { nullptr };
++            if (JsUtils::GetMessageHandlerCallbackParam(argv, jsCallbackObject, arrayBuffer) != napi_ok) {
++                IMSA_HILOGE("Get message handler callback param failed!.");
++                return;
++            }
++            // The maximum valid parameters count of callback is 2.
++            auto callbackArgc = arrayBuffer.jsArgc > ARGC_ONE ? ARGC_TWO : ARGC_ONE;
++            auto status = napi_call_function(jsCallbackObject->env_, global, callback, callbackArgc, argv, &output);
++            if (status != napi_ok) {
++                IMSA_HILOGI("Call js function failed!.");
++                output = nullptr;
++            }
++        }
++    };
++    eventHandler->PostTask(task, "IMC_MsgHandler_OnMessage", 0, AppExecFwk::EventQueue::Priority::VIP);
++    return ErrorCode::NO_ERROR;
++}
+ } // namespace MiscServices
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/js/napi/inputmethodclient/js_get_input_method_controller.h b/frameworks/js/napi/inputmethodclient/js_get_input_method_controller.h
+index d0b5039d4d62bf027ef9e798f7376e284e9651cb..6dc9d6ecc064045dc4164b3061a0f9f7910bb143 100644
+--- a/frameworks/js/napi/inputmethodclient/js_get_input_method_controller.h
++++ b/frameworks/js/napi/inputmethodclient/js_get_input_method_controller.h
+@@ -21,6 +21,8 @@
+ #include "global.h"
+ #include "js_callback_object.h"
+ #include "js_input_method.h"
++#include "js_message_handler_info.h"
++#include "msg_handler_callback_interface.h"
+ 
+ namespace OHOS {
+ namespace MiscServices {
+@@ -175,6 +177,8 @@ public:
+     static napi_value StopInput(napi_env env, napi_callback_info info);
+     static napi_value Subscribe(napi_env env, napi_callback_info info);
+     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
++    static napi_value SendMessage(napi_env env, napi_callback_info info);
++    static napi_value RecvMessage(napi_env env, napi_callback_info info);
+     void OnSelectByRange(int32_t start, int32_t end) override;
+     void OnSelectByMovement(int32_t direction) override;
+     void InsertText(const std::u16string &text);
+@@ -187,6 +191,17 @@ public:
+     std::u16string GetText(const std::string &type, int32_t number);
+     int32_t GetTextIndexAtCursor();
+ 
++    class JsMessageHandler : public MsgHandlerCallbackInterface {
++    public:
++        explicit JsMessageHandler(napi_env env, napi_value onTerminated, napi_value onMessage)
++            : jsMessageHandler_(std::make_shared<JSMsgHandlerCallbackObject>(env, onTerminated, onMessage)) {};
++        virtual ~JsMessageHandler() {};
++        int32_t OnTerminated() override;
++        int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
++    private:
++        std::mutex callbackObjectMutex_;
++        std::shared_ptr<JSMsgHandlerCallbackObject> jsMessageHandler_ = nullptr;
++    };
+ private:
+     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+     static napi_value GetIMController(napi_env env, napi_callback_info cbInfo, bool needThrowException);
+@@ -241,6 +256,7 @@ private:
+     static constexpr size_t PARAM_POS_ONE = 1;
+     static constexpr size_t PARAM_POS_TWO = 2;
+     static constexpr size_t PARAM_POS_THREE = 3;
++    static BlockQueue<MessageHandlerInfo> messageHandlerQueue_;
+ };
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/frameworks/js/napi/inputmethodclient/js_message_handler_info.h b/frameworks/js/napi/inputmethodclient/js_message_handler_info.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..54f053c18817612a349d5e79f4728fcdd772dea1
+--- /dev/null
++++ b/frameworks/js/napi/inputmethodclient/js_message_handler_info.h
+@@ -0,0 +1,58 @@
++/*
++ * Copyright (c) 2024 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef IMF_MESSAGE_HANDLER_INFO
++#define IMF_MESSAGE_HANDLER_INFO
++
++#include "async_call.h"
++#include "global.h"
++#include "input_method_utils.h"
++#include "js_utils.h"
++
++namespace OHOS {
++namespace MiscServices {
++struct MessageHandlerInfo {
++    std::chrono::system_clock::time_point timestamp{};
++    ArrayBuffer arrayBuffer;
++    bool operator==(const MessageHandlerInfo &info) const
++    {
++        return (timestamp == info.timestamp && arrayBuffer == info.arrayBuffer);
++    }
++};
++
++struct SendMessageContext : public AsyncCall::Context {
++    ArrayBuffer arrayBuffer;
++    napi_status status = napi_generic_failure;
++    MessageHandlerInfo info;
++    SendMessageContext() : Context(nullptr, nullptr){};
++    SendMessageContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
++
++    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
++    {
++        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
++        return Context::operator()(env, argc, argv, self);
++    }
++    napi_status operator()(napi_env env, napi_value *result) override
++    {
++        if (status_ != napi_ok) {
++            output_ = nullptr;
++            return status_;
++        }
++        return Context::operator()(env, result);
++    }
++};
++} // namespace MiscServices
++} // namespace OHOS
++#endif // IMF_MESSAGE_HANDLER_INFO
+\ No newline at end of file
+diff --git a/frameworks/js/napi/inputmethodclient/js_utils.cpp b/frameworks/js/napi/inputmethodclient/js_utils.cpp
+index 841242b58bebb6239d3607f2a7bd6c1985071b0d..07b881497232f754a6ffe3b3a079810a9429439d 100644
+--- a/frameworks/js/napi/inputmethodclient/js_utils.cpp
++++ b/frameworks/js/napi/inputmethodclient/js_utils.cpp
+@@ -22,6 +22,7 @@ namespace MiscServices {
+ constexpr int32_t STR_MAX_LENGTH = 4096;
+ constexpr size_t STR_TAIL_LENGTH = 1;
+ constexpr size_t ARGC_MAX = 6;
++constexpr size_t ARGC_ONE = 1;
+ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
+     { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED, EXCEPTION_CONTROLLER },
+     { ErrorCode::ERROR_STATUS_PERMISSION_DENIED, EXCEPTION_PERMISSION },
+@@ -30,7 +31,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
+     { ErrorCode::ERROR_CLIENT_NOT_FOUND, EXCEPTION_IMCLIENT },
+     { ErrorCode::ERROR_CLIENT_NULL_POINTER, EXCEPTION_IMCLIENT },
+     { ErrorCode::ERROR_CLIENT_NOT_FOCUSED, EXCEPTION_IMCLIENT },
+-    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE, EXCEPTION_IMCLIENT },
++    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE, EXCEPTION_EDITABLE },
+     { ErrorCode::ERROR_CLIENT_NOT_BOUND, EXCEPTION_DETACHED },
+     { ErrorCode::ERROR_CLIENT_ADD_FAILED, EXCEPTION_IMCLIENT },
+     { ErrorCode::ERROR_NULL_POINTER, EXCEPTION_IMMS },
+@@ -62,6 +63,10 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
+     { ErrorCode::ERROR_TEXT_LISTENER_ERROR, EXCEPTION_IMCLIENT },
+     { ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED, EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED },
+     { ErrorCode::ERROR_INVALID_RANGE, EXCEPTION_PARAMCHECK },
++    { ErrorCode::ERROR_SECURITY_MODE_OFF, EXCEPTION_BASIC_MODE },
++    { ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST, EXCEPTION_REQUEST_NOT_ACCEPT },
++    { ErrorCode::ERROR_MESSAGE_HANDLER, EXCEPTION_IMCLIENT },
++    { ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE, EXCEPTION_PARAMCHECK },
+ };
+ 
+ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
+@@ -82,6 +87,9 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
+     { EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED, "text preview is not supported." },
+     { EXCEPTION_PANEL_NOT_FOUND, "soft keyboard panel doesn't exist." },
+     { EXCEPTION_WINDOW_MANAGER, "window manager service error." },
++    { EXCEPTION_BASIC_MODE, "the intput method is basic mode." },
++    { EXCEPTION_REQUEST_NOT_ACCEPT, "the another side does not accept the request." },
++    { EXCEPTION_EDITABLE, "the edit mode need enable." },
+ };
+ 
+ const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
+@@ -95,6 +103,7 @@ const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
+     { TYPE_FUNCTION, "napi_function." },
+     { TYPE_EXTERNAL, "napi_external." },
+     { TYPE_BIGINT, "napi_bigint." },
++    { TYPE_ARRAY_BUFFER, "ArrayBuffer." },
+ };
+ 
+ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type)
+@@ -434,5 +443,70 @@ napi_value JsUtils::GetJsPrivateCommand(napi_env env, const std::unordered_map<s
+     }
+     return jsPrivateCommand;
+ }
++
++napi_value JsUtils::GetValue(napi_env env, const std::vector<uint8_t> &in)
++{
++    void *data = nullptr;
++    napi_value arrayBuffer = nullptr;
++    size_t length = in.size();
++    NAPI_CALL(env, napi_create_arraybuffer(env, length, &data, &arrayBuffer));
++    // 0 means the size of data.
++    CHECK_RETURN(length != 0, "Data size is 0.", arrayBuffer);
++    if (memcpy_s(data, length, reinterpret_cast<const void *>(in.data()), length) != 0) {
++        return nullptr;
++    }
++    return arrayBuffer;
++}
++
++napi_status JsUtils::GetValue(napi_env env, napi_value in, std::vector<uint8_t> &out)
++{
++    size_t length = 0;
++    void *data = nullptr;
++    auto status = napi_get_arraybuffer_info(env, in, &data, &length);
++    if (status != napi_ok) {
++        IMSA_HILOGE("Get ArrayBuffer info failed!");
++        return status;
++    }
++    if (data == nullptr) {
++        IMSA_HILOGE("ArrayBuffer data is nullptr!");
++        return napi_generic_failure;
++    }
++    IMSA_HILOGD("ArrayBuffer data size: %{public}zu.", length);
++    out.assign(reinterpret_cast<const uint8_t *>(data), reinterpret_cast<const uint8_t *>(data) + length);
++    return napi_ok;
++}
++
++napi_status JsUtils::GetMessageHandlerCallbackParam(napi_value *argv,
++    const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer)
++{
++    if (argv == nullptr) {
++        IMSA_HILOGE("argv is nullptr!.");
++        return napi_generic_failure;
++    }
++    if (jsMessageHandler == nullptr) {
++        IMSA_HILOGE("jsMessageHandler is nullptr!.");
++        return napi_generic_failure;
++    }
++    napi_value jsMsgId = nullptr;
++    auto status = napi_create_string_utf8(
++        jsMessageHandler->env_, arrayBuffer.msgId.c_str(), NAPI_AUTO_LENGTH, &jsMsgId);
++    if (status != napi_ok) {
++        IMSA_HILOGE("napi_create_string_utf8 failed!.");
++        return napi_generic_failure;
++    }
++    // 0 means the first param index of callback.
++    argv[0] = { jsMsgId };
++    if (arrayBuffer.jsArgc > ARGC_ONE) {
++        napi_value jsMsgParam = JsUtils::GetValue(jsMessageHandler->env_, arrayBuffer.msgParam);
++        if (jsMsgParam == nullptr) {
++            IMSA_HILOGE("Get js messageParam object failed!.");
++            return napi_generic_failure;
++        }
++        // 0 means the second param index of callback.
++        argv[1] = { jsMsgParam };
++    }
++    return napi_ok;
++}
++
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/frameworks/js/napi/inputmethodclient/js_utils.h b/frameworks/js/napi/inputmethodclient/js_utils.h
+index 2c0585e6e84d5fb7383ff10b78428aa419a834b5..318773c5e2f5dc4f8ed7b5b731f259716f24e578 100644
+--- a/frameworks/js/napi/inputmethodclient/js_utils.h
++++ b/frameworks/js/napi/inputmethodclient/js_utils.h
+@@ -49,6 +49,10 @@ enum IMFErrorCode : int32_t {
+     EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED = 12800011,
+     EXCEPTION_PANEL_NOT_FOUND = 12800012,
+     EXCEPTION_WINDOW_MANAGER = 12800013,
++    EXCEPTION_BASIC_MODE = 12800014,
++    EXCEPTION_REQUEST_NOT_ACCEPT = 12800015,
++    EXCEPTION_EDITABLE = 12800016,
++    EXCEPTION_INVALID_PANEL_TYPE_FLAG = 12800017,
+ };
+ 
+ enum TypeCode : int32_t {
+@@ -63,6 +67,7 @@ enum TypeCode : int32_t {
+     TYPE_FUNCTION,
+     TYPE_EXTERNAL,
+     TYPE_BIGINT,
++    TYPE_ARRAY_BUFFER,
+ };
+ 
+ /* check condition, return and logging if condition not true. */
+@@ -113,10 +118,14 @@ public:
+     static napi_status GetValue(napi_env env, napi_value in, PrivateDataValue &out);
+     static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
+     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
++    static napi_status GetValue(napi_env env, napi_value in, std::vector<uint8_t> &out);
+     static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
+     static napi_value GetValue(napi_env env, const InputWindowInfo &in);
+     static napi_value GetJsPrivateCommand(napi_env env, const std::unordered_map<std::string, PrivateDataValue> &in);
++    static napi_value GetValue(napi_env env, const std::vector<uint8_t> &in);
+     static napi_status GetValue(napi_env env, const std::string &in, napi_value &out);
++    static napi_status GetMessageHandlerCallbackParam(napi_value *argv,
++        const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer);
+ 
+ private:
+     static const std::string ToMessage(int32_t code);
+diff --git a/frameworks/native/inputmethod_ability/include/i_input_method_agent.h b/frameworks/native/inputmethod_ability/include/i_input_method_agent.h
+index f8dfabe4ba7c9ef8eb28be172f1a0e227e97e9bf..dad3628f12ea3317962a4453a0e090e94b0a1ce7 100644
+--- a/frameworks/native/inputmethod_ability/include/i_input_method_agent.h
++++ b/frameworks/native/inputmethod_ability/include/i_input_method_agent.h
+@@ -38,6 +38,7 @@ public:
+         SET_CALLING_WINDOW_ID,
+         SEND_PRIVATE_COMMAND,
+         ON_ATTRIBUTE_CHANGE,
++        SEND_MESSAGE,
+         AGENT_CODE_END,
+     };
+ 
+@@ -51,6 +52,7 @@ public:
+     virtual void SetCallingWindow(uint32_t windowId) = 0;
+     virtual void OnAttributeChange(const InputAttribute &attribute) = 0;
+     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
++    virtual int32_t SendMessage(const ArrayBuffer &arraybuffer) = 0;
+ };
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/frameworks/native/inputmethod_ability/include/input_method_ability.h b/frameworks/native/inputmethod_ability/include/input_method_ability.h
+index a3ee949c87f31cfe24681f6b59429f753ad2d339..1db619438e923c7c379ccb33448b41da6dd56279 100644
+--- a/frameworks/native/inputmethod_ability/include/input_method_ability.h
++++ b/frameworks/native/inputmethod_ability/include/input_method_ability.h
+@@ -34,6 +34,7 @@
+ #include "iremote_object.h"
+ #include "keyboard_listener.h"
+ #include "keyevent_consumer_proxy.h"
++#include "msg_handler_callback_interface.h"
+ #include "message.h"
+ #include "message_handler.h"
+ #include "private_command_interface.h"
+@@ -100,6 +101,9 @@ public:
+         SysPanelStatus &sysPanelStatus);
+     InputAttribute GetInputAttribute();
+     int32_t OnStopInputService(bool isTerminateIme);
++    int32_t SendMessage(const ArrayBuffer &arrayBuffer);
++    int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
++    int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
+ 
+ private:
+     std::thread workThreadHandler;
+@@ -136,6 +140,7 @@ private:
+     void SetInputControlChannel(sptr<IRemoteObject> &object);
+     void ClearInputControlChannel();
+     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
++    std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
+ 
+     void Initialize();
+     void WorkThread();
+@@ -184,6 +189,9 @@ private:
+     std::recursive_mutex keyboardCmdLock_;
+     int32_t cmdId_ = 0;
+     std::atomic<bool> isImeTerminating_ = false;
++    std::atomic<int32_t> securityMode_ = -1;
++    std::mutex msgHandlerMutex_;
++    std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_;
+ };
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/frameworks/native/inputmethod_ability/include/input_method_agent_proxy.h b/frameworks/native/inputmethod_ability/include/input_method_agent_proxy.h
+index 87a8859eac3ca5fb394f9eb1f1319422fe5f796b..4141ad03afe589c9e9a0ec68ef7e12ab6a6001d3 100644
+--- a/frameworks/native/inputmethod_ability/include/input_method_agent_proxy.h
++++ b/frameworks/native/inputmethod_ability/include/input_method_agent_proxy.h
+@@ -44,6 +44,7 @@ public:
+     void SetCallingWindow(uint32_t windowId) override;
+     void OnAttributeChange(const InputAttribute &attribute) override;
+     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
++    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
+ 
+ private:
+     static inline BrokerDelegator<InputMethodAgentProxy> delegator_;
+diff --git a/frameworks/native/inputmethod_ability/include/input_method_agent_stub.h b/frameworks/native/inputmethod_ability/include/input_method_agent_stub.h
+index f7792c15bc856c4d7b929e87a40874efc8b42bd7..84d011e407d4d8cda64f9bd27dbf23f29100b4c8 100644
+--- a/frameworks/native/inputmethod_ability/include/input_method_agent_stub.h
++++ b/frameworks/native/inputmethod_ability/include/input_method_agent_stub.h
+@@ -38,11 +38,13 @@ public:
+     void OnAttributeChange(const InputAttribute &attribute) override;
+     void SetMessageHandler(MessageHandler *msgHandler);
+     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
++    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
+ 
+ private:
+     int32_t DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply);
+     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
+     int32_t OnAttributeChangeOnRemote(MessageParcel &data, MessageParcel &reply);
++    int32_t RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply);
+     MessageHandler *msgHandler_;
+ };
+ } // namespace MiscServices
+diff --git a/frameworks/native/inputmethod_ability/src/input_method_ability.cpp b/frameworks/native/inputmethod_ability/src/input_method_ability.cpp
+index 5abb3174495e93655dbe4e2229862b488e4a1ce4..576a9ca63f971cbe38357fa3177183d305356a8a 100644
+--- a/frameworks/native/inputmethod_ability/src/input_method_ability.cpp
++++ b/frameworks/native/inputmethod_ability/src/input_method_ability.cpp
+@@ -43,6 +43,7 @@ constexpr double INVALID_CURSOR_VALUE = -1.0;
+ constexpr int32_t INVALID_SELECTION_VALUE = -1;
+ constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
+ constexpr uint32_t MAX_RETRY_TIMES = 100;
++constexpr int32_t INVALID_SECURITY_MODE = -1;
+ InputMethodAbility::InputMethodAbility() : msgHandler_(nullptr), stop_(false)
+ {
+ }
+@@ -834,12 +835,22 @@ void InputMethodAbility::QuitWorkThread()
+ int32_t InputMethodAbility::GetSecurityMode(int32_t &security)
+ {
+     IMSA_HILOGI("InputMethodAbility start.");
++    int32_t securityMode = securityMode_.load();
++    if (securityMode != INVALID_SECURITY_MODE) {
++        IMSA_HILOGD("Get cache security mode: %{public}d.", securityMode);
++        security = securityMode;
++        return ErrorCode::NO_ERROR;
++    }
+     auto proxy = GetImsaProxy();
+     if (proxy == nullptr) {
+-        IMSA_HILOGE("failed to get imsa proxy!");
+-        return false;
++        IMSA_HILOGE("Imsa proxy is nullptr!");
++        return ErrorCode::ERROR_NULL_POINTER;
+     }
+-    return proxy->GetSecurityMode(security);
++    auto ret = proxy->GetSecurityMode(security);
++    if (ret == ErrorCode::NO_ERROR) {
++        securityMode_.store(security);
++    }
++    return ret;
+ }
+ 
+ void InputMethodAbility::ClearSystemCmdChannel()
+@@ -881,6 +892,7 @@ int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channe
+ int32_t InputMethodAbility::OnSecurityChange(int32_t security)
+ {
+     IMSA_HILOGI("InputMethodAbility start.");
++    securityMode_.store(security);
+     if (imeListener_ == nullptr) {
+         IMSA_HILOGE("imeListener_ is nullptr!");
+         return ErrorCode::ERROR_BAD_PARAMETERS;
+@@ -1332,5 +1344,71 @@ void InputMethodAbility::NotifyPanelStatusInfo(
+         controlChannel->HideKeyboardSelf();
+     }
+ }
++
++int32_t InputMethodAbility::SendMessage(const ArrayBuffer &arrayBuffer)
++{
++    int32_t securityMode = INVALID_SECURITY_MODE;
++    auto ret = GetSecurityMode(securityMode);
++    if (ret != ErrorCode::NO_ERROR) {
++        IMSA_HILOGE("Get security mode failed!");
++        return ret;
++    }
++    if (!ArrayBuffer::IsSizeValid(arrayBuffer)) {
++        IMSA_HILOGE("arrayBuffer size is invalid!");
++        return ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE;
++    }
++    if (securityMode != static_cast<int32_t>(SecurityMode::FULL)) {
++        IMSA_HILOGE("Security mode must be FULL!.");
++        return ErrorCode::ERROR_SECURITY_MODE_OFF;
++    }
++    auto dataChannel = GetInputDataChannelProxy();
++    if (dataChannel == nullptr) {
++        IMSA_HILOGE("datachannel is nullptr.");
++        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
++    }
++    return dataChannel->SendMessage(arrayBuffer);
++}
++
++int32_t InputMethodAbility::RecvMessage(const ArrayBuffer &arrayBuffer)
++{
++    int32_t securityMode = -1;
++    auto ret = GetSecurityMode(securityMode);
++    if (ret != ErrorCode::NO_ERROR) {
++        IMSA_HILOGE("Get security mode failed!");
++        return ret;
++    }
++    if (securityMode != static_cast<int32_t>(SecurityMode::FULL)) {
++        IMSA_HILOGE("Security mode must be FULL!.");
++        return ErrorCode::ERROR_SECURITY_MODE_OFF;
++    }
++    auto msgHandlerCallback = GetMsgHandlerCallback();
++    if (msgHandlerCallback == nullptr) {
++        IMSA_HILOGW("Message handler was not regist!");
++        return ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST;
++    }
++    return msgHandlerCallback->OnMessage(arrayBuffer);
++}
++
++int32_t InputMethodAbility::RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler)
++{
++    IMSA_HILOGI("isRegist: %{public}d", msgHandler != nullptr);
++    std::shared_ptr<MsgHandlerCallbackInterface> exMsgHandler = nullptr;
++    {
++        std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
++        exMsgHandler = msgHandler_;
++        msgHandler_ = msgHandler;
++    }
++    if (exMsgHandler != nullptr) {
++        IMSA_HILOGI("Trigger exMessageHandler OnTerminated.");
++        exMsgHandler->OnTerminated();
++    }
++    return ErrorCode::NO_ERROR;
++}
++
++std::shared_ptr<MsgHandlerCallbackInterface> InputMethodAbility::GetMsgHandlerCallback()
++{
++    std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
++    return msgHandler_;
++}
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/frameworks/native/inputmethod_ability/src/input_method_agent_proxy.cpp b/frameworks/native/inputmethod_ability/src/input_method_agent_proxy.cpp
+index 5a6540dceff9997d71e0b9030b5f6e7072f75eb6..3bc256ea1cbcff812d870b9214157b6a18318214 100644
+--- a/frameworks/native/inputmethod_ability/src/input_method_agent_proxy.cpp
++++ b/frameworks/native/inputmethod_ability/src/input_method_agent_proxy.cpp
+@@ -71,6 +71,15 @@ void InputMethodAgentProxy::OnAttributeChange(const InputAttribute &attribute)
+     IMSA_HILOGD("InputMethodAgentProxy, ret: %{public}d.", ret);
+ }
+ 
++int32_t InputMethodAgentProxy::SendMessage(const ArrayBuffer &arraybuffer)
++{
++    int32_t ret = 0;
++    SendRequest(SEND_MESSAGE, [&arraybuffer](MessageParcel &data) {
++        return ITypesUtil::Marshal(data, arraybuffer);
++    }, [&ret](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, ret); });
++    return ret;
++}
++
+ int32_t InputMethodAgentProxy::SendPrivateCommand(
+     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+ {
+diff --git a/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp b/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp
+index 596f3d129511114a902a8c4d43b77bd116204f83..8b6646638d15f853beb96605048cfcd48e205309 100644
+--- a/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp
++++ b/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp
+@@ -77,6 +77,9 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
+         case ON_ATTRIBUTE_CHANGE: {
+             return OnAttributeChangeOnRemote(data, reply);
+         }
++        case SEND_MESSAGE: {
++            return RecvMessageOnRemote(data, reply);
++        }
+         default: {
+             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
+         }
+@@ -203,5 +206,21 @@ void InputMethodAgentStub::SetMessageHandler(MessageHandler *msgHandler)
+ {
+     msgHandler_ = msgHandler;
+ }
++
++int32_t InputMethodAgentStub::RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply)
++{
++    ArrayBuffer arrayBuffer;
++    if (!ITypesUtil::Unmarshal(data, arrayBuffer)) {
++        IMSA_HILOGE("Failed to read arrayBuffer parcel!");
++        return ErrorCode::ERROR_EX_PARCELABLE;
++    }
++    auto ret = InputMethodAbility::GetInstance()->RecvMessage(arrayBuffer);
++    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
++}
++
++int32_t InputMethodAgentStub::SendMessage(const ArrayBuffer &arraybuffer)
++{
++    return ErrorCode::NO_ERROR;
++}
+ } // namespace MiscServices
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/native/inputmethod_controller/include/i_input_data_channel.h b/frameworks/native/inputmethod_controller/include/i_input_data_channel.h
+index 9af50694ed1dade3aad59e5725d8d4ff51e9cb47..52c6354105001e2222eb846309a9974787207d18 100644
+--- a/frameworks/native/inputmethod_controller/include/i_input_data_channel.h
++++ b/frameworks/native/inputmethod_controller/include/i_input_data_channel.h
+@@ -53,6 +53,7 @@ public:
+         SEND_PRIVATE_COMMAND,
+         SET_PREVIEW_TEXT,
+         FINISH_TEXT_PREVIEW,
++        SEND_MESSAGE,
+         DATA_CHANNEL_CMD_END
+     };
+ 
+@@ -78,6 +79,7 @@ public:
+     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
+     virtual int32_t SetPreviewText(const std::string &text, const Range &range) = 0;
+     virtual int32_t FinishTextPreview(bool isAsync) = 0;
++    virtual int32_t SendMessage(const ArrayBuffer &arraybuffer) = 0;
+ };
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/frameworks/native/inputmethod_controller/include/input_data_channel_proxy.h b/frameworks/native/inputmethod_controller/include/input_data_channel_proxy.h
+index a43a201ed2ef237f047fd789994fcbef46977ad9..1428b3d9bbd80a429f3314d471eed9e0d5212eb5 100644
+--- a/frameworks/native/inputmethod_controller/include/input_data_channel_proxy.h
++++ b/frameworks/native/inputmethod_controller/include/input_data_channel_proxy.h
+@@ -55,6 +55,7 @@ public:
+     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+     int32_t SetPreviewText(const std::string &text, const Range &range) override;
+     int32_t FinishTextPreview(bool isAsync) override;
++    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
+ 
+ private:
+     static inline BrokerDelegator<InputDataChannelProxy> delegator_;
+diff --git a/frameworks/native/inputmethod_controller/include/input_data_channel_stub.h b/frameworks/native/inputmethod_controller/include/input_data_channel_stub.h
+index db2a6b76eef5133e3eab03c8d6bf9cc3de6d39c9..3a660e718f851a8426a36235573fcb022cae80ef 100644
+--- a/frameworks/native/inputmethod_controller/include/input_data_channel_stub.h
++++ b/frameworks/native/inputmethod_controller/include/input_data_channel_stub.h
+@@ -57,6 +57,7 @@ public:
+     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+     int32_t SetPreviewText(const std::string &text, const Range &range) override;
+     int32_t FinishTextPreview(bool isAsync) override;
++    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
+ 
+ private:
+     int32_t InsertTextOnRemote(MessageParcel &data, MessageParcel &reply);
+@@ -79,6 +80,7 @@ private:
+     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
+     int32_t SetPreviewTextOnRemote(MessageParcel &data, MessageParcel &reply);
+     int32_t FinishTextPreviewOnRemote(MessageParcel &data, MessageParcel &reply);
++    int32_t RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply);
+     using RequestHandler = int32_t (InputDataChannelStub::*)(MessageParcel &, MessageParcel &);
+     static inline constexpr RequestHandler HANDLERS[DATA_CHANNEL_CMD_END] = {
+         [static_cast<uint32_t>(INSERT_TEXT)] = &InputDataChannelStub::InsertTextOnRemote,
+@@ -101,6 +103,7 @@ private:
+         [static_cast<uint32_t>(SEND_PRIVATE_COMMAND)] = &InputDataChannelStub::SendPrivateCommandOnRemote,
+         [static_cast<uint32_t>(SET_PREVIEW_TEXT)] = &InputDataChannelStub::SetPreviewTextOnRemote,
+         [static_cast<uint32_t>(FINISH_TEXT_PREVIEW)] = &InputDataChannelStub::FinishTextPreviewOnRemote,
++        [static_cast<uint32_t>(SEND_MESSAGE)] = &InputDataChannelStub::RecvMessageOnRemote,
+     };
+ };
+ } // namespace MiscServices
+diff --git a/frameworks/native/inputmethod_controller/include/input_method_utils.h b/frameworks/native/inputmethod_controller/include/input_method_utils.h
+index 396a43b42232531ce2aea3254d25d819dd1fa4bd..38b731cd799e2831d5b65b78e47b2d09d86b0257 100644
+--- a/frameworks/native/inputmethod_controller/include/input_method_utils.h
++++ b/frameworks/native/inputmethod_controller/include/input_method_utils.h
+@@ -30,6 +30,8 @@ constexpr uint32_t INVALID_WINDOW_ID = 0;
+ constexpr int32_t INVALID_VALUE = -1;
+ constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
+ constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
++constexpr size_t MAX_ARRAY_BUFFER_MSG_ID_SIZE = 256; // 256B
++constexpr size_t MAX_ARRAY_BUFFER_MSG_PARAM_SIZE = 128 * 1024; // 128KB
+ const constexpr char* SYSTEM_CMD_KEY = "sys_cmd";
+ enum class EnterKeyType {
+     UNSPECIFIED = 0,
+@@ -150,6 +152,28 @@ private:
+     EnterKeyType enterKeyType = EnterKeyType::UNSPECIFIED;
+ };
+ 
++struct ArrayBuffer {
++    size_t jsArgc = 0;
++    std::string msgId;
++    std::vector<uint8_t> msgParam;
++    static bool IsSizeValid(const ArrayBuffer &arrayBuffer)
++    {
++        if (arrayBuffer.msgId.size() > MAX_ARRAY_BUFFER_MSG_ID_SIZE) {
++            IMSA_HILOGE("Invalid msgId size: %{public}zu.", arrayBuffer.msgId.size());
++            return false;
++        }
++        if (arrayBuffer.msgParam.size() > MAX_ARRAY_BUFFER_MSG_PARAM_SIZE) {
++            IMSA_HILOGE("Invalid msgParam size: %{public}zu.", arrayBuffer.msgParam.size());
++            return false;
++        }
++        return true;
++    }
++    bool operator==(const ArrayBuffer &arrayBuffer) const
++    {
++        return jsArgc == arrayBuffer.jsArgc && msgId == arrayBuffer.msgId && msgParam == arrayBuffer.msgParam;
++    }
++};
++
+ struct Range {
+     int32_t start = INVALID_VALUE;
+     int32_t end = INVALID_VALUE;
+diff --git a/frameworks/native/inputmethod_controller/include/msg_handler_callback_interface.h b/frameworks/native/inputmethod_controller/include/msg_handler_callback_interface.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..66687a1399d32ec02721bb6172e529f6b8ef6ecd
+--- /dev/null
++++ b/frameworks/native/inputmethod_controller/include/msg_handler_callback_interface.h
+@@ -0,0 +1,30 @@
++/*
++ * Copyright (C) 2024 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_MSG_HANDLER_INTERFACE_H
++#define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_MSG_HANDLER_INTERFACE_H
++
++#include "input_method_utils.h"
++
++namespace OHOS {
++namespace MiscServices {
++class MsgHandlerCallbackInterface {
++public:
++    virtual int32_t OnTerminated() = 0;
++    virtual int32_t OnMessage(const ArrayBuffer &arrayBuffer) = 0;
++};
++} // namespace MiscServices
++} // namespace OHOS
++#endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_MSG_HANDLER_INTERFACE_H
+diff --git a/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp b/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp
+index e21d497ad2f531f1c4c5fa4f48be9713a5d1ea41..a1a7c5865b13ca3055a1dada941037150c29eb04 100644
+--- a/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp
++++ b/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp
+@@ -151,6 +151,13 @@ int32_t InputDataChannelProxy::FinishTextPreview(bool isAsync)
+     }
+ }
+ 
++int32_t InputDataChannelProxy::SendMessage(const ArrayBuffer &arraybuffer)
++{
++    return SendRequest(SEND_MESSAGE, [&arraybuffer](MessageParcel &parcel) {
++        return ITypesUtil::Marshal(parcel, arraybuffer);
++    });
++}
++
+ void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option)
+ {
+     switch (code) {
+diff --git a/frameworks/native/inputmethod_controller/src/input_data_channel_stub.cpp b/frameworks/native/inputmethod_controller/src/input_data_channel_stub.cpp
+index 59c91457fd572eb871cdf38927d8157a4eb87db7..d4e2c5c8c4ae079f2e60aaf5c7baf2cab4a6c320 100644
+--- a/frameworks/native/inputmethod_controller/src/input_data_channel_stub.cpp
++++ b/frameworks/native/inputmethod_controller/src/input_data_channel_stub.cpp
+@@ -234,6 +234,17 @@ int32_t InputDataChannelStub::SetPreviewTextOnRemote(MessageParcel &data, Messag
+     return reply.WriteInt32(SetPreviewText(text, range)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+ }
+ 
++int32_t InputDataChannelStub::RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply)
++{
++    ArrayBuffer arraybuffer;
++    if (!ITypesUtil::Unmarshal(data, arraybuffer)) {
++        IMSA_HILOGE("failed to read message parcel!");
++        return ErrorCode::ERROR_EX_PARCELABLE;
++    }
++    auto ret = InputMethodController::GetInstance()->RecvMessage(arraybuffer);
++    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
++}
++
+ int32_t InputDataChannelStub::FinishTextPreviewOnRemote(MessageParcel &data, MessageParcel &reply)
+ {
+     bool isAsync = false;
+@@ -342,5 +353,10 @@ int32_t InputDataChannelStub::FinishTextPreview(bool isAsync)
+ {
+     return InputMethodController::GetInstance()->FinishTextPreview();
+ }
++
++int32_t InputDataChannelStub::SendMessage(const ArrayBuffer &arraybuffer)
++{
++    return ErrorCode::NO_ERROR;
++}
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/frameworks/native/inputmethod_controller/src/input_method_controller.cpp b/frameworks/native/inputmethod_controller/src/input_method_controller.cpp
+index 0551cb84dff4e1443dffe320f1f1a7e1096aa7cd..09a39285849ef85fb699788b3461154a8c6f6467 100644
+--- a/frameworks/native/inputmethod_controller/src/input_method_controller.cpp
++++ b/frameworks/native/inputmethod_controller/src/input_method_controller.cpp
+@@ -1396,5 +1396,67 @@ int32_t InputMethodController::FinishTextPreview()
+     }
+     return ErrorCode::NO_ERROR;
+ }
++
++int32_t InputMethodController::SendMessage(const ArrayBuffer &arrayBuffer)
++{
++    if (!IsBound()) {
++        IMSA_HILOGE("not bound.");
++        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
++    }
++    if (!IsEditable()) {
++        IMSA_HILOGE("not editable.");
++        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
++    }
++    if (!ArrayBuffer::IsSizeValid(arrayBuffer)) {
++        IMSA_HILOGE("arrayBuffer size is invalid!");
++        return ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE;
++    }
++    auto agent = GetAgent();
++    if (agent == nullptr) {
++        IMSA_HILOGE("agent is nullptr!");
++        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
++    }
++    return agent->SendMessage(arrayBuffer);
++}
++
++int32_t InputMethodController::RecvMessage(const ArrayBuffer &arrayBuffer)
++{
++    if (!IsBound()) {
++        IMSA_HILOGE("not bound.");
++        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
++    }
++    if (!IsEditable()) {
++        IMSA_HILOGE("not editable.");
++        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
++    }
++    auto msgHandlerCallback = GetMsgHandlerCallback();
++    if (msgHandlerCallback == nullptr) {
++        IMSA_HILOGW("Message handler was not regist!");
++        return ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST;
++    }
++    return msgHandlerCallback->OnMessage(arrayBuffer);
++}
++
++int32_t InputMethodController::RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler)
++{
++    IMSA_HILOGI("isRegist: %{public}d", msgHandler != nullptr);
++    std::shared_ptr<MsgHandlerCallbackInterface> exMsgHandler = nullptr;
++    {
++        std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
++        exMsgHandler = msgHandler_;
++        msgHandler_ = msgHandler;
++    }
++    if (exMsgHandler != nullptr) {
++        IMSA_HILOGI("Trigger exMessageHandler OnTerminated.");
++        exMsgHandler->OnTerminated();
++    }
++    return ErrorCode::NO_ERROR;
++}
++
++std::shared_ptr<MsgHandlerCallbackInterface> InputMethodController::GetMsgHandlerCallback()
++{
++    std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
++    return msgHandler_;
++}
+ } // namespace MiscServices
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/frameworks/ndk/BUILD.gn b/frameworks/ndk/BUILD.gn
+index 6a0a94b708309fb432e7f8f2363e345aa3b20196..e0b1d5344f5312e5979098c11ba68ac8fc79688e 100644
+--- a/frameworks/ndk/BUILD.gn
++++ b/frameworks/ndk/BUILD.gn
+@@ -28,11 +28,13 @@ ohos_shared_library("ohinputmethod") {
+     "src/inputmethod_controller_capi.cpp",
+     "src/inputmethod_cursor_info_capi.cpp",
+     "src/inputmethod_inputmethod_proxy_capi.cpp",
++    "src/inputmethod_message_handler_proxy_capi.cpp",
+     "src/inputmethod_private_command_capi.cpp",
+     "src/inputmethod_text_avoid_info_capi.cpp",
+     "src/inputmethod_text_config_capi.cpp",
+     "src/inputmethod_texteditor_proxy_capi.cpp",
+     "src/native_capi_utils.cpp",
++    "src/native_message_handler_callback.cpp",
+     "src/native_text_changed_listener.cpp",
+   ]
+   include_dirs = [
+@@ -52,3 +54,47 @@ ohos_shared_library("ohinputmethod") {
+   subsystem_name = "inputmethod"
+   part_name = "imf"
+ }
++
++ohos_static_library("ohinputmethod_static") {
++  testonly = true
++  branch_protector_ret = "pac_ret"
++  sanitize = {
++    cfi = true
++    cfi_cross_dso = true
++    cfi_vcall_icall_only = true
++    debug = false
++  }
++  output_name = "ohinputmethod"
++  output_extension = "so"
++  sources = [
++    "src/inputmethod_attach_options_capi.cpp",
++    "src/inputmethod_controller_capi.cpp",
++    "src/inputmethod_cursor_info_capi.cpp",
++    "src/inputmethod_inputmethod_proxy_capi.cpp",
++    "src/inputmethod_message_handler_proxy_capi.cpp",
++    "src/inputmethod_private_command_capi.cpp",
++    "src/inputmethod_text_avoid_info_capi.cpp",
++    "src/inputmethod_text_config_capi.cpp",
++    "src/inputmethod_texteditor_proxy_capi.cpp",
++    "src/native_capi_utils.cpp",
++    "src/native_message_handler_callback.cpp",
++    "src/native_text_changed_listener.cpp",
++  ]
++
++  include_dirs = [
++    "include",
++    "${inputmethod_path}/interfaces/kits/c",
++  ]
++
++  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static" ]
++
++  external_deps = [
++    "c_utils:utils",
++    "hilog:libhilog",
++    "input:libmmi-client",
++    "ipc:ipc_single",
++  ]
++
++  subsystem_name = "inputmethod"
++  part_name = "imf"
++}
+diff --git a/frameworks/ndk/include/native_inputmethod_types.h b/frameworks/ndk/include/native_inputmethod_types.h
+index bfbc0bc0a46ed8d10093fc9e1d41db5f0ddbfc64..ccdbadd86cb8457500d3697cbf12ef4bfd9d235c 100644
+--- a/frameworks/ndk/include/native_inputmethod_types.h
++++ b/frameworks/ndk/include/native_inputmethod_types.h
+@@ -45,6 +45,11 @@ struct InputMethod_TextConfig {
+     int32_t windowId;
+ };
+ 
++struct InputMethod_MessageHandlerProxy {
++    OH_MessageHandlerProxy_OnTerminatedFunc onTerminatedFunc;
++    OH_MessageHandlerProxy_OnMessageFunc onMessageFunc;
++};
++
+ struct InputMethod_TextEditorProxy {
+     OH_TextEditorProxy_GetTextConfigFunc getTextConfigFunc;
+     OH_TextEditorProxy_InsertTextFunc insertTextFunc;
+diff --git a/frameworks/ndk/include/native_message_handler_callback.h b/frameworks/ndk/include/native_message_handler_callback.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..2fd017b63e888b8f92de8e0910e15a5aa3e0292f
+--- /dev/null
++++ b/frameworks/ndk/include/native_message_handler_callback.h
+@@ -0,0 +1,35 @@
++/*
++ * Copyright (c) 2024 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++#ifndef NATIVE_MESSAGE_HANDLER_CALLBACK_H
++#define NATIVE_MESSAGE_HANDLER_CALLBACK_H
++#include "input_method_controller.h"
++#include "msg_handler_callback_interface.h"
++#include "native_inputmethod_types.h"
++namespace OHOS {
++namespace MiscServices {
++class NativeMessageHandlerCallback : public OHOS::MiscServices::MsgHandlerCallbackInterface {
++public:
++    explicit NativeMessageHandlerCallback(InputMethod_MessageHandlerProxy *messageHandler)
++        : messageHandler_(messageHandler) {};
++    virtual ~NativeMessageHandlerCallback() {};
++    virtual int32_t OnTerminated() override;
++    virtual int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
++
++private:
++    InputMethod_MessageHandlerProxy *messageHandler_;
++};
++} // namespace MiscServices
++} // namespace OHOS
++#endif // NATIVE_MESSAGE_HANDLER_CALLBACK_H
+\ No newline at end of file
+diff --git a/frameworks/ndk/src/inputmethod_inputmethod_proxy_capi.cpp b/frameworks/ndk/src/inputmethod_inputmethod_proxy_capi.cpp
+index 9dbbce998ac15593fd02b176aa1f665160f89405..5f59cffa857da9f4251b9bd6fa743b1f5fc43fad 100644
+--- a/frameworks/ndk/src/inputmethod_inputmethod_proxy_capi.cpp
++++ b/frameworks/ndk/src/inputmethod_inputmethod_proxy_capi.cpp
+@@ -13,12 +13,34 @@
+  * limitations under the License.
+  */
+ #include "input_method_controller.h"
++#include "native_message_handler_callback.h"
+ #include "native_inputmethod_types.h"
+ #include "native_inputmethod_utils.h"
++#include "string_ex.h"
+ #ifdef __cplusplus
+ extern "C" {
+ #endif /* __cplusplus */
++using namespace OHOS;
+ using namespace OHOS::MiscServices;
++constexpr size_t INVALID_MSG_ID_SIZE = 256; // 256B
++constexpr size_t INVALID_MSG_PARAM_SIZE = 128 * 1024; // 128KB
++static int32_t IsValidMessageHandlerProxy(InputMethod_MessageHandlerProxy *messageHandler)
++{
++    if (messageHandler == nullptr) {
++        IMSA_HILOGE("messageHandler is nullptr");
++        return IME_ERR_OK;
++    }
++    if (messageHandler->onTerminatedFunc == nullptr) {
++        IMSA_HILOGE("onTerminatedFunc is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++    if (messageHandler->onMessageFunc == nullptr) {
++        IMSA_HILOGE("onMessageFunc is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++    return IME_ERR_OK;
++}
++
+ InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
+ {
+     auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+@@ -111,6 +133,52 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
+     }
+     return ErrorCodeConvert(InputMethodController::GetInstance()->SendPrivateCommand(command));
+ }
++
++InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodProxy *inputMethodProxy,
++    const char16_t *msgId, size_t msgIdLength, const uint8_t *msgParam, size_t msgParamLength)
++{
++    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
++    if (errCode != IME_ERR_OK) {
++        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
++        return errCode;
++    }
++    if (msgId == nullptr || msgParam == nullptr) {
++        IMSA_HILOGE("msgId or msgParam is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++    if (msgIdLength > INVALID_MSG_ID_SIZE || msgParamLength > INVALID_MSG_PARAM_SIZE) {
++        IMSA_HILOGE("ArrayBuffer size is invalid, msgIdLength: %{public}zu, msgParamLength: %{public}zu",
++            msgIdLength, msgParamLength);
++        return IME_ERR_PARAMCHECK;
++    }
++    ArrayBuffer arrayBuffer;
++    std::u16string msgIdStr(msgId, msgIdLength);
++    arrayBuffer.msgId = Str16ToStr8(msgIdStr);
++    arrayBuffer.msgParam.assign(msgParam, msgParam + msgParamLength);
++    return ErrorCodeConvert(InputMethodController::GetInstance()->SendMessage(arrayBuffer));
++}
++
++InputMethod_ErrorCode OH_InputMethodProxy_RecvMessage(
++    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_MessageHandlerProxy *messageHandler)
++{
++    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
++    if (errCode != IME_ERR_OK) {
++        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
++        return errCode;
++    }
++    if (IsValidMessageHandlerProxy(messageHandler) != IME_ERR_OK) {
++        IMSA_HILOGE("invalid messageHandler");
++        return IME_ERR_NULL_POINTER;
++    }
++    if (messageHandler == nullptr) {
++        IMSA_HILOGI("UnRegister message handler.");
++        return ErrorCodeConvert(InputMethodController::GetInstance()->RegisterMsgHandler(nullptr));
++    }
++    IMSA_HILOGI("Register message handler.");
++    std::shared_ptr<MsgHandlerCallbackInterface> msgHandler =
++        std::make_shared<NativeMessageHandlerCallback>(messageHandler);
++    return ErrorCodeConvert(InputMethodController::GetInstance()->RegisterMsgHandler(msgHandler));
++}
+ #ifdef __cplusplus
+ }
+ #endif /* __cplusplus */
+\ No newline at end of file
+diff --git a/frameworks/ndk/src/inputmethod_message_handler_proxy_capi.cpp b/frameworks/ndk/src/inputmethod_message_handler_proxy_capi.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..5f3657e025f96700b4571361719fcc4b362e2620
+--- /dev/null
++++ b/frameworks/ndk/src/inputmethod_message_handler_proxy_capi.cpp
+@@ -0,0 +1,95 @@
++/*
++ * Copyright (c) 2024 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "global.h"
++#include "native_inputmethod_types.h"
++using namespace OHOS::MiscServices;
++InputMethod_MessageHandlerProxy *OH_MessageHandlerProxy_Create(void)
++{
++    return new InputMethod_MessageHandlerProxy();
++}
++
++void OH_MessageHandlerProxy_Destroy(InputMethod_MessageHandlerProxy *proxy)
++{
++    if (proxy == nullptr) {
++        IMSA_HILOGE("proxy is nullptr");
++        return;
++    }
++    delete proxy;
++}
++
++InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnTerminatedFunc(
++    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnTerminatedFunc onTerminatedFunc)
++{
++    if (proxy == nullptr) {
++        IMSA_HILOGE("proxy is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++
++    if (onTerminatedFunc == nullptr) {
++        IMSA_HILOGE("onTerminatedFunc is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++
++    proxy->onTerminatedFunc = onTerminatedFunc;
++    return IME_ERR_OK;
++}
++
++InputMethod_ErrorCode OH_MessageHandlerProxy_GetOnTerminatedFunc(
++    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnTerminatedFunc *onTerminatedFunc)
++{
++    if (proxy == nullptr) {
++        IMSA_HILOGE("proxy is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++    if (onTerminatedFunc == nullptr) {
++        IMSA_HILOGE("onTerminatedFunc is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++    *onTerminatedFunc = proxy->onTerminatedFunc;
++    return IME_ERR_OK;
++}
++
++InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnMessageFunc(
++    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc onMessageFunc)
++{
++    if (proxy == nullptr) {
++        IMSA_HILOGE("proxy is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++
++    if (onMessageFunc == nullptr) {
++        IMSA_HILOGE("onMessageFunc is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++
++    proxy->onMessageFunc = onMessageFunc;
++    return IME_ERR_OK;
++}
++
++InputMethod_ErrorCode OH_MessageHandlerProxy_GetOnMessageFunc(
++    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc *onMessageFunc)
++{
++    if (proxy == nullptr) {
++        IMSA_HILOGE("proxy is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++    if (onMessageFunc == nullptr) {
++        IMSA_HILOGE("onMessageFunc is nullptr");
++        return IME_ERR_NULL_POINTER;
++    }
++    *onMessageFunc = proxy->onMessageFunc;
++    return IME_ERR_OK;
++}
+\ No newline at end of file
+diff --git a/frameworks/ndk/src/native_capi_utils.cpp b/frameworks/ndk/src/native_capi_utils.cpp
+index 0c52b4cd343f9fa0c2c4fa58a3d197dfc668c394..5d4d7c8fbb03035691d02fc009873c49361cdc20 100644
+--- a/frameworks/ndk/src/native_capi_utils.cpp
++++ b/frameworks/ndk/src/native_capi_utils.cpp
+@@ -18,38 +18,41 @@
+ #include "global.h"
+ using namespace OHOS::MiscServices;
+ static const std::map<int32_t, InputMethod_ErrorCode> ERROR_CODE_MAP = {
+-    { ErrorCode::NO_ERROR,                           IME_ERR_OK             },
+-    { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED,   IME_ERR_CONTROLLER     },
+-    { ErrorCode::ERROR_REMOTE_CLIENT_DIED,           IME_ERR_IMCLIENT       },
+-    { ErrorCode::ERROR_CLIENT_NOT_FOUND,             IME_ERR_IMCLIENT       },
+-    { ErrorCode::ERROR_CLIENT_NULL_POINTER,          IME_ERR_IMCLIENT       },
+-    { ErrorCode::ERROR_CLIENT_NOT_FOCUSED,           IME_ERR_IMCLIENT       },
+-    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE,          IME_ERR_IMCLIENT       },
+-    { ErrorCode::ERROR_CLIENT_NOT_BOUND,             IME_ERR_DETACHED       },
+-    { ErrorCode::ERROR_CLIENT_ADD_FAILED,            IME_ERR_IMCLIENT       },
+-    { ErrorCode::ERROR_NULL_POINTER,                 IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_BAD_PARAMETERS,               IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_SERVICE_START_FAILED,         IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_IME_START_FAILED,             IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_KBD_SHOW_FAILED,              IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_KBD_HIDE_FAILED,              IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_IME_NOT_STARTED,              IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_EX_NULL_POINTER,              IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_PACKAGE_MANAGER,              IME_ERR_PACKAGEMANAGER },
+-    { ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION,     IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_EX_SERVICE_SPECIFIC,          IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_EX_PARCELABLE,                IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT,          IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_EX_ILLEGAL_STATE,             IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_IME_START_INPUT_FAILED,       IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_IME,                          IME_ERR_IMENGINE       },
+-    { ErrorCode::ERROR_PARAMETER_CHECK_FAILED,       IME_ERR_PARAMCHECK     },
+-    { ErrorCode::ERROR_ENABLE_IME,                   IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_NOT_CURRENT_IME,              IME_ERR_IMMS           },
+-    { ErrorCode::ERROR_GET_TEXT_CONFIG,              IME_ERR_IMCLIENT       },
+-    { ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE, IME_ERR_PARAMCHECK     },
+-    { ErrorCode::ERROR_TEXT_LISTENER_ERROR,          IME_ERR_IMCLIENT       },
+-    { ErrorCode::ERROR_INVALID_RANGE,                IME_ERR_PARAMCHECK     },
++    { ErrorCode::NO_ERROR,                            IME_ERR_OK                  },
++    { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED,    IME_ERR_CONTROLLER          },
++    { ErrorCode::ERROR_REMOTE_CLIENT_DIED,            IME_ERR_IMCLIENT            },
++    { ErrorCode::ERROR_CLIENT_NOT_FOUND,              IME_ERR_IMCLIENT            },
++    { ErrorCode::ERROR_CLIENT_NULL_POINTER,           IME_ERR_IMCLIENT            },
++    { ErrorCode::ERROR_CLIENT_NOT_FOCUSED,            IME_ERR_IMCLIENT            },
++    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE,           IME_ERR_EDITABLE            },
++    { ErrorCode::ERROR_CLIENT_NOT_BOUND,              IME_ERR_DETACHED            },
++    { ErrorCode::ERROR_CLIENT_ADD_FAILED,             IME_ERR_IMCLIENT            },
++    { ErrorCode::ERROR_NULL_POINTER,                  IME_ERR_IMMS                },
++    { ErrorCode::ERROR_BAD_PARAMETERS,                IME_ERR_IMMS                },
++    { ErrorCode::ERROR_SERVICE_START_FAILED,          IME_ERR_IMMS                },
++    { ErrorCode::ERROR_IME_START_FAILED,              IME_ERR_IMMS                },
++    { ErrorCode::ERROR_KBD_SHOW_FAILED,               IME_ERR_IMMS                },
++    { ErrorCode::ERROR_KBD_HIDE_FAILED,               IME_ERR_IMMS                },
++    { ErrorCode::ERROR_IME_NOT_STARTED,               IME_ERR_IMMS                },
++    { ErrorCode::ERROR_EX_NULL_POINTER,               IME_ERR_IMMS                },
++    { ErrorCode::ERROR_PACKAGE_MANAGER,               IME_ERR_PACKAGEMANAGER      },
++    { ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION,      IME_ERR_IMMS                },
++    { ErrorCode::ERROR_EX_SERVICE_SPECIFIC,           IME_ERR_IMMS                },
++    { ErrorCode::ERROR_EX_PARCELABLE,                 IME_ERR_IMMS                },
++    { ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT,           IME_ERR_IMMS                },
++    { ErrorCode::ERROR_EX_ILLEGAL_STATE,              IME_ERR_IMMS                },
++    { ErrorCode::ERROR_IME_START_INPUT_FAILED,        IME_ERR_IMMS                },
++    { ErrorCode::ERROR_IME,                           IME_ERR_IMENGINE            },
++    { ErrorCode::ERROR_PARAMETER_CHECK_FAILED,        IME_ERR_PARAMCHECK          },
++    { ErrorCode::ERROR_ENABLE_IME,                    IME_ERR_IMMS                },
++    { ErrorCode::ERROR_NOT_CURRENT_IME,               IME_ERR_IMMS                },
++    { ErrorCode::ERROR_GET_TEXT_CONFIG,               IME_ERR_IMCLIENT            },
++    { ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE,  IME_ERR_PARAMCHECK          },
++    { ErrorCode::ERROR_TEXT_LISTENER_ERROR,           IME_ERR_IMCLIENT            },
++    { ErrorCode::ERROR_INVALID_RANGE,                 IME_ERR_PARAMCHECK          },
++    { ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST,        IME_ERR_REQUEST_NOT_ACCEPT  },
++    { ErrorCode::ERROR_SECURITY_MODE_OFF,             IME_ERR_BASIC_MODE          },
++    { ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE,     IME_ERR_PARAMCHECK          },
+ };
+ 
+ InputMethod_ErrorCode ErrorCodeConvert(int32_t code)
+diff --git a/frameworks/ndk/src/native_message_handler_callback.cpp b/frameworks/ndk/src/native_message_handler_callback.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..80b0e679c67477fd974d20c1f53def86be248367
+--- /dev/null
++++ b/frameworks/ndk/src/native_message_handler_callback.cpp
+@@ -0,0 +1,61 @@
++/*
++ * Copyright (c) 2024 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++#include "native_message_handler_callback.h"
++#include "string_ex.h"
++
++namespace OHOS {
++namespace MiscServices {
++int32_t NativeMessageHandlerCallback::OnTerminated()
++{
++    if (messageHandler_ == nullptr) {
++        IMSA_HILOGE("messageHandler_ is nullptr");
++        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
++    }
++
++    if (messageHandler_->onTerminatedFunc == nullptr) {
++        IMSA_HILOGE("onTerminatedFunc is nullptr");
++        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
++    }
++
++    auto ret = messageHandler_->onTerminatedFunc(messageHandler_);
++    if (ret != ErrorCode::NO_ERROR) {
++        IMSA_HILOGE("onTerminatedFunc execute failed! ret: %{public}d", ret);
++        return ErrorCode::ERROR_MESSAGE_HANDLER;
++    }
++    return ErrorCode::NO_ERROR;
++}
++
++int32_t NativeMessageHandlerCallback::OnMessage(const ArrayBuffer &arrayBuffer)
++{
++    if (messageHandler_ == nullptr) {
++        IMSA_HILOGE("messageHandler_ is nullptr");
++        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
++    }
++
++    if (messageHandler_->onMessageFunc == nullptr) {
++        IMSA_HILOGE("onMessageFunc is nullptr");
++        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
++    }
++    std::u16string msgIdStr16 = Str8ToStr16(arrayBuffer.msgId);
++    auto ret = messageHandler_->onMessageFunc(messageHandler_, msgIdStr16.c_str(), msgIdStr16.length(),
++        arrayBuffer.msgParam.data(), arrayBuffer.msgParam.size());
++    if (ret != ErrorCode::NO_ERROR) {
++        IMSA_HILOGE("onMessageFunc execute failed! ret: %{public}d", ret);
++        return ErrorCode::ERROR_MESSAGE_HANDLER;
++    }
++    return ErrorCode::NO_ERROR;
++}
++} // namespace MiscServices
++} // namespace OHOS
+\ No newline at end of file
+diff --git a/interfaces/inner_api/inputmethod_controller/include/input_method_controller.h b/interfaces/inner_api/inputmethod_controller/include/input_method_controller.h
+index c4690e3eae01f926e4a09b81d2bf3073d7ae1def..75355bce422993459f6832383daf63eb0f48a81f 100644
+--- a/interfaces/inner_api/inputmethod_controller/include/input_method_controller.h
++++ b/interfaces/inner_api/inputmethod_controller/include/input_method_controller.h
+@@ -39,6 +39,7 @@
+ #include "ipc_skeleton.h"
+ #include "iremote_object.h"
+ #include "key_event.h"
++#include "msg_handler_callback_interface.h"
+ #include "message_handler.h"
+ #include "panel_info.h"
+ #include "private_command_interface.h"
+@@ -802,6 +803,31 @@ public:
+      */
+     IMF_API void Reset();
+ 
++    /**
++     * @brief Send ArrayBuffer message to ime.
++     *
++     * This function is used to Send ArrayBuffer message to ime.
++     *
++     * @param arrayBuffer Indicates the ArrayBuffer message that will be send to the ime.
++     *                    The member msgId limit 256B, and member msgParam limit 128KB.
++     * @return Returns 0 for success, others for failure.
++     * @since 16
++     */
++    IMF_API int32_t SendMessage(const ArrayBuffer &arrayBuffer);
++    int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
++
++    /**
++     * @brief Regist message handler callback.
++     *
++     * This function is used to register a message handler to receive message from ime, or remove message handler.
++     *
++     * @param msgHandler Indicates the message handler callback.
++     *                   If nullptr will remove callback that was registered and trigger function OnTerminated.
++     * @return Returns 0 for success, others for failure.
++     * @since 16
++     */
++    IMF_API int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
++
+ private:
+     InputMethodController();
+     ~InputMethodController();
+@@ -828,6 +854,7 @@ private:
+     std::shared_ptr<IInputMethodAgent> GetAgent();
+     void PrintLogIfAceTimeout(int64_t start);
+     void PrintKeyEventLog();
++    std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
+ 
+     std::shared_ptr<ControllerListener> controllerListener_;
+     std::mutex abilityLock_;
+@@ -882,6 +909,9 @@ private:
+     };
+     static constexpr int32_t MAX_WAIT_TIME = 5000;
+     BlockQueue<KeyEventInfo> keyEventQueue_{ MAX_WAIT_TIME };
++
++    std::mutex msgHandlerMutex_;
++    std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_ = nullptr;
+ };
+ } // namespace MiscServices
+ } // namespace OHOS
+diff --git a/interfaces/kits/c/inputmethod_inputmethod_proxy_capi.h b/interfaces/kits/c/inputmethod_inputmethod_proxy_capi.h
+index 94c54f275b8e4f992547b49f08128364b2417cee..b567b9072562d8bcb7a5d285083eeb8596068662 100644
+--- a/interfaces/kits/c/inputmethod_inputmethod_proxy_capi.h
++++ b/interfaces/kits/c/inputmethod_inputmethod_proxy_capi.h
+@@ -39,6 +39,7 @@
+ #include "inputmethod_types_capi.h"
+ #include "inputmethod_cursor_info_capi.h"
+ #include "inputmethod_private_command_capi.h"
++#include "inputmethod_message_handler_proxy_capi.h"
+ #ifdef __cplusplus
+ extern "C"{
+ #endif /* __cplusplus */
+@@ -166,6 +167,49 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
+  */
+ InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
+     InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_PrivateCommand *privateCommand[], size_t size);
++
++/**
++ * @brief Send private command.
++ *
++ * @param inputMethodProxy Represents a pointer to an {@link OH_InputMethod_InputMethodProxy} instance.
++ *     The inputMethodProxy is obtained from {@link OH_InputMethodController_Attach}.
++ * @param msgId The ArrayBuffer.msgId, which is defined in {@link InputMethod_PrivateCommand}. Max size 256B.
++ * @param msgIdLength The size of ArrayBuffer.msgId. Max is 256B.
++ * @param msgParam The private commands, which is defined in {@link InputMethod_PrivateCommand}. Max size 128KB.
++ * @param msgParamLength The size of ArrayBuffer.msgParam. Max is 128KB.
++ * @param size The size of privateCommand. Max is 5.
++ * @return Returns a specific error code.
++ *     {@link IME_ERR_OK} - success.
++ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
++ *     {@link IME_ERR_IMCLIENT} - input method client error.
++ *     {@link IME_ERR_IMMS} - input method manager service error.
++ *     {@link IME_ERR_DETACHED} - input method client detached.
++ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
++ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
++ * @since 16
++ */
++InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodProxy *inputMethodProxy,
++    const char16_t *msgId, size_t msgIdLength, const uint8_t *msgParam, size_t msgParamLength);
++
++/**
++ * @brief Register message handler.
++ *
++ * @param inputMethodProxy Represents a pointer to an {@link OH_InputMethod_InputMethodProxy} instance.
++ *     The inputMethodProxy is obtained from {@link OH_InputMethodController_Attach}.
++ * @param messageHandler Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance.
++ *     The caller needs to manage the lifecycle of messageHandler.
++ * @return Returns a specific error code.
++ *     {@link IME_ERR_OK} - success.
++ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
++ *     {@link IME_ERR_IMCLIENT} - input method client error.
++ *     {@link IME_ERR_IMMS} - input method manager service error.
++ *     {@link IME_ERR_DETACHED} - input method client detached.
++ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
++ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
++ * @since 16
++ */
++InputMethod_ErrorCode OH_InputMethodProxy_RecvMessage(
++    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_MessageHandlerProxy *messageHandler);
+ #ifdef __cplusplus
+ }
+ #endif /* __cplusplus */
+diff --git a/interfaces/kits/c/inputmethod_message_handler_proxy_capi.h b/interfaces/kits/c/inputmethod_message_handler_proxy_capi.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..ff73b8b7f9059a71a98f37c7cb816f3ecc10a22b
+--- /dev/null
++++ b/interfaces/kits/c/inputmethod_message_handler_proxy_capi.h
+@@ -0,0 +1,170 @@
++/*
++ * Copyright (c) 2024 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++#ifndef OHOS_INPUTMETHOD_MESSAGE_HANDLER_PROXY_CAPI_H
++#define OHOS_INPUTMETHOD_MESSAGE_HANDLER_PROXY_CAPI_H
++/**
++ * @addtogroup InputMethod
++ * @{
++ *
++ * @brief InputMethod provides functions to use input methods and develop input methods.
++ *
++ * @since 12
++ */
++
++/**
++ * @file inputmethod_text_editor_proxy_capi.h
++ *
++ * @brief Provides functions for getting requests and notifications from input method.
++ *
++ * @library libohinputmethod.so
++ * @kit IMEKit
++ * @syscap SystemCapability.MiscServices.InputMethodFramework
++ * @since 16
++ * @version 1.0
++ */
++#include <stddef.h>
++
++#include "inputmethod_text_config_capi.h"
++#include "inputmethod_types_capi.h"
++#ifdef __cplusplus
++extern "C" {
++#endif /* __cplusplus */
++/**
++ * @brief Define the InputMethod_MessageHandlerProxy structure type.
++ *
++ * Provides methods for getting requests and notifications from input method.\n
++ * When input method sends request or notification to editor, the methods will be called.\n
++ *
++ * @since 16
++ */
++typedef struct InputMethod_MessageHandlerProxy InputMethod_MessageHandlerProxy;
++
++/**
++ * @brief Called when input method sending private command.
++ *
++ * You need to implement this function, set it to {@link InputMethod_MessageHandlerProxy} through {@link
++ * OH_TextEditorProxy_SetOnTerminatedFunc}, and use {@link OH_InputMethodProxy_RecvMessage} to complete the
++ * registration.\n
++ *
++ * @param messageHandlerProxy Represents a pointer to an
++ *                            {@link InputMethod_MessageHandlerProxy} instance which will be set in.
++ * @return Returns the result of handling private command.
++ * @since 16
++ */
++typedef int32_t (*OH_MessageHandlerProxy_OnTerminatedFunc)(InputMethod_MessageHandlerProxy *messageHandlerProxy);
++
++/**
++ * @brief Called when input method finishing preview text.
++ *
++ * You need to implement this function, set it to {@link InputMethod_MessageHandlerProxy} through {@link
++ * OH_TextEditorProxy_SetOnMessageFunc}, and use {@link OH_InputMethodProxy_RecvMessage} to complete the
++ * registration.\n
++ *
++ * @param messageHandlerProxy Represents a pointer to an
++ *                            {@link InputMethod_MessageHandlerProxy} instance which will be set in.
++ * @param msgId ArrayBuffer.msgId from input method.
++ * @param msgIdLength Size of ArrayBuffer.msgId.
++ * @param msgParam ArrayBuffer.msgParam from input method.
++ * @param msgParamLength Size of ArrayBuffer.msgParam.
++ * @since 16
++ */
++typedef int32_t (*OH_MessageHandlerProxy_OnMessageFunc)(InputMethod_MessageHandlerProxy *messageHandlerProxy,
++    const char16_t msgId[], size_t msgIdLength, const uint8_t *msgParam, size_t msgParamLength);
++
++/**
++ * @brief Create a new {@link InputMethod_MessageHandlerProxy} instance.
++ *
++ * @return If the creation succeeds, a pointer to the newly created {@link InputMethod_MessageHandlerProxy}
++ * instance is returned. If the creation fails, NULL is returned, possible cause is insufficient memory.
++ * @since 12
++ */
++InputMethod_MessageHandlerProxy *OH_MessageHandlerProxy_Create(void);
++
++/**
++ * @brief Destroy a {@link InputMethod_MessageHandlerProxy} instance.
++ *
++ * @param proxy The {@link InputMethod_MessageHandlerProxy} instance to be destroyed.
++ * @since 16
++ */
++void OH_MessageHandlerProxy_Destroy(InputMethod_MessageHandlerProxy *proxy);
++
++/**
++ * @brief Set function {@link OH_MessageHandlerProxy_OnTerminatedFunc} into {@link InputMethod_MessageHandlerProxy}.
++ *
++ * @param proxy Represents a pointer to an
++ *              {@link InputMethod_MessageHandlerProxy} instance which will be set function in.
++ * @param onTerminatedFunc Represents function {@link OH_MessageHandlerProxy_SetOnTerminatedFunc} which
++ * will be set.
++ * @return Returns a specific error code.
++ *     {@link IME_ERR_OK} - success.
++ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
++ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
++ * @since 16
++ */
++InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnTerminatedFunc(
++    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnTerminatedFunc onTerminatedFunc);
++
++/**
++ * @brief Get function {@link OH_MessageHandlerProxy_OnTerminatedFunc} from {@link InputMethod_MessageHandlerProxy}.
++ *
++ * @param proxy Represents a pointer to an
++ *              {@link InputMethod_MessageHandlerProxy} instance which will be get function from.
++ * @param onTerminatedFunc Represents function {@link OH_MessageHandlerProxy_GetOnTerminatedFunc} which
++ * will be get.
++ * @return Returns a specific error code.
++ *     {@link IME_ERR_OK} - success.
++ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
++ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
++ * @since 16
++ */
++InputMethod_ErrorCode OH_MessageHandlerProxy_GetOnTerminatedFunc(
++    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnTerminatedFunc *onTerminatedFunc);
++
++/**
++ * @brief Set function {@link OH_MessageHandlerProxy_OnMessageFunc} into {@link InputMethod_MessageHandlerProxy}.
++ *
++ * @param proxy Represents a pointer to an
++ *              {@link InputMethod_MessageHandlerProxy} instance which will be set function in.
++ * @param onMessageFunc Represents function {@link OH_MessageHandlerProxy_SetOnMessageFunc} which
++ * will be set.
++ * @return Returns a specific error code.
++ *     {@link IME_ERR_OK} - success.
++ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
++ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
++ * @since 16
++ */
++InputMethod_ErrorCode OH_MessageHandlerProxy_SetOnMessageFunc(
++    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc onMessageFunc);
++
++/**
++ * @brief Get function {@link OH_MessageHandlerProxy_OnMessageFunc} from {@link InputMethod_MessageHandlerProxy}.
++ *
++ * @param proxy Represents a pointer to an {@link InputMethod_MessageHandlerProxy} instance which will be get function
++ * from.
++ * @param onMessageFunc Represents function {@link OH_MessageHandlerProxy_GetOnMessageFunc} which
++ * will be get.
++ * @return Returns a specific error code.
++ *     {@link IME_ERR_OK} - success.
++ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
++ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
++ * @since 16
++ */
++InputMethod_ErrorCode OH_MessageHandlerProxy_GetOnMessageFunc(
++    InputMethod_MessageHandlerProxy *proxy, OH_MessageHandlerProxy_OnMessageFunc *onMessageFunc);
++#ifdef __cplusplus
++}
++#endif /* __cplusplus */
++/** @} */
++#endif // OHOS_INPUTMETHOD_MESSAGE_HANDLER_PROXY_CAPI_H
+\ No newline at end of file
+diff --git a/interfaces/kits/c/inputmethod_types_capi.h b/interfaces/kits/c/inputmethod_types_capi.h
+index 4ab1f57ffa6e39453fafed8fc51856e675085c94..870a8db7ed7e5aef2d3d56eeb4956be6d03b1921 100644
+--- a/interfaces/kits/c/inputmethod_types_capi.h
++++ b/interfaces/kits/c/inputmethod_types_capi.h
+@@ -292,6 +292,18 @@ typedef enum InputMethod_ErrorCode {
+      * @error The error code when input method client is detached.
+      */
+     IME_ERR_DETACHED = 12800009,
++    /**
++     * @error The error code when another size was not register message handler.
++     */
++    IME_ERR_BASIC_MODE = 12800014,
++    /**
++     * @error The error code when current security mode is basic mode.
++     */
++    IME_ERR_REQUEST_NOT_ACCEPT = 12800015,
++    /**
++     * @error The error code when current is not editable status.
++     */
++    IME_ERR_EDITABLE = 12800016,
+     /**
+      * @error The error code when unexpected null pointer.
+      */
+diff --git a/test/unittest/BUILD.gn b/test/unittest/BUILD.gn
+index 8d6a047b86a442df88fabd8175638223852ed250..f0eb8d5c3ff51ee04fa0083ce7d4106d2408c0ea 100644
+--- a/test/unittest/BUILD.gn
++++ b/test/unittest/BUILD.gn
+@@ -31,6 +31,7 @@ group("unittest") {
+       "cpp_test:InputMethodControllerTest",
+       "cpp_test:InputMethodDfxTest",
+       "cpp_test:InputMethodEditorTest",
++      "cpp_test:InputMethodMessageHandlerTest",
+       "cpp_test:InputMethodPanelTest",
+       "cpp_test:InputMethodPrivateMemberTest",
+       "cpp_test:InputMethodSeccompTest",
+diff --git a/test/unittest/cpp_test/BUILD.gn b/test/unittest/cpp_test/BUILD.gn
+index 90ba0754b6478acae54aabaff080e9760649c3ad..750622666533e4ee7ed2299441ba76169ddbe9f9 100644
+--- a/test/unittest/cpp_test/BUILD.gn
++++ b/test/unittest/cpp_test/BUILD.gn
+@@ -18,6 +18,8 @@ config("module_private_config") {
+   visibility = [ ":*" ]
+ 
+   include_dirs = [
++    "${inputmethod_path}/frameworks/ndk/include",
++    "${inputmethod_path}/interfaces/kits/c",
+     "${inputmethod_path}/services/include",
+     "${inputmethod_path}/test/common",
+     "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
+@@ -946,3 +948,57 @@ ohos_unittest("ImeControllerCpaiTest") {
+     "input:libmmi-client",
+   ]
+ }
++
++ohos_unittest("InputMethodMessageHandlerTest") {
++  branch_protector_ret = "pac_ret"
++  sanitize = {
++    cfi = true
++    cfi_cross_dso = true
++    debug = false
++    blocklist = "./inputmethod_blocklist.txt"
++  }
++  module_out_path = module_output_path
++
++  sources = [
++    "${inputmethod_path}/services/src/input_type_manager.cpp",
++    "src/input_method_message_handler_test.cpp",
++  ]
++
++  configs = [ ":module_private_config" ]
++
++  deps = [
++    "${inputmethod_path}/frameworks/ndk:ohinputmethod_static",
++    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
++    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
++    "${inputmethod_path}/services:inputmethod_service_static",
++    "${inputmethod_path}/test/common:inputmethod_test_common",
++    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
++  ]
++
++  external_deps = [
++    "ability_base:want",
++    "ability_runtime:ability_context_native",
++    "ability_runtime:ability_manager",
++    "access_token:libaccesstoken_sdk",
++    "bundle_framework:appexecfwk_core",
++    "c_utils:utils",
++    "config_policy:configpolicy_util",
++    "data_share:datashare_common",
++    "data_share:datashare_consumer",
++    "eventhandler:libeventhandler",
++    "googletest:gtest_main",
++    "hilog:libhilog",
++    "input:libmmi-client",
++    "ipc:ipc_single",
++    "napi:ace_napi",
++    "safwk:system_ability_fwk",
++    "samgr:samgr_proxy",
++    "window_manager:libdm",
++  ]
++
++  if (window_manager_use_sceneboard) {
++    external_deps += [ "window_manager:libwm_lite" ]
++  } else {
++    external_deps += [ "window_manager:libwm" ]
++  }
++}
+diff --git a/test/unittest/cpp_test/src/input_method_message_handler_test.cpp b/test/unittest/cpp_test/src/input_method_message_handler_test.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..9dee4d56db9bf45e9db9645f8e311bbfdc9d7b0a
+--- /dev/null
++++ b/test/unittest/cpp_test/src/input_method_message_handler_test.cpp
+@@ -0,0 +1,1509 @@
++/*
++ * Copyright (C) 2024 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++#define private public
++#define protected public
++#include "input_method_controller.h"
++
++#include "input_data_channel_stub.h"
++#include "input_method_ability.h"
++#include "input_method_system_ability.h"
++#include "task_manager.h"
++#undef private
++
++#include <event_handler.h>
++#include <gtest/gtest.h>
++#include <string_ex.h>
++
++#include <condition_variable>
++#include <csignal>
++#include <cstdint>
++#include <mutex>
++#include <string>
++#include <vector>
++
++#include "global.h"
++#include "i_input_method_agent.h"
++#include "i_input_method_system_ability.h"
++#include "identity_checker_mock.h"
++#include "inputmethod_controller_capi.h"
++#include "inputmethod_message_handler_proxy_capi.h"
++#include "input_client_stub.h"
++#include "input_death_recipient.h"
++#include "input_method_ability.h"
++#include "input_method_engine_listener_impl.h"
++#include "input_method_system_ability_proxy.h"
++#include "input_method_utils.h"
++#include "keyboard_listener.h"
++#include "message_parcel.h"
++#include "string_ex.h"
++#include "tdd_util.h"
++#include "text_listener.h"
++#include "msg_handler_callback_interface.h"
++
++using namespace testing;
++using namespace testing::ext;
++namespace OHOS {
++namespace MiscServices {
++ArrayBuffer g_arrayBufferCapi;
++std::mutex g_messageHandlerMutex;
++std::condition_variable g_messageHandlerCv;
++bool g_onTerminated = false;
++bool g_onMessage = false;
++bool g_onTerminatedNew = false;
++int32_t OnMessageFunc(InputMethod_MessageHandlerProxy *proxy,
++    const char16_t msgId[], size_t msgIdLength, const uint8_t *msgParam, size_t msgParamLength)
++{
++    std::unique_lock<std::mutex> lock(g_messageHandlerMutex);
++    std::u16string msgIdStr(msgId, msgIdLength);
++    g_arrayBufferCapi.msgId = Str16ToStr8(msgIdStr);
++    g_arrayBufferCapi.msgParam.assign(msgParam, msgParam + msgParamLength);
++    g_onMessage = true;
++    g_messageHandlerCv.notify_one();
++    return 0;
++}
++
++bool WaitOnMessageFunc(const ArrayBuffer &arrayBuffer)
++{
++    std::unique_lock<std::mutex> lock(g_messageHandlerMutex);
++    g_messageHandlerCv.wait_for(lock, std::chrono::seconds(1), [&arrayBuffer]() {
++        return g_arrayBufferCapi == arrayBuffer;
++    });
++    return g_arrayBufferCapi == arrayBuffer;
++}
++int32_t OnTerminatedFunc(InputMethod_MessageHandlerProxy *proxy)
++{
++    g_onTerminated = true;
++    return 0;
++}
++
++int32_t OnTerminatedFuncNew(InputMethod_MessageHandlerProxy *proxy)
++{
++    g_onTerminatedNew = true;
++    return 0;
++}
++void GetTextConfigFunc(InputMethod_TextEditorProxy *proxy, InputMethod_TextConfig *config) { }
++void InsertTextFunc(InputMethod_TextEditorProxy *proxy, const char16_t *text, size_t length) { }
++void DeleteForwardFunc(InputMethod_TextEditorProxy *proxy, int32_t length) { }
++void DeleteBackwardFunc(InputMethod_TextEditorProxy *proxy, int32_t length) { }
++void SendKeyboardStatusFunc(InputMethod_TextEditorProxy *proxy, InputMethod_KeyboardStatus status) { }
++void SendEnterKeyFunc(InputMethod_TextEditorProxy *proxy, InputMethod_EnterKeyType type) { }
++void MoveCursorFunc(InputMethod_TextEditorProxy *proxy, InputMethod_Direction direction) { }
++void HandleSetSelectionFunc(InputMethod_TextEditorProxy *proxy, int32_t start, int32_t end) { }
++void HandleExtendActionFunc(InputMethod_TextEditorProxy *proxy, InputMethod_ExtendAction action) { }
++void GetleftTextOfCursorFunc(InputMethod_TextEditorProxy *proxy, int32_t number, char16_t text[], size_t *length) { }
++void GetRightTextOfCursorFunc(InputMethod_TextEditorProxy *proxy, int32_t number, char16_t text[], size_t *length) { }
++int32_t GetTextIndexAtCursorFunc(InputMethod_TextEditorProxy *proxy)
++{
++    return 0;
++}
++int32_t ReceivePrivateCommandFunc(
++    InputMethod_TextEditorProxy *proxy, InputMethod_PrivateCommand *privateCommand[], size_t size)
++{
++    return 0;
++}
++int32_t SetPreviewTextFunc(
++    InputMethod_TextEditorProxy *proxy, const char16_t *text, size_t length, int32_t start, int32_t end)
++{
++    return 0;
++}
++void FinishTextPreviewFunc(InputMethod_TextEditorProxy *proxy) { }
++class MessageHandlerCallback : public MsgHandlerCallbackInterface {
++public:
++    using onTerminatedFunc = std::function<void()>;
++    using onMessageFunc = std::function<void(const ArrayBuffer &arrayBuffer)>;
++    MessageHandlerCallback() {};
++    virtual ~MessageHandlerCallback() {};
++    int32_t OnTerminated() override;
++    int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
++    void SetOnTernimateFunc(onTerminatedFunc func);
++    void SetOnMessageFunc(onMessageFunc func);
++    bool CheckOnTerminatedAndOnMessage(bool isOnTerminatedExcute, bool isOnMessageExcute);
++    static void OnMessageCallback(const ArrayBuffer &arrayBuffer);
++    static bool WaitSendMessage(const ArrayBuffer &arrayBuffer);
++    static void ClearArrayBuffer();
++    static ArrayBuffer GetTimingArrayBuffer();
++    void ClearParam();
++private:
++    onTerminatedFunc onTerminatedFunc_ = nullptr;
++    onMessageFunc onMessageFunc_ = nullptr;
++    bool isTriggerOnTerminated_ = false;
++    bool isTriggerOnMessage_ = false;
++    static std::mutex messageHandlerMutex_;
++    static std::condition_variable messageHandlerCv_;
++    static ArrayBuffer arrayBuffer_;
++    static ArrayBuffer timingArrayBuffer_;
++};
++std::mutex MessageHandlerCallback::messageHandlerMutex_;
++std::condition_variable MessageHandlerCallback::messageHandlerCv_;
++ArrayBuffer MessageHandlerCallback::arrayBuffer_;
++ArrayBuffer MessageHandlerCallback::timingArrayBuffer_;
++
++int32_t MessageHandlerCallback::OnTerminated()
++{
++    isTriggerOnTerminated_ = true;
++    if (onTerminatedFunc_ != nullptr) {
++        onTerminatedFunc_();
++    }
++    return ErrorCode::NO_ERROR;
++}
++
++int32_t MessageHandlerCallback::OnMessage(const ArrayBuffer &arrayBuffer)
++{
++    std::string msgParam(arrayBuffer_.msgParam.begin(), arrayBuffer_.msgParam.end());
++    std::string msgParam1(arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
++    IMSA_HILOGE("arrayBuffer_ msgId: %{public}s, msgParam: %{publid}s",
++        arrayBuffer_.msgId.c_str(), msgParam.c_str());
++    IMSA_HILOGE("arrayBuffer msgId: %{public}s, msgParam: %{publid}s",
++        arrayBuffer.msgId.c_str(), msgParam1.c_str());
++    isTriggerOnMessage_ = true;
++    if (onMessageFunc_ != nullptr) {
++        onMessageFunc_(arrayBuffer);
++    }
++    OnMessageCallback(arrayBuffer);
++    timingArrayBuffer_.msgId += arrayBuffer.msgId;
++    timingArrayBuffer_.msgParam.insert(
++        timingArrayBuffer_.msgParam.end(), arrayBuffer.msgParam.begin(), arrayBuffer.msgParam.end());
++    return ErrorCode::NO_ERROR;
++}
++
++void MessageHandlerCallback::SetOnTernimateFunc(onTerminatedFunc func)
++{
++    onTerminatedFunc_ = func;
++}
++
++void MessageHandlerCallback::SetOnMessageFunc(onMessageFunc func)
++{
++    onMessageFunc_ = func;
++}
++
++bool MessageHandlerCallback::CheckOnTerminatedAndOnMessage(bool isOnTerminatedExcute, bool isOnMessageExcute)
++{
++    return isOnTerminatedExcute == isTriggerOnTerminated_ && isOnMessageExcute == isTriggerOnMessage_;
++}
++
++void MessageHandlerCallback::OnMessageCallback(const ArrayBuffer &arrayBuffer)
++{
++    IMSA_HILOGI("OnMessageCallback");
++    std::unique_lock<std::mutex> lock(messageHandlerMutex_);
++    arrayBuffer_ = arrayBuffer;
++    messageHandlerCv_.notify_one();
++}
++
++bool MessageHandlerCallback::WaitSendMessage(const ArrayBuffer &arrayBuffer)
++{
++    std::unique_lock<std::mutex> lock(messageHandlerMutex_);
++    messageHandlerCv_.wait_for(lock, std::chrono::seconds(1), [&arrayBuffer]() {
++        return arrayBuffer_ == arrayBuffer;
++    });
++    return arrayBuffer_ == arrayBuffer;
++}
++
++void MessageHandlerCallback::ClearArrayBuffer()
++{
++    arrayBuffer_.msgId.clear();
++    arrayBuffer_.msgParam.clear();
++    g_arrayBufferCapi.msgId.clear();
++    g_arrayBufferCapi.msgParam.clear();
++    timingArrayBuffer_.msgId.clear();
++    timingArrayBuffer_.msgParam.clear();
++}
++
++ArrayBuffer MessageHandlerCallback::GetTimingArrayBuffer()
++{
++    return timingArrayBuffer_;
++}
++
++void MessageHandlerCallback::ClearParam()
++{
++    isTriggerOnTerminated_ = false;
++    isTriggerOnMessage_ = false;
++}
++
++class InputMethodMessageHandlerTest : public testing::Test {
++public:
++    static void SetUpTestCase(void);
++    static void TearDownTestCase(void);
++    void SetUp();
++    void TearDown();
++    static void SetSecurityModeEnable(int32_t securityMode);
++    static void ResetParam();
++    static void ConstructMessageHandlerProxy(InputMethod_MessageHandlerProxy *messageHandlerProxy);
++    static void TestGetMessageHandlerProxyMember(InputMethod_MessageHandlerProxy *messageHandlerProxy);
++    static void ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProxy);
++    static sptr<InputMethodController> inputMethodController_;
++    static sptr<InputMethodAbility> inputMethodAbility_;
++    static sptr<InputMethodSystemAbility> imsa_;
++    static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
++    static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
++    static std::shared_ptr<AppExecFwk::EventHandler> textConfigHandler_;
++    static sptr<OnTextChangedListener> textListener_;
++    static InputMethod_AttachOptions *option_;
++    static InputMethod_TextEditorProxy *textEditorProxy_;
++    static InputMethod_MessageHandlerProxy *messageHanlderProxy_;
++};
++sptr<InputMethodController> InputMethodMessageHandlerTest::inputMethodController_;
++sptr<InputMethodAbility> InputMethodMessageHandlerTest::inputMethodAbility_;
++sptr<InputMethodSystemAbility> InputMethodMessageHandlerTest::imsa_;
++sptr<InputMethodSystemAbilityProxy> InputMethodMessageHandlerTest::imsaProxy_;
++std::shared_ptr<InputMethodEngineListenerImpl> InputMethodMessageHandlerTest::imeListener_;
++sptr<OnTextChangedListener> InputMethodMessageHandlerTest::textListener_;
++std::shared_ptr<AppExecFwk::EventHandler> InputMethodMessageHandlerTest::textConfigHandler_ { nullptr };
++InputMethod_AttachOptions *InputMethodMessageHandlerTest::option_ = nullptr;
++InputMethod_TextEditorProxy *InputMethodMessageHandlerTest::textEditorProxy_ = nullptr;
++InputMethod_MessageHandlerProxy *InputMethodMessageHandlerTest::messageHanlderProxy_ = nullptr;
++
++void InputMethodMessageHandlerTest::SetUpTestCase(void)
++{
++    IMSA_HILOGI("InputMethodMessageHandlerTest::SetUpTestCase");
++    IdentityCheckerMock::ResetParam();
++    imsa_ = new (std::nothrow) InputMethodSystemAbility();
++    if (imsa_ == nullptr) {
++        return;
++    }
++    imsa_->OnStart();
++    imsa_->userId_ = TddUtil::GetCurrentUserId();
++    imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
++    sptr<InputMethodSystemAbilityStub> serviceStub = imsa_;
++    imsaProxy_ = new (std::nothrow) InputMethodSystemAbilityProxy(serviceStub->AsObject());
++    if (imsaProxy_ == nullptr) {
++        return;
++    }
++    IdentityCheckerMock::SetFocused(true);
++
++    inputMethodAbility_ = InputMethodAbility::GetInstance();
++    inputMethodAbility_->abilityManager_ = imsaProxy_;
++    textListener_ = new TextListener();
++    TddUtil::InitCurrentImePermissionInfo();
++    IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
++    inputMethodAbility_->SetCoreAndAgent();
++    imeListener_ = std::make_shared<InputMethodEngineListenerImpl>(textConfigHandler_);
++    inputMethodAbility_->SetImeListener(imeListener_);
++
++    inputMethodController_ = InputMethodController::GetInstance();
++    inputMethodController_->abilityManager_ = imsaProxy_;
++
++    option_ = OH_AttachOptions_Create(true);
++    textEditorProxy_ = OH_TextEditorProxy_Create();
++    ConstructTextEditorProxy(textEditorProxy_);
++    messageHanlderProxy_ = OH_MessageHandlerProxy_Create();
++    ConstructMessageHandlerProxy(messageHanlderProxy_);
++}
++
++void InputMethodMessageHandlerTest::TearDownTestCase(void)
++{
++    IMSA_HILOGI("InputMethodMessageHandlerTest::TearDownTestCase");
++    inputMethodController_->SetControllerListener(nullptr);
++    IdentityCheckerMock::ResetParam();
++    imsa_->OnStop();
++    OH_AttachOptions_Destroy(option_);
++    OH_TextEditorProxy_Destroy(textEditorProxy_);
++    OH_MessageHandlerProxy_Destroy(messageHanlderProxy_);
++}
++
++void InputMethodMessageHandlerTest::SetUp(void)
++{
++    IMSA_HILOGI("InputMethodMessageHandlerTest::SetUp");
++    TaskManager::GetInstance().SetInited(true);
++}
++
++void InputMethodMessageHandlerTest::TearDown(void)
++{
++    IMSA_HILOGI("InputMethodMessageHandlerTest::TearDown");
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    TaskManager::GetInstance().Reset();
++    ResetParam();
++}
++
++void InputMethodMessageHandlerTest::SetSecurityModeEnable(int32_t securityMode)
++{
++    if (inputMethodAbility_ != nullptr) {
++        inputMethodAbility_->securityMode_.store(securityMode);
++    }
++}
++
++void InputMethodMessageHandlerTest::ResetParam()
++{
++    inputMethodController_->Close();
++    if (inputMethodAbility_ != nullptr) {
++        inputMethodAbility_->securityMode_.store(-1);
++    }
++    InputMethodEngineListenerImpl::ResetParam();
++    MessageHandlerCallback::ClearArrayBuffer();
++    inputMethodAbility_->RegisterMsgHandler();
++    inputMethodController_->RegisterMsgHandler();
++    g_onTerminated = false;
++    g_onMessage = false;
++    g_onTerminatedNew = false;
++}
++
++void InputMethodMessageHandlerTest::ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProxy)
++{
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetTextConfigFunc(textEditorProxy, GetTextConfigFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetInsertTextFunc(textEditorProxy, InsertTextFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetDeleteForwardFunc(textEditorProxy, DeleteForwardFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetDeleteBackwardFunc(textEditorProxy, DeleteBackwardFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetSendKeyboardStatusFunc(textEditorProxy, SendKeyboardStatusFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetSendEnterKeyFunc(textEditorProxy, SendEnterKeyFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetMoveCursorFunc(textEditorProxy, MoveCursorFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetHandleSetSelectionFunc(textEditorProxy, HandleSetSelectionFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetHandleExtendActionFunc(textEditorProxy, HandleExtendActionFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetLeftTextOfCursorFunc(textEditorProxy, GetleftTextOfCursorFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetRightTextOfCursorFunc(textEditorProxy, GetRightTextOfCursorFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetTextIndexAtCursorFunc(textEditorProxy, GetTextIndexAtCursorFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetReceivePrivateCommandFunc(textEditorProxy, ReceivePrivateCommandFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetSetPreviewTextFunc(textEditorProxy, SetPreviewTextFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetFinishTextPreviewFunc(textEditorProxy, FinishTextPreviewFunc));
++}
++
++void InputMethodMessageHandlerTest::ConstructMessageHandlerProxy(InputMethod_MessageHandlerProxy *messageHandlerProxy)
++{
++    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_SetOnTerminatedFunc(messageHandlerProxy, OnTerminatedFunc));
++    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_SetOnMessageFunc(messageHandlerProxy, OnMessageFunc));
++}
++
++void InputMethodMessageHandlerTest::TestGetMessageHandlerProxyMember(
++    InputMethod_MessageHandlerProxy *messageHandlerProxy)
++{
++    OH_MessageHandlerProxy_OnTerminatedFunc onTerminatedFunc = nullptr;
++    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_GetOnTerminatedFunc(messageHandlerProxy, &onTerminatedFunc));
++    EXPECT_EQ(OnTerminatedFunc, onTerminatedFunc);
++
++    OH_MessageHandlerProxy_OnMessageFunc onMessageFunc = nullptr;
++    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_GetOnMessageFunc(messageHandlerProxy, &onMessageFunc));
++    EXPECT_EQ(OnMessageFunc, onMessageFunc);
++}
++
++/**
++ * @tc.name: testIMCSendMessage_001
++ * @tc.desc: IMC SendMessage, valid msgId and msgParam.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_001, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_001 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_002
++ * @tc.desc: IMC SendMessage, msgId and msgParam is 0.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_002, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_002 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_003
++ * @tc.desc: IMC SendMessage, msgId is valid and msgParam is 0.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_003, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_003 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_004
++ * @tc.desc: IMC SendMessage, msgId is 0 and msgParam is valid.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_004, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_004 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_005
++ * @tc.desc: IMC SendMessage, msgId is max length and msgParam is valid.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_005, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_005 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE, 'a');
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_006
++ * @tc.desc: IMC SendMessage, msgId is valid and msgParam is max length.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_006, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_006 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE, 'a');
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_007
++ * @tc.desc: IMC SendMessage, msgId is valid and msgParam is exceeds max length.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_007, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_007 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_008
++ * @tc.desc: IMC SendMessage, msgId is exceeds max length and msgParam is valid.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_008, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_008 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_009
++ * @tc.desc: IMC SendMessage, msgId and msgParam are all exceed max length.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_009, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_009 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
++    arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_010
++ * @tc.desc: IMC SendMessage, without Attach.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_010, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_010 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    auto ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_011
++ * @tc.desc: IMC SendMessage, Attach but not editable.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_011, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_011 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    inputMethodController_->isEditable_.store(false);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCSendMessage_012
++ * @tc.desc: IMC SendMessage, basic security mode.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_012, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_012 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::BASIC));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_SECURITY_MODE_OFF);
++
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++
++/**
++ * @tc.name: testIMCSendMessage_013
++ * @tc.desc: IMC SendMessage, without register message handler another side.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_013, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCSendMessage_013 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST);
++
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMCRegisterMsgHandler_001
++ * @tc.desc: IMA RegisterMsgHandler, duplicate registration will triggers ex-callback OnTerminated.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_001, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_001 Test START");
++    auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodAbility_->RegisterMsgHandler(exMessageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
++
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, false));
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
++
++    ret = inputMethodAbility_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++}
++
++/**
++ * @tc.name: testIMCRegisterMsgHandler_002
++ * @tc.desc: IMA RegisterMsgHandler, message handler is globally unique.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_002 Test START");
++    auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodAbility_->RegisterMsgHandler(exMessageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, false));
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
++    messageHandler->ClearParam();
++    exMessageHandler->ClearParam();
++
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodController_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, true));
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
++    messageHandler->ClearParam();
++
++    ret = inputMethodAbility_->RegisterMsgHandler();
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++    InputMethodMessageHandlerTest::ResetParam();
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++}
++
++/**
++ * @tc.name: testIMCRegisterMsgHandler_003
++ * @tc.desc: IMA RegisterMsgHandler, unregister message handle will trigger OnTerminated.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_003, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_003 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    ret = inputMethodAbility_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++}
++
++/**
++ * @tc.name: testIMCRegisterMsgHandler_004
++ * @tc.desc: IMC RegisterMsgHandler, duplicate registration will triggers ex-callback OnTerminated.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_004, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_004 Test START");
++    auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(exMessageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
++
++    ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, false));
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
++
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++}
++
++/**
++ * @tc.name: testIMCRegisterMsgHandler_005
++ * @tc.desc: IMC RegisterMsgHandler, message handler is globally unique.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_005, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_005 Test START");
++    auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(exMessageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
++    ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, false));
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
++
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, true));
++    EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
++    InputMethodMessageHandlerTest::ResetParam();
++
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, true));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++}
++
++/**
++ * @tc.name: testIMCRegisterMsgHandler_006
++ * @tc.desc: IMC RegisterMsgHandler, unregister message handle will trigger OnTerminated.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_006, TestSize.Level0)
++{
++    IMSA_HILOGI("IMC testIMCRegisterMsgHandler_006 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++}
++
++/**
++ * @tc.name: testIMASendMessage_001
++ * @tc.desc: IMA SendMessage, valid msgId and msgParam.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_001, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_001 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, true));
++}
++
++/**
++ * @tc.name: testIMASendMessage_002
++ * @tc.desc: IMA SendMessage, msgId and msgParam is 0.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_002, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_002 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, true));
++}
++
++/**
++ * @tc.name: testIMASendMessage_003
++ * @tc.desc: IMA SendMessage, msgId is valid and msgParam is 0.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_003, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_003 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, true));
++}
++
++/**
++ * @tc.name: testIMASendMessage_004
++ * @tc.desc: IMA SendMessage, msgId is 0 and msgParam is valid.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_004, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_004 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, true));
++}
++
++/**
++ * @tc.name: testIMASendMessage_005
++ * @tc.desc: IMA SendMessage, msgId is max length and msgParam is valid.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_005, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_005 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = string(MAX_ARRAY_BUFFER_MSG_ID_SIZE, 'a');
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, true));
++}
++
++/**
++ * @tc.name: testIMASendMessage_006
++ * @tc.desc: IMA SendMessage, msgId is valid and msgParam is max length.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_006, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_006 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE, 'a');
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, true));
++}
++
++/**
++ * @tc.name: testIMASendMessage_007
++ * @tc.desc: IMA SendMessage, msgId is valid and msgParam is exceeds max length.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_007, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_007 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++}
++
++/**
++ * @tc.name: testIMASendMessage_008
++ * @tc.desc: IMA SendMessage, msgId is exceeds max length and msgParam is valid.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_008, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_008 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++}
++
++/**
++ * @tc.name: testIMASendMessage_009
++ * @tc.desc: IMA SendMessage, msgId and msgParam are all exceed max length.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_009, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_009 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
++    arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++}
++
++/**
++ * @tc.name: testIMASendMessage_010
++ * @tc.desc: IMA SendMessage, without Attach.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_010, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_010 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++}
++
++/**
++ * @tc.name: testIMASendMessage_011
++ * @tc.desc: IMA SendMessage, Attach but not editable.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_011, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_011 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    inputMethodController_->isEditable_.store(false);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++}
++
++/**
++ * @tc.name: testIMASendMessage_012
++ * @tc.desc: IMA SendMessage, another size was not registered message handler.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_012, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_012 Test START");
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST);
++
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testIMASendMessage_013
++ * @tc.desc: IMA SendMessage, basic security mode.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_013, TestSize.Level0)
++{
++    IMSA_HILOGI("IMA testIMASendMessage_013 Test START");
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto ret = inputMethodController_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::BASIC));
++    ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "testMsgId";
++    string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++    ret = inputMethodAbility_->SendMessage(arrayBuffer);
++    EXPECT_EQ(ret, ErrorCode::ERROR_SECURITY_MODE_OFF);
++
++    InputMethodMessageHandlerTest::ResetParam();
++    ret = inputMethodController_->RegisterMsgHandler(nullptr);
++    EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
++}
++
++/**
++ * @tc.name: testCallbackTiming_001
++ * @tc.desc: IMC SendMessage, the message handler deliver timing, IMC to IMA.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testCallbackTiming_001, TestSize.Level0)
++{
++    ArrayBuffer arrayBufferA;
++    arrayBufferA.msgId = "msgIdA";
++    string msgParamA = "testParamAtestParamAtestParamAtestParamAtestParamA";
++    arrayBufferA.msgParam.assign(msgParamA.begin(), msgParamA.end());
++    ArrayBuffer arrayBufferB;
++    arrayBufferB.msgId = "msgIdB";
++    string msgParamB = "testParamAtestParamAtestParamAtestParamAtestParamB";
++    arrayBufferB.msgParam.assign(msgParamB.begin(), msgParamB.end());
++    ArrayBuffer arrayBufferC;
++    arrayBufferC.msgId = "msgIdC";
++    string msgParamC = "testParamAtestParamAtestParamAtestParamAtestParamC";
++    arrayBufferC.msgParam.assign(msgParamC.begin(), msgParamC.end());
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = arrayBufferA.msgId + arrayBufferB.msgId + arrayBufferC.msgId;
++    string msgParam = msgParamA + msgParamB + msgParamC;
++    arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
++
++    
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto ret = inputMethodController_->Attach(textListener_);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    ret = inputMethodController_->SendMessage(arrayBufferA);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    ret = inputMethodController_->SendMessage(arrayBufferB);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++    ret = inputMethodController_->SendMessage(arrayBufferC);
++    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++
++    EXPECT_EQ(MessageHandlerCallback::GetTimingArrayBuffer(), arrayBuffer);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: textMessageHandlerProxy_001
++ * @tc.desc: create and destroy MessageHandlerProxy success
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, textMessageHandlerProxy_001, TestSize.Level0)
++{
++    IMSA_HILOGI("Capi textMessageHandlerProxy_001 Test START");
++    auto messageHanlderProxy = OH_MessageHandlerProxy_Create();
++    ASSERT_NE(nullptr, messageHanlderProxy);
++    InputMethodMessageHandlerTest::ConstructMessageHandlerProxy(messageHanlderProxy);
++    InputMethodMessageHandlerTest::TestGetMessageHandlerProxyMember(messageHanlderProxy);
++    OH_MessageHandlerProxy_Destroy(messageHanlderProxy);
++}
++
++/**
++ * @tc.name: testSendMessageCapi_001
++ * @tc.desc: input parameters invalid.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_001, TestSize.Level0)
++{
++    IMSA_HILOGI("Capi testSendMessageCapi_001 Test START");
++    InputMethod_InputMethodProxy *imeProxy = nullptr;
++    auto ret = OH_InputMethodController_Attach(textEditorProxy_, option_, &imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    ASSERT_NE(nullptr, imeProxy);
++
++    std::u16string msgIdStr = u"msgId";
++    string msgParamStr = "testParamtestParamtestParamtestParamtestParamtestParam";
++    vector<uint8_t> msgParam(msgParamStr.begin(), msgParamStr.end());
++
++    std::u16string msgIdStrOverSize(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
++    vector<uint8_t> msgParamOverSize(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
++
++    ret = OH_InputMethodProxy_SendMessage(nullptr,
++        msgIdStr.c_str(), msgIdStr.length(), msgParam.data(), msgParam.size());
++    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
++    ret = OH_InputMethodProxy_SendMessage(imeProxy,
++        nullptr, msgIdStr.length(), msgParam.data(), msgParam.size());
++    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
++    ret = OH_InputMethodProxy_SendMessage(imeProxy,
++        msgIdStr.c_str(), msgIdStr.length(), nullptr, msgParam.size());
++    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
++
++    ret = OH_InputMethodProxy_SendMessage(imeProxy,
++        msgIdStrOverSize.c_str(), msgIdStrOverSize.length(), msgParam.data(), msgParam.size());
++    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
++    ret = OH_InputMethodProxy_SendMessage(imeProxy,
++        msgIdStr.c_str(), msgIdStr.length(), msgParamOverSize.data(), msgParamOverSize.size());
++    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
++    ret = OH_InputMethodProxy_SendMessage(imeProxy,
++        msgIdStrOverSize.c_str(), msgIdStrOverSize.length(), msgParamOverSize.data(), msgParamOverSize.size());
++    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
++
++    ret = OH_InputMethodController_Detach(imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testSendMessageCapi_002
++ * @tc.desc: input valid parameters.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_002, TestSize.Level0)
++{
++    IMSA_HILOGI("Capi testSendMessageCapi_002 Test START");
++    InputMethod_InputMethodProxy *imeProxy = nullptr;
++    auto ret = OH_InputMethodController_Attach(textEditorProxy_, option_, &imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    ASSERT_NE(nullptr, imeProxy);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++    auto messageHandler = std::make_shared<MessageHandlerCallback>();
++    auto res = inputMethodAbility_->RegisterMsgHandler(messageHandler);
++    EXPECT_EQ(res, ErrorCode::NO_ERROR);
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "msgId";
++    std::u16string msgIdStr = Str8ToStr16(arrayBuffer.msgId);
++    string msgParamStr = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParamStr.begin(), msgParamStr.end());
++
++    ret = OH_InputMethodProxy_SendMessage(
++        imeProxy, msgIdStr.c_str(), msgIdStr.length(), arrayBuffer.msgParam.data(), msgParamStr.size());
++    EXPECT_EQ(ret, IME_ERR_OK);
++
++    EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
++    ret = OH_InputMethodController_Detach(imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    InputMethodMessageHandlerTest::ResetParam();
++    res = inputMethodAbility_->RegisterMsgHandler();
++    EXPECT_EQ(res, ErrorCode::NO_ERROR);
++}
++
++/**
++ * @tc.name: testRecvMessageCapi_001
++ * @tc.desc: register inputmethod message handler with invalid param.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_001, TestSize.Level0)
++{
++    IMSA_HILOGI("Capi testRecvMessageCapi_001 Test START");
++    InputMethod_InputMethodProxy *imeProxy = nullptr;
++    auto ret = OH_InputMethodController_Attach(textEditorProxy_, option_, &imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    ASSERT_NE(nullptr, imeProxy);
++
++    auto messageHanlderProxy = OH_MessageHandlerProxy_Create();
++    ASSERT_NE(nullptr, messageHanlderProxy);
++    ret = OH_InputMethodProxy_RecvMessage(imeProxy, messageHanlderProxy);
++    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
++    
++    InputMethodMessageHandlerTest::ConstructMessageHandlerProxy(messageHanlderProxy);
++    ret = OH_InputMethodProxy_RecvMessage(nullptr, messageHanlderProxy);
++    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
++
++    ret = OH_InputMethodController_Detach(imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    OH_MessageHandlerProxy_Destroy(messageHanlderProxy);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testRecvMessageCapi_002
++ * @tc.desc: register inputmethod message handler with valid param.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_002, TestSize.Level0)
++{
++    IMSA_HILOGI("Capi testRecvMessageCapi_002 Test START");
++    InputMethod_InputMethodProxy *imeProxy = nullptr;
++    auto ret = OH_InputMethodController_Attach(textEditorProxy_, option_, &imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    ASSERT_NE(nullptr, imeProxy);
++
++    ret = OH_InputMethodProxy_RecvMessage(imeProxy, messageHanlderProxy_);
++    EXPECT_EQ(ret, IME_ERR_OK);
++
++    ret = OH_InputMethodProxy_RecvMessage(imeProxy, nullptr);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    ret = OH_InputMethodController_Detach(imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testRecvMessageCapi_003
++ * @tc.desc: register another inputmethod message handler, will triiger exMessage handler OnTerminated.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_003, TestSize.Level0)
++{
++    IMSA_HILOGI("Capi testRecvMessageCapi_003 Test START");
++    InputMethod_InputMethodProxy *imeProxy = nullptr;
++    auto ret = OH_InputMethodController_Attach(textEditorProxy_, option_, &imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    ASSERT_NE(nullptr, imeProxy);
++
++    ret = OH_InputMethodProxy_RecvMessage(imeProxy, messageHanlderProxy_);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    auto messageHanlderProxy = OH_MessageHandlerProxy_Create();
++    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_SetOnTerminatedFunc(messageHanlderProxy, OnTerminatedFuncNew));
++    EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_SetOnMessageFunc(messageHanlderProxy, OnMessageFunc));
++    ret = OH_InputMethodProxy_RecvMessage(imeProxy, messageHanlderProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    EXPECT_TRUE(g_onTerminated);
++    EXPECT_FALSE(g_onMessage);
++    EXPECT_FALSE(g_onTerminatedNew);
++
++    ret = OH_InputMethodProxy_RecvMessage(imeProxy, nullptr);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    OH_MessageHandlerProxy_Destroy(messageHanlderProxy);
++    ret = OH_InputMethodController_Detach(imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++
++/**
++ * @tc.name: testMessageHandelrCallbackCapi_001
++ * @tc.desc: recv message handler from ima.
++ * @tc.type: FUNC
++ * @tc.require:
++ */
++HWTEST_F(InputMethodMessageHandlerTest, testMessageHandelrCallbackCapi_001, TestSize.Level0)
++{
++    IMSA_HILOGI("Capi testMessageHandelrCallbackCapi_001 Test START");
++    InputMethod_InputMethodProxy *imeProxy = nullptr;
++    auto ret = OH_InputMethodController_Attach(textEditorProxy_, option_, &imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    ASSERT_NE(nullptr, imeProxy);
++    ret = OH_InputMethodProxy_RecvMessage(imeProxy, messageHanlderProxy_);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
++
++    ArrayBuffer arrayBuffer;
++    arrayBuffer.msgId = "msgId";
++    std::u16string msgIdStr = Str8ToStr16(arrayBuffer.msgId);
++    string msgParamStr = "testParamtestParamtestParamtestParamtestParamtestParam";
++    arrayBuffer.msgParam.assign(msgParamStr.begin(), msgParamStr.end());
++    EXPECT_EQ(inputMethodAbility_->SendMessage(arrayBuffer), ErrorCode::NO_ERROR);
++    EXPECT_TRUE(WaitOnMessageFunc(arrayBuffer));
++
++    ret = OH_InputMethodProxy_RecvMessage(imeProxy, nullptr);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    ret = OH_InputMethodController_Detach(imeProxy);
++    EXPECT_EQ(ret, IME_ERR_OK);
++    InputMethodMessageHandlerTest::ResetParam();
++}
++} // namespace MiscServices
++} // namespace OHOS
+\ No newline at end of file

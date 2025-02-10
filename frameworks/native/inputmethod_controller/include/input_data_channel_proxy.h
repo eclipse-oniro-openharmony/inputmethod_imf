@@ -55,6 +55,7 @@ public:
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t SetPreviewText(const std::string &text, const Range &range) override;
     int32_t FinishTextPreview(bool isAsync) override;
+    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
 
 private:
     static inline BrokerDelegator<InputDataChannelProxy> delegator_;

@@ -18,6 +18,8 @@ config("module_private_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
+    "${inputmethod_path}/frameworks/ndk/include",
+    "${inputmethod_path}/interfaces/kits/c",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/test/common",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
@@ -945,4 +947,58 @@ ohos_unittest("ImeControllerCpaiTest") {
     "googletest:gtest_main",
     "input:libmmi-client",
   ]
+}
+
+ohos_unittest("InputMethodMessageHandlerTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./inputmethod_blocklist.txt"
+  }
+  module_out_path = module_output_path
+
+  sources = [
+    "${inputmethod_path}/services/src/input_type_manager.cpp",
+    "src/input_method_message_handler_test.cpp",
+  ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [
+    "${inputmethod_path}/frameworks/ndk:ohinputmethod_static",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "window_manager:libdm",
+  ]
+
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
