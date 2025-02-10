@@ -191,7 +191,7 @@ private:
     std::atomic<bool> isImeTerminating_ = false;
     std::atomic<int32_t> securityMode_ = -1;
     std::mutex msgHandlerMutex_;
-    std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_;
+    std::shared_ptr<MsgHandlerCallbackInterface> jsMsgHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -1405,8 +1405,8 @@ int32_t InputMethodAbility::RegisterMsgHandler(const std::shared_ptr<MsgHandlerC
     std::shared_ptr<MsgHandlerCallbackInterface> exMsgHandler = nullptr;
     {
         std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
-        exMsgHandler = msgHandler_;
-        msgHandler_ = msgHandler;
+        exMsgHandler = jsMsgHandler_;
+        jsMsgHandler_ = msgHandler;
     }
     if (exMsgHandler != nullptr) {
         IMSA_HILOGI("Trigger exMessageHandler OnTerminated.");
@@ -1418,7 +1418,7 @@ int32_t InputMethodAbility::RegisterMsgHandler(const std::shared_ptr<MsgHandlerC
 std::shared_ptr<MsgHandlerCallbackInterface> InputMethodAbility::GetMsgHandlerCallback()
 {
     std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
-    return msgHandler_;
+    return jsMsgHandler_;
 }
 } // namespace MiscServices
 } // namespace OHOS
