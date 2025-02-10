@@ -274,6 +274,44 @@ int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
     }
 }
 
+int32_t InputMethodPanel::StartMoving()
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_IME;
+    }
+    if (panelType_ != STATUS_BAR) {
+        IMSA_HILOGE("SOFT_KEYBOARD panel can not move!");
+        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
+    }
+    if (panelFlag_ != FLG_FLOATING) {
+        IMSA_HILOGE("invalid panel flag: %{public}d", panelFlag_);
+        return ErrorCode::ERROR_INVALID_PANEL_FLAG;
+    }
+    auto ret = window_->StartMoveWindow();
+    if (ret != WmErrorCode::WM_OK) {
+        IMSA_HILOGE("window manager service error ret = %{public}d.", ret);
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    IMSA_HILOGI("StartMoving  success!");
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_IME;
+    }
+    displayId = window_->GetDisplayId();
+    if (displayId == Rosen::DISPLAY_ID_INVALID) {
+        IMSA_HILOGE("display id invalid!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    IMSA_HILOGI("GetDisplayId success dispalyId = %{public}" PRIu64 "", displayId);
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
 {
     if (window_ == nullptr) {

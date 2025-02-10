@@ -37,6 +37,7 @@ enum class JsEvent : uint32_t {
     MOVE_TO,
     CHANGE_FLAG,
     ADJUST_PANEL_RECT,
+    GET_DISPLAYID,
     EVENT_END,
 };
 
@@ -69,6 +70,8 @@ public:
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static napi_value AdjustPanelRect(napi_env env, napi_callback_info info);
+    static napi_value StartMoving(napi_env env, napi_callback_info info);
+    static napi_value GetDisplayId(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> GetNative();
 
@@ -85,6 +88,7 @@ private:
         uint32_t height = 0;
         int32_t x = 0;
         int32_t y = 0;
+        uint64_t displayId = 0;
         std::shared_ptr<InputMethodPanel> inputMethodPanel = nullptr;
         std::shared_ptr<NativeReference> contentStorage = nullptr;
         JsEventInfo info;
