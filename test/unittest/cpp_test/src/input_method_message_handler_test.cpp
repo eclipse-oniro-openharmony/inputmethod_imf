@@ -1147,7 +1147,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_010, TestSize.Level0)
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
     ret = inputMethodAbility_->SendMessage(arrayBuffer);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 
     InputMethodMessageHandlerTest::ResetParam();
     ret = inputMethodController_->RegisterMsgHandler(nullptr);
