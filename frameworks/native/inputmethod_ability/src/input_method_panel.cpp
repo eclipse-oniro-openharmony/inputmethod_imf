@@ -1000,10 +1000,6 @@ int32_t InputMethodPanel::GetSysPanelAdjust(const PanelFlag panelFlag,
     }
     auto lanIterValue = lanIter->second;
     auto porIterValue = porIter->second;
-    keyboardLayoutParams_.LandscapeKeyboardRect_ = layoutParams.landscapeRect;
-    keyboardLayoutParams_.PortraitKeyboardRect_ = layoutParams.portraitRect;
-    keyboardLayoutParams_.LandscapePanelRect_ = layoutParams.landscapeRect;
-    keyboardLayoutParams_.PortraitPanelRect_ = layoutParams.portraitRect;
     return CalculatePanelRect(panelFlag, lanIterValue, porIterValue, layoutParams);
 }
 
