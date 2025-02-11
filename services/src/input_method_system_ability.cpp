@@ -1804,7 +1804,8 @@ int32_t InputMethodSystemAbility::CheckSwitchPermission(int32_t userId, const Sw
         IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY!");
         // switchInfo.subName.empty() check temporarily reserved for application adaptation, will be deleted soon
         auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
-        if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)) {
+        if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName) &&
+            !switchInfo.subName.empty()) {
             return ErrorCode::NO_ERROR;
         }
         IMSA_HILOGE("not current ime!");
