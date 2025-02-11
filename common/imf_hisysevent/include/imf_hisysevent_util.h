@@ -32,7 +32,7 @@ public:
         const std::vector<std::string> &appNames, const std::vector<std::string> &statistics);
     static void ReportStatisticsEvent(const std::string &eventName, const std::string &imeName,
         const std::vector<std::string> &appNames, const std::vector<std::string> &statistics);
-    static std::string GetAppName(uint32_t tokenId);
+    static std::string GetAppName(uint64_t fullTokenId);
     static std::string AddIfAbsent(const std::string &bundleName, std::vector<std::string> &bundleNames);
 };
 } // namespace MiscServices

@@ -67,11 +67,11 @@ private:
         { BASE_TEXT_OPERATOR, { BASE_TEXT_OPERATION_FAILED, BASE_TEXT_OPERATION_STATISTICS } },
     };
     using FaultEventHandler = void (*)(const std::string &selfName, int64_t faultNum, const HiSysOriginalInfo &info);
-    static constexpr FaultEventHandler FAULT_EVENT_HANDLERS[HI_SYS_FAULT_EVENT_END] = {
-        [CLIENT_ATTACH_FAILED] = ImfHiSysEventUtil::ReportClientAttachFault,
-        [CLIENT_SHOW_FAILED] = ImfHiSysEventUtil::ReportClientShowFault,
-        [IME_START_INPUT_FAILED] = ImfHiSysEventUtil::ReportImeStartInputFault,
-        [BASE_TEXT_OPERATION_FAILED] = ImfHiSysEventUtil::ReportBaseTextOperationFault,
+    const std::unordered_map<uint32_t, FaultEventHandler> FAULT_EVENT_HANDLERS = {
+        { CLIENT_ATTACH_FAILED, ImfHiSysEventUtil::ReportClientAttachFault },
+        { CLIENT_SHOW_FAILED, ImfHiSysEventUtil::ReportClientShowFault },
+        { IME_START_INPUT_FAILED, ImfHiSysEventUtil::ReportImeStartInputFault },
+        { BASE_TEXT_OPERATION_FAILED, ImfHiSysEventUtil::ReportBaseTextOperationFault }
     };
     int64_t timerStartTime_ = 0;
     std::mutex selfNameLock_;

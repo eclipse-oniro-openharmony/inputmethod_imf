@@ -1062,7 +1062,7 @@ void InputMethodController::OnInputReady(
     sptr<IRemoteObject> agentObject, const std::pair<int64_t, std::string> &imeInfo)
 {
     IMSA_HILOGI("InputMethodController start.");
-    bindImeInfo_ = imeInfo;
+    SetBindImeInfo(imeInfo);
     isBound_.store(true);
     isEditable_.store(true);
     if (agentObject == nullptr) {
@@ -1451,6 +1451,18 @@ int32_t InputMethodController::SendPrivateCommand(
     return agent->SendPrivateCommand(privateCommand);
 }
 
+void InputMethodController::SetBindImeInfo(const std::pair<int64_t, std::string> &imeInfo)
+{
+    std::lock_guard<std::mutex> lock(bindImeInfoLock_);
+    bindImeInfo_ = imeInfo;
+}
+
+std::pair<int64_t, std::string> InputMethodController::GetBindImeInfo()
+{
+    std::lock_guard<std::mutex> lock(bindImeInfoLock_);
+    return bindImeInfo_;
+}
+
 int32_t InputMethodController::SetPreviewTextInner(const std::string &text, const Range &range)
 {
     InputMethodSyncTrace tracer("IMC_SetPreviewText");
@@ -1602,11 +1614,12 @@ void InputMethodController::ReportClientShow(int32_t eventCode, int32_t errCode,
 
 void InputMethodController::ReportBaseTextOperation(int32_t eventCode, int32_t errCode)
 {
+    auto imeInfo = GetBindImeInfo();
     auto evenInfo = HiSysOriginalInfo::Builder()
                         .SetEventCode(eventCode)
                         .SetErrCode(errCode)
-                        .SetPeerName(bindImeInfo_.second)
-                        .SetPeerPid(bindImeInfo_.first)
+                        .SetPeerName(imeInfo.second)
+                        .SetPeerPid(imeInfo.first)
                         .SetClientType(clientInfo_.type)
                         .Build();
     ImcHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *evenInfo);

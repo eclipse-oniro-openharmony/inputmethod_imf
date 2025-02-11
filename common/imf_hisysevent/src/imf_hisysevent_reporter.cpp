@@ -40,14 +40,15 @@ void ImfHiSysEventReporter::ReportEvent(ImfEventType eventType, const HiSysOrigi
 
 void ImfHiSysEventReporter::ReportFaultEvent(ImfFaultEvent event, const HiSysOriginalInfo &info)
 {
-    if (event < ImfFaultEvent::HI_SYS_FAULT_EVENT_BEGIN || event >= ImfFaultEvent::HI_SYS_FAULT_EVENT_END) {
+    auto it = FAULT_EVENT_HANDLERS.find(event);
+    if (it == FAULT_EVENT_HANDLERS.end() || it->second == nullptr) {
         return;
     }
     auto faultReportInfo = GenerateFaultReportInfo(event, info);
     if (!faultReportInfo.first) {
         return;
     }
-    FAULT_EVENT_HANDLERS[event](GetSelfName(), faultReportInfo.second, info);
+    it->second(GetSelfName(), faultReportInfo.second, info);
 }
 
 void ImfHiSysEventReporter::StartTimer()
