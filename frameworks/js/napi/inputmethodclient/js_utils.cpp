@@ -67,6 +67,8 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST, EXCEPTION_REQUEST_NOT_ACCEPT },
     { ErrorCode::ERROR_MESSAGE_HANDLER, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE, EXCEPTION_PARAMCHECK },
+    { ErrorCode::ERROR_INVALID_PANEL_TYPE, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
+    { ErrorCode::ERROR_INVALID_PANEL_FLAG, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -90,6 +92,7 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_BASIC_MODE, "the intput method is basic mode." },
     { EXCEPTION_REQUEST_NOT_ACCEPT, "the another side does not accept the request." },
     { EXCEPTION_EDITABLE, "the edit mode need enable." },
+    { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {

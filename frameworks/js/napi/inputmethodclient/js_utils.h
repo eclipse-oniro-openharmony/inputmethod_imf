@@ -97,6 +97,14 @@ enum TypeCode : int32_t {
         }                                                          \
     } while (0)
 
+#define RESULT_CHECK_RETURN(env, condition, errCode, message, typeCode, retVal) \
+    do {                                                                       \
+        if (!(condition)) {                                                    \
+            JsUtils::ThrowException(env, errCode, message, typeCode);          \
+            return retVal;                                                     \
+        }                                                                      \
+    } while (0)
+
 class JsUtils {
 public:
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
