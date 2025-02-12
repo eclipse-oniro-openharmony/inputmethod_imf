@@ -822,6 +822,17 @@ public:
      */
     IMF_API bool EnableIme(const std::string &bundleName);
 
+    /**
+     * @brief Get ime state.
+     *
+     * This function is used to get it's enabled state by ime.
+     *
+     * @param status Indicates the enabled state
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t GetInputMethodState(EnabledStatus &status);
+
 private:
     InputMethodController();
     ~InputMethodController();

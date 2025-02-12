@@ -53,5 +53,11 @@ bool ImeInfoInquirer::GetImeVersionCode(int32_t userId, const std::string &bundl
     versionCode = 0;
     return true;
 }
+
+ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
+{
+    ImeNativeCfg imeCfg;
+    return imeCfg;
+}
 } // namespace MiscServices
 } // namespace OHOS
