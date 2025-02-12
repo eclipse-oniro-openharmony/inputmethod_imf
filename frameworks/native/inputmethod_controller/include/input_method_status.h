@@ -20,5 +20,10 @@
 
 namespace OHOS ::MiscServices {
 enum InputMethodStatus : uint32_t { DISABLE = 0, ENABLE, ALL };
-}
+enum class EnabledStatus : int32_t {
+    DISABLED = 0,
+    BASIC_MODE,
+    FULL_EXPERIENCE_MODE,
+};
+} // namespace OHOS::MiscServices
 #endif // namespace OHOS::INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H

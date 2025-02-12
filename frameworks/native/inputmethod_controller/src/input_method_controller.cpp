@@ -1480,5 +1480,15 @@ std::shared_ptr<MsgHandlerCallbackInterface> InputMethodController::GetMsgHandle
     std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
     return msgHandler_;
 }
+
+int32_t InputMethodController::GetInputMethodState(EnabledStatus &state)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->GetInputMethodState(state);
+}
 } // namespace MiscServices
 } // namespace OHOS

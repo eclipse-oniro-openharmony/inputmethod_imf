@@ -81,6 +81,7 @@ public:
     int32_t ShowCurrentInputDeprecated() override;
     bool IsDefaultImeSet() override;
     bool EnableIme(const std::string &bundleName) override;
+    int32_t GetInputMethodState(EnabledStatus &status) override;
 
 private:
     static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;

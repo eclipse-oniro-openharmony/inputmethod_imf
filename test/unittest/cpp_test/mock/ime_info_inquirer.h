@@ -26,6 +26,13 @@
 
 namespace OHOS {
 namespace MiscServices {
+struct ImeNativeCfg {
+    std::string imeId;
+    std::string bundleName;
+    std::string subName;
+    std::string extName;
+};
+
 class ImeInfoInquirer {
 public:
     static ImeInfoInquirer &GetInstance();
@@ -34,6 +41,7 @@ public:
     std::shared_ptr<Property> GetDefaultImeCfgProp();
     bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId);
     bool GetImeVersionCode(int32_t userId, const std::string &bundleName, uint32_t &versionCode);
+    ImeNativeCfg GetDefaultIme();
 
 private:
     static std::shared_ptr<ImeInfo> defaultIme_;
