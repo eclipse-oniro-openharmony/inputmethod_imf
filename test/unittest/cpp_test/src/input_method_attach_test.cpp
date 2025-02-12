@@ -395,6 +395,23 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach002, TestSize.Level
 }
 
 /**
+ * @tc.name: testAttachWithInvalidImmersiveMode
+ * @tc.desc: test Attach with invalid immersive mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAttachTest, testAttachWithInvalidImmersiveMode, TestSize.Level0)
+{
+    IMSA_HILOGI("test testAttachWithInvalidImmersiveMode.");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputAttribute attribute;
+    attribute.immersiveMode = static_cast<int32_t>(ImmersiveMode::END);
+    TextConfig config;
+    config.inputAttribute = attribute;
+    auto ret = inputMethodController_->Attach(textListener, true, config);
+    EXPECT_EQ(ErrorCode::ERROR_PARAMETER_CHECK_FAILED, ret);
+}
+
+/**
  * @tc.name: testOnSelectionChangeAfterAttach002
  * @tc.desc: test OnSelectionChange after attach
  * @tc.type: FUNC
@@ -463,6 +480,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach002, TestSiz
     InputAttribute attribute;
     attribute.inputPattern = 3;
     attribute.enterKeyType = 2;
+    attribute.immersiveMode = static_cast<int32_t>(ImmersiveMode::DARK_IMMERSIVE);
     TextConfig config;
     config.inputAttribute = attribute;
     auto ret = inputMethodController_->Attach(textListener, false, config);
@@ -479,6 +497,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach002, TestSiz
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.inputAttribute.inputPattern, static_cast<int32_t>(configuration.GetTextInputType()));
     EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, static_cast<int32_t>(configuration.GetEnterKeyType()));
+    EXPECT_EQ(totalConfig.inputAttribute.immersiveMode, static_cast<int32_t>(ImmersiveMode::DARK_IMMERSIVE));
 }
 
 /**
@@ -600,6 +619,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange002, TestSize.Level0)
     config.inputAttribute = attribute;
     config.inputAttribute.enterKeyType = 5;
     config.inputAttribute.inputPattern = 5;
+    config.inputAttribute.immersiveMode = static_cast<int32_t>(ImmersiveMode::LIGHT_IMMERSIVE);
     ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 

@@ -101,6 +101,8 @@ public:
     bool IsDisplayPortrait();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
     void SetPanelHeightCallback(CallbackFunc heightCallback);
+    int32_t SetImmersiveMode(ImmersiveMode mode);
+    ImmersiveMode GetImmersiveMode();
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -178,6 +180,7 @@ private:
         {UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, COMMON_BOTTOM}
     };
     std::atomic<bool> isWaitSetUiContent_{true};
+    ImmersiveMode immersiveMode_ { ImmersiveMode::NONE_IMMERSIVE };
 };
 } // namespace MiscServices
 } // namespace OHOS
