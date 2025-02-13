@@ -345,6 +345,28 @@ void EnableImeDataParser::OnConfigChanged(int32_t userId, const std::string &key
     UpdateEnableData(userId, key);
 }
 
+int32_t EnableImeDataParser::GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status)
+{
+    if (ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName == bundleName) {
+        status = EnabledStatus::BASIC_MODE;
+        return ErrorCode::NO_ERROR;
+    }
+    std::vector<std::string> bundleNames;
+    auto ret = GetEnableIme(userId, bundleNames);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("[%{public}d, %{public}s] GetEnableIme failed:%{public}d.", userId, bundleName.c_str(), ret);
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
+    auto it = std::find_if(bundleNames.begin(), bundleNames.end(),
+        [&bundleName](const std::string &bundleNameTmp) { return bundleNameTmp == bundleName; });
+    if (it == bundleNames.end()) {
+        status = EnabledStatus::DISABLED;
+        return ErrorCode::NO_ERROR;
+    }
+    status = EnabledStatus::BASIC_MODE;
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t EnableImeDataParser::UpdateEnableData(int32_t userId, const std::string &key)
 {
     std::lock_guard<std::mutex> autoLock(listMutex_);

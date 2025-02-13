@@ -1432,5 +1432,77 @@ int32_t InputMethodController::FinishTextPreview()
     }
     return ErrorCode::NO_ERROR;
 }
+
+int32_t InputMethodController::SendMessage(const ArrayBuffer &arrayBuffer)
+{
+    if (!IsBound()) {
+        IMSA_HILOGE("not bound.");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
+    if (!IsEditable()) {
+        IMSA_HILOGE("not editable.");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    if (!ArrayBuffer::IsSizeValid(arrayBuffer)) {
+        IMSA_HILOGE("arrayBuffer size is invalid!");
+        return ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE;
+    }
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return agent->SendMessage(arrayBuffer);
+}
+
+int32_t InputMethodController::RecvMessage(const ArrayBuffer &arrayBuffer)
+{
+    if (!IsBound()) {
+        IMSA_HILOGE("not bound.");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
+    if (!IsEditable()) {
+        IMSA_HILOGE("not editable.");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    auto msgHandlerCallback = GetMsgHandlerCallback();
+    if (msgHandlerCallback == nullptr) {
+        IMSA_HILOGW("Message handler was not regist!");
+        return ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST;
+    }
+    return msgHandlerCallback->OnMessage(arrayBuffer);
+}
+
+int32_t InputMethodController::RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler)
+{
+    IMSA_HILOGI("isRegist: %{public}d", msgHandler != nullptr);
+    std::shared_ptr<MsgHandlerCallbackInterface> exMsgHandler = nullptr;
+    {
+        std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
+        exMsgHandler = msgHandler_;
+        msgHandler_ = msgHandler;
+    }
+    if (exMsgHandler != nullptr) {
+        IMSA_HILOGI("Trigger exMessageHandler OnTerminated.");
+        exMsgHandler->OnTerminated();
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+std::shared_ptr<MsgHandlerCallbackInterface> InputMethodController::GetMsgHandlerCallback()
+{
+    std::lock_guard<decltype(msgHandlerMutex_)> lock(msgHandlerMutex_);
+    return msgHandler_;
+}
+
+int32_t InputMethodController::GetInputMethodState(EnabledStatus &state)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->GetInputMethodState(state);
+}
 } // namespace MiscServices
 } // namespace OHOS

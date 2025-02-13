@@ -482,5 +482,23 @@ bool ITypesUtil::Unmarshalling(Range &output, MessageParcel &data)
     }
     return true;
 }
+
+bool ITypesUtil::Marshalling(const ArrayBuffer &input, MessageParcel &data)
+{
+    if (!Marshal(data, input.msgId, input.msgParam, input.jsArgc)) {
+        IMSA_HILOGE("failed to write ArrayBuffer into message parcel.");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Unmarshalling(ArrayBuffer &output, MessageParcel &data)
+{
+    if (!Unmarshal(data, output.msgId, output.msgParam, output.jsArgc)) {
+        IMSA_HILOGE("failed to read ArrayBuffer from message parcel.");
+        return false;
+    }
+    return true;
+}
 } // namespace MiscServices
 } // namespace OHOS

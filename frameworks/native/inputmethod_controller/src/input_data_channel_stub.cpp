@@ -234,6 +234,17 @@ int32_t InputDataChannelStub::SetPreviewTextOnRemote(MessageParcel &data, Messag
     return reply.WriteInt32(SetPreviewText(text, range)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputDataChannelStub::RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    ArrayBuffer arraybuffer;
+    if (!ITypesUtil::Unmarshal(data, arraybuffer)) {
+        IMSA_HILOGE("failed to read message parcel!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto ret = InputMethodController::GetInstance()->RecvMessage(arraybuffer);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputDataChannelStub::FinishTextPreviewOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     bool isAsync = false;
@@ -341,6 +352,11 @@ int32_t InputDataChannelStub::SetPreviewText(const std::string &text, const Rang
 int32_t InputDataChannelStub::FinishTextPreview(bool isAsync)
 {
     return InputMethodController::GetInstance()->FinishTextPreview();
+}
+
+int32_t InputDataChannelStub::SendMessage(const ArrayBuffer &arraybuffer)
+{
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

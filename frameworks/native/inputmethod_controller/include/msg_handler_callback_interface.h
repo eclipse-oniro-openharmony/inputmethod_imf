@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H
-#define INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H
+#ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_MSG_HANDLER_INTERFACE_H
+#define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_MSG_HANDLER_INTERFACE_H
 
-#include "message_parcel.h"
+#include "input_method_utils.h"
 
-namespace OHOS ::MiscServices {
-enum InputMethodStatus : uint32_t { DISABLE = 0, ENABLE, ALL };
-enum class EnabledStatus : int32_t {
-    DISABLED = 0,
-    BASIC_MODE,
-    FULL_EXPERIENCE_MODE,
+namespace OHOS {
+namespace MiscServices {
+class MsgHandlerCallbackInterface {
+public:
+    virtual int32_t OnTerminated() = 0;
+    virtual int32_t OnMessage(const ArrayBuffer &arrayBuffer) = 0;
 };
-} // namespace OHOS::MiscServices
-#endif // namespace OHOS::INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H
+} // namespace MiscServices
+} // namespace OHOS
+#endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_MSG_HANDLER_INTERFACE_H

@@ -22,6 +22,7 @@ namespace MiscServices {
 constexpr int32_t STR_MAX_LENGTH = 4096;
 constexpr size_t STR_TAIL_LENGTH = 1;
 constexpr size_t ARGC_MAX = 6;
+constexpr size_t ARGC_ONE = 1;
 const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED, EXCEPTION_CONTROLLER },
     { ErrorCode::ERROR_STATUS_PERMISSION_DENIED, EXCEPTION_PERMISSION },
@@ -30,7 +31,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_CLIENT_NOT_FOUND, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NULL_POINTER, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NOT_FOCUSED, EXCEPTION_IMCLIENT },
-    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE, EXCEPTION_IMCLIENT },
+    { ErrorCode::ERROR_CLIENT_NOT_EDITABLE, EXCEPTION_EDITABLE },
     { ErrorCode::ERROR_CLIENT_NOT_BOUND, EXCEPTION_DETACHED },
     { ErrorCode::ERROR_CLIENT_ADD_FAILED, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_NULL_POINTER, EXCEPTION_IMMS },
@@ -62,6 +63,10 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_TEXT_LISTENER_ERROR, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED, EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED },
     { ErrorCode::ERROR_INVALID_RANGE, EXCEPTION_PARAMCHECK },
+    { ErrorCode::ERROR_SECURITY_MODE_OFF, EXCEPTION_BASIC_MODE },
+    { ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST, EXCEPTION_REQUEST_NOT_ACCEPT },
+    { ErrorCode::ERROR_MESSAGE_HANDLER, EXCEPTION_IMCLIENT },
+    { ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE, EXCEPTION_PARAMCHECK },
     { ErrorCode::ERROR_INVALID_PANEL_TYPE, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
     { ErrorCode::ERROR_INVALID_PANEL_FLAG, EXCEPTION_INVALID_PANEL_TYPE_FLAG },
 };
@@ -84,6 +89,9 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED, "text preview is not supported." },
     { EXCEPTION_PANEL_NOT_FOUND, "soft keyboard panel doesn't exist." },
     { EXCEPTION_WINDOW_MANAGER, "window manager service error." },
+    { EXCEPTION_BASIC_MODE, "the intput method is basic mode." },
+    { EXCEPTION_REQUEST_NOT_ACCEPT, "the another side does not accept the request." },
+    { EXCEPTION_EDITABLE, "the edit mode need enable." },
     { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
 };
 
@@ -98,6 +106,7 @@ const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
     { TYPE_FUNCTION, "napi_function." },
     { TYPE_EXTERNAL, "napi_external." },
     { TYPE_BIGINT, "napi_bigint." },
+    { TYPE_ARRAY_BUFFER, "ArrayBuffer." },
 };
 
 void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type)
@@ -437,5 +446,70 @@ napi_value JsUtils::GetJsPrivateCommand(napi_env env, const std::unordered_map<s
     }
     return jsPrivateCommand;
 }
+
+napi_value JsUtils::GetValue(napi_env env, const std::vector<uint8_t> &in)
+{
+    void *data = nullptr;
+    napi_value arrayBuffer = nullptr;
+    size_t length = in.size();
+    NAPI_CALL(env, napi_create_arraybuffer(env, length, &data, &arrayBuffer));
+    // 0 means the size of data.
+    CHECK_RETURN(length != 0, "Data size is 0.", arrayBuffer);
+    if (memcpy_s(data, length, reinterpret_cast<const void *>(in.data()), length) != 0) {
+        return nullptr;
+    }
+    return arrayBuffer;
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, std::vector<uint8_t> &out)
+{
+    size_t length = 0;
+    void *data = nullptr;
+    auto status = napi_get_arraybuffer_info(env, in, &data, &length);
+    if (status != napi_ok) {
+        IMSA_HILOGE("Get ArrayBuffer info failed!");
+        return status;
+    }
+    if (data == nullptr) {
+        IMSA_HILOGE("ArrayBuffer data is nullptr!");
+        return napi_generic_failure;
+    }
+    IMSA_HILOGD("ArrayBuffer data size: %{public}zu.", length);
+    out.assign(reinterpret_cast<const uint8_t *>(data), reinterpret_cast<const uint8_t *>(data) + length);
+    return napi_ok;
+}
+
+napi_status JsUtils::GetMessageHandlerCallbackParam(napi_value *argv,
+    const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer)
+{
+    if (argv == nullptr) {
+        IMSA_HILOGE("argv is nullptr!.");
+        return napi_generic_failure;
+    }
+    if (jsMessageHandler == nullptr) {
+        IMSA_HILOGE("jsMessageHandler is nullptr!.");
+        return napi_generic_failure;
+    }
+    napi_value jsMsgId = nullptr;
+    auto status = napi_create_string_utf8(
+        jsMessageHandler->env_, arrayBuffer.msgId.c_str(), NAPI_AUTO_LENGTH, &jsMsgId);
+    if (status != napi_ok) {
+        IMSA_HILOGE("napi_create_string_utf8 failed!.");
+        return napi_generic_failure;
+    }
+    // 0 means the first param index of callback.
+    argv[0] = { jsMsgId };
+    if (arrayBuffer.jsArgc > ARGC_ONE) {
+        napi_value jsMsgParam = JsUtils::GetValue(jsMessageHandler->env_, arrayBuffer.msgParam);
+        if (jsMsgParam == nullptr) {
+            IMSA_HILOGE("Get js messageParam object failed!.");
+            return napi_generic_failure;
+        }
+        // 0 means the second param index of callback.
+        argv[1] = { jsMsgParam };
+    }
+    return napi_ok;
+}
+
 } // namespace MiscServices
 } // namespace OHOS

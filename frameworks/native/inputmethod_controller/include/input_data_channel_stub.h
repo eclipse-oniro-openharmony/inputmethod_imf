@@ -57,6 +57,7 @@ public:
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t SetPreviewText(const std::string &text, const Range &range) override;
     int32_t FinishTextPreview(bool isAsync) override;
+    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
 
 private:
     int32_t InsertTextOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -79,6 +80,7 @@ private:
     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SetPreviewTextOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t FinishTextPreviewOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (InputDataChannelStub::*)(MessageParcel &, MessageParcel &);
     static inline constexpr RequestHandler HANDLERS[DATA_CHANNEL_CMD_END] = {
         [static_cast<uint32_t>(INSERT_TEXT)] = &InputDataChannelStub::InsertTextOnRemote,
@@ -101,6 +103,7 @@ private:
         [static_cast<uint32_t>(SEND_PRIVATE_COMMAND)] = &InputDataChannelStub::SendPrivateCommandOnRemote,
         [static_cast<uint32_t>(SET_PREVIEW_TEXT)] = &InputDataChannelStub::SetPreviewTextOnRemote,
         [static_cast<uint32_t>(FINISH_TEXT_PREVIEW)] = &InputDataChannelStub::FinishTextPreviewOnRemote,
+        [static_cast<uint32_t>(SEND_MESSAGE)] = &InputDataChannelStub::RecvMessageOnRemote,
     };
 };
 } // namespace MiscServices

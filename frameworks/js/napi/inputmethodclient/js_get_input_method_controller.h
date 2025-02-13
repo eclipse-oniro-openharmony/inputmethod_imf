@@ -21,6 +21,8 @@
 #include "global.h"
 #include "js_callback_object.h"
 #include "js_input_method.h"
+#include "js_message_handler_info.h"
+#include "msg_handler_callback_interface.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -175,6 +177,8 @@ public:
     static napi_value StopInput(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
+    static napi_value SendMessage(napi_env env, napi_callback_info info);
+    static napi_value RecvMessage(napi_env env, napi_callback_info info);
     void OnSelectByRange(int32_t start, int32_t end) override;
     void OnSelectByMovement(int32_t direction) override;
     void InsertText(const std::u16string &text);
@@ -187,6 +191,17 @@ public:
     std::u16string GetText(const std::string &type, int32_t number);
     int32_t GetTextIndexAtCursor();
 
+    class JsMessageHandler : public MsgHandlerCallbackInterface {
+    public:
+        explicit JsMessageHandler(napi_env env, napi_value onTerminated, napi_value onMessage)
+            : jsMessageHandler_(std::make_shared<JSMsgHandlerCallbackObject>(env, onTerminated, onMessage)) {};
+        virtual ~JsMessageHandler() {};
+        int32_t OnTerminated() override;
+        int32_t OnMessage(const ArrayBuffer &arrayBuffer) override;
+    private:
+        std::mutex callbackObjectMutex_;
+        std::shared_ptr<JSMsgHandlerCallbackObject> jsMessageHandler_ = nullptr;
+    };
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetIMController(napi_env env, napi_callback_info cbInfo, bool needThrowException);
@@ -204,6 +219,7 @@ private:
     static napi_value GetJsTextInputTypeProperty(napi_env env);
     static napi_value GetJsDirectionProperty(napi_env env);
     static napi_value GetJsExtendActionProperty(napi_env env);
+    static napi_value GetJsEnabledStateProperty(napi_env env);
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     static const std::set<std::string> TEXT_EVENT_TYPE;
     static constexpr int32_t MAX_TIMEOUT = 2500;
@@ -241,6 +257,7 @@ private:
     static constexpr size_t PARAM_POS_ONE = 1;
     static constexpr size_t PARAM_POS_TWO = 2;
     static constexpr size_t PARAM_POS_THREE = 3;
+    static BlockQueue<MessageHandlerInfo> messageHandlerQueue_;
 };
 } // namespace MiscServices
 } // namespace OHOS

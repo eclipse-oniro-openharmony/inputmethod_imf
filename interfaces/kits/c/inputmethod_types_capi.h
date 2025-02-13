@@ -293,6 +293,18 @@ typedef enum InputMethod_ErrorCode {
      */
     IME_ERR_DETACHED = 12800009,
     /**
+     * @error The error code when another size was not register message handler.
+     */
+    IME_ERR_BASIC_MODE = 12800014,
+    /**
+     * @error The error code when current security mode is basic mode.
+     */
+    IME_ERR_REQUEST_NOT_ACCEPT = 12800015,
+    /**
+     * @error The error code when current is not editable status.
+     */
+    IME_ERR_EDITABLE = 12800016,
+    /**
      * @error The error code when unexpected null pointer.
      */
     IME_ERR_NULL_POINTER = 12802000,
