@@ -151,6 +151,13 @@ int32_t InputDataChannelProxy::FinishTextPreview(bool isAsync)
     }
 }
 
+int32_t InputDataChannelProxy::SendMessage(const ArrayBuffer &arraybuffer)
+{
+    return SendRequest(SEND_MESSAGE, [&arraybuffer](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, arraybuffer);
+    });
+}
+
 void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option)
 {
     switch (code) {

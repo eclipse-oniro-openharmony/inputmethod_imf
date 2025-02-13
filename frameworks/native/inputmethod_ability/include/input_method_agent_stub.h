@@ -38,11 +38,13 @@ public:
     void OnAttributeChange(const InputAttribute &attribute) override;
     void SetMessageHandler(MessageHandler *msgHandler);
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t SendMessage(const ArrayBuffer &arraybuffer) override;
 
 private:
     int32_t DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnAttributeChangeOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply);
     MessageHandler *msgHandler_;
 };
 } // namespace MiscServices

@@ -31,6 +31,7 @@ group("unittest") {
       "cpp_test:InputMethodControllerTest",
       "cpp_test:InputMethodDfxTest",
       "cpp_test:InputMethodEditorTest",
+      "cpp_test:InputMethodMessageHandlerTest",
       "cpp_test:InputMethodPanelTest",
       "cpp_test:InputMethodPrivateMemberTest",
       "cpp_test:InputMethodSeccompTest",

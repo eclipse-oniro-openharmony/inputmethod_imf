@@ -39,6 +39,7 @@
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
+#include "msg_handler_callback_interface.h"
 #include "message_handler.h"
 #include "panel_info.h"
 #include "private_command_interface.h"
@@ -823,6 +824,31 @@ public:
     IMF_API bool EnableIme(const std::string &bundleName);
 
     /**
+     * @brief Send ArrayBuffer message to ime.
+     *
+     * This function is used to Send ArrayBuffer message to ime.
+     *
+     * @param arrayBuffer Indicates the ArrayBuffer message that will be send to the ime.
+     *                    The member msgId limit 256B, and member msgParam limit 128KB.
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t SendMessage(const ArrayBuffer &arrayBuffer);
+    int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
+
+    /**
+     * @brief Regist message handler callback.
+     *
+     * This function is used to register a message handler to receive message from ime, or remove message handler.
+     *
+     * @param msgHandler Indicates the message handler callback.
+     *                   If nullptr will remove callback that was registered and trigger function OnTerminated.
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
+
+    /**
      * @brief Get ime state.
      *
      * This function is used to get it's enabled state by ime.
@@ -859,6 +885,7 @@ private:
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
     void PrintKeyEventLog();
+    std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
@@ -913,6 +940,9 @@ private:
     };
     static constexpr int32_t MAX_WAIT_TIME = 5000;
     BlockQueue<KeyEventInfo> keyEventQueue_{ MAX_WAIT_TIME };
+
+    std::mutex msgHandlerMutex_;
+    std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS
