@@ -60,8 +60,12 @@ napi_value AttachInputMethodExtensionContext(napi_env env, void *value, void *)
         return nullptr;
     }
     napi_value object = CreateJsInputMethodExtensionContext(env, ptr);
-    auto contextObj =
-        JsRuntime::LoadSystemModuleByEngine(env, "InputMethodExtensionContext", &object, 1)->GetNapiValue();
+    auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "InputMethodExtensionContext", &object, 1);
+    if (systemModule == nullptr) {
+        IMSA_HILOGE("failed to load system module by engine!");
+        return nullptr;
+    }
+    auto contextObj = systemModule ->GetNapiValue();
     napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc, AttachInputMethodExtensionContext, value,
         nullptr);
     auto workContext = new (std::nothrow) std::weak_ptr<InputMethodExtensionContext>(ptr);
