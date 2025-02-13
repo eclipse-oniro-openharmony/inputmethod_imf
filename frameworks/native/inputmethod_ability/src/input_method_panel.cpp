@@ -672,7 +672,7 @@ int32_t InputMethodPanel::ShowPanel()
     auto ret = WMError::WM_OK;
     {
         InputMethodSyncTrace tracer("InputMethodPanel_ShowPanel");
-        ret = window_->Show();
+        ret = window_->ShowKeyboard(static_cast<KeyboardViewMode>(immersiveMode_));
     }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
@@ -1097,6 +1097,45 @@ bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t
 void InputMethodPanel::SetPanelHeightCallback(CallbackFunc heightCallback)
 {
     panelHeightCallback_ = std::move(heightCallback);
+}
+
+int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
+{
+    if ((mode != ImmersiveMode::NONE_IMMERSIVE && mode != ImmersiveMode::LIGHT_IMMERSIVE &&
+            mode != ImmersiveMode::DARK_IMMERSIVE)) {
+        IMSA_HILOGE("invalid mode: %{public}d", mode);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+    if (!IsShowing()) {
+        immersiveMode_ = mode;
+        IMSA_HILOGW("window is not show, mode: %{public}d", mode);
+        return ErrorCode::NO_ERROR;
+    }
+
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window is null");
+        return ErrorCode::ERROR_IME;
+    }
+
+    // call window manager to set immersive mode
+    auto ret = window_->ChangeKeyboardViewMode(static_cast<KeyboardViewMode>(mode));
+    if (ret == WMError::WM_DO_NOTHING) {
+        IMSA_HILOGW("repeat set mode new:%{public}d, old:%{public}d", mode, immersiveMode_);
+        return ErrorCode::NO_ERROR;
+    }
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("ChangeKeyboardViewMode failed, ret: %{public}d", ret);
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    immersiveMode_ = mode;
+    IMSA_HILOGD("SetImmersiveMode success, mode: %{public}d", mode);
+    return ErrorCode::NO_ERROR;
+}
+
+ImmersiveMode InputMethodPanel::GetImmersiveMode()
+{
+    IMSA_HILOGD("GetImmersiveMode mode: %{public}d", immersiveMode_);
+    return immersiveMode_;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -225,11 +225,25 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     return Attach(listener, isShowKeyboard, textConfig);
 }
 
+int32_t InputMethodController::IsValidTextConfig(const TextConfig &textConfig)
+{
+    if (textConfig.inputAttribute.immersiveMode < static_cast<int32_t>(ImmersiveMode::NONE_IMMERSIVE) ||
+        textConfig.inputAttribute.immersiveMode >= static_cast<int32_t>(ImmersiveMode::END)) {
+        IMSA_HILOGE("invalid immersiveMode: %{public}d", textConfig.inputAttribute.immersiveMode);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard,
     const TextConfig &textConfig)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d.", isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
+    if (IsValidTextConfig(textConfig) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("invalid textConfig.");
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
     auto lastListener = GetTextListener();
     clientInfo_.isNotifyInputStart = lastListener != listener;
     if (clientInfo_.isNotifyInputStart && lastListener != nullptr) {

@@ -885,6 +885,7 @@ private:
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
     void PrintKeyEventLog();
+    int32_t IsValidTextConfig(const TextConfig &textConfig);
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
 
     std::shared_ptr<ControllerListener> controllerListener_;
