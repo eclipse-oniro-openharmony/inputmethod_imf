@@ -55,7 +55,8 @@ public:
         std::pair<int64_t, std::string> &imeInfo) override;
     int32_t ShowCurrentInput(ClientType type = ClientType::INNER_KIT) override;
     int32_t HideCurrentInput() override;
-    int32_t ShowInput(sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT) override;
+    int32_t ShowInput(
+        sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT, int32_t requestKeyboardReason = 0) override;
     int32_t HideInput(sptr<IInputClient> client) override;
     int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
@@ -184,7 +185,7 @@ private:
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t StartInputInner(
         InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
-    int32_t ShowInputInner(sptr<IInputClient> client);
+    int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t ShowCurrentInputInner();
     std::pair<int64_t, std::string> GetCurrentImeInfoForHiSysEvent(int32_t userId);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE

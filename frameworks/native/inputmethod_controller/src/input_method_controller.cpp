@@ -251,8 +251,8 @@ int32_t InputMethodController::IsValidTextConfig(const TextConfig &textConfig)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodController::Attach(
-    sptr<OnTextChangedListener> listener, AttachOptions attachOptions, const TextConfig &textConfig, ClientType type)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, const AttachOptions &attachOptions,
+    const TextConfig &textConfig, ClientType type)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d.", attachOptions.isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
@@ -298,7 +298,7 @@ int32_t InputMethodController::Attach(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodController::ShowTextInputInner(ClientType type)
+int32_t InputMethodController::ShowTextInputInner(const AttachOptions &attachOptions, ClientType type)
 {
     InputMethodSyncTrace tracer("IMC_ShowTextInput");
     if (!IsBound()) {
@@ -311,7 +311,7 @@ int32_t InputMethodController::ShowTextInputInner(ClientType type)
         clientInfo_.isShowKeyboard = true;
     }
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ENEDITABLE);
-    int32_t ret = ShowInput(clientInfo_.client, type);
+    int32_t ret = ShowInput(clientInfo_.client, type, static_cast<int32_t>(attachOptions.requestKeyboardReason));
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input: %{public}d", ret);
         return ret;
@@ -584,7 +584,7 @@ int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     return ret;
 }
 
-int32_t InputMethodController::ShowInput(sptr<IInputClient> &client, ClientType type)
+int32_t InputMethodController::ShowInput(sptr<IInputClient> &client, ClientType type, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("InputMethodController::ShowInput start.");
     auto proxy = GetSystemAbilityProxy();
@@ -592,7 +592,7 @@ int32_t InputMethodController::ShowInput(sptr<IInputClient> &client, ClientType 
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->ShowInput(client, type);
+    return proxy->ShowInput(client, type, requestKeyboardReason);
 }
 
 int32_t InputMethodController::HideInput(sptr<IInputClient> &client)
@@ -1581,7 +1581,13 @@ int32_t InputMethodController::SetPreviewText(const std::string &text, const Ran
 
 int32_t InputMethodController::ShowTextInput(ClientType type)
 {
-    auto ret = ShowTextInputInner(type);
+    AttachOptions attachOptions;
+    return ShowTextInput(attachOptions, type);
+}
+
+int32_t InputMethodController::ShowTextInput(const AttachOptions &attachOptions, ClientType type)
+{
+    auto ret = ShowTextInputInner(attachOptions, type);
     ReportClientShow(static_cast<int32_t>(InputMethodInterfaceCode::SHOW_INPUT), ret, type);
     return ret;
 }

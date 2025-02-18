@@ -206,7 +206,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 16
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, AttachOptions attachOptions,
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, const AttachOptions &attachOptions,
         const TextConfig &textConfig, ClientType type = ClientType::INNER_KIT);
     /**
      * @brief Show soft keyboard.
@@ -218,7 +218,16 @@ public:
      * @since 6
      */
     IMF_API int32_t ShowTextInput(ClientType type = ClientType::INNER_KIT);
-
+    /**
+     * @brief Show soft keyboard.
+     *
+     * This function is used to show soft keyboard of current client.
+     *
+     * @param attachOptions   Indicates the attachOptions, such as requestKeyboardReason
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t ShowTextInput(const AttachOptions &attachOptions, ClientType type = ClientType::INNER_KIT);
     /**
      * @brief Hide soft keyboard.
      *
@@ -908,7 +917,8 @@ private:
     void RemoveDeathRecipient();
     int32_t StartInput(
         InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
-    int32_t ShowInput(sptr<IInputClient> &client, ClientType type = ClientType::INNER_KIT);
+    int32_t ShowInput(
+        sptr<IInputClient> &client, ClientType type = ClientType::INNER_KIT, int32_t requestKeyboardReason = 0);
     int32_t HideInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
@@ -929,7 +939,7 @@ private:
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
     int32_t IsValidTextConfig(const TextConfig &textConfig);
     int32_t SetPreviewTextInner(const std::string &text, const Range &range);
-    int32_t ShowTextInputInner(ClientType type);
+    int32_t ShowTextInputInner(const AttachOptions &attachOptions, ClientType type);
     int32_t ShowSoftKeyboardInner(ClientType type);
     void ReportClientShow(int32_t eventCode, int32_t errCode, ClientType type);
 

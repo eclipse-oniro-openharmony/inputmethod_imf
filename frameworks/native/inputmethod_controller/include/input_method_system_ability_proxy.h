@@ -49,7 +49,8 @@ public:
     int32_t ShowCurrentInput(ClientType type = ClientType::INNER_KIT) override;
     int32_t HideCurrentInput() override;
     int32_t StopInputSession() override;
-    int32_t ShowInput(sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT) override;
+    int32_t ShowInput(
+        sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT, int32_t requestKeyboardReason = 0) override;
     int32_t HideInput(sptr<IInputClient> client) override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     int32_t RequestShowInput() override;

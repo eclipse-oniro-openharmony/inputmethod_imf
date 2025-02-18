@@ -70,6 +70,7 @@ struct InputMethod_TextEditorProxy {
 
 struct InputMethod_AttachOptions {
     bool showKeyboard;
+    InputMethod_RequestKeyboardReason requestKeyboardReason = InputMethod_RequestKeyboardReason::NONE;
 };
 constexpr int32_t MAX_TEXT_LENGTH = 8 * 1024;
 #endif // NATIVE_INPUTMETHOD_TYPES_H

@@ -748,5 +748,35 @@ HWTEST_F(InputMethodAttachTest, multiThreadAttachTest_001, TestSize.Level0)
     GTEST_RUN_TASK(InputMethodAttachTest::TestImfMultiThreadAttach);
     EXPECT_FALSE(timeout_);
 }
+
+/**
+ * @tc.name: testAttach007
+ * @tc.desc: test Attach
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAttachTest, testAttach007, TestSize.Level0)
+{
+    IMSA_HILOGI("test testAttach007 after attach.");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputAttribute attribute;
+    attribute.inputPattern = 3;
+    attribute.enterKeyType = 2;
+    TextConfig config;
+    config.inputAttribute = attribute;
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = false;
+    attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
+    auto ret = inputMethodController_->Attach(textListener, attachOptions, config);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    int32_t keyType = -1;
+    ret = inputMethodAbility_->GetEnterKeyType(keyType);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(keyType, config.inputAttribute.enterKeyType);
+    int32_t inputPattern = -1;
+    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(inputPattern, config.inputAttribute.inputPattern);
+}
 } // namespace MiscServices
 } // namespace OHOS

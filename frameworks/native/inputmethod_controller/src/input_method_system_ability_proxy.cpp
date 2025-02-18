@@ -82,17 +82,18 @@ int32_t InputMethodSystemAbilityProxy::StopInputSession()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION));
 }
 
-int32_t InputMethodSystemAbilityProxy::ShowInput(sptr<IInputClient> client, ClientType type)
+int32_t InputMethodSystemAbilityProxy::ShowInput(
+    sptr<IInputClient> client, ClientType type, int32_t requestKeyboardReason)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr.");
         return ErrorCode::ERROR_IMC_NULLPTR;
     }
 
-    return SendRequest(
-        static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT), [client, &type](MessageParcel &data) {
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT),
+        [client, &type, requestKeyboardReason](MessageParcel &data) {
             auto ret = data.WriteRemoteObject(client->AsObject());
-            ITypesUtil::Marshal(data, type);
+            ITypesUtil::Marshal(data, type, requestKeyboardReason);
             return ret;
         });
 }
