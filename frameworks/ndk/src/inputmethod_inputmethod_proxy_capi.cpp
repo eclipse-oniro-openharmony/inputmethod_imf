@@ -50,6 +50,22 @@ InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodPr
     }
     return ErrorCodeConvert(InputMethodController::GetInstance()->ShowCurrentInput());
 }
+
+InputMethod_ErrorCode OH_InputMethodProxy_ShowTextInput(
+    InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_AttachOptions *options)
+{
+    auto errCode = IsValidInputMethodProxy(inputMethodProxy);
+    if (errCode != IME_ERR_OK || options == nullptr) {
+        IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
+        return errCode;
+    }
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = options->showKeyboard;
+    attachOptions.requestKeyboardReason =
+        static_cast<RequestKeyboardReason>(static_cast<int32_t>(options->requestKeyboardReason));
+    return ErrorCodeConvert(InputMethodController::GetInstance()->ShowTextInput(attachOptions));
+}
+
 InputMethod_ErrorCode OH_InputMethodProxy_HideKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
 {
     auto errCode = IsValidInputMethodProxy(inputMethodProxy);

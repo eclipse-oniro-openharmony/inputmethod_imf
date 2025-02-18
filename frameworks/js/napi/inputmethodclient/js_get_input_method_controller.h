@@ -51,6 +51,7 @@ struct AttachContext : public AsyncCall::Context {
     sptr<OnTextChangedListener> textListener;
     InputAttribute attribute;
     bool showKeyboard = false;
+    int32_t requestKeyboardReason = 0;
     TextConfig textConfig;
     AttachContext() : Context(nullptr, nullptr){};
     AttachContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -214,6 +215,7 @@ private:
     static bool GetValue(napi_env env, napi_value in, InputAttribute &out);
     static bool GetValue(napi_env env, napi_value in, TextConfig &out);
     static bool GetValue(napi_env env, napi_value in, Range &out);
+    static napi_value GetAttachOptionsValue(napi_env env, napi_callback_info cbinfo, AttachOptions &attachOptions);
     static napi_value GetJsKeyboardStatusProperty(napi_env env);
     static napi_value GetJsEnterKeyTypeProperty(napi_env env);
     static napi_value GetJsTextInputTypeProperty(napi_env env);

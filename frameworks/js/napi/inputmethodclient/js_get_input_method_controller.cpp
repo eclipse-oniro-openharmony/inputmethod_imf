@@ -563,12 +563,20 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
             "showKeyboard covert failed, type must be boolean!", TYPE_NONE, napi_generic_failure);
         PARAM_CHECK_RETURN(env, JsGetInputMethodController::GetValue(env, argv[1], ctxt->textConfig),
             "textConfig covert failed, type must be TextConfig!", TYPE_NONE, napi_generic_failure);
+        // requestKeyboardReason not must
+        if (argc > 2) {
+            JsUtil::GetValue(env, argv[2], ctxt->requestKeyboardReason);
+        }
         return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
         ctxt->textListener = JsGetInputMethodTextChangedListener::GetInstance();
+        OHOS::MiscServices::AttachOptions attachOptions;
+        attachOptions.isShowKeyboard = ctxt->showKeyboard;
+        attachOptions.requestKeyboardReason =
+              static_cast<OHOS::MiscServices::RequestKeyboardReason>(ctxt->requestKeyboardReason);
         auto status = InputMethodController::GetInstance()->Attach(
-            ctxt->textListener, ctxt->showKeyboard, ctxt->textConfig, ClientType::JS);
+            ctxt->textListener, attachOptions, ctxt->textConfig, ClientType::JS);
         ctxt->SetErrorCode(status);
         CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "attach return error!");
         ctxt->SetState(napi_ok);
@@ -587,9 +595,35 @@ napi_value JsGetInputMethodController::Detach(napi_env env, napi_callback_info i
 
 napi_value JsGetInputMethodController::ShowTextInput(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("run in.");
+    AttachOptions attachOptions;
+    JsGetInputMethodController::GetAttachOptionsValue(env, info, attachOptions);
     InputMethodSyncTrace tracer("JsGetInputMethodController_ShowTextInput");
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->ShowTextInput(ClientType::JS); }, false, true);
+        env, info,
+        [attachOptions] {
+            return InputMethodController::GetInstance()->ShowTextInput(attachOptions, ClientType::JS);
+        },
+        false, true);
+}
+
+napi_value JsGetInputMethodController::GetAttachOptionsValue(
+    napi_env env, napi_callback_info cbinfo, AttachOptions &attachOptions)
+{
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = { nullptr };
+    napi_value thisVar = nullptr;
+    void *data = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, cbinfo, &argc, argv, &thisVar, &data));
+    int32_t requestKeyboardReason = 0;
+    if (argc > 0) {
+        JsUtil::GetValue(env, argv[0], requestKeyboardReason);
+    }
+    IMSA_HILOGI("run in. requestKeyboardReason=%{public}d", requestKeyboardReason);
+    attachOptions.requestKeyboardReason = static_cast<OHOS::MiscServices::RequestKeyboardReason>(requestKeyboardReason);
+    napi_value value = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, 0, &value));
+    return value;
 }
 
 napi_value JsGetInputMethodController::HideTextInput(napi_env env, napi_callback_info info)

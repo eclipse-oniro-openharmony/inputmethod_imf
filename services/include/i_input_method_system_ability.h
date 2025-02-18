@@ -47,7 +47,8 @@ public:
     virtual int32_t ShowCurrentInput(ClientType type = ClientType::INNER_KIT) = 0;
     virtual int32_t HideCurrentInput() = 0;
     virtual int32_t StopInputSession() = 0;
-    virtual int32_t ShowInput(sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT) = 0;
+    virtual int32_t ShowInput(
+        sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT, int32_t requestKeyboardReason = 0) = 0;
     virtual int32_t HideInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
     virtual int32_t RequestShowInput() = 0;

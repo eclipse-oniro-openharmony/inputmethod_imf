@@ -330,16 +330,11 @@ enum class RequestKeyboardReason : int32_t {
     NONE = 0,          // no event reason
     MOUSE = 1,         // user triggered mouse event
 	TOUCH = 2,         // user triggered touch event
-	TOUCH_PAD = 3,     // user triggered pad event
-	KEYBOARD = 4,      // user triggered keyboard event
-	JOYSTICK = 5,      // user triggered joystick event
-	CROWN = 6,         // user triggered crown event
-    TOUCH_PEN = 7,     // user triggered pen event
-    OTHER              // other reason
+    OTHER = 20         // other reason
 };
 
 struct AttachOptions {
-    bool isShowKeyboard;
+    bool isShowKeyboard = false;;
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
 };
 

@@ -114,7 +114,8 @@ int32_t InputMethodSystemAbilityStub::ShowInputOnRemote(MessageParcel &data, Mes
     }
     ClientType type = ClientType::INNER_KIT;
     ITypesUtil::Unmarshal(data, type);
-    int32_t ret = ShowInput(iface_cast<IInputClient>(clientObject), type);
+    int32_t requestKeyboardReason = data.ReadInt32();
+    int32_t ret = ShowInput(iface_cast<IInputClient>(clientObject), type, requestKeyboardReason);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

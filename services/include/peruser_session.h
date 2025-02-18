@@ -107,7 +107,7 @@ public:
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnHideCurrentInput();
     int32_t OnShowCurrentInput();
-    int32_t OnShowInput(sptr<IInputClient> client);
+    int32_t OnShowInput(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t OnHideInput(sptr<IInputClient> client);
     int32_t OnRequestShowInput();
     int32_t OnRequestHideInput(int32_t callingPid);
@@ -218,7 +218,7 @@ private:
     void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);
-    int32_t ShowKeyboard(const sptr<IInputClient> &currentClient);
+    int32_t ShowKeyboard(const sptr<IInputClient> &currentClient, int32_t requestKeyboardReason = 0);
 
     int32_t InitInputControlChannel();
     void StartImeInImeDied();

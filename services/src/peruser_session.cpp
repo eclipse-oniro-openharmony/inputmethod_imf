@@ -215,7 +215,7 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
+int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("PerUserSession::ShowKeyboard start.");
     if (currentClient == nullptr) {
@@ -239,6 +239,7 @@ int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
     }
     bool isShowKeyboard = true;
     UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+    NotifyInputStartToClients(clientInfo->config.windowId, requestKeyboardReason);
     return ErrorCode::NO_ERROR;
 }
 
@@ -371,14 +372,14 @@ int32_t PerUserSession::OnHideInput(sptr<IInputClient> client)
     return HideKeyboard(client);
 }
 
-int32_t PerUserSession::OnShowInput(sptr<IInputClient> client)
+int32_t PerUserSession::OnShowInput(sptr<IInputClient> client, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("PerUserSession::OnShowInput start.");
     if (!IsSameClient(client, GetCurrentClient())) {
         IMSA_HILOGE("client is not current client!");
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    return ShowKeyboard(client);
+    return ShowKeyboard(client, requestKeyboardReason);
 }
 
 void PerUserSession::OnHideSoftKeyBoardSelf()
@@ -629,7 +630,9 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
         { { UpdateFlag::BINDIMETYPE, type }, { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard },
             { UpdateFlag::STATE, ClientState::ACTIVE } });
     ReplaceCurrentClient(clientInfo->client);
-    NotifyInputStartToClients(clientInfo->config.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    if (clientInfo->isShowKeyboard) {
+        NotifyInputStartToClients(clientInfo->config.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    }
     return ErrorCode::NO_ERROR;
 }
 

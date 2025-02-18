@@ -506,7 +506,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     return session->RestoreCurrentIme();
 }
 
-int32_t InputMethodSystemAbility::ShowInputInner(sptr<IInputClient> client)
+int32_t InputMethodSystemAbility::ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     auto userId = GetCallingUserId();
@@ -524,7 +524,7 @@ int32_t InputMethodSystemAbility::ShowInputInner(sptr<IInputClient> client)
         IMSA_HILOGE("client is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return session->OnShowInput(client);
+    return session->OnShowInput(client, requestKeyboardReason);
 }
 
 int32_t InputMethodSystemAbility::HideInput(sptr<IInputClient> client)
@@ -2228,13 +2228,13 @@ int32_t InputMethodSystemAbility::ShowCurrentInput(ClientType type)
     return ret;
 }
 
-int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client, ClientType type)
+int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client, ClientType type, int32_t requestKeyboardReason)
 {
     auto name = ImfHiSysEventUtil::GetAppName(IPCSkeleton::GetCallingTokenID());
     auto pid = IPCSkeleton::GetCallingPid();
     auto userId = GetCallingUserId();
     auto imeInfo = GetCurrentImeInfoForHiSysEvent(userId);
-    auto ret = ShowInputInner(client);
+    auto ret = ShowInputInner(client, requestKeyboardReason);
     auto evenInfo = HiSysOriginalInfo::Builder()
                         .SetPeerName(name)
                         .SetPeerPid(pid)
