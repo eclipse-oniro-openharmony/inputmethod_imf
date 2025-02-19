@@ -227,7 +227,8 @@ int32_t InputMethodPanel::ResizeEnhancedPanel(uint32_t width, uint32_t height)
         IMSA_HILOGE("failed to GetResizeParams, ret: %{public}d", ret);
         return ret;
     }
-    ret = AdjustPanelRect(panelFlag_, layoutParam, hotAreas_);
+    auto hotAreas = GetHotAreas();
+    ret = AdjustPanelRect(panelFlag_, layoutParam, hotAreas);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to AdjustPanelRect, ret: %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
@@ -322,7 +323,8 @@ int32_t InputMethodPanel::MoveEnhancedPanelRect(int32_t x, int32_t y)
         params.landscape.rect.posX_ = x;
         params.landscape.rect.posY_ = y;
     }
-    auto ret = AdjustPanelRect(panelFlag_, params, hotAreas_);
+    auto hotAreas = GetHotAreas();
+    auto ret = AdjustPanelRect(panelFlag_, params, hotAreas);
     IMSA_HILOGI("x/y: %{public}d/%{public}d, ret = %{public}d", x, y, ret);
     return ret == ErrorCode::NO_ERROR ? ErrorCode::NO_ERROR : ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
 }
@@ -512,7 +514,7 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
         IMSA_HILOGE("restore layout param, result: %{public}d", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    hotAreas_ = hotAreas;
+    SetHotAreas(hotAreas);
     UpdateLayoutInfo(panelFlag, {}, params, wmsParams, true);
     UpdateResizeParams();
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
@@ -637,7 +639,8 @@ int32_t InputMethodPanel::CalculateAvoidHeight(EnhancedLayoutParam &layoutParam,
 
 void InputMethodPanel::UpdateHotAreas()
 {
-    if (!hotAreas_.isSet) {
+    auto hotAreas = GetHotAreas();
+    if (!hotAreas.isSet) {
         IMSA_HILOGD("hot area is not customized, no need to update");
         return;
     }
@@ -647,7 +650,6 @@ void InputMethodPanel::UpdateHotAreas()
         IMSA_HILOGE("GetAdjustInfo failed ret: %{public}d", ret);
         return;
     }
-    auto hotAreas = hotAreas_;
     CalculateDefaultHotArea(keyboardLayoutParams_.LandscapeKeyboardRect_, keyboardLayoutParams_.LandscapePanelRect_,
         adjustInfo.landscape, hotAreas.landscape);
     CalculateDefaultHotArea(keyboardLayoutParams_.PortraitKeyboardRect_, keyboardLayoutParams_.PortraitPanelRect_,
@@ -658,10 +660,10 @@ void InputMethodPanel::UpdateHotAreas()
         IMSA_HILOGE("SetKeyboardTouchHotAreas error, err: %{public}d!", result);
         return;
     }
-    hotAreas_ = std::move(hotAreas);
+    SetHotAreas(hotAreas);
     IMSA_HILOGI("success, portrait: %{public}s, landscape: %{public}s",
-        HotArea::ToString(hotAreas_.portrait.keyboardHotArea).c_str(),
-        HotArea::ToString(hotAreas_.landscape.keyboardHotArea).c_str());
+        HotArea::ToString(hotAreas.portrait.keyboardHotArea).c_str(),
+        HotArea::ToString(hotAreas.landscape.keyboardHotArea).c_str());
 }
 
 void InputMethodPanel::CalculateHotAreas(const EnhancedLayoutParams &enhancedParams,
@@ -815,7 +817,7 @@ int32_t InputMethodPanel::UpdateRegion(std::vector<Rosen::Rect> region)
         return ret;
     }
     IMSA_HILOGD("region: %{public}s", HotArea::ToString(region).c_str());
-    auto hotAreas = hotAreas_;
+    auto hotAreas = GetHotAreas();
     bool isPortrait = IsDisplayPortrait();
     if (isPortrait) {
         hotAreas.portrait.keyboardHotArea = region;
@@ -829,11 +831,11 @@ int32_t InputMethodPanel::UpdateRegion(std::vector<Rosen::Rect> region)
         IMSA_HILOGE("SetKeyboardTouchHotAreas error, err: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    hotAreas_ = std::move(hotAreas);
+    SetHotAreas(hotAreas);
     if (isPortrait) {
-        IMSA_HILOGI("success, portrait: %{public}s", HotArea::ToString(hotAreas_.portrait.keyboardHotArea).c_str());
+        IMSA_HILOGI("success, portrait: %{public}s", HotArea::ToString(hotAreas.portrait.keyboardHotArea).c_str());
     } else {
-        IMSA_HILOGI("success, landscape: %{public}s", HotArea::ToString(hotAreas_.landscape.keyboardHotArea).c_str());
+        IMSA_HILOGI("success, landscape: %{public}s", HotArea::ToString(hotAreas.landscape.keyboardHotArea).c_str());
     }
     return ErrorCode::NO_ERROR;
 }
@@ -1730,6 +1732,18 @@ ImmersiveMode InputMethodPanel::GetImmersiveMode()
 {
     IMSA_HILOGD("GetImmersiveMode mode: %{public}d", immersiveMode_);
     return immersiveMode_;
+}
+
+void InputMethodPanel::SetHotAreas(const HotAreas &hotAreas)
+{
+    std::lock_guard<std::mutex> lock(hotAreasLock_);
+    hotAreas_ = hotAreas;
+}
+
+HotAreas InputMethodPanel::GetHotAreas()
+{
+    std::lock_guard<std::mutex> lock(hotAreasLock_);
+    return hotAreas_;
 }
 } // namespace MiscServices
 } // namespace OHOS
