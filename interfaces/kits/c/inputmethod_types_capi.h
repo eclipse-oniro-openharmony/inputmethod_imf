@@ -317,25 +317,25 @@ typedef enum InputMethod_ErrorCode {
 /**
  * @brief The value type of request keyboard.
  *
- * @since 16
+ * @since 15
  */
 typedef enum InputMethod_RequestKeyboardReason {
     /**
      * The request keyboard reason is NONE.
      */
-    NONE = 0,
+    IME_REQUEST_REASON_NONE = 0,
     /**
      * The request keyboard reason is MOUSE.
      */
-    MOUSE = 1,
+    IME_REQUEST_REASON_MOUSE = 1,
     /**
      * The request keyboard reason is TOUCH.
      */
-    TOUCH = 2,
+    IME_REQUEST_REASON_TOUCH = 2,
     /**
      * The request keyboard reason is OTHER.
      */
-    OTHER = 20
+    IME_REQUEST_REASON_OTHER = 20
 } InputMethod_RequestKeyboardReason;
 #ifdef __cplusplus
 }

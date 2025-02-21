@@ -79,9 +79,9 @@ InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodPr
  *     {@link IME_ERR_IMCLIENT} - input method client error.
  *     {@link IME_ERR_IMMS} - input method manager service error.
  *     {@link IME_ERR_DETACHED} - input method client detached.
- *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer. If inputMethodProxy is NULL, or options is NULL.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
- * @since 16
+ * @since 15
  */
 InputMethod_ErrorCode OH_InputMethodProxy_ShowTextInput(
     InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_AttachOptions *options);
