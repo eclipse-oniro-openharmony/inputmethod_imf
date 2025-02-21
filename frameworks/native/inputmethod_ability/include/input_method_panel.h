@@ -147,7 +147,8 @@ private:
     int32_t ResizePanel(uint32_t width, uint32_t height);
     int32_t ResizeWithoutAdjust(uint32_t width, uint32_t height);
     int32_t ResizeEnhancedPanel(uint32_t width, uint32_t height);
-
+    void UpdateRectParams(
+        Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height, const LayoutParams &currParams);
     int32_t MovePanelRect(int32_t x, int32_t y);
     int32_t MoveEnhancedPanelRect(int32_t x, int32_t y);
 
