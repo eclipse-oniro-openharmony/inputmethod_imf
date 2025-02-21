@@ -204,7 +204,7 @@ public:
      *                                  text selection,windowId.
      * @param type                      Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
-     * @since 16
+     * @since 15
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, const AttachOptions &attachOptions,
         const TextConfig &textConfig, ClientType type = ClientType::INNER_KIT);
@@ -225,7 +225,7 @@ public:
      *
      * @param attachOptions   Indicates the attachOptions, such as requestKeyboardReason
      * @return Returns 0 for success, others for failure.
-     * @since 16
+     * @since 15
      */
     IMF_API int32_t ShowTextInput(const AttachOptions &attachOptions, ClientType type = ClientType::INNER_KIT);
     /**

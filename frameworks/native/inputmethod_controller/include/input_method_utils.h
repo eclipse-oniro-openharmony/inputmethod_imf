@@ -334,7 +334,7 @@ enum class RequestKeyboardReason : int32_t {
 };
 
 struct AttachOptions {
-    bool isShowKeyboard = false;;
+    bool isShowKeyboard = false;
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
 };
 
