@@ -167,6 +167,16 @@ int32_t InputMethodPanel::GetResizeParams(
         IMSA_HILOGE("failed to GetDisplaySize ret: %{public}d", ret);
         return ret;
     }
+
+    if (displaySize.portrait.height == displaySize.portrait.width) {
+        portrait.height_ = height;
+        portrait.width_ = width;
+        landscape.height_ = height;
+        landscape.width_ = width;
+        IMSA_HILOGI("isScreenEqual now, update screen equal size");
+        return ErrorCode::NO_ERROR;
+    }
+
     if (IsDisplayUnfolded()) {
         IMSA_HILOGI("foldable device without fold state");
         if (!isInEnhancedAdjust_) {
@@ -190,6 +200,14 @@ int32_t InputMethodPanel::GetResizeParams(
         }
         currParams = resizePanelFoldParams_;
     }
+
+    UpdateRectParams(portrait, landscape, width, height, currParams);
+    return ErrorCode::NO_ERROR;
+}
+
+void InputMethodPanel::UpdateRectParams(
+    Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height, const LayoutParams &currParams)
+{
     if (IsDisplayPortrait()) {
         landscape.height_ = currParams.landscapeRect.height_;
         landscape.width_ = currParams.landscapeRect.width_;
@@ -203,7 +221,6 @@ int32_t InputMethodPanel::GetResizeParams(
         landscape.width_ = width;
         IMSA_HILOGI("isLandscapeRect now, update landscape size");
     }
-    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodPanel::UpdateResizeParams()
