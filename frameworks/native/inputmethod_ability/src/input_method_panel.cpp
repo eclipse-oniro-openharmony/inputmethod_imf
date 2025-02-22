@@ -1412,28 +1412,36 @@ bool InputMethodPanel::SetPanelStatusListener(
             }
         }
     }
-    if (panelType_ == PanelType::SOFT_KEYBOARD &&
-        (panelFlag_ == PanelFlag::FLG_FIXED || panelFlag_ == PanelFlag::FLG_FLOATING) && type == "sizeChange") {
-        if (panelStatusListener_ == nullptr && statusListener != nullptr) {
-            panelStatusListener_ = std::move(statusListener);
-        }
-        std::lock_guard<std::mutex> lock(windowListenerLock_);
-        if (windowChangedListener_ != nullptr) {
-            IMSA_HILOGD("windowChangedListener already registered.");
-            return true;
-        }
-        windowChangedListener_ = new (std::nothrow) WindowChangeListenerImpl([this](WindowSize windowSize) {
-            SizeChange(windowSize);
-        });
-        if (windowChangedListener_ == nullptr || window_ == nullptr) {
-            IMSA_HILOGE("observer or window_ is nullptr!");
-            return false;
-        }
-        auto ret = window_->RegisterWindowChangeListener(windowChangedListener_);
-        if (ret != WMError::WM_OK) {
-            IMSA_HILOGE("RegisterWindowChangeListener error: %{public}d!", ret);
-            return false;
-        }
+    if (type == "sizeChange" || type == "sizeUpdate") {
+        return SetPanelSizeChangeListener(statusListener);
+    }
+    return true;
+}
+
+bool InputMethodPanel::SetPanelSizeChangeListener(std::shared_ptr<PanelStatusListener> statusListener)
+{
+    if (panelType_ != PanelType::SOFT_KEYBOARD
+        || (panelFlag_ != PanelFlag::FLG_FIXED && panelFlag_ != PanelFlag::FLG_FLOATING)) {
+        return true;
+    }
+    if (panelStatusListener_ == nullptr && statusListener != nullptr) {
+        panelStatusListener_ = std::move(statusListener);
+    }
+    std::lock_guard<std::mutex> lock(windowListenerLock_);
+    if (windowChangedListener_ != nullptr) {
+        IMSA_HILOGD("windowChangedListener already registered.");
+        return true;
+    }
+    windowChangedListener_ = new (std::nothrow)
+        WindowChangeListenerImpl([this](WindowSize windowSize) { SizeChange(windowSize); });
+    if (windowChangedListener_ == nullptr || window_ == nullptr) {
+        IMSA_HILOGE("observer or window_ is nullptr!");
+        return false;
+    }
+    auto ret = window_->RegisterWindowChangeListener(windowChangedListener_);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("RegisterWindowChangeListener error: %{public}d!", ret);
+        return false;
     }
     return true;
 }
@@ -1535,30 +1543,59 @@ int32_t InputMethodPanel::SizeChange(const WindowSize &size)
         IMSA_HILOGD("panelStatusListener_ is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
+    PanelAdjustInfo keyboardArea;
+    if (isInEnhancedAdjust_.load() && GetKeyboardArea(panelFlag_, size, keyboardArea) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to GetKeyboardArea");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
     if (sizeChangeRegistered_) {
-        listener->OnSizeChange(windowId_, size);
+        listener->OnSizeChange(windowId_, keyboardSize_, keyboardArea, "sizeChange");
     }
-    if (!sizeUpdateRegistered_) {
-        return ErrorCode::NO_ERROR;
+    if (sizeUpdateRegistered_) {
+        listener->OnSizeChange(windowId_, keyboardSize_, keyboardArea, "sizeUpdate");
     }
-    if (!isInEnhancedAdjust_.load()) {
-        listener->OnSizeChange(windowId_, size, {});
-        return ErrorCode::NO_ERROR;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::GetKeyboardArea(PanelFlag panelFlag, const WindowSize &size, PanelAdjustInfo &keyboardArea)
+{
+    bool isPortrait = false;
+    if (GetWindowOrientation(panelFlag, size.width, isPortrait) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to GetWindowOrientation");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     FullPanelAdjustInfo adjustInfo;
-    if (GetAdjustInfo(panelFlag_, adjustInfo) != ErrorCode::NO_ERROR) {
+    if (GetAdjustInfo(panelFlag, adjustInfo) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("GetAdjustInfo failed");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    PanelAdjustInfo keyboardArea;
-    if (keyboardSize_.width < keyboardSize_.height) {
+    if (isPortrait) {
         keyboardArea = adjustInfo.portrait;
         keyboardArea.top = enhancedLayoutParams_.portrait.avoidY;
     } else {
         keyboardArea = adjustInfo.landscape;
         keyboardArea.top = enhancedLayoutParams_.landscape.avoidY;
     }
-    listener->OnSizeChange(windowId_, keyboardSize_, keyboardArea);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::GetWindowOrientation(PanelFlag panelFlag, uint32_t windowWidth, bool &isPortrait)
+{
+    if (panelFlag != PanelFlag::FLG_FIXED) {
+        isPortrait = IsDisplayPortrait();
+        return ErrorCode::NO_ERROR;
+    }
+    DisplaySize displaySize;
+    if (GetDisplaySize(displaySize) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to GetDisplaySize");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (windowWidth == displaySize.portrait.width) {
+        isPortrait = true;
+    }
+    if (windowWidth == displaySize.landscape.width) {
+        isPortrait = false;
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1566,9 +1603,7 @@ void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
 {
     kbPanelInfoListener_ =
         new (std::nothrow) KeyboardPanelInfoChangeListener([this](const KeyboardPanelInfo &keyboardPanelInfo) {
-            if (panelHeightCallback_ != nullptr) {
-                panelHeightCallback_(keyboardPanelInfo.rect_.height_, panelFlag_);
-            }
+            OnPanelHeightChange(keyboardPanelInfo);
             HandleKbPanelInfoChange(keyboardPanelInfo);
         });
     if (kbPanelInfoListener_ == nullptr) {
@@ -1579,6 +1614,27 @@ void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
     }
     auto ret = window_->RegisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
     IMSA_HILOGD("ret: %{public}d.", ret);
+}
+
+void InputMethodPanel::OnPanelHeightChange(const Rosen::KeyboardPanelInfo &keyboardPanelInfo)
+{
+    if (panelHeightCallback_ == nullptr) {
+        return;
+    }
+    if (!isInEnhancedAdjust_.load()) {
+        panelHeightCallback_(keyboardPanelInfo.rect_.height_, panelFlag_);
+        return;
+    }
+    bool isPortrait = false;
+    if (GetWindowOrientation(panelFlag_, keyboardPanelInfo.rect_.width_, isPortrait) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to GetWindowOrientation");
+        return;
+    }
+    if (isPortrait) {
+        panelHeightCallback_(enhancedLayoutParams_.portrait.avoidHeight, panelFlag_);
+    } else {
+        panelHeightCallback_(enhancedLayoutParams_.landscape.avoidHeight, panelFlag_);
+    }
 }
 
 void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()

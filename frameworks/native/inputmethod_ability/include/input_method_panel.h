@@ -113,6 +113,7 @@ private:
     void PanelStatusChange(const InputWindowStatus &status);
     void PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect);
     bool MarkListener(const std::string &type, bool isRegister);
+    bool SetPanelSizeChangeListener(std::shared_ptr<PanelStatusListener> statusListener);
     std::shared_ptr<PanelStatusListener> GetPanelListener();
     static uint32_t GenerateSequenceId();
     bool IsSizeValid(uint32_t width, uint32_t height);
@@ -166,6 +167,9 @@ private:
         const Rosen::KeyboardLayoutParams &wmsParams, bool isEnhanced);
     Rosen::KeyboardLayoutParams ConvertToWMSParam(PanelFlag panelFlag, const EnhancedLayoutParams &layoutParams);
     Rosen::KeyboardTouchHotAreas ConvertToWMSHotArea(const HotAreas &hotAreas);
+    void OnPanelHeightChange(const Rosen::KeyboardPanelInfo &keyboardPanelInfo);
+    int32_t GetKeyboardArea(PanelFlag panelFlag, const WindowSize &size, PanelAdjustInfo &keyboardArea);
+    int32_t GetWindowOrientation(PanelFlag panelFlag, uint32_t windowWidth, bool &isPortrait);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;

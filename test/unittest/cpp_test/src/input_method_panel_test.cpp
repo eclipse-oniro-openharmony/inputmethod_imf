@@ -107,7 +107,10 @@ public:
             IMSA_HILOGI("PanelStatusListenerImpl OnPanelStatus in, isShow is %{public}s", isShow ? "true" : "false");
         }
         void OnSizeChange(uint32_t windowId, const WindowSize &size) {}
-        void OnSizeChange(uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea) {}
+        void OnSizeChange(
+            uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea, const std::string &event)
+        {
+        }
     };
     static std::mutex imcPanelStatusListenerLock_;
     static std::condition_variable imcPanelStatusListenerCv_;

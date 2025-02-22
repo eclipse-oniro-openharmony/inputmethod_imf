@@ -111,7 +111,8 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
     eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
-void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea)
+void PanelListenerImpl::OnSizeChange(
+    uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea, const std::string &event)
 {
     std::string type = "sizeUpdate";
     auto eventHandler = GetEventHandler();
@@ -119,7 +120,7 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size, 
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    std::shared_ptr<JSCallbackObject> callBack = GetCallback(windowId, type);
+    std::shared_ptr<JSCallbackObject> callBack = GetCallback(windowId, event);
     if (callBack == nullptr) {
         IMSA_HILOGE("callback is nullptr");
         return;
@@ -127,9 +128,9 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size, 
     auto entry = std::make_shared<UvEntry>(callBack);
     entry->size = size;
     entry->keyboardArea = keyboardArea;
-    IMSA_HILOGI("OnSizeChange start. windowId:%{public}u, windowSize[%{public}u/%{public}u], "
+    IMSA_HILOGI("%{public}s start. windowId:%{public}u, windowSize[%{public}u/%{public}u], "
                 "keyboardArea:[%{public}d/%{public}d/%{public}d/%{public}d]",
-        windowId, size.width, size.height, keyboardArea.top, keyboardArea.bottom, keyboardArea.left,
+        event.c_str(), windowId, size.width, size.height, keyboardArea.top, keyboardArea.bottom, keyboardArea.left,
         keyboardArea.right);
     auto task = [entry]() {
         auto getWindowSizeParams = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
@@ -145,7 +146,7 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size, 
         // 2 means 'sizeChange' has 2 params
         JsCallbackHandler::Traverse({ entry->cbCopy }, { 2, getWindowSizeParams });
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    eventHandler->PostTask(task, event, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void PanelListenerImpl::SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler)

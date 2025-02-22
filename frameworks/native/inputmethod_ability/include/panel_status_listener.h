@@ -26,7 +26,8 @@ public:
     virtual ~PanelStatusListener() {};
     virtual void OnPanelStatus(uint32_t windowId, bool isShow) = 0;
     virtual void OnSizeChange(uint32_t windowId, const WindowSize &size) = 0;
-    virtual void OnSizeChange(uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea) = 0;
+    virtual void OnSizeChange(
+        uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea, const std::string &event) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
