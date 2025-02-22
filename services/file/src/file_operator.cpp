@@ -56,18 +56,32 @@ bool FileOperator::Read(const std::string &path, std::string &content)
 
 bool FileOperator::Write(const std::string &path, const std::string &content, int32_t flags, mode_t mode)
 {
-    auto fd = open(path.c_str(), flags, mode);
-    if (fd < 0) {
+    const char* fopenMode;
+    if (flags & O_TRUNC) {
+        fopenMode = "w";
+    } else if (flags & O_APPEND) {
+        fopenMode = "a";
+    } else if (flags & O_CREAT) {
+        fopenMode = "w";
+    } else {
+        fopenMode = "r+";
+    }
+    FILE* file = fopen(path.c_str(), fopenMode);
+    if (file == nullptr) {
         IMSA_HILOGE("%{public}s open fail, errno: %{public}d", path.c_str(), errno);
         return false;
     }
-    auto ret = write(fd, content.c_str(), content.size());
-    if (ret <= 0) {
+    auto ret = fwrite(content.c_str(), 1, content.size(), file);
+    if (ret != content.size()) {
         IMSA_HILOGE("%{public}s write fail, ret: %{public}zd, errno: %{public}d", path.c_str(), ret, errno);
-        close(fd);
+        if (fclose(file) != 0) {
+            IMSA_HILOGE("%{public}s close fail, errno: %{public}d", path.c_str(), errno);
+        }
         return false;
     }
-    close(fd);
+        if (fclose(file) != 0) {
+            IMSA_HILOGE("%{public}s close fail, errno: %{public}d", path.c_str(), errno);
+        }
     return true;
 }
 
