@@ -37,6 +37,7 @@
 #include "settings_data_utils.h"
 #include "system_ability.h"
 #include "input_method_types.h"
+#include "user_session_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -109,6 +110,11 @@ private:
     void Initialize();
 
     std::thread workThreadHandler; /*!< thread handler of the WorkThread */
+    void RestartSessionIme(std::shared_ptr<PerUserSession> &session);
+    std::shared_ptr<PerUserSession> GetSessionFromMsg(const Message *msg);
+    int32_t PrepareForOperateKeyboard(std::shared_ptr<PerUserSession> &session);
+    int32_t SwitchByCondition(const Condition &condition,
+        const std::shared_ptr<ImeInfo> &info);
     int32_t GetUserId(int32_t uid);
     int32_t GetCallingUserId();
     std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;

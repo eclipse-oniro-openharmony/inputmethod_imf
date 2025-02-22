@@ -70,6 +70,7 @@ public:
     };
 
 private:
+    bool SubscribeManagerServiceCommon(const Handler &handler, int32_t saId);
     class SystemAbilityStatusChangeListener : public SystemAbilityStatusChangeStub {
     public:
         explicit SystemAbilityStatusChangeListener(std::function<void()>);
