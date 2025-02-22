@@ -171,6 +171,9 @@ private:
     int32_t GetKeyboardArea(PanelFlag panelFlag, const WindowSize &size, PanelAdjustInfo &keyboardArea);
     int32_t GetWindowOrientation(PanelFlag panelFlag, uint32_t windowWidth, bool &isPortrait);
 
+    void SetHotAreas(const HotAreas &hotAreas);
+    HotAreas GetHotAreas();
+
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
@@ -191,6 +194,7 @@ private:
     std::mutex adjustInfoInitLock_;
     std::atomic<bool> isAdjustInfoInitialized_{ false };
 
+    std::mutex hotAreasLock_;
     HotAreas hotAreas_;
     EnhancedLayoutParams enhancedLayoutParams_;
     Rosen::KeyboardLayoutParams keyboardLayoutParams_;
