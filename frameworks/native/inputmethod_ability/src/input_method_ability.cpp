@@ -802,11 +802,13 @@ sptr<SystemCmdChannelProxy> InputMethodAbility::GetSystemCmdChannelProxy()
 int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("InputMethodAbility start.");
-    std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
-    systemCmdChannelProxy_ = new (std::nothrow) SystemCmdChannelProxy(channel);
-    if (systemCmdChannelProxy_ == nullptr) {
-        IMSA_HILOGE("failed to create channel proxy!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    {
+        std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
+        systemCmdChannelProxy_ = new (std::nothrow) SystemCmdChannelProxy(channel);
+        if (systemCmdChannelProxy_ == nullptr) {
+            IMSA_HILOGE("failed to create channel proxy!");
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        }
     }
     systemAgentStub_ = new (std::nothrow) InputMethodAgentStub();
     if (systemAgentStub_ == nullptr) {
@@ -815,6 +817,15 @@ int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channe
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     agent = systemAgentStub_->AsObject();
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
+        auto flag = panel->GetPanelFlag();
+        if (panel->IsShowing() && flag != FLG_CANDIDATE_COLUMN) {
+            auto keyboardSize = panel->GetKeyboardSize();
+            SysPanelStatus sysPanelStatus = { inputType_, flag, keyboardSize.width, keyboardSize.height };
+            NotifyPanelStatus(panel, sysPanelStatus);
+        }
+    }
     return ErrorCode::NO_ERROR;
 }
 
