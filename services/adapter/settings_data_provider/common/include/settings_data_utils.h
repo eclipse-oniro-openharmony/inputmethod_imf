@@ -64,7 +64,7 @@ private:
     int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
     int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
     sptr<IRemoteObject> GetToken();
-    std::vector<std::string> split(const std::string &text, char separator);
+    std::vector<std::string> Split(const std::string &text, char separator);
     std::string SetSettingValues(const std::string &settingValue, const std::string &bundleName);
 
 private:

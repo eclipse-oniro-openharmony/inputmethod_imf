@@ -241,7 +241,7 @@ bool SettingsDataUtils::EnableIme(int32_t userId, const std::string &bundleName)
     return SetStringValue(std::string(SETTING_URI_PROXY), settingKey, value);
 }
  
-std::vector<std::string> SettingsDataUtils::split(const std::string &text, char delim)
+std::vector<std::string> SettingsDataUtils::Split(const std::string &text, char delim)
 {
     std::vector<std::string> tokens;
     std::stringstream ss(text);
@@ -257,7 +257,7 @@ std::vector<std::string> SettingsDataUtils::split(const std::string &text, char 
 std::string SettingsDataUtils::SetSettingValues(const std::string &settingValue, const std::string &bundleName)
 {
     std::string value = "";
-    std::vector<std::string> settingValues = split(settingValue, ']');
+    std::vector<std::string> settingValues = Split(settingValue, ']');
     for (uint32_t i = 0; i < settingValues.size(); ++i) {
         if (i == 0) {
             if (settingValues[0].back() == '[') {
