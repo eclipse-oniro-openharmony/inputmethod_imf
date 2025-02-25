@@ -16,18 +16,7 @@
 #ifndef ENABLE_IME_DATA_PARSER_H
 #define ENABLE_IME_DATA_PARSER_H
 
-#include <map>
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
-
-#include "datashare_helper.h"
-#include "global.h"
-#include "input_method_property.h"
 #include "input_method_status.h"
-#include "serializable.h"
 #include "settings_data_utils.h"
 
 namespace OHOS {

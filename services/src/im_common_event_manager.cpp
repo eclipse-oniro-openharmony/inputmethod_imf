@@ -14,13 +14,8 @@
  */
 
 #include "im_common_event_manager.h"
-
-#include <utility>
-
 #include "full_ime_info_manager.h"
-#include "global.h"
 #include "ime_info_inquirer.h"
-#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "inputmethod_message_handler.h"

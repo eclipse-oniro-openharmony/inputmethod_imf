@@ -16,27 +16,15 @@
 #ifndef SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 #define SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 
-#include <atomic>
-#include <map>
-#include <thread>
-
-#include "application_info.h"
-#include "block_queue.h"
-#include "bundle_mgr_proxy.h"
-#include "element_name.h"
-#include "enable_ime_data_parser.h"
-#include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
-#include "input_method_status.h"
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
-#include "message.h"
 #include "security_mode_parser.h"
-#include "settings_data_utils.h"
 #include "system_ability.h"
-#include "input_method_types.h"
+#include "display_manager.h"
+#include "user_session_manager.h"
 
 namespace OHOS {
 namespace MiscServices {

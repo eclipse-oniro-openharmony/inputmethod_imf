@@ -16,10 +16,7 @@
 #ifndef SERVICES_INCLUDE_IME_CFG_MANAGER_H
 #define SERVICES_INCLUDE_IME_CFG_MANAGER_H
 
-#include <memory>
 #include <mutex>
-#include <string>
-#include <vector>
 
 #include "serializable.h"
 namespace OHOS {

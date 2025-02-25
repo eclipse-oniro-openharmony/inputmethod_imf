@@ -16,19 +16,10 @@
 #ifndef SERVICES_INCLUDE_IME_INFO_ENQUIRER_H
 #define SERVICES_INCLUDE_IME_INFO_ENQUIRER_H
 
-#include <application_info.h>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <vector>
 #include "bundle_mgr_proxy.h"
-#include "element_name.h"
 #include "enable_ime_data_parser.h"
 #include "ime_cfg_manager.h"
 #include "input_method_info.h"
-#include "input_method_property.h"
-#include "input_method_status.h"
-#include "refbase.h"
 #include "resource_manager.h"
 #include "sys_cfg_parser.h"
 namespace OHOS {

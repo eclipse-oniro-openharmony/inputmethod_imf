@@ -16,10 +16,6 @@
 #ifndef SERVICES_INCLUDE_USER_SESSION_MANAGER_H
 #define SERVICES_INCLUDE_USER_SESSION_MANAGER_H
 
-#include <chrono>
-#include <map>
-
-#include "event_handler.h"
 #include "peruser_session.h"
 namespace OHOS {
 namespace MiscServices {

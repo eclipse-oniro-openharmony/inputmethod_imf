@@ -16,7 +16,6 @@
 #ifndef INPUT_METHOD_SERIALIZABLE_H
 #define INPUT_METHOD_SERIALIZABLE_H
 #include <string>
-#include <vector>
 
 #include "cJSON.h"
 #include "global.h"

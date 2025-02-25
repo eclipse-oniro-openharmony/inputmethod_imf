@@ -17,13 +17,9 @@
 #define INPUTMETHOD_IMF_INPUT_TYPE_MANAGER_H
 
 #include <map>
-#include <mutex>
 #include <set>
-#include <string>
-#include <vector>
 
 #include "block_data.h"
-#include "serializable.h"
 #include "sys_cfg_parser.h"
 
 namespace OHOS {

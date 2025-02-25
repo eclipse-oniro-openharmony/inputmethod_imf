@@ -18,7 +18,6 @@
 #include "ability_manager_client.h"
 #include "global.h"
 #include "res_sched_client.h"
-#include "res_type.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {

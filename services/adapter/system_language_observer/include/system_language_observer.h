@@ -16,9 +16,6 @@
 #ifndef IMF_SYSTEM_LANGUAGE_OBSERVER_H
 #define IMF_SYSTEM_LANGUAGE_OBSERVER_H
 
-#include <functional>
-#include <utility>
-
 namespace OHOS {
 namespace MiscServices {
 class SystemLanguageObserver {

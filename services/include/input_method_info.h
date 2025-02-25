@@ -16,10 +16,6 @@
 #ifndef SERVICES_INCLUDE_INPUT_METHOD_PROPERTY_H
 #define SERVICES_INCLUDE_INPUT_METHOD_PROPERTY_H
 
-#include <cstdint>
-#include <string>
-#include <vector>
-
 namespace OHOS {
 namespace MiscServices {
 struct InputMethodInfo {

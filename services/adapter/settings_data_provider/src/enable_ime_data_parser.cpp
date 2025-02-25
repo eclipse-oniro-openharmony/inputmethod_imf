@@ -14,12 +14,7 @@
  */
 
 #include "enable_ime_data_parser.h"
-
 #include "ime_info_inquirer.h"
-#include "iservice_registry.h"
-#include "serializable.h"
-#include "settings_data_utils.h"
-#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
