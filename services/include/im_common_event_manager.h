@@ -41,6 +41,7 @@ public:
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent();
     bool SubscribeKeyboardEvent(const Handler &handler);
+    bool SubscribeDisplayManager(const Handler &handler);
     bool SubscribeWindowManagerService(const Handler &handler);
     bool SubscribeMemMgrService(const Handler &handler);
     bool SubscribeAccountManagerService(Handler handle);
