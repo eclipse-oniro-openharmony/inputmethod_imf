@@ -363,7 +363,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     return session->RestoreCurrentIme();
 }
 
-int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client, int32_t requestKeyboardReason)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     auto userId = GetCallingUserId();
@@ -381,7 +381,7 @@ int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
         IMSA_HILOGE("client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return session->OnShowInput(client);
+    return session->OnShowInput(client, requestKeyboardReason);
 }
 
 int32_t InputMethodSystemAbility::HideInput(sptr<IInputClient> client)
@@ -547,7 +547,8 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
 int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
 {
     IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u.", clientInfo.eventFlag, eventFlag);
-    if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag)) {
+    if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag) ||
+        EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
         if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
             !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
             IMSA_HILOGE("not system application!");
@@ -565,6 +566,35 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnUpdateListenEventFlag(clientInfo);
+}
+
+int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInputClient> client)
+{
+    IMSA_HILOGD("IMF SA setCallingWindow enter");
+    auto callingUserId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(callingUserId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->OnSetCallingWindow(windowId, client);
+}
+
+int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart,
+    uint32_t& callingWndId, int32_t &requestKeyboardReason)
+{
+    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
+        !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not system application!");
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+    auto callingUserId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(callingUserId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
+        return false;
+    }
+    return session->GetInputStartInfo(isInputStart, callingWndId, requestKeyboardReason);
 }
 
 bool InputMethodSystemAbility::IsCurrentIme()
@@ -1952,5 +1982,6 @@ int32_t InputMethodSystemAbility::GetInputMethodState(
     auto ret = EnableImeDataParser::GetInstance()->GetImeEnablePattern(userId, bundleName, status);
     return ret;
 }
+
 } // namespace MiscServices
 } // namespace OHOS

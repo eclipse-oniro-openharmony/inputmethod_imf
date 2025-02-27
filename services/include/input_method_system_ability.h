@@ -55,7 +55,8 @@ public:
     int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
-    int32_t ShowInput(sptr<IInputClient> client) override;
+    int32_t ShowInput(
+        sptr<IInputClient> client, int32_t requestKeyboardReason = 0) override;
     int32_t HideInput(sptr<IInputClient> client) override;
     int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
@@ -76,6 +77,9 @@ public:
     int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) override;
+    int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) override;
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason) override;
+
     bool IsCurrentIme() override;
     bool IsInputTypeSupported(InputType type) override;
     bool IsCurrentImeByPid(int32_t pid) override;
@@ -177,7 +181,6 @@ private:
     int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     bool IsSecurityMode(int32_t userId, const std::string &bundleName);
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     std::atomic<bool> enableImeOn_ = false;

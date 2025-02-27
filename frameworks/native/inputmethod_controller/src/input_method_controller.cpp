@@ -34,6 +34,7 @@
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
+#include "ime_event_monitor_manager_impl.h"
 
 
 namespace OHOS {
@@ -238,7 +239,16 @@ int32_t InputMethodController::IsValidTextConfig(const TextConfig &textConfig)
 int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard,
     const TextConfig &textConfig)
 {
-    IMSA_HILOGI("isShowKeyboard %{public}d.", isShowKeyboard);
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = isShowKeyboard;
+    attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
+    return Attach(listener, attachOptions, textConfig);
+}
+
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, const AttachOptions &attachOptions,
+    const TextConfig &textConfig)
+{
+    IMSA_HILOGI("isShowKeyboard %{public}d.", attachOptions.isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     if (IsValidTextConfig(textConfig) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("invalid textConfig.");
@@ -253,10 +263,11 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     SetTextListener(listener);
     {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-        clientInfo_.isShowKeyboard = isShowKeyboard;
+        clientInfo_.isShowKeyboard = attachOptions.isShowKeyboard;
     }
     SaveTextConfig(textConfig);
     GetTextConfig(clientInfo_.config);
+    clientInfo_.requestKeyboardReason = attachOptions.requestKeyboardReason;
 
     sptr<IRemoteObject> agent = nullptr;
     int32_t ret = StartInput(clientInfo_, agent);
@@ -266,14 +277,14 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool
     }
     clientInfo_.state = ClientState::ACTIVE;
     OnInputReady(agent);
-    if (isShowKeyboard) {
+    if (attachOptions.isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
     }
     IMSA_HILOGI("bind imf successfully.");
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodController::ShowTextInput()
+int32_t InputMethodController::ShowTextInput(const AttachOptions &attachOptions)
 {
     InputMethodSyncTrace tracer("IMC_ShowTextInput");
     if (!IsBound()) {
@@ -286,7 +297,8 @@ int32_t InputMethodController::ShowTextInput()
         clientInfo_.isShowKeyboard = true;
     }
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ENEDITABLE);
-    int32_t ret = ShowInput(clientInfo_.client);
+
+    int32_t ret = ShowInput(clientInfo_.client, static_cast<int32_t>(attachOptions.requestKeyboardReason));
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input: %{public}d", ret);
         return ret;
@@ -413,6 +425,17 @@ int32_t InputMethodController::DisplayOptionalInputMethod()
 bool InputMethodController::WasAttached()
 {
     return isBound_.load();
+}
+
+int32_t InputMethodController::GetInputStartInfo(bool &isInputStart,
+    uint32_t &callingWndId, int32_t &requestKeyboardReason)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return false;
+    }
+    return proxy->GetInputStartInfo(isInputStart, callingWndId, requestKeyboardReason);
 }
 
 int32_t InputMethodController::ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props)
@@ -545,7 +568,7 @@ int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     return ret;
 }
 
-int32_t InputMethodController::ShowInput(sptr<IInputClient> &client)
+int32_t InputMethodController::ShowInput(sptr<IInputClient> &client, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("InputMethodController::ShowInput start.");
     auto proxy = GetSystemAbilityProxy();
@@ -553,7 +576,7 @@ int32_t InputMethodController::ShowInput(sptr<IInputClient> &client)
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->ShowInput(client);
+    return proxy->ShowInput(client, requestKeyboardReason);
 }
 
 int32_t InputMethodController::HideInput(sptr<IInputClient> &client)
@@ -570,6 +593,8 @@ int32_t InputMethodController::HideInput(sptr<IInputClient> &client)
 void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 {
     IMSA_HILOGI("input method service death.");
+    // imf sa died, current client callback inputStop
+    ImeEventMonitorManagerImpl::GetInstance().OnInputStop();
     auto textListener = GetTextListener();
     if (textListener != nullptr && textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGD("finish text preview.");
@@ -583,8 +608,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         IMSA_HILOGE("handler_ is nullptr!");
         return;
     }
-    RestoreListenInfoInSaDied();
-    RestoreAttachInfoInSaDied();
+    RestoreClientInfoInSaDied();
 }
 
 void InputMethodController::RestoreListenInfoInSaDied()
@@ -611,10 +635,11 @@ void InputMethodController::RestoreListenInfoInSaDied()
     }
 }
 
-void InputMethodController::RestoreAttachInfoInSaDied()
+void InputMethodController::RestoreClientInfoInSaDied()
 {
     if (!IsEditable()) {
         IMSA_HILOGD("not editable.");
+        RestoreListenInfoInSaDied();
         return;
     }
     auto attach = [=]() -> bool {
@@ -904,6 +929,10 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
     }
     IMSA_HILOGI("windowId: %{public}d.", windowId);
     agent->SetCallingWindow(windowId);
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy != nullptr) {
+        proxy->SetCallingWindow(windowId, clientInfo_.client);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1504,5 +1533,12 @@ int32_t InputMethodController::GetInputMethodState(EnabledStatus &state)
     }
     return proxy->GetInputMethodState(state);
 }
+
+int32_t InputMethodController::ShowTextInput()
+{
+    AttachOptions attachOptions;
+    return ShowTextInput(attachOptions);
+}
+
 } // namespace MiscServices
 } // namespace OHOS

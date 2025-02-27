@@ -23,6 +23,13 @@ InputMethod_AttachOptions *OH_AttachOptions_Create(bool showKeyboard)
 {
     return new InputMethod_AttachOptions({ showKeyboard });
 }
+
+InputMethod_AttachOptions *OH_AttachOptions_CreateWithRequestKeyboardReason(
+    bool showKeyboard, InputMethod_RequestKeyboardReason requestKeyboardReason)
+{
+    return new InputMethod_AttachOptions({ showKeyboard, requestKeyboardReason });
+}
+
 void OH_AttachOptions_Destroy(InputMethod_AttachOptions *options)
 {
     if (options == nullptr) {
@@ -44,6 +51,23 @@ InputMethod_ErrorCode OH_AttachOptions_IsShowKeyboard(InputMethod_AttachOptions 
     }
 
     *showKeyboard = options->showKeyboard;
+    return IME_ERR_OK;
+}
+
+InputMethod_ErrorCode OH_AttachOptions_GetRequestKeyboardReason(
+    InputMethod_AttachOptions *options, int *requestKeyboardReason)
+{
+    if (options == nullptr) {
+        IMSA_HILOGE("options is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+
+    if (requestKeyboardReason == nullptr) {
+        IMSA_HILOGE("requestKeyboardReason is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+
+    *requestKeyboardReason = static_cast<int>(options->requestKeyboardReason);
     return IME_ERR_OK;
 }
 

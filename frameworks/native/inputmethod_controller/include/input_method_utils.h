@@ -305,6 +305,19 @@ struct TextConfig {
 enum class InputType : int32_t { NONE = -1, CAMERA_INPUT = 0, SECURITY_INPUT, VOICE_INPUT, END };
 
 enum class SwitchTrigger : uint32_t { CURRENT_IME = 0, SYSTEM_APP, IMSA, NATIVE_SA};
+
+enum class RequestKeyboardReason : int32_t {
+    NONE = 0,          // no event reason
+    MOUSE = 1,         // user triggered mouse event
+	TOUCH = 2,         // user triggered touch event
+    OTHER = 20         // other reason
+};
+
+struct AttachOptions {
+    bool isShowKeyboard = false;
+    RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
+};
+
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

@@ -61,6 +61,17 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(
         }
         it->second.insert(listener);
     }
+    // Register inputStart callback when imf bound, need inputStart callback when register finish
+    if (EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
+        bool isInputStart = false;
+        uint32_t callingWindowId = 0;
+        int32_t requestKeyboardReason = 0;
+        auto ret = InputMethodController::GetInstance()->GetInputStartInfo(isInputStart,
+                                                                           callingWindowId, requestKeyboardReason);
+        if (ret == ErrorCode::NO_ERROR && isInputStart && listener != nullptr) {
+            listener->OnInputStart(callingWindowId, requestKeyboardReason);
+        }
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -119,6 +130,33 @@ int32_t ImeEventMonitorManagerImpl::OnPanelStatusChange(const InputWindowStatus 
         return OnImeShow(info);
     }
     return ErrorCode::ERROR_BAD_PARAMETERS;
+}
+
+int32_t ImeEventMonitorManagerImpl::OnInputStart(uint32_t callingWndId, int32_t requestKeyboardReason)
+{
+    isInputStart_ = true;
+    callingWindow_ = callingWndId;
+    requestKeyboardReason_ = requestKeyboardReason;
+    auto listeners = GetListeners(EVENT_INPUT_STATUS_CHANGED_MASK);
+    for (const auto &listener : listeners) {
+        if (listener != nullptr) {
+            IMSA_HILOGD("listener start to callback, callingWndId: %{public}u", callingWndId);
+            listener->OnInputStart(callingWndId, requestKeyboardReason);
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ImeEventMonitorManagerImpl::OnInputStop()
+{
+    isInputStart_ = false;
+    auto listeners = GetListeners(EVENT_INPUT_STATUS_CHANGED_MASK);
+    for (const auto &listener : listeners) {
+        if (listener != nullptr) {
+            listener->OnInputStop();
+        }
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t ImeEventMonitorManagerImpl::OnImeShow(const ImeWindowInfo &info)

@@ -108,7 +108,8 @@ int32_t InputMethodSystemAbilityStub::ShowInputOnRemote(MessageParcel &data, Mes
         IMSA_HILOGE("clientObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = ShowInput(iface_cast<IInputClient>(clientObject));
+    int32_t requestKeyboardReason = data.ReadInt32();
+    int32_t ret = ShowInput(iface_cast<IInputClient>(clientObject), requestKeyboardReason);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -326,6 +327,32 @@ int32_t InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote(MessageParce
     clientInfo.client = iface_cast<IInputClient>(client);
     int32_t ret = UpdateListenEventFlag(clientInfo, eventFlag);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::SetCallingWindowOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    auto clientObject = data.ReadRemoteObject();
+    if (clientObject == nullptr) {
+        IMSA_HILOGE("clientObject is nullptr!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    uint32_t windowId = 0;
+    if (!ITypesUtil::Unmarshal(data, windowId)) {
+        IMSA_HILOGE("unmarshal failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ITypesUtil::Marshal(reply, SetCallingWindow(windowId, iface_cast<IInputClient>(clientObject))) ?
+        ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::GetInputStartInfoOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    bool isInputStart = false;
+    uint32_t callingWndId = 0;
+    int32_t requestKeyboardReason = 0;
+    auto ret = GetInputStartInfo(isInputStart, callingWndId, requestKeyboardReason);
+    return ITypesUtil::Marshal(reply, ret, isInputStart, callingWndId, requestKeyboardReason) ?
+        ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)

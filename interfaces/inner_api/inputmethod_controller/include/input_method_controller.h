@@ -183,7 +183,23 @@ public:
      * @since 10
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig);
-
+	
+	/**
+     * @brief Set listener and bind IMSA with given states and textConfig.
+     *
+     * This function is used to set listener and bind IMSA.
+     * Show soft keyboard when state is true, and customized attribute.
+     *
+     * @param listener                  Indicates the listener in order to manipulate text.
+     * @param attachOptions             Indicates the attachOptions, if you want to show soft keyboard,
+     *                                  please pass in true.
+     * @param textConfig                Indicates the textConfig, such as input attribute, cursorInfo, range of
+     *                                  text selection,windowId.
+     * @return Returns 0 for success, others for failure.
+     * @since 15
+     */
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, const AttachOptions &attachOptions,
+        const TextConfig &textConfig);
     /**
      * @brief Show soft keyboard.
      *
@@ -193,7 +209,16 @@ public:
      * @since 6
      */
     IMF_API int32_t ShowTextInput();
-
+    /**
+     * @brief Show soft keyboard.
+     *
+     * This function is used to show soft keyboard of current client.
+     *
+     * @param attachOptions   Indicates the attachOptions, such as requestKeyboardReason
+     * @return Returns 0 for success, others for failure.
+     * @since 15
+     */
+    IMF_API int32_t ShowTextInput(const AttachOptions &attachOptions);
     /**
      * @brief Hide soft keyboard.
      *
@@ -518,6 +543,18 @@ public:
      * @since 10
      */
     IMF_API bool WasAttached();
+
+    /**
+     * @brief Query current client bound status, get client windowId
+     *
+     * This function is used to Query current client bound status.
+     *
+     * @param isInputStart 			Indicates imf bound status
+     * @param callingWndId 			Indicates the windows id of calling client.
+	 * @param requestKeyboardReason Indicates requestKeyboardReason for show keyboard
+     * @return Returns true for imf upon bound state, return false for unbound status.
+     */
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason);
 
     /**
      * @brief Set agent which will be used to communicate with IMA.
@@ -867,14 +904,15 @@ private:
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     void RemoveDeathRecipient();
     int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
-    int32_t ShowInput(sptr<IInputClient> &client);
+    int32_t ShowInput(
+        sptr<IInputClient> &client, int32_t requestKeyboardReason = 0);
     int32_t HideInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
     void ClearEditorCache(bool isNewEditor, sptr<OnTextChangedListener> lastListener);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void RestoreListenInfoInSaDied();
-    void RestoreAttachInfoInSaDied();
+    void RestoreClientInfoInSaDied();
     int32_t RestoreListenEventFlag();
     void SaveTextConfig(const TextConfig &textConfig);
     sptr<OnTextChangedListener> GetTextListener();
@@ -887,7 +925,6 @@ private:
     void PrintKeyEventLog();
     int32_t IsValidTextConfig(const TextConfig &textConfig);
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
-
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;

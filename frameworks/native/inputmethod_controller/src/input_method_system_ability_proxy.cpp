@@ -67,10 +67,15 @@ int32_t InputMethodSystemAbilityProxy::StopInputSession()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION));
 }
 
-int32_t InputMethodSystemAbilityProxy::ShowInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbilityProxy::ShowInput(
+    sptr<IInputClient> client, int32_t requestKeyboardReason)
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT),
-        [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
+        [client, requestKeyboardReason](MessageParcel &data) {
+            auto ret = data.WriteRemoteObject(client->AsObject());
+            ITypesUtil::Marshal(data, requestKeyboardReason);
+            return ret;
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::HideInput(sptr<IInputClient> client)
@@ -189,6 +194,26 @@ bool InputMethodSystemAbilityProxy::EnableIme(const std::string &bundleName)
         [&bundleName](MessageParcel &data) { return ITypesUtil::Marshal(data, bundleName); },
         [&enableIme](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, enableIme); });
     return enableIme;
+}
+
+int32_t InputMethodSystemAbilityProxy::SetCallingWindow(uint32_t windowId, sptr<IInputClient> client)
+{
+    IMSA_HILOGI("proxy setCallingWindow enter");
+    if (client == nullptr) {
+        IMSA_HILOGE("nullptr client");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SET_CALLING_WINDOW),
+        [windowId, client](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId, client->AsObject()); });
+}
+
+int32_t InputMethodSystemAbilityProxy::GetInputStartInfo(bool &isInputStart,
+    uint32_t &callingWndId, int32_t &requestKeyboardReason)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_START_INFO), nullptr,
+        [&isInputStart, &callingWndId, &requestKeyboardReason](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, isInputStart, callingWndId, requestKeyboardReason);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)

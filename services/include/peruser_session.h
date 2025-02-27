@@ -106,7 +106,7 @@ public:
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnHideCurrentInput();
     int32_t OnShowCurrentInput();
-    int32_t OnShowInput(sptr<IInputClient> client);
+    int32_t OnShowInput(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t OnHideInput(sptr<IInputClient> client);
     int32_t OnRequestShowInput();
     int32_t OnRequestHideInput();
@@ -149,6 +149,9 @@ public:
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
     void UpdateUserLockState();
+    int32_t OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client);
+    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason);
+    bool IsSaReady(int32_t saId);
 
 private:
     struct ResetManager {
@@ -210,7 +213,7 @@ private:
     void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);
-    int32_t ShowKeyboard(const sptr<IInputClient> &currentClient);
+    int32_t ShowKeyboard(const sptr<IInputClient> &currentClient, int32_t requestKeyboardReason = 0);
 
     int32_t InitInputControlChannel();
     void StartImeInImeDied();
@@ -247,6 +250,10 @@ private:
     bool HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     bool HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
+    // from service notify clients input start and stop
+    int32_t NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason = 0);
+    int32_t NotifyInputStopToClients();
+    bool IsNotifyInputStop(const sptr<IInputClient> &client);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };

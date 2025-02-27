@@ -48,7 +48,8 @@ public:
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
     int32_t StopInputSession() override;
-    int32_t ShowInput(sptr<IInputClient> client) override;
+    int32_t ShowInput(
+        sptr<IInputClient> client, int32_t requestKeyboardReason = 0) override;
     int32_t HideInput(sptr<IInputClient> client) override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     int32_t RequestShowInput() override;
@@ -82,6 +83,10 @@ public:
     bool IsDefaultImeSet() override;
     bool EnableIme(const std::string &bundleName) override;
     int32_t GetInputMethodState(EnabledStatus &status) override;
+    // make app client know calling IMF window
+    int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) override;
+
+    int32_t GetInputStartInfo(bool &isInputStart, uint32_t &callingWndId, int32_t &requestKeyboardReason) override;
 
 private:
     static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
