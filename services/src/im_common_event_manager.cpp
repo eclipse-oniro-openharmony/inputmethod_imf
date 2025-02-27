@@ -123,74 +123,17 @@ bool ImCommonEventManager::SubscribeKeyboardEvent(const Handler &handler)
 bool ImCommonEventManager::SubscribeWindowManagerService(const Handler &handler)
 {
     IMSA_HILOGI("start.");
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("abilityManager is nullptr!");
-        return false;
-    }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
-        if (handler != nullptr) {
-            handler();
-        }
-    });
-    if (listener == nullptr) {
-        IMSA_HILOGE("failed to create listener!");
-        return false;
-    }
-    int32_t ret = abilityManager->SubscribeSystemAbility(WINDOW_MANAGER_SERVICE_ID, listener);
-    if (ret != ERR_OK) {
-        IMSA_HILOGE("subscribe system ability failed, ret: %{public}d", ret);
-        return false;
-    }
-    return true;
+    return SubscribeManagerServiceCommon(handler, WINDOW_MANAGER_SERVICE_ID);
 }
 
 bool ImCommonEventManager::SubscribeMemMgrService(const Handler &handler)
 {
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("abilityManager is nullptr!");
-        return false;
-    }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
-        if (handler != nullptr) {
-            handler();
-        }
-    });
-    if (listener == nullptr) {
-        IMSA_HILOGE("failed to create listener!");
-        return false;
-    }
-    int32_t ret = abilityManager->SubscribeSystemAbility(MEMORY_MANAGER_SA_ID, listener);
-    if (ret != ERR_OK) {
-        IMSA_HILOGE("subscribe system ability failed, ret: %{public}d", ret);
-        return false;
-    }
-    return true;
+    return SubscribeManagerServiceCommon(handler, MEMORY_MANAGER_SA_ID);
 }
 
 bool ImCommonEventManager::SubscribeAccountManagerService(Handler handler)
 {
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("abilityManager is nullptr!");
-        return false;
-    }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
-        if (handler != nullptr) {
-            handler();
-        }
-    });
-    if (listener == nullptr) {
-        IMSA_HILOGE("failed to create listener!");
-        return false;
-    }
-    int32_t ret = abilityManager->SubscribeSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, listener);
-    if (ret != ERR_OK) {
-        IMSA_HILOGE("subscribe system ability failed, ret: %{public}d", ret);
-        return false;
-    }
-    return true;
+    return SubscribeManagerServiceCommon(handler, SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
 }
 
 bool ImCommonEventManager::UnsubscribeEvent()
@@ -444,6 +387,30 @@ int32_t ImCommonEventManager::PublishPanelStatusChangeEvent(
     EventFwk::CommonEventData data;
     data.SetWant(want);
     return EventFwk::CommonEventManager::NewPublishCommonEvent(data, publicInfo);
+}
+
+bool ImCommonEventManager::SubscribeManagerServiceCommon(const Handler &handler, int32_t saId)
+{
+    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (abilityManager == nullptr) {
+        IMSA_HILOGE("abilityManager is nullptr, saId: %{public}d", saId);
+        return false;
+    }
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
+        if (handler != nullptr) {
+            handler();
+        }
+    });
+    if (listener == nullptr) {
+        IMSA_HILOGE("failed to create listener, saId: %{public}d", saId);
+        return false;
+    }
+    int32_t ret = abilityManager->SubscribeSystemAbility(saId, listener);
+    if (ret != ERR_OK) {
+        IMSA_HILOGE("subscribe system ability failed, ret: %{public}d, saId: %{public}d", ret, saId);
+        return false;
+    }
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

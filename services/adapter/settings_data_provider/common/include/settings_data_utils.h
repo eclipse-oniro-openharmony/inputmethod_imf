@@ -36,7 +36,7 @@ constexpr const char *SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/en
                                           "SETTINGSDATA?Proxy=true";
 constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
 constexpr const char *SETTINGS_USER_DATA_URI = "datashare:///com.ohos.settingsdata/"
-                                               "entry/settingsdata/USER_SETTINGATA_";
+                                               "entry/settingsdata/USER_SETTINGSDATA_";
 struct UserImeConfig : public Serializable {
     std::string userId;
     std::vector<std::string> identities;
