@@ -69,7 +69,7 @@ bool ImCommonEventManager::SubscribeEvent()
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_DATA_SHARE_READY);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_STOPPED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -205,9 +205,9 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
             return that->HandleBootCompleted(data);
         };
-    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_UNLOCKED] =
+        EventManagerFunc_[CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED] =
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->OnUserUnlocked(data);
+            return that->OnScreenUnlock(data);
         };
 }
 
@@ -350,20 +350,21 @@ void ImCommonEventManager::EventSubscriber::HandleBootCompleted(const EventFwk::
     MessageHandler::Instance()->SendMessage(msg);
 }
 
-void ImCommonEventManager::EventSubscriber::OnUserUnlocked(const EventFwk::CommonEventData &data)
+void ImCommonEventManager::EventSubscriber::OnScreenUnlock(const EventFwk::CommonEventData &data)
 {
     MessageParcel *parcel = new (std::nothrow) MessageParcel();
     if (parcel == nullptr) {
         IMSA_HILOGE("parcel is nullptr!");
         return;
     }
-    int32_t userId = data.GetCode();
+    auto const &want = data.GetWant();
+    int32_t userId = want.GetIntParam("userId", OsAccountAdapter::INVALID_USER_ID);
     if (!ITypesUtil::Marshal(*parcel, userId)) {
         IMSA_HILOGE("Failed to write message parcel!");
         delete parcel;
         return;
     }
-    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_USER_UNLOCKED, parcel);
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SCREEN_UNLOCK, parcel);
     if (msg == nullptr) {
         IMSA_HILOGE("failed to create Message!");
         delete parcel;

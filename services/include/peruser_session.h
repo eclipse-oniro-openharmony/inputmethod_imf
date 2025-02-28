@@ -119,8 +119,7 @@ public:
     int32_t SwitchSubtypeWithoutStartIme(const SubProperty &subProperty);
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
-    void OnUserUnlocked();
-    sptr<IInputClient> GetCurrentClient();
+    void OnScreenUnlock();
     int64_t GetCurrentClientPid();
     int64_t GetInactiveClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
@@ -296,7 +295,6 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
-    std::atomic<bool> isUserUnlocked_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

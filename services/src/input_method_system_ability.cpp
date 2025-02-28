@@ -380,21 +380,6 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
-    UpdateUserLockState();
-}
-
-void InputMethodSystemAbility::UpdateUserLockState()
-{
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        UserSessionManager::GetInstance().AddUserSession(userId_);
-    }
-    session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
-        return;
-    }
-    session->UpdateUserLockState();
 }
 
 int32_t InputMethodSystemAbility::OnIdle(const SystemAbilityOnDemandReason &idleReason)
@@ -688,6 +673,16 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
         session->RestoreCurrentImeSubType();
     }
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+        std::string ime;
+        if (ChangeImeScreenLocked(ime) != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("not ime screenlocked");
+            return ErrorCode::ERROR_NOT_IME;
+        }
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, ime);
+    }
+#endif
     return session->RestoreCurrentIme();
 }
 
@@ -1020,6 +1015,15 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+        auto defaultime = ImeInfoInquirer::GetInstance().GetDefaultIme();
+        if (switchInfo.bundleName != defaultime.bundleName) {
+            IMSA_HILOGD("switch ime not default ime when isScreenLocked");
+            return ErrorCode::ERROR_NOT_DEFAULT_IME;
+        }
+    }
+#endif
     if (enableImeOn_.load() && !EnableImeDataParser::GetInstance()->CheckNeedSwitch(switchInfo, userId)) {
         IMSA_HILOGW("Enable mode off or switch is not enable, stopped!");
         return ErrorCode::ERROR_ENABLE_IME;
@@ -1349,8 +1353,8 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
-            case MSG_ID_USER_UNLOCKED: {
-                OnUserUnlocked(msg);
+            case MSG_ID_SCREEN_UNLOCK: {
+                OnScreenUnlock(msg);
                 break;
             }
             default: {
@@ -1480,7 +1484,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::st
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
+void InputMethodSystemAbility::OnScreenUnlock(const Message *msg)
 {
     if (msg == nullptr || msg->msgContent_ == nullptr) {
         IMSA_HILOGE("message is nullptr");
@@ -1504,7 +1508,7 @@ void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return;
     }
-    session->OnUserUnlocked();
+    session->OnScreenUnlock();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -2125,8 +2129,6 @@ void InputMethodSystemAbility::HandleOsAccountStarted()
     auto userId = OsAccountAdapter::GetForegroundOsAccountLocalId();
     if (userId_ != userId) {
         UpdateUserInfo(userId);
-    } else {
-        UpdateUserLockState();
     }
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_OS_ACCOUNT_STARTED, nullptr);
     if (msg == nullptr) {
@@ -2406,6 +2408,53 @@ std::pair<int64_t, std::string> InputMethodSystemAbility::GetCurrentImeInfoForHi
         imeInfo.second = imeData->ime.first;
     }
     return imeInfo;
+}
+
+int32_t InputMethodSystemAbility::ChangeImeScreenLocked(std::string &ime)
+{
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (defaultIme != nullptr) {
+        ime = defaultIme->imeId;
+        IMSA_HILOGD("screenlocked ime change to defaultime");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("ChangeToDefalutIme is failed!");
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentIme != nullptr) {
+        ime = currentIme->imeId;
+        IMSA_HILOGD("screenlocked ime change to currentIme");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("ChangeTocurrentIme is failed!");
+    if (ProtectThreeImeAbility(ime) != ErrorCode::NO_ERROR) {
+        return ErrorCode::ERROR_NOT_IME;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::ProtectThreeImeAbility(std::string &ime)
+{
+    InputMethodStatus status = InputMethodStatus::ENABLE;
+    std::vector<Property> props;
+    int32_t ret = ListInputMethod(status, props);
+    if (ErrorCode::NO_ERROR == ret) {
+        ime = props[0].id;
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGD("GetListEnableInputMethodIme is failed!");
+    InputMethodStatus status1 = InputMethodStatus::DISABLE;
+    std::vector<Property> props1;
+    int32_t ret1 = ListInputMethod(status1, props1);
+    if (ret1 != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetListDisableInputMethodIme is failed!");
+        return ErrorCode::ERROR_NOT_IME;
+    }
+    if (EnableIme(props1[0].name)) {
+        ime = props1[0].id;
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("ProtectThreeImeAbility is failed!");
+    return ErrorCode::ERROR_NOT_IME;
 }
 } // namespace MiscServices
 } // namespace OHOS
