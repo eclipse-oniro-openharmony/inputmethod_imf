@@ -27,6 +27,7 @@
 #include "inputmethod_message_handler.h"
 #include "input_method_types.h"
 #include "want.h"
+#include "display_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -95,6 +96,7 @@ public:
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
     void OnUserUnlocked();
+    sptr<IInputClient> GetCurrentClient();
     int64_t GetCurrentClientPid();
     int64_t GetInactiveClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
@@ -131,6 +133,7 @@ public:
     bool IsSaReady(int32_t saId);
     void UpdateUserLockState();
     void TryUnloadSystemAbility();
+    int32_t ChangeToDefaultImeIfFolded();
 
 private:
     struct ResetManager {
@@ -200,7 +203,6 @@ private:
     void StartImeInImeDied();
     void StartImeIfInstalled();
     void SetCurrentClient(sptr<IInputClient> client);
-    sptr<IInputClient> GetCurrentClient();
     void ReplaceCurrentClient(const sptr<IInputClient> &client);
     void SetInactiveClient(sptr<IInputClient> client);
     sptr<IInputClient> GetInactiveClient();

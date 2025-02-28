@@ -32,6 +32,7 @@ public:
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent();
     bool SubscribeKeyboardEvent(const Handler &handler);
+    bool SubscribeDisplayManager(const Handler &handler);
     bool SubscribeWindowManagerService(const Handler &handler);
     bool SubscribeMemMgrService(const Handler &handler);
     bool SubscribeAccountManagerService(Handler handle);
@@ -61,6 +62,7 @@ public:
     };
 
 private:
+    bool SubscribeManagerServiceCommon(const Handler &handler, int32_t saId);
     class SystemAbilityStatusChangeListener : public SystemAbilityStatusChangeStub {
     public:
         explicit SystemAbilityStatusChangeListener(std::function<void()>);
