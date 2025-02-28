@@ -756,7 +756,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSecurityProperty });
     };
-    eventHandler->PostTask(task, type);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 void JsInputMethodEngineSetting::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)

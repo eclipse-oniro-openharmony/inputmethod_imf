@@ -120,6 +120,31 @@ bool ImCommonEventManager::SubscribeKeyboardEvent(const Handler &handler)
     return true;
 }
 
+bool ImCommonEventManager::SubscribeDisplayManager(const Handler &handler)
+{
+    IMSA_HILOGI("ImCommonEventManager::SubscribeDisplayManager start.");
+    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (abilityManager == nullptr) {
+        IMSA_HILOGE("SubscribeDisplayManager abilityManager is nullptr!");
+        return false;
+    }
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
+        if (handler != nullptr) {
+            handler();
+        }
+    });
+    if (listener == nullptr) {
+        IMSA_HILOGI("listener is nullptr!");
+        return false;
+    }
+    int32_t ret = abilityManager->SubscribeSystemAbility(DISPLAY_MANAGER_SERVICE_SA_ID, listener);
+    if (ret != ERR_OK) {
+        IMSA_HILOGI("failed to SubscribeSystemAbility, ret: %{public}d!", ret);
+        return false;
+    }
+    return true;
+}
+
 bool ImCommonEventManager::SubscribeWindowManagerService(const Handler &handler)
 {
     IMSA_HILOGI("start.");
@@ -358,7 +383,7 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility
     IMSA_HILOGD("systemAbilityId: %{public}d.", systemAbilityId);
     if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID &&
         systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN &&
-        systemAbilityId != MEMORY_MANAGER_SA_ID) {
+        systemAbilityId != MEMORY_MANAGER_SA_ID && systemAbilityId != DISPLAY_MANAGER_SERVICE_SA_ID) {
         return;
     }
     if (func_ != nullptr) {

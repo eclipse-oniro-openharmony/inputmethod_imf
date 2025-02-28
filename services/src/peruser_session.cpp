@@ -40,6 +40,9 @@
 #include "system_ability_definition.h"
 #include "unistd.h"
 #include "wms_connection_observer.h"
+#include "dm_common.h"
+#include "display_manager.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -55,6 +58,7 @@ constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
 constexpr int32_t MAX_RESTART_NUM = 3;
 constexpr int32_t IME_RESET_TIME_OUT = 3;
 constexpr int32_t MAX_RESTART_TASKS = 2;
+const std::string FOLD_SCREEN_TYPE = OHOS::system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
 PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
@@ -1133,6 +1137,35 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 bool PerUserSession::CanStartIme()
 {
     return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
+}
+
+int32_t PerUserSession::ChangeToDefaultImeIfFolded()
+{
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    auto imeToStart = std::make_shared<ImeNativeCfg>();
+    if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
+        Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::FOLDED) {
+        IMSA_HILOGI("FoldStatus is %{public}d", Rosen::DisplayManager::GetInstance().GetFoldStatus());
+        auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+        if (defaultIme == nullptr) {
+            IMSA_HILOGE("failed to get default ime");
+            return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
+        }
+        if (defaultIme->bundleName == currentIme->bundleName) {
+            IMSA_HILOGD("no need");
+            imeToStart = currentIme;
+            return ErrorCode::NO_ERROR;
+        }
+        imeToStart = defaultIme;
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, imeToStart->imeId);
+        RestoreCurrentIme();
+        return ErrorCode::NO_ERROR;
+    } else {
+        IMSA_HILOGI("FoldStatus is %{public}d", Rosen::DisplayManager::GetInstance().GetFoldStatus());
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
+        RestoreCurrentIme();
+        return ErrorCode::NO_ERROR;
+    }
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
