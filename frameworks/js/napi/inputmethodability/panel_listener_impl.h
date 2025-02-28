@@ -35,10 +35,15 @@ struct JsWindowSize {
     static napi_value Write(napi_env env, const WindowSize &nativeObject);
     static bool Read(napi_env env, napi_value jsObject, WindowSize &nativeObject);
 };
+struct JsKeyboardArea {
+    static napi_value Write(napi_env env, const PanelAdjustInfo &nativeObject);
+    static bool Read(napi_env env, napi_value jsObject, PanelAdjustInfo &nativeObject);
+};
 class PanelListenerImpl : public PanelStatusListener {
 public:
     struct UvEntry {
         WindowSize size;
+        PanelAdjustInfo keyboardArea;
         std::shared_ptr<JSCallbackObject> cbCopy;
         explicit UvEntry(const std::shared_ptr<JSCallbackObject> &cb) : cbCopy(cb)
         {
@@ -49,6 +54,8 @@ public:
     ~PanelListenerImpl();
     void OnPanelStatus(uint32_t windowId, bool isShow) override;
     void OnSizeChange(uint32_t windowId, const WindowSize &size) override;
+    void OnSizeChange(uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea,
+        const std::string &event) override;
     void Subscribe(uint32_t windowId, const std::string &type, std::shared_ptr<JSCallbackObject> cbObject);
     void RemoveInfo(const std::string &type, uint32_t windowId);
     void SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler);

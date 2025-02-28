@@ -97,6 +97,7 @@ public:
     bool IsDefaultImeSet() override;
     bool EnableIme(const std::string &bundleName) override;
     int32_t GetInputMethodState(EnabledStatus &status) override;
+    bool IsSystemApp() override;
 
 protected:
     void OnStart() override;

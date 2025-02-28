@@ -17,17 +17,17 @@
 #define INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H
 #include <cstdint>
 
+#include "panel_common.h"
+
 namespace OHOS {
 namespace MiscServices {
-struct WindowSize {
-    uint32_t width = 0;
-    uint32_t height = 0;
-};
 class PanelStatusListener {
 public:
     virtual ~PanelStatusListener(){};
     virtual void OnPanelStatus(uint32_t windowId, bool isShow) = 0;
     virtual void OnSizeChange(uint32_t windowId, const WindowSize &size) = 0;
+    virtual void OnSizeChange(
+        uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea, const std::string &event) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

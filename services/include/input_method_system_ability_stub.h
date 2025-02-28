@@ -111,6 +111,8 @@ private:
 
     int32_t GetInputMethodStateOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t IsSystemAppOnRemote(MessageParcel &data, MessageParcel &reply);
+
     int32_t SetCallingWindowOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t GetInputStartInfoOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -191,7 +193,9 @@ private:
         [static_cast<uint32_t>(InputMethodInterfaceCode::ENABLE_IME)] =
             &InputMethodSystemAbilityStub::EnableImeOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::GET_IME_STATE)] =
-          &InputMethodSystemAbilityStub::GetInputMethodStateOnRemote,
+            &InputMethodSystemAbilityStub::GetInputMethodStateOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_SYSTEM_APP)] =
+            &InputMethodSystemAbilityStub::IsSystemAppOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::SET_CALLING_WINDOW)] =
             &InputMethodSystemAbilityStub::SetCallingWindowOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_START_INFO)] =

@@ -641,6 +641,11 @@ int32_t InputMethodSystemAbility::IsDefaultIme()
     return IsDefaultImeFromTokenId(GetCallingUserId(), IPCSkeleton::GetCallingTokenID());
 }
 
+bool InputMethodSystemAbility::IsSystemApp()
+{
+    return identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID());
+}
+
 int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId)
 {
     auto prop = std::make_shared<Property>();
