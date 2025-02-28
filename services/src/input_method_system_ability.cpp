@@ -374,9 +374,6 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     userId_ = userId;
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
-    if (enableImeOn_.load()) {
-        EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
-    }
     if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
@@ -1375,6 +1372,9 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto newUserId = msg->msgContent_->ReadInt32();
+    if (enableImeOn_.load()) {
+        EnableImeDataParser::GetInstance()->OnUserChanged(newUserId);
+    }
     FullImeInfoManager::GetInstance().Add(newUserId);
     // if scb enable, deal when receive wmsConnected.
     if (isScbEnable_.load()) {
@@ -1444,7 +1444,7 @@ int32_t InputMethodSystemAbility::HandlePackageEvent(const Message *msg)
     if (msg->msgId_ == MSG_ID_PACKAGE_ADDED) {
         auto instance = EnableImeDataParser::GetInstance();
         if (instance != nullptr) {
-            instance->OnPackAdded(userId, packageName);
+            instance->OnPackageAdded(userId, packageName);
         }
         return FullImeInfoManager::GetInstance().Add(userId, packageName);
     }

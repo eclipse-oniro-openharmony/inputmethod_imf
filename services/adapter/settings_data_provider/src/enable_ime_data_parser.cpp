@@ -61,6 +61,7 @@ int32_t EnableImeDataParser::Initialize(const int32_t userId)
 
 void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
 {
+    IMSA_HILOGI("run in %{public}d}.", targetUserId);
     currentUserId_ = targetUserId;
     UpdateEnableData(targetUserId, ENABLE_IME);
     UpdateEnableData(targetUserId, ENABLE_KEYBOARD);
@@ -235,6 +236,7 @@ int32_t EnableImeDataParser::GetEnableData(
         return ErrorCode::ERROR_ENABLE_IME;
     }
     IMSA_HILOGD("userId: %{public}d, key: %{public}s.", userId, key.c_str());
+    std::lock_guard<std::mutex> lock(settingOperateLock_);
     std::string valueStr;
     int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, key, valueStr);
     if (ret == ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
@@ -352,11 +354,12 @@ void EnableImeDataParser::OnConfigChanged(int32_t userId, const std::string &key
     UpdateEnableData(userId, key);
 }
 
-void EnableImeDataParser::OnPackAdded(int32_t userId, const std::string &bundleName)
+void EnableImeDataParser::OnPackageAdded(int32_t userId, const std::string &bundleName)
 {
     IMSA_HILOGI("run in:%{public}d,%{public}s.", userId, bundleName.c_str());
-    if (!ImeInfoInquirer::GetInstance().IsDefaultBasicModeWhenAdded()
-        || !ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
+    auto initEnabledState = ImeInfoInquirer::GetInstance().GetSystemConfig().initEnabledState;
+    if (initEnabledState != EnabledStatus::BASIC_MODE) {
+        IMSA_HILOGI("init enabled state is %{public}d.", static_cast<int32_t>(initEnabledState));
         return;
     }
     if (bundleName == ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName) {
@@ -367,6 +370,7 @@ void EnableImeDataParser::OnPackAdded(int32_t userId, const std::string &bundleN
     if (settingInstance == nullptr) {
         return;
     }
+    std::lock_guard<std::mutex> lock(settingOperateLock_);
     std::string globalStr;
     int32_t ret = settingInstance->GetStringValue(SETTING_URI_PROXY, ENABLE_IME, globalStr);
     if (ret != ErrorCode::NO_ERROR && ret != ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
@@ -374,96 +378,73 @@ void EnableImeDataParser::OnPackAdded(int32_t userId, const std::string &bundleN
         return;
     }
     if (userId == currentUserId_) {
-        OnPackAddedForeGround(userId, bundleName, globalStr);
+        OnForegroundPackageAdded(userId, bundleName, globalStr);
         return;
     }
-    OnPackAddedBackGround(userId, bundleName, globalStr);
+    OnBackgroundPackageAdded(userId, bundleName, globalStr);
 }
 
-void EnableImeDataParser::OnPackAddedBackGround(
+void EnableImeDataParser::OnBackgroundPackageAdded(
     int32_t userId, const std::string &bundleName, const std::string &globalContent)
 {
     IMSA_HILOGI("run in:%{public}d,%{public}s,%{public}s.", userId, bundleName.c_str(), globalContent.c_str());
-    if (globalContent.empty()) {
-        std::string finalUserContent;
-        AddToUserEnabledTable(userId, bundleName, finalUserContent);
-        return;
-    }
     auto globalUserId = GetGlobalTableUserId(globalContent);
-    if (globalUserId.empty() || atoi(globalUserId.c_str()) == currentUserId_ || atoi(globalUserId.c_str()) != userId) {
-        std::string finalUserContent;
-        AddToUserEnabledTable(userId, bundleName, finalUserContent);
-        return;
+    if (!globalUserId.empty() && globalUserId == std::to_string(userId)) {
+        IMSA_HILOGW("background add, but globalUserId same with userId:[%{public}d,%{public}d,%{public}s].",
+            currentUserId_, userId, bundleName.c_str());
     }
-    std::string finalGlobalContent;
-    auto ret = AddToGlobalEnabledTable(userId, bundleName, finalGlobalContent);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("add failed:[%{public}d,%{public}d,%{public}s,%{public}s,%{public}d].", userId, currentUserId_,
-            globalUserId.c_str(), bundleName.c_str(), ret);
-        return;
-    }
-    CoverUserEnabledTable(userId, finalGlobalContent);
+    std::string finalUserContent;
+    AddToUserEnableTable(userId, bundleName, finalUserContent);
 }
 
-void EnableImeDataParser::OnPackAddedForeGround(
+void EnableImeDataParser::OnForegroundPackageAdded(
     int32_t userId, const std::string &bundleName, const std::string &globalContent)
 {
     IMSA_HILOGI("run in:%{public}d,%{public}s,%{public}s.", userId, bundleName.c_str(), globalContent.c_str());
-    if (globalContent.empty()) {
-        std::string finalUserContent;
-        auto ret = AddToUserEnabledTable(userId, bundleName, finalUserContent);
+    auto globalUserId = GetGlobalTableUserId(globalContent);
+    if (globalUserId.empty() || globalUserId == std::to_string(currentUserId_)) {
+        std::string finalGlobalContent;
+        auto ret = AddToGlobalEnableTable(userId, bundleName, finalGlobalContent);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("globalContent empty, add failed:[%{public}d,%{public}s,%{public}d].", userId,
+            IMSA_HILOGE("add failed:[%{public}d,%{public}s,%{public}s,%{public}d].", userId, globalUserId.c_str(),
                 bundleName.c_str(), ret);
             return;
         }
-        CoverGlobalEnableTable(finalUserContent);
+        CoverUserEnableTable(userId, finalGlobalContent);
         return;
     }
-    auto globalUserId = GetGlobalTableUserId(globalContent);
-    if (globalUserId.empty() || atoi(globalUserId.c_str()) == currentUserId_) {
-        std::string finalGlobalContent;
-        auto ret = AddToGlobalEnabledTable(userId, bundleName, finalGlobalContent);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("userId same, add failed:[%{public}d,%{public}s,%{public}d].", userId, bundleName.c_str(), ret);
-            return;
-        }
-        CoverUserEnabledTable(userId, finalGlobalContent);
-        return;
-    }
-    auto ret = CoverUserEnabledTable(atoi(globalUserId.c_str()), globalContent);
+    auto ret = CoverUserEnableTable(atoi(globalUserId.c_str()), globalContent);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("cover failed:[%{public}d,%{public}s,%{public}s,%{public}d].", userId, globalUserId.c_str(),
             bundleName.c_str(), ret);
         return;
     }
     std::string finalUserContent;
-    ret = AddToUserEnabledTable(userId, bundleName, finalUserContent);
+    ret = AddToUserEnableTable(userId, bundleName, finalUserContent);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("cover failed:[%{public}d,%{public}s,%{public}s,%{public}d].", userId, globalUserId.c_str(),
-            bundleName.c_str(), ret);
+        IMSA_HILOGE("userId not same, add failed:[%{public}d,%{public}s,%{public}s,%{public}d].", userId,
+            globalUserId.c_str(), bundleName.c_str(), ret);
         return;
     }
     CoverGlobalEnableTable(finalUserContent);
 }
 
-int32_t EnableImeDataParser::AddToUserEnabledTable(
+int32_t EnableImeDataParser::AddToUserEnableTable(
     int32_t userId, const std::string &bundleName, std::string &userContent)
 {
-    return AddToEnabledTable(
+    return AddToEnableTable(
         userId, bundleName, SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true", userContent);
 }
 
-int32_t EnableImeDataParser::AddToGlobalEnabledTable(
+int32_t EnableImeDataParser::AddToGlobalEnableTable(
     int32_t userId, const std::string &bundleName, std::string &globalContent)
 {
-    return AddToEnabledTable(userId, bundleName, SETTING_URI_PROXY, globalContent);
+    return AddToEnableTable(userId, bundleName, SETTING_URI_PROXY, globalContent);
 }
 
-int32_t EnableImeDataParser::AddToEnabledTable(
+int32_t EnableImeDataParser::AddToEnableTable(
     int32_t userId, const std::string &bundleName, const std::string &uriProxy, std::string &tableContent)
 {
-    IMSA_HILOGI("run in:%{public}d,%{public}s,%{public}s.", userId, bundleName.c_str(), uriProxy.c_str());
     auto settingInstance = SettingsDataUtils::GetInstance();
     if (settingInstance == nullptr) {
         return ErrorCode::ERROR_ENABLE_IME;
@@ -475,21 +456,25 @@ int32_t EnableImeDataParser::AddToEnabledTable(
             bundleName.c_str(), uriProxy.c_str(), ret);
         return ret;
     }
+    IMSA_HILOGI("start:%{public}d,%{public}s,%{public}s,%{public}s.", userId, bundleName.c_str(), uriProxy.c_str(),
+        valueStr.c_str());
     EnableImeCfg imeCfg;
     imeCfg.userImeCfg.userId = std::to_string(userId);
     imeCfg.Unmarshall(valueStr);
     imeCfg.userImeCfg.identities.push_back(bundleName);
-    auto marRet = imeCfg.Marshall(tableContent);
-    if (!marRet || imeCfg.userImeCfg.identities.empty()) {
-        IMSA_HILOGE("Marshall failed:[%{public}d, %{public}s, %{public}s, %{public}zu].", userId, bundleName.c_str(),
-            uriProxy.c_str(), imeCfg.userImeCfg.identities.size());
+    imeCfg.Marshall(tableContent);
+    if (tableContent.empty()) {
+        IMSA_HILOGE(
+            "Marshall failed:[%{public}d, %{public}s, %{public}s].", userId, bundleName.c_str(), uriProxy.c_str());
         return ErrorCode::ERROR_ENABLE_IME;
     }
     settingInstance->SetStringValue(uriProxy, ENABLE_IME, tableContent);
+    IMSA_HILOGI("end:%{public}d,%{public}s,%{public}s,%{public}s.", userId, bundleName.c_str(), uriProxy.c_str(),
+        tableContent.c_str());
     return ErrorCode::NO_ERROR;
 }
 
-int32_t EnableImeDataParser::CoverUserEnabledTable(int32_t userId, const std::string &userContent)
+int32_t EnableImeDataParser::CoverUserEnableTable(int32_t userId, const std::string &userContent)
 {
     auto settingInstance = SettingsDataUtils::GetInstance();
     if (settingInstance == nullptr) {

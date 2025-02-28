@@ -96,7 +96,7 @@ public:
     int32_t GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int32_t userId, bool enableOn, uint32_t cacheCount);
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
-    bool IsDefaultBasicModeWhenAdded();
+    SystemConfig GetSystemConfig();
     void InitSystemConfig();
     ImeNativeCfg GetDefaultIme();
     int32_t QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &imeInfos);

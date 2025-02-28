@@ -76,9 +76,9 @@ bool ImeInfoInquirer::IsEnableSecurityMode()
     return systemConfig_.enableFullExperienceFeature;
 }
 
-bool ImeInfoInquirer::IsDefaultBasicModeWhenAdded()
+SystemConfig ImeInfoInquirer::GetSystemConfig()
 {
-    return systemConfig_.isDefaultBasicModeWhenAdd;
+    return systemConfig_;
 }
 
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
