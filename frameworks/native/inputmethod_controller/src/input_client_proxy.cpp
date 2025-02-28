@@ -51,6 +51,19 @@ int32_t InputClientProxy::OnPanelStatusChange(const InputWindowStatus &status, c
     });
 }
 
+int32_t InputClientProxy::NotifyInputStart(uint32_t callingWndId, int32_t requestKeyboardReason)
+{
+    IMSA_HILOGD("InputClientProxy::NotifyInputStart");
+    return SendRequest(ON_NOTIFY_INPUT_START, [callingWndId, requestKeyboardReason](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, callingWndId, requestKeyboardReason);
+    });
+}
+
+int32_t InputClientProxy::NotifyInputStop()
+{
+    IMSA_HILOGD("InputClientProxy::NotifyInputStop");
+    return SendRequest(ON_NOTIFY_INPUT_STOP, nullptr);
+}
 void InputClientProxy::DeactivateClient()
 {
     SendRequest(DEACTIVATE_CLIENT, nullptr, nullptr, MessageOption::TF_ASYNC);

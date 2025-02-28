@@ -170,8 +170,11 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
             listener = g_inputMethodProxy->listener;
         }
     }
-
-    int32_t err = controller->Attach(listener, options->showKeyboard, textConfig);
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = options->showKeyboard;
+    attachOptions.requestKeyboardReason =
+        static_cast<RequestKeyboardReason>(static_cast<int32_t>(options->requestKeyboardReason));
+    int32_t err = controller->Attach(listener, attachOptions, textConfig);
     if (err == ErrorCode::NO_ERROR) {
         errCode = IME_ERR_OK;
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);

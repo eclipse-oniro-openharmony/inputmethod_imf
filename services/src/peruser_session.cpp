@@ -206,7 +206,7 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
+int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("PerUserSession::ShowKeyboard start.");
     auto clientInfo = GetClientInfo(currentClient->AsObject());
@@ -226,6 +226,7 @@ int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
     }
     bool isShowKeyboard = true;
     UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+    NotifyInputStartToClients(clientInfo->config.windowId, requestKeyboardReason);
     return ErrorCode::NO_ERROR;
 }
 
@@ -235,6 +236,9 @@ int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
  */
 void PerUserSession::OnClientDied(sptr<IInputClient> remote)
 {
+    if (IsNotifyInputStop(remote)) {
+        NotifyInputStopToClients();
+    }
     if (remote == nullptr) {
         return;
     }
@@ -283,6 +287,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
+        NotifyInputStopToClients();
         StopClientInput(clientInfo);
         if (type == ImeType::IME) {
             StartImeInImeDied();
@@ -354,14 +359,14 @@ int32_t PerUserSession::OnHideInput(sptr<IInputClient> client)
     return HideKeyboard(client);
 }
 
-int32_t PerUserSession::OnShowInput(sptr<IInputClient> client)
+int32_t PerUserSession::OnShowInput(sptr<IInputClient> client, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("PerUserSession::OnShowInput start.");
     if (!IsSameClient(client, GetCurrentClient())) {
         IMSA_HILOGE("client is not current client!");
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    return ShowKeyboard(client);
+    return ShowKeyboard(client, requestKeyboardReason);
 }
 
 void PerUserSession::OnHideSoftKeyBoardSelf()
@@ -420,6 +425,7 @@ int32_t PerUserSession::OnRequestHideInput()
         RemoveClient(inactiveClient, false, true);
     }
     RestoreCurrentImeSubType();
+    NotifyInputStopToClients();
     return ErrorCode::NO_ERROR;
 }
 
@@ -469,7 +475,16 @@ int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
 int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
 {
     IMSA_HILOGD("PerUserSession::OnReleaseInput start");
-    return RemoveClient(client, true);
+    bool isReady = IsNotifyInputStop(client);
+    int32_t ret = RemoveClient(client, true);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("remove client failed");
+        return ret;
+    }
+    if (isReady) {
+        NotifyInputStopToClients();
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient, bool isInactiveClient)
@@ -553,6 +568,7 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
     infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
     infoTemp.isNotifyInputStart = inputClientInfo.isNotifyInputStart;
     infoTemp.needHide = inputClientInfo.needHide;
+    infoTemp.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     if (ret != ErrorCode::NO_ERROR) {
@@ -600,6 +616,9 @@ int32_t PerUserSession::BindClientWithIme(
         { { UpdateFlag::BINDIMETYPE, type }, { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard },
             { UpdateFlag::STATE, ClientState::ACTIVE } });
     ReplaceCurrentClient(clientInfo->client);
+    if (clientInfo->isShowKeyboard) {
+        NotifyInputStartToClients(clientInfo->config.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1228,6 +1247,100 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
     return ErrorCode::NO_ERROR;
 }
 
+int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client)
+{
+    IMSA_HILOGD("OnSetCallingWindow enter");
+    if (!IsSameClient(client, GetCurrentClient())) {
+        IMSA_HILOGE("client is not current client!");
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
+    if (client == nullptr) {
+        IMSA_HILOGE("nullptr client!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("nullptr clientInfo!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    // if windowId change, refresh windowId info and notify clients input start;
+    if (clientInfo->config.windowId != callingWindowId) {
+        IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
+        clientInfo->config.windowId = callingWindowId;
+        return NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason)
+{
+    auto client = GetCurrentClient();
+    if (client == nullptr) {
+        IMSA_HILOGE("nullptr client!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("nullptr clientInfo!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    isInputStart = true;
+    callingWndId = clientInfo->config.windowId;
+    requestKeyboardReason = static_cast<int32_t>(clientInfo->requestKeyboardReason);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason)
+{
+    IMSA_HILOGD("NotifyInputStartToClients enter");
+    auto clientMap = GetClientMap();
+    for (const auto &client : clientMap) {
+        auto clientInfo = client.second;
+        if (clientInfo == nullptr || clientInfo->client == nullptr ||
+            !EventStatusManager::IsInputStatusChangedOn(clientInfo->eventFlag)) {
+            IMSA_HILOGE("nullptr clientInfo or no need to notify");
+            continue;
+        }
+        int32_t ret = clientInfo->client->NotifyInputStart(callingWndId, requestKeyboardReason);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to notify OnInputStart, errorCode: %{public}d", ret);
+            continue;
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::NotifyInputStopToClients()
+{
+    IMSA_HILOGD("NotifyInputStopToClients enter");
+    auto clientMap = GetClientMap();
+    for (const auto &client : clientMap) {
+        auto clientInfo = client.second;
+        if (clientInfo == nullptr || clientInfo->client == nullptr ||
+            !EventStatusManager::IsInputStatusChangedOn(clientInfo->eventFlag)) {
+            IMSA_HILOGE("nullptr clientInfo or no need to notify");
+            continue;
+        }
+        int32_t ret = clientInfo->client->NotifyInputStop();
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to notify OnInputStop, errorCode: %{public}d", ret);
+            continue;
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+bool PerUserSession::IsNotifyInputStop(const sptr<IInputClient> &client)
+{
+    if (IsSameClient(client, GetCurrentClient())) {
+        return true;
+    }
+    if (IsSameClient(client, GetInactiveClient()) && GetCurrentClient() == nullptr) {
+        return true;
+    }
+    return false;
+}
+
 bool PerUserSession::IsImeStartInBind(ImeType bindImeType, ImeType startImeType)
 {
     return startImeType == ImeType::IME && bindImeType == ImeType::IME;
@@ -1408,6 +1521,7 @@ int32_t PerUserSession::RemoveCurrentClient()
         IMSA_HILOGE("currentClient is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
+    NotifyInputStopToClients();
     return RemoveClient(currentClient, false);
 }
 

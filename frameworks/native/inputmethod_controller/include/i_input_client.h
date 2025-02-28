@@ -33,6 +33,8 @@ public:
         ON_INPUT_STOP,
         ON_SWITCH_INPUT,
         ON_PANEL_STATUS_CHANGE,
+        ON_NOTIFY_INPUT_START, // IME start to input, no bind
+        ON_NOTIFY_INPUT_STOP, // IME stop to input
         DEACTIVATE_CLIENT
     };
 
@@ -42,6 +44,8 @@ public:
     virtual int32_t OnInputStop(bool isStopInactiveClient) = 0;
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
     virtual int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) = 0;
+    virtual int32_t NotifyInputStart(uint32_t callingWndId, int32_t requestKeyboardReason) = 0;
+    virtual int32_t NotifyInputStop() = 0;
     virtual void DeactivateClient() = 0;
 };
 } // namespace MiscServices

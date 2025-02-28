@@ -165,7 +165,7 @@ void FUZZRestore(sptr<InputMethodController> imc)
 {
     imc->RestoreListenEventFlag();
     imc->RestoreListenInfoInSaDied();
-    imc->RestoreAttachInfoInSaDied();
+    imc->RestoreClientInfoInSaDied();
 }
 
 void InputType(sptr<InputMethodController> imc)
