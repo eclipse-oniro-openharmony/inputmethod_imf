@@ -91,8 +91,7 @@ public:
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range);
     int32_t FinishTextPreview(bool isAsync);
-    int32_t NotifyPanelStatus(
-        const std::shared_ptr<InputMethodPanel> &inputMethodPanel, SysPanelStatus &sysPanelStatus);
+    int32_t NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     void OnSetInputType(InputType inputType);
     int32_t SendMessage(const ArrayBuffer &arrayBuffer);

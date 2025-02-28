@@ -123,6 +123,17 @@ bool InputTypeManager::IsVoiceImeStarted()
            inputTypes_[InputType::VOICE_INPUT] == GetCurrentIme();
 }
 
+bool InputTypeManager::IsVoiceKbImeStarted()
+{
+    if (!IsStarted()) {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(typesLock_);
+    return inputTypes_.find(InputType::VOICEKB_INPUT) != inputTypes_.end() &&
+           inputTypes_[InputType::VOICEKB_INPUT] == GetCurrentIme();
+}
+
 InputType InputTypeManager::GetCurrentInputType()
 {
     if (IsSecurityImeStarted()) {
@@ -133,6 +144,9 @@ InputType InputTypeManager::GetCurrentInputType()
     }
     if (IsVoiceImeStarted()) {
         return InputType::VOICE_INPUT;
+    }
+    if (IsVoiceKbImeStarted()) {
+        return InputType::VOICEKB_INPUT;
     }
     return InputType::NONE;
 }

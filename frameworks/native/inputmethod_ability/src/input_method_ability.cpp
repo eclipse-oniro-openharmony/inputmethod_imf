@@ -253,7 +253,9 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
 
 void InputMethodAbility::OnSetSubtype(SubProperty subProperty)
 {
-    imeListener_->OnSetSubtype(subProperty);
+    if (imeListener_ != nullptr) {
+        imeListener_->OnSetSubtype(subProperty);
+    }
 }
 
 void InputMethodAbility::OnSetInputType(InputType inputType)
@@ -264,7 +266,7 @@ void InputMethodAbility::OnSetInputType(InputType inputType)
     if (panel != nullptr) {
         auto keyboardSize = panel->GetKeyboardSize();
         SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
-        NotifyPanelStatus(panel, sysPanelStatus);
+        NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
     }
 }
 
@@ -366,7 +368,7 @@ void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
     if (panel != nullptr) {
         auto keyboardSize = panel->GetKeyboardSize();
         SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
-        NotifyPanelStatus(panel, sysPanelStatus);
+        NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
     }
     kdListener_->OnEditorAttributeChange(attribute);
 }
@@ -823,7 +825,7 @@ int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channe
         if (panel->IsShowing() && flag != FLG_CANDIDATE_COLUMN) {
             auto keyboardSize = panel->GetKeyboardSize();
             SysPanelStatus sysPanelStatus = { inputType_, flag, keyboardSize.width, keyboardSize.height };
-            NotifyPanelStatus(panel, sysPanelStatus);
+            NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
         }
     }
     return ErrorCode::NO_ERROR;
@@ -930,7 +932,7 @@ int32_t InputMethodAbility::ShowPanel(
     }
     auto keyboardSize = inputMethodPanel->GetKeyboardSize();
     SysPanelStatus sysPanelStatus = { inputType_, flag, keyboardSize.width, keyboardSize.height };
-    NotifyPanelStatus(inputMethodPanel, sysPanelStatus);
+    NotifyPanelStatus(inputMethodPanel->GetPanelType(), sysPanelStatus);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
         NotifyPanelStatusInfo({
@@ -962,10 +964,9 @@ int32_t InputMethodAbility::HidePanel(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::NotifyPanelStatus(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, SysPanelStatus &sysPanelStatus)
+int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus)
 {
-    if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
+    if (panelType != PanelType::SOFT_KEYBOARD) {
         return ErrorCode::NO_ERROR;
     }
     // If it is not binding, do not need to notify the panel
@@ -1135,7 +1136,7 @@ int32_t InputMethodAbility::ExitCurrentInputType()
     if (panel != nullptr) {
         auto keyboardSize = panel->GetKeyboardSize();
         SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
-        NotifyPanelStatus(panel, sysPanelStatus);
+        NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
     }
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {

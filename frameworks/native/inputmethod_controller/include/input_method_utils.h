@@ -294,6 +294,7 @@ enum class InputType : int32_t {
     CAMERA_INPUT = 0,
     SECURITY_INPUT,
     VOICE_INPUT,
+    VOICEKB_INPUT,
     END
 };
 
