@@ -16,11 +16,6 @@
 #ifndef SERVICES_INCLUDE_SYS_CFG_PARSE_H
 #define SERVICES_INCLUDE_SYS_CFG_PARSE_H
 
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "input_method_utils.h"
 #include "serializable.h"
 namespace OHOS {

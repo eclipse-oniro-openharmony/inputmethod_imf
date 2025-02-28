@@ -15,17 +15,11 @@
 
 #include "input_method_system_ability_stub.h"
 
-#include <chrono>
 #include <cinttypes>
-#include <memory>
 
-#include "element_name.h"
-#include "input_client_proxy.h"
-#include "input_method_core_proxy.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
 #include "xcollie/xcollie.h"
-#include "xcollie/xcollie_define.h"
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;

@@ -13,15 +13,8 @@
  * limitations under the License.
  */
 
-#include "keyboard_event.h"
-
-#include <global.h>
-#include <memory>
-
-#include "global.h"
 #include "input_event_callback.h"
 #include "inputmethod_sysevent.h"
-#include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {

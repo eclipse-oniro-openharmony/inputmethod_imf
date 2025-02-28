@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include "wms_connection_monitor_manager.h"
-
 #include "global.h"
 #ifdef SCENE_BOARD_ENABLE
 #include "window_manager_lite.h"

@@ -16,17 +16,10 @@
 #ifndef SETTINGS_DATA_UTILS_H
 #define SETTINGS_DATA_UTILS_H
 
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
 #include "datashare_helper.h"
-#include "global.h"
 #include "input_method_property.h"
 #include "serializable.h"
 #include "settings_data_observer.h"
-#include "uri.h"
 
 namespace OHOS {
 namespace MiscServices {

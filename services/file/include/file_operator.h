@@ -18,7 +18,6 @@
 
 #include <fcntl.h>
 #include <string>
-#include <sys/types.h>
 
 #include "config_policy_utils.h"
 namespace OHOS {

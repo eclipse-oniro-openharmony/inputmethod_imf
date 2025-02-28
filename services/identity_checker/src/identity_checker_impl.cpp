@@ -14,8 +14,6 @@
  */
 #include "identity_checker_impl.h"
 
-#include <cinttypes>
-
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"

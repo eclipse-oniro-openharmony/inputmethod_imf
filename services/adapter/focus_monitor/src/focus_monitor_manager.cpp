@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include "focus_monitor_manager.h"
-
 #include "focus_change_listener.h"
 #include "global.h"
 #ifdef SCENE_BOARD_ENABLE
