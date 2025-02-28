@@ -58,6 +58,11 @@ struct EnableImeCfg : public Serializable {
         GetValue(node, GET_NAME(enableImeList), userImeCfg);
         return true;
     }
+    bool Marshal(cJSON *node) const override
+    {
+        SetValue(node, GET_NAME(enableImeList), userImeCfg);
+        return true;
+    }
 };
 
 struct TempImeCfg : public Serializable {
@@ -81,6 +86,7 @@ public:
     bool CheckNeedSwitch(const SwitchInfo &info, const int32_t userId);
     void OnUserChanged(const int32_t userId);
     void OnConfigChanged(int32_t userId, const std::string &key);
+    void OnPackAdded(int32_t userId, const std::string &bundleName);
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
@@ -102,6 +108,13 @@ private:
     bool CheckTargetEnableName(const std::string &key, const std::string &targetName, std::string &nextIme,
         const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();
+    void OnPackAddedBackGround(int32_t userId, const std::string &bundleName, const std::string &globalContent);
+    void OnPackAddedForeGround(int32_t userId, const std::string &bundleName, const std::string &globalContent);
+    int32_t AddToUserEnabledTable(int32_t userId, const std::string &bundleName, std::string &userContent);
+    int32_t AddToGlobalEnabledTable(int32_t userId, const std::string &bundleName, std::string &globalContent);
+    int32_t AddToEnabledTable(
+        int32_t userId, const std::string &bundleName, const std::string &uriProxy, std::string &tableContent);
+    int32_t CoverUserEnabledTable(int32_t userId, const std::string &userContent);
 
 private:
     static std::mutex instanceMutex_;

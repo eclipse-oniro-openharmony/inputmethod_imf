@@ -172,6 +172,29 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const Serializ
     return ret;
 }
 
+bool Serializable::SetValue(cJSON *node, const std::string &name, const std::vector<std::string> &values)
+{
+    const char **strArr = new const char *[values.size()];
+    if (strArr == nullptr) {
+        return false;
+    }
+    for (size_t i = 0; i < values.size(); i++) {
+        strArr[i] = values[i].c_str();
+    }
+    cJSON *stringArray = cJSON_CreateStringArray(strArr, values.size());
+    if (stringArray == NULL) {
+        delete[] strArr;
+        return false;
+    }
+
+    auto ret = cJSON_AddItemToObject(node, name.c_str(), stringArray);
+    if (!ret) {
+        cJSON_Delete(stringArray);
+    }
+    delete[] strArr;
+    return ret;
+}
+
 bool Serializable::SetValue(cJSON *node, const std::string &name, const std::vector<std::vector<std::string>> &values)
 {
     cJSON *array = cJSON_CreateArray();

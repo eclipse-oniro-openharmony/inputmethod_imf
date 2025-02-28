@@ -45,6 +45,11 @@ struct UserImeConfig : public Serializable {
         GetValue(node, userId, identities);
         return true;
     }
+    bool Marshal(cJSON *node) const override
+    {
+        SetValue(node, userId, identities);
+        return true;
+    }
 };
 
 class SettingsDataUtils : public RefBase {

@@ -1442,6 +1442,10 @@ int32_t InputMethodSystemAbility::HandlePackageEvent(const Message *msg)
         return FullImeInfoManager::GetInstance().Update(userId, packageName);
     }
     if (msg->msgId_ == MSG_ID_PACKAGE_ADDED) {
+        auto instance = EnableImeDataParser::GetInstance();
+        if (instance != nullptr) {
+            instance->OnPackAdded(userId, packageName);
+        }
         return FullImeInfoManager::GetInstance().Add(userId, packageName);
     }
     if (msg->msgId_ == MSG_ID_PACKAGE_REMOVED) {

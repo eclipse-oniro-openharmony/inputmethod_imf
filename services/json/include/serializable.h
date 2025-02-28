@@ -73,6 +73,7 @@ public:
     static bool SetValue(cJSON *node, const std::string &name, const bool &value);
     static bool SetValue(cJSON *node, const std::string &name, const Serializable &value);
     static bool SetValue(cJSON *node, const std::string &name, const std::vector<std::vector<std::string>> &values);
+    static bool SetValue(cJSON *node, const std::string &name, const std::vector<std::string> &values);
     template<typename T> static bool SetValue(cJSON *node, const std::string &name, const std::vector<T> &values)
     {
         auto array = cJSON_CreateArray();

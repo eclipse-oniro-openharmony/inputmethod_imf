@@ -30,12 +30,14 @@ struct SystemConfig : public Serializable {
     std::string defaultInputMethod;
     bool enableInputMethodFeature = false;
     bool enableFullExperienceFeature = false;
+    bool isDefaultBasicModeWhenAdd = false;
     bool Unmarshal(cJSON *node) override
     {
         GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);
         GetValue(node, GET_NAME(defaultInputMethod), defaultInputMethod);
         GetValue(node, GET_NAME(enableInputMethodFeature), enableInputMethodFeature);
         GetValue(node, GET_NAME(enableFullExperienceFeature), enableFullExperienceFeature);
+        GetValue(node, GET_NAME(isDefaultBasicModeWhenAdd), isDefaultBasicModeWhenAdd);
         return true;
     }
 };
