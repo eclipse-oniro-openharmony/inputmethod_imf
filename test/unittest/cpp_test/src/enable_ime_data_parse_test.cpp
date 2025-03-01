@@ -413,6 +413,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testOnUserChanged_001, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testOnUserChanged_001 START");
+    EnableImeDataParser::GetInstance()->isDataShareReady_ = true;
     int32_t ret = EnableImeDataParser::GetInstance()->GetEnableData(
         IME_KEY, EnableImeDataParser::GetInstance()->enableList_[IME_KEY], USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

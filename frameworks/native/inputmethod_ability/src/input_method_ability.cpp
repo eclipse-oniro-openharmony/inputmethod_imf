@@ -253,6 +253,10 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
 
 void InputMethodAbility::OnSetSubtype(SubProperty subProperty)
 {
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener_ is nullptr!");
+        return;
+    }
     imeListener_->OnSetSubtype(subProperty);
 }
 
