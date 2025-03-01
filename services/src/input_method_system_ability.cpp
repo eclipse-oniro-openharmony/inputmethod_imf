@@ -858,6 +858,14 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
 int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInputClient> client)
 {
     IMSA_HILOGD("IMF SA setCallingWindow enter");
+    if (identityChecker_ == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->IsBroker(tokenId) &&
+        !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     auto callingUserId = GetCallingUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(callingUserId);
     if (session == nullptr) {
@@ -870,9 +878,8 @@ int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInpu
 int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart,
     uint32_t& callingWndId, int32_t &requestKeyboardReason)
 {
-    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
-        !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
-        IMSA_HILOGE("not system application!");
+    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not native sa!");
         return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
     }
     auto callingUserId = GetCallingUserId();
