@@ -14,31 +14,19 @@
  */
 
 #include "peruser_session.h"
-
-#include <chrono>
-#include <vector>
-
 #include "ability_manager_client.h"
-#include "app_mgr_client.h"
-#include "element_name.h"
 #include "identity_checker_impl.h"
-#include "ime_cfg_manager.h"
 #include "ime_connection.h"
 #include "ime_info_inquirer.h"
 #include "input_control_channel_stub.h"
-#include "input_type_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "mem_mgr_client.h"
-#include "message_parcel.h"
 #include "on_demand_start_stop_sa.h"
 #include "os_account_adapter.h"
-#include "parcel.h"
-#include "running_process_info.h"
 #include "scene_board_judgement.h"
 #include "security_mode_parser.h"
 #include "system_ability_definition.h"
-#include "unistd.h"
 #include "wms_connection_observer.h"
 #include "dm_common.h"
 #include "display_manager.h"

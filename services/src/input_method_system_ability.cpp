@@ -14,32 +14,15 @@
  */
 
 #include "input_method_system_ability.h"
-
-#include <unistd.h>
-#include <algorithm>
-
 #include "ability_manager_client.h"
-#include "application_info.h"
 #include "combination_key.h"
-#include "common_event_support.h"
-#include "errors.h"
 #include "full_ime_info_manager.h"
-#include "global.h"
 #include "im_common_event_manager.h"
-#include "ime_cfg_manager.h"
-#include "ime_info_inquirer.h"
 #include "imsa_hisysevent_reporter.h"
 #include "input_manager.h"
-#include "input_client_info.h"
-#include "input_method_utils.h"
-#include "input_type_manager.h"
 #include "ipc_skeleton.h"
-#include "iservice_registry.h"
 #include "itypes_util.h"
-#include "key_event.h"
 #include "mem_mgr_client.h"
-#include "inputmethod_message_handler.h"
-#include "native_token_info.h"
 #include "os_account_adapter.h"
 #include "parameters.h"
 #include "scene_board_judgement.h"
@@ -50,7 +33,6 @@
 #include "system_language_observer.h"
 #include "wms_connection_observer.h"
 #include "xcollie/xcollie.h"
-#include "xcollie/xcollie_define.h"
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 #include "on_demand_start_stop_sa.h"
 #endif
@@ -1372,7 +1354,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto newUserId = msg->msgContent_->ReadInt32();
-    if (enableImeOn_.load()) {
+    if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         EnableImeDataParser::GetInstance()->OnUserChanged(newUserId);
     }
     FullImeInfoManager::GetInstance().Add(newUserId);
@@ -1708,6 +1690,10 @@ void InputMethodSystemAbility::InitMonitors()
 
 void InputMethodSystemAbility::HandleDataShareReady()
 {
+    auto enableInstance = EnableImeDataParser::GetInstance();
+    if (enableInstance != nullptr) {
+        EnableImeDataParser::GetInstance()->NotifyDataShareReady();
+    }
     if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         IMSA_HILOGW("Enter enable mode.");
         RegisterEnableImeObserver();

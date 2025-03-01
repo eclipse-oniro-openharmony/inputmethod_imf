@@ -16,8 +16,6 @@
 #ifndef SERVICES_INCLUDE_IDENTITY_CHECKER_H
 #define SERVICES_INCLUDE_IDENTITY_CHECKER_H
 
-#include <string>
-
 #include "access_token.h"
 namespace OHOS {
 namespace MiscServices {

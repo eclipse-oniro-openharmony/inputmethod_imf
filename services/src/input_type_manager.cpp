@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,22 +15,6 @@
 
 #include "input_type_manager.h"
 
-#include <algorithm>
-#include <cinttypes>
-#include <cstdio>
-#include <dlfcn.h>
-#include <fcntl.h>
-#include <fstream>
-#include <ios>
-#include <string>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include "climits"
-#include "file_operator.h"
-#include "global.h"
-#include "ime_cfg_manager.h"
 
 namespace OHOS {
 namespace MiscServices {

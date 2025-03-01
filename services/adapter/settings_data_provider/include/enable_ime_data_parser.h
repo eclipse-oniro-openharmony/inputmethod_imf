@@ -16,18 +16,9 @@
 #ifndef ENABLE_IME_DATA_PARSER_H
 #define ENABLE_IME_DATA_PARSER_H
 
-#include <map>
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
+#include <atomic>
 
-#include "datashare_helper.h"
-#include "global.h"
-#include "input_method_property.h"
 #include "input_method_status.h"
-#include "serializable.h"
 #include "settings_data_utils.h"
 
 namespace OHOS {
@@ -88,7 +79,7 @@ public:
     void OnConfigChanged(int32_t userId, const std::string &key);
     void OnPackageAdded(int32_t userId, const std::string &bundleName);
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    
+    void NotifyDataShareReady();
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *ENABLE_KEYBOARD = "settings.inputmethod.enable_keyboard";
     static constexpr const char *TEMP_IME = "settings.inputmethod.temp_ime";
@@ -126,6 +117,7 @@ private:
     int32_t currentUserId_ = 0;
     bool isEnableImeInit_{ false };
     std::mutex settingOperateLock_;
+    std::atomic<bool> isDataShareReady_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -16,9 +16,7 @@
 #ifndef IMF_WMS_CONNECTION_OBSERVER_H
 #define IMF_WMS_CONNECTION_OBSERVER_H
 
-#include <mutex>
 #include <set>
-#include <utility>
 
 #ifdef SCENE_BOARD_ENABLE
 #include "window_manager_lite.h"

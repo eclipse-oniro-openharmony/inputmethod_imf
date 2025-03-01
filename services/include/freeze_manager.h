@@ -16,8 +16,6 @@
 #ifndef INPUTMETHOD_IMF_FREEZE_MANAGER_H
 #define INPUTMETHOD_IMF_FREEZE_MANAGER_H
 
-#include <mutex>
-
 #include "event_handler.h"
 
 namespace OHOS {

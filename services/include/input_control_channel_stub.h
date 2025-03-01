@@ -16,13 +16,8 @@
 #ifndef SERVICES_INCLUDE_INPUT_CONTROL_CHANNEL_STUB_H
 #define SERVICES_INCLUDE_INPUT_CONTROL_CHANNEL_STUB_H
 
-#include <condition_variable>
-#include <mutex>
-
 #include "i_input_control_channel.h"
-#include "iremote_broker.h"
 #include "iremote_stub.h"
-#include "message_parcel.h"
 
 namespace OHOS {
 namespace MiscServices {

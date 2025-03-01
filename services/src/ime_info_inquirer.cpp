@@ -14,28 +14,14 @@
  */
 
 #include "ime_info_inquirer.h"
-
-#include <algorithm>
-#include <string>
-
 #include "app_mgr_client.h"
-#include "application_info.h"
 #include "bundle_mgr_client_impl.h"
-#include "file_operator.h"
 #include "full_ime_info_manager.h"
-#include "global.h"
-#include "if_system_ability_manager.h"
-#include "ime_cfg_manager.h"
-#include "input_method_info.h"
 #include "input_type_manager.h"
 #include "iservice_registry.h"
 #include "locale_config.h"
-#include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
-#include "running_process_info.h"
-#include "string_ex.h"
-#include "system_ability.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -76,9 +62,9 @@ bool ImeInfoInquirer::IsEnableSecurityMode()
     return systemConfig_.enableFullExperienceFeature;
 }
 
-SystemConfig ImeInfoInquirer::GetSystemConfig()
+EnabledStatus ImeInfoInquirer::GetSystemInitEnabledState()
 {
-    return systemConfig_;
+    return systemConfig_.initEnabledState;
 }
 
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)

@@ -16,24 +16,11 @@
 #ifndef SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 #define SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 
-#include <errors.h>
-#include <memory>
-#include <vector>
-
 #include "element_name.h"
 #include "event_status_manager.h"
-#include "global.h"
-#include "i_input_client.h"
 #include "i_input_method_core.h"
 #include "i_system_cmd_channel.h"
-#include "input_attribute.h"
-#include "input_client_info.h"
-#include "input_method_property.h"
 #include "input_method_status.h"
-#include "input_window_info.h"
-#include "iremote_broker.h"
-#include "message_parcel.h"
-#include "panel_info.h"
 #include "input_method_types.h"
 
 namespace OHOS {

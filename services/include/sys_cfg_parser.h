@@ -16,14 +16,8 @@
 #ifndef SERVICES_INCLUDE_SYS_CFG_PARSE_H
 #define SERVICES_INCLUDE_SYS_CFG_PARSE_H
 
-#include "input_method_status.h"
-
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "input_method_utils.h"
+#include "input_method_status.h"
 #include "serializable.h"
 namespace OHOS {
 namespace MiscServices {

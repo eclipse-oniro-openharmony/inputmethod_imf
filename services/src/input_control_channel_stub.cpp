@@ -17,7 +17,6 @@
 
 #include "ipc_skeleton.h"
 #include "inputmethod_message_handler.h"
-#include "message_parcel.h"
 #include "os_account_adapter.h"
 
 namespace OHOS {

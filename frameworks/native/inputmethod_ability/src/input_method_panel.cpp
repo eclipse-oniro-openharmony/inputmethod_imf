@@ -382,6 +382,10 @@ int32_t InputMethodPanel::StartMoving()
         return ErrorCode::ERROR_INVALID_PANEL_FLAG;
     }
     auto ret = window_->StartMoveWindow();
+    if (ret == WmErrorCode::WM_ERROR_DEVICE_NOT_SUPPORT) {
+        IMSA_HILOGE("window manager service not support error ret = %{public}d.", ret);
+        return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
+    }
     if (ret != WmErrorCode::WM_OK) {
         IMSA_HILOGE("window manager service error ret = %{public}d.", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;

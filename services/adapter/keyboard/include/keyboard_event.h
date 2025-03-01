@@ -16,12 +16,8 @@
 #ifndef IMF_KEYBOARD_EVENT_H
 #define IMF_KEYBOARD_EVENT_H
 
-#include <cstdint>
-#include <functional>
-
 #include "global.h"
 #include "key_event.h"
-#include "key_option.h"
 
 namespace OHOS {
 namespace MiscServices {

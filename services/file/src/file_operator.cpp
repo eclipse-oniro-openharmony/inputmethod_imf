@@ -15,11 +15,9 @@
 
 #include "file_operator.h"
 
-#include <cstring>
 #include <fstream>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <climits>
 
 #include "global.h"
 namespace OHOS {

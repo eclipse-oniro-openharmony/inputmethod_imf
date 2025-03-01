@@ -15,20 +15,13 @@
 
 #include "security_mode_parser.h"
 
-#include <algorithm>
-#include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
 
 #include "full_ime_info_manager.h"
 #include "ime_info_inquirer.h"
-#include "input_method_utils.h"
-#include "iservice_registry.h"
-#include "serializable.h"
-#include "settings_data_utils.h"
 #include "sys_cfg_parser.h"
-#include "system_ability_definition.h"
 namespace OHOS {
 namespace MiscServices {
 std::mutex SecurityModeParser::instanceMutex_;

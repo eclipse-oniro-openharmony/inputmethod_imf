@@ -15,11 +15,9 @@
 
 #include "enable_ime_data_parser.h"
 
+#include <algorithm>
+
 #include "ime_info_inquirer.h"
-#include "iservice_registry.h"
-#include "serializable.h"
-#include "settings_data_utils.h"
-#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -63,6 +61,10 @@ void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
 {
     IMSA_HILOGI("run in %{public}d}.", targetUserId);
     currentUserId_ = targetUserId;
+    if (!isDataShareReady_.load()) {
+        IMSA_HILOGI("data share not ready, abort.");
+        return;
+    }
     UpdateEnableData(targetUserId, ENABLE_IME);
     UpdateEnableData(targetUserId, ENABLE_KEYBOARD);
 }
@@ -357,7 +359,7 @@ void EnableImeDataParser::OnConfigChanged(int32_t userId, const std::string &key
 void EnableImeDataParser::OnPackageAdded(int32_t userId, const std::string &bundleName)
 {
     IMSA_HILOGI("run in:%{public}d,%{public}s.", userId, bundleName.c_str());
-    auto initEnabledState = ImeInfoInquirer::GetInstance().GetSystemConfig().initEnabledState;
+    auto initEnabledState = ImeInfoInquirer::GetInstance().GetSystemInitEnabledState();
     if (initEnabledState != EnabledStatus::BASIC_MODE) {
         IMSA_HILOGI("init enabled state is %{public}d.", static_cast<int32_t>(initEnabledState));
         return;
@@ -413,6 +415,8 @@ void EnableImeDataParser::OnForegroundPackageAdded(
         CoverUserEnableTable(userId, finalGlobalContent);
         return;
     }
+    IMSA_HILOGW("globalUserId not same with currentUserId:%{public}d,%{public}s,%{public}s.", userId,
+        bundleName.c_str(), globalContent.c_str());
     auto ret = CoverUserEnableTable(atoi(globalUserId.c_str()), globalContent);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("cover failed:[%{public}d,%{public}s,%{public}s,%{public}d].", userId, globalUserId.c_str(),
@@ -461,7 +465,11 @@ int32_t EnableImeDataParser::AddToEnableTable(
     EnableImeCfg imeCfg;
     imeCfg.userImeCfg.userId = std::to_string(userId);
     imeCfg.Unmarshall(valueStr);
-    imeCfg.userImeCfg.identities.push_back(bundleName);
+    auto it = std::find_if(imeCfg.userImeCfg.identities.begin(), imeCfg.userImeCfg.identities.end(),
+        [&bundleName](const std::string &bundleNameTmp) { return bundleNameTmp == bundleName; });
+    if (it == imeCfg.userImeCfg.identities.end()) {
+        imeCfg.userImeCfg.identities.push_back(bundleName);
+    }
     imeCfg.Marshall(tableContent);
     if (tableContent.empty()) {
         IMSA_HILOGE(
@@ -486,6 +494,11 @@ int32_t EnableImeDataParser::CoverUserEnableTable(int32_t userId, const std::str
         return ErrorCode::ERROR_ENABLE_IME;
     }
     return ErrorCode::NO_ERROR;
+}
+
+void EnableImeDataParser::NotifyDataShareReady()
+{
+    isDataShareReady_.store(true);
 }
 
 int32_t EnableImeDataParser::GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status)

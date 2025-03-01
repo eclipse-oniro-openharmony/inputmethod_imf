@@ -16,12 +16,7 @@
 #ifndef INPUTMETHOD_IMF_INPUT_EVENT_CALLBACK_H
 #define INPUTMETHOD_IMF_INPUT_EVENT_CALLBACK_H
 
-#include <map>
-#include <mutex>
-#include <utility>
-
 #include "input_manager.h"
-#include "key_event.h"
 #include "keyboard_event.h"
 
 namespace OHOS {
