@@ -253,7 +253,9 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
 
 void InputMethodAbility::OnSetSubtype(SubProperty subProperty)
 {
-    imeListener_->OnSetSubtype(subProperty);
+    if (imeListener_ != nullptr) {
+        imeListener_->OnSetSubtype(subProperty);
+    }
 }
 
 void InputMethodAbility::OnSetInputType(InputType inputType)
