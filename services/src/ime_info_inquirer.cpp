@@ -62,6 +62,11 @@ bool ImeInfoInquirer::IsEnableSecurityMode()
     return systemConfig_.enableFullExperienceFeature;
 }
 
+EnabledStatus ImeInfoInquirer::GetSystemInitEnabledState()
+{
+    return systemConfig_.initEnabledState;
+}
+
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
 {
     IMSA_HILOGD("userId: %{public}d.", userId);
