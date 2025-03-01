@@ -59,12 +59,9 @@ int32_t EnableImeDataParser::Initialize(const int32_t userId)
 
 void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
 {
+    std::lock_guard<std::mutex> lock(userIdLock_);
     IMSA_HILOGI("run in %{public}d}.", targetUserId);
     currentUserId_ = targetUserId;
-    if (!isDataShareReady_.load()) {
-        IMSA_HILOGI("data share not ready, abort.");
-        return;
-    }
     UpdateEnableData(targetUserId, ENABLE_IME);
     UpdateEnableData(targetUserId, ENABLE_KEYBOARD);
 }
@@ -238,7 +235,6 @@ int32_t EnableImeDataParser::GetEnableData(
         return ErrorCode::ERROR_ENABLE_IME;
     }
     IMSA_HILOGD("userId: %{public}d, key: %{public}s.", userId, key.c_str());
-    std::lock_guard<std::mutex> lock(settingOperateLock_);
     std::string valueStr;
     int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, key, valueStr);
     if (ret == ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
@@ -372,7 +368,7 @@ void EnableImeDataParser::OnPackageAdded(int32_t userId, const std::string &bund
     if (settingInstance == nullptr) {
         return;
     }
-    std::lock_guard<std::mutex> lock(settingOperateLock_);
+    std::lock_guard<std::mutex> lock(userIdLock_);
     std::string globalStr;
     int32_t ret = settingInstance->GetStringValue(SETTING_URI_PROXY, ENABLE_IME, globalStr);
     if (ret != ErrorCode::NO_ERROR && ret != ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
@@ -494,11 +490,6 @@ int32_t EnableImeDataParser::CoverUserEnableTable(int32_t userId, const std::str
         return ErrorCode::ERROR_ENABLE_IME;
     }
     return ErrorCode::NO_ERROR;
-}
-
-void EnableImeDataParser::NotifyDataShareReady()
-{
-    isDataShareReady_.store(true);
 }
 
 int32_t EnableImeDataParser::GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status)

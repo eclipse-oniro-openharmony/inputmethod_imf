@@ -16,8 +16,6 @@
 #ifndef ENABLE_IME_DATA_PARSER_H
 #define ENABLE_IME_DATA_PARSER_H
 
-#include <atomic>
-
 #include "input_method_status.h"
 #include "settings_data_utils.h"
 
@@ -79,7 +77,6 @@ public:
     void OnConfigChanged(int32_t userId, const std::string &key);
     void OnPackageAdded(int32_t userId, const std::string &bundleName);
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    void NotifyDataShareReady();
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *ENABLE_KEYBOARD = "settings.inputmethod.enable_keyboard";
     static constexpr const char *TEMP_IME = "settings.inputmethod.temp_ime";
@@ -116,8 +113,7 @@ private:
     std::shared_ptr<Property> defaultImeInfo_{ nullptr };
     int32_t currentUserId_ = 0;
     bool isEnableImeInit_{ false };
-    std::mutex settingOperateLock_;
-    std::atomic<bool> isDataShareReady_{ false };
+    std::mutex userIdLock_;
 };
 } // namespace MiscServices
 } // namespace OHOS
