@@ -24,7 +24,7 @@
 #include "calling_window_info.h"
 #include "display_manager.h"
 #include "input_window_info.h"
-#include "js_runtime_utils.h"
+#include "native_engine/native_engine.h"
 #include "panel_common.h"
 #include "panel_info.h"
 #include "window_change_listener_impl.h"
