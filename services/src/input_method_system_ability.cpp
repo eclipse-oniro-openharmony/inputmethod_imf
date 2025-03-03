@@ -727,13 +727,19 @@ int32_t InputMethodSystemAbility::RequestShowInput()
     return session->OnRequestShowInput();
 }
 
-int32_t InputMethodSystemAbility::RequestHideInput()
+int32_t InputMethodSystemAbility::RequestHideInput(bool isFocusTriggered)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     auto pid = IPCSkeleton::GetCallingPid();
-    if (!identityChecker_->IsFocused(pid, tokenId) &&
-        !identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    if (isFocusTriggered) {
+        if (!identityChecker_->IsFocused(pid, tokenId)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
+    } else {
+        if (!identityChecker_->IsFocused(pid, tokenId) &&
+            !identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
     }
     auto userId = GetCallingUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
