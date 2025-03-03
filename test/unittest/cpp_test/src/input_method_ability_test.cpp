@@ -310,6 +310,9 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
     auto ret = coreProxy->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
+    ret = coreProxy->InitInputControlChannel(nullptr);
+    EXPECT_EQ(ErrorCode::ERROR_EX_NULL_POINTER, ret);
+
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(showKeyboard_, true);
 }
