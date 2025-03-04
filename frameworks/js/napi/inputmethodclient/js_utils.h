@@ -23,6 +23,7 @@
 #include "input_method_panel.h"
 #include "input_method_utils.h"
 #include "js_callback_object.h"
+#include "js_util.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
@@ -68,6 +69,7 @@ enum TypeCode : int32_t {
     TYPE_EXTERNAL,
     TYPE_BIGINT,
     TYPE_ARRAY_BUFFER,
+    TYPE_ARRAY,
 };
 
 /* check condition, return and logging if condition not true. */
@@ -77,6 +79,30 @@ enum TypeCode : int32_t {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, message, typeCode); \
             return retVal;                                                                       \
         }                                                                                        \
+    } while (0)
+
+#define PARAM_CHECK_RETURN_VOID(env, condition, message, typeCode)                            \
+    do {                                                                                         \
+        if (!(condition)) {                                                                      \
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, message, typeCode); \
+            return;                                                                       \
+        }                                                                                        \
+    } while (0)
+
+#define RESULT_CHECK_RETURN(env, condition, errCode, message, typeCode, retVal) \
+    do {                                                                       \
+        if (!(condition)) {                                                    \
+            JsUtils::ThrowException(env, errCode, message, typeCode);          \
+            return retVal;                                                     \
+        }                                                                      \
+    } while (0)
+
+#define RESULT_CHECK_RETURN_VOID(env, condition, errCode, message, typeCode) \
+    do {                                                                     \
+        if (!(condition)) {                                                  \
+            JsUtils::ThrowException(env, errCode, message, typeCode);        \
+            return;                                                          \
+        }                                                                    \
     } while (0)
 
 /* check condition, return and logging. */
@@ -97,13 +123,11 @@ enum TypeCode : int32_t {
         }                                                          \
     } while (0)
 
-#define RESULT_CHECK_RETURN(env, condition, errCode, message, typeCode, retVal) \
-    do {                                                                       \
-        if (!(condition)) {                                                    \
-            JsUtils::ThrowException(env, errCode, message, typeCode);          \
-            return retVal;                                                     \
-        }                                                                      \
-    } while (0)
+struct JsPropertyInfo {
+    napi_valuetype type;
+    TypeCode typeCode;
+    std::string propertyName;
+};
 
 class JsUtils {
 public:
@@ -117,6 +141,23 @@ public:
 
     static void *GetNativeSelf(napi_env env, napi_callback_info info);
 
+    static const std::string ToMessage(int32_t code);
+
+    template<typename T>
+    static bool ReadOptionalProperty(napi_env env, napi_value object, const JsPropertyInfo &jsPropInfo, T &value)
+    {
+        if (!JsUtil::HasProperty(env, object, jsPropInfo.propertyName.c_str())) {
+            return false;
+        }
+        napi_value jsObject = nullptr;
+        napi_get_named_property(env, object, jsPropInfo.propertyName.c_str(), &jsObject);
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, jsObject) == jsPropInfo.type, jsPropInfo.propertyName,
+            jsPropInfo.typeCode, false);
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, jsObject, value) == napi_ok,
+            "failed to convert " + jsPropInfo.propertyName, TYPE_NONE, false);
+        return true;
+    }
+
     static napi_status GetValue(napi_env env, napi_value in, int32_t &out);
     static napi_status GetValue(napi_env env, napi_value in, uint32_t &out);
     static napi_status GetValue(napi_env env, napi_value in, bool &out);
@@ -127,8 +168,10 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
     static napi_status GetValue(napi_env env, napi_value in, std::vector<uint8_t> &out);
+    static napi_status GetValue(napi_env env, napi_value in, Rosen::Rect &out);
     static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
     static napi_value GetValue(napi_env env, const InputWindowInfo &in);
+    static napi_value GetValue(napi_env env, const Rosen::Rect &in);
     static napi_value GetJsPrivateCommand(napi_env env, const std::unordered_map<std::string, PrivateDataValue> &in);
     static napi_value GetValue(napi_env env, const std::vector<uint8_t> &in);
     static napi_status GetValue(napi_env env, const std::string &in, napi_value &out);
@@ -136,8 +179,6 @@ public:
         const std::shared_ptr<JSMsgHandlerCallbackObject> &jsMessageHandler, const ArrayBuffer &arrayBuffer);
 
 private:
-    static const std::string ToMessage(int32_t code);
-
     static const std::map<int32_t, int32_t> ERROR_CODE_MAP;
 
     static const std::map<int32_t, std::string> ERROR_CODE_CONVERT_MESSAGE_MAP;

@@ -37,6 +37,7 @@ enum class JsEvent : uint32_t {
     MOVE_TO,
     CHANGE_FLAG,
     ADJUST_PANEL_RECT,
+    UPDATE_REGION,
     GET_DISPLAYID,
     SET_IMMERSIVE_MODE,
     GET_IMMERSIVE_MODE,
@@ -57,6 +58,14 @@ struct JsPanelRect {
     static bool Read(napi_env env, napi_value object, LayoutParams &layoutParams);
 };
 
+struct JsEnhancedPanelRect {
+    static bool Read(napi_env env, napi_value object, EnhancedLayoutParams &layoutParams);
+};
+
+struct JsHotArea {
+    static bool Read(napi_env env, napi_value object, std::vector<Rosen::Rect> &hotAreas);
+};
+
 class JsPanel {
 public:
     JsPanel() = default;
@@ -72,6 +81,7 @@ public:
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static napi_value AdjustPanelRect(napi_env env, napi_callback_info info);
+    static napi_value UpdateRegion(napi_env env, napi_callback_info info);
     static napi_value StartMoving(napi_env env, napi_callback_info info);
     static napi_value GetDisplayId(napi_env env, napi_callback_info info);
     static napi_value SetImmersiveMode(napi_env env, napi_callback_info info);
@@ -82,10 +92,11 @@ public:
 private:
 
     struct PanelContentContext : public AsyncCall::Context {
-        LayoutParams layoutParams = {
-            {0, 0, 0, 0},
-            {0, 0, 0, 0}
-        };
+        LayoutParams layoutParams = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+        EnhancedLayoutParams enhancedLayoutParams;
+        HotAreas hotAreas;
+        std::vector<Rosen::Rect> hotArea;
+        bool isEnhancedCall{ false };
         PanelFlag panelFlag = PanelFlag::FLG_FIXED;
         std::string path = "";
         uint32_t width = 0;
@@ -124,8 +135,17 @@ private:
     static napi_value JsNew(napi_env env, napi_callback_info info);
     static std::shared_ptr<InputMethodPanel> UnwrapPanel(napi_env env, napi_value thisVar);
     static void PrintEditorQueueInfoIfTimeout(int64_t start, const JsEventInfo &currentInfo);
-    static napi_status CheckParam(napi_env env, size_t argc, napi_value *argv,
-        std::shared_ptr<PanelContentContext> ctxt);
+
+    static bool IsEnhancedAdjust(napi_env env, napi_value *argv);
+    static bool IsPanelFlagValid(napi_env env, PanelFlag panelFlag, bool isEnhancedCalled);
+    static napi_status ParsePanelFlag(napi_env env, napi_value *argv, PanelFlag &panelFlag, bool isEnhancedCalled);
+    static napi_status CheckParam(
+        napi_env env, size_t argc, napi_value *argv, std::shared_ptr<PanelContentContext> ctxt);
+    static napi_status CheckEnhancedParam(
+        napi_env env, size_t argc, napi_value *argv, std::shared_ptr<PanelContentContext> ctxt);
+    static void AdjustLayoutParam(std::shared_ptr<PanelContentContext> ctxt);
+    static void AdjustEnhancedLayoutParam(std::shared_ptr<PanelContentContext> ctxt);
+
     static const std::string CLASS_NAME;
     static constexpr size_t ARGC_MAX = 6;
     std::shared_ptr<InputMethodPanel> inputMethodPanel_ = nullptr;

@@ -25,6 +25,15 @@ napi_valuetype JsUtil::GetType(napi_env env, napi_value in)
     napi_typeof(env, in, &valueType);
     return valueType;
 }
+bool JsUtil::HasProperty(napi_env env, napi_value object, const std::string &property)
+{
+    bool hasProperty = false;
+    napi_status status = napi_has_named_property(env, object, property.c_str(), &hasProperty);
+    if (status == napi_ok && hasProperty) {
+        return true;
+    }
+    return false;
+}
 bool JsUtil::GetValue(napi_env env, napi_value in, std::string &out)
 {
     size_t size = 0;

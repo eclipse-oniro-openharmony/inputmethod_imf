@@ -112,6 +112,44 @@ void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
     eventHandler->PostTask(task, type);
 }
 
+void PanelListenerImpl::OnSizeChange(
+    uint32_t windowId, const WindowSize &size, const PanelAdjustInfo &keyboardArea, const std::string &event)
+{
+    std::string type = "sizeUpdate";
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    std::shared_ptr<JSCallbackObject> callBack = GetCallback(windowId, event);
+    if (callBack == nullptr) {
+        IMSA_HILOGE("callback is nullptr");
+        return;
+    }
+    auto entry = std::make_shared<UvEntry>(callBack);
+    entry->size = size;
+    entry->keyboardArea = keyboardArea;
+    IMSA_HILOGI("%{public}s start. windowId:%{public}u, windowSize[%{public}u/%{public}u], "
+                "keyboardArea:[%{public}d/%{public}d/%{public}d/%{public}d]",
+        event.c_str(), windowId, size.width, size.height, keyboardArea.top, keyboardArea.bottom, keyboardArea.left,
+        keyboardArea.right);
+    auto task = [entry]() {
+        auto getWindowSizeParams = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
+            }
+            napi_value windowSize = JsWindowSize::Write(env, entry->size);
+            napi_value jsKeyboardArea = JsKeyboardArea::Write(env, entry->keyboardArea);
+            args[0] = { windowSize };
+            args[1] = { jsKeyboardArea };
+            return true;
+        };
+        // 2 means 'sizeChange' has 2 params
+        JsCallbackHandler::Traverse({ entry->cbCopy }, { 2, getWindowSizeParams });
+    };
+    eventHandler->PostTask(task, event);
+}
+
 void PanelListenerImpl::SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
     std::unique_lock<decltype(eventHandlerMutex_)> lock(eventHandlerMutex_);
@@ -151,6 +189,26 @@ bool JsWindowSize::Read(napi_env env, napi_value jsObject, WindowSize &nativeObj
 {
     auto ret = JsUtil::Object::ReadProperty(env, jsObject, "width", nativeObject.width);
     ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "height", nativeObject.height);
+    return ret;
+}
+
+napi_value JsKeyboardArea::Write(napi_env env, const PanelAdjustInfo &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "top", nativeObject.top);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "bottom", nativeObject.bottom);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "left", nativeObject.left);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "right", nativeObject.right);
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsKeyboardArea::Read(napi_env env, napi_value jsObject, PanelAdjustInfo &nativeObject)
+{
+    bool ret = JsUtil::Object::ReadProperty(env, jsObject, "top", nativeObject.top);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "bottom", nativeObject.bottom);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "left", nativeObject.left);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "right", nativeObject.right);
     return ret;
 }
 } // namespace MiscServices

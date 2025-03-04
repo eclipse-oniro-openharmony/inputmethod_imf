@@ -327,6 +327,52 @@ ohos_unittest("InputMethodPanelTest") {
   }
 }
 
+ohos_unittest("InputMethodPanelAdjustTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  sources = [ "src/input_method_panel_adjust_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "googletest:gtest_main",
+    "graphic_2d:librender_service_client",
+    "graphic_2d:window_animation",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "napi:ace_napi",
+    "window_manager:libdm",
+    "window_manager:libwsutils",
+  ]
+
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
+}
+
 ohos_unittest("InputMethodSwitchTest") {
   branch_protector_ret = "pac_ret"
   sanitize = {
