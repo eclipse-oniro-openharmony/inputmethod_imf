@@ -554,5 +554,34 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_021, TestSiz
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
 }
+
+/**
+ * @tc.name: testImeSettingListenerInterface
+ * @tc.desc: Test Ime Setting Listener Interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeEventMonitorManagerTest, testImeSettingListenerInterface, TestSize.Level0)
+{
+    IMSA_HILOGI("testImeSettingListenerInterface start.");
+    InputWindowStatus status = InputWindowStatus::NONE;
+    ImeWindowInfo info;
+    auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = ImeEventMonitorManagerImpl::GetInstance().OnPanelStatusChange(status, info);
+    EXPECT_EQ(ErrorCode::ERROR_BAD_PARAMETERS, ret);
+
+    ImeEventMonitorManagerImpl::GetInstance().listeners_.clear();
+    uint32_t callingWindowId = 0;
+    int32_t requestKeyboardReason = 0;
+    ret = ImeEventMonitorManagerImpl::GetInstance().OnInputStart(callingWindowId, requestKeyboardReason);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = ImeEventMonitorManagerImpl::GetInstance().OnInputStop();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    uint32_t invalidEventMask = 100001;
+    auto ret2 = ImeEventMonitorManagerImpl::GetInstance().GetListeners(invalidEventMask);
+    EXPECT_EQ(ret2.size(), 0);
+}
 } // namespace MiscServices
 } // namespace OHOS

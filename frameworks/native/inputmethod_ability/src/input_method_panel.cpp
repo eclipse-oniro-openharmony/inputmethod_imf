@@ -1372,6 +1372,10 @@ void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, c
 
 bool InputMethodPanel::IsShowing()
 {
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto windowState = window_->GetWindowState();
     if (windowState == WindowState::STATE_SHOWN) {
         return true;
