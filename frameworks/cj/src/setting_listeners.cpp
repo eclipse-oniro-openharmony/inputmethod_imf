@@ -71,8 +71,8 @@ void CJGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
     IMSA_HILOGD("start");
     CInputMethodProperty prop;
     CInputMethodSubtype subProp;
-    Utils::InputMethodSubProperty2C(subProp, subProperty);
-    Utils::InputMethodProperty2C(prop, property);
+    Utils::InputMethodSubProperty2C(&subProp, subProperty);
+    Utils::InputMethodProperty2C(&prop, property);
     callback(prop, subProp);
 }
 }
