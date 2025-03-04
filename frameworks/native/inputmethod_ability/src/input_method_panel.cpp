@@ -409,6 +409,14 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
     return ErrorCode::NO_ERROR;
 }
 
+void InputMethodPanel::NotifyPanelStatus() {
+    auto instance = InputMethodAbility::GetInstance();
+    if (instance != nullptr) {
+        SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag_, keyboardSize_.width, keyboardSize_.height };
+        instance->NotifyPanelStatus(panelType_, sysPanelStatus);
+    }
+}
+
 int32_t InputMethodPanel::AdjustPanelRect(
     const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion)
 {
@@ -433,6 +441,9 @@ int32_t InputMethodPanel::AdjustPanelRect(
     if (result != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (panelFlag_ != panelFlag) {
+        NotifyPanelStatus();
     }
     panelFlag_ = panelFlag;
     auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
@@ -536,6 +547,9 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     SetHotAreas(hotAreas);
+    if (panelFlag_ != panelFlag) {
+        NotifyPanelStatus();
+    }
     UpdateLayoutInfo(panelFlag, {}, params, wmsParams, true);
     UpdateResizeParams();
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
@@ -1179,6 +1193,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     if (ret == WMError::WM_OK) {
         panelFlag_ = panelFlag;
     }
+    NotifyPanelStatus();
     IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
