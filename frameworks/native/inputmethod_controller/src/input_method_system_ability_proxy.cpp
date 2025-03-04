@@ -127,9 +127,13 @@ int32_t InputMethodSystemAbilityProxy::RequestShowInput()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_SHOW_INPUT));
 }
 
-int32_t InputMethodSystemAbilityProxy::RequestHideInput()
+int32_t InputMethodSystemAbilityProxy::RequestHideInput(bool isFocusTriggered)
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_HIDE_INPUT));
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_HIDE_INPUT),
+        [isFocusTriggered](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, isFocusTriggered);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::InitConnect()

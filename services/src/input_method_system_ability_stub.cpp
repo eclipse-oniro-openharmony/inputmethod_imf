@@ -142,7 +142,13 @@ int32_t InputMethodSystemAbilityStub::RequestShowInputOnRemote(MessageParcel &da
 
 int32_t InputMethodSystemAbilityStub::RequestHideInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    return reply.WriteInt32(RequestHideInput()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    bool isFocusTriggered = false;
+    auto ret = data.ReadBool(isFocusTriggered);
+    if (!ret) {
+        IMSA_HILOGE("read isFocusTriggered failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return reply.WriteInt32(RequestHideInput(isFocusTriggered)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
