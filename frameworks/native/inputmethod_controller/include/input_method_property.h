@@ -17,6 +17,8 @@
 #include <thread>
 #include <vector>
 
+#include "input_method_status.h"
+
 #ifndef INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 #define INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 
@@ -29,6 +31,7 @@ struct Property {
     uint32_t labelId = 0; // the labelId of inputMethod
     std::string icon;     // the icon of inputMethod
     uint32_t iconId = 0;  // the icon id of inputMethod
+    EnabledStatus status { EnabledStatus::DISABLED };  // the enabled status of inputMethod
 };
 
 struct SubProperty {
@@ -48,6 +51,7 @@ struct FullImeInfo {
     uint32_t tokenId { 0 };
     std::string appId;
     uint32_t versionCode;
+    std::string installTime;
     Property prop;
     std::vector<SubProperty> subProps;
 };
@@ -55,6 +59,16 @@ struct FullImeInfo {
 struct ImeInfo : public FullImeInfo {
     SubProperty subProp;
     bool isSpecificSubName { true };
+};
+
+struct SwitchInfo {
+    std::chrono::system_clock::time_point timestamp{};
+    std::string bundleName;
+    std::string subName;
+    bool operator==(const SwitchInfo &info) const
+    {
+        return (timestamp == info.timestamp && bundleName == info.bundleName && subName == info.subName);
+    }
 };
 } // namespace MiscServices
 } // namespace OHOS

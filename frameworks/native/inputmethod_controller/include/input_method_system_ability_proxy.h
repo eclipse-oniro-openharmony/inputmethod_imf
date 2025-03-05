@@ -83,7 +83,7 @@ public:
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;
     bool IsDefaultImeSet() override;
-    bool EnableIme(const std::string &bundleName) override;
+    int32_t EnableIme(const std::string &bundleName, const std::string &extensionName, EnabledStatus status) override;
     // make app client know calling IMF window
     int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) override;
     int32_t GetInputMethodState(EnabledStatus &status) override;

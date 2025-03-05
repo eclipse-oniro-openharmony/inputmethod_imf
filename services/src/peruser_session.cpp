@@ -15,6 +15,7 @@
 
 #include "peruser_session.h"
 #include "ability_manager_client.h"
+#include "full_ime_info_manager.h"
 #include "identity_checker_impl.h"
 #include "ime_connection.h"
 #include "ime_info_inquirer.h"
@@ -25,7 +26,6 @@
 #include "on_demand_start_stop_sa.h"
 #include "os_account_adapter.h"
 #include "scene_board_judgement.h"
-#include "security_mode_parser.h"
 #include "system_ability_definition.h"
 #include "wms_connection_observer.h"
 #include "dm_common.h"
@@ -1124,7 +1124,8 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 
 bool PerUserSession::CanStartIme()
 {
-    return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
+    return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()
+           && SettingsDataUtils::GetInstance()->IsDataShareReady();;
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfFolded()
@@ -1182,27 +1183,29 @@ int32_t PerUserSession::ChangeToDefaultImeIfNeed(
 
 AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 {
-    SecurityMode mode;
     bool isolatedSandBox = true;
-    if (SecurityModeParser::GetInstance()->IsDefaultFullMode(ime->bundleName, userId_)) {
-        mode = SecurityMode::FULL;
+    EnabledStatus status = EnabledStatus::BASIC_MODE;
+    if (FullImeInfoManager::GetInstance().IsDefaultFullMode(userId_, ime->bundleName)) {
+        status = EnabledStatus::FULL_EXPERIENCE_MODE;
         isolatedSandBox = false;
-    } else if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
-        mode = SecurityModeParser::GetInstance()->GetSecurityMode(ime->bundleName, userId_);
     } else {
-        mode = SecurityMode::FULL;
+        auto ret = FullImeInfoManager::GetInstance().GetEnabledState(userId_, ime->bundleName, status);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("[%{public}d,%{public}s] GetEnabledState failed.", userId_, ime->imeId.c_str());
+        }
     }
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
-    want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
+    want.SetParam(STRICT_MODE, !(status == EnabledStatus::FULL_EXPERIENCE_MODE));
     want.SetParam(ISOLATED_SANDBOX, isolatedSandBox);
     IMSA_HILOGI("StartInputService userId: %{public}d, ime: %{public}s, mode: %{public}d, isolatedSandbox: %{public}d",
-        userId_, ime->imeId.c_str(), static_cast<int32_t>(mode), isolatedSandBox);
+        userId_, ime->imeId.c_str(), static_cast<int32_t>(status), isolatedSandBox);
     return want;
 }
 
 int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
 {
+    IMSA_HILOGI("run in %{public}s", ime->imeId.c_str());
     if (ime == nullptr) {
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
     }

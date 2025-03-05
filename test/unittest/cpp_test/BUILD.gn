@@ -733,104 +733,6 @@ ohos_unittest("ImeProxyTest") {
   }
 }
 
-ohos_unittest("EnableImeDataParseTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-
-  include_dirs = [
-    "${inputmethod_path}/test/unittest/cpp_test/mock",
-    "${inputmethod_path}/services/adapter/settings_data_provider/include",
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
-  ]
-
-  sources = [
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_observer.cpp",
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_utils.cpp",
-    "${inputmethod_path}/services/adapter/settings_data_provider/src/enable_ime_data_parser.cpp",
-    "mock/datashare_helper.cpp",
-    "mock/global.cpp",
-    "mock/ime_info_inquirer.cpp",
-    "src/enable_ime_data_parse_test.cpp",
-  ]
-
-  deps = [
-    "${inputmethod_path}/services/json:imf_json_static",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:zuri",
-    "ability_runtime:dataobs_manager",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "data_share:datashare_common",
-    "data_share:datashare_consumer",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "samgr:samgr_proxy",
-  ]
-}
-
-ohos_unittest("SecurityModeParseTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-
-  include_dirs = [
-    "${inputmethod_path}/test/unittest/cpp_test/mock",
-    "${inputmethod_path}/services/include",
-    "${inputmethod_path}/services/identity_checker/include",
-    "${inputmethod_path}/services/adapter/ime_connection_manager/include",
-    "${inputmethod_path}/services/adapter/settings_data_provider/include",
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
-  ]
-
-  sources = [
-    "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_observer.cpp",
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_utils.cpp",
-    "${inputmethod_path}/services/adapter/settings_data_provider/src/security_mode_parser.cpp",
-    "mock/datashare_helper.cpp",
-    "src/security_mode_parser_test.cpp",
-  ]
-
-  deps = [
-    "${inputmethod_path}/services:inputmethod_service_static",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:zuri",
-    "ability_runtime:ability_manager",
-    "ability_runtime:dataobs_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "data_share:datashare_common",
-    "data_share:datashare_consumer",
-    "hilog:libhilog",
-    "input:libmmi-client",
-    "ipc:ipc_core",
-    "ipc:ipc_single",
-    "samgr:samgr_proxy",
-    "window_manager:libdm",
-  ]
-}
-
 ohos_unittest("TaskManagerTest") {
   branch_protector_ret = "pac_ret"
   sanitize = {
@@ -1081,16 +983,21 @@ ohos_unittest("FullImeInfoManagerTest") {
 
   sources = [
     "${inputmethod_path}/services/src/full_ime_info_manager.cpp",
+    "mock/ime_enabled_info_manager.cpp",
     "mock/ime_info_inquirer.cpp",
     "src/full_ime_info_manager_test.cpp",
   ]
   include_dirs = [
+    "${inputmethod_path}/common/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/test/unittest/cpp_test/mock",
   ]
 
+  deps = [ "${inputmethod_path}/common:inputmethod_common" ]
+
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
@@ -1204,4 +1111,42 @@ ohos_unittest("ImfHisysEventReporterTest") {
     "hisysevent:libhisysevent",
     "hisysevent:libhisyseventmanager",
   ]
+}
+
+ohos_unittest("ImeEnabledInfoManagerTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+  include_dirs = [ "${inputmethod_path}/common/include" ]
+  sources = [ "src/ime_enabled_info_manager_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+  deps = [
+    "${inputmethod_path}/services:inputmethod_service_static",
+    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "resource_management:global_resmgr",
+  ]
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }

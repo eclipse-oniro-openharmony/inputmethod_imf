@@ -15,7 +15,6 @@
 #include <sstream>
 #include "settings_data_utils.h"
 
-#include "ime_info_inquirer.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
@@ -32,7 +31,7 @@ SettingsDataUtils::~SettingsDataUtils()
     std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
     if (!observerList_.empty()) {
         for (auto &iter : observerList_) {
-            UnregisterObserver(iter);
+            UnregisterObserver(iter.first, iter.second);
         }
         observerList_.clear();
     }
@@ -54,26 +53,27 @@ sptr<SettingsDataUtils> SettingsDataUtils::GetInstance()
     return instance_;
 }
 
-int32_t SettingsDataUtils::CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func)
+int32_t SettingsDataUtils::CreateAndRegisterObserver(
+    const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc func)
 {
-    IMSA_HILOGD("key: %{public}s.", key.c_str());
+    IMSA_HILOGD("uriProxy:%{public}s, key: %{public}s.", uriProxy.c_str(), key.c_str());
     sptr<SettingsDataObserver> observer = new (std::nothrow) SettingsDataObserver(key, func);
     if (observer == nullptr) {
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return RegisterObserver(observer);
+    return RegisterObserver(uriProxy, observer);
 }
 
-int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &observer)
+int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer)
 {
     if (observer == nullptr) {
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    auto uri = GenerateTargetUri(std::string(SETTING_URI_PROXY), observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(SETTING_URI_PROXY));
+    auto uri = GenerateTargetUri(std::string(uriProxy), observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(uriProxy));
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -83,14 +83,14 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
     IMSA_HILOGD("succeed to register observer of uri: %{public}s.", uri.ToString().c_str());
 
     std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
-    observerList_.push_back(observer);
+    observerList_.push_back(std::make_pair(uriProxy, observer));
     return ErrorCode::NO_ERROR;
 }
 
-int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &observer)
+int32_t SettingsDataUtils::UnregisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer)
 {
-    auto uri = GenerateTargetUri(std::string(SETTING_URI_PROXY), observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(SETTING_URI_PROXY));
+    auto uri = GenerateTargetUri(std::string(uriProxy), observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(uriProxy));
     if (helper == nullptr) {
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -270,6 +270,16 @@ std::string SettingsDataUtils::SetSettingValues(const std::string &settingValue,
         }
     }
     return value;
+}
+
+void SettingsDataUtils::NotifyDataShareReady()
+{
+    isDataShareReady_.store(true);
+}
+
+bool SettingsDataUtils::IsDataShareReady()
+{
+    return isDataShareReady_.load();
 }
 } // namespace MiscServices
 } // namespace OHOS

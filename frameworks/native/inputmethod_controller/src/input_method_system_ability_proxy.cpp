@@ -235,19 +235,14 @@ bool InputMethodSystemAbilityProxy::IsDefaultImeSet()
     return isDefaultImeSet;
 }
 
-bool InputMethodSystemAbilityProxy::EnableIme(const std::string &bundleName)
+int32_t InputMethodSystemAbilityProxy::EnableIme(
+    const std::string &bundleName, const std::string &extensionName, EnabledStatus status)
 {
-    bool enableIme = false;
-    IMSA_HILOGI("InputMethodSystemAbilityProxy::EnableIme enter.");
-    SendRequest(
-        static_cast<uint32_t>(InputMethodInterfaceCode::ENABLE_IME),
-        [&bundleName](MessageParcel &data) {
-            return ITypesUtil::Marshal(data, bundleName);
-        },
-        [&enableIme](MessageParcel &reply) {
-            return ITypesUtil::Unmarshal(reply, enableIme);
+    IMSA_HILOGD("InputMethodSystemAbilityProxy::EnableIme enter.");
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::ENABLE_IME),
+        [&bundleName, extensionName, status](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, bundleName, extensionName, static_cast<int32_t>(status));
         });
-    return enableIme;
 }
 
 int32_t InputMethodSystemAbilityProxy::SetCallingWindow(uint32_t windowId, sptr<IInputClient> client)

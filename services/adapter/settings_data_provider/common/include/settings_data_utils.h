@@ -35,13 +35,11 @@ struct UserImeConfig : public Serializable {
     std::vector<std::string> identities;
     bool Unmarshal(cJSON *node) override
     {
-        GetValue(node, userId, identities);
-        return true;
+        return GetValue(node, userId, identities);
     }
     bool Marshal(cJSON *node) const override
     {
-        SetValue(node, userId, identities);
-        return true;
+        return SetValue(node, userId, identities);
     }
 };
 
@@ -49,18 +47,21 @@ class SettingsDataUtils : public RefBase {
 public:
     static sptr<SettingsDataUtils> GetInstance();
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper(const std::string &uriProxy);
-    int32_t CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func);
+    int32_t CreateAndRegisterObserver(
+        const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc func);
     int32_t GetStringValue(const std::string &uriProxy, const std::string &key, std::string &value);
     bool SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value);
     bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
     Uri GenerateTargetUri(const std::string &uriProxy, const std::string &key);
     bool EnableIme(int32_t userId, const std::string &bundleName);
+    void NotifyDataShareReady();
+    bool IsDataShareReady();
 
 private:
     SettingsDataUtils() = default;
     ~SettingsDataUtils();
-    int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
-    int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
+    int32_t RegisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer);
+    int32_t UnregisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer);
     sptr<IRemoteObject> GetToken();
     std::vector<std::string> Split(const std::string &text, char separator);
     std::string SetSettingValues(const std::string &settingValue, const std::string &bundleName);
@@ -71,7 +72,8 @@ private:
     std::mutex remoteObjMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
     std::mutex observerListMutex_;
-    std::vector<sptr<SettingsDataObserver>> observerList_;
+    std::vector<std::pair<std::string, sptr<SettingsDataObserver>>> observerList_;
+    std::atomic<bool> isDataShareReady_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

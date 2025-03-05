@@ -94,6 +94,29 @@ struct GetInputMethodControllerContext : public AsyncCall::Context {
     }
 };
 
+struct enableInputContext : public AsyncCall::Context {
+    std::string bundleName;
+    std::string extName;
+    EnabledStatus enabledStatus;
+    napi_status status = napi_generic_failure;
+    enableInputContext() : Context(nullptr, nullptr){};
+    enableInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        CHECK_RETURN(self != nullptr, "self is nullptr!", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            output_ = nullptr;
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 struct GetInputMethodStateContext : public AsyncCall::Context {
     napi_status status = napi_generic_failure;
     EnabledStatus enableStatus = EnabledStatus::DISABLED;
@@ -127,6 +150,7 @@ public:
     static napi_value DisplayOptionalInputMethod(napi_env env, napi_callback_info info);
     static napi_value ShowOptionalInputMethods(napi_env env, napi_callback_info info);
     static napi_value IsPanelShown(napi_env env, napi_callback_info info);
+    static napi_value EnableInputMethod(napi_env env, napi_callback_info info);
     static napi_value GetInputMethodState(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);

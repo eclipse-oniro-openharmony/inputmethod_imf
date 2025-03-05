@@ -14,7 +14,6 @@
  */
 #define private public
 #define protected public
-#include "enable_ime_data_parser.h"
 #include "full_ime_info_manager.h"
 #include "settings_data_utils.h"
 #include "user_session_manager.h"
@@ -66,6 +65,7 @@ std::shared_ptr<BlockData<bool>> FocusChangedListenerTestImpl::isFocused_ =
     std::make_shared<BlockData<bool>>(MAX_TIMEOUT_WAIT_FOCUS, false);
 std::shared_ptr<BlockData<bool>> FocusChangedListenerTestImpl::unFocused_ =
     std::make_shared<BlockData<bool>>(MAX_TIMEOUT_WAIT_FOCUS, false);
+static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
 void FocusChangedListenerTestImpl::OnFocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo)
 {
     IMSA_HILOGI("get onFocus information from window manager.");
@@ -322,10 +322,55 @@ void TddUtil::PushEnableImeValue(const std::string &key, const std::string &valu
     IMSA_HILOGI("ReleaseDataShareHelper isSuccess: %{public}d", ret);
 }
 
+void TddUtil::DeleteGlobalTable(const std::string &key)
+{
+    IMSA_HILOGI("key: %{public}s", key.c_str());
+    std::string uriProxy = SETTING_URI_PROXY;
+    DeleteTable(key, uriProxy);
+}
+
+void TddUtil::DeleteUserTable(int32_t userId, const std::string &key)
+{
+    IMSA_HILOGI("userId:%{public}d, key:%{public}s", userId, key.c_str());
+    std::string uriProxy = SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true";
+    DeleteTable(key, uriProxy);
+}
+
+void TddUtil::DeleteTable(const std::string &key, const std::string &uriProxy)
+{
+    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper(uriProxy);
+    if (helper == nullptr) {
+        IMSA_HILOGE("helper is nullptr.");
+        return;
+    }
+    DataShare::DataSharePredicates predicates;
+    predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
+    Uri uri(SettingsDataUtils::GetInstance()->GenerateTargetUri(uriProxy, key));
+    auto result = helper->DeleteEx(uri, predicates);
+    IMSA_HILOGI("Delete ret: [%{public}d, %{public}d]", result.first, result.second);
+    bool ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    IMSA_HILOGI("ReleaseDataShareHelper isSuccess: %{public}d", ret);
+}
+
+void TddUtil::GenerateGlobalTable(const std::string &key, const std::string &content)
+{
+    std::string uriProxy = SETTING_URI_PROXY;
+    GenerateTable(key, uriProxy, content);
+}
+void TddUtil::GenerateUserTable(int32_t userId, const std::string &key, const std::string &content)
+{
+    std::string uriProxy = SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true";
+    GenerateTable(key, uriProxy, content);
+}
+
+void TddUtil::GenerateTable(const std::string &key, const std::string &uriProxy, const std::string &content)
+{
+    SettingsDataUtils::GetInstance()->SetStringValue(uriProxy, key, content);
+}
+
 int32_t TddUtil::GetEnableData(std::string &value)
 {
-    auto ret =
-        SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, EnableImeDataParser::ENABLE_IME, value);
+    auto ret = SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, ENABLE_IME, value);
     if (ret == ErrorCode::NO_ERROR) {
         IMSA_HILOGI("success, value: %{public}s", value.c_str());
     }

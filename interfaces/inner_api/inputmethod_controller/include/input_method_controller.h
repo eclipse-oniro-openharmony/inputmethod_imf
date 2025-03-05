@@ -867,7 +867,8 @@ public:
      *
      * @since 13
      */
-    IMF_API bool EnableIme(const std::string &bundleName);
+    IMF_API int32_t EnableIme(const std::string &bundleName, const std::string &extensionName = "",
+        EnabledStatus status = EnabledStatus::BASIC_MODE);
 
     /**
      * @brief Send ArrayBuffer message to ime.

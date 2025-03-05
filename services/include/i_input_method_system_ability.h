@@ -64,7 +64,8 @@ public:
     virtual int32_t GetSecurityMode(int32_t &security) = 0;
     virtual int32_t IsDefaultIme() = 0;
     virtual bool IsDefaultImeSet() = 0;
-    virtual bool EnableIme(const std::string &bundleName) = 0;
+    virtual int32_t EnableIme(
+        const std::string &bundleName, const std::string &extensionName, EnabledStatus status) = 0;
     virtual int32_t ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0;
     virtual int32_t GetInputMethodState(EnabledStatus &status) = 0;
     virtual bool IsSystemApp() = 0;

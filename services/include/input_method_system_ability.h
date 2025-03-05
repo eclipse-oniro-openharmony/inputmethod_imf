@@ -21,7 +21,6 @@
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
-#include "security_mode_parser.h"
 #include "system_ability.h"
 #include "input_method_types.h"
 #include "display_manager.h"
@@ -84,7 +83,7 @@ public:
     void DumpAllMethod(int fd);
     int32_t IsDefaultIme() override;
     bool IsDefaultImeSet() override;
-    bool EnableIme(const std::string &bundleName) override;
+    int32_t EnableIme(const std::string &bundleName, const std::string &extensionName, EnabledStatus status) override;
     int32_t GetInputMethodState(EnabledStatus &status) override;
     bool IsSystemApp() override;
 
@@ -161,7 +160,6 @@ private:
     int32_t SwitchLanguage();
     int32_t SwitchType();
     int32_t GenerateClientInfo(int32_t userId, InputClientInfo &clientInfo);
-    void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
     void RegisterFoldStatusChanged();
     class FoldStatusCallback : public Rosen::DisplayManager::IFoldStatusListener {
@@ -177,8 +175,8 @@ private:
     int32_t CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId);
     void DealSwitchRequest();
-    void DealSecurityChange();
-    void OnSecurityModeChange();
+    void DealSecurityChange(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
+    void OnSecurityModeChange(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
     bool IsCurrentIme(int32_t userId);
     int32_t StartInputType(int32_t userId, InputType type);
     // if switch input type need to switch ime, then no need to hide panel first.
@@ -186,7 +184,6 @@ private:
     bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
-    int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     bool IsSecurityMode(int32_t userId, const std::string &bundleName);
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t StartInputInner(
@@ -200,12 +197,11 @@ private:
     bool IsImeInUse();
 #endif
     std::mutex checkMutex_;
+    void OnImeEnabledStatusChange(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
     void DatashareCallback(const std::string &key);
     bool IsValidBundleName(const std::string &bundleName);
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
-    std::atomic<bool> enableImeOn_ = false;
-    std::atomic<bool> enableSecurityMode_ = false;
     std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;
     std::mutex switchImeMutex_;

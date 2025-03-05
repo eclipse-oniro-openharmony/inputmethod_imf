@@ -193,16 +193,18 @@ int32_t InputMethodSystemAbilityStub::IsDefaultImeSetOnRemote(MessageParcel &dat
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsDefaultImeSet()) ? ErrorCode::NO_ERROR
                                                                            : ErrorCode::ERROR_EX_PARCELABLE;
 }
- 
+
 int32_t InputMethodSystemAbilityStub::EnableImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     std::string bundleName;
-    if (!ITypesUtil::Unmarshal(data, bundleName)) {
+    std::string extName;
+    int32_t status = 0;
+    if (!ITypesUtil::Unmarshal(data, bundleName, extName, status)) {
         IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, EnableIme(bundleName)) ? ErrorCode::NO_ERROR
-                                                                        : ErrorCode::ERROR_EX_PARCELABLE;
+    auto ret = EnableIme(bundleName, extName, static_cast<EnabledStatus>(status));
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote(MessageParcel &data, MessageParcel &reply)

@@ -17,7 +17,6 @@
 #define SERVICES_INCLUDE_PERUSER_SESSION_H
 
 #include "block_queue.h"
-#include "enable_ime_data_parser.h"
 #include "event_status_manager.h"
 #include "freeze_manager.h"
 #include "i_input_method_core.h"

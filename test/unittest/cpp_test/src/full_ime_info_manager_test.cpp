@@ -87,9 +87,10 @@ HWTEST_F(FullImeInfoManagerTest, test_Init_002, TestSize.Level0)
     uint32_t tokenId = 2;
     std::string appId = "appId";
     uint32_t versionCode = 11;
-    Property prop { "bundleName" };
+    std::string installTime = "12345";
+    Property prop{ "bundleName" };
     std::vector<FullImeInfo> imeInfos;
-    imeInfos.push_back({ isNewIme, tokenId, appId, versionCode, prop });
+    imeInfos.push_back({ isNewIme, tokenId, appId, versionCode, installTime, prop });
     std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
     fullImeInfos.emplace_back(std::make_pair(userId, imeInfos));
     ImeInfoInquirer::GetInstance().SetFullImeInfo(true, fullImeInfos);
@@ -153,12 +154,13 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
     uint32_t tokenId = 2;
     std::string appId = "appId";
     uint32_t versionCode = 11;
+    std::string installTime = "12345";
     Property prop { "bundleName" };
-    FullImeInfo imeInfo { isNewIme, tokenId, appId, versionCode, prop };
+    FullImeInfo imeInfo { isNewIme, tokenId, appId, versionCode, installTime, prop };
     uint32_t tokenId1 = 2;
     std::string appId1 = "appId1";
     Property prop1 { "bundleName1" };
-    FullImeInfo imeInfo1 { isNewIme, tokenId1, appId1, versionCode, prop1 };
+    FullImeInfo imeInfo1 { isNewIme, tokenId1, appId1, versionCode, installTime, prop1 };
     imeInfos.push_back(imeInfo);
     imeInfos.push_back(imeInfo1);
     ImeInfoInquirer::GetInstance().SetFullImeInfo(true, imeInfos);
@@ -294,7 +296,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Update_001, TestSize.Level0)
     std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
     ImeInfoInquirer::GetInstance().SetFullImeInfo(false, fullImeInfos);
     auto ret = FullImeInfoManager::GetInstance().Update();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
     EXPECT_TRUE(FullImeInfoManager::GetInstance().fullImeInfos_.empty());
 }
 
@@ -473,7 +475,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_001, TestSize.Level0)
     FullImeInfoManager::GetInstance().fullImeInfos_.insert_or_assign(userId, imeInfos);
 
     int32_t userId1 = 101;
-    auto ret = FullImeInfoManager::GetInstance().Get(userId1);
+    auto ret = FullImeInfoManager::GetInstance().GetWithOutEnabledStatus(userId1);
     EXPECT_TRUE(ret.empty());
 }
 
@@ -491,7 +493,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_002, TestSize.Level0)
     imeInfos.push_back(info);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert_or_assign(userId, imeInfos);
 
-    auto ret = FullImeInfoManager::GetInstance().Get(userId);
+    auto ret = FullImeInfoManager::GetInstance().GetWithOutEnabledStatus(userId);
     EXPECT_EQ(ret.size(), 1);
 }
 
@@ -510,7 +512,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_003, TestSize.Level0)
     int32_t userId1 = 101;
     std::string bundleName = "bundleName";
     FullImeInfo info;
-    auto ret = FullImeInfoManager::GetInstance().Get(bundleName, userId1, info);
+    auto ret = FullImeInfoManager::GetInstance().Get(userId1, bundleName, info);
     EXPECT_FALSE(ret);
 }
 
@@ -532,7 +534,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_004, TestSize.Level0)
     int32_t userId1 = 100;
     std::string bundleName = "bundleName";
     FullImeInfo infoRet;
-    auto ret = FullImeInfoManager::GetInstance().Get(bundleName, userId1, infoRet);
+    auto ret = FullImeInfoManager::GetInstance().Get(userId1, bundleName, infoRet);
     EXPECT_FALSE(ret);
 }
 
@@ -554,7 +556,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_005, TestSize.Level0)
     int32_t userId1 = 100;
     std::string bundleName = "bundleName1";
     FullImeInfo infoRet;
-    auto ret = FullImeInfoManager::GetInstance().Get(bundleName, userId1, infoRet);
+    auto ret = FullImeInfoManager::GetInstance().Get(userId1, bundleName, infoRet);
     EXPECT_TRUE(ret);
     EXPECT_EQ(infoRet.prop.name, info.prop.name);
 }
