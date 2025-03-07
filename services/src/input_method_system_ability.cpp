@@ -594,7 +594,9 @@ int32_t InputMethodSystemAbility::StartInputInner(
     auto userId = GetCallingUserId();
     imeInfo = GetCurrentImeInfoForHiSysEvent(userId);
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsBroker(tokenId) && !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (ImeInfoInquirer::GetInstance().IsInputMethodExtension(IPCSkeleton::GetCallingPid()) ||
+        (!identityChecker_->IsBroker(tokenId) &&
+         !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId))) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
