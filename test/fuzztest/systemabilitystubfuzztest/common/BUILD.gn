@@ -63,7 +63,6 @@ ohos_static_library("imf_sa_stub_fuzztest_common_static") {
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
-    "window_manager:libdm",
   ]
 
   subsystem_name = "inputmethod"

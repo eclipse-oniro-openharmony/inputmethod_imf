@@ -24,7 +24,6 @@
 #include "security_mode_parser.h"
 #include "system_ability.h"
 #include "input_method_types.h"
-#include "display_manager.h"
 #include "user_session_manager.h"
 
 namespace OHOS {
@@ -163,17 +162,6 @@ private:
     int32_t GenerateClientInfo(int32_t userId, InputClientInfo &clientInfo);
     void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
-    void RegisterFoldStatusChanged();
-    class FoldStatusCallback : public Rosen::DisplayManager::IFoldStatusListener {
-    public:
-    using foldStatusCallback = std::function<void(Rosen::FoldStatus)>;
-        FoldStatusCallback(foldStatusCallback callback) : callback_(callback) {}
-        ~FoldStatusCallback() = default;
-        void OnFoldStatusChanged(Rosen::FoldStatus) override;
-    private:
-        foldStatusCallback callback_ = nullptr;
-    };
-    int32_t InitDisplayManager();
     int32_t CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId);
     void DealSwitchRequest();
@@ -211,7 +199,6 @@ private:
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
-    std::atomic<bool> enableDefaultImeOnSecScr_  = false;
 
     std::mutex modeChangeMutex_;
     bool isChangeHandling_ = false;
