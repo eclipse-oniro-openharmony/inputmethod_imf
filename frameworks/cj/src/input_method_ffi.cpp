@@ -24,7 +24,7 @@
 
 namespace OHOS::MiscServices {
 extern "C" {
-int32_t FfiInputMethodGetDefaultInputMethod(CInputMethodProperty &props)
+int32_t FfiInputMethodGetDefaultInputMethod(CInputMethodProperty *props)
 {
     auto ctrl = InputMethodController::GetInstance();
     if (ctrl == nullptr) {
@@ -40,7 +40,7 @@ int32_t FfiInputMethodGetDefaultInputMethod(CInputMethodProperty &props)
     return ret;
 }
 
-int32_t FfiInputMethodGetCurrentInputMethod(CInputMethodProperty &props)
+int32_t FfiInputMethodGetCurrentInputMethod(CInputMethodProperty *props)
 {
     auto ctrl = InputMethodController::GetInstance();
     if (ctrl == nullptr) {
@@ -55,7 +55,7 @@ int32_t FfiInputMethodGetCurrentInputMethod(CInputMethodProperty &props)
     return 0;
 }
 
-int32_t FfiInputMethodSwitchInputMethod(bool &result, CInputMethodProperty props)
+int32_t FfiInputMethodSwitchInputMethod(bool *result, CInputMethodProperty props)
 {
     InputMethodSyncTrace tracer("CJInputMethod_SwitchInputMethod");
     auto ctrl = InputMethodController::GetInstance();
@@ -65,12 +65,12 @@ int32_t FfiInputMethodSwitchInputMethod(bool &result, CInputMethodProperty props
     int32_t errCode =
         ctrl->SwitchInputMethod(SwitchTrigger::CURRENT_IME, std::string(props.name), std::string(props.id));
     if (errCode == ErrorCode::NO_ERROR) {
-        result = true;
+        *result = true;
     }
     return errCode;
 }
 
-int32_t FfiInputMethodSwitchCurrentInputMethodSubtype(bool &result, CInputMethodSubtype target)
+int32_t FfiInputMethodSwitchCurrentInputMethodSubtype(bool *result, CInputMethodSubtype target)
 {
     InputMethodSyncTrace tracer("CJInputMethod_SwitchCurrentInputMethodSubtype");
     auto ctrl = InputMethodController::GetInstance();
@@ -80,12 +80,12 @@ int32_t FfiInputMethodSwitchCurrentInputMethodSubtype(bool &result, CInputMethod
     int32_t errCode =
         ctrl->SwitchInputMethod(SwitchTrigger::CURRENT_IME, std::string(target.name), std::string(target.id));
     if (errCode == ErrorCode::NO_ERROR) {
-        result = true;
+        *result = true;
     }
     return errCode;
 }
 
-int32_t FfiInputMethodGetCurrentInputMethodSubtype(CInputMethodSubtype &props)
+int32_t FfiInputMethodGetCurrentInputMethodSubtype(CInputMethodSubtype *props)
 {
     auto ctrl = InputMethodController::GetInstance();
     if (ctrl == nullptr) {
@@ -100,7 +100,7 @@ int32_t FfiInputMethodGetCurrentInputMethodSubtype(CInputMethodSubtype &props)
     return 0;
 }
 
-int32_t FfiInputMethodSwitchCurrentInputMethodAndSubtype(bool &result,
+int32_t FfiInputMethodSwitchCurrentInputMethodAndSubtype(bool *result,
     CInputMethodProperty target, CInputMethodSubtype subtype)
 {
     InputMethodSyncTrace tracer("CJInputMethod_SwitchCurrentInputMethodAndSubtype");
@@ -111,12 +111,12 @@ int32_t FfiInputMethodSwitchCurrentInputMethodAndSubtype(bool &result,
     int32_t errCode = ctrl->SwitchInputMethod(SwitchTrigger::CURRENT_IME,
         std::string(subtype.name), std::string(subtype.id));
     if (errCode == ErrorCode::NO_ERROR) {
-        result = true;
+        *result = true;
     }
     return errCode;
 }
 
-int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName &elem)
+int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName *elem)
 {
     OHOS::AppExecFwk::ElementName inputMethodConfig;
     auto ctrl = InputMethodController::GetInstance();
@@ -125,10 +125,10 @@ int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName &elem)
     }
     int32_t ret = ctrl->GetInputMethodConfig(inputMethodConfig);
     if (ret == ErrorCode::NO_ERROR) {
-        elem.deviceId = Utils::MallocCString(inputMethodConfig.GetDeviceID());
-        elem.bundleName = Utils::MallocCString(inputMethodConfig.GetBundleName());
-        elem.abilityName = Utils::MallocCString(inputMethodConfig.GetAbilityName());
-        elem.moduleName = Utils::MallocCString(inputMethodConfig.GetModuleName());
+        elem->deviceId = Utils::MallocCString(inputMethodConfig.GetDeviceID());
+        elem->bundleName = Utils::MallocCString(inputMethodConfig.GetBundleName());
+        elem->abilityName = Utils::MallocCString(inputMethodConfig.GetAbilityName());
+        elem->moduleName = Utils::MallocCString(inputMethodConfig.GetModuleName());
     }
     return ret;
 }
@@ -160,7 +160,7 @@ RetInputMethodSubtype FfiInputMethodSettingListInputMethodSubtype(CInputMethodPr
     }
     for (unsigned int i = 0; i < ret.size; i++) {
         CInputMethodSubtype props;
-        Utils::InputMethodSubProperty2C(props, subProps[i]);
+        Utils::InputMethodSubProperty2C(&props, subProps[i]);
         ret.head[i] = props;
     }
     return ret;
@@ -192,7 +192,7 @@ RetInputMethodSubtype FfiInputMethodSettingListCurrentInputMethodSubtype()
     }
     for (unsigned int i = 0; i < ret.size; i++) {
         CInputMethodSubtype props;
-        Utils::InputMethodSubProperty2C(props, subProps[i]);
+        Utils::InputMethodSubProperty2C(&props, subProps[i]);
         ret.head[i] = props;
     }
     return ret;
@@ -223,7 +223,7 @@ RetInputMethodProperty FfiInputMethodSettingGetInputMethods(bool enable)
     }
     for (unsigned int i = 0; i < ret.size; i++) {
         CInputMethodProperty props;
-        Utils::InputMethodProperty2C(props, properties[i]);
+        Utils::InputMethodProperty2C(&props, properties[i]);
         ret.head[i] = props;
     }
     return ret;
@@ -254,7 +254,7 @@ RetInputMethodProperty FfiInputMethodSettingGetAllInputMethods()
     }
     for (unsigned int i = 0; i < ret.size; i++) {
         CInputMethodProperty props;
-        Utils::InputMethodProperty2C(props, properties[i]);
+        Utils::InputMethodProperty2C(&props, properties[i]);
         ret.head[i] = props;
     }
     return ret;
@@ -278,7 +278,7 @@ int32_t FfiInputMethodSettingOff(uint32_t type)
     return setting->UnSubscribe(type);
 }
 
-int32_t FfiInputMethodSettingShowOptionalInputMethods(bool& result)
+int32_t FfiInputMethodSettingShowOptionalInputMethods(bool *result)
 {
     IMSA_HILOGD("start JsGetInputMethodSetting.");
     auto ctrl = InputMethodController::GetInstance();
@@ -288,7 +288,7 @@ int32_t FfiInputMethodSettingShowOptionalInputMethods(bool& result)
     int32_t errCode = ctrl->DisplayOptionalInputMethod();
     if (errCode == ErrorCode::NO_ERROR) {
         IMSA_HILOGI("exec DisplayOptionalInputMethod success");
-        result = true;
+        *result = true;
     }
     return errCode;
 }

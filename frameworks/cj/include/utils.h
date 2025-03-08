@@ -27,9 +27,9 @@ namespace OHOS::MiscServices {
 class FFI_EXPORT Utils {
 public:
     static char* MallocCString(const std::string &origin);
-    static void InputMethodProperty2C(CInputMethodProperty &props, const Property &property);
+    static void InputMethodProperty2C(CInputMethodProperty *props, const Property &property);
     static Property C2InputMethodProperty(CInputMethodProperty props);
-    static void InputMethodSubProperty2C(CInputMethodSubtype &props, const SubProperty &property);
+    static void InputMethodSubProperty2C(CInputMethodSubtype *props, const SubProperty &property);
 };
 }
 #endif
