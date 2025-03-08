@@ -26,7 +26,6 @@
 #include "mem_mgr_client.h"
 #include "inputmethod_message_handler.h"
 #include "os_account_adapter.h"
-#include "parameters.h"
 #include "scene_board_judgement.h"
 #include "system_ability_definition.h"
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
@@ -53,8 +52,6 @@ constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
 constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
 constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
 constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
-const std::string FOLD_SCREEN_TYPE = OHOS::system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
-constexpr const char *EXTEND_FOLD_TYPE = "4";
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 constexpr const char *UNLOAD_SA_TASK = "unloadInputMethodSaTask";
 constexpr int64_t DELAY_UNLOAD_SA_TIME = 20000; // 20s
@@ -345,9 +342,6 @@ int32_t InputMethodSystemAbility::Init()
     ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitSystemConfig();
 #endif
-    if (FOLD_SCREEN_TYPE[0] == *EXTEND_FOLD_TYPE) {
-        enableDefaultImeOnSecScr_.store(true);
-    }
     InitMonitors();
     return ErrorCode::NO_ERROR;
 }
@@ -601,12 +595,6 @@ int32_t InputMethodSystemAbility::StartInputInner(
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
-    }
-    if (enableDefaultImeOnSecScr_.load()) {
-        auto ret = session->ChangeToDefaultImeIfFolded();
-        if (ret != ErrorCode::NO_ERROR) {
-            return ret;
-        }
     }
     if (session->GetCurrentClientPid() != IPCSkeleton::GetCallingPid()
         && session->GetInactiveClientPid() != IPCSkeleton::GetCallingPid()) {
@@ -1543,18 +1531,14 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
         IMSA_HILOGI("switch language.");
         return SwitchLanguage();
     }
-    bool isSwitchLocked = false;
+    bool isScreenLocked = false;
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         IMSA_HILOGI("isScreenLocked  now.");
-        isSwitchLocked = true;
+        isScreenLocked = true;
     }
 #endif
-    if (enableDefaultImeOnSecScr_.load() && Rosen::DisplayManager::GetInstance().IsFoldable() &&
-        Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::FOLDED) {
-        isSwitchLocked = true;
-    }
-    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state) && !isSwitchLocked) {
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state) && !isScreenLocked) {
         IMSA_HILOGI("switch ime.");
         DealSwitchRequest();
         return ErrorCode::NO_ERROR;
@@ -1698,9 +1682,6 @@ void InputMethodSystemAbility::InitMonitors()
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
-    if (enableDefaultImeOnSecScr_.load()) {
-        InitDisplayManager();
-    }
 }
 
 void InputMethodSystemAbility::HandleDataShareReady()
@@ -1771,49 +1752,6 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
     FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
         [this](bool isOnFocused, int32_t pid, int32_t uid) { HandleFocusChanged(isOnFocused, pid, uid); });
 }
-
-int32_t InputMethodSystemAbility::InitDisplayManager()
-{
-    IMSA_HILOGI("start. ");
-    auto ret = ImCommonEventManager::GetInstance()->SubscribeDisplayManager([this]() { RegisterFoldStatusChanged(); });
-    IMSA_HILOGI("InitDisplayManager %{public}d", ret);
-    return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
-}
-
-void InputMethodSystemAbility::RegisterFoldStatusChanged()
-{
-    sptr<Rosen::DisplayManager::IFoldStatusListener> foldStatusCallback
-        = new (std::nothrow) FoldStatusCallback([this](Rosen::FoldStatus foldStatus) {
-        auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-        if (session == nullptr) {
-            IMSA_HILOGE("%{public}d session is nullptr!", userId_);
-            return;
-        }
-        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
-        if (session->GetCurrentClient() == nullptr) {
-            return;
-        }
-        if (Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::FOLDED
-            || Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::EXPAND) {
-            session->ChangeToDefaultImeIfFolded();
-        }
-    });
-    if (foldStatusCallback == nullptr) {
-        IMSA_HILOGE("foldStatusCallback is nullptr!");
-        return;
-    }
-    auto ret = Rosen::DisplayManager::GetInstance().RegisterFoldStatusListener(foldStatusCallback);
-    IMSA_HILOGI("RegisterFoldStatusChanged ret: %{public}d", ret);
-}
-
-void InputMethodSystemAbility::FoldStatusCallback::OnFoldStatusChanged(Rosen::FoldStatus foldStatus)
-{
-    IMSA_HILOGI("FoldStatus changed, foldStatus = %{public}d", foldStatus);
-    if (callback_ != nullptr) {
-        callback_(foldStatus);
-    }
-}
-
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
 {
@@ -2071,10 +2009,12 @@ void InputMethodSystemAbility::HandleWmsDisconnected(int32_t userId, int32_t scr
         session->RemoveCurrentClient();
     }
 
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     if (userId == userId_) {
         // user switched or scb in foreground died, not deal
         return;
     }
+#endif
     // scb in background died, stop ime
     if (session == nullptr) {
         return;
