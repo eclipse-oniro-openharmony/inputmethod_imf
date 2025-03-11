@@ -24,6 +24,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+struct  
 /**
  * @brief Basic inputmethod components.
  */

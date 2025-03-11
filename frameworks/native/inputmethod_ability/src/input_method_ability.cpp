@@ -843,6 +843,11 @@ int32_t InputMethodAbility::OnSecurityChange(int32_t security)
     return ErrorCode::NO_ERROR;
 }
 
+void InputMethodAbilit::AdjustKeyboard()
+{
+
+}
+
 int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context,
     const PanelInfo &panelInfo, std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {

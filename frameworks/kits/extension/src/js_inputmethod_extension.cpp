@@ -426,6 +426,7 @@ void JsInputMethodExtension::OnDestroy(Rosen::DisplayId displayId)
     IMSA_HILOGD("exit");
 }
 
+//gj
 void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
 {
     IMSA_HILOGD("displayId: %{public}" PRIu64 "", displayId);

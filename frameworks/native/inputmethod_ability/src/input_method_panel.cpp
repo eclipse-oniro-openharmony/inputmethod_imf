@@ -416,6 +416,10 @@ void InputMethodPanel::NotifyPanelStatus() {
         instance->NotifyPanelStatus(panelType_, sysPanelStatus);
     }
 }
+void InputMethodPanel::AdjustKeyboard()
+{
+
+}
 
 int32_t InputMethodPanel::AdjustPanelRect(
     const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion)
