@@ -156,6 +156,30 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
     return proxy->UnRegisteredProxyIme(type, coreStub_);
 }
 
+int32_t InputMethodAbility::RegisterProxy(uint64_t displayId)
+{
+    IMSA_HILOGD("IMA, displayId: %{public}" PRId64 "", displayId);
+    TaskManager::GetInstance().SetInited(true);
+
+    if (isBound_.load()) {
+        IMSA_HILOGD("already bound.");
+        return ErrorCode::NO_ERROR;
+    }
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("imsa proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    int32_t ret = proxy->RegisterProxy(displayId, coreStub_, agentStub_->AsObject());
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("set failed, ret: %{public}d!", ret);
+        return ret;
+    }
+    isBound_.store(true);
+    IMSA_HILOGD("set successfully.");
+    return ErrorCode::NO_ERROR;
+}
+
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGD("IMA init.");

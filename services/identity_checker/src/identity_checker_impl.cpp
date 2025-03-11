@@ -23,11 +23,39 @@
 #else
 #include "window_manager.h"
 #endif
-
+#include "input_client_info.h"
 namespace OHOS {
 namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
+bool IdentityCheckerImpl::IsFocused(
+    int64_t callingPid, uint32_t callingTokenId, uint64_t &displayId, int64_t focusedPid)
+{
+    std::vector<FocusChangeInfo> infos;
+    if (focusedPid == INVALID_PID) {
+#ifdef SCENE_BOARD_ENABLE
+        WindowManagerLite::GetInstance().GetAllFocusWindowInfo(infos);
+#else
+        WindowManager::GetInstance().GetAllFocusWindowInfo(infos);
+#endif
+    }
+    auto iter = std::find_if(
+        infos.begin(), infos.end(), [callingPid](const auto &focusInfo) { return focusInfo.pid_ == callingPid; });
+    if (iter != infos.end()) {
+        IMSA_HILOGD("focused app, pid: %{public}" PRId64 "", callingPid);
+        displayId = iter->displayId_;
+        return true;
+    }
+    // zll: 此处遗留，有待确认UIExtension是否支持查找非主设备屏幕的UIExtension窗口
+    bool isFocused = IsFocusedUIExtension(callingTokenId);
+    if (!isFocused) {
+        IMSA_HILOGE("not focused, focusedPid: %{public}" PRId64 ", callerPid: %{public}" PRId64 ", callerToken: "
+                    "%{public}d",
+            realFocusedPid, callingPid, callingTokenId);
+    }
+    return isFocused;
+}
+
 bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
 {
     int64_t realFocusedPid = focusedPid;
@@ -124,6 +152,11 @@ std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)
         return "";
     }
     return info.bundleName;
+}
+
+bool IdentityCheckerImpl::IsTargetSa(int32_t callingUid, int32_t validUid)
+{
+    return callingUid == validUid;
 }
 } // namespace MiscServices
 } // namespace OHOS

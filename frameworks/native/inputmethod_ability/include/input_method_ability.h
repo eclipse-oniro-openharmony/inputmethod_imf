@@ -49,6 +49,8 @@ public:
     int32_t SetCoreAndAgent();
     int32_t InitConnect();
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
+    int32_t RegisterProxy(uint64_t displayId);
+    int32_t UnregisterProxy(uint64_t displayId);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     std::shared_ptr<InputMethodEngineListener> GetImeListener();

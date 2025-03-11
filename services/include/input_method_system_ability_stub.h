@@ -112,6 +112,10 @@ private:
 
     int32_t IsSystemAppOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t RegisterProxyOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t UnregisterProxyOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static inline constexpr RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_END)] = {
         &InputMethodSystemAbilityStub::InvalidRequest,
@@ -195,6 +199,10 @@ private:
             &InputMethodSystemAbilityStub::GetInputMethodStateOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::IS_SYSTEM_APP)] =
             &InputMethodSystemAbilityStub::IsSystemAppOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::REGISTER_PROXY_IME)] =
+            &InputMethodSystemAbilityStub::RegisterProxyOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTER_PROXY_IME)] =
+            &InputMethodSystemAbilityStub::UnregisterProxyOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

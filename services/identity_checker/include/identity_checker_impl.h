@@ -17,12 +17,14 @@
 #define SERVICES_INCLUDE_IDENTITY_CHECKER_IMPL_H
 
 #include "identity_checker.h"
-
+#include <cstdint>
 namespace OHOS {
 namespace MiscServices {
 class IdentityCheckerImpl : public IdentityChecker {
 public:
     bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) override;
+    bool IsFocused(
+        int64_t callingPid, uint32_t callingTokenId, uint64_t &displayId, int64_t focusedPid = INVALID_PID) override;
     bool IsSystemApp(uint64_t fullTokenId) override;
     bool IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName) override;
     bool HasPermission(uint32_t tokenId, const std::string &permission) override;
@@ -30,6 +32,7 @@ public:
     bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override;
     std::string GetBundleNameByToken(uint32_t tokenId) override;
     bool IsFocusedUIExtension(uint32_t callingTokenId) override;
+    bool IsTargetSa(int32_t callingUid, int32_t validUid) override;
 };
 } // namespace MiscServices
 } // namespace OHOS

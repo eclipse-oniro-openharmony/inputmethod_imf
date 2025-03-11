@@ -432,6 +432,24 @@ int32_t InputMethodSystemAbilityProxy::GetInputMethodState(EnabledStatus &status
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodSystemAbilityProxy::RegisterProxy(
+    uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
+{
+    if (core == nullptr) {
+        IMSA_HILOGE("core is nullptr.");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::REGISTER_PROXY_IME),
+        [displayId, core, agent](
+            MessageParcel &data) { return ITypesUtil::Marshal(data, displayId, core->AsObject(), agent); });
+}
+
+int32_t InputMethodSystemAbilityProxy::UnregisterProxy(uint64_t displayId)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTER_PROXY_IME),
+        [displayId](MessageParcel &data) { return ITypesUtil::Marshal(data, displayId); });
+}
+
 void InputMethodSystemAbilityProxy::GetMessageOption(int32_t code, MessageOption &option)
 {
     switch (code) {

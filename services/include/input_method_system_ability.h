@@ -87,6 +87,9 @@ public:
     bool EnableIme(const std::string &bundleName) override;
     int32_t GetInputMethodState(EnabledStatus &status) override;
     bool IsSystemApp() override;
+    int32_t RegisterProxy(
+        uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
+    int32_t UnregisterProxy(uint64_t displayId) override;
 
 protected:
     void OnStart() override;
@@ -106,6 +109,7 @@ private:
         const std::shared_ptr<ImeInfo> &info);
     int32_t GetUserId(int32_t uid);
     int32_t GetCallingUserId();
+    uint64_t GetCallingDisplayId();
     std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;
     int32_t PrepareInput(int32_t userId, InputClientInfo &clientInfo);
     void WorkThread();
@@ -142,7 +146,7 @@ private:
     void HandleMemStarted();
     void HandleDataShareReady();
     void HandleOsAccountStarted();
-    void HandleFocusChanged(bool isFocused, int32_t pid, int32_t uid);
+    void HandleFocusChanged(bool isFocused, uint64_t displayId, int32_t pid, int32_t uid);
     void HandleImeCfgCapsState();
     void StopImeInBackground();
     int32_t InitAccountMonitor();
@@ -187,8 +191,8 @@ private:
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
     int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    bool IsSecurityMode(int32_t userId, const std::string &bundleName);
-    int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+//    bool IsSecurityMode(int32_t userId, const std::string &bundleName);
+//    int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t StartInputInner(
         InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);

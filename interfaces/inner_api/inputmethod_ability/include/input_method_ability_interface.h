@@ -31,6 +31,8 @@ public:
     static InputMethodAbilityInterface &GetInstance();
     int32_t RegisteredProxy();
     int32_t UnRegisteredProxy(UnRegisteredType type);
+    int32_t RegisterProxy(uint64_t displayId);
+    int32_t UnregisterProxy(uint64_t displayId);
     int32_t InsertText(const std::string &text);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);

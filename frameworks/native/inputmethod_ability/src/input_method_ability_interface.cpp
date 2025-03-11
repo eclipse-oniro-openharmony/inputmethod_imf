@@ -35,6 +35,16 @@ int32_t InputMethodAbilityInterface::UnRegisteredProxy(UnRegisteredType type)
     return InputMethodAbility::GetInstance()->UnRegisteredProxyIme(type);
 }
 
+int32_t InputMethodAbilityInterface::RegisterProxy(uint64_t displayId)
+{
+    return InputMethodAbility::GetInstance()->RegisterProxy(displayId);
+}
+
+int32_t InputMethodAbilityInterface::UnregisterProxy(uint64_t displayId)
+{
+    return InputMethodAbility::GetInstance()->UnregisterProxy(displayId);
+}
+
 int32_t InputMethodAbilityInterface::InsertText(const std::string &text)
 {
     return InputMethodAbility::GetInstance()->InsertText(text);

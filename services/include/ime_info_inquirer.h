@@ -87,6 +87,7 @@ public:
     int32_t GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int32_t userId, bool enableOn, uint32_t cacheCount);
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
+    bool IsEnableAppAgent();
     EnabledStatus GetSystemInitEnabledState();
     void InitSystemConfig();
     ImeNativeCfg GetDefaultIme();
