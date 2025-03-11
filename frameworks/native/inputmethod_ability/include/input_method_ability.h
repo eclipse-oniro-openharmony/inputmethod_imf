@@ -70,6 +70,7 @@ public:
     int32_t GetInputPattern(int32_t &inputPattern);
     int32_t GetTextIndexAtCursor(int32_t &index);
     int32_t GetTextConfig(TextTotalConfig &textConfig);
+    int32_t AdjustKeyboard();
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);

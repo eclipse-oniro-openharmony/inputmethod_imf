@@ -1605,6 +1605,24 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testAdjustKeyboard_001
+ * @tc.desc: Test AdjustKeyboard
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testAdjustKeyboard_001, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto ret = inputMethodPanel->AdjustKeyboard();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
  * @tc.name: testSetPrivacyMode
  * @tc.desc: Test SetPrivacyMode.
  * @tc.type: FUNC
