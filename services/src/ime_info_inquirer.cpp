@@ -702,12 +702,8 @@ bool ImeInfoInquirer::IsImeInstalled(const int32_t userId, const std::string &bu
 std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToStart(int32_t userId)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    EnabledStatus status = EnabledStatus::DISABLED;
-    FullImeInfoManager::GetInstance().GetEnabledState(userId, currentImeCfg->bundleName, status);
-    IMSA_HILOGI("[%{public}d, %{public}s] status: %{public}d.", userId, currentImeCfg->imeId.c_str(),
-        static_cast<int32_t>(status));
-    if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)
-        || status == EnabledStatus::DISABLED) {
+    IMSA_HILOGD("userId: %{public}d, currentIme: %{public}s.", userId, currentImeCfg->imeId.c_str());
+    if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)) {
         auto newIme = GetDefaultIme();
         auto info = GetDefaultImeInfo(userId);
         if (info == nullptr) {

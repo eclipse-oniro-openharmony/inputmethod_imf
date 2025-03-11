@@ -118,7 +118,7 @@ public:
     int32_t Update(
         int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status);
     int32_t GetEnabledState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    int32_t GetEnabledStates(int32_t userId, std::vector<Property> &props);
+    int32_t GetEnabledStates(int32_t userId, std::vector<Property> &props); // props not has sysSpecialIme
     bool IsDefaultFullMode(int32_t userId, const std::string &bundleName);
     void OnFullExperienceTableChanged(int32_t userId); // add for compatibility
 
@@ -127,18 +127,13 @@ private:
     ~ImeEnabledInfoManager();
     int32_t AddUser(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t CorrectUserAdd(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
-    int32_t GetEnabledStatus(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    int32_t GetEnabledStatus(int32_t userId, std::vector<Property> &props);
+    int32_t GetEnabledStateInner(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+    int32_t GetEnabledStateInner(int32_t userId, std::vector<Property> &props);
     int32_t GetEnabledCfg(
         int32_t userId, ImeEnabledCfg &cfg, bool isCheckByBmg, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t GetEnabledTableCfg(int32_t userId, ImeEnabledCfg &cfg);
-    int32_t GetUserEnabledTableInfo(int32_t userId,
-        std::tuple<bool, bool, std::string> &info); // first:hasUserEnabledTable  second:isNewUserEnabledTable  third:content
-    int32_t GetGlobalEnabledTableCfg(int32_t userId, ImeEnabledCfg &cfg);
-    int32_t GetOldUserEnabledTableCfg(int32_t userId, const std::string &content, ImeEnabledCfg &cfg);
     int32_t GetOldEnabledTableCfg(int32_t userId, const std::string &content, ImeEnabledCfg &cfg);
-    int32_t ParseNewUserEnabledTableCfg(int32_t userId, const std::string &content, ImeEnabledCfg &cfg);
-    int32_t ParseOldEnabledTableCfg(int32_t userId, const std::string &content, std::set<std::string> &bundleNames);
+    int32_t GetNewEnabledTableCfg(int32_t userId, const std::string &content, ImeEnabledCfg &cfg);
     int32_t MergeFullExperienceTableCfg(int32_t userId, ImeEnabledCfg &cfg);
     int32_t ParseFullExperienceTableCfg(int32_t userId, const std::string &content, std::set<std::string> &bundleNames);
     int32_t CheckByBundleMgr(
