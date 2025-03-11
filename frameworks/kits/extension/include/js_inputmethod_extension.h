@@ -29,6 +29,22 @@ struct
  * @brief Basic inputmethod components.
  */
 class JsInputMethodExtension : public InputMethodExtension {
+struct CacheDisplay {
+    int32_t displayWidth = 0;
+    int32_t displayHeight = 0;
+    Rosen::Rotation displayRotation = Rosen::Rotation::ROTATION_0;
+    bool isEmpty()
+    {
+        return displayWidth == 0 && displayHeight == 0 && displayRotation == Rosen::Rotation::ROTATION_0;
+    };
+    void SetCacheDisplay(int32_t width, int32_t height, Rosen::Rotation rotation)
+    {
+        displayWidth = width;
+        displayHeight = height;
+        displayRotation = rotation;
+    };
+};
+
 public:
     JsInputMethodExtension(JsRuntime &jsRuntime);
     virtual ~JsInputMethodExtension() override;
@@ -161,6 +177,7 @@ protected:
         {
             auto inputMethodSptr = jsInputMethodExtension_.lock();
             if (inputMethodSptr != nullptr) {
+                inputMethodSptr->CheckNeedAdjustKeyboard(displayId);
                 inputMethodSptr->OnChange(displayId);
             }
         }
@@ -172,6 +189,7 @@ protected:
     void OnCreate(Rosen::DisplayId displayId);
     void OnDestroy(Rosen::DisplayId displayId);
     void OnChange(Rosen::DisplayId displayId);
+    void CheckNeedAdjustKeyboard(Rosen::DisplayId displayId);
 
 private:
     class SystemAbilityStatusChangeListener : public OHOS::SystemAbilityStatusChangeStub {
