@@ -426,7 +426,31 @@ void JsInputMethodExtension::OnDestroy(Rosen::DisplayId displayId)
     IMSA_HILOGD("exit");
 }
 
-//gj
+void JsInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
+{
+    if (displayId != Rosen::DisplayManager::GetInstance().GetDefaultDisplayId()) {
+        return;
+    }
+    auto displayPtr = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    if (displayPtr == nullptr) {
+        return;
+    }
+    IMSA_HILOGD("display width: %{public}d, height: %{public}d, rotation: %{public}d",
+        displayPtr->GetWidth(),
+        displayPtr->GetHeight(),
+        displayPtr->GetRotation());
+    if (cacheDisplay_.isEmpty()) {
+        cacheDisplay_.SetCacheDisplay(displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation());
+        return;
+    }
+    if ((cacheDisplay_.displayWidth != displayPtr->GetWidth() ||
+        cacheDisplay_.displayHeight != displayPtr->GetHeight()) &&
+        cacheDisplay_.displayRotation == displayPtr->GetRotation()) {
+        TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaAdjustKeyboard>());
+    }
+    cacheDisplay_.SetCacheDisplay(displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation());
+}
+
 void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
 {
     IMSA_HILOGD("displayId: %{public}" PRIu64 "", displayId);
