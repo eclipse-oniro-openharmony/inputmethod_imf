@@ -439,7 +439,7 @@ void JsInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
         displayPtr->GetWidth(),
         displayPtr->GetHeight(),
         displayPtr->GetRotation());
-    if (cacheDisplay_.isEmpty()) {
+    if (cacheDisplay_.IsEmpty()) {
         cacheDisplay_.SetCacheDisplay(displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation());
         return;
     }

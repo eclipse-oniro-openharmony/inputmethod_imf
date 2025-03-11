@@ -851,6 +851,11 @@ int32_t InputMethodAbility::AdjustKeyboard()
             IMSA_HILOGE("panel is nullptr!");
             return ErrorCode::ERROR_IME;
         }
+        auto flag = panel->GetPanelFlag();
+        if (flag != FLG_FIXED) {
+            IMSA_HILOGI("panel flag is not fix, no need to adjust.");
+            return ErrorCode::NO_ERROR;
+        }
         return panel->AdjustKeyboard();
     }
     return ErrorCode::NO_ERROR;

@@ -32,7 +32,7 @@ struct CacheDisplay {
     int32_t displayWidth = 0;
     int32_t displayHeight = 0;
     Rosen::Rotation displayRotation = Rosen::Rotation::ROTATION_0;
-    bool isEmpty()
+    bool IsEmpty()
     {
         return displayWidth == 0 && displayHeight == 0 && displayRotation == Rosen::Rotation::ROTATION_0;
     };
@@ -147,6 +147,7 @@ private:
     std::unique_ptr<NativeReference> jsObj_;
     std::shared_ptr<NativeReference> shellContextRef_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
+    CacheDisplay cacheDisplay_;
 
 protected:
     class JsInputMethodExtensionDisplayListener : public Rosen::DisplayManager::IDisplayListener {

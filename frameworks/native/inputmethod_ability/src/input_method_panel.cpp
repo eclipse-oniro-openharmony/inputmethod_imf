@@ -420,9 +420,9 @@ void InputMethodPanel::NotifyPanelStatus() {
 int32_t InputMethodPanel::AdjustKeyboard()
 {
     LayoutParams params = { enhancedLayoutParams_.landscape.rect, enhancedLayoutParams_.portrait.rect };
-    auto ret = AjustPanelRect(panelFlag_, params);
+    auto ret = AdjustPanelRect(panelFlag_, params);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to ADJUST KEYBOARD, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to adjust keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     IMSA_HILOGI("adjust keyboard success");
