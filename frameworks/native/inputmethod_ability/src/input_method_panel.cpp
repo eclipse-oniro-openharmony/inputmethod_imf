@@ -416,9 +416,18 @@ void InputMethodPanel::NotifyPanelStatus() {
         instance->NotifyPanelStatus(panelType_, sysPanelStatus);
     }
 }
-void InputMethodPanel::AdjustKeyboard()
-{
 
+int32_t InputMethodPanel::AdjustKeyboard()
+{
+    LayoutParams params = { enhancedLayoutParams_.landscape.rect, enhancedLayoutParams_.portrait.rect };
+    auto ret = AjustPanelRect(panelFlag_, params);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to ADJUST KEYBOARD, ret: %{public}d", ret);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    IMSA_HILOGI("adjust keyboard success");
+    UpdateResizeParams();
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::AdjustPanelRect(

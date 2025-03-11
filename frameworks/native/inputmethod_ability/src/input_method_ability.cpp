@@ -843,9 +843,17 @@ int32_t InputMethodAbility::OnSecurityChange(int32_t security)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodAbilit::AdjustKeyboard()
+int32_t InputMethodAbility::AdjustKeyboard()
 {
-
+    if (panels_.Contains(SOFT_KEYBOARD)) {
+        auto panel = GetSoftKeyboardPanel();
+        if (panel == nullptr) {
+            IMSA_HILOGE("panel is nullptr!");
+            return ErrorCode::ERROR_IME;
+        }
+        return panel->AdjustKeyboard();
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context,
