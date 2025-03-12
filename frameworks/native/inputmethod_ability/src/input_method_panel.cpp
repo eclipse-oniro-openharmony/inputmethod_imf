@@ -89,7 +89,6 @@ int32_t InputMethodPanel::CreatePanel(
         return temp;
     }
     SetKeyboardLayoutParams(keyboardLayoutParams, DisplaySize{.displayId = displayId});
-
     IMSA_HILOGI("success, type/flag/windowId/isScbEnable_/defDisplayId_: \
         %{public}d/%{public}d/%{public}u/%{public}d/%{public}" PRIu64".",
         static_cast<int32_t>(panelType_), static_cast<int32_t>(panelFlag_), windowId_, isScbEnable_, defDisplayId_);
@@ -1974,7 +1973,6 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay() const
         auto info = displayInfo->GetDisplayInfo();
         IMSA_HILOGI("displayId:%{public}" PRIu64".ScreenGId:%{public}" PRIu64"screenId:%{public}" PRIu64"",
             info->GetDisplayId(), info->GetScreenGroupId(), info->GetScreenId());
-
     }
     return displayInfo;
 }

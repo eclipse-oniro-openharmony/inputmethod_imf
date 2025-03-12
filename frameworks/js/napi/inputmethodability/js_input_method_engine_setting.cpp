@@ -892,6 +892,10 @@ void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplay
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
+    if (entry->callingDisplayId > UINT32_MAX) {
+        IMSA_HILOGE("callingDisplayId over range!");
+        return;
+    }
     IMSA_HILOGD("callingDisplayId: %{public}d", static_cast<uint32_t>(callingDisplayId));
     auto task = [entry]() {
         auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {

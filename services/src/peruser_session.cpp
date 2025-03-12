@@ -1298,7 +1298,7 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
         IMSA_HILOGI("GetCallingWindowInfo error!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    if (callingWindowInfo.callingPid_ != clientInfo->pid ) {
+    if (callingWindowInfo.callingPid_ != clientInfo->pid) {
         IMSA_HILOGI("pid diff clientInfo:pid:%{public}d, userid:%{public}d!",
             clientInfo->pid, clientInfo->userID);
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
