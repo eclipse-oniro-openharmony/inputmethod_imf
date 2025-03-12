@@ -483,7 +483,9 @@ int32_t InputMethodPanel::AdjustKeyboard()
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     IMSA_HILOGI("adjust keyboard success");
-    UpdateResizeParams(displaySize);
+    if (defDisplayId_ == displaySize.displayId) {
+        UpdateResizeParams(displaySize);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -500,15 +502,9 @@ int32_t InputMethodPanel::AdjustPanelRect(
     if (GetDisplaySize(display) != ErrorCode::NO_ERROR) {
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    WindowSize inputSize = layoutParams.GetWindowSize(true);
-    if (!CheckSize(panelFlag, inputSize, display, true)) {
-        IMSA_HILOGE("portrait invalid size!");
-        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
-    }
-    inputSize = layoutParams.GetWindowSize(false);
-    if (!CheckSize(panelFlag, inputSize, display, false)) {
-        IMSA_HILOGE("landscape invalid size!");
-        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    checkRet = CheckAdjustPanelRectInputSize(panelFlag, layoutParams, display);
+    if (checkRet != ErrorCode::NO_ERROR) {
+        return checkRet;
     }
     FullPanelAdjustInfo adjustInfo;
     auto getAdjustInfoResult = GetAdjustInfo(panelFlag, adjustInfo, display);
@@ -2083,6 +2079,22 @@ int32_t InputMethodPanel::CheckChangePanelFlagParam(PanelFlag panelFlag) const
     if (panelType_ == STATUS_BAR) {
         IMSA_HILOGE("STATUS_BAR cannot ChangePanelFlag!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::CheckAdjustPanelRectInputSize(const PanelFlag panelFlag,
+    const LayoutParams &layoutParams, const DisplaySize &displaySize) const
+{
+    WindowSize inputSize = layoutParams.GetWindowSize(true);
+    if (!CheckSize(panelFlag, inputSize, displaySize, true)) {
+        IMSA_HILOGE("portrait invalid size!");
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+    inputSize = layoutParams.GetWindowSize(false);
+    if (!CheckSize(panelFlag, inputSize, displaySize, false)) {
+        IMSA_HILOGE("landscape invalid size!");
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     return ErrorCode::NO_ERROR;
 }

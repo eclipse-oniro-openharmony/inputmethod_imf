@@ -203,6 +203,8 @@ private:
     int32_t CheckAdjustPanelRectParams(const LayoutParams &layoutParams) const;
     int32_t CheckAdjustPanelEnhancedLayoutParams(const EnhancedLayoutParams &params) const;
     int32_t CheckChangePanelFlagParam(PanelFlag panelFlag) const;
+    int32_t CheckAdjustPanelRectInputSize(const PanelFlag panelFlag, const LayoutParams &layoutParams,
+        const DisplaySize &displaySize) const;
 private:
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
