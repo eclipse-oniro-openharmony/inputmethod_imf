@@ -492,14 +492,9 @@ int32_t InputMethodPanel::AdjustPanelRect(
 {
     IMSA_HILOGD("enter panelFlag:%{public}d,LayoutParams:%{public}s,needUpdateRegion:%{public}d!",
         panelFlag, layoutParams.ToString().c_str(), needUpdateRegion);
-    if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_WINDOW_MANAGER;
-    }
-    if (layoutParams.portraitRect.posX_ < 0 || layoutParams.portraitRect.posY_ < 0 ||
-        layoutParams.landscapeRect.posX_ < 0 || layoutParams.landscapeRect.posY_ < 0) {
-        IMSA_HILOGE("posX_ and posY_ cannot be less than 0!");
-        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    auto checkRet = CheckAdjustPanelRectParams(layoutParams);
+    if (checkRet != ErrorCode::NO_ERROR) {
+        return checkRet;
     }
     DisplaySize display;
     if (GetDisplaySize(display) != ErrorCode::NO_ERROR) {
@@ -609,13 +604,9 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
 {
     IMSA_HILOGD("enter panelFlag:%{public}d,params:%{public}s,HotAreas:%{public}s!",
         panelFlag, params.ToString().c_str(), hotAreas.ToString().c_str());
-    if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_WINDOW_MANAGER;
-    }
-    if (panelType_ != PanelType::SOFT_KEYBOARD) {
-        IMSA_HILOGE("not soft keyboard panel");
-        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
+    auto checkRet = CheckAdjustPanelEnhancedLayoutParams(params);
+    if (checkRet != ErrorCode::NO_ERROR) {
+        return checkRet;
     }
     DisplaySize displaySize;
     auto ret = GetDisplaySize(displaySize);
@@ -1260,16 +1251,9 @@ int32_t InputMethodPanel::CalculateLandscapeRect(const DisplaySize &displaySize,
 
 int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
 {
-    if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    if (panelFlag_ == panelFlag) {
-        return ErrorCode::NO_ERROR;
-    }
-    if (panelType_ == STATUS_BAR) {
-        IMSA_HILOGE("STATUS_BAR cannot ChangePanelFlag!");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+    auto checkRet = CheckChangePanelFlagParam(panelFlag);
+    if (checkRet != ErrorCode::NO_ERROR) {
+        return checkRet;
     }
     if (panelType_ == SOFT_KEYBOARD && panelFlag == FLG_CANDIDATE_COLUMN) {
         PanelStatusChangeToImc(InputWindowStatus::HIDE, { 0, 0, 0, 0 });
@@ -1993,8 +1977,7 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay() const
         displayInfo->GetScreenId());
         auto info = displayInfo->GetDisplayInfo();
         IMSA_HILOGI("displayId:%{public}" PRIu64".ScreenGId:%{public}" PRIu64"screenId:%{public}" PRIu64"",
-        info->GetDisplayId(), info->GetScreenGroupId(),
-        info->GetScreenId());
+            info->GetDisplayId(), info->GetScreenGroupId(), info->GetScreenId());
 
     }
     return displayInfo;
@@ -2058,6 +2041,50 @@ Rosen::KeyboardLayoutParams InputMethodPanel::GetKeyboardLayoutParams(const Disp
     Rosen::KeyboardLayoutParams ret;
     keyboardLayoutParams_.getData(displaySize.displayId, ret);
     return ret;
+}
+
+int32_t InputMethodPanel::CheckAdjustPanelRectParams(const LayoutParams &layoutParams) const
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (layoutParams.portraitRect.posX_ < 0 || layoutParams.portraitRect.posY_ < 0 ||
+        layoutParams.landscapeRect.posX_ < 0 || layoutParams.landscapeRect.posY_ < 0) {
+        IMSA_HILOGE("posX_ and posY_ cannot be less than 0!");
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::CheckAdjustPanelEnhancedLayoutParams(const EnhancedLayoutParams &params) const
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (panelType_ != PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGE("not soft keyboard panel");
+        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+
+int32_t InputMethodPanel::CheckChangePanelFlagParam(PanelFlag panelFlag) const
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (panelFlag_ == panelFlag) {
+        return ErrorCode::NO_ERROR;
+    }
+    if (panelType_ == STATUS_BAR) {
+        IMSA_HILOGE("STATUS_BAR cannot ChangePanelFlag!");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

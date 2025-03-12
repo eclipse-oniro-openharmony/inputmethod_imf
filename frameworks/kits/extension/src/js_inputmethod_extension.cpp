@@ -473,8 +473,8 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
 
     if (isConfigChanged) {
         if (!IsCallingDisplayId(displayId)) {
-            IMSA_HILOGD("OnChange, CheckHasPanelDisplayId.need:%{public}d, Config after update: %{public}s.",
-                needNotice, contextConfig->GetName().c_str());
+            IMSA_HILOGD("OnChange, CheckHasPanelDisplayId, Config after update: %{public}s.",
+                contextConfig->GetName().c_str());
             return;
         }
         auto inputMethodExtension = std::static_pointer_cast<JsInputMethodExtension>(shared_from_this());

@@ -200,7 +200,9 @@ private:
     EnhancedLayoutParams GetEnhancedLayoutParams(const DisplaySize &displaySize);
     void SetKeyboardLayoutParams(const Rosen::KeyboardLayoutParams &params, const DisplaySize &displaySize);
     Rosen::KeyboardLayoutParams GetKeyboardLayoutParams(const DisplaySize &displaySize);
-
+    int32_t CheckAdjustPanelRectParams(const LayoutParams &layoutParams) const;
+    int32_t CheckAdjustPanelEnhancedLayoutParams(const EnhancedLayoutParams &params) const;
+    int32_t CheckChangePanelFlagParam(PanelFlag panelFlag) const;
 private:
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
