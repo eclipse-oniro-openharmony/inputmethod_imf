@@ -63,8 +63,8 @@ void  WindowDisplayChangedManager::RegisterCallingWindowInfoChangedListener(cons
         IMSA_HILOGE("failed to create listener");
         return;
     }
-   WMError ret = WindowManagerLite::GetInstance().RegisterCallingWindowDisplayChangedListener(listener);
-   IMSA_HILOGI("register focus changed listener ret: %{public}d", ret);
+    WMError ret = WindowManagerLite::GetInstance().RegisterCallingWindowDisplayChangedListener(listener);
+    IMSA_HILOGI("register focus changed listener ret: %{public}d", ret);
 }
 #endif
 } // namespace MiscServices

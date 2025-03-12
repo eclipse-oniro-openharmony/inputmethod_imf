@@ -369,8 +369,8 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     }
 #ifndef SCENE_BOARD_ENABLE
     if (type == "callingDisplayChanged") {
-        JsUtils::ThrowException(env, JsUtils::Convert(IMFErrorCode::EXCEPTION_UNSUPPORTED), "capability not supported.",
-        TYPE_NONE);
+        JsUtils::ThrowException(env, JsUtils::Convert(IMFErrorCode::EXCEPTION_UNSUPPORTED),
+            "capability not supported.", TYPE_NONE);
     }
 #endif
     IMSA_HILOGD("subscribe type:%{public}s.", type.c_str());

@@ -651,7 +651,7 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     SetHotAreas(hotAreas, displaySize);
-	if (panelFlag_ != panelFlag) {
+    if (panelFlag_ != panelFlag) {
         NotifyPanelStatus();
     }
     UpdateEnhancedLayoutInfo(panelFlag, params, wmsParams, displaySize);
@@ -1992,8 +1992,7 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay() const
         displayInfo->GetWidth(), displayInfo->GetHeight(),
         displayInfo->GetScreenId());
         auto info = displayInfo->GetDisplayInfo();
-        IMSA_HILOGI("displayInfo2, displayId:%{public}" PRIu64". ScreenGroupId:%{public}" PRIu64"\
-            screenId:%{public}" PRIu64"",
+        IMSA_HILOGI("displayId:%{public}" PRIu64".ScreenGId:%{public}" PRIu64"screenId:%{public}" PRIu64"",
         info->GetDisplayId(), info->GetScreenGroupId(),
         info->GetScreenId());
 

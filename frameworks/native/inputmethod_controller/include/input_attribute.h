@@ -69,16 +69,11 @@ struct InputAttribute {
     inline std::string ToString() const
     {
         std::stringstream ss;
-        ss << "["
-        << "inputPattern:" << inputPattern
-        << "enterKeyType:" << enterKeyType
-        << "inputOption:" << inputOption
-        << "isTextPreviewSupported:" << isTextPreviewSupported
-        << "bundleName:" << bundleName
-        << "immersiveMode:" << immersiveMode
-        << "windowId:" << windowId
-        << "callingDisplayId:" << callingDisplayId
-        << "]";
+        ss << "[" << "inputPattern:" << inputPattern
+        << "enterKeyType:" << enterKeyType << "inputOption:" << inputOption
+        << "isTextPreviewSupported:" << isTextPreviewSupported << "bundleName:" << bundleName
+        << "immersiveMode:" << immersiveMode << "windowId:" << windowId
+        << "callingDisplayId:" << callingDisplayId << "]";
         return ss.str();
     }
 };
