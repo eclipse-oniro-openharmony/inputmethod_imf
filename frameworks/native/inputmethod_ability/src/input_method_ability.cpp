@@ -529,7 +529,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     if (textConfig.windowId != INVALID_WINDOW_ID) {
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
-    NoticeCallingDisplayChanged(textConfig.inputAttribute.callingDisplayId);
+    NotifyCallingDisplayChanged(textConfig.inputAttribute.callingDisplayId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1581,7 +1581,7 @@ int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodAbility::NoticeCallingDisplayChanged(uint64_t callingWindowDisplayId)
+void InputMethodAbility::NotifyCallingDisplayChanged(uint64_t callingWindowDisplayId)
 {
     IMSA_HILOGD("enter!!!calling display: %{public}" PRIu64".", callingWindowDisplayId);
     if (callingWindowDisplayId >= 0) {

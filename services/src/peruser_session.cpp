@@ -1290,6 +1290,7 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
         IMSA_HILOGE("nullptr clientInfo!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
+#ifdef SCENE_BOARD_ENABLE
     Rosen::CallingWindowInfo callingWindowInfo;
     bool isOk = WindowDisplayChangedManager::GetCallingWindowInfo(callingWindowId,
         clientInfo->userID, callingWindowInfo);
@@ -1303,16 +1304,19 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
             clientInfo->pid, clientInfo->userID);
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
+#endif
     // if windowId change, refresh windowId info and notify clients input start;
     if (clientInfo->config.windowId != callingWindowId) {
         IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
         clientInfo->config.windowId = callingWindowId;
         clientInfo->config.inputAttribute.windowId = callingWindowId;
+#ifdef SCENE_BOARD_ENABLE
         auto curDisplayId = clientInfo->config.inputAttribute.callingDisplayId;
         if (curDisplayId != callingWindowInfo.displayId_) {
             clientInfo->config.inputAttribute.callingDisplayId =  callingWindowInfo.displayId_ ;
             SendToIMACallingWindowDisplayChange(callingWindowInfo.displayId_);
         }
+#endif
         return NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     }
     return ErrorCode::NO_ERROR;
@@ -2052,7 +2056,7 @@ void PerUserSession::HandleCallingWindowDisplayChanged(const int32_t windowId,
     }
     IMSA_HILOGD("local userId_:%{public}d, winddowId:%{public}d",
         userId_, clientInfo->config.windowId);
-    if (clientInfo->config.windowId == windowId) {
+    if (clientInfo->config.windowId == static_cast<uint32_t>(windowId)) {
         uint64_t curDisplay = clientInfo->config.inputAttribute.callingDisplayId;
         if (curDisplay != displayId) {
             clientInfo->config.inputAttribute.callingDisplayId = displayId;

@@ -369,7 +369,7 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     }
 #ifndef SCENE_BOARD_ENABLE
     if (type == "callingDisplayChanged") {
-        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::EXCEPTION_UNSUPPORTED), "capability not supported.",
+        JsUtils::ThrowException(env, JsUtils::Convert(IMFErrorCode::EXCEPTION_UNSUPPORTED), "capability not supported.",
         TYPE_NONE);
     }
 #endif

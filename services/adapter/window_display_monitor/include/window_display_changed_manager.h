@@ -19,13 +19,14 @@
 #include <functional>
 #include <mutex>
 #include <tuple>
-
+#ifdef SCENE_BOARD_ENABLE
 #include "window_display_changed_listener.h"
-
+#endif
 #include "iremote_object.h"
 
 namespace OHOS {
 namespace MiscServices {
+#ifdef SCENE_BOARD_ENABLE
 class WindowDisplayChangedManager final {
 public:
     ~WindowDisplayChangedManager();
@@ -37,6 +38,7 @@ public:
 private:
     WindowDisplayChangedManager() = default;
 };
+#endif // SCENE_BOARD_ENABLE
 } // namespace MiscServices
 } // namespace OHOS
 #endif //INPUTMETHOD_IMF_WINDOW_DISPLAY_CHANGED_MANAGER_H

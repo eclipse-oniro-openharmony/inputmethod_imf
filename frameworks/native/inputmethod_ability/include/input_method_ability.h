@@ -179,7 +179,7 @@ private:
     HiSysEventClientInfo GetBindClientInfo();
     void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);
     void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
-    void NoticeCallingDisplayChanged(uint64_t callingWindowDisplayId);
+    void NotifyCallingDisplayChanged(uint64_t callingWindowDisplayId);
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
     std::atomic_bool isBound_ { false };
 

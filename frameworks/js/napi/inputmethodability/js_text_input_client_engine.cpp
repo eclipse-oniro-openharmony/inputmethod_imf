@@ -972,8 +972,8 @@ napi_value JsInputAttribute::Write(napi_env env, const InputAttribute &nativeObj
     // not care write bundleName fail
     JsUtil::Object::WriteProperty(env, jsObject, "bundleName", nativeObject.bundleName);
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "immersiveMode", nativeObject.immersiveMode);
-    JsUtil::Object::WriteProperty(env, jsObject, "windowId", nativeObject.windowId);
-    JsUtil::Object::WriteProperty(env, jsObject, "displayId",
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "windowId", nativeObject.windowId);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "displayId",
         static_cast<uint32_t>(nativeObject.callingDisplayId));
     return ret ? jsObject : JsUtil::Const::Null(env);
 }

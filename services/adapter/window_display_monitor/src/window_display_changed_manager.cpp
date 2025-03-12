@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+#ifdef SCENE_BOARD_ENABLE
 using namespace Rosen;
 using WMError = OHOS::Rosen::WMError;
 
@@ -36,11 +37,7 @@ WindowDisplayChangedManager &WindowDisplayChangedManager::GetInstance()
 
 void WindowDisplayChangedManager::GetFoucusInfo(OHOS::Rosen::FocusChangeInfo& focusInfo)
 {
-#ifdef SCENE_BOARD_ENABLE
     WindowManagerLite::GetInstance().GetFocusWindowInfo(focusInfo);
-#else
-    WindowManager::GetInstance().GetFocusWindowInfo(focusInfo);
-#endif
 }
 
 bool WindowDisplayChangedManager::GetCallingWindowInfo(const uint32_t windId, const int32_t userId,
@@ -49,11 +46,7 @@ bool WindowDisplayChangedManager::GetCallingWindowInfo(const uint32_t windId, co
     IMSA_HILOGD("enter, windId:%{public}d", windId);
     callingWindowInfo.windowId_ = windId;
     callingWindowInfo.userId_ = userId;
-#ifdef SCENE_BOARD_ENABLE
     auto wmerr = WindowManagerLite::GetInstance().GetCallingWindowInfo(callingWindowInfo);
-#else
-    auto wmerr = WMError::WM_ERROR_DEVICE_NOT_SUPPORT;
-#endif
     if (wmerr != WMError::WM_OK) {
         IMSA_HILOGE("failed to get calling window info.");
         return false;
@@ -70,13 +63,10 @@ void  WindowDisplayChangedManager::RegisterCallingWindowInfoChangedListener(cons
         IMSA_HILOGE("failed to create listener");
         return;
     }
-#ifdef SCENE_BOARD_ENABLE
-    WMError ret = WindowManagerLite::GetInstance().RegisterCallingWindowDisplayChangeListener(listener);
-#else
-    auto ret = WMError::WM_ERROR_DEVICE_NOT_SUPPORT;
-#endif
+   WMError ret = WindowManagerLite::GetInstance().RegisterCallingWindowDisplayChangedListener(listener);
    IMSA_HILOGI("register focus changed listener ret: %{public}d", ret);
 }
+#endif
 } // namespace MiscServices
 } // namespace OHOS
 

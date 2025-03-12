@@ -275,7 +275,7 @@ void InputMethodCoreStub::OnCallingDisplayChange(uint64_t dispalyId) { }
 
 int32_t InputMethodCoreStub::OnCallingDisplayChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t displayId = -1;
+    uint64_t displayId = 0;
     if (!ITypesUtil::Unmarshal(data, displayId)) {
         IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;

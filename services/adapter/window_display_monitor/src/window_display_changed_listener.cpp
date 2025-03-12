@@ -18,7 +18,9 @@
 
 namespace OHOS {
 namespace MiscServices {
-void WindowDisplayChangeListener::OnCallingWindowDisplayChanged(OHOS::Rosen::CallingWindowInfo callingWindowInfo)
+#ifdef SCENE_BOARD_ENABLE
+void WindowDisplayChangeListener::OnCallingWindowDisplayChanged(
+    const OHOS::Rosen::CallingWindowInfo &callingWindowInfo)
 {
     IMSA_HILOGD("callback callingWindowInfo:%{public}s", CallingWindowInfoToString(callingWindowInfo).c_str());
     if (handle_) {
@@ -35,5 +37,6 @@ std::string WindowDisplayChangeListener::CallingWindowInfoToString(const OHOS::R
     << "userId_:" << info.userId_;
     return ss.str();
 }
+#endif
 } // namespace MiscServices
 } // namespace OHOS

@@ -522,7 +522,11 @@ int32_t InputMethodSystemAbility::PrepareInput(int32_t userId, InputClientInfo &
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
+#ifdef SCENE_BOARD_ENABLE
     HandleCallingWindowDisplay(clientInfo);
+#else
+    clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
+#endif
     return session->OnPrepareInput(clientInfo);
 }
 
@@ -1757,9 +1761,10 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
 void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
 {
     IMSA_HILOGD("enter.");
+#ifdef SCENE_BOARD_ENABLE
     auto callBack = [this](OHOS::Rosen::CallingWindowInfo callingWindowInfo) {
         IMSA_HILOGD("WindowDisplayChanged callbak.");
-        int32_t userId = GetUserId(callingWindowInfo.userId_);
+        int32_t userId = callingWindowInfo.userId_;
         auto session = UserSessionManager::GetInstance().GetUserSession(userId);
         if (session == nullptr) {
             IMSA_HILOGE("[%{public}d] session is nullptr!", userId);
@@ -1769,6 +1774,7 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
             callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
     };
     WindowDisplayChangedManager::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
+#endif
 }
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
@@ -2368,6 +2374,7 @@ std::pair<int64_t, std::string> InputMethodSystemAbility::GetCurrentImeInfoForHi
     return imeInfo;
 }
 
+#ifdef SCENE_BOARD_ENABLE
 void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clientInfo)
 {
     IMSA_HILOGD("enter");
@@ -2405,5 +2412,6 @@ void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clien
         clientInfo.config.inputAttribute.ToString().c_str());
     return;
 }
+#endif
 } // namespace MiscServices
 } // namespace OHOS

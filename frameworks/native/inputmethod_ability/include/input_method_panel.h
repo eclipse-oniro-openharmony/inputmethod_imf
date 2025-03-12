@@ -178,7 +178,7 @@ private:
 
     void UpdateResizeParams(const DisplaySize &displaySize);
     void UpdateHotAreas(const DisplaySize &displaySize);
-    void UpdateLayoutInfo(PanelFlag panelFlag,  const LayoutParams &params, const DisplaySize &displaySize);
+    void UpdateLayoutInfo(PanelFlag panelFlag, const LayoutParams &params, const DisplaySize &displaySize);
     void UpdateEnhancedLayoutInfo(PanelFlag panelFlag, const EnhancedLayoutParams &enhancedParams,
         const  Rosen::KeyboardLayoutParams &wmsParams, const DisplaySize &displaySize);
     Rosen::KeyboardLayoutParams ConvertToWMSParam(PanelFlag panelFlag, const EnhancedLayoutParams &layoutParams) const;
