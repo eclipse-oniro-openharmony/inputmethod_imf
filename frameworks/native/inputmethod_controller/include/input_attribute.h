@@ -17,6 +17,7 @@
 #define SERVICES_INCLUDE_INPUT_ATTRIBUTE_H
 
 #include <cstdint>
+#include <sstream>
 
 #include "message_parcel.h"
 
@@ -34,17 +35,23 @@ struct InputAttribute {
     bool isTextPreviewSupported { false };
     std::string bundleName { "" };
     int32_t immersiveMode = 0;
+    uint32_t windowId = 0; // for transfer
+    uint64_t callingDisplayId = 0;
 
     static bool Marshalling(const InputAttribute &in, MessageParcel &data)
     {
         return data.WriteInt32(in.inputPattern) && data.WriteInt32(in.enterKeyType) &&
-            data.WriteInt32(in.inputOption) && data.WriteString(in.bundleName) && data.WriteInt32(in.immersiveMode);
+            data.WriteInt32(in.inputOption) && data.WriteString(in.bundleName) &&
+            data.WriteInt32(in.immersiveMode) && data.WriteUint32(in.windowId) &&
+            data.WriteUint64(in.callingDisplayId);
     }
 
     static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
     {
         return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) &&
-            data.ReadInt32(out.inputOption) && data.ReadString(out.bundleName) && data.ReadInt32(out.immersiveMode);
+            data.ReadInt32(out.inputOption) && data.ReadString(out.bundleName) &&
+            data.ReadInt32(out.immersiveMode) && data.ReadUint32(out.windowId) &&
+            data.ReadUint64(out.callingDisplayId);
     }
 
     bool GetSecurityFlag() const
@@ -57,6 +64,20 @@ struct InputAttribute {
     {
         return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType &&
             inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
+    }
+
+    inline std::string ToString() const
+    {
+        std::stringstream ss;
+        ss << "inputPattern:" << inputPattern
+        << "enterKeyType:" << enterKeyType
+        << "inputOption:" << inputOption
+        << "isTextPreviewSupported:" << isTextPreviewSupported
+        << "bundleName:" << bundleName
+        << "immersiveMode:" << immersiveMode
+        << "windowId:" << windowId
+        << "callingDisplayId:" << callingDisplayId;
+        return ss.str();
     }
 };
 } // namespace MiscServices

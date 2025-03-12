@@ -465,7 +465,6 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
         IMSA_HILOGE("configuration is invalid!");
         return;
     }
-
     bool isConfigChanged = false;
     auto configUtils = std::make_shared<ConfigurationUtils>();
     configUtils->UpdateDisplayConfig(displayId, contextConfig, context->GetResourceManager(), isConfigChanged);
@@ -473,6 +472,18 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
         contextConfig->GetName().c_str());
 
     if (isConfigChanged) {
+        bool needNotice = false;
+        auto callingDisplayId = InputMethodAbility::GetInstance()->GetCallingWindowDisplayId();
+        if (callingDisplayId == displayId) {
+            needNotice = true;
+            IMSA_HILOGE("check displayId diff.callingDisplayId:%{public}" PRIu64"", callingDisplayId);
+            return;
+        }
+        if (!needNotice) {
+            IMSA_HILOGD("OnChange, CheckHasPanelDisplayId.need:%{public}d, Config after update: %{public}s.",
+                needNotice, contextConfig->GetName().c_str());
+            return;
+        }
         auto inputMethodExtension = std::static_pointer_cast<JsInputMethodExtension>(shared_from_this());
         auto task = [inputMethodExtension]() {
             if (inputMethodExtension) {

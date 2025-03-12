@@ -322,6 +322,10 @@ int32_t InputMethodAbility::DispatchKeyEvent(
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)
 {
     IMSA_HILOGD("InputMethodAbility windowId: %{public}d.", windowId);
+    {
+        std::lock_guard<std::mutex> lock(inputAttrLock_);
+        inputAttribute_.windowId = windowId;
+    }
     panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         panel->SetCallingWindow(windowId);
         return false;
@@ -362,6 +366,8 @@ void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
     }
     IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d.", attribute.enterKeyType, attribute.inputPattern);
     attribute.bundleName = GetInputAttribute().bundleName;
+    attribute.windowId = GetInputAttribute().windowId;
+    attribute.callingDisplayId = GetInputAttribute().callingDisplayId;
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();
@@ -488,6 +494,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
     SetInputAttribute(textConfig.inputAttribute);
+    IMSA_HILOGD("attribute info:%{public}s", textConfig.inputAttribute.ToString().c_str());
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
@@ -522,6 +529,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     if (textConfig.windowId != INVALID_WINDOW_ID) {
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
+    NoticeCallingDisplayChanged(textConfig.inputAttribute.callingDisplayId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -701,6 +709,8 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
     auto ret = channel->GetTextConfig(textConfig);
     if (ret == ErrorCode::NO_ERROR) {
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
+        textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
+        textConfig.inputAttribute.windowId = GetInputAttribute().windowId;
     }
     return ret;
 }
@@ -997,6 +1007,15 @@ int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatu
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    sysPanelStatus.isMainDisplay = true;
+    auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    if (primaryDisplay == nullptr) {
+        IMSA_HILOGE("primaryDisplay failed!");
+        auto callWindowDisplayId = GetInputAttribute().callingDisplayId;
+        if (callWindowDisplayId != primaryDisplay->GetId()) {
+            sysPanelStatus.isMainDisplay = false;
+        }
     }
     return systemChannel->NotifyPanelStatus(sysPanelStatus);
 }
@@ -1541,6 +1560,45 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
                         .Build();
     ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *evenInfo);
     IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
+}
+
+int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
+{
+    IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64 ".", displayId);
+    {
+        std::lock_guard<std::mutex> lock(inputAttrLock_);
+        inputAttribute_.callingDisplayId = displayId;
+    }
+    panels_.ForEach([displayId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+        panel->SetCalingWindowDisplayId(displayId);
+        return ErrorCode::NO_ERROR;
+    });
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGD("imeListener_ is nullptr!");
+        return ErrorCode::NO_ERROR;
+    }
+    imeListener_->OnCallingDisplayChanged(displayId);
+    return ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::NoticeCallingDisplayChanged(uint64_t callingWindowDisplayId)
+{
+    IMSA_HILOGD("enter!!!calling display: %{public}" PRIu64".", callingWindowDisplayId);
+    if (callingWindowDisplayId >= 0) {
+        auto taskNoticeDisplyaChange = [callingWindowDisplayId] {
+            IMSA_HILOGD("notify calling display change. displayId:%{public}" PRIu64"", callingWindowDisplayId);
+            auto ret =  InputMethodAbility::GetInstance()->OnCallingDisplayChange(callingWindowDisplayId);
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGD("notify calling display change error,err:%{public}d", ret);
+            }
+        };
+        imeListener_->PostTaskToEventHandler(taskNoticeDisplyaChange, "callingDisplayChanged");
+    }
+}
+
+uint64_t InputMethodAbility::GetCallingWindowDisplayId()
+{
+    return GetInputAttribute().callingDisplayId;
 }
 } // namespace MiscServices
 } // namespace OHOS
