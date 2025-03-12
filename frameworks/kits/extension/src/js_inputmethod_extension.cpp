@@ -472,14 +472,7 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
         contextConfig->GetName().c_str());
 
     if (isConfigChanged) {
-        bool needNotice = false;
-        auto callingDisplayId = InputMethodAbility::GetInstance()->GetCallingWindowDisplayId();
-        if (callingDisplayId == displayId) {
-            needNotice = true;
-            IMSA_HILOGE("check displayId diff.callingDisplayId:%{public}" PRIu64"", callingDisplayId);
-            return;
-        }
-        if (!needNotice) {
+        if (!IsCallingDisplayId(displayId)) {
             IMSA_HILOGD("OnChange, CheckHasPanelDisplayId.need:%{public}d, Config after update: %{public}s.",
                 needNotice, contextConfig->GetName().c_str());
             return;
@@ -494,6 +487,16 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
             handler_->PostTask(task, "JsInputMethodExtension:OnChange", 0, AppExecFwk::EventQueue::Priority::VIP);
         }
     }
+}
+
+bool JsInputMethodExtension::IsCallingDisplayId(uint64_t displayId) const
+{
+    auto callingDisplayId = InputMethodAbility::GetInstance()->GetCallingWindowDisplayId();
+    if (callingDisplayId == displayId) {
+        IMSA_HILOGE("check displayId diff.callingDisplayId:%{public}" PRIu64"", callingDisplayId);
+        return true;
+    }
+    return false;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

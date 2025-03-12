@@ -1008,15 +1008,8 @@ int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatu
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    sysPanelStatus.isMainDisplay = true;
-    auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
-    if (primaryDisplay == nullptr) {
-        IMSA_HILOGE("primaryDisplay failed!");
-        auto callWindowDisplayId = GetInputAttribute().callingDisplayId;
-        if (callWindowDisplayId != primaryDisplay->GetId()) {
-            sysPanelStatus.isMainDisplay = false;
-        }
-    }
+    auto callDisplayId = GetInputAttribute().callingDisplayId;
+    sysPanelStatus.isMainDisplay = IsMainDisplay(callDisplayId);
     return systemChannel->NotifyPanelStatus(sysPanelStatus);
 }
 
@@ -1599,6 +1592,19 @@ void InputMethodAbility::NotifyCallingDisplayChanged(uint64_t callingWindowDispl
 uint64_t InputMethodAbility::GetCallingWindowDisplayId()
 {
     return GetInputAttribute().callingDisplayId;
+}
+
+bool InputMethodAbility::IsMainDisplay(uint64_t displayId) const
+{
+    auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    if (primaryDisplay == nullptr) {
+        IMSA_HILOGE("primaryDisplay failed!");
+        return false;
+    }
+    if (displayId != primaryDisplay->GetId()) {
+        return false;
+    }
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS
