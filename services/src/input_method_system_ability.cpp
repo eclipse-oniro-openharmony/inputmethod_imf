@@ -37,6 +37,7 @@
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 #include "on_demand_start_stop_sa.h"
 #endif
+#include "window_display_changed_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -521,6 +522,7 @@ int32_t InputMethodSystemAbility::PrepareInput(int32_t userId, InputClientInfo &
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
+    HandleCallingWindowDisplay(clientInfo);
     return session->OnPrepareInput(clientInfo);
 }
 
@@ -1752,6 +1754,22 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
     FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
         [this](bool isOnFocused, int32_t pid, int32_t uid) { HandleFocusChanged(isOnFocused, pid, uid); });
 }
+void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
+{
+    IMSA_HILOGD("enter.");
+    auto callBack = [this](OHOS::Rosen::CallingWindowInfo callingWindowInfo) {
+        IMSA_HILOGD("WindowDisplayChanged callbak.");
+        int32_t userId = GetUserId(callingWindowInfo.userId_);
+        auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+        if (session == nullptr) {
+            IMSA_HILOGE("[%{public}d] session is nullptr!", userId);
+            return;
+        };
+        session->HandleCallingWindowDisplayChanged(callingWindowInfo.windowId_,
+            callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
+    };
+    WindowDisplayChangedManager::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
+}
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
 {
@@ -2027,6 +2045,7 @@ void InputMethodSystemAbility::HandleWmsStarted()
     // singleton, device boot, wms reboot
     IMSA_HILOGI("Wms start.");
     InitFocusChangedMonitor();
+    InitWindowDisplayChangedMonitor();
     if (isScbEnable_.load()) {
         IMSA_HILOGI("scb enable, register WMS connection listener.");
         InitWmsConnectionMonitor();

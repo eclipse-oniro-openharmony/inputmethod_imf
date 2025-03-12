@@ -187,7 +187,7 @@ bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 {
     if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption, input.isTextPreviewSupported,
-        input.bundleName, input.immersiveMode)) {
+        input.bundleName, input.immersiveMode, input.windowId, input.callingWindowDisplayId)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed.");
         return false;
     }
@@ -197,7 +197,7 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption, output.isTextPreviewSupported,
-        output.bundleName, output.immersiveMode)) {
+        output.bundleName, output.immersiveMode, output.windowId, output.callingWindowDisplayId)) {
         IMSA_HILOGE("read InputAttribute from message parcel failed.");
         return false;
     }
@@ -343,10 +343,12 @@ bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const SysPanelStatus &input, MessageParcel &data)
 {
-    return data.WriteInt32(static_cast<int32_t>(input.inputType)) &&
-           data.WriteInt32(input.flag) &&
-           data.WriteUint32(input.width) &&
-           data.WriteUint32(input.height);
+    bool ret = data.WriteInt32(static_cast<int32_t>(input.inputType)) &&
+        data.WriteInt32(input.flag) &&
+        data.WriteUint32(input.width) &&
+        data.WriteUint32(input.height);
+        data.WriteBool(input.isMainDisplay);
+    return ret;
 }
 
 bool ITypesUtil::Unmarshalling(SysPanelStatus &output, MessageParcel &data)
@@ -357,6 +359,7 @@ bool ITypesUtil::Unmarshalling(SysPanelStatus &output, MessageParcel &data)
         return false;
     }
     output.inputType = static_cast<InputType>(inputType);
+    data.ReadBool(output.isMainDisplay);
     return true;
 }
 

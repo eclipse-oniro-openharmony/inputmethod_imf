@@ -873,5 +873,34 @@ bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> ta
     handler_->PostTask(task, taskName, 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
 }
+
+void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplayId)
+{
+    std::string type = "callingDisplayChanged";
+    auto entry = GetEntry(type, [&callingDisplayId](UvEntry &entry) { entry.callingDisplayId = callingDisplayId; });
+    if (entry == nullptr) {
+        return;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    IMSA_HILOGD("callingDisplayId: %{public}d", static_cast<uint32_t>(callingDisplayId));
+    auto task = [entry]() {
+        auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
+            }
+            // 0 means the first param of callback.
+            uint32_t temp = static_cast<uint32_t>(entry->callingDisplayId);
+            napi_create_uint32(env, temp, &args[0]);
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
+    };
+    handler_->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+}
 } // namespace MiscServices
 } // namespace OHOS

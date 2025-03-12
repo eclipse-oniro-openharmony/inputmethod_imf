@@ -155,6 +155,7 @@ private:
     bool InitMemMgrMonitor();
     void InitWmsConnectionMonitor();
     void InitFocusChangedMonitor();
+    void InitWindowDisplayChangedMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();
@@ -162,6 +163,7 @@ private:
     int32_t GenerateClientInfo(int32_t userId, InputClientInfo &clientInfo);
     void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
+    int32_t InitDisplayManager();
     int32_t CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId);
     void DealSwitchRequest();
