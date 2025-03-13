@@ -51,6 +51,7 @@
 #include "text_listener.h"
 
 using namespace testing::ext;
+using namespace OHOS::Rosen;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 500;
@@ -1604,6 +1605,24 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testAdjustKeyboard_001
+ * @tc.desc: Test AdjustKeyboard
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testAdjustKeyboard_001, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto ret = inputMethodPanel->AdjustKeyboard();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
  * @tc.name: testSetPrivacyMode
  * @tc.desc: Test SetPrivacyMode.
  * @tc.type: FUNC
@@ -1972,6 +1991,117 @@ HWTEST_F(InputMethodPanelTest, testGetImmersiveMode, TestSize.Level0)
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+}
+
+
+/**
+ * @tc.name: testParameterValidationInterface
+ * @tc.desc: Test Parameter validation interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testParameterValidationInterface, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testParameterValidationInterface start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EnhancedLayoutParams enhancedLayoutParams;
+    FullPanelAdjustInfo adjustInfo;
+    enhancedLayoutParams.portrait.avoidY = 10;
+    enhancedLayoutParams.landscape.avoidY = 20;
+    adjustInfo.portrait = {0, 0, 100, 100};
+    adjustInfo.landscape = {0, 0, 200, 200};
+    PanelAdjustInfo keyboardArea;
+
+    ret = inputMethodPanel->GetKeyboardArea(PanelFlag::FLG_FIXED, {100, 200}, keyboardArea);
+
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(keyboardArea.top, inputMethodPanel->enhancedLayoutParams_.portrait.avoidY);
+
+    uint32_t validWidth = 100;
+    uint32_t validHeight = 200;
+    ret = inputMethodPanel->ResizeWithoutAdjust(validWidth, validHeight);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+
+    ret = inputMethodPanel->ResizeWithoutAdjust(INT32_MAX + 1, INT32_MAX + 1);
+    EXPECT_EQ(ErrorCode::ERROR_BAD_PARAMETERS, ret);
+
+    inputMethodPanel->panelType_ = PanelType::STATUS_BAR;
+    ret = inputMethodPanel->IsEnhancedParamValid(PanelFlag::FLG_FIXED, enhancedLayoutParams);
+    EXPECT_EQ(ErrorCode::ERROR_INVALID_PANEL_TYPE, ret);
+
+    Rosen::Rect rect1{10, 20, 100, 200};
+    WindowSize displaySize1 {800, 600};
+    EXPECT_TRUE(inputMethodPanel->IsRectValid(rect1, displaySize1));
+
+    Rosen::Rect rect2{-10, 20, 100, 200};
+    WindowSize displaySize2{800, 600};
+    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect2, displaySize2));
+
+    Rosen::Rect rect3{10, 20, INT32_MAX, 200};
+    WindowSize displaySize3{800, 600};
+    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect3, displaySize3));
+
+    Rosen::Rect rect4{10, 20, 9000, 20000};
+    WindowSize displaySize4{800, 600};
+    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect4, displaySize4));
+
+    inputMethodPanel->window_ = nullptr;
+    ret= inputMethodPanel->IsEnhancedParamValid(PanelFlag::FLG_FIXED, enhancedLayoutParams);
+    EXPECT_EQ(ErrorCode::ERROR_WINDOW_MANAGER, ret);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ErrorCode::ERROR_NULL_POINTER, ret);
+}
+ 
+ /**
+  * @tc.name: testMoveEnhancedPanelRect
+  * @tc.desc: Test Move Enhanced Panel Rect
+  * @tc.type: FUNC
+  */
+HWTEST_F(InputMethodPanelTest, testMoveEnhancedPanelRect, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testMoveEnhancedPanelRect start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+
+    int32_t portraitX = 10;
+    int32_t portraitY = 20;
+    int32_t portraitRet = inputMethodPanel->MoveEnhancedPanelRect(portraitX, portraitY);
+    EXPECT_EQ(ErrorCode::NO_ERROR, portraitRet);
+
+    int32_t landscapeX = 30;
+    int32_t landscapeY = 40;
+    int32_t landscapeRet = inputMethodPanel->MoveEnhancedPanelRect(landscapeX, landscapeY);
+    EXPECT_EQ(ErrorCode::NO_ERROR, landscapeRet);
+
+    int32_t minX = -100;
+    int32_t minY = -200;
+    int32_t minRet = inputMethodPanel->MoveEnhancedPanelRect(minX, minY);
+    EXPECT_EQ(ErrorCode::ERROR_PARAMETER_CHECK_FAILED, minRet);
+
+    const std::string type = "sizeUpdate";
+    EXPECT_TRUE(inputMethodPanel->MarkListener(type, false));
+
+    uint32_t windowWidth = 100;
+    bool isPortrait = false;
+    ret = inputMethodPanel->GetWindowOrientation(PanelFlag::FLG_FIXED, windowWidth, isPortrait);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+
+    ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::NONE_IMMERSIVE);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
+    inputMethodPanel->window_ = nullptr;
+    ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::NONE_IMMERSIVE);
+    EXPECT_EQ(ErrorCode::ERROR_IME, ret);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ErrorCode::ERROR_NULL_POINTER, ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

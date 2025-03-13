@@ -16,15 +16,9 @@
 #ifndef SERVICES_INCLUDE_INPUT_CONTROL_CHANNEL_PROXY_H
 #define SERVICES_INCLUDE_INPUT_CONTROL_CHANNEL_PROXY_H
 
-#include "global.h"
 #include "i_input_control_channel.h"
-#include "i_input_method_agent.h"
-#include "iremote_broker.h"
 #include "iremote_proxy.h"
 #include "inputmethod_message_handler.h"
-#include "message_parcel.h"
-#include "parcel.h"
-
 namespace OHOS {
 namespace MiscServices {
 class InputControlChannelProxy : public IRemoteProxy<IInputControlChannel> {

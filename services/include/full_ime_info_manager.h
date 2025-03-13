@@ -16,9 +16,6 @@
 #ifndef SERVICES_INCLUDE_FULL_IME_INFO_MANAGER_H
 #define SERVICES_INCLUDE_FULL_IME_INFO_MANAGER_H
 
-#include <chrono>
-#include <map>
-
 #include "input_method_property.h"
 #include "timer.h"
 namespace OHOS {

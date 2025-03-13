@@ -14,14 +14,7 @@
  */
 
 #include "ime_cfg_manager.h"
-
-#include <algorithm>
-#include <fcntl.h>
-#include <ios>
-#include <string>
-
 #include "file_operator.h"
-#include "global.h"
 namespace OHOS {
 namespace MiscServices {
 namespace {

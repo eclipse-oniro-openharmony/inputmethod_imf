@@ -19,21 +19,21 @@
 #include "input_method_ffi_structs.h"
 
 extern "C" {
-    FFI_EXPORT int32_t FfiInputMethodGetDefaultInputMethod(CInputMethodProperty &props);
-    FFI_EXPORT int32_t FfiInputMethodGetCurrentInputMethod(CInputMethodProperty &props);
-    FFI_EXPORT int32_t FfiInputMethodSwitchInputMethod(bool &result, CInputMethodProperty props);
-    FFI_EXPORT int32_t FfiInputMethodSwitchCurrentInputMethodSubtype(bool &result, CInputMethodSubtype target);
-    FFI_EXPORT int32_t FfiInputMethodGetCurrentInputMethodSubtype(CInputMethodSubtype &props);
-    FFI_EXPORT int32_t FfiInputMethodSwitchCurrentInputMethodAndSubtype(bool &result, CInputMethodProperty target,
+    FFI_EXPORT int32_t FfiInputMethodGetDefaultInputMethod(CInputMethodProperty *props);
+    FFI_EXPORT int32_t FfiInputMethodGetCurrentInputMethod(CInputMethodProperty *props);
+    FFI_EXPORT int32_t FfiInputMethodSwitchInputMethod(bool *result, CInputMethodProperty props);
+    FFI_EXPORT int32_t FfiInputMethodSwitchCurrentInputMethodSubtype(bool *result, CInputMethodSubtype target);
+    FFI_EXPORT int32_t FfiInputMethodGetCurrentInputMethodSubtype(CInputMethodSubtype *props);
+    FFI_EXPORT int32_t FfiInputMethodSwitchCurrentInputMethodAndSubtype(bool *result, CInputMethodProperty target,
         CInputMethodSubtype subtype);
-    FFI_EXPORT int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName &elem);
+    FFI_EXPORT int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName *elem);
     FFI_EXPORT RetInputMethodSubtype FfiInputMethodSettingListInputMethodSubtype(CInputMethodProperty props);
     FFI_EXPORT RetInputMethodSubtype FfiInputMethodSettingListCurrentInputMethodSubtype();
     FFI_EXPORT RetInputMethodProperty FfiInputMethodSettingGetInputMethods(bool enable);
     FFI_EXPORT RetInputMethodProperty FfiInputMethodSettingGetAllInputMethods();
     FFI_EXPORT int32_t FfiInputMethodSettingOn(uint32_t type, void (*func)(CInputMethodProperty, CInputMethodSubtype));
     FFI_EXPORT int32_t FfiInputMethodSettingOff(uint32_t type);
-    FFI_EXPORT int32_t FfiInputMethodSettingShowOptionalInputMethods(bool& result);
+    FFI_EXPORT int32_t FfiInputMethodSettingShowOptionalInputMethods(bool* result);
     FFI_EXPORT int32_t FfiInputMethodControllerOn(int8_t type, int64_t id);
     FFI_EXPORT int32_t FfiInputMethodControllerOff(int8_t type);
 

@@ -382,6 +382,10 @@ int32_t InputMethodPanel::StartMoving()
         return ErrorCode::ERROR_INVALID_PANEL_FLAG;
     }
     auto ret = window_->StartMoveWindow();
+    if (ret == WmErrorCode::WM_ERROR_DEVICE_NOT_SUPPORT) {
+        IMSA_HILOGE("window manager service not support error ret = %{public}d.", ret);
+        return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
+    }
     if (ret != WmErrorCode::WM_OK) {
         IMSA_HILOGE("window manager service error ret = %{public}d.", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
@@ -402,6 +406,27 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     IMSA_HILOGI("GetDisplayId success dispalyId = %{public}" PRIu64 "", displayId);
+    return ErrorCode::NO_ERROR;
+}
+
+void InputMethodPanel::NotifyPanelStatus() {
+    auto instance = InputMethodAbility::GetInstance();
+    if (instance != nullptr) {
+        SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag_, keyboardSize_.width, keyboardSize_.height };
+        instance->NotifyPanelStatus(panelType_, sysPanelStatus);
+    }
+}
+
+int32_t InputMethodPanel::AdjustKeyboard()
+{
+    LayoutParams params = { enhancedLayoutParams_.landscape.rect, enhancedLayoutParams_.portrait.rect };
+    auto ret = AdjustPanelRect(panelFlag_, params);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to adjust keyboard, ret: %{public}d", ret);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    IMSA_HILOGI("adjust keyboard success");
+    UpdateResizeParams();
     return ErrorCode::NO_ERROR;
 }
 
@@ -429,6 +454,9 @@ int32_t InputMethodPanel::AdjustPanelRect(
     if (result != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (panelFlag_ != panelFlag) {
+        NotifyPanelStatus();
     }
     panelFlag_ = panelFlag;
     auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
@@ -532,6 +560,9 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     SetHotAreas(hotAreas);
+    if (panelFlag_ != panelFlag) {
+        NotifyPanelStatus();
+    }
     UpdateLayoutInfo(panelFlag, {}, params, wmsParams, true);
     UpdateResizeParams();
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
@@ -965,12 +996,12 @@ int32_t InputMethodPanel::CalculateNoConfigRect(const PanelFlag panelFlag, const
 std::tuple<std::vector<std::string>, std::vector<std::string>> InputMethodPanel::GetScreenStatus(
     const PanelFlag panelFlag)
 {
-    std::string flag;
+    std::string flag = "invaildFlag";
     std::string foldStatus = "default";
     if (panelFlag == PanelFlag::FLG_FIXED) {
         flag = "fix";
         keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_BOTTOM;
-    } else {
+    } else if (panelFlag == PanelFlag::FLG_FLOATING) {
         flag = "floating";
         keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_FLOAT;
     }
@@ -1070,6 +1101,7 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
 int32_t InputMethodPanel::CalculateFloatRect(
     const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue)
 {
+    keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_FLOAT;
     // portrait floating keyboard
     keyboardLayoutParams_.PortraitKeyboardRect_.width_ = layoutParams.portraitRect.width_;
     keyboardLayoutParams_.PortraitKeyboardRect_.height_ = layoutParams.portraitRect.height_;
@@ -1175,6 +1207,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     if (ret == WMError::WM_OK) {
         panelFlag_ = panelFlag;
     }
+    NotifyPanelStatus();
     IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
@@ -1353,6 +1386,10 @@ void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, c
 
 bool InputMethodPanel::IsShowing()
 {
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto windowState = window_->GetWindowState();
     if (windowState == WindowState::STATE_SHOWN) {
         return true;

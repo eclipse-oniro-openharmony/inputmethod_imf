@@ -70,6 +70,7 @@ public:
     int32_t GetInputPattern(int32_t &inputPattern);
     int32_t GetTextIndexAtCursor(int32_t &index);
     int32_t GetTextConfig(TextTotalConfig &textConfig);
+    int32_t AdjustKeyboard();
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
@@ -91,8 +92,7 @@ public:
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range);
     int32_t FinishTextPreview(bool isAsync);
-    int32_t NotifyPanelStatus(
-        const std::shared_ptr<InputMethodPanel> &inputMethodPanel, SysPanelStatus &sysPanelStatus);
+    int32_t NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     void OnSetInputType(InputType inputType);
     int32_t SendMessage(const ArrayBuffer &arrayBuffer);

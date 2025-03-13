@@ -463,6 +463,10 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     }
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr!");
+        return nullptr;
+    }
     // 1 means the second param callback.
     std::shared_ptr<JSCallbackObject> cbObject =
         std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id(),

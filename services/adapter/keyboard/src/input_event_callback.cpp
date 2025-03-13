@@ -15,8 +15,6 @@
 
 #include "input_event_callback.h"
 
-#include "global.h"
-
 namespace OHOS {
 namespace MiscServices {
 uint32_t InputEventCallback::keyState_ = static_cast<uint32_t>(0);

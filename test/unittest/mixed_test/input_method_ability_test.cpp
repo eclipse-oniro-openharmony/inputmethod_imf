@@ -633,7 +633,7 @@ HWTEST_F(InputMethodAbilityTest, clearInputAttribute_009, TestSize.Level0)
 {
     SysPanelStatus sysPanelStatus;
     EXPECT_CALL(*ability_, GetSystemCmdChannelProxy()).WillOnce(Return(nullptr));
-    int32_t result = ability_->NotifyPanelStatus(mockInputMethodPanel_, sysPanelStatus);
+    int32_t result = ability_->NotifyPanelStatus(PanelType::SOFT_KEYBOARD, sysPanelStatus);
     EXPECT_EQ(result, ErrorCode::NO_ERROR);
 }
 

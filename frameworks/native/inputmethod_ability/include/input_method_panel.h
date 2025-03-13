@@ -24,7 +24,7 @@
 #include "calling_window_info.h"
 #include "display_manager.h"
 #include "input_window_info.h"
-#include "js_runtime_utils.h"
+#include "native_engine/native_engine.h"
 #include "panel_common.h"
 #include "panel_info.h"
 #include "window_change_listener_impl.h"
@@ -56,6 +56,7 @@ public:
     int32_t MoveTo(int32_t x, int32_t y);
     int32_t StartMoving();
     int32_t GetDisplayId(uint64_t &displayId);
+    int32_t AdjustKeyboard();
     int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion = true);
     int32_t AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas);
     int32_t UpdateRegion(std::vector<Rosen::Rect> region);
@@ -110,6 +111,7 @@ private:
     bool IsHidden();
     int32_t SetPanelProperties();
     std::string GeneratePanelName();
+    void NotifyPanelStatus();
     void PanelStatusChange(const InputWindowStatus &status);
     void PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect);
     bool MarkListener(const std::string &type, bool isRegister);

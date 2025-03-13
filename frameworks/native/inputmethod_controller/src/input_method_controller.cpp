@@ -415,7 +415,7 @@ int32_t InputMethodController::RequestShowInput()
     return proxy->RequestShowInput();
 }
 
-int32_t InputMethodController::RequestHideInput()
+int32_t InputMethodController::RequestHideInput(bool isFocusTriggered)
 {
     auto proxy = TryGetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -423,7 +423,7 @@ int32_t InputMethodController::RequestHideInput()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     IMSA_HILOGD("InputMethodController start.");
-    return proxy->RequestHideInput();
+    return proxy->RequestHideInput(isFocusTriggered);
 }
 
 int32_t InputMethodController::DisplayOptionalInputMethod()

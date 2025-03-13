@@ -16,18 +16,7 @@
 #ifndef ENABLE_IME_DATA_PARSER_H
 #define ENABLE_IME_DATA_PARSER_H
 
-#include <map>
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
-
-#include "datashare_helper.h"
-#include "global.h"
-#include "input_method_property.h"
 #include "input_method_status.h"
-#include "serializable.h"
 #include "settings_data_utils.h"
 
 namespace OHOS {
@@ -58,6 +47,11 @@ struct EnableImeCfg : public Serializable {
         GetValue(node, GET_NAME(enableImeList), userImeCfg);
         return true;
     }
+    bool Marshal(cJSON *node) const override
+    {
+        SetValue(node, GET_NAME(enableImeList), userImeCfg);
+        return true;
+    }
 };
 
 struct TempImeCfg : public Serializable {
@@ -81,8 +75,8 @@ public:
     bool CheckNeedSwitch(const SwitchInfo &info, const int32_t userId);
     void OnUserChanged(const int32_t userId);
     void OnConfigChanged(int32_t userId, const std::string &key);
+    void OnPackageAdded(int32_t userId, const std::string &bundleName);
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *ENABLE_KEYBOARD = "settings.inputmethod.enable_keyboard";
     static constexpr const char *TEMP_IME = "settings.inputmethod.temp_ime";
@@ -102,6 +96,13 @@ private:
     bool CheckTargetEnableName(const std::string &key, const std::string &targetName, std::string &nextIme,
         const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();
+    void OnBackgroundPackageAdded(int32_t userId, const std::string &bundleName, const std::string &globalContent);
+    void OnForegroundPackageAdded(int32_t userId, const std::string &bundleName, const std::string &globalContent);
+    int32_t AddToUserEnableTable(int32_t userId, const std::string &bundleName, std::string &userContent);
+    int32_t AddToGlobalEnableTable(int32_t userId, const std::string &bundleName, std::string &globalContent);
+    int32_t AddToEnableTable(
+        int32_t userId, const std::string &bundleName, const std::string &uriProxy, std::string &tableContent);
+    int32_t CoverUserEnableTable(int32_t userId, const std::string &userContent);
 
 private:
     static std::mutex instanceMutex_;
@@ -112,6 +113,7 @@ private:
     std::shared_ptr<Property> defaultImeInfo_{ nullptr };
     int32_t currentUserId_ = 0;
     bool isEnableImeInit_{ false };
+    std::mutex userIdLock_;
 };
 } // namespace MiscServices
 } // namespace OHOS

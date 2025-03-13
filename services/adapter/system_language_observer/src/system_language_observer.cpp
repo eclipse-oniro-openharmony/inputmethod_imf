@@ -14,9 +14,6 @@
  */
 
 #include "system_language_observer.h"
-
-#include "global.h"
-#include "message.h"
 #include "inputmethod_message_handler.h"
 #include "parameter.h"
 

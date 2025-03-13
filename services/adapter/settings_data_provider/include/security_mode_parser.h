@@ -16,17 +16,7 @@
 #ifndef SECURITY_MODE_PARSER_H
 #define SECURITY_MODE_PARSER_H
 
-#include <map>
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
-#include "datashare_helper.h"
-#include "global.h"
 #include "input_method_utils.h"
-#include "serializable.h"
-#include "settings_data_observer.h"
 #include "settings_data_utils.h"
 
 namespace OHOS {

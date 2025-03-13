@@ -15,20 +15,11 @@
 
 #ifndef SERVICES_INCLUDE_IM_COMMON_EVENT_MANAGER_H
 #define SERVICES_INCLUDE_IM_COMMON_EVENT_MANAGER_H
-
-#include <functional>
-#include <mutex>
-#include <vector>
-
-#include "common_event_data.h"
 #include "common_event_manager.h"
-#include "common_event_subscribe_info.h"
-#include "common_event_subscriber.h"
 #include "common_event_support.h"
 #include "focus_monitor_manager.h"
 #include "input_window_info.h"
 #include "keyboard_event.h"
-#include "matching_skills.h"
 #include "system_ability_status_change_stub.h"
 
 namespace OHOS {
@@ -41,7 +32,6 @@ public:
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent();
     bool SubscribeKeyboardEvent(const Handler &handler);
-    bool SubscribeDisplayManager(const Handler &handler);
     bool SubscribeWindowManagerService(const Handler &handler);
     bool SubscribeMemMgrService(const Handler &handler);
     bool SubscribeAccountManagerService(Handler handle);

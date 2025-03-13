@@ -16,7 +16,6 @@
 #ifndef SERVICES_INCLUDE_I_INPUT_CONTROL_CHANNEL_H
 #define SERVICES_INCLUDE_I_INPUT_CONTROL_CHANNEL_H
 
-#include "global.h"
 #include "iremote_broker.h"
 
 namespace OHOS {

@@ -15,17 +15,11 @@
 
 #include "input_method_system_ability_stub.h"
 
-#include <chrono>
 #include <cinttypes>
-#include <memory>
 
-#include "element_name.h"
-#include "input_client_proxy.h"
-#include "input_method_core_proxy.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
 #include "xcollie/xcollie.h"
-#include "xcollie/xcollie_define.h"
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
@@ -148,7 +142,13 @@ int32_t InputMethodSystemAbilityStub::RequestShowInputOnRemote(MessageParcel &da
 
 int32_t InputMethodSystemAbilityStub::RequestHideInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    return reply.WriteInt32(RequestHideInput()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    bool isFocusTriggered = false;
+    auto ret = data.ReadBool(isFocusTriggered);
+    if (!ret) {
+        IMSA_HILOGE("read isFocusTriggered failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return reply.WriteInt32(RequestHideInput(isFocusTriggered)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)

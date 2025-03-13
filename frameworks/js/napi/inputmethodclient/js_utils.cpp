@@ -87,13 +87,14 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_IMSA_IME_START_MORE_THAN_EIGHT_SECOND, EXCEPTION_IMMS },
     { ErrorCode::ERROR_IMSA_FORCE_STOP_IME_TIMEOUT, EXCEPTION_IMMS },
     { ErrorCode::ERROR_IMC_NULLPTR, EXCEPTION_IMMS },
+    { ErrorCode::ERROR_DEVICE_UNSUPPORTED, EXCEPTION_UNSUPPORTED },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_PERMISSION, "the permissions check fails." },
     { EXCEPTION_SYSTEM_PERMISSION, "not system application." },
     { EXCEPTION_PARAMCHECK, "the parameters check fails." },
-    { EXCEPTION_UNSUPPORTED, "call unsupported api." },
+    { EXCEPTION_UNSUPPORTED, "capability not supported." },
     { EXCEPTION_PACKAGEMANAGER, "bundle manager error." },
     { EXCEPTION_IMENGINE, "input method engine error." },
     { EXCEPTION_IMCLIENT, "input method client error." },

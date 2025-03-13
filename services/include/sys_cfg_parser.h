@@ -16,12 +16,8 @@
 #ifndef SERVICES_INCLUDE_SYS_CFG_PARSE_H
 #define SERVICES_INCLUDE_SYS_CFG_PARSE_H
 
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "input_method_utils.h"
+#include "input_method_status.h"
 #include "serializable.h"
 namespace OHOS {
 namespace MiscServices {
@@ -30,12 +26,16 @@ struct SystemConfig : public Serializable {
     std::string defaultInputMethod;
     bool enableInputMethodFeature = false;
     bool enableFullExperienceFeature = false;
+    EnabledStatus initEnabledState{ EnabledStatus::DISABLED };
     bool Unmarshal(cJSON *node) override
     {
         GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);
         GetValue(node, GET_NAME(defaultInputMethod), defaultInputMethod);
         GetValue(node, GET_NAME(enableInputMethodFeature), enableInputMethodFeature);
         GetValue(node, GET_NAME(enableFullExperienceFeature), enableFullExperienceFeature);
+        auto enableState = static_cast<int32_t>(EnabledStatus::DISABLED);
+        GetValue(node, GET_NAME(initEnabledState), enableState);
+        initEnabledState = static_cast<EnabledStatus>(enableState);
         return true;
     }
 };

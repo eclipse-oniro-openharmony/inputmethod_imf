@@ -14,31 +14,19 @@
  */
 
 #include "peruser_session.h"
-
-#include <chrono>
-#include <vector>
-
 #include "ability_manager_client.h"
-#include "app_mgr_client.h"
-#include "element_name.h"
 #include "identity_checker_impl.h"
-#include "ime_cfg_manager.h"
 #include "ime_connection.h"
 #include "ime_info_inquirer.h"
 #include "input_control_channel_stub.h"
-#include "input_type_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "mem_mgr_client.h"
-#include "message_parcel.h"
 #include "on_demand_start_stop_sa.h"
 #include "os_account_adapter.h"
-#include "parcel.h"
-#include "running_process_info.h"
 #include "scene_board_judgement.h"
 #include "security_mode_parser.h"
 #include "system_ability_definition.h"
-#include "unistd.h"
 #include "wms_connection_observer.h"
 #include "dm_common.h"
 #include "display_manager.h"
@@ -61,7 +49,6 @@ constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
 constexpr int32_t MAX_RESTART_NUM = 3;
 constexpr int32_t IME_RESET_TIME_OUT = 3;
 constexpr int32_t MAX_RESTART_TASKS = 2;
-const std::string FOLD_SCREEN_TYPE = OHOS::system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
 PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
@@ -1135,14 +1122,16 @@ bool PerUserSession::CanStartIme()
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
     const std::shared_ptr<ImeNativeCfg> &targetIme, std::shared_ptr<ImeNativeCfg> &imeToStart)
 {
-#ifdef IMF_SCREENLOCK_MGR_ENABLE
+#ifndef IMF_SCREENLOCK_MGR_ENABLE
+    IMSA_HILOGD("no need");
+    return ErrorCode::NO_ERROR;
+#endif
     if (!ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         IMSA_HILOGD("no need");
         imeToStart = targetIme;
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGI("Screen is locked, start default ime");
-#endif
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
     if (defaultIme == nullptr) {
         IMSA_HILOGE("failed to get default ime");

@@ -117,6 +117,9 @@
                       ],
                       "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_ability/include"
                   }
+              },
+              {
+                "name": "//base/inputmethod/imf/frameworks/cj:cj_inputmethod_ffi"
               }
           ], 
           "test": [

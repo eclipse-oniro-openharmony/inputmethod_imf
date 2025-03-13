@@ -14,9 +14,6 @@
  */
 
 #include "full_ime_info_manager.h"
-
-#include <algorithm>
-
 #include "common_timer_errors.h"
 #include "ime_info_inquirer.h"
 namespace OHOS {

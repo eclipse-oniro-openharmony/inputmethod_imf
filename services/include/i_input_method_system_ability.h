@@ -16,24 +16,11 @@
 #ifndef SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 #define SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 
-#include <errors.h>
-#include <memory>
-#include <vector>
-
 #include "element_name.h"
 #include "event_status_manager.h"
-#include "global.h"
-#include "i_input_client.h"
 #include "i_input_method_core.h"
 #include "i_system_cmd_channel.h"
-#include "input_attribute.h"
-#include "input_client_info.h"
-#include "input_method_property.h"
 #include "input_method_status.h"
-#include "input_window_info.h"
-#include "iremote_broker.h"
-#include "message_parcel.h"
-#include "panel_info.h"
 #include "input_method_types.h"
 
 namespace OHOS {
@@ -52,7 +39,7 @@ public:
     virtual int32_t HideInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
     virtual int32_t RequestShowInput() = 0;
-    virtual int32_t RequestHideInput() = 0;
+    virtual int32_t RequestHideInput(bool isFocusTriggered) = 0;
     virtual int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop, bool isBrief) = 0;
     virtual int32_t GetInputMethodConfig(AppExecFwk::ElementName &inputMethodConfig) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;

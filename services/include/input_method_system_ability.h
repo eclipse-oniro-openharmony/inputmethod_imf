@@ -16,28 +16,14 @@
 #ifndef SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 #define SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 
-#include <atomic>
-#include <map>
-#include <thread>
-
-#include "application_info.h"
-#include "block_queue.h"
-#include "bundle_mgr_proxy.h"
-#include "element_name.h"
-#include "enable_ime_data_parser.h"
-#include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
-#include "input_method_status.h"
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
-#include "message.h"
 #include "security_mode_parser.h"
-#include "settings_data_utils.h"
 #include "system_ability.h"
 #include "input_method_types.h"
-#include "display_manager.h"
 #include "user_session_manager.h"
 #include "input_type_manager.h"
 
@@ -64,7 +50,7 @@ public:
     int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     int32_t RequestShowInput() override;
-    int32_t RequestHideInput() override;
+    int32_t RequestHideInput(bool isFocusTriggered) override;
     int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop, bool isBrief) override;
     int32_t GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
@@ -176,17 +162,6 @@ private:
     int32_t GenerateClientInfo(int32_t userId, InputClientInfo &clientInfo);
     void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
-    void RegisterFoldStatusChanged();
-    class FoldStatusCallback : public Rosen::DisplayManager::IFoldStatusListener {
-    public:
-    using foldStatusCallback = std::function<void(Rosen::FoldStatus)>;
-        FoldStatusCallback(foldStatusCallback callback) : callback_(callback) {}
-        ~FoldStatusCallback() = default;
-        void OnFoldStatusChanged(Rosen::FoldStatus) override;
-    private:
-        foldStatusCallback callback_ = nullptr;
-    };
-    int32_t InitDisplayManager();
     int32_t CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId);
     void DealSwitchRequest();
@@ -207,8 +182,8 @@ private:
     int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t ShowCurrentInputInner();
     std::pair<int64_t, std::string> GetCurrentImeInfoForHiSysEvent(int32_t userId);
-    int32_t ChangeImeScreenLocked(std::string &ime);
-    int32_t ProtectThreeImeAbility(std::string &ime);
+    int32_t GetScreenLockIme(std::string &ime);
+    int32_t GetAlternativeIme(std::string &ime);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
     void ResetDelayUnloadTask(uint32_t code = 0);
@@ -226,7 +201,6 @@ private:
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
-    std::atomic<bool> enableDefaultImeOnSecScr_  = false;
 
     std::mutex modeChangeMutex_;
     bool isChangeHandling_ = false;

@@ -16,11 +16,7 @@
 #ifndef INPUTMETHOD_IMF_IME_CONNECTION_H
 #define INPUTMETHOD_IMF_IME_CONNECTION_H
 
-#include "ability_connect_callback_interface.h"
 #include "ability_connect_callback_stub.h"
-#include "iremote_object.h"
-#include "iremote_stub.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace MiscServices {

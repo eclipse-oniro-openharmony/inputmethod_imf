@@ -14,34 +14,18 @@
  */
 
 #include "input_method_system_ability.h"
-
-#include <unistd.h>
-#include <algorithm>
-
 #include "ability_manager_client.h"
-#include "application_info.h"
 #include "combination_key.h"
-#include "common_event_support.h"
-#include "errors.h"
 #include "full_ime_info_manager.h"
-#include "global.h"
 #include "im_common_event_manager.h"
-#include "ime_cfg_manager.h"
-#include "ime_info_inquirer.h"
 #include "imsa_hisysevent_reporter.h"
 #include "input_manager.h"
-#include "input_client_info.h"
-#include "input_method_utils.h"
-#include "input_type_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
-#include "key_event.h"
 #include "mem_mgr_client.h"
 #include "inputmethod_message_handler.h"
-#include "native_token_info.h"
 #include "os_account_adapter.h"
-#include "parameters.h"
 #include "scene_board_judgement.h"
 #include "system_ability_definition.h"
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
@@ -50,7 +34,6 @@
 #include "system_language_observer.h"
 #include "wms_connection_observer.h"
 #include "xcollie/xcollie.h"
-#include "xcollie/xcollie_define.h"
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 #include "on_demand_start_stop_sa.h"
 #endif
@@ -69,8 +52,6 @@ constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
 constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
 constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
 constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
-const std::string FOLD_SCREEN_TYPE = OHOS::system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
-constexpr const char *EXTEND_FOLD_TYPE = "4";
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 constexpr const char *UNLOAD_SA_TASK = "unloadInputMethodSaTask";
 constexpr int64_t DELAY_UNLOAD_SA_TIME = 20000; // 20s
@@ -361,9 +342,6 @@ int32_t InputMethodSystemAbility::Init()
     ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitSystemConfig();
 #endif
-    if (FOLD_SCREEN_TYPE[0] == *EXTEND_FOLD_TYPE) {
-        enableDefaultImeOnSecScr_.store(true);
-    }
     InitMonitors();
     return ErrorCode::NO_ERROR;
 }
@@ -603,12 +581,6 @@ int32_t InputMethodSystemAbility::StartInputInner(
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
-    if (enableDefaultImeOnSecScr_.load()) {
-        auto ret = session->ChangeToDefaultImeIfFolded();
-        if (ret != ErrorCode::NO_ERROR) {
-            return ret;
-        }
-    }
     if (session->GetCurrentClientPid() != IPCSkeleton::GetCallingPid()
         && session->GetInactiveClientPid() != IPCSkeleton::GetCallingPid()) {
         // notify inputStart when caller pid different from both current client and inactive client
@@ -676,9 +648,9 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         std::string ime;
-        if (ChangeImeScreenLocked(ime) != ErrorCode::NO_ERROR) {
+        if (GetScreenLockIme(ime) != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("not ime screenlocked");
-            return ErrorCode::ERROR_NOT_IME;
+            return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
         }
         ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, ime);
     }
@@ -740,13 +712,19 @@ int32_t InputMethodSystemAbility::RequestShowInput()
     return session->OnRequestShowInput();
 }
 
-int32_t InputMethodSystemAbility::RequestHideInput()
+int32_t InputMethodSystemAbility::RequestHideInput(bool isFocusTriggered)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     auto pid = IPCSkeleton::GetCallingPid();
-    if (!identityChecker_->IsFocused(pid, tokenId) &&
-        !identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    if (isFocusTriggered) {
+        if (!identityChecker_->IsFocused(pid, tokenId)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
+    } else {
+        if (!identityChecker_->IsFocused(pid, tokenId) &&
+            !identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
     }
     auto userId = GetCallingUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
@@ -874,6 +852,14 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
 int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInputClient> client)
 {
     IMSA_HILOGD("IMF SA setCallingWindow enter");
+    if (identityChecker_ == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->IsBroker(tokenId) &&
+        !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     auto callingUserId = GetCallingUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(callingUserId);
     if (session == nullptr) {
@@ -886,9 +872,8 @@ int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInpu
 int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart,
     uint32_t& callingWndId, int32_t &requestKeyboardReason)
 {
-    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
-        !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
-        IMSA_HILOGE("not system application!");
+    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not native sa!");
         return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
     }
     auto callingUserId = GetCallingUserId();
@@ -1015,15 +1000,6 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-#ifdef IMF_SCREENLOCK_MGR_ENABLE
-    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
-        auto defaultime = ImeInfoInquirer::GetInstance().GetDefaultIme();
-        if (switchInfo.bundleName != defaultime.bundleName) {
-            IMSA_HILOGD("switch ime not default ime when isScreenLocked");
-            return ErrorCode::ERROR_NOT_DEFAULT_IME;
-        }
-    }
-#endif
     if (enableImeOn_.load() && !EnableImeDataParser::GetInstance()->CheckNeedSwitch(switchInfo, userId)) {
         IMSA_HILOGW("Enable mode off or switch is not enable, stopped!");
         return ErrorCode::ERROR_ENABLE_IME;
@@ -1446,6 +1422,10 @@ int32_t InputMethodSystemAbility::HandlePackageEvent(const Message *msg)
         return FullImeInfoManager::GetInstance().Update(userId, packageName);
     }
     if (msg->msgId_ == MSG_ID_PACKAGE_ADDED) {
+        auto instance = EnableImeDataParser::GetInstance();
+        if (instance != nullptr) {
+            instance->OnPackageAdded(userId, packageName);
+        }
         return FullImeInfoManager::GetInstance().Add(userId, packageName);
     }
     if (msg->msgId_ == MSG_ID_PACKAGE_REMOVED) {
@@ -1546,18 +1526,14 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
         IMSA_HILOGI("switch language.");
         return SwitchLanguage();
     }
-    bool isSwitchLocked = false;
+    bool isScreenLocked = false;
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         IMSA_HILOGI("isScreenLocked  now.");
-        isSwitchLocked = true;
+        isScreenLocked = true;
     }
 #endif
-    if (enableDefaultImeOnSecScr_.load() && Rosen::DisplayManager::GetInstance().IsFoldable() &&
-        Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::FOLDED) {
-        isSwitchLocked = true;
-    }
-    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state) && !isSwitchLocked) {
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state) && !isScreenLocked) {
         IMSA_HILOGI("switch ime.");
         DealSwitchRequest();
         return ErrorCode::NO_ERROR;
@@ -1701,9 +1677,6 @@ void InputMethodSystemAbility::InitMonitors()
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
-    if (enableDefaultImeOnSecScr_.load()) {
-        InitDisplayManager();
-    }
 }
 
 void InputMethodSystemAbility::HandleDataShareReady()
@@ -1774,49 +1747,6 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
     FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
         [this](bool isOnFocused, int32_t pid, int32_t uid) { HandleFocusChanged(isOnFocused, pid, uid); });
 }
-
-int32_t InputMethodSystemAbility::InitDisplayManager()
-{
-    IMSA_HILOGI("start. ");
-    auto ret = ImCommonEventManager::GetInstance()->SubscribeDisplayManager([this]() { RegisterFoldStatusChanged(); });
-    IMSA_HILOGI("InitDisplayManager %{public}d", ret);
-    return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
-}
-
-void InputMethodSystemAbility::RegisterFoldStatusChanged()
-{
-    sptr<Rosen::DisplayManager::IFoldStatusListener> foldStatusCallback
-        = new (std::nothrow) FoldStatusCallback([this](Rosen::FoldStatus foldStatus) {
-        auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-        if (session == nullptr) {
-            IMSA_HILOGE("%{public}d session is nullptr!", userId_);
-            return;
-        }
-        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
-        if (session->GetCurrentClient() == nullptr) {
-            return;
-        }
-        if (Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::FOLDED
-            || Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::EXPAND) {
-            session->ChangeToDefaultImeIfFolded();
-        }
-    });
-    if (foldStatusCallback == nullptr) {
-        IMSA_HILOGE("foldStatusCallback is nullptr!");
-        return;
-    }
-    auto ret = Rosen::DisplayManager::GetInstance().RegisterFoldStatusListener(foldStatusCallback);
-    IMSA_HILOGI("RegisterFoldStatusChanged ret: %{public}d", ret);
-}
-
-void InputMethodSystemAbility::FoldStatusCallback::OnFoldStatusChanged(Rosen::FoldStatus foldStatus)
-{
-    IMSA_HILOGI("FoldStatus changed, foldStatus = %{public}d", foldStatus);
-    if (callback_ != nullptr) {
-        callback_(foldStatus);
-    }
-}
-
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
 {
@@ -2074,10 +2004,12 @@ void InputMethodSystemAbility::HandleWmsDisconnected(int32_t userId, int32_t scr
         session->RemoveCurrentClient();
     }
 
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     if (userId == userId_) {
         // user switched or scb in foreground died, not deal
         return;
     }
+#endif
     // scb in background died, stop ime
     if (session == nullptr) {
         return;
@@ -2410,50 +2342,49 @@ std::pair<int64_t, std::string> InputMethodSystemAbility::GetCurrentImeInfoForHi
     return imeInfo;
 }
 
-int32_t InputMethodSystemAbility::ChangeImeScreenLocked(std::string &ime)
+int32_t InputMethodSystemAbility::GetScreenLockIme(std::string &ime)
 {
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
     if (defaultIme != nullptr) {
         ime = defaultIme->imeId;
-        IMSA_HILOGD("screenlocked ime change to defaultime");
+        IMSA_HILOGD("GetDefaultIme screenlocked");
         return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGE("ChangeToDefalutIme is failed!");
+    IMSA_HILOGE("GetDefaultIme is failed!");
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (currentIme != nullptr) {
         ime = currentIme->imeId;
-        IMSA_HILOGD("screenlocked ime change to currentIme");
+        IMSA_HILOGD("GetCurrentIme screenlocked");
         return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGE("ChangeTocurrentIme is failed!");
-    if (ProtectThreeImeAbility(ime) != ErrorCode::NO_ERROR) {
+    IMSA_HILOGE("GetCurrentIme is failed!");
+    if (GetAlternativeIme(ime) != ErrorCode::NO_ERROR) {
         return ErrorCode::ERROR_NOT_IME;
     }
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbility::ProtectThreeImeAbility(std::string &ime)
+int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
 {
     InputMethodStatus status = InputMethodStatus::ENABLE;
     std::vector<Property> props;
     int32_t ret = ListInputMethod(status, props);
-    if (ErrorCode::NO_ERROR == ret) {
+    if (ret == ErrorCode::NO_ERROR && !props.empty()) {
         ime = props[0].id;
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGD("GetListEnableInputMethodIme is failed!");
-    InputMethodStatus status1 = InputMethodStatus::DISABLE;
-    std::vector<Property> props1;
-    int32_t ret1 = ListInputMethod(status1, props1);
-    if (ret1 != ErrorCode::NO_ERROR) {
+    status = InputMethodStatus::DISABLE;
+    ret = ListInputMethod(status, props);
+    if (ret != ErrorCode::NO_ERROR || props.empty()) {
         IMSA_HILOGE("GetListDisableInputMethodIme is failed!");
         return ErrorCode::ERROR_NOT_IME;
     }
-    if (EnableIme(props1[0].name)) {
-        ime = props1[0].id;
+    if (EnableIme(props[0].name)) {
+        ime = props[0].id;
         return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGE("ProtectThreeImeAbility is failed!");
+    IMSA_HILOGE("GetAlternativeIme is failed!");
     return ErrorCode::ERROR_NOT_IME;
 }
 } // namespace MiscServices
