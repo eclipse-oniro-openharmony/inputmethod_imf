@@ -524,13 +524,9 @@ int32_t InputMethodPanel::IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayo
 
 int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas)
 {
-    if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_WINDOW_MANAGER;
-    }
-    if (panelType_ != PanelType::SOFT_KEYBOARD) {
-        IMSA_HILOGE("not soft keyboard panel");
-        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
+    auto checkRet = CheckAdjustPanelRectParam();
+    if (checkRet != ErrorCode::NO_ERROR) {
+        return checkRet;
     }
     FullPanelAdjustInfo adjustInfo;
     auto instance = InputMethodAbility::GetInstance();
@@ -1909,6 +1905,19 @@ bool InputMethodPanel::CurWindowIsInMainDisplay()
         return true;
     }
     return false;
+}
+
+int32_t InputMethodPanel::CheckAdjustPanelRectParam()
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (panelType_ != PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGE("not soft keyboard panel");
+        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
+    }
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

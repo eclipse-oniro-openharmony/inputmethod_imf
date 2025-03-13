@@ -177,6 +177,7 @@ private:
     HotAreas GetHotAreas();
     sptr<Rosen::Display> GetCurDisplay();
     bool CurWindowIsInMainDisplay();
+    int32_t CheckAdjustPanelRectParam();
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
