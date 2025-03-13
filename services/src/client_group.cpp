@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,11 +16,12 @@
 #include "client_group.h"
 
 #include "event_status_manager.h"
+#include "identity_checker_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
 int32_t ClientGroup::AddClientInfo(
-    sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
+    const sptr<IRemoteObject> &inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
 {
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
@@ -62,48 +63,29 @@ int32_t ClientGroup::AddClientInfo(
     return ErrorCode::NO_ERROR;
 }
 
-bool ClientGroup::IsClientExist(sptr<IRemoteObject> inputClient)
+void ClientGroup::RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied)
 {
-    std::lock_guard<std::recursive_mutex> lock(mtx);
-    return mapClients_.find(inputClient) != mapClients_.end();
-}
-
-bool ClientGroup::IsNotifyInputStop(const sptr<IInputClient> &client)
-{
-    if (IsSameClient(client, GetCurrentClient())) {
-        return true;
+    auto clientInfo = GetClientInfo(client);
+    if (clientInfo == nullptr) {
+        IMSA_HILOGD("client already removed.");
+        return;
     }
-    if (IsSameClient(client, GetInactiveClient()) && GetCurrentClient() == nullptr) {
-        return true;
+    // if client is subscriber and the release is not because of the client died, do not remove
+    if (clientInfo->eventFlag != NO_EVENT_ON && !isClientDied) {
+        IMSA_HILOGD("is subscriber, do not remove.");
+        auto isShowKeyboard = false;
+        auto bindImeType = ImeType::NONE;
+        UpdateClientInfo(
+            client, { { UpdateFlag::BINDIMETYPE, bindImeType }, { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+        return;
     }
-    return false;
-}
-
-std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(sptr<IRemoteObject> inputClient)
-{
-    if (inputClient == nullptr) {
-        IMSA_HILOGE("inputClient is nullptr!");
-        return nullptr;
+    if (clientInfo->deathRecipient != nullptr) {
+        IMSA_HILOGD("deathRecipient remove.");
+        client->RemoveDeathRecipient(clientInfo->deathRecipient);
     }
     std::lock_guard<std::recursive_mutex> lock(mtx);
-    auto it = mapClients_.find(inputClient);
-    if (it == mapClients_.end()) {
-        IMSA_HILOGD("client not found.");
-        return nullptr;
-    }
-    return it->second;
-}
-
-std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(pid_t pid)
-{
-    std::lock_guard<std::recursive_mutex> lock(mtx);
-    auto iter = std::find_if(
-        mapClients_.begin(), mapClients_.end(), [pid](const auto &mapClient) { return mapClient.second->pid == pid; });
-    if (iter == mapClients_.end()) {
-        IMSA_HILOGD("not found.");
-        return nullptr;
-    }
-    return iter->second;
+    mapClients_.erase(client);
+    IMSA_HILOGI("client[%{public}d] is removed.", clientInfo->pid);
 }
 
 void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client,
@@ -155,58 +137,16 @@ void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client,
     }
 }
 
-void ClientGroup::ReplaceCurrentClient(const sptr<IInputClient> &client)
+std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(pid_t pid)
 {
-    std::lock_guard<std::mutex> lock(focusedClientLock_);
-    if (client == nullptr) {
-        return;
+    auto iter = std::find_if(
+        mapClients_.begin(), mapClients_.end(), [pid](const auto &mapClient) { return mapClient.second->pid == pid; });
+    if (iter == mapClients_.end()) {
+        IMSA_HILOGD("not found.");
+        return nullptr;
     }
-    auto clientInfo = GetClientInfo(client->AsObject());
-    if (clientInfo == nullptr) {
-        return;
-    }
-    auto replacedClient = GetCurrentClient();
-    SetCurrentClient(client);
-    if (replacedClient != nullptr) {
-        auto replacedClientInfo = GetClientInfo(replacedClient->AsObject());
-        if (replacedClientInfo != nullptr && replacedClientInfo->pid != clientInfo->pid) {
-            IMSA_HILOGI("remove replaced client: [%{public}d]", replacedClientInfo->pid);
-            RemoveClient(replacedClient);
-        }
-    }
-    auto inactiveClient = GetInactiveClient();
-    if (inactiveClient != nullptr) {
-        auto inactiveClientInfo = GetClientInfo(inactiveClient->AsObject());
-        if (inactiveClientInfo != nullptr && inactiveClientInfo->pid != clientInfo->pid) {
-            IMSA_HILOGI("remove inactive client: [%{public}d]", inactiveClientInfo->pid);
-            RemoveClient(inactiveClient, false);
-        }
-    }
-}
-
-void ClientGroup::RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied)
-{
     std::lock_guard<std::recursive_mutex> lock(mtx);
-    auto clientInfo = GetClientInfo(client);
-    if (clientInfo == nullptr) {
-        IMSA_HILOGD("client already removed.");
-        return;
-    }
-    // if client is subscriber and the release is not because of the client died, do not remove
-    if (clientInfo->eventFlag != NO_EVENT_ON && !isClientDied) {
-        IMSA_HILOGD("is subscriber, do not remove.");
-        auto isShowKeyboard = false;
-        auto bindImeType = ImeType::NONE;
-        UpdateClientInfo(
-            client, { { UpdateFlag::BINDIMETYPE, bindImeType }, { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
-        return;
-    }
-    if (clientInfo->deathRecipient != nullptr) {
-        IMSA_HILOGD("deathRecipient remove.");
-        client->RemoveDeathRecipient(clientInfo->deathRecipient);
-    }
-    mapClients_.erase(client);
-    IMSA_HILOGI("client[%{public}d] is removed.", clientInfo->pid);
+    return iter->second;
 }
 
 std::shared_ptr<InputClientInfo> ClientGroup::GetCurrentClientInfo()
@@ -219,11 +159,57 @@ std::shared_ptr<InputClientInfo> ClientGroup::GetCurrentClientInfo()
     return GetClientInfo(client->AsObject());
 }
 
-void ClientGroup::SetInactiveClient(sptr<IInputClient> client)
+int64_t ClientGroup::GetCurrentClientPid()
 {
-    IMSA_HILOGD("set inactive client.");
-    std::lock_guard<std::mutex> lock(inactiveClientLock_);
-    inactiveClient_ = client;
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo == nullptr) {
+        return INVALID_PID;
+    }
+    return clientInfo->pid;
+}
+
+int64_t ClientGroup::GetInactiveClientPid()
+{
+    auto client = GetInactiveClient();
+    if (client == nullptr) {
+        return INVALID_PID;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        return INVALID_PID;
+    }
+    return clientInfo->pid;
+}
+
+bool ClientGroup::IsClientExist(sptr<IRemoteObject> inputClient)
+{
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    return mapClients_.find(inputClient) != mapClients_.end();
+}
+
+bool ClientGroup::IsNotifyInputStop(const sptr<IInputClient> &client)
+{
+    if (IsSameClient(client, GetCurrentClient())) {
+        return true;
+    }
+    if (GetCurrentClient() == nullptr && IsSameClient(client, GetInactiveClient())) {
+        return true;
+    }
+    return false;
+}
+
+sptr<IInputClient> ClientGroup::GetCurrentClient()
+{
+    IMSA_HILOGD("get current client.");
+    std::lock_guard<std::mutex> lock(currentClientLock_);
+    return currentClient_;
+}
+
+void ClientGroup::SetCurrentClient(sptr<IInputClient> client)
+{
+    IMSA_HILOGD("set current client.");
+    std::lock_guard<std::mutex> lock(currentClientLock_);
+    currentClient_ = client;
 }
 
 sptr<IInputClient> ClientGroup::GetInactiveClient()
@@ -232,15 +218,43 @@ sptr<IInputClient> ClientGroup::GetInactiveClient()
     return inactiveClient_;
 }
 
-int32_t ClientGroup::RemoveCurrentClient()
+void ClientGroup::SetInactiveClient(sptr<IInputClient> client)
 {
-    auto currentClient = GetCurrentClient();
-    if (currentClient == nullptr) {
-        IMSA_HILOGE("currentClient is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    IMSA_HILOGD("set inactive client.");
+    std::lock_guard<std::mutex> lock(inactiveClientLock_);
+    inactiveClient_ = client;
+}
+
+bool ClientGroup::IsCurClientFocused(int32_t pid, int32_t uid)
+{
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("failed to get cur client info!");
+        return false;
     }
-    NotifyInputStopToClients();
-    return RemoveClient(currentClient, false);
+    auto identityChecker = std::make_shared<IdentityCheckerImpl>();
+    if (clientInfo->uiExtensionTokenId != IMF_INVALID_TOKENID
+        && identityChecker->IsFocusedUIExtension(clientInfo->uiExtensionTokenId)) {
+        IMSA_HILOGI("UIExtension focused");
+        return true;
+    }
+    return clientInfo->pid == pid && clientInfo->uid == uid;
+}
+
+bool ClientGroup::IsCurClientUnFocused(int32_t pid, int32_t uid)
+{
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("failed to get cur client info!");
+        return false;
+    }
+    auto identityChecker = std::make_shared<IdentityCheckerImpl>();
+    if (clientInfo->uiExtensionTokenId != IMF_INVALID_TOKENID
+        && !identityChecker->IsFocusedUIExtension(clientInfo->uiExtensionTokenId)) {
+        IMSA_HILOGI("UIExtension UnFocused.");
+        return true;
+    }
+    return clientInfo->pid == pid && clientInfo->uid == uid;
 }
 
 int32_t ClientGroup::NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason)
@@ -327,40 +341,39 @@ int32_t ClientGroup::NotifyImeChangeToClients(const Property &property, const Su
     }
 }
 
-void ClientGroup::SetCurrentClient(sptr<IInputClient> client)
+std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(sptr<IRemoteObject> inputClient)
 {
-    IMSA_HILOGD("set current client.");
-    std::lock_guard<std::mutex> lock(clientLock_);
-    currentClient_ = client;
+    if (inputClient == nullptr) {
+        IMSA_HILOGE("inputClient is nullptr!");
+        return nullptr;
+    }
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    auto it = mapClients_.find(inputClient);
+    if (it == mapClients_.end()) {
+        IMSA_HILOGD("client not found.");
+        return nullptr;
+    }
+    return it->second;
 }
 
-sptr<IInputClient> ClientGroup::GetCurrentClient()
+std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> ClientGroup::GetClientMap()
 {
-    IMSA_HILOGD("get current client.");
-    std::lock_guard<std::mutex> lock(clientLock_);
-    return currentClient_;
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    return mapClients_;
 }
 
-int64_t ClientGroup::GetCurrentClientPid()
+bool ClientGroup::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest)
 {
-    auto clientInfo = GetCurrentClientInfo();
-    if (clientInfo == nullptr) {
-        return INVALID_PID;
-    }
-    return clientInfo->pid;
+    return source != nullptr && dest != nullptr && source->AsObject() == dest->AsObject();
 }
 
-int64_t ClientGroup::GetInactiveClientPid()
+void ClientGroup::OnClientDied(sptr<IInputClient> remote)
 {
-    auto client = GetInactiveClient();
-    if (client == nullptr) {
-        return INVALID_PID;
+    std::lock_guard<std::mutex> lock(clientDiedLock_);
+    if (clientDiedHandler_ == nullptr) {
+        return;
     }
-    auto clientInfo = GetClientInfo(client->AsObject());
-    if (clientInfo == nullptr) {
-        return INVALID_PID;
-    }
-    return clientInfo->pid;
+    clientDiedHandler_(remote);
 }
 } // namespace MiscServices
 } // namespace OHOS

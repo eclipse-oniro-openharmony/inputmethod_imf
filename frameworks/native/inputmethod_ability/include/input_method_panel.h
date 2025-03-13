@@ -56,6 +56,7 @@ public:
     int32_t MoveTo(int32_t x, int32_t y);
     int32_t StartMoving();
     int32_t GetDisplayId(uint64_t &displayId);
+    int32_t AdjustKeyboard();
     int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion = true);
     int32_t AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas);
     int32_t UpdateRegion(std::vector<Rosen::Rect> region);

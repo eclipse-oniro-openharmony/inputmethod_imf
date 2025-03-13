@@ -82,7 +82,7 @@ public:
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
     int32_t OnStartInput(
-        const InputClientInfo &clientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
+        const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnHideCurrentInput(uint64_t displayId);
@@ -117,7 +117,7 @@ public:
     void AddRestartIme();
 
     bool IsProxyImeEnable();
-    bool IsBoundToClient();
+    bool IsBoundToClient(uint64_t displayId);
     bool IsCurrentImeByPid(int32_t pid);
     int32_t RestoreCurrentImeSubType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
@@ -139,7 +139,6 @@ public:
     bool IsSaReady(int32_t saId);
     void UpdateUserLockState();
     void TryUnloadSystemAbility();
-    int32_t ChangeToDefaultImeIfFolded();
     uint64_t GetDisplayGroupId(uint64_t displayId);
 
 private:
@@ -148,15 +147,11 @@ private:
         time_t last{};
     };
     int32_t userId_; // the id of the user to whom the object is linking
-    std::recursive_mutex mtx;
-    std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     static const int MAX_IME_START_TIME = 2000;
 #else
     static const int MAX_IME_START_TIME = 1500;
 #endif
-    std::mutex clientLock_;
-    sptr<IInputClient> currentClient_; // the current input client
     std::mutex resetLock;
     ResetManager manager;
     using IpcExec = std::function<int32_t()>;
@@ -175,10 +170,12 @@ private:
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     int32_t RemoveClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup,
         bool isUnbindFromClient = false, bool isInactiveClient = false, bool isNotifyClientAsync = false);
+    void DeactivateClient(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetCurrentClientInfo(uint64_t displayId = DEFAULT_DISPLAY_ID);
     std::shared_ptr<ClientGroup> GetClientGroup(uint64_t displayGroupId);
     std::shared_ptr<ClientGroup> GetClientGroup(sptr<IRemoteObject> client);
     std::shared_ptr<ClientGroup> GetClientGroup(ImeType type);
+    ImeType GetImeType(uint64_t displayId);
 
     int32_t InitImeData(const std::pair<std::string, std::string> &ime);
     int32_t UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
@@ -202,13 +199,13 @@ private:
     int32_t InitInputControlChannel();
     void StartImeInImeDied();
     void StartImeIfInstalled();
+    void ReplaceCurrentClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup);
     bool IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest);
 
     bool IsImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInImeBind(ImeType bindImeType, ImeType startImeType);
     bool IsImeBindTypeChanged(ImeType bindImeType);
-    std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
 
     bool WaitForCurrentImeStop();
@@ -227,7 +224,6 @@ private:
     int32_t HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
     void HandleImeBindTypeChanged(InputClientInfo &newClientInfo, const std::shared_ptr<ClientGroup> &clientGroup);
-    ImeType GetCurDisplayImeType(uint64_t displayId);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
@@ -262,9 +258,10 @@ private:
     };
     std::string runningIme_;
     std::atomic<bool> isUserUnlocked_{ false };
+    std::mutex virtualDisplayLock_{};
     std::unordered_set<Rosen::DisplayId> virtualScreenDisplayId_;
-    Rosen::DisplayId aiAgentDisplayId_;
-    std::mutex clientGroupLock_;
+    std::atomic<Rosen::DisplayId> agentDisplayId_{ DEFAULT_DISPLAY_ID };
+    std::mutex clientGroupLock_{};
     std::unordered_map<Rosen::DisplayId, std::shared_ptr<ClientGroup>> clientGroupMap_;
 };
 } // namespace MiscServices

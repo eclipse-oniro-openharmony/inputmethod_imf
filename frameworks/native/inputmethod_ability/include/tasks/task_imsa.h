@@ -184,6 +184,17 @@ public:
     }
     ~TaskImsaSetCoreAndAgent() = default;
 };
+class TaskImsaAdjustKeyboard : public Task {
+public:
+    TaskImsaAdjustKeyboard() : Task(TASK_TYPE_IMSA_ADJUST_KEYBOARD)
+    {
+        auto func = []() {
+            InputMethodAbility::GetInstance()->AdjustKeyboard();
+        };
+        actions_.emplace_back(std::make_unique<Action>(func));
+    }
+    ~TaskImsaAdjustKeyboard() = default;
+};
 
 } // namespace MiscServices
 } // namespace OHOS
