@@ -28,7 +28,7 @@
 #include "security_mode_parser.h"
 #include "system_ability_definition.h"
 #include "wms_connection_observer.h"
-#include "window_display_changed_manager.h"
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {

@@ -37,7 +37,7 @@
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 #include "on_demand_start_stop_sa.h"
 #endif
-#include "window_display_changed_manager.h"
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -549,7 +549,7 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     HandleCallingWindowDisplay(clientInfo);
 #else
     clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
-    clientInfo.config.inputAttribute.callingWindowDisplayId = 0;
+    clientInfo.config.inputAttribute.callingDisplayId = 0;
 #endif
     return ErrorCode::NO_ERROR;
 }

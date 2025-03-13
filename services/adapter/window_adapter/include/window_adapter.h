@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_WINDOW_DISPLAY_CHANGED_MANAGER_H
-#define INPUTMETHOD_IMF_WINDOW_DISPLAY_CHANGED_MANAGER_H
+#ifndef INPUTMETHOD_IMF_WINDOW_ADAPTER_H
+#define INPUTMETHOD_IMF_WINDOW_ADAPTER_H
 
 #include <functional>
 #include <mutex>
@@ -27,18 +27,18 @@
 namespace OHOS {
 namespace MiscServices {
 #ifdef SCENE_BOARD_ENABLE
-class WindowDisplayChangedManager final {
+class WindowAdapter final {
 public:
-    ~WindowDisplayChangedManager();
-    static WindowDisplayChangedManager &GetInstance();
+    ~WindowAdapter();
+    static WindowAdapter &GetInstance();
     static bool  GetCallingWindowInfo(const uint32_t windId, const int32_t userId,
         Rosen::CallingWindowInfo &callingWindowInfo);
     static void GetFoucusInfo(OHOS::Rosen::FocusChangeInfo &focusInfo);
     void RegisterCallingWindowInfoChangedListener(const WindowDisplayChangeHandler &handle);
 private:
-    WindowDisplayChangedManager() = default;
+    WindowAdapter() = default;
 };
 #endif // SCENE_BOARD_ENABLE
 } // namespace MiscServices
 } // namespace OHOS
-#endif //INPUTMETHOD_IMF_WINDOW_DISPLAY_CHANGED_MANAGER_H
+#endif //INPUTMETHOD_IMF_WINDOW_ADAPTER_H

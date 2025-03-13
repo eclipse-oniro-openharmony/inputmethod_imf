@@ -534,18 +534,18 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
     }
     FullPanelAdjustInfo adjustInfo;
     auto instance = InputMethodAbility::GetInstance();
-    bool bNeedConfig = true;
+    bool needConfig = true;
     if ((instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) ||
         !CurWindowIsInMainDisplay()) {
-        bNeedConfig = false;
+        needConfig = false;
     }
-    if (bNeedConfig) {
+    if (needConfig) {
         auto ret = GetAdjustInfo(panelFlag, adjustInfo);
         if (ret != ErrorCode::NO_ERROR) {
             return ret;
         }
     }
-    ret = ParseEnhancedParams(panelFlag, adjustInfo, params);
+    auto ret = ParseEnhancedParams(panelFlag, adjustInfo, params);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }

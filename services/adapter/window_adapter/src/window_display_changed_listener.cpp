@@ -23,7 +23,7 @@ void WindowDisplayChangeListener::OnCallingWindowDisplayChanged(
     const OHOS::Rosen::CallingWindowInfo &callingWindowInfo)
 {
     IMSA_HILOGD("callback callingWindowInfo:%{public}s", CallingWindowInfoToString(callingWindowInfo).c_str());
-    if (handle_) {
+    if (handle_ != nullptr) {
         handle_(callingWindowInfo);
     }
 }

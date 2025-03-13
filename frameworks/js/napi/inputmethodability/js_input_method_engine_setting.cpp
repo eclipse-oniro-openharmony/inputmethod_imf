@@ -910,7 +910,7 @@ void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplay
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
-    handler_->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 } // namespace MiscServices
 } // namespace OHOS

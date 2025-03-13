@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "window_display_changed_manager.h"
+#include "window_adapter.h"
 
 #include "window.h"
 #include "wm_common.h"
@@ -25,22 +25,22 @@ namespace MiscServices {
 using namespace Rosen;
 using WMError = OHOS::Rosen::WMError;
 
-WindowDisplayChangedManager::~WindowDisplayChangedManager()
+WindowAdapter::~WindowAdapter()
 {
 }
 
-WindowDisplayChangedManager &WindowDisplayChangedManager::GetInstance()
+WindowAdapter &WindowAdapter::GetInstance()
 {
-    static WindowDisplayChangedManager displayMonitorManager;
-    return displayMonitorManager;
+    static WindowAdapter windowAdapter;
+    return windowAdapter;
 }
 
-void WindowDisplayChangedManager::GetFoucusInfo(OHOS::Rosen::FocusChangeInfo& focusInfo)
+void WindowAdapter::GetFoucusInfo(OHOS::Rosen::FocusChangeInfo& focusInfo)
 {
     WindowManagerLite::GetInstance().GetFocusWindowInfo(focusInfo);
 }
 
-bool WindowDisplayChangedManager::GetCallingWindowInfo(const uint32_t windId, const int32_t userId,
+bool WindowAdapter::GetCallingWindowInfo(const uint32_t windId, const int32_t userId,
     Rosen::CallingWindowInfo &callingWindowInfo)
 {
     IMSA_HILOGD("enter, windId:%{public}d", windId);
@@ -56,7 +56,7 @@ bool WindowDisplayChangedManager::GetCallingWindowInfo(const uint32_t windId, co
     return true;
 }
 
-void  WindowDisplayChangedManager::RegisterCallingWindowInfoChangedListener(const WindowDisplayChangeHandler &handle)
+void WindowAdapter::RegisterCallingWindowInfoChangedListener(const WindowDisplayChangeHandler &handle)
 {
     sptr<WindowDisplayChangeListener> listener = new (std::nothrow) WindowDisplayChangeListener(handle);
     if (listener == nullptr) {

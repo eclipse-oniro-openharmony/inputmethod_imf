@@ -1561,10 +1561,6 @@ int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.callingDisplayId = displayId;
     }
-    panels_.ForEach([displayId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
-        panel->SetCalingWindowDisplayId(displayId);
-        return ErrorCode::NO_ERROR;
-    });
     if (imeListener_ == nullptr) {
         IMSA_HILOGD("imeListener_ is nullptr!");
         return ErrorCode::NO_ERROR;
@@ -1583,7 +1579,7 @@ bool InputMethodAbility::IsMainDisplay(uint64_t displayId) const
     auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
     if (primaryDisplay == nullptr) {
         IMSA_HILOGE("primaryDisplay failed!");
-        return false;
+        return true;
     }
     if (displayId != primaryDisplay->GetId()) {
         return false;
