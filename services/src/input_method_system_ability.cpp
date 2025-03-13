@@ -887,7 +887,7 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnPanelStatusChange(status, info);
+    return session->OnPanelStatusChange(status, info, GetCallingDisplayId());
 }
 
 int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
@@ -2118,7 +2118,7 @@ void InputMethodSystemAbility::HandleWmsDisconnected(int32_t userId, int32_t scr
     // clear client
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session != nullptr) {
-        session->RemoveCurrentClient();
+        session->RemoveAllCurrentClient();
     }
 
     if (userId == userId_) {
@@ -2145,7 +2145,7 @@ void InputMethodSystemAbility::HandleWmsStarted()
     // clear client
     auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
     if (session != nullptr) {
-        session->RemoveCurrentClient();
+        session->RemoveAllCurrentClient();
     }
     RestartSessionIme(session);
 }

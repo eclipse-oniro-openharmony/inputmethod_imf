@@ -15,6 +15,8 @@
 
 #include "client_group.h"
 
+#include "event_status_manager.h"
+
 namespace OHOS {
 namespace MiscServices {
 int32_t ClientGroup::AddClientInfo(
@@ -55,8 +57,26 @@ int32_t ClientGroup::AddClientInfo(
     }
     std::lock_guard<std::recursive_mutex> lock(mtx);
     mapClients_.insert({ inputClient, info });
-    IMSA_HILOGI("add client end.");
+    IMSA_HILOGI(
+        "add client with pid: %{public}d displayGroupId: %{public} " PRIu64 " end.", clientInfo.pid, displayGroupId_);
     return ErrorCode::NO_ERROR;
+}
+
+bool ClientGroup::IsClientExist(sptr<IRemoteObject> inputClient)
+{
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    return mapClients_.find(inputClient) != mapClients_.end();
+}
+
+bool ClientGroup::IsNotifyInputStop(const sptr<IInputClient> &client)
+{
+    if (IsSameClient(client, GetCurrentClient())) {
+        return true;
+    }
+    if (IsSameClient(client, GetInactiveClient()) && GetCurrentClient() == nullptr) {
+        return true;
+    }
+    return false;
 }
 
 std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(sptr<IRemoteObject> inputClient)
@@ -210,6 +230,137 @@ sptr<IInputClient> ClientGroup::GetInactiveClient()
 {
     std::lock_guard<std::mutex> lock(inactiveClientLock_);
     return inactiveClient_;
+}
+
+int32_t ClientGroup::RemoveCurrentClient()
+{
+    auto currentClient = GetCurrentClient();
+    if (currentClient == nullptr) {
+        IMSA_HILOGE("currentClient is nullptr!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    NotifyInputStopToClients();
+    return RemoveClient(currentClient, false);
+}
+
+int32_t ClientGroup::NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason)
+{
+    IMSA_HILOGD("NotifyInputStartToClients enter");
+    auto clientMap = GetClientMap();
+    for (const auto &client : clientMap) {
+        auto clientInfo = client.second;
+        if (clientInfo == nullptr || clientInfo->client == nullptr
+            || !EventStatusManager::IsInputStatusChangedOn(clientInfo->eventFlag)) {
+            IMSA_HILOGE("nullptr clientInfo or no need to notify");
+            continue;
+        }
+        int32_t ret = clientInfo->client->NotifyInputStart(callingWndId, requestKeyboardReason);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to notify OnInputStart, errorCode: %{public}d", ret);
+            continue;
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ClientGroup::NotifyInputStopToClients()
+{
+    IMSA_HILOGD("NotifyInputStopToClients enter");
+    auto clientMap = GetClientMap();
+    for (const auto &client : clientMap) {
+        auto clientInfo = client.second;
+        if (clientInfo == nullptr || clientInfo->client == nullptr
+            || !EventStatusManager::IsInputStatusChangedOn(clientInfo->eventFlag)) {
+            IMSA_HILOGE("nullptr clientInfo or no need to notify");
+            continue;
+        }
+        int32_t ret = clientInfo->client->NotifyInputStop();
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to notify OnInputStop, errorCode: %{public}d", ret);
+            continue;
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ClientGroup::NotifyPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
+{
+    auto clientMap = GetClientMap();
+    for (const auto &client : clientMap) {
+        auto clientInfo = client.second;
+        if (clientInfo == nullptr) {
+            IMSA_HILOGD("client nullptr or no need to notify.");
+            continue;
+        }
+        if (status == InputWindowStatus::SHOW && !EventStatusManager::IsImeShowOn(clientInfo->eventFlag)) {
+            IMSA_HILOGD("has not imeShow callback");
+            continue;
+        }
+        if (status == InputWindowStatus::HIDE && !EventStatusManager::IsImeHideOn(clientInfo->eventFlag)) {
+            IMSA_HILOGD("has not imeHide callback");
+            continue;
+        }
+        int32_t ret = clientInfo->client->OnPanelStatusChange(status, info);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to NotifyPanelStatusChange, ret: %{public}d", ret);
+            continue;
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ClientGroup::NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty)
+{
+    auto clientMap = GetClientMap();
+    for (const auto &client : clientMap) {
+        auto clientInfo = client.second;
+        if (clientInfo == nullptr || !EventStatusManager::IsImeChangeOn(clientInfo->eventFlag)) {
+            IMSA_HILOGD("client nullptr or no need to notify.");
+            continue;
+        }
+        IMSA_HILOGD("notify client: [%{public}d]", static_cast<int32_t>(clientInfo->pid));
+        int32_t ret = clientInfo->client->OnSwitchInput(property, subProperty);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("notify failed, ret: %{public}d, uid: %{public}d!", ret, static_cast<int32_t>(clientInfo->uid));
+            continue;
+        }
+    }
+}
+
+void ClientGroup::SetCurrentClient(sptr<IInputClient> client)
+{
+    IMSA_HILOGD("set current client.");
+    std::lock_guard<std::mutex> lock(clientLock_);
+    currentClient_ = client;
+}
+
+sptr<IInputClient> ClientGroup::GetCurrentClient()
+{
+    IMSA_HILOGD("get current client.");
+    std::lock_guard<std::mutex> lock(clientLock_);
+    return currentClient_;
+}
+
+int64_t ClientGroup::GetCurrentClientPid()
+{
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo == nullptr) {
+        return INVALID_PID;
+    }
+    return clientInfo->pid;
+}
+
+int64_t ClientGroup::GetInactiveClientPid()
+{
+    auto client = GetInactiveClient();
+    if (client == nullptr) {
+        return INVALID_PID;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        return INVALID_PID;
+    }
+    return clientInfo->pid;
 }
 } // namespace MiscServices
 } // namespace OHOS

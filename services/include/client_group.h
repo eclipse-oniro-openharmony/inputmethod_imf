@@ -34,6 +34,7 @@ public:
 
     int32_t AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     bool IsClientExist(sptr<IRemoteObject> inputClient);
+    bool IsNotifyInputStop(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
     std::shared_ptr<InputClientInfo> GetCurrentClientInfo();
@@ -56,6 +57,11 @@ public:
         bool isInactiveClient = false, bool isNotifyClientAsync = false); //
     bool IsCurClientFocused(int32_t pid, int32_t uid);
     bool IsCurClientUnFocused(int32_t pid, int32_t uid);
+    // from service notify clients input start and stop
+    int32_t NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason = 0);
+    int32_t NotifyInputStopToClients();
+    int32_t NotifyPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
+    int32_t NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
 
 private:
     bool IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest); //

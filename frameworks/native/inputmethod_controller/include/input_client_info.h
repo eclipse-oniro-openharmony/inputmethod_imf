@@ -54,6 +54,7 @@ enum ClientType : uint32_t {
 constexpr uint32_t NO_EVENT_ON = 0;
 constexpr uint32_t IMF_INVALID_TOKENID = 0;
 constexpr uint64_t DEFAULT_DISPLAY_ID = 0;
+constexpr int64_t INVALID_PID = -1;
 struct InputClientInfo {
     pid_t pid { -1 };                        // process id
     pid_t uid { -1 };                        // uid
