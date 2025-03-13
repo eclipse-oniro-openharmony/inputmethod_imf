@@ -369,7 +369,7 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     }
 #ifndef SCENE_BOARD_ENABLE
     if (type == "callingDisplayChanged") {
-        JsUtils::ThrowException(env, JsUtils::Convert(IMFErrorCode::EXCEPTION_UNSUPPORTED),
+        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED),
             "capability not supported.", TYPE_NONE);
     }
 #endif
@@ -904,7 +904,7 @@ void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplay
             }
             // 0 means the first param of callback.
             uint32_t displayId = static_cast<uint32_t>(entry->callingDisplayId);
-            napi_create_uint32(env, displayId, &args[0]);
+            args[0] = JsUtil::GetValue(env, displayId);
             return true;
         };
         // 1 means callback has one param.

@@ -653,7 +653,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_017, TestSize.L
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
-    ASSERT_EQ(inputMethodPanel->GetDisplaySize(display), ErrorCode::NO_ERROR);
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     Rosen::Rect portraitRect = { 0, 0, 0, static_cast<uint32_t>(display.portrait.height * 0.4) };
     Rosen::Rect landscapeRect = { 0, 0, 0, static_cast<uint32_t>(display.landscape.height * 0.4) };
@@ -662,7 +662,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_017, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     Rosen::Rect keyboardHotArea = {};
-    bool isPortrait = display.isPortrait;
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
     if (isPortrait) {
         keyboardHotArea = { 0, 0, static_cast<uint32_t>(display.portrait.width * 0.5), portraitRect.height_ };
     } else {
@@ -671,13 +671,12 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_017, TestSize.L
     std::vector<Rosen::Rect> region = { keyboardHotArea };
     ret = inputMethodPanel->UpdateRegion(region);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    auto hotAreas = inputMethodPanel->GetHotAreas(display);
     if (isPortrait) {
-        EXPECT_EQ(hotAreas.portrait.keyboardHotArea.size(), 1);
-        EXPECT_EQ(hotAreas.portrait.keyboardHotArea[0], keyboardHotArea);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.portrait.keyboardHotArea.size(), 1);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.portrait.keyboardHotArea[0], keyboardHotArea);
     } else {
-        EXPECT_EQ(hotAreas.landscape.keyboardHotArea.size(), 1);
-        EXPECT_EQ(hotAreas.landscape.keyboardHotArea[0], keyboardHotArea);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.landscape.keyboardHotArea.size(), 1);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.landscape.keyboardHotArea[0], keyboardHotArea);
     }
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
 }
@@ -694,7 +693,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_018, TestSize.L
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
-    ASSERT_EQ(inputMethodPanel->GetDisplaySize(display), ErrorCode::NO_ERROR);
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     Rosen::Rect portraitRect = { 0, 0, display.portrait.width, static_cast<uint32_t>(display.portrait.height * 0.5) };
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width,
@@ -704,7 +703,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_018, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     Rosen::Rect keyboardHotArea = {};
-    bool isPortrait = display.isPortrait;
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
     if (isPortrait) {
         keyboardHotArea = { 0, 0, static_cast<uint32_t>(portraitRect.width_ * 0.5), portraitRect.height_ };
     } else {
@@ -715,13 +714,12 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_018, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->MoveTo(1, 1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    auto hotAreas = inputMethodPanel->GetHotAreas(display);
     if (isPortrait) {
-        EXPECT_EQ(hotAreas.portrait.keyboardHotArea.size(), 1);
-        EXPECT_EQ(hotAreas.portrait.keyboardHotArea[0], keyboardHotArea);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.portrait.keyboardHotArea.size(), 1);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.portrait.keyboardHotArea[0], keyboardHotArea);
     } else {
-        EXPECT_EQ(hotAreas.landscape.keyboardHotArea.size(), 1);
-        EXPECT_EQ(hotAreas.landscape.keyboardHotArea[0], keyboardHotArea);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.landscape.keyboardHotArea.size(), 1);
+        EXPECT_EQ(inputMethodPanel->hotAreas_.landscape.keyboardHotArea[0], keyboardHotArea);
     }
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
 }
@@ -739,7 +737,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_019, TestSize.L
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     inputMethodPanel->isScbEnable_ = true;
     DisplaySize display;
-    ASSERT_EQ(inputMethodPanel->GetDisplaySize(display), ErrorCode::NO_ERROR);
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     Rosen::Rect portraitRect = { 0, 0, display.portrait.width, static_cast<uint32_t>(display.portrait.height * 0.5) };
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width,
@@ -749,7 +747,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_019, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     WindowSize size = {};
-    bool isPortrait = display.isPortrait;
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
     if (isPortrait) {
         size = { static_cast<uint32_t>(portraitRect.width_ * 0.5), static_cast<uint32_t>(portraitRect.height_ * 0.5) };
     } else {
@@ -759,13 +757,12 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_019, TestSize.L
     ret = inputMethodPanel->Resize(size.width, size.height);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     Rosen::Rect newRect = { 0, 0, size.width, size.height };
-    auto keyboardLayoutParams = inputMethodPanel->GetKeyboardLayoutParams(display);
     if (isPortrait) {
-        EXPECT_EQ(keyboardLayoutParams.PortraitKeyboardRect_, newRect);
-        EXPECT_EQ(keyboardLayoutParams.LandscapeKeyboardRect_, landscapeRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.PortraitKeyboardRect_, newRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.LandscapeKeyboardRect_, landscapeRect);
     } else {
-        EXPECT_EQ(keyboardLayoutParams.PortraitKeyboardRect_, portraitRect);
-        EXPECT_EQ(keyboardLayoutParams.LandscapeKeyboardRect_, newRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.PortraitKeyboardRect_, portraitRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.LandscapeKeyboardRect_, newRect);
     }
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
 }
@@ -782,7 +779,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_020, TestSize.L
     InputMethodPanelAdjustTest::ImaCreatePanel({ .panelType = SOFT_KEYBOARD }, inputMethodPanel);
     inputMethodPanel->isScbEnable_ = true;
     DisplaySize display;
-    ASSERT_EQ(inputMethodPanel->GetDisplaySize(display), ErrorCode::NO_ERROR);
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     Rosen::Rect portraitRect = { 0, 0, 0, static_cast<uint32_t>(display.portrait.height * 0.8) };
     Rosen::Rect landscapeRect = { 0, 0, 0, static_cast<uint32_t>(display.landscape.height * 0.8) };
@@ -799,7 +796,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_020, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     WindowSize size = {};
-    bool isPortrait = display.isPortrait;
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
     if (isPortrait) {
         size = { 100, static_cast<uint32_t>(portraitRect.height_ * 0.5) };
     } else {
@@ -807,21 +804,20 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_020, TestSize.L
     }
     ret = inputMethodPanel->Resize(size.width, size.height);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    auto keyboardLayoutParams = inputMethodPanel->GetKeyboardLayoutParams(display);
     if (isPortrait) {
         Rosen::Rect newPortraitRect = { 0, static_cast<int32_t>(display.portrait.height - size.height),
             display.portrait.width, size.height };
         Rosen::Rect newLandRect = { 0, static_cast<int32_t>(display.landscape.height - landscapeRect.height_),
             display.landscape.width, landscapeRect.height_ };
-        EXPECT_EQ(keyboardLayoutParams.PortraitKeyboardRect_, newPortraitRect);
-        EXPECT_EQ(keyboardLayoutParams.LandscapeKeyboardRect_, newLandRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.PortraitKeyboardRect_, newPortraitRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.LandscapeKeyboardRect_, newLandRect);
     } else {
         Rosen::Rect newPortraitRect = { 0, static_cast<int32_t>(display.portrait.height - portraitRect.height_),
             display.portrait.width, portraitRect.height_ };
         Rosen::Rect newLandRect = { 0, static_cast<int32_t>(display.landscape.height - size.height),
             display.landscape.width, size.height };
-        EXPECT_EQ(keyboardLayoutParams.PortraitKeyboardRect_, newPortraitRect);
-        EXPECT_EQ(keyboardLayoutParams.LandscapeKeyboardRect_, newLandRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.PortraitKeyboardRect_, newPortraitRect);
+        EXPECT_EQ(inputMethodPanel->keyboardLayoutParams_.LandscapeKeyboardRect_, newLandRect);
     }
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
 }

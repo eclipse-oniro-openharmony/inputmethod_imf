@@ -143,8 +143,6 @@ private:
 
     void ListenWindowManager();
 
-    bool IsCallingDisplayId(uint64_t displayId) const;
-
     JsRuntime &jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_;
     std::shared_ptr<NativeReference> shellContextRef_ = nullptr;

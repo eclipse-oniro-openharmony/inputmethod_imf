@@ -529,7 +529,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     if (textConfig.windowId != INVALID_WINDOW_ID) {
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
-    NotifyCallingDisplayChanged(textConfig.inputAttribute.callingDisplayId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1572,21 +1571,6 @@ int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
     }
     imeListener_->OnCallingDisplayChanged(displayId);
     return ErrorCode::NO_ERROR;
-}
-
-void InputMethodAbility::NotifyCallingDisplayChanged(uint64_t callingWindowDisplayId)
-{
-    IMSA_HILOGD("enter!!!calling display: %{public}" PRIu64".", callingWindowDisplayId);
-    if (callingWindowDisplayId >= 0) {
-        auto taskNoticeDisplyaChange = [callingWindowDisplayId] {
-            IMSA_HILOGD("notify calling display change. displayId:%{public}" PRIu64"", callingWindowDisplayId);
-            auto ret =  InputMethodAbility::GetInstance()->OnCallingDisplayChange(callingWindowDisplayId);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGD("notify calling display change error,err:%{public}d", ret);
-            }
-        };
-        imeListener_->PostTaskToEventHandler(taskNoticeDisplyaChange, "callingDisplayChanged");
-    }
 }
 
 uint64_t InputMethodAbility::GetCallingWindowDisplayId()

@@ -1648,8 +1648,7 @@ HWTEST_F(InputMethodPanelTest, testSetPrivacyMode, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testSetPanelProperties, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    OHOS::Rosen::KeyboardLayoutParams keyboardLayoutParams;
-    auto ret = inputMethodPanel->SetPanelProperties(keyboardLayoutParams);
+    auto ret = inputMethodPanel->SetPanelProperties();
     EXPECT_EQ(ret, ErrorCode::ERROR_OPERATE_PANEL);
     inputMethodPanel->UnregisterKeyboardPanelInfoChangeListener();
     ret = inputMethodPanel->SetPrivacyMode(false);
@@ -1808,9 +1807,8 @@ HWTEST_F(InputMethodPanelTest, testSetUiContent02, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testIsSizeValid, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    auto displaySize = DisplaySize{};
-    EXPECT_FALSE(inputMethodPanel->IsSizeValid(INT32_MAX + 1, INT32_MAX, displaySize));
-    EXPECT_FALSE(inputMethodPanel->IsSizeValid(INT32_MAX, INT32_MAX + 1, displaySize));
+    EXPECT_FALSE(inputMethodPanel->IsSizeValid(INT32_MAX + 1, INT32_MAX));
+    EXPECT_FALSE(inputMethodPanel->IsSizeValid(INT32_MAX, INT32_MAX + 1));
 }
 
 /**
@@ -2009,26 +2007,25 @@ HWTEST_F(InputMethodPanelTest, testParameterValidationInterface, TestSize.Level0
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EnhancedLayoutParams enhancedLayoutParams;
     FullPanelAdjustInfo adjustInfo;
-    DisplaySize curDiaplySize;
-    inputMethodPanel->GetDisplaySize(curDiaplySize);
-    auto enhancedLayoutParams = inputMethodPanel->GetEnhancedLayoutParams(curDiaplySize);
     enhancedLayoutParams.portrait.avoidY = 10;
     enhancedLayoutParams.landscape.avoidY = 20;
     adjustInfo.portrait = {0, 0, 100, 100};
     adjustInfo.landscape = {0, 0, 200, 200};
     PanelAdjustInfo keyboardArea;
+
     ret = inputMethodPanel->GetKeyboardArea(PanelFlag::FLG_FIXED, {100, 200}, keyboardArea);
 
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(keyboardArea.top, enhancedLayoutParams.portrait.avoidY);
+    EXPECT_EQ(keyboardArea.top, inputMethodPanel->enhancedLayoutParams_.portrait.avoidY);
 
     uint32_t validWidth = 100;
     uint32_t validHeight = 200;
-    ret = inputMethodPanel->ResizeWithoutAdjust(validWidth, validHeight, curDiaplySize);
+    ret = inputMethodPanel->ResizeWithoutAdjust(validWidth, validHeight);
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
 
-    ret = inputMethodPanel->ResizeWithoutAdjust(INT32_MAX + 1, INT32_MAX + 1, curDiaplySize);
+    ret = inputMethodPanel->ResizeWithoutAdjust(INT32_MAX + 1, INT32_MAX + 1);
     EXPECT_EQ(ErrorCode::ERROR_BAD_PARAMETERS, ret);
 
     inputMethodPanel->panelType_ = PanelType::STATUS_BAR;
@@ -2036,16 +2033,20 @@ HWTEST_F(InputMethodPanelTest, testParameterValidationInterface, TestSize.Level0
     EXPECT_EQ(ErrorCode::ERROR_INVALID_PANEL_TYPE, ret);
 
     Rosen::Rect rect1{10, 20, 100, 200};
-    EXPECT_TRUE(inputMethodPanel->IsRectValid(rect1, curDiaplySize.portrait));
+    WindowSize displaySize1 {800, 600};
+    EXPECT_TRUE(inputMethodPanel->IsRectValid(rect1, displaySize1));
 
     Rosen::Rect rect2{-10, 20, 100, 200};
-    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect2, curDiaplySize.portrait));
+    WindowSize displaySize2{800, 600};
+    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect2, displaySize2));
 
     Rosen::Rect rect3{10, 20, INT32_MAX, 200};
-    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect3, curDiaplySize.portrait));
+    WindowSize displaySize3{800, 600};
+    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect3, displaySize3));
 
     Rosen::Rect rect4{10, 20, 9000, 20000};
-    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect4, curDiaplySize.portrait));
+    WindowSize displaySize4{800, 600};
+    EXPECT_FALSE(inputMethodPanel->IsRectValid(rect4, displaySize4));
 
     inputMethodPanel->window_ = nullptr;
     ret= inputMethodPanel->IsEnhancedParamValid(PanelFlag::FLG_FIXED, enhancedLayoutParams);
@@ -2054,7 +2055,7 @@ HWTEST_F(InputMethodPanelTest, testParameterValidationInterface, TestSize.Level0
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ErrorCode::ERROR_NULL_POINTER, ret);
 }
-
+ 
  /**
   * @tc.name: testMoveEnhancedPanelRect
   * @tc.desc: Test Move Enhanced Panel Rect
@@ -2069,29 +2070,28 @@ HWTEST_F(InputMethodPanelTest, testMoveEnhancedPanelRect, TestSize.Level0)
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
-    DisplaySize curDiaplySize;
-    inputMethodPanel->GetDisplaySize(curDiaplySize);
+
     int32_t portraitX = 10;
     int32_t portraitY = 20;
-    int32_t portraitRet = inputMethodPanel->MoveEnhancedPanelRect(portraitX, portraitY, curDiaplySize);
+    int32_t portraitRet = inputMethodPanel->MoveEnhancedPanelRect(portraitX, portraitY);
     EXPECT_EQ(ErrorCode::NO_ERROR, portraitRet);
 
     int32_t landscapeX = 30;
     int32_t landscapeY = 40;
-    int32_t landscapeRet = inputMethodPanel->MoveEnhancedPanelRect(landscapeX, landscapeY, curDiaplySize);
+    int32_t landscapeRet = inputMethodPanel->MoveEnhancedPanelRect(landscapeX, landscapeY);
     EXPECT_EQ(ErrorCode::NO_ERROR, landscapeRet);
 
     int32_t minX = -100;
     int32_t minY = -200;
-    int32_t minRet = inputMethodPanel->MoveEnhancedPanelRect(minX, minY, curDiaplySize);
+    int32_t minRet = inputMethodPanel->MoveEnhancedPanelRect(minX, minY);
     EXPECT_EQ(ErrorCode::ERROR_PARAMETER_CHECK_FAILED, minRet);
 
     const std::string type = "sizeUpdate";
-    EXPECT_TRUE(inputMethodPanel->MarkListener(type, false));\
+    EXPECT_TRUE(inputMethodPanel->MarkListener(type, false));
 
     uint32_t windowWidth = 100;
     bool isPortrait = false;
-    ret = inputMethodPanel->GetWindowOrientation(PanelFlag::FLG_FIXED, windowWidth, isPortrait, curDiaplySize);
+    ret = inputMethodPanel->GetWindowOrientation(PanelFlag::FLG_FIXED, windowWidth, isPortrait);
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
 
     ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::NONE_IMMERSIVE);

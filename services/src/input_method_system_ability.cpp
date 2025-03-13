@@ -522,11 +522,6 @@ int32_t InputMethodSystemAbility::PrepareInput(int32_t userId, InputClientInfo &
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
-#ifdef SCENE_BOARD_ENABLE
-    HandleCallingWindowDisplay(clientInfo);
-#else
-    clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
-#endif
     return session->OnPrepareInput(clientInfo);
 }
 
@@ -550,6 +545,12 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
         clientInfo.uiExtensionTokenId = tokenId;
     }
     clientInfo.name = ImfHiSysEventUtil::GetAppName(tokenId);
+#ifdef SCENE_BOARD_ENABLE
+    HandleCallingWindowDisplay(clientInfo);
+#else
+    clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
+    clientInfo.config.inputAttribute.callingWindowDisplayId = 0;
+#endif
     return ErrorCode::NO_ERROR;
 }
 
@@ -2385,25 +2386,34 @@ void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clien
     IMSA_HILOGD("clientInfo:pid:%{public}d, userid:%{public}d!",
         clientInfo.pid, clientInfo.userID);
     OHOS::Rosen::FocusChangeInfo focusInfo;
-    WindowDisplayChangedManager::GetFoucusInfo(focusInfo);
+    WindowAdapter::GetFoucusInfo(focusInfo);
+    if (curWindowId <= 0) {
+        clientInfo.config.inputAttribute.callingDisplayId = focusInfo.displayId_;
+        clientInfo.config.inputAttribute.windowId = curWindowId;
+        IMSA_HILOGD("result windowId <= 0 inputAttribute:%{public}s",
+            clientInfo.config.inputAttribute.ToString().c_str());
+        return;
+    }
     Rosen::CallingWindowInfo callingWindowInfo;
-    bool isOk = WindowDisplayChangedManager::GetCallingWindowInfo(curWindowId, clientInfo.userID, callingWindowInfo);
+    bool isOk = WindowAdapter::GetCallingWindowInfo(curWindowId, clientInfo.userID, callingWindowInfo);
     if (!isOk) {
         IMSA_HILOGE("GetCallingWindowInfo error!");
         return;
     }
-    bool isValid = false;
-    if (callingWindowInfo.callingPid_ == clientInfo.pid &&
-        callingWindowInfo.userId_ == clientInfo.userID) {
-        isValid = true;
+    bool isVaild = true;
+    if (callingWindowInfo.callingPid_ != clientInfo.pid) {
+        if (clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
+            isVaild = true;
+        } else {
+            isVaild = false;
+        }
     }
-    if (!isValid) {
-        curDisplayId = focusInfo.displayId_;
-        curWindowId = focusInfo.windowId_;
-        IMSA_HILOGD("check not ok");
-    } else {
+    if (isVaild) {
         curDisplayId = callingWindowInfo.displayId_;
         IMSA_HILOGD("check ok");
+    } else {
+        curDisplayId = focusInfo.displayId_;
+        IMSA_HILOGD("check not ok");
     }
     clientInfo.config.inputAttribute.callingDisplayId = curDisplayId;
     clientInfo.config.inputAttribute.windowId = curWindowId;

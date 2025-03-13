@@ -465,6 +465,7 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
         IMSA_HILOGE("configuration is invalid!");
         return;
     }
+
     bool isConfigChanged = false;
     auto configUtils = std::make_shared<ConfigurationUtils>();
     configUtils->UpdateDisplayConfig(displayId, contextConfig, context->GetResourceManager(), isConfigChanged);
@@ -472,11 +473,6 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
         contextConfig->GetName().c_str());
 
     if (isConfigChanged) {
-        if (!IsCallingDisplayId(displayId)) {
-            IMSA_HILOGD("OnChange, CheckHasPanelDisplayId, Config after update: %{public}s.",
-                contextConfig->GetName().c_str());
-            return;
-        }
         auto inputMethodExtension = std::static_pointer_cast<JsInputMethodExtension>(shared_from_this());
         auto task = [inputMethodExtension]() {
             if (inputMethodExtension) {
@@ -487,16 +483,6 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
             handler_->PostTask(task, "JsInputMethodExtension:OnChange", 0, AppExecFwk::EventQueue::Priority::VIP);
         }
     }
-}
-
-bool JsInputMethodExtension::IsCallingDisplayId(uint64_t displayId) const
-{
-    auto callingDisplayId = InputMethodAbility::GetInstance()->GetCallingWindowDisplayId();
-    if (callingDisplayId == displayId) {
-        IMSA_HILOGE("check displayId diff.callingDisplayId:%{public}" PRIu64"", callingDisplayId);
-        return true;
-    }
-    return false;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
