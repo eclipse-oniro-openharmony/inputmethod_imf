@@ -996,12 +996,12 @@ int32_t InputMethodPanel::CalculateNoConfigRect(const PanelFlag panelFlag, const
 std::tuple<std::vector<std::string>, std::vector<std::string>> InputMethodPanel::GetScreenStatus(
     const PanelFlag panelFlag)
 {
-    std::string flag;
+    std::string flag = "invaildFlag";
     std::string foldStatus = "default";
     if (panelFlag == PanelFlag::FLG_FIXED) {
         flag = "fix";
         keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_BOTTOM;
-    } else {
+    } else if (panelFlag == PanelFlag::FLG_FLOATING) {
         flag = "floating";
         keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_FLOAT;
     }
@@ -1101,6 +1101,7 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
 int32_t InputMethodPanel::CalculateFloatRect(
     const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue)
 {
+    keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_FLOAT;
     // portrait floating keyboard
     keyboardLayoutParams_.PortraitKeyboardRect_.width_ = layoutParams.portraitRect.width_;
     keyboardLayoutParams_.PortraitKeyboardRect_.height_ = layoutParams.portraitRect.height_;
