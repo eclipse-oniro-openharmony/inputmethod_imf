@@ -1877,10 +1877,8 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay()
     if (displayInfo != nullptr) {
         auto info = displayInfo->GetDisplayInfo();
         if (info != nullptr) {
-            IMSA_HILOGD("displayInfo, displayId:%{public}" PRIu64",ScreenGId:%{public}" PRIu64",NAME:%{public}s,\
-                width:%{public}d,height:%{public}d,screenId:%{public}" PRIu64"",
-                info->GetDisplayId(), info->GetScreenGroupId(),
-                displayInfo->GetName().c_str(),
+            IMSA_HILOGD("displayId:%{public}" PRIu64",name:%{public}s,w:%{public}d,h:%{public}d",
+                displayInfo->GetId(), displayInfo->GetName().c_str(),
                 displayInfo->GetWidth(), displayInfo->GetHeight(),
                 info->GetScreenId());
         }
