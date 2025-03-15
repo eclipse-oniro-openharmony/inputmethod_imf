@@ -421,9 +421,18 @@ int32_t InputMethodPanel::AdjustKeyboard()
 {
     isAdjustInfoInitialized_.store(false);
     int32_t ret = 0;
-    if (!isInEnhancedAdjust_.load()) {
-        LayoutParams params = { enhancedLayoutParams_.landscape.rect, enhancedLayoutParams_.portrait.rect };
-        ret = AdjustPanelRect(panelFlag_, params);
+    if (isInEnhancedAdjust_.load()) {
+        EnhancedLayoutParams params = enhancedLayoutParams_;
+        DisplaySize displaySize;
+        ret = GetDisplaySize(displaySize);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to GetDisplaySize ret: %{public}d", ret);
+            return ret;
+        }
+        params.portrait.avoidY = displaySize.portrait.height - params.portrait.avoidHeight;
+        params.landscape.avoidY = displaySize.landscape.height - params.landscape.avoidHeight;
+        auto hotAreas = GetHotAreas();
+        ret = AdjustPanelRect(panelFlag_, params, hotAreas);
     } else {
         LayoutParams params = { enhancedLayoutParams_.landscape.rect, enhancedLayoutParams_.portrait.rect };
         ret = AdjustPanelRect(panelFlag_, params);

@@ -440,13 +440,13 @@ void JsInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
         displayPtr->GetHeight(),
         displayPtr->GetRotation());
     if (cacheDisplay_.IsEmpty()) {
-        cacheDisplay_.SetCacheDisplay(displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation());
-        return;
-    }
-    if ((cacheDisplay_.displayWidth != displayPtr->GetWidth() ||
-        cacheDisplay_.displayHeight != displayPtr->GetHeight()) &&
-        cacheDisplay_.displayRotation == displayPtr->GetRotation()) {
         TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaAdjustKeyboard>());
+    } else {
+        if ((cacheDisplay_.displayWidth != displayPtr->GetWidth() ||
+            cacheDisplay_.displayHeight != displayPtr->GetHeight()) &&
+            cacheDisplay_.displayRotation == displayPtr->GetRotation()) {
+            TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaAdjustKeyboard>());
+        }
     }
     cacheDisplay_.SetCacheDisplay(displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation());
 }
