@@ -2045,11 +2045,11 @@ void PerUserSession::HandleCallingWindowDisplayChanged(const int32_t windowId,
         windowId, callingPid, displayId);
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
-    if (!clientInfo) {
+    if (clientInfo == nullptr) {
         IMSA_HILOGD("clientInfo is null");
         return;
     }
-    if (clientInfo->config.inputAttribute.callingDisplayId < 0) {
+    if (clientInfo->config.inputAttribute.callingDisplayId == Rosen::DISPLAY_ID_INVALID) {
         IMSA_HILOGD("callingDisplayId invaild");
         return;
     }

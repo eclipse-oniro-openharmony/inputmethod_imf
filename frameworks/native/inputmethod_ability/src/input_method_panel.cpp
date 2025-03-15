@@ -532,9 +532,6 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
         IMSA_HILOGE("not soft keyboard panel");
         return ErrorCode::ERROR_INVALID_PANEL_TYPE;
     }
-    if (checkRet != ErrorCode::NO_ERROR) {
-        return checkRet;
-    }
     FullPanelAdjustInfo adjustInfo;
     if (IsNeedConfig()) {
         auto ret = GetAdjustInfo(panelFlag, adjustInfo);

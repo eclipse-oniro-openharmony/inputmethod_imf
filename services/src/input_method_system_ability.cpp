@@ -2387,7 +2387,7 @@ void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clien
         clientInfo.pid, clientInfo.userID);
     OHOS::Rosen::FocusChangeInfo focusInfo;
     WindowAdapter::GetFoucusInfo(focusInfo);
-    if (curWindowId <= 0) {
+    if (curWindowId == INVALID_WINDOW_ID) {
         clientInfo.config.inputAttribute.callingDisplayId = focusInfo.displayId_;
         clientInfo.config.inputAttribute.windowId = curWindowId;
         IMSA_HILOGD("result windowId <= 0 inputAttribute:%{public}s",
