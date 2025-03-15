@@ -1290,32 +1290,33 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
         IMSA_HILOGE("nullptr clientInfo!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-#ifdef SCENE_BOARD_ENABLE
-    Rosen::CallingWindowInfo callingWindowInfo;
-    bool isOk = WindowAdapter::GetCallingWindowInfo(callingWindowId,
-        clientInfo->userID, callingWindowInfo);
-    if (!isOk) {
-        IMSA_HILOGI("GetCallingWindowInfo error!");
-        return ErrorCode::ERROR_WINDOW_MANAGER;
+    auto isScbEnable = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+    if (isScbEnable) {
+        Rosen::CallingWindowInfo callingWindowInfo;
+        bool isOk = WindowAdapter::GetCallingWindowInfo(callingWindowId,
+            clientInfo->userID, callingWindowInfo);
+        if (!isOk) {
+            IMSA_HILOGI("GetCallingWindowInfo error!");
+            return ErrorCode::ERROR_WINDOW_MANAGER;
+        }
+        if (callingWindowInfo.callingPid_ != clientInfo->pid) {
+            IMSA_HILOGI("pid diff clientInfo:pid:%{public}d, userid:%{public}d!",
+                clientInfo->pid, clientInfo->userID);
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
     }
-    if (callingWindowInfo.callingPid_ != clientInfo->pid) {
-        IMSA_HILOGI("pid diff clientInfo:pid:%{public}d, userid:%{public}d!",
-            clientInfo->pid, clientInfo->userID);
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-    }
-#endif
     // if windowId change, refresh windowId info and notify clients input start;
     if (clientInfo->config.windowId != callingWindowId) {
         IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
         clientInfo->config.windowId = callingWindowId;
         clientInfo->config.inputAttribute.windowId = callingWindowId;
-#ifdef SCENE_BOARD_ENABLE
-        auto curDisplayId = clientInfo->config.inputAttribute.callingDisplayId;
-        if (curDisplayId != callingWindowInfo.displayId_) {
-            clientInfo->config.inputAttribute.callingDisplayId =  callingWindowInfo.displayId_ ;
-            SendToIMACallingWindowDisplayChange(callingWindowInfo.displayId_);
+        if (isScbEnable) {
+            auto curDisplayId = clientInfo->config.inputAttribute.callingDisplayId;
+            if (curDisplayId != callingWindowInfo.displayId_) {
+                clientInfo->config.inputAttribute.callingDisplayId =  callingWindowInfo.displayId_ ;
+                SendToIMACallingWindowDisplayChange(callingWindowInfo.displayId_);
+            }
         }
-#endif
         return NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     }
     return ErrorCode::NO_ERROR;

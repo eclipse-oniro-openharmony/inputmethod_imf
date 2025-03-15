@@ -18,7 +18,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-#ifdef SCENE_BOARD_ENABLE
 void WindowDisplayChangeListener::OnCallingWindowDisplayChanged(
     const OHOS::Rosen::CallingWindowInfo &callingWindowInfo)
 {
@@ -37,6 +36,5 @@ std::string WindowDisplayChangeListener::CallingWindowInfoToString(const OHOS::R
     << "userId_:" << info.userId_;
     return ss.str();
 }
-#endif
 } // namespace MiscServices
 } // namespace OHOS

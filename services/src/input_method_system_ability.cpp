@@ -545,12 +545,12 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
         clientInfo.uiExtensionTokenId = tokenId;
     }
     clientInfo.name = ImfHiSysEventUtil::GetAppName(tokenId);
-#ifdef SCENE_BOARD_ENABLE
-    HandleCallingWindowDisplay(clientInfo);
-#else
-    clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
-    clientInfo.config.inputAttribute.callingDisplayId = 0;
-#endif
+    if (isScbEnable_.load()) {
+        HandleCallingWindowDisplay(clientInfo);
+    } else {
+        clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
+        clientInfo.config.inputAttribute.callingDisplayId = 0;
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1762,7 +1762,6 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
 void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
 {
     IMSA_HILOGD("enter.");
-#ifdef SCENE_BOARD_ENABLE
     auto callBack = [this](OHOS::Rosen::CallingWindowInfo callingWindowInfo) {
         IMSA_HILOGD("WindowDisplayChanged callbak.");
         int32_t userId = callingWindowInfo.userId_;
@@ -1775,7 +1774,6 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
             callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
     };
     WindowAdapter::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
-#endif
 }
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
@@ -2052,10 +2050,10 @@ void InputMethodSystemAbility::HandleWmsStarted()
     // singleton, device boot, wms reboot
     IMSA_HILOGI("Wms start.");
     InitFocusChangedMonitor();
-    InitWindowDisplayChangedMonitor();
     if (isScbEnable_.load()) {
         IMSA_HILOGI("scb enable, register WMS connection listener.");
         InitWmsConnectionMonitor();
+        InitWindowDisplayChangedMonitor();
         return;
     }
     // clear client
@@ -2375,7 +2373,6 @@ std::pair<int64_t, std::string> InputMethodSystemAbility::GetCurrentImeInfoForHi
     return imeInfo;
 }
 
-#ifdef SCENE_BOARD_ENABLE
 void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clientInfo)
 {
     IMSA_HILOGD("enter");
@@ -2422,6 +2419,5 @@ void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clien
         clientInfo.config.inputAttribute.ToString().c_str());
     return;
 }
-#endif
 } // namespace MiscServices
 } // namespace OHOS

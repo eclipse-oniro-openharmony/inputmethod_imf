@@ -20,11 +20,12 @@
 
 #ifdef SCENE_BOARD_ENABLE
 #include "window_manager_lite.h"
+#else
+#include "window_manager.h"
 #endif
 
 namespace OHOS {
 namespace MiscServices {
-#ifdef SCENE_BOARD_ENABLE
 using WindowDisplayChangeHandler = std::function<void(OHOS::Rosen::CallingWindowInfo callingWindowInfo)>;
 class WindowDisplayChangeListener : public OHOS::Rosen::IKeyboardCallingWindowDisplayChangedListener {
 public:
@@ -35,7 +36,6 @@ public:
 private:
     WindowDisplayChangeHandler handle_ = nullptr;
 };
-#endif
 } // namespace MiscServices
 } // namespace OHOS
 #endif // IMF_WINDOW_DISPLAY_CHANGED_LISTENER_H

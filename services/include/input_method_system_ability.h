@@ -188,9 +188,7 @@ private:
     void ResetDelayUnloadTask(uint32_t code = 0);
     bool IsImeInUse();
 #endif
-#ifdef SCENE_BOARD_ENABLE
     void HandleCallingWindowDisplay(InputClientInfo &clientInfo);
-#endif
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     bool IsValidBundleName(const std::string &bundleName);
