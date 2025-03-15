@@ -1292,7 +1292,7 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
     }
 #ifdef SCENE_BOARD_ENABLE
     Rosen::CallingWindowInfo callingWindowInfo;
-    bool isOk = WindowDisplayChangedManager::GetCallingWindowInfo(callingWindowId,
+    bool isOk = WindowAdapter::GetCallingWindowInfo(callingWindowId,
         clientInfo->userID, callingWindowInfo);
     if (!isOk) {
         IMSA_HILOGI("GetCallingWindowInfo error!");

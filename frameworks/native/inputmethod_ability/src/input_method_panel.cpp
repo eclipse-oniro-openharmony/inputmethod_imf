@@ -529,13 +529,7 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
         return checkRet;
     }
     FullPanelAdjustInfo adjustInfo;
-    auto instance = InputMethodAbility::GetInstance();
-    bool needConfig = true;
-    if ((instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) ||
-        !CurWindowIsInMainDisplay()) {
-        needConfig = false;
-    }
-    if (needConfig) {
+    if (IsNeedConfig()) {
         auto ret = GetAdjustInfo(panelFlag, adjustInfo);
         if (ret != ErrorCode::NO_ERROR) {
             return ret;
@@ -1061,8 +1055,7 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
     PanelAdjustInfo &porIterValue, const LayoutParams &layoutParams)
 {
     auto instance = InputMethodAbility::GetInstance();
-    if ((instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) ||
-        !CurWindowIsInMainDisplay()) {
+    if (!IsNeedConfig()) {
         IMSA_HILOGI("The security keyboard is handled according to no configuration file");
         return CalculateNoConfigRect(panelFlag, layoutParams);
     }
@@ -1865,22 +1858,26 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay()
 {
     IMSA_HILOGD("enter!!");
     uint64_t displayId = Rosen::DISPLAY_ID_INVALID;
-    auto temp = GetDisplayId(displayId);
+    auto ret = GetDisplayId(displayId);
     sptr<Rosen::Display> displayInfo = nullptr;
-    if (temp != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("GetDisplayId err:%{public}d!", temp);
-        return nullptr;
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("get window displayId err:%{public}d!", ret);
+        displayInfo = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    } else {
+        displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
+        if (displayInfo == nullptr) {
+            IMSA_HILOGE("get display info err:%{public}" PRIu64"!", displayId);
+            displayInfo = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+        }
     }
-    displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
     if (displayInfo) {
-        IMSA_HILOGD("displayInfo, displayId:%{public}" PRIu64 ". NAME:%{public}s \
-            width:%{public}d, height:%{public}d, screenId:%{public}" PRIu64 " ",
-        displayInfo->GetId(), displayInfo->GetName().c_str(),
-        displayInfo->GetWidth(), displayInfo->GetHeight(),
-        displayInfo->GetScreenId());
         auto info = displayInfo->GetDisplayInfo();
-        IMSA_HILOGD("displayId:%{public}" PRIu64".ScreenGId:%{public}" PRIu64"screenId:%{public}" PRIu64"",
-            info->GetDisplayId(), info->GetScreenGroupId(), info->GetScreenId());
+        IMSA_HILOGD("displayInfo, displayId:%{public}" PRIu64",ScreenGId:%{public}" PRIu64",NAME:%{public}s \
+             width:%{public}d,height:%{public}d,screenId:%{public}" PRIu64"",
+            info->GetDisplayId(), info->GetScreenGroupId(),
+            displayInfo->GetName().c_str(),
+            displayInfo->GetWidth(), displayInfo->GetHeight(),
+            info->GetScreenId());
     }
     return displayInfo;
 }
@@ -1889,22 +1886,12 @@ bool InputMethodPanel::CurWindowIsInMainDisplay()
 {
     IMSA_HILOGD("enter!!");
     uint64_t displayId;
-    auto temp = GetDisplayId(displayId);
-    if (temp != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("GetDisplayId err:%{public}d!", temp);
+    auto ret = GetDisplayId(displayId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetDisplayId err:%{public}d!", ret);
         return true;
     }
-    auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
-    if (primaryDisplay == nullptr) {
-        IMSA_HILOGE("primaryDisplay failed!");
-        return true;
-    }
-    IMSA_HILOGE("curDisplayId:%{public}" PRIu64",mainDisplayId:%{public}" PRIu64"",
-        displayId, primaryDisplay->GetId());
-    if (displayId == primaryDisplay->GetId()) {
-        return true;
-    }
-    return false;
+    return InputMethodAbility::GetInstance()->IsMainDisplay(displayId);
 }
 
 int32_t InputMethodPanel::CheckAdjustPanelRectParam()
@@ -1918,6 +1905,17 @@ int32_t InputMethodPanel::CheckAdjustPanelRectParam()
         return ErrorCode::ERROR_INVALID_PANEL_TYPE;
     }
     return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodPanel::IsNeedConfig()
+{
+    auto instance = InputMethodAbility::GetInstance();
+    bool needConfig = true;
+    if ((instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) ||
+        !CurWindowIsInMainDisplay()) {
+            needConfig = false;
+    }
+    return needConfig;
 }
 } // namespace MiscServices
 } // namespace OHOS

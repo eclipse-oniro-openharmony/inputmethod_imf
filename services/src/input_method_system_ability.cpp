@@ -1774,7 +1774,7 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
         session->HandleCallingWindowDisplayChanged(callingWindowInfo.windowId_,
             callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
     };
-    WindowDisplayChangedManager::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
+    WindowAdapter::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
 #endif
 }
 
