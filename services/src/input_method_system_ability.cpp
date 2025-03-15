@@ -2395,8 +2395,8 @@ void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clien
         return;
     }
     Rosen::CallingWindowInfo callingWindowInfo;
-    bool isOk = WindowAdapter::GetCallingWindowInfo(curWindowId, clientInfo.userID, callingWindowInfo);
-    if (!isOk) {
+    auto ret = WindowAdapter::GetCallingWindowInfo(curWindowId, clientInfo.userID, callingWindowInfo);
+    if (!ret) {
         IMSA_HILOGE("GetCallingWindowInfo error!");
         return;
     }

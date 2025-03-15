@@ -2064,7 +2064,7 @@ void PerUserSession::HandleCallingWindowDisplayChanged(const int32_t windowId,
     }
 }
 
-int32_t PerUserSession::SendToIMACallingWindowDisplayChange(const uint64_t displayId)
+int32_t PerUserSession::SendToIMACallingWindowDisplayChange(uint64_t displayId)
 {
     IMSA_HILOGD("enter displayId:%{public}" PRIu64 "", displayId);
     auto data = GetValidIme(ImeType::IME);

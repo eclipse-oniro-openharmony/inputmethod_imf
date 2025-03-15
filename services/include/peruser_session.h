@@ -133,7 +133,7 @@ public:
     void TryUnloadSystemAbility();
     void HandleCallingWindowDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
 protected:
-   int32_t SendToIMACallingWindowDisplayChange(const uint64_t displayId);
+   int32_t SendToIMACallingWindowDisplayChange(uint64_t displayId);
 private:
     struct ResetManager {
         uint32_t num{ 0 };
