@@ -524,7 +524,14 @@ int32_t InputMethodPanel::IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayo
 
 int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas)
 {
-    auto checkRet = CheckAdjustPanelRectParam();
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (panelType_ != PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGE("not soft keyboard panel");
+        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
+    }
     if (checkRet != ErrorCode::NO_ERROR) {
         return checkRet;
     }
@@ -1870,14 +1877,16 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay()
             displayInfo = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
         }
     }
-    if (displayInfo) {
+    if (displayInfo != nullptr) {
         auto info = displayInfo->GetDisplayInfo();
-        IMSA_HILOGD("displayInfo, displayId:%{public}" PRIu64",ScreenGId:%{public}" PRIu64",NAME:%{public}s \
-             width:%{public}d,height:%{public}d,screenId:%{public}" PRIu64"",
-            info->GetDisplayId(), info->GetScreenGroupId(),
-            displayInfo->GetName().c_str(),
-            displayInfo->GetWidth(), displayInfo->GetHeight(),
-            info->GetScreenId());
+        if (info != nullptr) {
+            IMSA_HILOGD("displayInfo, displayId:%{public}" PRIu64",ScreenGId:%{public}" PRIu64",NAME:%{public}s \
+                width:%{public}d,height:%{public}d,screenId:%{public}" PRIu64"",
+               info->GetDisplayId(), info->GetScreenGroupId(),
+               displayInfo->GetName().c_str(),
+               displayInfo->GetWidth(), displayInfo->GetHeight(),
+               info->GetScreenId());
+        }
     }
     return displayInfo;
 }
@@ -1885,26 +1894,13 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay()
 bool InputMethodPanel::CurWindowIsInMainDisplay()
 {
     IMSA_HILOGD("enter!!");
-    uint64_t displayId;
+    uint64_t displayId = 0;
     auto ret = GetDisplayId(displayId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("GetDisplayId err:%{public}d!", ret);
         return true;
     }
     return InputMethodAbility::GetInstance()->IsMainDisplay(displayId);
-}
-
-int32_t InputMethodPanel::CheckAdjustPanelRectParam()
-{
-    if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr!");
-        return ErrorCode::ERROR_WINDOW_MANAGER;
-    }
-    if (panelType_ != PanelType::SOFT_KEYBOARD) {
-        IMSA_HILOGE("not soft keyboard panel");
-        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
-    }
-    return ErrorCode::NO_ERROR;
 }
 
 bool InputMethodPanel::IsNeedConfig()

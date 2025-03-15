@@ -177,7 +177,6 @@ private:
     HotAreas GetHotAreas();
     sptr<Rosen::Display> GetCurDisplay();
     bool CurWindowIsInMainDisplay();
-    int32_t CheckAdjustPanelRectParam();
     bool IsNeedConfig();
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;

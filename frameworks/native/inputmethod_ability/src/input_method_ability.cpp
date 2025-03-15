@@ -1581,10 +1581,10 @@ bool InputMethodAbility::IsMainDisplay(uint64_t displayId) const
         IMSA_HILOGE("primaryDisplay failed!");
         return true;
     }
-    if (displayId != primaryDisplay->GetId()) {
-        return false;
-    }
-    return true;
+    auto primaryId = primaryDisplay->GetId();
+    IMSA_HILOGE("curDisplayId:%{public}" PRIu64",mainDisplayId:%{public}" PRIu64"",
+        displayId, primaryId);
+    return displayId == primaryId;
 }
 } // namespace MiscServices
 } // namespace OHOS

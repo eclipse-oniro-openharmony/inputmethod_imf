@@ -883,6 +883,10 @@ bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> ta
 void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplayId)
 {
     std::string type = "callingDisplayDidChange";
+    if (entry->callingDisplayId > UINT32_MAX) {
+        IMSA_HILOGE("callingDisplayId over range!");
+        return;
+    }
     auto entry = GetEntry(type, [&callingDisplayId](UvEntry &entry) { entry.callingDisplayId = callingDisplayId; });
     if (entry == nullptr) {
         return;
@@ -890,10 +894,6 @@ void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplay
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
-    if (entry->callingDisplayId > UINT32_MAX) {
-        IMSA_HILOGE("callingDisplayId over range!");
         return;
     }
     IMSA_HILOGD("callingDisplayId: %{public}d", static_cast<uint32_t>(callingDisplayId));
