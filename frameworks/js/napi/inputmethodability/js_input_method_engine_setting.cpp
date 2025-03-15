@@ -883,7 +883,7 @@ bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> ta
 void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplayId)
 {
     std::string type = "callingDisplayDidChange";
-    if (entry->callingDisplayId > UINT32_MAX) {
+    if (callingDisplayId > UINT32_MAX) {
         IMSA_HILOGE("callingDisplayId over range!");
         return;
     }
