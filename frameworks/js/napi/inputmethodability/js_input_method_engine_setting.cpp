@@ -368,7 +368,7 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
             TYPE_NONE);
     }
 #ifndef SCENE_BOARD_ENABLE
-    if (type == "callingDisplayChanged") {
+    if (type == "callingDisplayDidChange") {
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED),
             "capability not supported.", TYPE_NONE);
     }
@@ -882,7 +882,7 @@ bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> ta
 
 void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplayId)
 {
-    std::string type = "callingDisplayChanged";
+    std::string type = "callingDisplayDidChange";
     auto entry = GetEntry(type, [&callingDisplayId](UvEntry &entry) { entry.callingDisplayId = callingDisplayId; });
     if (entry == nullptr) {
         return;
