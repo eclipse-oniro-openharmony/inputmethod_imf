@@ -497,8 +497,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     SetInputAttribute(textConfig.inputAttribute);
     bool isWait = lastCallingDisplayId != textConfig.inputAttribute.callingDisplayId;
     auto task = [this, textConfig, isWait]() {
-        panels_.ForEach([&textConfig, isWait](const PanelType &panelType,
-            const std::shared_ptr<InputMethodPanel> &panel) {
+        panels_.ForEach([&textConfig, isWait](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
                 panel->SetCallingWindow(textConfig.windowId, isWait);
             }
