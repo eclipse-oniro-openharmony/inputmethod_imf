@@ -97,6 +97,11 @@ ohos_shared_library("inputmethodengine") {
 
   public_configs = [ ":inputmethodengine_native_public_config" ]
 
+  defines = []
+  if (window_manager_use_sceneboard) {
+    defines += [ "SCENE_BOARD_ENABLE" ]
+  }
+
   relative_install_dir = "module"
   subsystem_name = "inputmethod"
   part_name = "imf"

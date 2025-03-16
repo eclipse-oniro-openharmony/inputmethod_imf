@@ -155,6 +155,7 @@ private:
     bool InitMemMgrMonitor();
     void InitWmsConnectionMonitor();
     void InitFocusChangedMonitor();
+    void InitWindowDisplayChangedMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();
@@ -187,6 +188,7 @@ private:
     void ResetDelayUnloadTask(uint32_t code = 0);
     bool IsImeInUse();
 #endif
+    void HandleCallingWindowDisplay(InputClientInfo &clientInfo);
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     bool IsValidBundleName(const std::string &bundleName);
