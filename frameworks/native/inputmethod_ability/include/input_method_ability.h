@@ -115,7 +115,6 @@ public:
 
     int32_t OnStopInputService(bool isTerminateIme);
     uint64_t GetCallingWindowDisplayId();
-    bool IsMainDisplay(uint64_t displayId) const;
 private:
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;

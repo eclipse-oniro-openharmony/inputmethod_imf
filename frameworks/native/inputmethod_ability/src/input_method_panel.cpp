@@ -1874,18 +1874,10 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay()
             displayInfo = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
         }
     }
-    if (displayInfo != nullptr) {
-        auto info = displayInfo->GetDisplayInfo();
-        if (info != nullptr) {
-            IMSA_HILOGD("displayId:%{public}" PRIu64",name:%{public}s,w:%{public}d,h:%{public}d",
-                displayInfo->GetId(), displayInfo->GetName().c_str(),
-                displayInfo->GetWidth(), displayInfo->GetHeight());
-        }
-    }
     return displayInfo;
 }
 
-bool InputMethodPanel::CurWindowIsInMainDisplay()
+bool InputMethodPanel::IsInMainDisplay()
 {
     IMSA_HILOGD("enter!!");
     uint64_t displayId = 0;
@@ -1894,7 +1886,12 @@ bool InputMethodPanel::CurWindowIsInMainDisplay()
         IMSA_HILOGE("GetDisplayId err:%{public}d!", ret);
         return true;
     }
-    return InputMethodAbility::GetInstance()->IsMainDisplay(displayId);
+    auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    if (primaryDisplay == nullptr) {
+        IMSA_HILOGE("primaryDisplay failed!");
+        return true;
+    }
+    return primaryDisplay->GetId() == displayId;
 }
 
 bool InputMethodPanel::IsNeedConfig()
@@ -1902,7 +1899,7 @@ bool InputMethodPanel::IsNeedConfig()
     auto instance = InputMethodAbility::GetInstance();
     bool needConfig = true;
     if ((instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) ||
-        !CurWindowIsInMainDisplay()) {
+        !IsInMainDisplay()) {
             needConfig = false;
     }
     return needConfig;

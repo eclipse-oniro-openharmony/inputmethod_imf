@@ -58,7 +58,7 @@ bool WindowAdapter::GetCallingWindowInfo(const uint32_t windId, const int32_t us
         IMSA_HILOGE("failed to get calling window info.");
         return false;
     }
-    IMSA_HILOGI("callingWindowInfo:%{public}s",
+    IMSA_HILOGD("callingWindowInfo:%{public}s",
         WindowDisplayChangeListener::CallingWindowInfoToString(callingWindowInfo).c_str());
     return true;
 }

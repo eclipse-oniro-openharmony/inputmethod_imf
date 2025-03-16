@@ -86,6 +86,7 @@ public:
     int32_t IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayoutParams &params);
     int32_t SetImmersiveMode(ImmersiveMode mode);
     ImmersiveMode GetImmersiveMode();
+    bool IsInMainDisplay();
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -176,7 +177,6 @@ private:
     void SetHotAreas(const HotAreas &hotAreas);
     HotAreas GetHotAreas();
     sptr<Rosen::Display> GetCurDisplay();
-    bool CurWindowIsInMainDisplay();
     bool IsNeedConfig();
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
