@@ -1291,8 +1291,8 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     auto isScbEnable = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+    Rosen::CallingWindowInfo callingWindowInfo;
     if (isScbEnable) {
-        Rosen::CallingWindowInfo callingWindowInfo;
         bool isOk = WindowAdapter::GetCallingWindowInfo(callingWindowId,
             clientInfo->userID, callingWindowInfo);
         if (!isOk) {

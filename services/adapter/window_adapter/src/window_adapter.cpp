@@ -39,7 +39,7 @@ void WindowAdapter::GetFoucusInfo(OHOS::Rosen::FocusChangeInfo& focusInfo)
 #ifdef SCENE_BOARD_ENABLE
     WindowManagerLite::GetInstance().GetFocusWindowInfo(focusInfo);
 #else
-    WindowManager::GetInstance().GetFocusWindowInfo(callingWindowInfo);
+    WindowManager::GetInstance().GetFocusWindowInfo(focusInfo);
 #endif
 }
 
@@ -52,7 +52,7 @@ bool WindowAdapter::GetCallingWindowInfo(const uint32_t windId, const int32_t us
 #ifdef SCENE_BOARD_ENABLE
     auto wmerr = WindowManagerLite::GetInstance().GetCallingWindowInfo(callingWindowInfo);
 #else
-    auto wmerr = WindowManager::GetInstance().GetCallingWindowInfo(callingWindowInfo);
+    auto wmerr = WMError::WM_ERROR_DEVICE_NOT_SUPPORT;
 #endif
     if (wmerr != WMError::WM_OK) {
         IMSA_HILOGE("failed to get calling window info.");
