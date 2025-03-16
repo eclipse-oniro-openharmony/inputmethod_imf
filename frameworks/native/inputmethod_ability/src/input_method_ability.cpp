@@ -502,7 +502,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
             if (panel != nullptr) {
                 panel->SetCallingWindow(textConfig.windowId, isWait);
             }
-            
             return false;
         });
     };
