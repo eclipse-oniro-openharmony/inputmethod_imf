@@ -1563,6 +1563,10 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
 int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
 {
     IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64".", displayId);
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGD("imeListener_ is nullptr!");
+        return ErrorCode::NO_ERROR;
+    }
     bool isWait = displayId != GetInputAttribute().callingDisplayId;
     auto windowId = GetInputAttribute().windowId;
     auto task = [this, windowId, isWait]() {
@@ -1572,16 +1576,10 @@ int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
             return false;
         });
     };
-    if (imeListener_ != nullptr) {
-        imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
-    }
+    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     {
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.callingDisplayId = displayId;
-    }
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGD("imeListener_ is nullptr!");
-        return ErrorCode::NO_ERROR;
     }
     imeListener_->OnCallingDisplayChanged(displayId);
     return ErrorCode::NO_ERROR;
