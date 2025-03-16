@@ -499,7 +499,10 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     auto task = [this, textConfig, isWait]() {
         panels_.ForEach([&textConfig, isWait](const PanelType &panelType,
             const std::shared_ptr<InputMethodPanel> &panel) {
-            panel->SetCallingWindow(textConfig.windowId, isWait);
+            if (panel != nullptr) {
+                panel->SetCallingWindow(textConfig.windowId, isWait);
+            }
+            
             return false;
         });
     };
@@ -1572,7 +1575,9 @@ int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
     auto task = [this, windowId, isWait]() {
         panels_.ForEach([windowId, isWait](const PanelType &panelType,
                 const std::shared_ptr<InputMethodPanel> &panel) {
-            panel->SetCallingWindow(windowId, isWait);
+            if (panel != nullptr) {
+                panel->SetCallingWindow(windowId, isWait);
+            }
             return false;
         });
     };
