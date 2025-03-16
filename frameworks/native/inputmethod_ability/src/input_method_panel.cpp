@@ -43,6 +43,8 @@ constexpr int32_t DEFAULT_AVOID_HEIGHT = -1;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_ { 0 };
 constexpr int32_t MAXWAITTIME = 30;
 constexpr int32_t WAITTIME = 10;
+constexpr uint32_t INTERVAL_TIME = 5;
+constexpr uint32_t RETRY_TIMES = 4;
 InputMethodPanel::~InputMethodPanel() = default;
 
 int32_t InputMethodPanel::CreatePanel(
@@ -1301,7 +1303,7 @@ int32_t InputMethodPanel::HidePanel()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
+int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId, bool isWait)
 {
     IMSA_HILOGD("InputMethodPanel start, windowId: %{public}d.", windowId);
     if (window_ == nullptr) {
@@ -1309,6 +1311,19 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
     auto ret = window_->SetCallingWindow(windowId);
+    if (isWait) {
+        bool retBlock = BlockRetry(INTERVAL_TIME, RETRY_TIMES, [this]()->bool {
+            uint64_t displayId = 0;
+            if (GetDisplayId(displayId) != ErrorCode::NO_ERROR) {
+                return false;
+            }
+            auto callingDisplayId = InputMethodAbility::GetInstance()->GetInputAttribute().callingDisplayId;
+            IMSA_HILOGI("wait dispalyId:%{public}" PRIu64", calingDisplayId::%{public}" PRIu64"",
+                displayId, callingDisplayId);
+            return displayId == callingDisplayId;
+        });
+        IMSA_HILOGD("retry result:%{public}d", retBlock);
+    }
     IMSA_HILOGI("ret: %{public}d, windowId: %{public}u", ret, windowId);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_WINDOW_MANAGER;
 }

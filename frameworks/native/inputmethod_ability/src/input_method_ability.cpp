@@ -493,6 +493,17 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
+    auto lastCallingDisplayId = GetInputAttribute().callingDisplayId;
+    SetInputAttribute(textConfig.inputAttribute);
+    bool isWait = lastCallingDisplayId != textConfig.inputAttribute.callingDisplayId;
+    auto task = [this, textConfig, isWait]() {
+        panels_.ForEach([&textConfig, isWait](const PanelType &panelType,
+            const std::shared_ptr<InputMethodPanel> &panel) {
+            panel->SetCallingWindow(textConfig.windowId, isWait);
+            return false;
+        });
+    };
+    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     SetInputAttribute(textConfig.inputAttribute);
     IMSA_HILOGD("attribute info:%{public}s", textConfig.inputAttribute.ToString().c_str());
     if (kdListener_ != nullptr) {
@@ -519,13 +530,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
                 textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
     }
-    auto task = [this, textConfig]() {
-        panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
-            panel->SetCallingWindow(textConfig.windowId);
-            return false;
-        });
-    };
-    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     if (textConfig.windowId != INVALID_WINDOW_ID) {
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
@@ -1008,7 +1012,7 @@ int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatu
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     auto panel = GetSoftKeyboardPanel();
-    if ( panel != nullptr) {
+    if (panel != nullptr) {
         sysPanelStatus.isMainDisplay = panel ->IsInMainDisplay();
     }
     return systemChannel->NotifyPanelStatus(sysPanelStatus);
@@ -1558,7 +1562,19 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
 
 int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
 {
-    IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64 ".", displayId);
+    IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64".", displayId);
+    bool isWait = displayId != GetInputAttribute().callingDisplayId;
+    auto windowId = GetInputAttribute().windowId;
+    auto task = [this, windowId, isWait]() {
+        panels_.ForEach([windowId, isWait](const PanelType &panelType,
+                const std::shared_ptr<InputMethodPanel> &panel) {
+            panel->SetCallingWindow(windowId, isWait);
+            return false;
+        });
+    };
+    if (imeListener_ != nullptr) {
+        imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
+    }
     {
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.callingDisplayId = displayId;
