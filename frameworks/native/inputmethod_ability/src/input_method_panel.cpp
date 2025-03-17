@@ -1058,17 +1058,19 @@ int32_t InputMethodPanel::GetAdjustInfo(PanelFlag panelFlag, FullPanelAdjustInfo
 int32_t InputMethodPanel::GetSysPanelAdjust(const PanelFlag panelFlag,
     std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, const LayoutParams &layoutParams)
 {
+    PanelAdjustInfo lanIterValue;
+    PanelAdjustInfo porIterValue;
     std::lock_guard<std::mutex> lock(panelAdjustLock_);
     auto lanPanel = std::get<0>(keys);
     auto porPanel = std::get<1>(keys);
     auto lanIter = panelAdjust_.find(lanPanel);
     auto porIter = panelAdjust_.find(porPanel);
-    if (lanIter == panelAdjust_.end() || porIter == panelAdjust_.end()) {
-        IMSA_HILOGE("lanIter or porIter not supported!");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+    if (lanIter != panelAdjust_.end()) {
+        lanIterValue = lanIter->second;
     }
-    auto lanIterValue = lanIter->second;
-    auto porIterValue = porIter->second;
+    if (porIter != panelAdjust_.end()) {
+        porIterValue = porIter->second;
+    }
     return CalculatePanelRect(panelFlag, lanIterValue, porIterValue, layoutParams);
 }
 
