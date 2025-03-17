@@ -34,7 +34,7 @@ public:
     DISALLOW_COPY_AND_MOVE(InputMethodCoreProxy);
 
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient) override;
-    int32_t StopInput(const sptr<IRemoteObject> &channel) override;
+    int32_t StopInput(const sptr<IRemoteObject> &channel, uint32_t sessionId) override;
     int32_t ShowKeyboard() override;
     int32_t HideKeyboard() override;
     int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) override;

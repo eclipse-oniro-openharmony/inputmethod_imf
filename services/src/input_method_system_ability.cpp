@@ -539,7 +539,7 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client, uint32_t sessionId)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr!");
@@ -551,7 +551,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnReleaseInput(client);
+    return session->OnReleaseInput(client, sessionId);
 }
 
 int32_t InputMethodSystemAbility::StartInput(

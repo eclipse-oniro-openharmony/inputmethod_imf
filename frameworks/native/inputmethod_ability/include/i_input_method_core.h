@@ -55,7 +55,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
 
     virtual int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient) = 0;
-    virtual int32_t StopInput(const sptr<IRemoteObject> &channel) = 0;
+    virtual int32_t StopInput(const sptr<IRemoteObject> &channel, uint32_t sessionId) = 0;
     virtual int32_t ShowKeyboard() = 0;
     virtual int32_t HideKeyboard() = 0;
     virtual int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) = 0;

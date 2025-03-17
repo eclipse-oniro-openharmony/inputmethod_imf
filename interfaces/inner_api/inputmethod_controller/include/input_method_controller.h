@@ -1003,6 +1003,7 @@ private:
     std::shared_ptr<MsgHandlerCallbackInterface> msgHandler_ = nullptr;
     std::mutex bindImeInfoLock_;
     std::pair<int64_t, std::string> bindImeInfo_{ 0, "" }; // for hiSysEvent
+    std::atomic_uint32_t sessionId_ { 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS

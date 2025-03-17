@@ -109,7 +109,7 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     userSessions->NotifyImeChangeToClients(property, subProperty);
     userSessions->OnHideCurrentInput();
     userSessions->OnHideInput(client);
-    userSessions->OnReleaseInput(client);
+    userSessions->OnReleaseInput(client, 0);
     return true;
 }
 } // namespace OHOS
