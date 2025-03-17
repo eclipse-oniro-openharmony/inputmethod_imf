@@ -65,6 +65,19 @@ int32_t InputMethodAbilityInterface::MoveCursor(int32_t keyCode)
     return InputMethodAbility::GetInstance()->MoveCursor(keyCode);
 }
 
+int32_t InputMethodAbilityInterface::GetEditorAttribute(InputAttribute &attribute)
+{
+    TextTotalConfig config;
+    int32_t ret = InputMethodAbility::GetInstance()->GetTextConfig(config);
+    attribute = config.inputAttribute;
+    return ret;
+}
+
+int32_t InputMethodAbilityInterface::SendFunctionKey(int32_t funcKey)
+{
+    return InputMethodAbility::GetInstance()->SendFunctionKey(funcKey);
+}
+
 void InputMethodAbilityInterface::SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)
 {
     InputMethodAbility::GetInstance()->SetImeListener(imeListener);

@@ -37,6 +37,8 @@ public:
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t MoveCursor(int32_t keyCode);
+    int32_t GetEditorAttribute(InputAttribute &attribute);
+    int32_t SendFunctionKey(int32_t funcKey);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
 

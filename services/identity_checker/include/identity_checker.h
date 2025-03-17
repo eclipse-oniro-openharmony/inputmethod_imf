@@ -22,10 +22,9 @@ namespace MiscServices {
 class IdentityChecker {
 public:
     static constexpr int64_t INVALID_PID = -1;
+    static constexpr uint64_t INVALID_DISPLAY_ID = -1ULL;
     virtual ~IdentityChecker() = default;
     virtual bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) = 0;
-    virtual bool IsFocused(
-        int64_t callingPid, uint32_t callingTokenId, uint64_t &displayId, int64_t focusedPid = INVALID_PID);
     virtual bool IsSystemApp(uint64_t fullTokenId) = 0;
     virtual bool IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName) = 0;
     virtual bool HasPermission(uint32_t tokenId, const std::string &permission) = 0;
@@ -39,7 +38,11 @@ public:
     virtual bool IsTargetSa(int32_t callingUid, int32_t validUid)
     {
         return false;
-    }
+    };
+    virtual uint64_t GetCallingDisplayId(int64_t callingPid)
+    {
+        return ErrorCode::NO_ERROR;
+    };
 };
 } // namespace MiscServices
 } // namespace OHOS

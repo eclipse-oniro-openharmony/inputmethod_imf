@@ -139,8 +139,11 @@ public:
     bool IsSaReady(int32_t saId);
     void UpdateUserLockState();
     void TryUnloadSystemAbility();
+    void HandleCallingWindowDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     uint64_t GetDisplayGroupId(uint64_t displayId);
 
+protected:
+   int32_t SendToIMACallingWindowDisplayChange(uint64_t displayId);
 private:
     struct ResetManager {
         uint32_t num{ 0 };
