@@ -25,6 +25,7 @@
 #include "system_ability.h"
 #include "input_method_types.h"
 #include "user_session_manager.h"
+#include "input_type_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -121,7 +122,7 @@ private:
     int32_t OnStartInputType(int32_t userId, const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t HandlePackageEvent(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
-    void OnUserUnlocked(const Message *msg);
+    void OnScreenUnlock(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
     void SubscribeCommonEvent();
     int32_t Switch(int32_t userId, const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
@@ -132,7 +133,6 @@ private:
     ServiceRunningState state_;
     void InitServiceHandler();
     void UpdateUserInfo(int32_t userId);
-    void UpdateUserLockState();
     void HandleWmsConnected(int32_t userId, int32_t screenId);
     void HandleWmsDisconnected(int32_t userId, int32_t screenId);
     void HandleScbStarted(int32_t userId, int32_t screenId);
@@ -183,6 +183,8 @@ private:
     int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t ShowCurrentInputInner();
     std::pair<int64_t, std::string> GetCurrentImeInfoForHiSysEvent(int32_t userId);
+    int32_t GetScreenLockIme(std::string &ime);
+    int32_t GetAlternativeIme(std::string &ime);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
     void ResetDelayUnloadTask(uint32_t code = 0);

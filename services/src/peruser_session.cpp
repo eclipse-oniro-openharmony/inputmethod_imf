@@ -28,6 +28,12 @@
 #include "security_mode_parser.h"
 #include "system_ability_definition.h"
 #include "wms_connection_observer.h"
+#include "dm_common.h"
+#include "display_manager.h"
+#include "parameters.h"
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+#include "screenlock_manager.h"
+#endif
 #include "window_adapter.h"
 
 namespace OHOS {
@@ -984,9 +990,8 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
-void PerUserSession::OnUserUnlocked()
+void PerUserSession::OnScreenUnlock()
 {
-    isUserUnlocked_.store(true);
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (currentIme == nullptr) {
@@ -1002,19 +1007,6 @@ void PerUserSession::OnUserUnlocked()
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     AddRestartIme();
 #endif
-}
-
-void PerUserSession::UpdateUserLockState()
-{
-    bool isUnlocked = false;
-    if (OsAccountAdapter::IsOsAccountVerified(userId_, isUnlocked) != ErrorCode::NO_ERROR) {
-        return;
-    }
-    IMSA_HILOGI("isUnlocked: %{public}d", isUnlocked);
-    isUserUnlocked_.store(isUnlocked);
-    if (isUnlocked) {
-        OnUserUnlocked();
-    }
 }
 
 std::shared_ptr<InputClientInfo> PerUserSession::GetCurClientInfo()
@@ -1121,13 +1113,21 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 
 bool PerUserSession::CanStartIme()
 {
-    return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
+    return (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() &&
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    IsSaReady(SCREENLOCK_SERVICE_ID) &&
+#endif
+    runningIme_.empty());
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
     const std::shared_ptr<ImeNativeCfg> &targetIme, std::shared_ptr<ImeNativeCfg> &imeToStart)
 {
-    if (isUserUnlocked_.load()) {
+#ifndef IMF_SCREENLOCK_MGR_ENABLE
+    IMSA_HILOGD("no need");
+    return ErrorCode::NO_ERROR;
+#endif
+    if (!ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         IMSA_HILOGD("no need");
         imeToStart = targetIme;
         return ErrorCode::NO_ERROR;
