@@ -34,6 +34,7 @@
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
 #include "screenlock_manager.h"
 #endif
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -1289,10 +1290,33 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
         IMSA_HILOGE("nullptr clientInfo!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
+    auto isScbEnable = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+    Rosen::CallingWindowInfo callingWindowInfo;
+    if (isScbEnable) {
+        bool isOk = WindowAdapter::GetCallingWindowInfo(callingWindowId,
+            clientInfo->userID, callingWindowInfo);
+        if (!isOk) {
+            IMSA_HILOGI("GetCallingWindowInfo error!");
+            return ErrorCode::ERROR_WINDOW_MANAGER;
+        }
+        if (callingWindowInfo.callingPid_ != clientInfo->pid) {
+            IMSA_HILOGI("pid diff clientInfo:pid:%{public}d, userid:%{public}d!",
+                clientInfo->pid, clientInfo->userID);
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
+    }
     // if windowId change, refresh windowId info and notify clients input start;
     if (clientInfo->config.windowId != callingWindowId) {
         IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
         clientInfo->config.windowId = callingWindowId;
+        clientInfo->config.inputAttribute.windowId = callingWindowId;
+        if (isScbEnable) {
+            auto curDisplayId = clientInfo->config.inputAttribute.callingDisplayId;
+            if (curDisplayId != callingWindowInfo.displayId_) {
+                clientInfo->config.inputAttribute.callingDisplayId =  callingWindowInfo.displayId_ ;
+                SendToIMACallingWindowDisplayChange(callingWindowInfo.displayId_);
+            }
+        }
         return NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     }
     return ErrorCode::NO_ERROR;
@@ -2013,6 +2037,51 @@ void PerUserSession::TryUnloadSystemAbility()
 
     auto onDemandStartStopSa = std::make_shared<OnDemandStartStopSa>();
     onDemandStartStopSa->UnloadInputMethodSystemAbility();
+}
+
+void PerUserSession::HandleCallingWindowDisplayChanged(const int32_t windowId,
+    const int32_t callingPid, const uint64_t displayId)
+{
+    IMSA_HILOGD("enter!inputinfo: windowId:%{public}d,callingPid:%{public}d,displayId:%{public}" PRIu64 "",
+        windowId, callingPid, displayId);
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (clientInfo == nullptr) {
+        IMSA_HILOGD("clientInfo is null");
+        return;
+    }
+    if (clientInfo->config.inputAttribute.callingDisplayId == Rosen::DISPLAY_ID_INVALID) {
+        IMSA_HILOGD("callingDisplayId invaild");
+        return;
+    }
+    IMSA_HILOGD("local userId_:%{public}d, winddowId:%{public}d",
+        userId_, clientInfo->config.windowId);
+    if (clientInfo->config.windowId == static_cast<uint32_t>(windowId)) {
+        uint64_t curDisplay = clientInfo->config.inputAttribute.callingDisplayId;
+        if (curDisplay != displayId) {
+            clientInfo->config.inputAttribute.callingDisplayId = displayId;
+            SendToIMACallingWindowDisplayChange(displayId);
+        }
+    }
+}
+
+int32_t PerUserSession::SendToIMACallingWindowDisplayChange(uint64_t displayId)
+{
+    IMSA_HILOGD("enter displayId:%{public}" PRIu64 "", displayId);
+    auto data = GetValidIme(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    auto callBack = [&data, displayId]() -> int32_t {
+        data->core->OnCallingDisplayChange(displayId);
+        return ErrorCode::NO_ERROR;
+    };
+    auto ret = RequestIme(data, RequestType::NORMAL, callBack);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("send to IMA calling window display change failed, ret: %{public}d!", ret);
+    }
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

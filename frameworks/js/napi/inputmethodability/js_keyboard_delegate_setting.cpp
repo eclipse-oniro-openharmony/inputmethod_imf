@@ -501,7 +501,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         // 3 means callback has three params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 3, paramGetter });
     };
-    handler_->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
