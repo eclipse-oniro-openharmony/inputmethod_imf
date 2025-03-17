@@ -28,12 +28,14 @@ public:
     static bool IsExist(const std::string &path);
     static bool Read(const std::string &path, std::string &content);
     static bool Read(const std::string &path, const std::string &key, std::string &content);
-    static bool Write(const std::string &path, const std::string &content, int32_t flags,
+    static bool Write(const std::string &path, const std::string &content, uint32_t flags,
         mode_t mode = S_IRUSR | S_IWUSR);
     static std::string GetRealPath(const char *path);
 
 private:
     static std::string Read(const std::string &path, const std::string &key);
+    static bool IsValidPath(const std::string &filePath);
+    static bool CheckImeCfgFilePath(const std::string &path);
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -52,7 +52,42 @@ bool FileOperator::Read(const std::string &path, std::string &content)
     return true;
 }
 
-bool FileOperator::Write(const std::string &path, const std::string &content, int32_t flags, mode_t mode)
+bool FileOperator::IsValidPath(const std::string &filePath)
+{
+    if (filePath.find("../") != std::string::npos) {
+        IMSA_HILOGE("FilePath contains '../'");
+        return false;
+    }
+    if (filePath.find("./") != std::string::npos) {
+        IMSA_HILOGE("FilePath contains './'");
+        return false;
+    }
+    if (filePath[0] != '/') {
+        IMSA_HILOGE("FilePath is not an absolute path");
+        return false;
+    }
+    return true;
+}
+
+bool FileOperator::CheckImeCfgFilePath(const std::string &path)
+{
+    if (path.empty()) {
+        IMSA_HILOGE("Path is empty");
+        return false;
+    }
+    char realPath[PATH_MAX] = { 0 };
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        IMSA_HILOGE("Path is error");
+        return false;
+    }
+    if (!IsValidPath(realPath)) {
+        IMSA_HILOGE("Path is IsValidPath");
+        return false;
+    }
+    return true;
+}
+
+bool FileOperator::Write(const std::string &path, const std::string &content, uint32_t flags, mode_t mode)
 {
     const char* fopenMode;
     if (flags & O_TRUNC) {
@@ -64,6 +99,12 @@ bool FileOperator::Write(const std::string &path, const std::string &content, in
     } else {
         fopenMode = "r+";
     }
+
+    if (!CheckImeCfgFilePath(path)) {
+        IMSA_HILOGE("path check fail");
+        return false;
+    }
+
     FILE* file = fopen(path.c_str(), fopenMode);
     if (file == nullptr) {
         IMSA_HILOGE("%{public}s open fail, errno: %{public}d", path.c_str(), errno);
@@ -77,9 +118,10 @@ bool FileOperator::Write(const std::string &path, const std::string &content, in
         }
         return false;
     }
-        if (fclose(file) != 0) {
-            IMSA_HILOGE("%{public}s close fail, errno: %{public}d", path.c_str(), errno);
-        }
+    if (fclose(file) != 0) {
+        IMSA_HILOGE("%{public}s close fail, errno: %{public}d", path.c_str(), errno);
+    }
+
     return true;
 }
 
