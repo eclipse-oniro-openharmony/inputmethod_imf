@@ -125,8 +125,8 @@ public:
 private:
     ImeEnabledInfoManager() = default;
     ~ImeEnabledInfoManager();
+    int32_t CorrectAdd(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t AddUser(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
-    int32_t CorrectUserAdd(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t GetEnabledStateInner(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t GetEnabledStateInner(int32_t userId, std::vector<Property> &props);
     int32_t GetEnabledCfg(

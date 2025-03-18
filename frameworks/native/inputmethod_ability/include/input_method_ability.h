@@ -70,6 +70,7 @@ public:
     int32_t GetInputPattern(int32_t &inputPattern);
     int32_t GetTextIndexAtCursor(int32_t &index);
     int32_t GetTextConfig(TextTotalConfig &textConfig);
+    int32_t AdjustKeyboard();
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
@@ -97,6 +98,7 @@ public:
     int32_t SendMessage(const ArrayBuffer &arrayBuffer);
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
     int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
+    int32_t OnCallingDisplayChange(uint64_t displayId);
 
 public:
     /* called from TaskManager worker thread */
@@ -112,7 +114,7 @@ public:
     void OnAttributeChange(InputAttribute attribute);
 
     int32_t OnStopInputService(bool isTerminateIme);
-
+    uint64_t GetCallingWindowDisplayId();
 private:
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
@@ -177,7 +179,6 @@ private:
     HiSysEventClientInfo GetBindClientInfo();
     void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);
     void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
-
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
     std::atomic_bool isBound_ { false };
 

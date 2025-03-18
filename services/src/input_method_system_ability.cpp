@@ -37,6 +37,7 @@
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 #include "on_demand_start_stop_sa.h"
 #endif
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -352,21 +353,6 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     userId_ = userId;
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
-    UpdateUserLockState();
-}
-
-void InputMethodSystemAbility::UpdateUserLockState()
-{
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        UserSessionManager::GetInstance().AddUserSession(userId_);
-    }
-    session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
-        return;
-    }
-    session->UpdateUserLockState();
 }
 
 int32_t InputMethodSystemAbility::OnIdle(const SystemAbilityOnDemandReason &idleReason)
@@ -544,6 +530,12 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
         clientInfo.uiExtensionTokenId = tokenId;
     }
     clientInfo.name = ImfHiSysEventUtil::GetAppName(tokenId);
+    if (isScbEnable_.load()) {
+        HandleCallingWindowDisplay(clientInfo);
+    } else {
+        clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
+        clientInfo.config.inputAttribute.callingDisplayId = 0;
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -660,6 +652,16 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
         session->RestoreCurrentImeSubType();
     }
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+        std::string ime;
+        if (GetScreenLockIme(ime) != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("not ime screenlocked");
+            return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
+        }
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, ime);
+    }
+#endif
     return session->RestoreCurrentIme();
 }
 
@@ -1337,8 +1339,8 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
-            case MSG_ID_USER_UNLOCKED: {
-                OnUserUnlocked(msg);
+            case MSG_ID_SCREEN_UNLOCK: {
+                OnScreenUnlock(msg);
                 break;
             }
             case MSG_ID_REGULAR_UPDATE_IME_INFO: {
@@ -1472,7 +1474,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::st
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
+void InputMethodSystemAbility::OnScreenUnlock(const Message *msg)
 {
     if (msg == nullptr || msg->msgContent_ == nullptr) {
         IMSA_HILOGE("message is nullptr");
@@ -1496,7 +1498,7 @@ void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return;
     }
-    session->OnUserUnlocked();
+    session->OnScreenUnlock();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -1760,6 +1762,22 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
 {
     FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
         [this](bool isOnFocused, int32_t pid, int32_t uid) { HandleFocusChanged(isOnFocused, pid, uid); });
+}
+void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
+{
+    IMSA_HILOGD("enter.");
+    auto callBack = [this](OHOS::Rosen::CallingWindowInfo callingWindowInfo) {
+        IMSA_HILOGD("WindowDisplayChanged callbak.");
+        int32_t userId = callingWindowInfo.userId_;
+        auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+        if (session == nullptr) {
+            IMSA_HILOGE("[%{public}d] session is nullptr!", userId);
+            return;
+        };
+        session->HandleCallingWindowDisplayChanged(callingWindowInfo.windowId_,
+            callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
+    };
+    WindowAdapter::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
 }
 
 void InputMethodSystemAbility::RegisterSecurityModeObserver()
@@ -2086,6 +2104,7 @@ void InputMethodSystemAbility::HandleWmsStarted()
     if (isScbEnable_.load()) {
         IMSA_HILOGI("scb enable, register WMS connection listener.");
         InitWmsConnectionMonitor();
+        InitWindowDisplayChangedMonitor();
         return;
     }
     // clear client
@@ -2122,8 +2141,6 @@ void InputMethodSystemAbility::HandleOsAccountStarted()
     auto userId = OsAccountAdapter::GetForegroundOsAccountLocalId();
     if (userId_ != userId) {
         UpdateUserInfo(userId);
-    } else {
-        UpdateUserLockState();
     }
 }
 
@@ -2361,6 +2378,99 @@ std::pair<int64_t, std::string> InputMethodSystemAbility::GetCurrentImeInfoForHi
         imeInfo.second = imeData->ime.first;
     }
     return imeInfo;
+}
+
+int32_t InputMethodSystemAbility::GetScreenLockIme(std::string &ime)
+{
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (defaultIme != nullptr) {
+        ime = defaultIme->imeId;
+        IMSA_HILOGD("GetDefaultIme screenlocked");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("GetDefaultIme is failed!");
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentIme != nullptr) {
+        ime = currentIme->imeId;
+        IMSA_HILOGD("GetCurrentIme screenlocked");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("GetCurrentIme is failed!");
+    if (GetAlternativeIme(ime) != ErrorCode::NO_ERROR) {
+        return ErrorCode::ERROR_NOT_IME;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
+{
+    InputMethodStatus status = InputMethodStatus::ENABLE;
+    std::vector<Property> props;
+    int32_t ret = ListInputMethod(status, props);
+    if (ret == ErrorCode::NO_ERROR && !props.empty()) {
+        ime = props[0].id;
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGD("GetListEnableInputMethodIme is failed!");
+    status = InputMethodStatus::DISABLE;
+    ret = ListInputMethod(status, props);
+    if (ret != ErrorCode::NO_ERROR || props.empty()) {
+        IMSA_HILOGE("GetListDisableInputMethodIme is failed!");
+        return ErrorCode::ERROR_NOT_IME;
+    }
+    if (EnableIme(props[0].name)) {
+        ime = props[0].id;
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("GetAlternativeIme is failed!");
+    return ErrorCode::ERROR_NOT_IME;
+}
+
+void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clientInfo)
+{
+    IMSA_HILOGD("enter");
+    auto curWindowId = clientInfo.config.windowId;
+    auto curDisplayId = clientInfo.config.inputAttribute.callingDisplayId;
+    IMSA_HILOGD("curWindowId:%{public}d, curDisplayId:%{public}d!",
+        curWindowId, static_cast<uint32_t>(curDisplayId));
+    IMSA_HILOGD("clientInfo:pid:%{public}d, userid:%{public}d!",
+        clientInfo.pid, clientInfo.userID);
+    OHOS::Rosen::FocusChangeInfo focusInfo;
+    WindowAdapter::GetFoucusInfo(focusInfo);
+    if (curWindowId == INVALID_WINDOW_ID) {
+        clientInfo.config.inputAttribute.callingDisplayId = focusInfo.displayId_;
+        clientInfo.config.inputAttribute.windowId = curWindowId;
+        IMSA_HILOGD("result windowId <= 0 inputAttribute:%{public}s",
+            clientInfo.config.inputAttribute.ToString().c_str());
+        return;
+    }
+    Rosen::CallingWindowInfo callingWindowInfo;
+    auto ret = WindowAdapter::GetCallingWindowInfo(curWindowId, clientInfo.userID, callingWindowInfo);
+    if (!ret) {
+        IMSA_HILOGE("GetCallingWindowInfo error!");
+        return;
+    }
+    bool isVaild = true;
+    if (callingWindowInfo.callingPid_ != clientInfo.pid) {
+        if (clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
+            isVaild = true;
+        } else {
+            isVaild = false;
+        }
+    }
+    if (isVaild) {
+        curDisplayId = callingWindowInfo.displayId_;
+        IMSA_HILOGD("check ok");
+    } else {
+        curDisplayId = focusInfo.displayId_;
+        IMSA_HILOGD("check not ok");
+    }
+    clientInfo.config.inputAttribute.callingDisplayId = curDisplayId;
+    clientInfo.config.inputAttribute.windowId = curWindowId;
+    clientInfo.config.windowId = curWindowId;
+    IMSA_HILOGD("result inputAttribute:%{public}s",
+        clientInfo.config.inputAttribute.ToString().c_str());
+    return;
 }
 } // namespace MiscServices
 } // namespace OHOS

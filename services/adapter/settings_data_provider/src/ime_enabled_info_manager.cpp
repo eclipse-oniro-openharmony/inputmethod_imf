@@ -72,13 +72,13 @@ int32_t ImeEnabledInfoManager::Add(int32_t userId, const std::vector<FullImeInfo
     ImeEnabledCfg cfg;
     auto ret = GetEnabledCfgFromCache(userId, cfg);
     if (ret == ErrorCode::NO_ERROR) {
-        ModGlobalEnabledTable(userId, cfg);
+        ModGlobalEnabledTable(userId, cfg);   // user switch, replace global table by user table
         return ret;
     }
     return AddUser(userId, imeInfos);
 }
 
-int32_t ImeEnabledInfoManager::CorrectUserAdd(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
+int32_t ImeEnabledInfoManager::CorrectAdd(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
 {
     ImeEnabledCfg cfg;
     auto ret = GetEnabledCfgFromCache(userId, cfg);
@@ -383,7 +383,7 @@ int32_t ImeEnabledInfoManager::GetEnabledCfgFromCacheWithCorrect(int32_t userId,
     if (ret == ErrorCode::NO_ERROR) {
         return ret;
     }
-    ret = CorrectUserAdd(userId);
+    ret = CorrectAdd(userId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("correct %{public}d failed.", userId);
         return ret;
@@ -654,7 +654,7 @@ int32_t ImeEnabledInfoManager::SetEnabledCfg(int32_t userId, const ImeEnabledCfg
 
 void ImeEnabledInfoManager::PostCorrectAddTask(int32_t userId)
 {
-    auto task = [this, userId]() { CorrectUserAdd(userId); };
+    auto task = [this, userId]() { CorrectAdd(userId); };
     if (eventHandler_ == nullptr) {
         return;
     }

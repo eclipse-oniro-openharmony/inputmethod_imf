@@ -56,6 +56,7 @@ public:
     int32_t MoveTo(int32_t x, int32_t y);
     int32_t StartMoving();
     int32_t GetDisplayId(uint64_t &displayId);
+    int32_t AdjustKeyboard();
     int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion = true);
     int32_t AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas);
     int32_t UpdateRegion(std::vector<Rosen::Rect> region);
@@ -76,7 +77,7 @@ public:
     WindowSize GetKeyboardSize();
     bool SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
-    int32_t SetCallingWindow(uint32_t windowId);
+    int32_t SetCallingWindow(uint32_t windowId, bool isWait = false);
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
@@ -85,6 +86,7 @@ public:
     int32_t IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayoutParams &params);
     int32_t SetImmersiveMode(ImmersiveMode mode);
     ImmersiveMode GetImmersiveMode();
+    bool IsInMainDisplay();
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -174,7 +176,8 @@ private:
 
     void SetHotAreas(const HotAreas &hotAreas);
     HotAreas GetHotAreas();
-
+    sptr<Rosen::Display> GetCurDisplay();
+    bool IsNeedConfig();
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;

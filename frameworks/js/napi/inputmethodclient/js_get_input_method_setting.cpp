@@ -472,7 +472,7 @@ napi_value JsGetInputMethodSetting::EnableInputMethod(napi_env env, napi_callbac
         PARAM_CHECK_RETURN(env, !ctxt->extName.empty(), "extensionName can not be empty!", TYPE_NONE, napi_invalid_arg);
         int32_t status = 0;
         PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[2]) == napi_number && JsUtil::GetValue(env, argv[2], status),
-            "bundleName type must be EnabledState!", TYPE_NONE, napi_invalid_arg);
+            "enabledState type must be EnabledState!", TYPE_NONE, napi_invalid_arg);
         ctxt->enabledStatus = static_cast<EnabledStatus>(status);
         return napi_ok;
     };

@@ -1092,6 +1092,29 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testAdjustKeyboard_001
+ * @tc.desc: adjust keyboard
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: guojin
+ */
+HWTEST_F(InputMethodAbilityTest, testAdjustKeyboard_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testAdjustKeyboard_001 START");
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto panel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->AdjustKeyboard();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: testOnSecurityChange
  * @tc.desc: OnSecurityChange
  * @tc.type: FUNC

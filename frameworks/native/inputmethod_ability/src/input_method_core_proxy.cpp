@@ -142,6 +142,15 @@ void InputMethodCoreProxy::OnClientInactive(const sptr<IRemoteObject> &channel)
         nullptr, MessageOption::TF_ASYNC);
 }
 
+void InputMethodCoreProxy::OnCallingDisplayChange(uint64_t dispalyId)
+{
+    SendRequest(
+        ON_CALLING_DISPLAY_CHANGE,
+        [&dispalyId](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, dispalyId);
+        });
+}
+
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)
 {
     IMSA_HILOGD("InputMethodCoreProxy, run in, code = %{public}d.", code);

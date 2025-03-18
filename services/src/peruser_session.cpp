@@ -28,6 +28,13 @@
 #include "scene_board_judgement.h"
 #include "system_ability_definition.h"
 #include "wms_connection_observer.h"
+#include "dm_common.h"
+#include "display_manager.h"
+#include "parameters.h"
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+#include "screenlock_manager.h"
+#endif
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -983,9 +990,8 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
-void PerUserSession::OnUserUnlocked()
+void PerUserSession::OnScreenUnlock()
 {
-    isUserUnlocked_.store(true);
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (currentIme == nullptr) {
@@ -1001,19 +1007,6 @@ void PerUserSession::OnUserUnlocked()
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     AddRestartIme();
 #endif
-}
-
-void PerUserSession::UpdateUserLockState()
-{
-    bool isUnlocked = false;
-    if (OsAccountAdapter::IsOsAccountVerified(userId_, isUnlocked) != ErrorCode::NO_ERROR) {
-        return;
-    }
-    IMSA_HILOGI("isUnlocked: %{public}d", isUnlocked);
-    isUserUnlocked_.store(isUnlocked);
-    if (isUnlocked) {
-        OnUserUnlocked();
-    }
 }
 
 std::shared_ptr<InputClientInfo> PerUserSession::GetCurClientInfo()
@@ -1120,14 +1113,21 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 
 bool PerUserSession::CanStartIme()
 {
-    return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty()
-           && SettingsDataUtils::GetInstance()->IsDataShareReady();
+    return (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() &&
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    IsSaReady(SCREENLOCK_SERVICE_ID) &&
+#endif
+    runningIme_.empty() && SettingsDataUtils::GetInstance()->IsDataShareReady());
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
     const std::shared_ptr<ImeNativeCfg> &targetIme, std::shared_ptr<ImeNativeCfg> &imeToStart)
 {
-    if (isUserUnlocked_.load()) {
+#ifndef IMF_SCREENLOCK_MGR_ENABLE
+    IMSA_HILOGD("no need");
+    return ErrorCode::NO_ERROR;
+#endif
+    if (!ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         IMSA_HILOGD("no need");
         imeToStart = targetIme;
         return ErrorCode::NO_ERROR;
@@ -1292,10 +1292,33 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
         IMSA_HILOGE("nullptr clientInfo!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
+    auto isScbEnable = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+    Rosen::CallingWindowInfo callingWindowInfo;
+    if (isScbEnable) {
+        bool isOk = WindowAdapter::GetCallingWindowInfo(callingWindowId,
+            clientInfo->userID, callingWindowInfo);
+        if (!isOk) {
+            IMSA_HILOGI("GetCallingWindowInfo error!");
+            return ErrorCode::ERROR_WINDOW_MANAGER;
+        }
+        if (callingWindowInfo.callingPid_ != clientInfo->pid) {
+            IMSA_HILOGI("pid diff clientInfo:pid:%{public}d, userid:%{public}d!",
+                clientInfo->pid, clientInfo->userID);
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
+    }
     // if windowId change, refresh windowId info and notify clients input start;
     if (clientInfo->config.windowId != callingWindowId) {
         IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
         clientInfo->config.windowId = callingWindowId;
+        clientInfo->config.inputAttribute.windowId = callingWindowId;
+        if (isScbEnable) {
+            auto curDisplayId = clientInfo->config.inputAttribute.callingDisplayId;
+            if (curDisplayId != callingWindowInfo.displayId_) {
+                clientInfo->config.inputAttribute.callingDisplayId =  callingWindowInfo.displayId_ ;
+                SendToIMACallingWindowDisplayChange(callingWindowInfo.displayId_);
+            }
+        }
         return NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     }
     return ErrorCode::NO_ERROR;
@@ -2016,6 +2039,51 @@ void PerUserSession::TryUnloadSystemAbility()
 
     auto onDemandStartStopSa = std::make_shared<OnDemandStartStopSa>();
     onDemandStartStopSa->UnloadInputMethodSystemAbility();
+}
+
+void PerUserSession::HandleCallingWindowDisplayChanged(const int32_t windowId,
+    const int32_t callingPid, const uint64_t displayId)
+{
+    IMSA_HILOGD("enter!inputinfo: windowId:%{public}d,callingPid:%{public}d,displayId:%{public}" PRIu64 "",
+        windowId, callingPid, displayId);
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (clientInfo == nullptr) {
+        IMSA_HILOGD("clientInfo is null");
+        return;
+    }
+    if (clientInfo->config.inputAttribute.callingDisplayId == Rosen::DISPLAY_ID_INVALID) {
+        IMSA_HILOGD("callingDisplayId invaild");
+        return;
+    }
+    IMSA_HILOGD("local userId_:%{public}d, winddowId:%{public}d",
+        userId_, clientInfo->config.windowId);
+    if (clientInfo->config.windowId == static_cast<uint32_t>(windowId)) {
+        uint64_t curDisplay = clientInfo->config.inputAttribute.callingDisplayId;
+        if (curDisplay != displayId) {
+            clientInfo->config.inputAttribute.callingDisplayId = displayId;
+            SendToIMACallingWindowDisplayChange(displayId);
+        }
+    }
+}
+
+int32_t PerUserSession::SendToIMACallingWindowDisplayChange(uint64_t displayId)
+{
+    IMSA_HILOGD("enter displayId:%{public}" PRIu64 "", displayId);
+    auto data = GetValidIme(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    auto callBack = [&data, displayId]() -> int32_t {
+        data->core->OnCallingDisplayChange(displayId);
+        return ErrorCode::NO_ERROR;
+    };
+    auto ret = RequestIme(data, RequestType::NORMAL, callBack);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("send to IMA calling window display change failed, ret: %{public}d!", ret);
+    }
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS
