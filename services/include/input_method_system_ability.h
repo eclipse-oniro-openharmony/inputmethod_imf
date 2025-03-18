@@ -102,6 +102,7 @@ public:
 protected:
     void OnStart() override;
     void OnStop() override;
+    int32_t OnExtension(const std::string &extension, MessageParcel &data, MessageParcel &reply) override;
 
 private:
     int32_t Init();
@@ -184,6 +185,9 @@ private:
     int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
+    bool IsValidBundleName(const std::string &bundleName);
+    std::string GetRestoreBundleName(MessageParcel &data);
+    int32_t RestoreInputmethod(std::string &bundleName);
     std::atomic<bool> enableImeOn_ = false;
     std::atomic<bool> enableSecurityMode_ = false;
 

@@ -106,6 +106,114 @@ void InputMethodSystemAbility::OnStart()
     return;
 }
 
+bool InputMethodSystemAbility::IsValidBundleName(const std::string &bundleName)
+{
+    if (bundleName.empty()) {
+        IMSA_HILOGE("bundleName is empty.");
+        return false;
+    }
+    std::vector<Property> props;
+    auto ret = ListInputMethod(InputMethodStatus::ALL, props);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("ListInputMethod failed, ret=%{public}d", ret);
+        return false;
+    }
+
+    for (auto &prop : props) {
+        if (prop.name == bundleName) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::string InputMethodSystemAbility::GetRestoreBundleName(MessageParcel &data)
+{
+    std::string jsonString = data.ReadString();
+    if (jsonString.empty()) {
+        IMSA_HILOGE("jsonString is empty.");
+        return "";
+    }
+    IMSA_HILOGI("restore jsonString=%{public}s", jsonString.c_str());
+
+    cJSON *root = cJSON_Parse(jsonString.c_str());
+    if (root == NULL) {
+        IMSA_HILOGE("cJSON_Parse fail");
+        return "";
+    }
+    std::string bundleName = "";
+    cJSON *item = NULL;
+    cJSON_ArrayForEach(item, root)
+    {
+        cJSON *type = cJSON_GetObjectItem(item, "type");
+        cJSON *detail = cJSON_GetObjectItem(item, "detail");
+        if (type == NULL || detail == NULL) {
+            IMSA_HILOGE("type or detail is null");
+            continue;
+        }
+
+        if (strcmp(type->valuestring, "default_input_method") == 0) {
+            bundleName = std::string(detail->valuestring);
+            break;
+        }
+    }
+    cJSON_Delete(root);
+    return bundleName;
+}
+
+int32_t InputMethodSystemAbility::RestoreInputmethod(std::string &bundleName)
+{
+    std::shared_ptr<Property> prop = GetCurrentInputMethod();
+    if (prop == nullptr) {
+        IMSA_HILOGE("GetCurrentInputMethod failed");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    std::string currentInputMethod = prop->name;
+    if (currentInputMethod == bundleName) {
+        IMSA_HILOGW("currentInputMethod=%{public}s, has been set", currentInputMethod.c_str());
+        return ErrorCode::NO_ERROR;
+    }
+
+    int32_t userId = GetCallingUserId();
+    bool result = SettingsDataUtils::GetInstance()->EnableIme(userId, bundleName);
+    if (!result) {
+        IMSA_HILOGE("EnableIme failed");
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
+
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("session[ userId=%{public}d ] is nullptr", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, "" };
+    switchInfo.timestamp = std::chrono::system_clock::now();
+    session->GetSwitchQueue().Push(switchInfo);
+    auto ret = OnSwitchInputMethod(userId, switchInfo, SwitchTrigger::IMSA);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("SwitchInputMethod failed, ret=%{public}d.", ret);
+        return ret;
+    }
+    IMSA_HILOGI("restore success");
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::OnExtension(const std::string &extension, MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGI("extension=%{public}s", extension.c_str());
+    if (extension == "restore") {
+        (void)data.ReadFileDescriptor();
+        std::string bundleName = GetRestoreBundleName(data);
+        if (!IsValidBundleName(bundleName)) {
+            IMSA_HILOGE("bundleName=%{public}s is invalid", bundleName.c_str());
+            return ErrorCode::ERROR_BAD_PARAMETERS;
+        }
+
+        return RestoreInputmethod(bundleName);
+    }
+    return 0;
+}
+
 int InputMethodSystemAbility::Dump(int fd, const std::vector<std::u16string> &args)
 {
     IMSA_HILOGD("InputMethodSystemAbility::Dump start.");
