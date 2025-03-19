@@ -633,7 +633,7 @@ HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
 HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::onInputFinishTest_StopInput");
-    InputMethodAbility::GetInstance()->StopInput(nullptr);
+    InputMethodAbility::GetInstance()->StopInput(nullptr, 0);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
 }
 /**

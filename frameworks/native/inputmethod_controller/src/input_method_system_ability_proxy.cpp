@@ -110,16 +110,19 @@ int32_t InputMethodSystemAbilityProxy::HideInput(sptr<IInputClient> client)
     });
 }
 
-int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client, uint32_t sessionId)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr.");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
 
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT), [client](MessageParcel &data) {
-        return data.WriteRemoteObject(client->AsObject());
-    });
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT),
+        [client, sessionId](MessageParcel &data) {
+            auto ret = data.WriteRemoteObject(client->AsObject());
+            ret = ret && ITypesUtil::Marshal(data, sessionId);
+            return ret;
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::RequestShowInput()

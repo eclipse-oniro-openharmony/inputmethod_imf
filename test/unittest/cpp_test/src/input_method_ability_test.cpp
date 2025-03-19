@@ -1465,7 +1465,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage001, TestSize.Level0)
     ret = InputMethodAbilityTest::inputMethodAbility_->OnSecurityChange(INVALID_VALUE);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 
-    ret = InputMethodAbilityTest::inputMethodAbility_->HideKeyboardImplWithoutLock(INVALID_VALUE);
+    ret = InputMethodAbilityTest::inputMethodAbility_->HideKeyboardImplWithoutLock(INVALID_VALUE, 0);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = InputMethodAbilityTest::inputMethodAbility_->ShowKeyboardImplWithoutLock(INVALID_VALUE);
@@ -1482,7 +1482,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage001, TestSize.Level0)
     ret = InputMethodAbilityTest::inputMethodAbility_->HidePanel(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 
-    ret = InputMethodAbilityTest::inputMethodAbility_->HidePanel(nullptr, flag, trigger);
+    ret = InputMethodAbilityTest::inputMethodAbility_->HidePanel(nullptr, flag, trigger, 0);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 
     InputMethodAbilityTest::inputMethodAbility_->isCurrentIme_ = true;

@@ -52,7 +52,7 @@ public:
     int32_t ShowInput(
         sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT, int32_t requestKeyboardReason = 0) override;
     int32_t HideInput(sptr<IInputClient> client) override;
-    int32_t ReleaseInput(sptr<IInputClient> client) override;
+    int32_t ReleaseInput(sptr<IInputClient> client, uint32_t sessionId) override;
     int32_t RequestShowInput() override;
     int32_t RequestHideInput(bool isFocusTriggered) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;

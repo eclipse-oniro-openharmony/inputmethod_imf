@@ -131,7 +131,12 @@ int32_t InputMethodSystemAbilityStub::ReleaseInputOnRemote(MessageParcel &data, 
         IMSA_HILOGE("clientObject is nullptr!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = ReleaseInput(iface_cast<IInputClient>(clientObject));
+    uint32_t sessionId = 0;
+    if (!ITypesUtil::Unmarshal(data, sessionId)) {
+        IMSA_HILOGE("read sessionId failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = ReleaseInput(iface_cast<IInputClient>(clientObject), sessionId);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
