@@ -431,8 +431,8 @@ int32_t InputMethodPanel::AdjustKeyboard()
             IMSA_HILOGE("failed to GetDisplaySize ret: %{public}d", ret);
             return ret;
         }
-        params.portrait.avoidY = displaySize.portrait.height - params.portrait.avoidHeight;
-        params.landscape.avoidY = displaySize.landscape.height - params.landscape.avoidHeight;
+        params.portrait.avoidY = static_cast<int32_t>(displaySize.portrait.height - params.portrait.avoidHeight);
+        params.landscape.avoidY = static_cast<int32_t>(displaySize.landscape.height - params.landscape.avoidHeight);
         auto hotAreas = GetHotAreas();
         ret = AdjustPanelRect(panelFlag_, params, hotAreas);
     } else {
