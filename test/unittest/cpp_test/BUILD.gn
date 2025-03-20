@@ -165,6 +165,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
@@ -450,6 +451,7 @@ ohos_unittest("ITypesUtilTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "bundle_framework:appexecfwk_base",
   ]
 }
 
