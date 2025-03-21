@@ -2394,7 +2394,7 @@ int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
     std::vector<Property> props;
     int32_t ret = ListInputMethod(status, props);
     if (ret == ErrorCode::NO_ERROR && !props.empty()) {
-        ime = props[0].id;
+        ime = props[0].name + "/" + props[0].id;
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGD("GetListEnableInputMethodIme is failed!");
@@ -2405,7 +2405,7 @@ int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
         return ErrorCode::ERROR_NOT_IME;
     }
     if (EnableIme(props[0].name)) {
-        ime = props[0].id;
+        ime = props[0].name + "/" + props[0].id;
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGE("GetAlternativeIme is failed!");

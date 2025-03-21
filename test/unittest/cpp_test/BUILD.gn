@@ -468,7 +468,11 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/task_manager.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/tasks/task.cpp",
     "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
+    "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_observer.cpp",
+    "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_utils.cpp",
+    "${inputmethod_path}/services/adapter/settings_data_provider/src/enable_ime_data_parser.cpp",
     "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+    "mock/datashare_helper.cpp",
     "src/input_method_private_member_test.cpp",
   ]
 
