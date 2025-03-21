@@ -164,8 +164,8 @@ ohos_unittest("InputMethodAbilityTest") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
@@ -446,12 +446,12 @@ ohos_unittest("ITypesUtilTest") {
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
-    "bundle_framework:appexecfwk_base",
   ]
 }
 
