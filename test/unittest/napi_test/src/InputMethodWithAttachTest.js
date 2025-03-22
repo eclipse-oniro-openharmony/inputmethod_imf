@@ -53,6 +53,9 @@ describe('InputMethodWithAttachTest', function () {
       id: 'InputMethodExtAbility'
     };
     await inputMethod.switchInputMethod(inputMethodProperty);
+    let inputMethodCtrl = inputMethod.getController();
+    inputMethodCtrl.on('finishTextPreview', () => {});
+    inputMethodCtrl.on('setPreviewText', () => {});
     setTimeout(() => {
       done();
     }, WAIT_DEAL_OK);
@@ -70,6 +73,9 @@ describe('InputMethodWithAttachTest', function () {
         await inputMethod.switchInputMethod(prop);
       }
     }
+    let inputMethodCtrl = inputMethod.getController();
+    inputMethodCtrl.off('finishTextPreview');
+    inputMethodCtrl.off('setPreviewText');
   });
 
   beforeEach(async function () {
@@ -1087,7 +1093,6 @@ describe('InputMethodWithAttachTest', function () {
       inputMethodCtrl.on('setPreviewText', (text, range) => {
         console.info(`inputMethod setPreviewText success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
         expect(true).assertTrue();
-        inputMethodCtrl.off('setPreviewText')
         done();
       });
       publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
@@ -1148,7 +1153,6 @@ describe('InputMethodWithAttachTest', function () {
       inputMethodCtrl.on('finishTextPreview', () => {
         console.info(`inputMethod finishTextPreview success`);
         expect(true).assertTrue();
-        inputMethodCtrl.off('finishTextPreview')
         done();
       });
       publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
