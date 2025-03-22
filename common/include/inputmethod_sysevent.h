@@ -56,6 +56,10 @@ public:
     bool StartTimerForReport();
     void SetUserId(int32_t userId);
     void ReportSystemShortCut(const std::string &shortcutName);
+    static const std::chrono::steady_clock::time_point& GetLastOperateTime()
+    {
+        return lastReportTime_;
+    }
 
 private:
     InputMethodSysEvent() = default;
@@ -79,6 +83,8 @@ private:
     static inline constexpr int32_t ONE_DAY_IN_HOURS = 24;
     static inline constexpr int32_t ONE_HOUR_IN_SECONDS = 1 * 60 * 60; // 1 hour
     static inline constexpr int32_t SECONDS_TO_MILLISECONDS = 1000;
+    static std::chrono::steady_clock::time_point lastReportTime_;
+    uint32_t REPORT_INTERVAL = 10; // 10 minutes
 };
 } // namespace MiscServices
 } // namespace OHOS
