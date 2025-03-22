@@ -50,6 +50,8 @@ enum TEST_FUNCTION {
   ADJUST_WITH_INVALID_AVOID_Y,
   ADJUST_WITH_INVALID_TYPE,
   ADJUST_SUCCESS,
+  SET_PREVIEW_TEXT,
+  FINISH_TEXT_PREVIEW,
 }
 
 export class KeyboardController {
@@ -183,6 +185,12 @@ export class KeyboardController {
             break;
           case TEST_FUNCTION.ADJUST_SUCCESS:
             this.adjustEnhancedPanelRect();
+            break;
+          case TEST_FUNCTION.SET_PREVIEW_TEXT:
+            globalThis.textInputClient.setPreviewTextSync("text", { start: 0, end: DEFAULT_SELECT_RANGE });
+            break;
+          case TEST_FUNCTION.FINISH_TEXT_PREVIEW:
+            globalThis.textInputClient.finishTextPreviewSync();
             break;
           default:
             break;

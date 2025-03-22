@@ -21,7 +21,8 @@ namespace MiscServices {
 const std::unordered_set<std::string> EVENT_TYPES[static_cast<uint32_t>(EventSubscribeModule::MODULE_END)] = {
     [static_cast<uint32_t>(EventSubscribeModule::INPUT_METHOD_CONTROLLER)] = { "insertText", "deleteLeft",
         "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor", "handleExtendAction", "selectByRange",
-        "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor", "getTextIndexAtCursor" },
+        "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor", "getTextIndexAtCursor", "setPreviewText",
+        "finishTextPreview" },
     [static_cast<uint32_t>(EventSubscribeModule::INPUT_METHOD_SETTING)] = { "imeChange", "imeShow", "imeHide" },
     [static_cast<uint32_t>(EventSubscribeModule::INPUT_METHOD_ABILITY)] = { "inputStart", "inputStop", "keyboardShow",
         "keyboardHide", "setCallingWindow", "setSubtype", "securityModeChange", "privateCommand",
