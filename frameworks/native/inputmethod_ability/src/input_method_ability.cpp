@@ -207,8 +207,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
         IMSA_HILOGE("channelObject is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    IMSA_HILOGI(
-        "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
+    IMSA_HILOGI("IMA showKeyboard:%{public}d,bindFromClient:%{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
     if (clientInfo.needHide) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
