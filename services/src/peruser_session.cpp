@@ -2091,7 +2091,7 @@ ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo 
         return finalWindowInfo;
     }
     // The value set from the IMC is used and does not need to be modified on the service side
-    return { callingWindowInfo.config.windowId, callingWindowInfo.displayId_ };
+    return { clientInfo.config.windowId, callingWindowInfo.displayId_ };
 }
 
 bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, CallingWindowInfo &callingWindowInfo)
