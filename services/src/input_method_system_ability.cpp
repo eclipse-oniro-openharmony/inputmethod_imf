@@ -610,6 +610,7 @@ int32_t InputMethodSystemAbility::StartInputInner(
         IMSA_HILOGE("failed to PrepareInput!");
         return ret;
     }
+    session->ChangeToDefaultImeForHiCar(inputClientInfo.config.inputAttribute.callingDisplayId);
     session->SetInputType();
     return session->OnStartInput(inputClientInfo, agent, imeInfo);
 }

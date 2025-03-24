@@ -61,6 +61,7 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "window_manager:libdm",
   ]
 }
 

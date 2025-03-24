@@ -35,6 +35,7 @@
 #include "screenlock_manager.h"
 #endif
 #include "window_adapter.h"
+#include "display_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -2083,6 +2084,44 @@ int32_t PerUserSession::SendToIMACallingWindowDisplayChange(uint64_t displayId)
         IMSA_HILOGE("send to IMA calling window display change failed, ret: %{public}d!", ret);
     }
     return ret;
+}
+
+void PerUserSession::ChangeToDefaultImeForHiCar(const uint64_t displayId)
+{
+    if (displayId == displayId_) {
+        IMSA_HILOGD("display not change, not need change ime");
+        return;
+    }
+    displayId_ = displayId;
+    sptr<Rosen::Display> displayInfo = nullptr;
+    displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("displayInfo is null!");
+        return;
+    }
+    std::string displayName = displayInfo->GetName();
+    if (displayName == "HiCar" || displayName == "SuperLauncher") {
+        auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+        auto imeToStart = std::make_shared<ImeNativeCfg>();
+        auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+        if (defaultIme == nullptr) {
+            IMSA_HILOGE("failed to get default ime");
+            return;
+        }
+        if (defaultIme->bundleName == currentIme->bundleName) {
+            IMSA_HILOGD("is default ime, not need change ime");
+            imeToStart = currentIme;
+            return;
+        }
+        imeToStart = defaultIme;
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, imeToStart->imeId);
+        RestoreCurrentIme();
+        return;
+    } else {
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
+        RestoreCurrentIme();
+        return;
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
