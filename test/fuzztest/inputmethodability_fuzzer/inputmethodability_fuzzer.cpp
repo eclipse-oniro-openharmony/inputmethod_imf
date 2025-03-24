@@ -139,6 +139,12 @@ void TestGetInputPattern()
     int32_t inputPattern;
     ability->GetInputPattern(inputPattern);
 }
+
+void TestCallingDisplayChange(uint64_t fuzzedUint64)
+{
+    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
+    ability->OnCallingDisplayChange(fuzzedUint64);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -147,7 +153,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     auto fuzzedInt32 = static_cast<int32_t>(size);
-
+    auto fuzzedUint64 = static_cast<uint64_t>(size);
     OHOS::TestInsertText(fuzzedString);
 
     OHOS::TestSetImeListener();
@@ -172,5 +178,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     OHOS::TestGetEnterKeyType();
     OHOS::TestGetInputPattern();
+    OHOS::TestCallingDisplayChange(fuzzedUint64);
     return 0;
 }
