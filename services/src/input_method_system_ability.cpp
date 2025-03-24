@@ -220,7 +220,7 @@ std::string InputMethodSystemAbility::GetRestoreBundleName(MessageParcel &data)
     {
         cJSON *type = cJSON_GetObjectItem(item, "type");
         cJSON *detail = cJSON_GetObjectItem(item, "detail");
-        if (type == NULL || detail == NULL) {
+        if (type == NULL || detail == NULL || type->valuestring == NULL || detail->valuestring == NULL) {
             IMSA_HILOGE("type or detail is null");
             continue;
         }
