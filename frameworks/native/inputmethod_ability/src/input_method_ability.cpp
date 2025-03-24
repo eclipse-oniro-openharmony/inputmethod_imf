@@ -220,6 +220,8 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     {
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.bundleName = clientInfo.config.inputAttribute.bundleName;
+        inputAttribute_.windowId = clientInfo.config.windowId;
+        inputAttribute_.callingDisplayId = clientInfo.config.inputAttribute.callingDisplayId;
     }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart) :
                                      InvokeStartInputCallback(clientInfo.isNotifyInputStart);
@@ -494,7 +496,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
     auto lastCallingDisplayId = GetInputAttribute().callingDisplayId;
-    SetInputAttribute(textConfig.inputAttribute);
     bool isWait = lastCallingDisplayId != textConfig.inputAttribute.callingDisplayId;
     auto task = [this, textConfig, isWait]() {
         panels_.ForEach([&textConfig, isWait](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
@@ -714,7 +715,7 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
     if (ret == ErrorCode::NO_ERROR) {
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
-        textConfig.inputAttribute.windowId = GetInputAttribute().windowId;
+        textConfig.inputAttribute.windowId = textConfig.windowId;
     }
     return ret;
 }
@@ -1014,7 +1015,7 @@ int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatu
     }
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
-        sysPanelStatus.isMainDisplay = panel ->IsInMainDisplay();
+        sysPanelStatus.isMainDisplay = panel->IsInMainDisplay();
     }
     return systemChannel->NotifyPanelStatus(sysPanelStatus);
 }
