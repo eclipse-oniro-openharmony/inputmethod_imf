@@ -2090,7 +2090,8 @@ ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo 
         IMSA_HILOGE("GetFocusWindowInfo error!");
         return finalWindowInfo;
     }
-    return { callingWindowInfo.windowId_, callingWindowInfo.displayId_ };
+    // The value set from the IMC is used and does not need to be modified on the service side
+    return { callingWindowInfo.config.windowId, callingWindowInfo.displayId_ };
 }
 
 bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, CallingWindowInfo &callingWindowInfo)

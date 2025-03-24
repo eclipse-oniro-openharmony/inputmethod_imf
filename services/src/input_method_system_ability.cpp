@@ -536,6 +536,8 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
         clientInfo.config.windowId = callingWindowInfo.windowId;
         clientInfo.config.inputAttribute.windowId = callingWindowInfo.windowId;
         clientInfo.config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
+        IMSA_HILOGD("result:{public}s,wid:%{public}d", clientInfo.config.inputAttribute.ToString().c_str(),
+            clientInfo.config.windowId)
     }
     return ErrorCode::NO_ERROR;
 }
