@@ -118,6 +118,7 @@ ohos_unittest("InputMethodAttachTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -177,6 +178,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "memmgr:memmgrclient",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
     "window_manager:libwsutils",
   ]
@@ -269,6 +271,7 @@ ohos_unittest("InputMethodDfxTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -318,6 +321,7 @@ ohos_unittest("InputMethodPanelTest") {
     "input:libmmi-client",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
     "window_manager:libwsutils",
   ]
@@ -364,6 +368,7 @@ ohos_unittest("InputMethodPanelAdjustTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
     "window_manager:libwsutils",
   ]
@@ -498,6 +503,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -545,6 +551,7 @@ ohos_unittest("InputMethodEditorTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -631,6 +638,7 @@ ohos_unittest("IdentityCheckerTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -828,6 +836,7 @@ ohos_unittest("SecurityModeParseTest") {
     "input:libmmi-client",
     "ipc:ipc_core",
     "ipc:ipc_single",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 }
