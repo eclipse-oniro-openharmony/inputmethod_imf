@@ -243,7 +243,6 @@ private:
     void HandleImeBindTypeChanged(InputClientInfo &newClientInfo);
     int32_t NotifyCallingDisplayChanged(uint64_t displayId);
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
-    bool GetFocusWindowInfo(Rosen::CallingWindowInfo &callingWindowInfo);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };

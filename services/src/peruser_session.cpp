@@ -2086,8 +2086,10 @@ ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo 
         finalWindowInfo.displayId = callingWindowInfo.displayId_;
         return finalWindowInfo;
     }
-    if (!GetFocusWindowInfo(callingWindowInfo)) {
-        IMSA_HILOGE("GetFocusWindowInfo error!");
+    FocusChangeInfo focusInfo;
+    WindowAdapter::GetFoucusInfo(focusInfo);
+    if (!WindowAdapter::GetCallingWindowInfo(focusInfo.windowId_, userId_, callingWindowInfo)) {
+        IMSA_HILOGE("GetCallingWindowInfo error!");
         return finalWindowInfo;
     }
     // The value set from the IMC is used and does not need to be modified on the service side
@@ -2104,13 +2106,6 @@ bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, Cal
         return false;
     }
     return !(callingWindowInfo.callingPid_ != clientInfo.pid && clientInfo.uiExtensionTokenId == IMF_INVALID_TOKENID);
-}
-
-bool PerUserSession::GetFocusWindowInfo(CallingWindowInfo &callingWindowInfo)
-{
-    FocusChangeInfo focusInfo;
-    WindowAdapter::GetFoucusInfo(focusInfo);
-    return WindowAdapter::GetCallingWindowInfo(focusInfo.windowId_, userId_, callingWindowInfo);
 }
 } // namespace MiscServices
 } // namespace OHOS
