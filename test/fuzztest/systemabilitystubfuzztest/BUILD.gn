@@ -64,6 +64,7 @@ common_external_deps = [
   "data_share:datashare_consumer",
   "hilog:libhilog",
   "input:libmmi-client",
+  "safwk:system_ability_fwk",
   "window_manager:libdm",
 ]
 
