@@ -59,7 +59,8 @@ bool WindowAdapter::GetCallingWindowInfo(
         WindowDisplayChangeListener::CallingWindowInfoToString(callingWindowInfo).c_str());
     return true;
 #else
-    return true;
+    IMSA_HILOGE("capability not supported");
+    return false;
 #endif
 }
 
