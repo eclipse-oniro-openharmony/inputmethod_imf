@@ -37,7 +37,7 @@ public:
     virtual int32_t ShowInput(
         sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT, int32_t requestKeyboardReason = 0) = 0;
     virtual int32_t HideInput(sptr<IInputClient> client) = 0;
-    virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
+    virtual int32_t ReleaseInput(sptr<IInputClient> client, uint32_t sessionId) = 0;
     virtual int32_t RequestShowInput() = 0;
     virtual int32_t RequestHideInput(bool isFocusTriggered) = 0;
     virtual int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop, bool isBrief) = 0;

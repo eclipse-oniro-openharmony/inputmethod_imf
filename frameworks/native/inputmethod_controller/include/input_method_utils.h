@@ -136,6 +136,7 @@ struct PanelStatusInfo {
     PanelInfo panelInfo;
     bool visible { false };
     Trigger trigger { END };
+    uint32_t sessionId { 0 };
     bool operator==(const PanelStatusInfo &info) const
     {
         return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType &&

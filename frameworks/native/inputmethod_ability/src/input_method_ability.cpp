@@ -308,12 +308,12 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
     }
 }
 
-int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject)
+int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject, uint32_t sessionId)
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     int32_t cmdCount = ++cmdId_;
     IMSA_HILOGI("IMA");
-    HideKeyboardImplWithoutLock(cmdCount);
+    HideKeyboardImplWithoutLock(cmdCount, sessionId);
     ClearDataChannel(channelObject);
     ClearInputAttribute();
     ClearInputType();
@@ -422,16 +422,16 @@ int32_t InputMethodAbility::HideKeyboard()
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     int32_t cmdCount = ++cmdId_;
-    return HideKeyboardImplWithoutLock(cmdCount);
+    return HideKeyboardImplWithoutLock(cmdCount, 0);
 }
 
-int32_t InputMethodAbility::HideKeyboardImplWithoutLock(int32_t cmdId)
+int32_t InputMethodAbility::HideKeyboardImplWithoutLock(int32_t cmdId, uint32_t sessionId)
 {
     if (cmdId != cmdId_) {
         IMSA_HILOGE("current is not last cmd cur: %{public}d, cmdId_: %{public}d!", cmdId, cmdId_);
         return ErrorCode::NO_ERROR;
     }
-    return HideKeyboard(Trigger::IMF);
+    return HideKeyboard(Trigger::IMF, sessionId);
 }
 
 int32_t InputMethodAbility::ShowKeyboard()
@@ -614,7 +614,7 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         return ErrorCode::NO_ERROR;
     }
     InputMethodSyncTrace tracer("IMA_HideKeyboardSelf start.");
-    auto ret = HideKeyboard(Trigger::IME_APP);
+    auto ret = HideKeyboard(Trigger::IME_APP, 0);
     if (ret == ErrorCode::NO_ERROR) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_SELF);
     }
@@ -967,7 +967,7 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         isShowAfterCreate_.store(false);
     }
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
-    return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
+    return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP, 0);
 }
 
 int32_t InputMethodAbility::ShowPanel(
@@ -1000,7 +1000,7 @@ int32_t InputMethodAbility::ShowPanel(
 }
 
 int32_t InputMethodAbility::HidePanel(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger, uint32_t sessionId)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -1012,7 +1012,7 @@ int32_t InputMethodAbility::HidePanel(
     }
     NotifyPanelStatusInfo({
         {inputMethodPanel->GetPanelType(), flag},
-        false, trigger
+        false, trigger, sessionId
     });
     if (trigger == Trigger::IMF && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
         FinishTextPreview(true);
@@ -1061,7 +1061,7 @@ InputAttribute InputMethodAbility::GetInputAttribute()
     return inputAttribute_;
 }
 
-int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
+int32_t InputMethodAbility::HideKeyboard(Trigger trigger, uint32_t sessionId)
 {
     isShowAfterCreate_.store(false);
     InputMethodSyncTrace tracer("IMA_HideKeyboard");
@@ -1082,7 +1082,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
             IMSA_HILOGI("panel flag is candidate, no need to hide.");
             return ErrorCode::NO_ERROR;
         }
-        return HidePanel(panel, flag, trigger);
+        return HidePanel(panel, flag, trigger, sessionId);
     }
     IMSA_HILOGI("panel is not created.");
     imeListener_->OnKeyboardStatus(false);

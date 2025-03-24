@@ -221,7 +221,7 @@ std::string InputMethodSystemAbility::GetRestoreBundleName(MessageParcel &data)
     {
         cJSON *type = cJSON_GetObjectItem(item, "type");
         cJSON *detail = cJSON_GetObjectItem(item, "detail");
-        if (type == NULL || detail == NULL) {
+        if (type == NULL || detail == NULL || type->valuestring == NULL || detail->valuestring == NULL) {
             IMSA_HILOGE("type or detail is null");
             continue;
         }
@@ -360,21 +360,6 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
-    UpdateUserLockState();
-}
-
-void InputMethodSystemAbility::UpdateUserLockState()
-{
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        UserSessionManager::GetInstance().AddUserSession(userId_);
-    }
-    session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
-        return;
-    }
-    session->UpdateUserLockState();
 }
 
 int32_t InputMethodSystemAbility::OnIdle(const SystemAbilityOnDemandReason &idleReason)
@@ -557,7 +542,7 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client, uint32_t sessionId)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr!");
@@ -569,7 +554,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnReleaseInput(client);
+    return session->OnReleaseInput(client, sessionId);
 }
 
 int32_t InputMethodSystemAbility::StartInput(
@@ -672,6 +657,16 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
         session->RestoreCurrentImeSubType();
     }
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+        std::string ime;
+        if (GetScreenLockIme(ime) != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("not ime screenlocked");
+            return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
+        }
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, ime);
+    }
+#endif
     return session->RestoreCurrentIme();
 }
 
@@ -1385,8 +1380,8 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
-            case MSG_ID_USER_UNLOCKED: {
-                OnUserUnlocked(msg);
+            case MSG_ID_SCREEN_UNLOCK: {
+                OnScreenUnlock(msg);
                 break;
             }
             default: {
@@ -1520,7 +1515,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::st
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
+void InputMethodSystemAbility::OnScreenUnlock(const Message *msg)
 {
     if (msg == nullptr || msg->msgContent_ == nullptr) {
         IMSA_HILOGE("message is nullptr");
@@ -1544,7 +1539,7 @@ void InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return;
     }
-    session->OnUserUnlocked();
+    session->OnScreenUnlock();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -2137,8 +2132,6 @@ void InputMethodSystemAbility::HandleOsAccountStarted()
     auto userId = OsAccountAdapter::GetForegroundOsAccountLocalId();
     if (userId_ != userId) {
         UpdateUserInfo(userId);
-    } else {
-        UpdateUserLockState();
     }
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_OS_ACCOUNT_STARTED, nullptr);
     if (msg == nullptr) {
@@ -2423,6 +2416,52 @@ std::pair<int64_t, std::string> InputMethodSystemAbility::GetCurrentImeInfoForHi
         imeInfo.second = imeData->ime.first;
     }
     return imeInfo;
+}
+
+int32_t InputMethodSystemAbility::GetScreenLockIme(std::string &ime)
+{
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (defaultIme != nullptr) {
+        ime = defaultIme->imeId;
+        IMSA_HILOGD("GetDefaultIme screenlocked");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("GetDefaultIme is failed!");
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentIme != nullptr) {
+        ime = currentIme->imeId;
+        IMSA_HILOGD("GetCurrentIme screenlocked");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("GetCurrentIme is failed!");
+    if (GetAlternativeIme(ime) != ErrorCode::NO_ERROR) {
+        return ErrorCode::ERROR_NOT_IME;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
+{
+    InputMethodStatus status = InputMethodStatus::ENABLE;
+    std::vector<Property> props;
+    int32_t ret = ListInputMethod(status, props);
+    if (ret == ErrorCode::NO_ERROR && !props.empty()) {
+        ime = props[0].id;
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGD("GetListEnableInputMethodIme is failed!");
+    status = InputMethodStatus::DISABLE;
+    ret = ListInputMethod(status, props);
+    if (ret != ErrorCode::NO_ERROR || props.empty()) {
+        IMSA_HILOGE("GetListDisableInputMethodIme is failed!");
+        return ErrorCode::ERROR_NOT_IME;
+    }
+    if (EnableIme(props[0].name)) {
+        ime = props[0].id;
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGE("GetAlternativeIme is failed!");
+    return ErrorCode::ERROR_NOT_IME;
 }
 
 void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clientInfo)

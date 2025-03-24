@@ -18,6 +18,7 @@
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "tokenid_kit.h"
+#include <cinttypes>
 #ifdef SCENE_BOARD_ENABLE
 #include "window_manager_lite.h"
 #else

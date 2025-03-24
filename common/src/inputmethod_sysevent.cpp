@@ -26,6 +26,7 @@ namespace {
 using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
 } // namespace
 
+std::chrono::steady_clock::time_point InputMethodSysEvent::lastReportTime_ = std::chrono::steady_clock::now();
 const std::unordered_map<int32_t, std::string> InputMethodSysEvent::operateInfo_ = {
     { static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ATTACH), "Attach: attach, bind and show soft keyboard." },
     { static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ENEDITABLE), "ShowTextInput: enter editable state, show soft "
@@ -109,17 +110,34 @@ void InputMethodSysEvent::RecordEvent(IMEBehaviour behaviour)
 void InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode)
 {
     IMSA_HILOGD("run in.");
+    auto currentTime = std::chrono::steady_clock::now();
+    if (static_cast<uint32_t>(
+            std::chrono::duration_cast<std::chrono::minutes>(currentTime - lastReportTime_).count()) <
+        REPORT_INTERVAL) {
+        IMSA_HILOGD("Event triggered within 10 minutes, skipping report.");
+        return;
+    }
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "OPERATE_SOFTKEYBOARD",
         HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(static_cast<int32_t>(infoCode)),
         "OPERATE_INFO", GetOperateInfo(static_cast<int32_t>(infoCode)));
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("Hisysevent: operate soft keyboard report failed! ret: %{public}d", ret);
     }
+    lastReportTime_ = currentTime;
+    IMSA_HILOGD("Event triggered before 10 minutes, report successfully.");
 }
 
 void InputMethodSysEvent::ReportImeState(ImeState state, pid_t pid, const std::string &bundleName)
 {
     IMSA_HILOGD("run in.");
+    auto currentTime = std::chrono::steady_clock::now();
+    if (static_cast<uint32_t>(
+            std::chrono::duration_cast<std::chrono::minutes>(currentTime - lastReportTime_).count()) <
+        REPORT_INTERVAL) {
+        IMSA_HILOGD("Event triggered within 10 minutes, skipping report.");
+        return;
+    }
+     
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "IME_STATE_CHANGED",
         HiSysEventNameSpace::EventType::BEHAVIOR, "STATE", static_cast<int32_t>(state), "PID", pid, "BUNDLE_NAME",
         bundleName);
@@ -127,6 +145,8 @@ void InputMethodSysEvent::ReportImeState(ImeState state, pid_t pid, const std::s
         IMSA_HILOGE("ime: %{public}s state: %{public}d report failed! ret: %{public}d", bundleName.c_str(),
             static_cast<int32_t>(state), ret);
     }
+    lastReportTime_ = currentTime;
+    IMSA_HILOGD("Event triggered before 10 minutes, report successfully.");
 }
 
 const std::string InputMethodSysEvent::GetOperateInfo(int32_t infoCode)

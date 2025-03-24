@@ -41,10 +41,10 @@ public:
 
 class TaskImsaStopInput : public Task {
 public:
-    explicit TaskImsaStopInput(sptr<IRemoteObject> channel) : Task(TASK_TYPE_IMSA_STOP_INPUT)
+    explicit TaskImsaStopInput(sptr<IRemoteObject> channel, uint32_t sessionId) : Task(TASK_TYPE_IMSA_STOP_INPUT)
     {
-        auto func = [channel]() {
-            InputMethodAbility::GetInstance()->StopInput(channel);
+        auto func = [channel, sessionId]() {
+            InputMethodAbility::GetInstance()->StopInput(channel, sessionId);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }

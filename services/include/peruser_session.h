@@ -83,7 +83,7 @@ public:
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
     int32_t OnStartInput(
         const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
-    int32_t OnReleaseInput(const sptr<IInputClient> &client);
+    int32_t OnReleaseInput(const sptr<IInputClient> &client, uint32_t sessionId);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnHideCurrentInput(uint64_t displayId);
     int32_t OnShowCurrentInput(uint64_t displayId);
@@ -98,7 +98,7 @@ public:
     int32_t SwitchSubtypeWithoutStartIme(const SubProperty &subProperty);
     void OnFocused(uint64_t displayId, int32_t pid, int32_t uid);
     void OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid);
-    void OnUserUnlocked();
+    void OnScreenUnlock();
     int64_t GetCurrentClientPid(uint64_t displayId);
     int64_t GetInactiveClientPid(uint64_t displayId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info, uint64_t displayId);
@@ -137,7 +137,6 @@ public:
     int32_t GetInputStartInfo(
         uint64_t displayId, bool &isInputStart, uint32_t &callingWndId, int32_t &requestKeyboardReason);
     bool IsSaReady(int32_t saId);
-    void UpdateUserLockState();
     void TryUnloadSystemAbility();
     void HandleCallingWindowDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     uint64_t GetDisplayGroupId(uint64_t displayId);
@@ -172,7 +171,7 @@ private:
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     int32_t RemoveClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup,
-        bool isUnbindFromClient = false, bool isInactiveClient = false, bool isNotifyClientAsync = false);
+        const DetachOptions &options);
     void DeactivateClient(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetCurrentClientInfo(uint64_t displayId = DEFAULT_DISPLAY_ID);
     std::shared_ptr<ClientGroup> GetClientGroup(uint64_t displayGroupId);
@@ -189,11 +188,10 @@ private:
 
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
         bool isBindFromClient = false, uint64_t displayId = DEFAULT_DISPLAY_ID);
-    void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
-        bool isUnbindFromClient = false, bool isNotifyClientAsync = false);
+    void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo, const DetachOptions &options);
     void StopClientInput(
         const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient = false, bool isAsync = false);
-    void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
+    void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel, uint32_t sessionId);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient, const std::shared_ptr<ClientGroup> &clientGroup);
     int32_t ShowKeyboard(const sptr<IInputClient> &currentClient, const std::shared_ptr<ClientGroup> &clientGroup,
@@ -260,7 +258,7 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
-    std::atomic<bool> isUserUnlocked_{ false };
+
     std::mutex virtualDisplayLock_{};
     std::unordered_set<Rosen::DisplayId> virtualScreenDisplayId_;
     std::atomic<Rosen::DisplayId> agentDisplayId_{ DEFAULT_DISPLAY_ID };

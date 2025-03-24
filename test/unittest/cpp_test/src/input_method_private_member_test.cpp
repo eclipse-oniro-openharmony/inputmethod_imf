@@ -312,7 +312,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
     std::pair<int64_t, std::string> imeInfo;
     int32_t ret = userSession->OnStartInput(clientInfo, agent, imeInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-    ret = userSession->OnReleaseInput(nullptr);
+    ret = userSession->OnReleaseInput(nullptr, 0);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     auto client = userSession->GetClientInfo(nullptr);
     EXPECT_EQ(client, nullptr);
@@ -540,7 +540,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_008, TestSize.L
 HWTEST_F(InputMethodPrivateMemberTest, SA_testReleaseInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_testReleaseInput_001 TEST START");
-    auto ret = service_->ReleaseInput(nullptr);
+    auto ret = service_->ReleaseInput(nullptr, 0);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 

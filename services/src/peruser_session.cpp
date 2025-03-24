@@ -28,6 +28,12 @@
 #include "security_mode_parser.h"
 #include "system_ability_definition.h"
 #include "wms_connection_observer.h"
+#include "dm_common.h"
+#include "display_manager.h"
+#include "parameters.h"
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+#include "screenlock_manager.h"
+#endif
 #include "window_adapter.h"
 
 namespace OHOS {
@@ -159,14 +165,14 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     IMSA_HILOGI("userId: %{public}d.", userId_);
     if (IsSameClient(remote, clientGroup->GetCurrentClient())) {
         if (clientInfo != nullptr) {
-            StopImeInput(clientInfo->bindImeType, clientInfo->channel);
+            StopImeInput(clientInfo->bindImeType, clientInfo->channel, 0);
         }
         clientGroup->SetCurrentClient(nullptr);
         RestoreCurrentImeSubType();
     }
     if (IsSameClient(remote, clientGroup->GetInactiveClient())) {
         if (clientInfo != nullptr) {
-            StopImeInput(clientInfo->bindImeType, clientInfo->channel);
+            StopImeInput(clientInfo->bindImeType, clientInfo->channel, 0);
         }
         clientGroup->SetInactiveClient(nullptr);
         RestoreCurrentImeSubType();
@@ -235,7 +241,7 @@ int32_t PerUserSession::RemoveIme(const sptr<IInputMethodCore> &core, ImeType ty
     auto clientGroup = GetClientGroup(type);
     auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
-        UnBindClientWithIme(clientInfo);
+        UnBindClientWithIme(clientInfo, { .sessionId = 0 });
     }
     RemoveImeData(type, true);
     return ErrorCode::NO_ERROR;
@@ -372,7 +378,8 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid, uint64_t displayI
     }
     auto inactiveClient = clientGroup->GetInactiveClient();
     if (inactiveClient != nullptr) {
-        RemoveClient(inactiveClient, clientGroup, false, true);
+        DetachOptions options = { .sessionId = 0, .isUnbindFromClient = false, .isInactiveClient = true };
+        RemoveClient(inactiveClient, clientGroup, options);
     }
     RestoreCurrentImeSubType();
     clientGroup->NotifyInputStopToClients();
@@ -389,7 +396,7 @@ int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
  * @param the parameters from remote client
  * @return ErrorCode
  */
-int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
+int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client, uint32_t sessionId)
 {
     IMSA_HILOGD("PerUserSession::OnReleaseInput start");
     auto clientGroup = GetClientGroup(client);
@@ -398,7 +405,8 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
         return ErrorCode::NO_ERROR;
     }
     bool isReady = clientGroup->IsNotifyInputStop(client);
-    int32_t ret = RemoveClient(client, clientGroup, true);
+    DetachOptions options = { .sessionId = sessionId, .isUnbindFromClient = true };
+    int32_t ret = RemoveClient(client, clientGroup, options);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("remove client failed");
         return ret;
@@ -409,8 +417,8 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup,
-    bool isUnbindFromClient, bool isInactiveClient, bool isNotifyClientAsync)
+int32_t PerUserSession::RemoveClient(
+    const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup, const DetachOptions &options)
 {
     if (client == nullptr || clientGroup == nullptr) {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -418,14 +426,14 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, const std
     // if client is current client, unbind firstly
     auto clientInfo = clientGroup->GetClientInfo(client->AsObject());
     if (IsSameClient(client, clientGroup->GetCurrentClient())) {
-        UnBindClientWithIme(clientInfo, isUnbindFromClient, isNotifyClientAsync);
+        UnBindClientWithIme(clientInfo, options);
         clientGroup->SetCurrentClient(nullptr);
         RestoreCurrentImeSubType();
-        StopClientInput(clientInfo, false, isNotifyClientAsync);
+        StopClientInput(clientInfo, false, options.isNotifyClientAsync);
     }
     if (IsSameClient(client, clientGroup->GetInactiveClient())) {
         clientGroup->SetInactiveClient(nullptr);
-        StopClientInput(clientInfo, isInactiveClient);
+        StopClientInput(clientInfo, options.isInactiveClient);
     }
     clientGroup->RemoveClientInfo(client->AsObject());
     return ErrorCode::NO_ERROR;
@@ -565,16 +573,16 @@ int32_t PerUserSession::BindClientWithIme(
 }
 
 void PerUserSession::UnBindClientWithIme(
-    const std::shared_ptr<InputClientInfo> &currentClientInfo, bool isUnbindFromClient, bool isNotifyClientAsync)
+    const std::shared_ptr<InputClientInfo> &currentClientInfo, const DetachOptions &options)
 {
     if (currentClientInfo == nullptr) {
         return;
     }
-    if (!isUnbindFromClient) {
+    if (!options.isUnbindFromClient) {
         IMSA_HILOGD("unbind from service.");
-        StopClientInput(currentClientInfo, isNotifyClientAsync);
+        StopClientInput(currentClientInfo, options.isNotifyClientAsync);
     }
-    StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel);
+    StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel, options.sessionId);
 }
 
 void PerUserSession::StopClientInput(
@@ -588,14 +596,15 @@ void PerUserSession::StopClientInput(
         clientInfo->pid, ret);
 }
 
-void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel)
+void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel, uint32_t sessionId)
 {
     auto data = GetReadyImeData(currentType);
     if (data == nullptr) {
         return;
     }
-    auto ret = RequestIme(data, RequestType::STOP_INPUT,
-        [&data, &currentChannel]() { return data->core->StopInput(currentChannel); });
+    auto ret = RequestIme(data, RequestType::STOP_INPUT, [&data, &currentChannel, sessionId]() {
+        return data->core->StopInput(currentChannel, sessionId);
+    });
     IMSA_HILOGI("stop ime input, ret: %{public}d.", ret);
     if (ret == ErrorCode::NO_ERROR && currentType == ImeType::IME) {
         InputMethodSysEvent::GetInstance().ReportImeState(ImeState::UNBIND, data->pid,
@@ -660,7 +669,7 @@ int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, c
             BindClientWithIme(clientInfo, imeType);
         }
         if (IsProxyImeStartInImeBind(clientInfo->bindImeType, imeType)) {
-            UnBindClientWithIme(clientInfo);
+            UnBindClientWithIme(clientInfo, { .sessionId = 0 });
             BindClientWithIme(clientInfo, imeType);
         }
     }
@@ -703,7 +712,7 @@ int32_t PerUserSession::OnUnregisterProxyIme(uint64_t displayId)
         IMSA_HILOGD("no current client");
         return ErrorCode::NO_ERROR;
     }
-    UnBindClientWithIme(clientInfo);
+    UnBindClientWithIme(clientInfo, { .sessionId = 0 });
     return ErrorCode::NO_ERROR;
 }
 
@@ -722,7 +731,7 @@ int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr
             return ErrorCode::ERROR_CLIENT_NOT_BOUND;
         }
         if (clientInfo->bindImeType == ImeType::PROXY_IME) {
-            UnBindClientWithIme(clientInfo);
+            UnBindClientWithIme(clientInfo, { .sessionId = 0 });
         }
         InputClientInfo infoTemp = { .isShowKeyboard = true,
             .client = clientInfo->client,
@@ -800,7 +809,7 @@ void PerUserSession::ReplaceCurrentClient(
         auto replacedClientInfo = clientGroup->GetClientInfo(replacedClient->AsObject());
         if (replacedClientInfo != nullptr && replacedClientInfo->pid != clientInfo->pid) {
             IMSA_HILOGI("remove replaced client: [%{public}d]", replacedClientInfo->pid);
-            RemoveClient(replacedClient, clientGroup);
+            RemoveClient(replacedClient, clientGroup, { .sessionId = 0 });
         }
     }
     auto inactiveClient = clientGroup->GetInactiveClient();
@@ -808,7 +817,8 @@ void PerUserSession::ReplaceCurrentClient(
         auto inactiveClientInfo = clientGroup->GetClientInfo(inactiveClient->AsObject());
         if (inactiveClientInfo != nullptr && inactiveClientInfo->pid != clientInfo->pid) {
             IMSA_HILOGI("remove inactive client: [%{public}d]", inactiveClientInfo->pid);
-            RemoveClient(inactiveClient, clientGroup, false);
+            DetachOptions options = { .sessionId = 0, .isUnbindFromClient = false };
+            RemoveClient(inactiveClient, clientGroup, options);
         }
     }
 }
@@ -905,7 +915,7 @@ void PerUserSession::OnFocused(uint64_t displayId, int32_t pid, int32_t uid)
     }
     if (!OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         IMSA_HILOGI("focus shifts to pid: %{public}d, remove current client.", pid);
-        RemoveClient(client, clientGroup);
+        RemoveClient(client, clientGroup, { .sessionId = 0 });
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
         return;
     }
@@ -930,13 +940,12 @@ void PerUserSession::OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid)
     if (clientInfo == nullptr) {
         return;
     }
-    RemoveClient(clientInfo->client, clientGroup);
+    RemoveClient(clientInfo->client, clientGroup, { .sessionId = 0 });
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
-void PerUserSession::OnUserUnlocked()
+void PerUserSession::OnScreenUnlock()
 {
-    isUserUnlocked_.store(true);
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (currentIme == nullptr) {
@@ -954,18 +963,6 @@ void PerUserSession::OnUserUnlocked()
 #endif
 }
 
-void PerUserSession::UpdateUserLockState()
-{
-    bool isUnlocked = false;
-    if (OsAccountAdapter::IsOsAccountVerified(userId_, isUnlocked) != ErrorCode::NO_ERROR) {
-        return;
-    }
-    IMSA_HILOGI("isUnlocked: %{public}d", isUnlocked);
-    isUserUnlocked_.store(isUnlocked);
-    if (isUnlocked) {
-        OnUserUnlocked();
-    }
-}
 
 std::shared_ptr<InputClientInfo> PerUserSession::GetCurrentClientInfo(uint64_t displayId)
 {
@@ -1039,13 +1036,21 @@ bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
 
 bool PerUserSession::CanStartIme()
 {
-    return IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() && runningIme_.empty();
+    return (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() &&
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    IsSaReady(SCREENLOCK_SERVICE_ID) &&
+#endif
+    runningIme_.empty());
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
     const std::shared_ptr<ImeNativeCfg> &targetIme, std::shared_ptr<ImeNativeCfg> &imeToStart)
 {
-    if (isUserUnlocked_.load()) {
+#ifndef IMF_SCREENLOCK_MGR_ENABLE
+    IMSA_HILOGD("no need");
+    return ErrorCode::NO_ERROR;
+#endif
+    if (!ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         IMSA_HILOGD("no need");
         imeToStart = targetIme;
         return ErrorCode::NO_ERROR;
@@ -1434,7 +1439,8 @@ void PerUserSession::RemoveAllCurrentClient()
             continue;
         }
         clientGroupObject->NotifyInputStopToClients();
-        RemoveClient(clientGroupObject->GetCurrentClient(), clientGroupObject, false);
+        DetachOptions options = { .sessionId = 0, .isUnbindFromClient = false };
+        RemoveClient(clientGroupObject->GetCurrentClient(), clientGroupObject, options);
     }
 }
 
@@ -1877,10 +1883,10 @@ void PerUserSession::HandleImeBindTypeChanged(
         newClientInfo.isNotifyInputStart = true;
     }
     if (isClientInactive) {
-        StopImeInput(oldClientInfo->bindImeType, oldClientInfo->channel);
+        StopImeInput(oldClientInfo->bindImeType, oldClientInfo->channel, 0);
         return;
     }
-    UnBindClientWithIme(oldClientInfo);
+    UnBindClientWithIme(oldClientInfo, { .sessionId = 0 });
 }
 
 void PerUserSession::TryUnloadSystemAbility()
