@@ -206,6 +206,7 @@ private:
     std::mutex modeChangeMutex_;
     bool isChangeHandling_ = false;
     bool hasPendingChanges_ = false;
+    void ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo);
 };
 } // namespace MiscServices
 } // namespace OHOS

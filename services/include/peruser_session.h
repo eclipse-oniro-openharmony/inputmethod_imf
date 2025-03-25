@@ -136,10 +136,6 @@ public:
     bool IsSaReady(int32_t saId);
     void UpdateUserLockState();
     void TryUnloadSystemAbility();
-    void HandleCallingWindowDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
-    void ChangeToDefaultImeForHiCar(const uint64_t displayId);
-protected:
-   int32_t SendToIMACallingWindowDisplayChange(uint64_t displayId);
     void OnCallingDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
 private:
@@ -282,7 +278,6 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
-    uint64_t displayId_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
