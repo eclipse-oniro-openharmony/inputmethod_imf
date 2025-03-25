@@ -459,7 +459,7 @@ int32_t InputMethodSystemAbility::PrepareForOperateKeyboard(std::shared_ptr<PerU
     }
     if (!identityChecker_->IsBroker(tokenId)) {
         if (!identityChecker_->IsFocused(
-                IPCSkeleton::GetCallingPid(), tokenId, session->GetCurrentClientPid(GetCallingDisplayId()))) {
+            IPCSkeleton::GetCallingPid(), tokenId, session->GetCurrentClientPid(GetCallingDisplayId()))) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
@@ -533,11 +533,14 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
         clientInfo.uiExtensionTokenId = tokenId;
     }
     clientInfo.name = ImfHiSysEventUtil::GetAppName(tokenId);
-    if (isScbEnable_.load()) {
-        HandleCallingWindowDisplay(clientInfo);
-    } else {
-        clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
-        clientInfo.config.inputAttribute.callingDisplayId = 0;
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session != nullptr) {
+        auto callingWindowInfo = session->GetCallingWindowInfo(clientInfo);
+        clientInfo.config.windowId = callingWindowInfo.windowId;
+        clientInfo.config.inputAttribute.windowId = callingWindowInfo.windowId;
+        clientInfo.config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
+        IMSA_HILOGD("result:%{public}s,wid:%{public}d", clientInfo.config.inputAttribute.ToString().c_str(),
+            clientInfo.config.windowId);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -1811,8 +1814,8 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
             IMSA_HILOGE("[%{public}d] session is nullptr!", userId);
             return;
         };
-        session->HandleCallingWindowDisplayChanged(callingWindowInfo.windowId_,
-            callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
+        session->OnCallingDisplayChanged(
+            callingWindowInfo.windowId_, callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
     };
     WindowAdapter::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
 }
@@ -2462,53 +2465,6 @@ int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
     }
     IMSA_HILOGE("GetAlternativeIme is failed!");
     return ErrorCode::ERROR_NOT_IME;
-}
-
-void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clientInfo)
-{
-    IMSA_HILOGD("enter");
-    auto curWindowId = clientInfo.config.windowId;
-    auto curDisplayId = clientInfo.config.inputAttribute.callingDisplayId;
-    IMSA_HILOGD("curWindowId:%{public}d, curDisplayId:%{public}d!",
-        curWindowId, static_cast<uint32_t>(curDisplayId));
-    IMSA_HILOGD("clientInfo:pid:%{public}d, userid:%{public}d!",
-        clientInfo.pid, clientInfo.userID);
-    OHOS::Rosen::FocusChangeInfo focusInfo;
-    WindowAdapter::GetFoucusInfo(focusInfo);
-    if (curWindowId == INVALID_WINDOW_ID) {
-        clientInfo.config.inputAttribute.callingDisplayId = focusInfo.displayId_;
-        clientInfo.config.inputAttribute.windowId = curWindowId;
-        IMSA_HILOGD("result windowId <= 0 inputAttribute:%{public}s",
-            clientInfo.config.inputAttribute.ToString().c_str());
-        return;
-    }
-    Rosen::CallingWindowInfo callingWindowInfo;
-    auto ret = WindowAdapter::GetCallingWindowInfo(curWindowId, clientInfo.userID, callingWindowInfo);
-    if (!ret) {
-        IMSA_HILOGE("GetCallingWindowInfo error!");
-        return;
-    }
-    bool isVaild = true;
-    if (callingWindowInfo.callingPid_ != clientInfo.pid) {
-        if (clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
-            isVaild = true;
-        } else {
-            isVaild = false;
-        }
-    }
-    if (isVaild) {
-        curDisplayId = callingWindowInfo.displayId_;
-        IMSA_HILOGD("check ok");
-    } else {
-        curDisplayId = focusInfo.displayId_;
-        IMSA_HILOGD("check not ok");
-    }
-    clientInfo.config.inputAttribute.callingDisplayId = curDisplayId;
-    clientInfo.config.inputAttribute.windowId = curWindowId;
-    clientInfo.config.windowId = curWindowId;
-    IMSA_HILOGD("result inputAttribute:%{public}s",
-        clientInfo.config.inputAttribute.ToString().c_str());
-    return;
 }
 } // namespace MiscServices
 } // namespace OHOS

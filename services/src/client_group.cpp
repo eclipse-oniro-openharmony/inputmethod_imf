@@ -15,6 +15,8 @@
 
 #include "client_group.h"
 
+#include <cinttypes>
+
 #include "event_status_manager.h"
 #include "identity_checker_impl.h"
 
@@ -26,12 +28,14 @@ int32_t ClientGroup::AddClientInfo(
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
         IMSA_HILOGD("info is existed.");
-        if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID
-            && clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
-            UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
+        if (event == PREPARE_INPUT) {
+            if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID
+                && clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
+                UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
+            }
+            UpdateClientInfo(inputClient,
+                { { UpdateFlag::TEXT_CONFIG, clientInfo.config }, { UpdateFlag::CLIENT_TYPE, clientInfo.type } });
         }
-        UpdateClientInfo(inputClient,
-            { { UpdateFlag::TEXT_CONFIG, clientInfo.config }, { UpdateFlag::CLIENT_TYPE, clientInfo.type } });
         if (event == START_LISTENING) {
             UpdateClientInfo(inputClient, { { UpdateFlag::EVENTFLAG, clientInfo.eventFlag } });
         }
@@ -56,10 +60,10 @@ int32_t ClientGroup::AddClientInfo(
         IMSA_HILOGE("failed to add client death recipient!");
         return ErrorCode::ERROR_CLIENT_ADD_FAILED;
     }
-    std::lock_guard<std::recursive_mutex> lock(mtx);
+    std::lock_guard<std::recursive_mutex> lock(mtx_);
     mapClients_.insert({ inputClient, info });
     IMSA_HILOGI(
-        "add client with pid: %{public}d displayGroupId: %{public} " PRIu64 " end.", clientInfo.pid, displayGroupId_);
+        "add client with pid: %{public}d displayGroupId: %{public}" PRIu64 " end.", clientInfo.pid, displayGroupId_);
     return ErrorCode::NO_ERROR;
 }
 
@@ -83,14 +87,13 @@ void ClientGroup::RemoveClientInfo(const sptr<IRemoteObject> &client, bool isCli
         IMSA_HILOGD("deathRecipient remove.");
         client->RemoveDeathRecipient(clientInfo->deathRecipient);
     }
-    std::lock_guard<std::recursive_mutex> lock(mtx);
+    std::lock_guard<std::recursive_mutex> lock(mtx_);
     mapClients_.erase(client);
     IMSA_HILOGI("client[%{public}d] is removed.", clientInfo->pid);
 }
 
-void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client,
-    const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>>
-        &updateInfos)
+void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client, const std::unordered_map<UpdateFlag,
+    std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>>&updateInfos)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr!");
@@ -145,7 +148,7 @@ std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(pid_t pid)
         IMSA_HILOGD("not found.");
         return nullptr;
     }
-    std::lock_guard<std::recursive_mutex> lock(mtx);
+    std::lock_guard<std::recursive_mutex> lock(mtx_);
     return iter->second;
 }
 
@@ -183,7 +186,7 @@ int64_t ClientGroup::GetInactiveClientPid()
 
 bool ClientGroup::IsClientExist(sptr<IRemoteObject> inputClient)
 {
-    std::lock_guard<std::recursive_mutex> lock(mtx);
+    std::lock_guard<std::recursive_mutex> lock(mtx_);
     return mapClients_.find(inputClient) != mapClients_.end();
 }
 
@@ -339,6 +342,7 @@ int32_t ClientGroup::NotifyImeChangeToClients(const Property &property, const Su
             continue;
         }
     }
+    return ErrorCode::NO_ERROR;
 }
 
 std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(sptr<IRemoteObject> inputClient)
@@ -347,7 +351,7 @@ std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(sptr<IRemoteObject> 
         IMSA_HILOGE("inputClient is nullptr!");
         return nullptr;
     }
-    std::lock_guard<std::recursive_mutex> lock(mtx);
+    std::lock_guard<std::recursive_mutex> lock(mtx_);
     auto it = mapClients_.find(inputClient);
     if (it == mapClients_.end()) {
         IMSA_HILOGD("client not found.");
@@ -358,7 +362,7 @@ std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(sptr<IRemoteObject> 
 
 std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> ClientGroup::GetClientMap()
 {
-    std::lock_guard<std::recursive_mutex> lock(mtx);
+    std::lock_guard<std::recursive_mutex> lock(mtx_);
     return mapClients_;
 }
 

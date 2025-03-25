@@ -180,8 +180,6 @@ private:
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
     int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-//    bool IsSecurityMode(int32_t userId, const std::string &bundleName);
-//    int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t StartInputInner(
         InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
@@ -194,7 +192,6 @@ private:
     void ResetDelayUnloadTask(uint32_t code = 0);
     bool IsImeInUse();
 #endif
-    void HandleCallingWindowDisplay(InputClientInfo &clientInfo);
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     bool IsValidBundleName(const std::string &bundleName);

@@ -33,6 +33,11 @@
 #include "want.h"
 
 namespace OHOS {
+namespace Rosen {
+    struct CallingWindowInfo;
+}
+}
+namespace OHOS {
 namespace MiscServices {
 enum class ImeStatus : uint32_t { STARTING, READY, EXITING };
 enum class ImeEvent : uint32_t {
@@ -123,7 +128,7 @@ public:
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
-    void RemoveAllCurrentClient();
+    int32_t RemoveAllCurrentClient();
     std::shared_ptr<ImeData> GetReadyImeData(ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     BlockQueue<SwitchInfo>& GetSwitchQueue();
@@ -138,11 +143,9 @@ public:
         uint64_t displayId, bool &isInputStart, uint32_t &callingWndId, int32_t &requestKeyboardReason);
     bool IsSaReady(int32_t saId);
     void TryUnloadSystemAbility();
-    void HandleCallingWindowDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     uint64_t GetDisplayGroupId(uint64_t displayId);
-
-protected:
-   int32_t SendToIMACallingWindowDisplayChange(uint64_t displayId);
+    void OnCallingDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
+    ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
 private:
     struct ResetManager {
         uint32_t num{ 0 };
@@ -225,6 +228,8 @@ private:
     int32_t HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
     void HandleImeBindTypeChanged(InputClientInfo &newClientInfo, const std::shared_ptr<ClientGroup> &clientGroup);
+    int32_t NotifyCallingDisplayChanged(uint64_t displayId);
+    bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
@@ -260,10 +265,10 @@ private:
     std::string runningIme_;
 
     std::mutex virtualDisplayLock_{};
-    std::unordered_set<Rosen::DisplayId> virtualScreenDisplayId_;
-    std::atomic<Rosen::DisplayId> agentDisplayId_{ DEFAULT_DISPLAY_ID };
+    std::unordered_set<uint64_t> virtualScreenDisplayId_;
+    std::atomic<uint64_t> agentDisplayId_{ DEFAULT_DISPLAY_ID };
     std::mutex clientGroupLock_{};
-    std::unordered_map<Rosen::DisplayId, std::shared_ptr<ClientGroup>> clientGroupMap_;
+    std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -23,6 +23,7 @@ class IdentityChecker {
 public:
     static constexpr int64_t INVALID_PID = -1;
     static constexpr uint64_t INVALID_DISPLAY_ID = -1ULL;
+    static constexpr uint64_t DEFAULT_DISPLAY_ID = 0;
     virtual ~IdentityChecker() = default;
     virtual bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) = 0;
     virtual bool IsSystemApp(uint64_t fullTokenId) = 0;
@@ -31,7 +32,7 @@ public:
     virtual bool IsBroker(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual std::string GetBundleNameByToken(uint32_t tokenId);
-    virtual bool IsFocusedUIExtension(uint32_t callingTokenId)
+    virtual bool IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId = DEFAULT_DISPLAY_ID)
     {
         return false;
     };
@@ -41,7 +42,7 @@ public:
     };
     virtual uint64_t GetCallingDisplayId(int64_t callingPid)
     {
-        return ErrorCode::NO_ERROR;
+        return DEFAULT_DISPLAY_ID;
     };
 };
 } // namespace MiscServices

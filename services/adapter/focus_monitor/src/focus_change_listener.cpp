@@ -15,6 +15,8 @@
 
 #include "focus_change_listener.h"
 
+#include <cinttypes>
+
 #include "global.h"
 
 namespace OHOS {
@@ -25,7 +27,7 @@ void FocusChangedListener::OnFocused(const sptr<Rosen::FocusChangeInfo> &focusCh
         IMSA_HILOGE("error nullptr");
         return;
     }
-    IMSA_HILOGD("displayId: %{public} " PRIu64 " pid: %{public}d, uid: %{public}d", focusChangeInfo->displayId_,
+    IMSA_HILOGD("displayId: %{public}" PRIu64 " pid: %{public}d, uid: %{public}d", focusChangeInfo->displayId_,
         focusChangeInfo->pid_, focusChangeInfo->uid_);
     focusHandle_(true, focusChangeInfo->displayId_, focusChangeInfo->pid_, focusChangeInfo->uid_);
 }
@@ -36,7 +38,7 @@ void FocusChangedListener::OnUnfocused(const sptr<Rosen::FocusChangeInfo> &focus
         IMSA_HILOGE("error nullptr");
         return;
     }
-    IMSA_HILOGD("displayId: %{public} " PRIu64 " pid: %{public}d, uid: %{public}d", focusChangeInfo->displayId_,
+    IMSA_HILOGD("displayId: %{public}" PRIu64 " pid: %{public}d, uid: %{public}d", focusChangeInfo->displayId_,
         focusChangeInfo->pid_, focusChangeInfo->uid_);
     focusHandle_(false, focusChangeInfo->displayId_, focusChangeInfo->pid_, focusChangeInfo->uid_);
 }

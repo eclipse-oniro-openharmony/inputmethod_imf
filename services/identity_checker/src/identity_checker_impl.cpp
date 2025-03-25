@@ -29,37 +29,32 @@ namespace OHOS {
 namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
+using namespace OHOS::AAFwk;
 bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
 {
     if (focusedPid != INVALID_PID && callingPid == focusedPid) {
         IMSA_HILOGD("focused app, pid: %{public}" PRId64 "", callingPid);
         return true;
     }
+    uint64_t displayId = GetCallingDisplayId(callingPid);
     if (focusedPid == INVALID_PID) {
-        WMError ret = WMError::WM_OK;
-        std::vector<FocusChangeInfo> focusInfos;
+        FocusChangeInfo focusInfo;
 #ifdef SCENE_BOARD_ENABLE
-        ret = WindowManagerLite::GetInstance().GetAllFocusWindowInfo(focusInfos);
+        WindowManagerLite::GetInstance().GetFocusWindowInfo(focusInfo, displayId);
 #else
-        ret = WindowManager::GetInstance().GetAllFocusWindowInfo(focusInfos);
+        WindowManager::GetInstance().GetFocusWindowInfo(focusInfo, displayId);
 #endif
-        if (ret != WMError::WM_OK) {
-            IMSA_HILOGE("GetAllFocusWindowInfo failed, ret: %{public}d", ret);
-            return false;
-        }
-        auto iter = std::find_if(focusInfos.begin(), focusInfos.end(),
-            [&callingPid](const auto &focusInfo) { return focusInfo.pid_ == callingPid; });
-        if (iter != focusInfos.end()) {
-            IMSA_HILOGD("focused app, pid: %{public}" PRId64 "", callingPid);
+        focusedPid = focusInfo.pid_;
+        if (callingPid == focusedPid) {
+            IMSA_HILOGD("focused app, pid: %{public}" PRId64 ", display: %{public}" PRIu64 "", callingPid, displayId);
             return true;
         }
     }
-    // zll: 此处遗留，有待确认UIExtension是否支持查找非主设备屏幕的UIExtension窗口
-    bool isFocused = IsFocusedUIExtension(callingTokenId);
+    bool isFocused = IsFocusedUIExtension(callingTokenId, displayId);
     if (!isFocused) {
         IMSA_HILOGE("not focused, focusedPid: %{public}" PRId64 ", callerPid: %{public}" PRId64 ", callerToken: "
                     "%{public}d",
-            realFocusedPid, callingPid, callingTokenId);
+            focusedPid, callingPid, callingTokenId);
     }
     return isFocused;
 }
@@ -109,15 +104,16 @@ bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
     return AccessTokenKit::GetTokenTypeFlag(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE;
 }
 
-bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId)
+bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId)
 {
     bool isFocused = false;
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
+    auto ret = AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused, displayId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to CheckUIExtensionIsFocused, ret: %{public}d", ret);
         return false;
     }
-    IMSA_HILOGD("tokenId: %{public}d, check result: %{public}d, isFocused: %{public}d", callingTokenId, ret, isFocused);
+    IMSA_HILOGD("tokenId: %{public}d, displayId: %{public}" PRIu64 ", isFocused: %{public}d", callingTokenId,
+        displayId, isFocused);
     return isFocused;
 }
 
@@ -146,7 +142,12 @@ uint64_t IdentityCheckerImpl::GetCallingDisplayId(int64_t callingPid)
 {
     WindowInfoOption option;
     std::vector<sptr<WindowInfo>> windowInfos;
-    WMError ret = WindowManager::GetInstance().ListWindowInfo(option, windowInfos);
+    WMError ret = WMError::WM_OK;
+#ifdef SCENE_BOARD_ENABLE
+    ret = WindowManagerLite::GetInstance().ListWindowInfo(option, windowInfos);
+#else
+    ret = WindowManager::GetInstance().ListWindowInfo(option, windowInfos);
+#endif
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ListWindowInfo failed, ret: %{public}d", ret);
         return INVALID_DISPLAY_ID;
@@ -162,7 +163,7 @@ uint64_t IdentityCheckerImpl::GetCallingDisplayId(int64_t callingPid)
         return INVALID_DISPLAY_ID;
     }
     auto callingDisplayId = (*iter)->windowDisplayInfo.displayId;
-    IMSA_HILOGD("window pid: %{public}" PRId64 ", displayId: %{public} " PRIu64 "", callingPid, callingDisplayId);
+    IMSA_HILOGD("window pid: %{public}" PRId64 ", displayId: %{public}" PRIu64 "", callingPid, callingDisplayId);
     return callingDisplayId;
 }
 } // namespace MiscServices

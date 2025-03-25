@@ -16,9 +16,9 @@
 #ifndef SERVICES_INCLUDE_CLIENT_GROUP_H
 #define SERVICES_INCLUDE_CLIENT_GROUP_H
 
+#include <map>
 #include <utility>
 
-#include "dm_common.h"
 #include "input_client_info.h"
 #include "input_death_recipient.h"
 
@@ -32,7 +32,7 @@ enum ClientAddEvent : int32_t {
 class ClientGroup {
 public:
     using ClientDiedHandler = std::function<void(const sptr<IInputClient> &)>;
-    ClientGroup(Rosen::DisplayId displayGroupId, ClientDiedHandler diedHandler)
+    ClientGroup(uint64_t displayGroupId, ClientDiedHandler diedHandler)
         : displayGroupId_(displayGroupId), clientDiedHandler_(std::move(diedHandler))
     {
     }
@@ -71,9 +71,9 @@ private:
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     bool IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest);
     void OnClientDied(sptr<IInputClient> remote);
-    Rosen::DisplayId displayGroupId_;
+    uint64_t displayGroupId_{ DEFAULT_DISPLAY_ID };
 
-    std::recursive_mutex mtx;
+    std::recursive_mutex mtx_;
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
 
     std::mutex currentClientLock_{};
