@@ -366,6 +366,7 @@ void JsGetInputMethodController::UnRegisterListener(napi_value callback, std::st
     }
     if (callback == nullptr) {
         jsCbMap_.erase(type);
+        UpdateTextPreviewState(type);
         IMSA_HILOGE("callback is nullptr!");
         return;
     }
@@ -378,6 +379,7 @@ void JsGetInputMethodController::UnRegisterListener(napi_value callback, std::st
     }
     if (jsCbMap_[type].empty()) {
         jsCbMap_.erase(type);
+        UpdateTextPreviewState(type);
     }
 }
 
@@ -1179,12 +1181,12 @@ int32_t JsGetInputMethodController::SetPreviewText(const std::u16string &text, c
     });
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry!");
-        return -1;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr!");
-        return -1;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     IMSA_HILOGI("previewText start.");
     auto task = [entry]() {
@@ -1195,15 +1197,16 @@ int32_t JsGetInputMethodController::SetPreviewText(const std::u16string &text, c
             }
             // 0 means the first param of callback.
             args[0] = JsUtil::GetValue(env, entry->text);
+            // 1 means the second param of callback.
             args[1] = CreateSelectRange(env, entry->start, entry->end);
             return true;
         };
 
-        // 2 means the callback has one param.
+        // 2 means the callback has two param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 2, getPreviewTextProperty });
     };
     eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
-    return 0;
+    return ErrorCode::NO_ERROR;
 }
 
 void JsGetInputMethodController::FinishTextPreview()
@@ -1240,7 +1243,7 @@ std::shared_ptr<JsGetInputMethodController::UvEntry> JsGetInputMethodController:
     std::shared_ptr<UvEntry> entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-        if (jsCbMap_[type].empty()) {
+        if (jsCbMap_.find(type) == jsCbMap_.end() || jsCbMap_[type].empty()) {
             IMSA_HILOGD("%{public}s cb-vector is empty.", type.c_str());
             return nullptr;
         }
@@ -1415,7 +1418,11 @@ bool JsGetInputMethodController::IsRegister(const std::string &type)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGI("methodName: %{public}s is not registered!", type.c_str());
+        IMSA_HILOGD("methodName: %{public}s is not registered!", type.c_str());
+        return false;
+    }
+    if (jsCbMap_[type].empty()) {
+        IMSA_HILOGD("methodName: %{public}s cb-vector is empty!", type.c_str());
         return false;
     }
     return true;
@@ -1428,6 +1435,13 @@ bool JsGetInputMethodController::IsTextPreviewSupported()
         return false;
     }
     return engine->IsRegister("setPreviewText") && engine->IsRegister("finishTextPreview");
+}
+
+void JsGetInputMethodController::UpdateTextPreviewState(const std::string &type)
+{
+    if (type == "setPreviewText" || type == "finishTextPreview") {
+        InputMethodController::GetInstance()->UpdateTextPreviewState(false);
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
