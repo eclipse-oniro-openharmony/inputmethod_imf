@@ -29,6 +29,11 @@
 #include "want.h"
 
 namespace OHOS {
+namespace Rosen {
+    struct CallingWindowInfo;
+}
+}
+namespace OHOS {
 namespace MiscServices {
 enum class ImeStatus : uint32_t { STARTING, READY, EXITING };
 enum class ImeEvent : uint32_t {
@@ -135,6 +140,8 @@ public:
     void ChangeToDefaultImeForHiCar(const uint64_t displayId);
 protected:
    int32_t SendToIMACallingWindowDisplayChange(uint64_t displayId);
+    void OnCallingDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
+    ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
 private:
     struct ResetManager {
         uint32_t num{ 0 };
@@ -238,6 +245,8 @@ private:
     int32_t NotifyInputStopToClients();
     bool IsNotifyInputStop(const sptr<IInputClient> &client);
     void HandleImeBindTypeChanged(InputClientInfo &newClientInfo);
+    int32_t NotifyCallingDisplayChanged(uint64_t displayId);
+    bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
