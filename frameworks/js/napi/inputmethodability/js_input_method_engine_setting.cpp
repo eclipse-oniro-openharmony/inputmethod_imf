@@ -902,6 +902,9 @@ void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplay
             if (argc == 0) {
                 return false;
             }
+            if (entry == nullptr) {
+                return false;
+            }
             // 0 means the first param of callback.
             uint32_t displayId = static_cast<uint32_t>(entry->callingDisplayId);
             args[0] = JsUtil::GetValue(env, displayId);

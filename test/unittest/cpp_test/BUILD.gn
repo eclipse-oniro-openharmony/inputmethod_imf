@@ -118,6 +118,7 @@ ohos_unittest("InputMethodAttachTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -164,6 +165,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "data_share:datashare_common",
@@ -176,6 +178,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "memmgr:memmgrclient",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
     "window_manager:libwsutils",
   ]
@@ -268,6 +271,7 @@ ohos_unittest("InputMethodDfxTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -317,6 +321,7 @@ ohos_unittest("InputMethodPanelTest") {
     "input:libmmi-client",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
     "window_manager:libwsutils",
   ]
@@ -363,6 +368,7 @@ ohos_unittest("InputMethodPanelAdjustTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
     "window_manager:libwsutils",
   ]
@@ -445,6 +451,7 @@ ohos_unittest("ITypesUtilTest") {
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
     "input:libmmi-client",
@@ -500,6 +507,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -547,6 +555,7 @@ ohos_unittest("InputMethodEditorTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -633,6 +642,7 @@ ohos_unittest("IdentityCheckerTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -830,6 +840,7 @@ ohos_unittest("SecurityModeParseTest") {
     "input:libmmi-client",
     "ipc:ipc_core",
     "ipc:ipc_single",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 }
@@ -1207,4 +1218,38 @@ ohos_unittest("ImfHisysEventReporterTest") {
     "hisysevent:libhisysevent",
     "hisysevent:libhisyseventmanager",
   ]
+}
+
+ohos_unittest("WindowAdapterTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "${inputmethod_path}/common/include",
+    "${inputmethod_path}/services/adapter/window_adapter/include",
+  ]
+  sources = [
+    "${inputmethod_path}/services/adapter/window_adapter/src/window_adapter.cpp",
+    "${inputmethod_path}/services/adapter/window_adapter/src/window_display_changed_listener.cpp",
+    "src/window_adapter_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  defines = []
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+    defines += [ SCENE_BOARD_ENABLE ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }

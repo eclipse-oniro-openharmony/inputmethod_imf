@@ -146,16 +146,28 @@ public:
     static sptr<InputMethodAbility> inputMethodAbility_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static sptr<InputMethodSystemAbility> imsa_;
+private:
+    static uint32_t reportIntervalTime;
 };
 sptr<InputMethodController> InputMethodDfxTest::inputMethodController_;
 sptr<OnTextChangedListener> InputMethodDfxTest::textListener_;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
 sptr<InputMethodSystemAbility> InputMethodDfxTest::imsa_;
+uint32_t InputMethodDfxTest::reportIntervalTime = 10; //10minutes
 
 bool InputMethodDfxTest::WriteAndWatch(
     const std::shared_ptr<Watcher> &watcher, const InputMethodDfxTest::ExecFunc &exec)
 {
+    auto currentTime = std::chrono::steady_clock::now();
+    const auto& lastTime = InputMethodSysEvent::GetLastOperateTime();
+    // Check if the last trigger was more than 10 minutes ago
+    if (static_cast<uint32_t>(
+            std::chrono::duration_cast<std::chrono::minutes>(currentTime - lastTime).count()) <
+        reportIntervalTime) {
+        IMSA_HILOGI("Event triggered within 10 minutes, skipping report.");
+        return true;
+    }
     OHOS::HiviewDFX::ListenerRule listenerRule(
         DOMAIN, OPERATE_SOFTKEYBOARD_EVENT_NAME, "", OHOS::HiviewDFX::RuleType::WHOLE_WORD);
     std::vector<OHOS::HiviewDFX::ListenerRule> sysRules;
@@ -179,6 +191,15 @@ bool InputMethodDfxTest::WriteAndWatch(
 bool InputMethodDfxTest::WriteAndWatchImeChange(
     const std::shared_ptr<WatcherImeChange> &watcher, const InputMethodDfxTest::ExecFunc &exec)
 {
+    auto currentTime = std::chrono::steady_clock::now();
+    const auto& lastTime = InputMethodSysEvent::GetLastOperateTime();
+    // Check if the last trigger was more than 10 minutes ago
+    if (static_cast<uint32_t>(
+            std::chrono::duration_cast<std::chrono::minutes>(currentTime - lastTime).count()) <
+        reportIntervalTime) {
+        IMSA_HILOGI("Event triggered within 10 minutes, skipping report.");
+        return true;
+    }
     OHOS::HiviewDFX::ListenerRule listenerRule(
         DOMAIN, IME_STATE_CHANGED_EVENT_NAME, "", OHOS::HiviewDFX::RuleType::WHOLE_WORD);
     std::vector<OHOS::HiviewDFX::ListenerRule> sysRules;
