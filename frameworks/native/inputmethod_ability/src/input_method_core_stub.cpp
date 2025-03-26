@@ -171,7 +171,12 @@ int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParce
         IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto ret = StopInput(channel);
+    uint32_t sessionId = 0;
+    if (!ITypesUtil::Unmarshal(data, sessionId)) {
+        IMSA_HILOGE("failed to read sessionId parcel!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto ret = StopInput(channel, sessionId);
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -252,9 +257,9 @@ int32_t InputMethodCoreStub::OnSetInputType(InputType inputType)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodCoreStub::StopInput(const sptr<IRemoteObject> &channel)
+int32_t InputMethodCoreStub::StopInput(const sptr<IRemoteObject> &channel, uint32_t sessionId)
 {
-    auto task = std::make_shared<TaskImsaStopInput>(channel);
+    auto task = std::make_shared<TaskImsaStopInput>(channel, sessionId);
     TaskManager::GetInstance().PostTask(task);
     return ErrorCode::NO_ERROR;
 }

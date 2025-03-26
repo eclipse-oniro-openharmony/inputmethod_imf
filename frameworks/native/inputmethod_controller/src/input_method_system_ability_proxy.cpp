@@ -110,16 +110,19 @@ int32_t InputMethodSystemAbilityProxy::HideInput(sptr<IInputClient> client)
     });
 }
 
-int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client, uint32_t sessionId)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr.");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
 
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT), [client](MessageParcel &data) {
-        return data.WriteRemoteObject(client->AsObject());
-    });
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT),
+        [client, sessionId](MessageParcel &data) {
+            auto ret = data.WriteRemoteObject(client->AsObject());
+            ret = ret && ITypesUtil::Marshal(data, sessionId);
+            return ret;
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::RequestShowInput()
@@ -240,7 +243,7 @@ int32_t InputMethodSystemAbilityProxy::EnableIme(
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::EnableIme enter.");
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::ENABLE_IME),
-        [&bundleName, extensionName, status](MessageParcel &data) {
+        [&bundleName, &extensionName, status](MessageParcel &data) {
             return ITypesUtil::Marshal(data, bundleName, extensionName, static_cast<int32_t>(status));
         });
 }

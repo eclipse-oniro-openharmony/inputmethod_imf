@@ -28,6 +28,11 @@
 #include "want.h"
 
 namespace OHOS {
+namespace Rosen {
+    struct CallingWindowInfo;
+}
+}
+namespace OHOS {
 namespace MiscServices {
 enum class ImeStatus : uint32_t { STARTING, READY, EXITING };
 enum class ImeEvent : uint32_t {
@@ -78,7 +83,7 @@ public:
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
     int32_t OnStartInput(
         const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
-    int32_t OnReleaseInput(const sptr<IInputClient> &client);
+    int32_t OnReleaseInput(const sptr<IInputClient> &client, uint32_t sessionId);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnHideCurrentInput();
     int32_t OnShowCurrentInput();
@@ -130,9 +135,8 @@ public:
     bool IsSaReady(int32_t saId);
     void UpdateUserLockState();
     void TryUnloadSystemAbility();
-    void HandleCallingWindowDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
-protected:
-   int32_t SendToIMACallingWindowDisplayChange(uint64_t displayId);
+    void OnCallingDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
+    ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
 private:
     struct ResetManager {
         uint32_t num{ 0 };
@@ -169,7 +173,7 @@ private:
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
-    int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false,
+    int32_t RemoveClient(const sptr<IInputClient> &client, uint32_t sessionId, bool isUnbindFromClient = false,
         bool isInactiveClient = false, bool isNotifyClientAsync = false);
     void DeactivateClient(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
@@ -189,10 +193,10 @@ private:
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
         bool isBindFromClient = false);
     void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
-        bool isUnbindFromClient = false, bool isNotifyClientAsync = false);
+        uint32_t sessionId, bool isUnbindFromClient = false, bool isNotifyClientAsync = false);
     void StopClientInput(
         const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient = false, bool isAsync = false);
-    void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
+    void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel, uint32_t sessionId);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);
     int32_t ShowKeyboard(const sptr<IInputClient> &currentClient, int32_t requestKeyboardReason = 0);
@@ -236,6 +240,8 @@ private:
     int32_t NotifyInputStopToClients();
     bool IsNotifyInputStop(const sptr<IInputClient> &client);
     void HandleImeBindTypeChanged(InputClientInfo &newClientInfo);
+    int32_t NotifyCallingDisplayChanged(uint64_t displayId);
+    bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };

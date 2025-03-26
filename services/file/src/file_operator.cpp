@@ -75,12 +75,7 @@ bool FileOperator::CheckImeCfgFilePath(const std::string &path)
         IMSA_HILOGE("Path is empty");
         return false;
     }
-    char realPath[PATH_MAX] = { 0 };
-    if (realpath(path.c_str(), realPath) == nullptr) {
-        IMSA_HILOGE("Path is error");
-        return false;
-    }
-    if (!IsValidPath(realPath)) {
+    if (!IsValidPath(path)) {
         IMSA_HILOGE("Path is IsValidPath");
         return false;
     }

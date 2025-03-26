@@ -257,31 +257,32 @@ int32_t ImeInfoInquirer::ListAllInputMethod(const int32_t userId, std::vector<Pr
 int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Property> &props)
 {
     IMSA_HILOGD("userId: %{public}d.", userId);
-    props = FullImeInfoManager::GetInstance().GetWithOutEnabledStatus(userId);
-    if (props.empty()) {
-        IMSA_HILOGI("%{public}d get all prop form bms.", userId);
-        std::vector<ExtensionAbilityInfo> extensionInfos;
-        if (!QueryImeExtInfos(userId, extensionInfos)) {
-            IMSA_HILOGE("failed to QueryImeExtInfos!");
-            return ErrorCode::ERROR_BAD_PARAMETERS;
-        }
-        for (const auto &extension : extensionInfos) {
-            auto it = std::find_if(props.begin(), props.end(),
-                [&extension](const Property &prop) { return prop.name == extension.bundleName; });
-            if (it != props.end()) {
-                continue;
-            }
-            if (IsTempInputMethod(extension)) {
-                continue;
-            }
-            props.push_back({ .name = extension.bundleName,
-                .id = extension.name,
-                .label = GetTargetString(extension, ImeTargetString::LABEL, userId),
-                .labelId = extension.applicationInfo.labelId,
-                .iconId = extension.applicationInfo.iconId });
-        }
+    auto ret = FullImeInfoManager::GetInstance().Get(userId, props);
+    if (!props.empty()) {
+        return ret;
     }
-    auto ret = FullImeInfoManager::GetInstance().GetEnabledStates(userId, props);
+    IMSA_HILOGI("%{public}d get all prop form bms.", userId);
+    std::vector<ExtensionAbilityInfo> extensionInfos;
+    if (!QueryImeExtInfos(userId, extensionInfos)) {
+        IMSA_HILOGE("failed to QueryImeExtInfos!");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    for (const auto &extension : extensionInfos) {
+        auto it = std::find_if(props.begin(), props.end(),
+            [&extension](const Property &prop) { return prop.name == extension.bundleName; });
+        if (it != props.end()) {
+            continue;
+        }
+        if (IsTempInputMethod(extension)) {
+            continue;
+        }
+        props.push_back({ .name = extension.bundleName,
+            .id = extension.name,
+            .label = GetTargetString(extension, ImeTargetString::LABEL, userId),
+            .labelId = extension.applicationInfo.labelId,
+            .iconId = extension.applicationInfo.iconId });
+    }
+    ret = ImeEnabledInfoManager::GetInstance().GetEnabledStates(userId, props);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get enabled status failed:%{public}d!", ret);
         return ErrorCode::ERROR_ENABLE_IME;
@@ -624,7 +625,7 @@ std::shared_ptr<Property> ImeInfoInquirer::GetImeProperty(
         .label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId),
         .labelId = extInfos[0].applicationInfo.labelId,
         .iconId = extInfos[0].applicationInfo.iconId };
-    ret = FullImeInfoManager::GetInstance().GetEnabledState(userId, prop.name, prop.status);
+    ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, prop.name, prop.status);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get enabled status failed:%{public}d!", ret);
     }

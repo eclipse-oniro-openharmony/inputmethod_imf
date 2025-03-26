@@ -136,6 +136,7 @@ struct PanelStatusInfo {
     PanelInfo panelInfo;
     bool visible { false };
     Trigger trigger { END };
+    uint32_t sessionId { 0 };
     bool operator==(const PanelStatusInfo &info) const
     {
         return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType &&
@@ -338,7 +339,10 @@ struct AttachOptions {
     bool isShowKeyboard = false;
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
 };
-
+struct ImfCallingWindowInfo {
+    int32_t windowId = INVALID_WINDOW_ID;
+    uint64_t displayId = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

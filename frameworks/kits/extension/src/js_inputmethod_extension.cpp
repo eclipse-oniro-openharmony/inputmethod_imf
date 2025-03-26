@@ -435,20 +435,24 @@ void JsInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
     if (displayPtr == nullptr) {
         return;
     }
-    IMSA_HILOGD("display width: %{public}d, height: %{public}d, rotation: %{public}d",
+    auto foldStatus = Rosen::DisplayManager::GetInstance().GetFoldStatus();
+    IMSA_HILOGD("display width: %{public}d, height: %{public}d, rotation: %{public}d, foldStatus: %{public}d",
         displayPtr->GetWidth(),
         displayPtr->GetHeight(),
-        displayPtr->GetRotation());
+        displayPtr->GetRotation(),
+        foldStatus);
     if (cacheDisplay_.IsEmpty()) {
         TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaAdjustKeyboard>());
     } else {
         if ((cacheDisplay_.displayWidth != displayPtr->GetWidth() ||
             cacheDisplay_.displayHeight != displayPtr->GetHeight()) &&
+            cacheDisplay_.displayFoldStatus == foldStatus &&
             cacheDisplay_.displayRotation == displayPtr->GetRotation()) {
             TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaAdjustKeyboard>());
         }
     }
-    cacheDisplay_.SetCacheDisplay(displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation());
+    cacheDisplay_.SetCacheDisplay(
+        displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation(), foldStatus);
 }
 
 void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)

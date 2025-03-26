@@ -71,7 +71,6 @@ int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const s
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-
     auto uri = GenerateTargetUri(std::string(uriProxy), observer->GetKey());
     auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(uriProxy));
     if (helper == nullptr) {
@@ -89,6 +88,10 @@ int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const s
 
 int32_t SettingsDataUtils::UnregisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer)
 {
+    if (observer == nullptr) {
+        IMSA_HILOGE("observer is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto uri = GenerateTargetUri(std::string(uriProxy), observer->GetKey());
     auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(uriProxy));
     if (helper == nullptr) {

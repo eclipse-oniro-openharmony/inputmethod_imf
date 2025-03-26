@@ -104,10 +104,12 @@ int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
     });
 }
 
-int32_t InputMethodCoreProxy::StopInput(const sptr<IRemoteObject> &channel)
+int32_t InputMethodCoreProxy::StopInput(const sptr<IRemoteObject> &channel, uint32_t sessionId)
 {
-    return SendRequest(STOP_INPUT, [&channel](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, channel);
+    return SendRequest(STOP_INPUT, [&channel, sessionId] (MessageParcel &data) {
+        auto ret = ITypesUtil::Marshal(data, channel);
+        ret = ret && ITypesUtil::Marshal(data, sessionId);
+        return ret;
     });
 }
 

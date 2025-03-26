@@ -41,6 +41,7 @@ namespace MiscServices {
 using namespace std::chrono;
 using namespace MessageID;
 using namespace OHOS::AppExecFwk;
+using namespace OHOS::Rosen;
 constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
 constexpr const char *STRICT_MODE = "strictMode";
@@ -73,12 +74,14 @@ int PerUserSession::AddClientInfo(sptr<IRemoteObject> inputClient, const InputCl
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
         IMSA_HILOGD("info is existed.");
-        if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID &&
-            clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
-            UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
+        if (event == PREPARE_INPUT) {
+            if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID &&
+                clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
+                UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
+            }
+            UpdateClientInfo(inputClient,
+                { { UpdateFlag::TEXT_CONFIG, clientInfo.config }, { UpdateFlag::CLIENT_TYPE, clientInfo.type } });
         }
-        UpdateClientInfo(inputClient,
-            { { UpdateFlag::TEXT_CONFIG, clientInfo.config }, { UpdateFlag::CLIENT_TYPE, clientInfo.type } });
         if (event == START_LISTENING) {
             UpdateClientInfo(inputClient, { { UpdateFlag::EVENTFLAG, clientInfo.eventFlag } });
         }
@@ -254,14 +257,14 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     IMSA_HILOGI("userId: %{public}d.", userId_);
     if (IsSameClient(remote, GetCurrentClient())) {
         if (clientInfo != nullptr) {
-            StopImeInput(clientInfo->bindImeType, clientInfo->channel);
+            StopImeInput(clientInfo->bindImeType, clientInfo->channel, 0);
         }
         SetCurrentClient(nullptr);
         RestoreCurrentImeSubType();
     }
     if (IsSameClient(remote, GetInactiveClient())) {
         if (clientInfo != nullptr) {
-            StopImeInput(clientInfo->bindImeType, clientInfo->channel);
+            StopImeInput(clientInfo->bindImeType, clientInfo->channel, 0);
         }
         SetInactiveClient(nullptr);
         RestoreCurrentImeSubType();
@@ -330,7 +333,7 @@ int32_t PerUserSession::RemoveIme(const sptr<IInputMethodCore> &core, ImeType ty
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
-        UnBindClientWithIme(clientInfo);
+        UnBindClientWithIme(clientInfo, 0);
     }
     RemoveImeData(type, true);
     return ErrorCode::NO_ERROR;
@@ -431,7 +434,7 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid)
     }
     auto inactiveClient = GetInactiveClient();
     if (inactiveClient != nullptr) {
-        RemoveClient(inactiveClient, false, true);
+        RemoveClient(inactiveClient, 0, false, true);
     }
     RestoreCurrentImeSubType();
     NotifyInputStopToClients();
@@ -481,11 +484,11 @@ int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
  * @param the parameters from remote client
  * @return ErrorCode
  */
-int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
+int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client, uint32_t sessionId)
 {
     IMSA_HILOGD("PerUserSession::OnReleaseInput start");
     bool isReady = IsNotifyInputStop(client);
-    int32_t ret = RemoveClient(client, true);
+    int32_t ret = RemoveClient(client, sessionId, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("remove client failed");
         return ret;
@@ -496,8 +499,8 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::RemoveClient(
-    const sptr<IInputClient> &client, bool isUnbindFromClient, bool isInactiveClient, bool isNotifyClientAsync)
+int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, uint32_t sessionId, bool isUnbindFromClient,
+    bool isInactiveClient, bool isNotifyClientAsync)
 {
     if (client == nullptr) {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -505,7 +508,7 @@ int32_t PerUserSession::RemoveClient(
     // if client is current client, unbind firstly
     auto clientInfo = GetClientInfo(client->AsObject());
     if (IsSameClient(client, GetCurrentClient())) {
-        UnBindClientWithIme(clientInfo, isUnbindFromClient, isNotifyClientAsync);
+        UnBindClientWithIme(clientInfo, sessionId, isUnbindFromClient, isNotifyClientAsync);
         SetCurrentClient(nullptr);
         RestoreCurrentImeSubType();
         StopClientInput(clientInfo, false, isNotifyClientAsync);
@@ -631,8 +634,8 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
     return ErrorCode::NO_ERROR;
 }
 
-void PerUserSession::UnBindClientWithIme(
-    const std::shared_ptr<InputClientInfo> &currentClientInfo, bool isUnbindFromClient, bool isNotifyClientAsync)
+void PerUserSession::UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
+    uint32_t sessionId, bool isUnbindFromClient, bool isNotifyClientAsync)
 {
     if (currentClientInfo == nullptr) {
         return;
@@ -641,7 +644,7 @@ void PerUserSession::UnBindClientWithIme(
         IMSA_HILOGD("unbind from service.");
         StopClientInput(currentClientInfo, isNotifyClientAsync);
     }
-    StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel);
+    StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel, sessionId);
 }
 
 void PerUserSession::StopClientInput(
@@ -655,14 +658,15 @@ void PerUserSession::StopClientInput(
         clientInfo->pid, ret);
 }
 
-void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel)
+void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel, uint32_t sessionId)
 {
     auto data = GetReadyImeData(currentType);
     if (data == nullptr) {
         return;
     }
-    auto ret = RequestIme(data, RequestType::STOP_INPUT,
-        [&data, &currentChannel]() { return data->core->StopInput(currentChannel); });
+    auto ret = RequestIme(data, RequestType::STOP_INPUT, [&data, &currentChannel, sessionId]() {
+        return data->core->StopInput(currentChannel, sessionId);
+    });
     IMSA_HILOGI("stop ime input, ret: %{public}d.", ret);
     if (ret == ErrorCode::NO_ERROR && currentType == ImeType::IME) {
         InputMethodSysEvent::GetInstance().ReportImeState(ImeState::UNBIND, data->pid,
@@ -729,7 +733,7 @@ int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, c
             BindClientWithIme(clientInfo, imeType);
         }
         if (IsProxyImeStartInImeBind(clientInfo->bindImeType, imeType)) {
-            UnBindClientWithIme(clientInfo);
+            UnBindClientWithIme(clientInfo, 0);
             BindClientWithIme(clientInfo, imeType);
         }
     }
@@ -752,7 +756,7 @@ int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr
             return ErrorCode::ERROR_CLIENT_NOT_BOUND;
         }
         if (clientInfo->bindImeType == ImeType::PROXY_IME) {
-            UnBindClientWithIme(clientInfo);
+            UnBindClientWithIme(clientInfo, 0);
         }
         InputClientInfo infoTemp = { .isShowKeyboard = true,
             .client = clientInfo->client,
@@ -843,7 +847,7 @@ void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
         auto replacedClientInfo = GetClientInfo(replacedClient->AsObject());
         if (replacedClientInfo != nullptr && replacedClientInfo->pid != clientInfo->pid) {
             IMSA_HILOGI("remove replaced client: [%{public}d]", replacedClientInfo->pid);
-            RemoveClient(replacedClient);
+            RemoveClient(replacedClient, 0);
         }
     }
     auto inactiveClient = GetInactiveClient();
@@ -851,7 +855,7 @@ void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
         auto inactiveClientInfo = GetClientInfo(inactiveClient->AsObject());
         if (inactiveClientInfo != nullptr && inactiveClientInfo->pid != clientInfo->pid) {
             IMSA_HILOGI("remove inactive client: [%{public}d]", inactiveClientInfo->pid);
-            RemoveClient(inactiveClient, false);
+            RemoveClient(inactiveClient, 0, false);
         }
     }
 }
@@ -965,7 +969,7 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
     }
     if (!OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         IMSA_HILOGI("focus shifts to pid: %{public}d, remove current client.", pid);
-        RemoveClient(client);
+        RemoveClient(client, 0);
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
         return;
     }
@@ -986,7 +990,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     if (clientInfo == nullptr) {
         return;
     }
-    RemoveClient(clientInfo->client);
+    RemoveClient(clientInfo->client, 0);
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
@@ -1152,11 +1156,11 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     bool isolatedSandBox = true;
     EnabledStatus status = EnabledStatus::BASIC_MODE;
-    if (FullImeInfoManager::GetInstance().IsDefaultFullMode(userId_, ime->bundleName)) {
+    if (ImeEnabledInfoManager::GetInstance().IsDefaultFullMode(userId_, ime->bundleName)) {
         status = EnabledStatus::FULL_EXPERIENCE_MODE;
         isolatedSandBox = false;
     } else {
-        auto ret = FullImeInfoManager::GetInstance().GetEnabledState(userId_, ime->bundleName, status);
+        auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId_, ime->bundleName, status);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("[%{public}d,%{public}s] GetEnabledState failed.", userId_, ime->imeId.c_str());
         }
@@ -1292,34 +1296,24 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
         IMSA_HILOGE("nullptr clientInfo!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    auto isScbEnable = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
-    Rosen::CallingWindowInfo callingWindowInfo;
-    if (isScbEnable) {
-        bool isOk = WindowAdapter::GetCallingWindowInfo(callingWindowId,
-            clientInfo->userID, callingWindowInfo);
-        if (!isOk) {
-            IMSA_HILOGI("GetCallingWindowInfo error!");
-            return ErrorCode::ERROR_WINDOW_MANAGER;
-        }
-        if (callingWindowInfo.callingPid_ != clientInfo->pid) {
-            IMSA_HILOGI("pid diff clientInfo:pid:%{public}d, userid:%{public}d!",
-                clientInfo->pid, clientInfo->userID);
-            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-        }
+    if (clientInfo->config.windowId == callingWindowId) {
+        return ErrorCode::NO_ERROR;
     }
-    // if windowId change, refresh windowId info and notify clients input start;
-    if (clientInfo->config.windowId != callingWindowId) {
-        IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
-        clientInfo->config.windowId = callingWindowId;
-        clientInfo->config.inputAttribute.windowId = callingWindowId;
-        if (isScbEnable) {
-            auto curDisplayId = clientInfo->config.inputAttribute.callingDisplayId;
-            if (curDisplayId != callingWindowInfo.displayId_) {
-                clientInfo->config.inputAttribute.callingDisplayId =  callingWindowInfo.displayId_ ;
-                SendToIMACallingWindowDisplayChange(callingWindowInfo.displayId_);
-            }
-        }
-        return NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    InputClientInfo clientInfoTmp = *clientInfo;
+    clientInfoTmp.config.windowId = callingWindowId;
+    auto callingWindowInfo = GetCallingWindowInfo(clientInfoTmp);
+    if (callingWindowInfo.windowId == clientInfo->config.windowId) {
+        return ErrorCode::NO_ERROR;
+    }
+    clientInfo->config.windowId = callingWindowInfo.windowId;
+    clientInfo->config.inputAttribute.windowId = callingWindowInfo.windowId;
+    bool isNotifyDisplayChanged = clientInfo->config.inputAttribute.callingDisplayId != callingWindowInfo.displayId
+                                  && SceneBoardJudgement::IsSceneBoardEnabled();
+    clientInfo->config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
+    IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
+    NotifyInputStartToClients(callingWindowInfo.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    if (isNotifyDisplayChanged) {
+        NotifyCallingDisplayChanged(callingWindowInfo.displayId);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -1585,7 +1579,7 @@ int32_t PerUserSession::RemoveCurrentClient()
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     NotifyInputStopToClients();
-    return RemoveClient(currentClient, false);
+    return RemoveClient(currentClient, 0, false);
 }
 
 bool PerUserSession::IsWmsReady()
@@ -2022,10 +2016,10 @@ void PerUserSession::HandleImeBindTypeChanged(InputClientInfo &newClientInfo)
         newClientInfo.isNotifyInputStart = true;
     }
     if (isClientInactive) {
-        StopImeInput(oldClientInfo->bindImeType, oldClientInfo->channel);
+        StopImeInput(oldClientInfo->bindImeType, oldClientInfo->channel, 0);
         return;
     }
-    UnBindClientWithIme(oldClientInfo);
+    UnBindClientWithIme(oldClientInfo, 0);
 }
 
 void PerUserSession::TryUnloadSystemAbility()
@@ -2041,33 +2035,30 @@ void PerUserSession::TryUnloadSystemAbility()
     onDemandStartStopSa->UnloadInputMethodSystemAbility();
 }
 
-void PerUserSession::HandleCallingWindowDisplayChanged(const int32_t windowId,
-    const int32_t callingPid, const uint64_t displayId)
+void PerUserSession::OnCallingDisplayChanged(
+    const int32_t windowId, const int32_t callingPid, const uint64_t displayId)
 {
-    IMSA_HILOGD("enter!inputinfo: windowId:%{public}d,callingPid:%{public}d,displayId:%{public}" PRIu64 "",
-        windowId, callingPid, displayId);
+    IMSA_HILOGD("enter!windowId:%{public}d,callingPid:%{public}d,displayId:%{public}" PRIu64 "", windowId,
+        callingPid, displayId);
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo == nullptr) {
         IMSA_HILOGD("clientInfo is null");
         return;
     }
-    if (clientInfo->config.inputAttribute.callingDisplayId == Rosen::DISPLAY_ID_INVALID) {
-        IMSA_HILOGD("callingDisplayId invaild");
+    IMSA_HILOGD("userId:%{public}d, windowId:%{public}d", userId_, clientInfo->config.windowId);
+    if (clientInfo->config.windowId != static_cast<uint32_t>(windowId)) {
         return;
     }
-    IMSA_HILOGD("local userId_:%{public}d, winddowId:%{public}d",
-        userId_, clientInfo->config.windowId);
-    if (clientInfo->config.windowId == static_cast<uint32_t>(windowId)) {
-        uint64_t curDisplay = clientInfo->config.inputAttribute.callingDisplayId;
-        if (curDisplay != displayId) {
-            clientInfo->config.inputAttribute.callingDisplayId = displayId;
-            SendToIMACallingWindowDisplayChange(displayId);
-        }
+    uint64_t curDisplay = clientInfo->config.inputAttribute.callingDisplayId;
+    if (curDisplay == displayId) {
+        return;
     }
+    clientInfo->config.inputAttribute.callingDisplayId = displayId;
+    NotifyCallingDisplayChanged(displayId);
 }
 
-int32_t PerUserSession::SendToIMACallingWindowDisplayChange(uint64_t displayId)
+int32_t PerUserSession::NotifyCallingDisplayChanged(uint64_t displayId)
 {
     IMSA_HILOGD("enter displayId:%{public}" PRIu64 "", displayId);
     auto data = GetValidIme(ImeType::IME);
@@ -2081,9 +2072,42 @@ int32_t PerUserSession::SendToIMACallingWindowDisplayChange(uint64_t displayId)
     };
     auto ret = RequestIme(data, RequestType::NORMAL, callBack);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("send to IMA calling window display change failed, ret: %{public}d!", ret);
+        IMSA_HILOGE("notify calling window display changed failed, ret: %{public}d!", ret);
     }
     return ret;
+}
+
+ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo)
+{
+    ImfCallingWindowInfo finalWindowInfo{ clientInfo.config.windowId, 0 };
+    if (!SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return finalWindowInfo;
+    }
+    CallingWindowInfo callingWindowInfo;
+    if (GetCallingWindowInfo(clientInfo, callingWindowInfo)) {
+        finalWindowInfo.displayId = callingWindowInfo.displayId_;
+        return finalWindowInfo;
+    }
+    FocusChangeInfo focusInfo;
+    WindowAdapter::GetFoucusInfo(focusInfo);
+    if (!WindowAdapter::GetCallingWindowInfo(focusInfo.windowId_, userId_, callingWindowInfo)) {
+        IMSA_HILOGE("GetCallingWindowInfo error!");
+        return finalWindowInfo;
+    }
+    // The value set from the IMC is used and does not need to be modified on the service side
+    return { clientInfo.config.windowId, callingWindowInfo.displayId_ };
+}
+
+bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, CallingWindowInfo &callingWindowInfo)
+{
+    auto windowId = clientInfo.config.windowId;
+    if (windowId == INVALID_WINDOW_ID) {
+        return false;
+    }
+    if (!WindowAdapter::GetCallingWindowInfo(windowId, userId_, callingWindowInfo)) {
+        return false;
+    }
+    return !(callingWindowInfo.callingPid_ != clientInfo.pid && clientInfo.uiExtensionTokenId == IMF_INVALID_TOKENID);
 }
 } // namespace MiscServices
 } // namespace OHOS

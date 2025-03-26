@@ -459,9 +459,9 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
 napi_value JsGetInputMethodSetting::EnableInputMethod(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("run in");
-    auto ctxt = std::make_shared<enableInputContext>();
+    auto ctxt = std::make_shared<EnableInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 2, "at least three parameter is required!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 2, "at least three parameters is required!", TYPE_NONE, napi_invalid_arg);
         PARAM_CHECK_RETURN(env,
             JsUtil::GetType(env, argv[0]) == napi_string && JsUtil::GetValue(env, argv[0], ctxt->bundleName),
             "bundleName type must be string!", TYPE_NONE, napi_invalid_arg);

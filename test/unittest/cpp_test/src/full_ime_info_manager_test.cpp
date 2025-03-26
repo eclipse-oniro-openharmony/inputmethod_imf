@@ -475,8 +475,9 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_001, TestSize.Level0)
     FullImeInfoManager::GetInstance().fullImeInfos_.insert_or_assign(userId, imeInfos);
 
     int32_t userId1 = 101;
-    auto ret = FullImeInfoManager::GetInstance().GetWithOutEnabledStatus(userId1);
-    EXPECT_TRUE(ret.empty());
+    std::vector<Property> props;
+    auto ret = FullImeInfoManager::GetInstance().Get(userId1, props);
+    EXPECT_TRUE(props.empty());
 }
 
 /**
@@ -492,9 +493,9 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_002, TestSize.Level0)
     FullImeInfo info;
     imeInfos.push_back(info);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert_or_assign(userId, imeInfos);
-
-    auto ret = FullImeInfoManager::GetInstance().GetWithOutEnabledStatus(userId);
-    EXPECT_EQ(ret.size(), 1);
+    std::vector<Property> props;
+    auto ret = FullImeInfoManager::GetInstance().Get(userId, props);
+    EXPECT_EQ(props.size(), 1);
 }
 
 /**

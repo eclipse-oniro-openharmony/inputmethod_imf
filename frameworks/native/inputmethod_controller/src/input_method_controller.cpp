@@ -262,6 +262,10 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, cons
     }
     auto lastListener = GetTextListener();
     clientInfo_.isNotifyInputStart = lastListener != listener;
+    if (clientInfo_.isNotifyInputStart) {
+        sessionId_++;
+    }
+    IMSA_HILOGI("sessionId_ %{public}u", sessionId_.load());
     if (clientInfo_.isNotifyInputStart && lastListener != nullptr) {
         lastListener->OnDetach();
     }
@@ -577,7 +581,7 @@ int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    int32_t ret = proxy->ReleaseInput(client);
+    int32_t ret = proxy->ReleaseInput(client, sessionId_.load());
     if (ret == ErrorCode::NO_ERROR) {
         OnInputStop();
     }
@@ -1298,9 +1302,9 @@ void InputMethodController::SendKeyboardStatus(KeyboardStatus status)
 void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
     IMSA_HILOGD("InputMethodController start, type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: "
-                "%{public}d.",
+                "%{public}d, sessionId: %{public}u.",
         static_cast<PanelType>(info.panelInfo.panelType), static_cast<PanelFlag>(info.panelInfo.panelFlag),
-        info.visible, static_cast<Trigger>(info.trigger));
+        info.visible, static_cast<Trigger>(info.trigger), info.sessionId);
     auto listener = GetTextListener();
     if (listener == nullptr) {
         IMSA_HILOGE("listener is nullptr!");
@@ -1309,7 +1313,10 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD) {
         info.visible ? SendKeyboardStatus(KeyboardStatus::SHOW) : SendKeyboardStatus(KeyboardStatus::HIDE);
     }
-    listener->NotifyPanelStatusInfo(info);
+
+    if (info.visible || info.sessionId == 0 || info.sessionId == sessionId_) {
+        listener->NotifyPanelStatusInfo(info);
+    }
     if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD &&
         info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
@@ -1630,6 +1637,20 @@ void InputMethodController::ReportBaseTextOperation(int32_t eventCode, int32_t e
                         .SetClientType(clientInfo_.type)
                         .Build();
     ImcHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *evenInfo);
+}
+
+void InputMethodController::UpdateTextPreviewState(bool isSupport)
+{
+    if (textConfig_.inputAttribute.isTextPreviewSupported == isSupport) {
+        return;
+    }
+    textConfig_.inputAttribute.isTextPreviewSupported = isSupport;
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return;
+    }
+    agent->OnAttributeChange(textConfig_.inputAttribute);
 }
 } // namespace MiscServices
 } // namespace OHOS

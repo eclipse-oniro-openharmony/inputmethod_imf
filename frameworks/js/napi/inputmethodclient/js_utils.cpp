@@ -115,7 +115,7 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_EDITABLE, "the edit mode need enable." },
     { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
 	{ EXCEPTION_IME_NOT_FOUND, "the input method is not found." },
-    { EXCEPTION_DISABLE_SYS_IME, " the sys ime can not be disabled" },
+    { EXCEPTION_DISABLE_SYS_IME, " the system ime can not be disabled" },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {

@@ -16,13 +16,7 @@
 #ifndef SERVICES_INCLUDE_FULL_IME_INFO_MANAGER_H
 #define SERVICES_INCLUDE_FULL_IME_INFO_MANAGER_H
 
-#include <atomic>
-#include <chrono>
-#include <functional>
-#include <map>
-
 #include "event_handler.h"
-#include "ime_enabled_info_manager.h"
 #include "input_method_property.h"
 #include "timer.h"
 namespace OHOS {
@@ -38,29 +32,15 @@ public:
     int32_t Add(int32_t userId, const std::string &bundleName);    // package added
     int32_t Delete(int32_t userId, const std::string &bundleName); // package removed
     int32_t Update(int32_t userId, const std::string &bundleName); // package changed
-    int32_t UpdateEnabledStatus(
-        int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status);
-    int32_t GetEnabledState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    int32_t GetEnabledStates(int32_t userId, std::vector<Property> &props);
-    void SetEnabledStatusChangedHandler(EnabledStatusChangedHandler handler);
-    bool IsDefaultFullMode(int32_t userId, const std::string &bundleName);
-    void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
-    std::vector<Property> GetWithOutEnabledStatus(int32_t userId);
     std::string Get(int32_t userId, uint32_t tokenId);
     bool Get(int32_t userId, const std::string &bundleName, FullImeInfo &fullImeInfo);
     bool Has(int32_t userId, const std::string &bundleName);
+    int32_t Get(int32_t userId, std::vector<Property> &props);
+    void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
 
 private:
     FullImeInfoManager();
     ~FullImeInfoManager();
-    int32_t AddUser(int32_t userId, std::vector<FullImeInfo> &infos);
-    int32_t AddPackage(int32_t userId, const std::string &bundleName, FullImeInfo &info);
-    int32_t DeletePackage(int32_t userId, const std::string &bundleName);
-    std::mutex lock_;
-    std::map<int32_t, std::vector<FullImeInfo>> fullImeInfos_;
-    Utils::Timer timer_{ "imeInfoCacheInitTimer" };
-    uint32_t timerId_{ 0 };
-    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_{ nullptr };
 };
 } // namespace MiscServices
 } // namespace OHOS

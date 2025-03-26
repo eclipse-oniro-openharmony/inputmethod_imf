@@ -16,13 +16,6 @@
 #ifndef IME_ENABLED_INFO_MANAGER_H
 #define IME_ENABLED_INFO_MANAGER_H
 
-#include <map>
-#include <mutex>
-#include <set>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
 #include "event_handler.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
@@ -101,14 +94,14 @@ struct ImeEnabledCfg : public Serializable {
         return version == enabledCfg.version && enabledInfos == enabledCfg.enabledInfos;
     }
 };
-using EnabledStatusChangedHandler =
+using EnableChangedHandler =
     std::function<void(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)>;
 class ImeEnabledInfoManager {
 public:
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
     static ImeEnabledInfoManager &GetInstance();
-    void SetEnabledStatusChangedHandler(EnabledStatusChangedHandler handler);
+    void SetEnableChangedHandler(EnableChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
     int32_t Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Add(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
@@ -130,24 +123,24 @@ private:
     int32_t GetEnabledStateInner(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t GetEnabledStateInner(int32_t userId, std::vector<Property> &props);
     int32_t GetEnabledCfg(
-        int32_t userId, ImeEnabledCfg &cfg, bool isCheckByBmg, const std::vector<FullImeInfo> &imeInfos = {});
+        int32_t userId, ImeEnabledCfg &cfg, bool isCorrectByBmg, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t GetEnabledTableCfg(int32_t userId, ImeEnabledCfg &cfg);
     int32_t GetOldEnabledTableCfg(int32_t userId, const std::string &content, ImeEnabledCfg &cfg);
     int32_t GetNewEnabledTableCfg(int32_t userId, const std::string &content, ImeEnabledCfg &cfg);
     int32_t MergeFullExperienceTableCfg(int32_t userId, ImeEnabledCfg &cfg);
     int32_t ParseFullExperienceTableCfg(int32_t userId, const std::string &content, std::set<std::string> &bundleNames);
-    int32_t CheckByBundleMgr(
+    int32_t CorrectByBundleMgr(
         int32_t userId, std::vector<ImeEnabledInfo> &enabledInfos, const std::vector<FullImeInfo> &imeInfos);
-    void CheckBySysEnabledSwitch(ImeEnabledInfo &info);
-    void CheckBySysEnabledSwitch(std::vector<ImeEnabledInfo> &infos);
-    void CheckBySysIme(ImeEnabledInfo &info);
-    void CheckBySysIme(std::vector<ImeEnabledInfo> &infos);
+    void CorrectBySysEnabledSwitch(ImeEnabledInfo &info);
+    void CorrectBySysEnabledSwitch(std::vector<ImeEnabledInfo> &infos);
+    void CorrectBySysIme(ImeEnabledInfo &info);
+    void CorrectBySysIme(std::vector<ImeEnabledInfo> &infos);
     int32_t SetEnabledCfg(int32_t userId, const ImeEnabledCfg &cfg);
     int32_t GetEnabledCfgFromCache(int32_t userId, ImeEnabledCfg &enabledCfg);
     int32_t GetEnabledCfgFromCacheWithCorrect(int32_t userId, ImeEnabledCfg &enabledCfg);
     void PostCorrectAddTask(int32_t userId);
     void NotifyEnableChange(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
-    int32_t NeedUpdate(
+    std::pair<int32_t, bool> CheckUpdate(
         int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status);
     bool HasEnabledSwitch();
     bool IsExpired(const std::string &expirationTime);
@@ -155,8 +148,8 @@ private:
     std::string GetGlobalTableUserId(const std::string &valueStr);                  // add for compatibility
     std::mutex imeEnabledCfgLock_;
     std::map<int32_t, ImeEnabledCfg> imeEnabledCfg_;
-    EnabledStatusChangedHandler handler_;
-    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_{ nullptr };
+    EnableChangedHandler enableChangedHandler_;
+    std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_{ nullptr };
     std::mutex settingOperateLock_;
     int32_t currentUserId_{ -1 };
 };

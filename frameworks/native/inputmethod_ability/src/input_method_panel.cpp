@@ -431,8 +431,8 @@ int32_t InputMethodPanel::AdjustKeyboard()
             IMSA_HILOGE("failed to GetDisplaySize ret: %{public}d", ret);
             return ret;
         }
-        params.portrait.avoidY = displaySize.portrait.height - params.portrait.avoidHeight;
-        params.landscape.avoidY = displaySize.landscape.height - params.landscape.avoidHeight;
+        params.portrait.avoidY = static_cast<int32_t>(displaySize.portrait.height - params.portrait.avoidHeight);
+        params.landscape.avoidY = static_cast<int32_t>(displaySize.landscape.height - params.landscape.avoidHeight);
         auto hotAreas = GetHotAreas();
         ret = AdjustPanelRect(panelFlag_, params, hotAreas);
     } else {
@@ -1663,6 +1663,10 @@ int32_t InputMethodPanel::GetWindowOrientation(PanelFlag panelFlag, uint32_t win
         IMSA_HILOGE("failed to GetDisplaySize");
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+    if (displaySize.portrait.width == displaySize.portrait.height) {
+        isPortrait = IsDisplayPortrait();
+        return ErrorCode::NO_ERROR;
+    }
     if (windowWidth == displaySize.portrait.width) {
         isPortrait = true;
     }
@@ -1757,7 +1761,17 @@ bool InputMethodPanel::IsDisplayPortrait()
     }
     auto width = defaultDisplay->GetWidth();
     auto height = defaultDisplay->GetHeight();
-    return width < height;
+    if (width != height) {
+        return width < height;
+    }
+    auto displayInfo = defaultDisplay->GetDisplayInfo();
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("GetDisplayInfo failed");
+        return false;
+    }
+    auto orientation = displayInfo->GetDisplayOrientation();
+    IMSA_HILOGI("width equals to height, orientation: %{public}u", static_cast<uint32_t>(orientation));
+    return orientation == DisplayOrientation::PORTRAIT || orientation == DisplayOrientation::PORTRAIT_INVERTED;
 }
 
 bool InputMethodPanel::IsDisplayUnfolded()

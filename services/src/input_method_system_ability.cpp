@@ -220,7 +220,7 @@ std::string InputMethodSystemAbility::GetRestoreBundleName(MessageParcel &data)
     {
         cJSON *type = cJSON_GetObjectItem(item, "type");
         cJSON *detail = cJSON_GetObjectItem(item, "detail");
-        if (type == NULL || detail == NULL) {
+        if (type == NULL || detail == NULL || type->valuestring == NULL || detail->valuestring == NULL) {
             IMSA_HILOGE("type or detail is null");
             continue;
         }
@@ -409,7 +409,7 @@ void InputMethodSystemAbility::Initialize()
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     IMSA_HILOGI("start get scene board enable status");
     isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
-    FullImeInfoManager::GetInstance().SetEnabledStatusChangedHandler(
+    ImeEnabledInfoManager::GetInstance().SetEnableChangedHandler(
         [this](int32_t userId, const std::string &bundleName, EnabledStatus oldStatus) {
             OnImeEnabledStatusChange(userId, bundleName, oldStatus);
         });
@@ -530,16 +530,19 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
         clientInfo.uiExtensionTokenId = tokenId;
     }
     clientInfo.name = ImfHiSysEventUtil::GetAppName(tokenId);
-    if (isScbEnable_.load()) {
-        HandleCallingWindowDisplay(clientInfo);
-    } else {
-        clientInfo.config.inputAttribute.windowId = clientInfo.config.windowId;
-        clientInfo.config.inputAttribute.callingDisplayId = 0;
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session != nullptr) {
+        auto callingWindowInfo = session->GetCallingWindowInfo(clientInfo);
+        clientInfo.config.windowId = callingWindowInfo.windowId;
+        clientInfo.config.inputAttribute.windowId = callingWindowInfo.windowId;
+        clientInfo.config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
+        IMSA_HILOGD("result:%{public}s,wid:%{public}d", clientInfo.config.inputAttribute.ToString().c_str(),
+            clientInfo.config.windowId);
     }
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client, uint32_t sessionId)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr!");
@@ -551,7 +554,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnReleaseInput(client);
+    return session->OnReleaseInput(client, sessionId);
 }
 
 int32_t InputMethodSystemAbility::StartInput(
@@ -1008,7 +1011,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         return ErrorCode::ERROR_NULL_POINTER;
     }
     EnabledStatus status = EnabledStatus::DISABLED;
-    auto ret = FullImeInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
+    auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
     if (ret != ErrorCode::NO_ERROR || status == EnabledStatus::DISABLED) {
         IMSA_HILOGW("ime %{public}s not enable, stopped!", bundleName.c_str());
         return ErrorCode::ERROR_ENABLE_IME;
@@ -1032,8 +1035,16 @@ int32_t InputMethodSystemAbility::EnableIme(
         IMSA_HILOGE("permission check failed!");
         return ret;
     }
+    ret = ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     int32_t userId = GetCallingUserId();
-    return FullImeInfoManager::GetInstance().UpdateEnabledStatus(userId, bundleName, bundleName, status);
+    if (serviceHandler_ == nullptr) {
+        return ret;
+    }
+    auto task = [&userId, &bundleName, &extensionName, &status, &ret]() {
+        ret = ImeEnabledInfoManager::GetInstance().Update(userId, bundleName, extensionName, status);
+    };
+    serviceHandler_->PostSyncTask(task, "enableUpdate", AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    return ret;
 }
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const SwitchInfo &switchInfo,
@@ -1774,8 +1785,8 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
             IMSA_HILOGE("[%{public}d] session is nullptr!", userId);
             return;
         };
-        session->HandleCallingWindowDisplayChanged(callingWindowInfo.windowId_,
-            callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
+        session->OnCallingDisplayChanged(
+            callingWindowInfo.windowId_, callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
     };
     WindowAdapter::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
 }
@@ -1823,7 +1834,7 @@ void InputMethodSystemAbility::OnImeEnabledStatusChange(
         return;
     }
     EnabledStatus newStatus;
-    auto ret = FullImeInfoManager::GetInstance().GetEnabledState(userId_, currentBundleName, newStatus);
+    auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId_, currentBundleName, newStatus);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW(
             "[%{public}d,%{public}s] get enabled status failed:%{public}d,!", userId_, currentBundleName.c_str(), ret);
@@ -1866,7 +1877,7 @@ void InputMethodSystemAbility::OnSecurityModeChange(
         return;
     }
     EnabledStatus newStatus = EnabledStatus::DISABLED;
-    auto ret = FullImeInfoManager::GetInstance().GetEnabledState(userId, imeData->ime.first, newStatus);
+    auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, imeData->ime.first, newStatus);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("[%{public}d, %{public}s] get enabled status failed:%{public}d,!", userId,
             imeData->ime.first.c_str(), ret);
@@ -1899,7 +1910,7 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
     }
     security = 0;
     EnabledStatus status = EnabledStatus::BASIC_MODE;
-    auto ret = FullImeInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
+    auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("[%{public}d, %{public}s] get enabled status failed:%{public}d,!", userId, bundleName.c_str(), ret);
     }
@@ -2319,7 +2330,7 @@ int32_t InputMethodSystemAbility::GetInputMethodState(EnabledStatus &status)
             return ErrorCode::ERROR_NOT_IME;
         }
     }
-    return FullImeInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
+    return ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
 }
 
 int32_t InputMethodSystemAbility::ShowCurrentInput(ClientType type)
@@ -2408,7 +2419,7 @@ int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
     std::vector<Property> props;
     int32_t ret = ListInputMethod(status, props);
     if (ret == ErrorCode::NO_ERROR && !props.empty()) {
-        ime = props[0].id;
+        ime = props[0].name + "/" + props[0].id;
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGD("GetListEnableInputMethodIme is failed!");
@@ -2418,59 +2429,12 @@ int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
         IMSA_HILOGE("GetListDisableInputMethodIme is failed!");
         return ErrorCode::ERROR_NOT_IME;
     }
-    if (EnableIme(props[0].name)) {
-        ime = props[0].id;
+    if (EnableIme(props[0].name, props[0].id, EnabledStatus::BASIC_MODE)) {
+        ime = props[0].name + "/" + props[0].id;
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGE("GetAlternativeIme is failed!");
     return ErrorCode::ERROR_NOT_IME;
-}
-
-void InputMethodSystemAbility::HandleCallingWindowDisplay(InputClientInfo &clientInfo)
-{
-    IMSA_HILOGD("enter");
-    auto curWindowId = clientInfo.config.windowId;
-    auto curDisplayId = clientInfo.config.inputAttribute.callingDisplayId;
-    IMSA_HILOGD("curWindowId:%{public}d, curDisplayId:%{public}d!",
-        curWindowId, static_cast<uint32_t>(curDisplayId));
-    IMSA_HILOGD("clientInfo:pid:%{public}d, userid:%{public}d!",
-        clientInfo.pid, clientInfo.userID);
-    OHOS::Rosen::FocusChangeInfo focusInfo;
-    WindowAdapter::GetFoucusInfo(focusInfo);
-    if (curWindowId == INVALID_WINDOW_ID) {
-        clientInfo.config.inputAttribute.callingDisplayId = focusInfo.displayId_;
-        clientInfo.config.inputAttribute.windowId = curWindowId;
-        IMSA_HILOGD("result windowId <= 0 inputAttribute:%{public}s",
-            clientInfo.config.inputAttribute.ToString().c_str());
-        return;
-    }
-    Rosen::CallingWindowInfo callingWindowInfo;
-    auto ret = WindowAdapter::GetCallingWindowInfo(curWindowId, clientInfo.userID, callingWindowInfo);
-    if (!ret) {
-        IMSA_HILOGE("GetCallingWindowInfo error!");
-        return;
-    }
-    bool isVaild = true;
-    if (callingWindowInfo.callingPid_ != clientInfo.pid) {
-        if (clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
-            isVaild = true;
-        } else {
-            isVaild = false;
-        }
-    }
-    if (isVaild) {
-        curDisplayId = callingWindowInfo.displayId_;
-        IMSA_HILOGD("check ok");
-    } else {
-        curDisplayId = focusInfo.displayId_;
-        IMSA_HILOGD("check not ok");
-    }
-    clientInfo.config.inputAttribute.callingDisplayId = curDisplayId;
-    clientInfo.config.inputAttribute.windowId = curWindowId;
-    clientInfo.config.windowId = curWindowId;
-    IMSA_HILOGD("result inputAttribute:%{public}s",
-        clientInfo.config.inputAttribute.ToString().c_str());
-    return;
 }
 } // namespace MiscServices
 } // namespace OHOS

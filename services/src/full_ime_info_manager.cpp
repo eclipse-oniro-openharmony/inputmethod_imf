@@ -14,7 +14,9 @@
  */
 
 #include "full_ime_info_manager.h"
+
 #include "common_timer_errors.h"
+#include "ime_enabled_info_manager.h"
 #include "ime_info_inquirer.h"
 #include "inputmethod_message_handler.h"
 #include "message.h"
@@ -69,10 +71,8 @@ int32_t FullImeInfoManager::Init()
         }
         fullImeInfosParam = fullImeInfos_;
     }
-    if (eventHandler_ != nullptr) {
-        auto task = [fullImeInfosParam]() { ImeEnabledInfoManager::GetInstance().Init(fullImeInfosParam); };
-        eventHandler_->PostTask(task, "enableRegularInit", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
+    auto task = [fullImeInfosParam]() { ImeEnabledInfoManager::GetInstance().Init(fullImeInfosParam); };
+    HandleEnableTask(task, "enableRegularInit");
     return ErrorCode::NO_ERROR;
 }
 
@@ -80,10 +80,8 @@ int32_t FullImeInfoManager::Add(int32_t userId)
 {
     std::vector<FullImeInfo> infos;
     auto ret = AddUser(userId, infos);
-    if (eventHandler_ != nullptr) {
-        auto task = [userId, infos]() { ImeEnabledInfoManager::GetInstance().Add(userId, infos); };
-        eventHandler_->PostTask(task, "enableUserAdd", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
+    auto task = [userId, infos]() { ImeEnabledInfoManager::GetInstance().Add(userId, infos); };
+    HandleEnableTask(task, "enableUserAdd");
     return ret;
 }
 
@@ -93,10 +91,8 @@ int32_t FullImeInfoManager::Delete(int32_t userId)
         std::lock_guard<std::mutex> lock(lock_);
         fullImeInfos_.erase(userId);
     }
-    if (eventHandler_ != nullptr) {
-        auto task = [userId]() { ImeEnabledInfoManager::GetInstance().Delete(userId); };
-        eventHandler_->PostTask(task, "enableUserDelete", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
+    auto task = [userId]() { ImeEnabledInfoManager::GetInstance().Delete(userId); };
+    HandleEnableTask(task, "enableUserDelete");
     return ErrorCode::NO_ERROR;
 }
 
@@ -107,20 +103,16 @@ int32_t FullImeInfoManager::Add(int32_t userId, const std::string &bundleName)
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    if (eventHandler_ != nullptr) {
-        auto task = [userId, info]() { ImeEnabledInfoManager::GetInstance().Add(userId, info); };
-        eventHandler_->PostTask(task, "enableBundleAdd", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
+    auto task = [userId, info]() { ImeEnabledInfoManager::GetInstance().Add(userId, info); };
+    HandleEnableTask(task, "enableBundleAdd");
     return ErrorCode::NO_ERROR;
 }
 
 int32_t FullImeInfoManager::Delete(int32_t userId, const std::string &bundleName)
 {
     auto ret = DeletePackage(userId, bundleName);
-    if (eventHandler_ != nullptr) {
-        auto task = [userId, bundleName]() { ImeEnabledInfoManager::GetInstance().Delete(userId, bundleName); };
-        eventHandler_->PostTask(task, "enableBundleDelete", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
+    auto task = [userId, bundleName]() { ImeEnabledInfoManager::GetInstance().Delete(userId, bundleName); };
+    HandleEnableTask(task, "enableBundleDelete");
     return ret;
 }
 
@@ -232,48 +224,8 @@ int32_t FullImeInfoManager::Update(int32_t userId, const std::string &bundleName
     return ErrorCode::NO_ERROR;
 }
 
-void FullImeInfoManager::SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
+int32_t FullImeInfoManager::Get(int32_t userId, std::vector<Property> &props)
 {
-    ImeEnabledInfoManager::GetInstance().SetEventHandler(eventHandler);
-    eventHandler_ = eventHandler;
-}
-
-void FullImeInfoManager::SetEnabledStatusChangedHandler(EnabledStatusChangedHandler handler)
-{
-    ImeEnabledInfoManager::GetInstance().SetEnabledStatusChangedHandler(std::move(handler));
-}
-
-bool FullImeInfoManager::IsDefaultFullMode(int32_t userId, const std::string &bundleName)
-{
-    return ImeEnabledInfoManager::GetInstance().IsDefaultFullMode(userId, bundleName);
-}
-
-int32_t FullImeInfoManager::UpdateEnabledStatus(
-    int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status)
-{
-    if (eventHandler_ == nullptr) {
-        return ImeEnabledInfoManager::GetInstance().Update(userId, bundleName, bundleName, status);
-    }
-    int32_t ret = ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
-    auto task = [&userId, &bundleName, &extensionName, &status, &ret]() {
-        ret = ImeEnabledInfoManager::GetInstance().Update(userId, bundleName, bundleName, status);
-    };
-    eventHandler_->PostSyncTask(task, "enableUpdate", AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    return ret;
-}
-
-int32_t FullImeInfoManager::GetEnabledState(int32_t userId, const std::string &bundleName, EnabledStatus &status)
-{
-    return ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
-}
-int32_t FullImeInfoManager::GetEnabledStates(int32_t userId, std::vector<Property> &props)
-{
-    return ImeEnabledInfoManager::GetInstance().GetEnabledStates(userId, props);
-}
-
-std::vector<Property> FullImeInfoManager::GetWithOutEnabledStatus(int32_t userId)
-{
-    std::vector<Property> props;
     {
         std::lock_guard<std::mutex> lock(lock_);
         auto it = fullImeInfos_.find(userId);
@@ -284,7 +236,12 @@ std::vector<Property> FullImeInfoManager::GetWithOutEnabledStatus(int32_t userId
             props.push_back(fullImeInfo.prop);
         }
     }
-    return props;
+    auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledStates(userId, props);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("get enabled status failed:%{public}d!", ret);
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 bool FullImeInfoManager::Get(int32_t userId, const std::string &bundleName, FullImeInfo &fullImeInfo)
@@ -337,6 +294,20 @@ std::string FullImeInfoManager::Get(int32_t userId, uint32_t tokenId)
         return "";
     }
     return (*iter).prop.name;
+}
+
+void FullImeInfoManager::HandleEnableTask(const std::function<void()> &task, const std::string &taskName)
+{
+    if (serviceHandler_ != nullptr) {
+        return;
+    }
+    serviceHandler_->PostTask(task, taskName, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+}
+
+void FullImeInfoManager::SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
+{
+    ImeEnabledInfoManager::GetInstance().SetEventHandler(eventHandler);
+    serviceHandler_ = eventHandler;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -41,14 +41,14 @@ struct ImeEnabledInfo {
 };
 struct ImeEnabledCfg {
 };
-using EnabledStatusChangedHandler =
+using EnableChangedHandler =
     std::function<void(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)>;
 class ImeEnabledInfoManager {
 public:
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
     static ImeEnabledInfoManager &GetInstance();
-    void SetEnabledStatusChangedHandler(EnabledStatusChangedHandler handler);
+    void SetEnableChangedHandler(EnableChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
     int32_t Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Add(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
@@ -58,7 +58,7 @@ public:
     int32_t Update(
         int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status);
     int32_t GetEnabledState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    int32_t GetEnabledStates(int32_t userId, std::vector<Property> &props);
+    int32_t GetEnabledStates(int32_t userId, std::vector<Property> &props); // props not has sysSpecialIme
     bool IsDefaultFullMode(int32_t userId, const std::string &bundleName);
     void OnFullExperienceTableChanged(int32_t userId); // add for compatibility
 private:

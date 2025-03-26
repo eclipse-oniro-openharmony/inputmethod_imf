@@ -328,7 +328,7 @@ bool ITypesUtil::Marshalling(const PanelStatusInfo &input, MessageParcel &data)
 {
     return data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelType)) &&
            data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelFlag)) && data.WriteBool(input.visible) &&
-           data.WriteInt32(static_cast<int32_t>(input.trigger));
+           data.WriteInt32(static_cast<int32_t>(input.trigger)) && data.WriteUint32(input.sessionId);
 }
 
 bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
@@ -337,10 +337,13 @@ bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
     int32_t flag = -1;
     bool visible = false;
     int32_t trigger = -1;
-    if (!data.ReadInt32(type) || !data.ReadInt32(flag) || !data.ReadBool(visible) || !data.ReadInt32(trigger)) {
+    uint32_t sessionId = 0;
+    if (!data.ReadInt32(type) || !data.ReadInt32(flag) || !data.ReadBool(visible) || !data.ReadInt32(trigger) ||
+        !data.ReadUint32(sessionId)) {
         return false;
     }
-    output = { { static_cast<PanelType>(type), static_cast<PanelFlag>(flag) }, visible, static_cast<Trigger>(trigger) };
+    output = { { static_cast<PanelType>(type), static_cast<PanelFlag>(flag) }, visible, static_cast<Trigger>(trigger),
+        sessionId };
     return true;
 }
 

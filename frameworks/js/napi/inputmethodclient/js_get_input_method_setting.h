@@ -94,13 +94,13 @@ struct GetInputMethodControllerContext : public AsyncCall::Context {
     }
 };
 
-struct enableInputContext : public AsyncCall::Context {
+struct EnableInputContext : public AsyncCall::Context {
     std::string bundleName;
     std::string extName;
     EnabledStatus enabledStatus;
     napi_status status = napi_generic_failure;
-    enableInputContext() : Context(nullptr, nullptr){};
-    enableInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    EnableInputContext() : Context(nullptr, nullptr){};
+    EnableInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {

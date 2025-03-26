@@ -32,15 +32,18 @@ struct CacheDisplay {
     int32_t displayWidth = 0;
     int32_t displayHeight = 0;
     Rosen::Rotation displayRotation = Rosen::Rotation::ROTATION_0;
+    Rosen::FoldStatus displayFoldStatus = Rosen::FoldStatus::UNKNOWN;
     bool IsEmpty()
     {
-        return displayWidth == 0 && displayHeight == 0 && displayRotation == Rosen::Rotation::ROTATION_0;
+        return displayWidth == 0 && displayHeight == 0 && displayRotation == Rosen::Rotation::ROTATION_0 &&
+            displayFoldStatus == Rosen::FoldStatus::UNKNOWN;
     };
-    void SetCacheDisplay(int32_t width, int32_t height, Rosen::Rotation rotation)
+    void SetCacheDisplay(int32_t width, int32_t height, Rosen::Rotation rotation, Rosen::FoldStatus foldStatus)
     {
         displayWidth = width;
         displayHeight = height;
         displayRotation = rotation;
+        displayFoldStatus = foldStatus;
     };
 };
 
