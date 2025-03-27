@@ -14,6 +14,7 @@
  */
 #include "identity_checker_impl.h"
 
+#include "cinttypes"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
@@ -125,6 +126,45 @@ std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)
         return "";
     }
     return info.bundleName;
+}
+
+uint64_t IdentityCheckerImpl::GetCallingDisplayId(int32_t callingWindowId)
+{
+    if (callingWindowId == 0) {
+        FocusChangeInfo info;
+#ifdef SCENE_BOARD_ENABLE
+        WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
+#else
+        WindowManager::GetInstance().GetFocusWindowInfo(info);
+#endif
+        callingWindowId = info.windowId_;
+    }
+
+    WindowInfoOption option;
+    std::vector<sptr<WindowInfo>> windowInfos;
+    WMError ret = WMError::WM_OK;
+#ifdef SCENE_BOARD_ENABLE
+    ret = WindowManagerLite::GetInstance().ListWindowInfo(option, windowInfos);
+#else
+    ret = WindowManager::GetInstance().ListWindowInfo(option, windowInfos);
+#endif
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("ListWindowInfo failed, ret: %{public}d", ret);
+        return INVALID_DISPLAY_ID;
+    }
+    auto iter = std::find_if(windowInfos.begin(), windowInfos.end(), [&callingWindowId](const auto &windowInfo) {
+        if (windowInfo == nullptr) {
+            return false;
+        }
+        return windowInfo->windowMetaInfo.windowId == callingWindowId;
+    });
+    if (iter == windowInfos.end()) {
+        IMSA_HILOGE("not found window info with pid: %{public}d", callingWindowId);
+        return INVALID_DISPLAY_ID;
+    }
+    auto callingDisplayId = (*iter)->windowDisplayInfo.displayId;
+    IMSA_HILOGD("window pid: %{public}d, displayId: %{public}" PRIu64 "", callingWindowId, callingDisplayId);
+    return callingDisplayId;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -1312,7 +1312,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     ret = userSession->BindClientWithIme(nullptr, ImeType::IME, false);
     userSession->UnBindClientWithIme(nullptr, false, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
-    ret = userSession->OnSetCallingWindow(0, nullptr);
+    ret = userSession->OnSetCallingWindow(0, 0, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 
     auto ret2 = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);

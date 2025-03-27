@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "unordered_map"
+#include "variant"
 #include "peruser_session.h"
 #include "ability_manager_client.h"
 #include "identity_checker_impl.h"
@@ -1278,7 +1280,8 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client)
+int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId,
+    uint64_t callingDisplayId, sptr<IInputClient> client)
 {
     IMSA_HILOGD("OnSetCallingWindow enter");
     if (!IsSameClient(client, GetCurrentClient())) {
@@ -1309,6 +1312,8 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
                                   && SceneBoardJudgement::IsSceneBoardEnabled();
     clientInfo->config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
     IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
+    clientInfo->config.privateCommand.insert_or_assign("displayId",
+        PrivateDataValue(static_cast<int32_t>(callingDisplayId)));
     NotifyInputStartToClients(callingWindowInfo.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     if (isNotifyDisplayChanged) {
         NotifyCallingDisplayChanged(callingWindowInfo.displayId);

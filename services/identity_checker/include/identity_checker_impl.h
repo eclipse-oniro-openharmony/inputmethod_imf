@@ -30,6 +30,7 @@ public:
     bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override;
     std::string GetBundleNameByToken(uint32_t tokenId) override;
     bool IsFocusedUIExtension(uint32_t callingTokenId) override;
+    uint64_t GetCallingDisplayId(int32_t callingWindowId) override;
 };
 } // namespace MiscServices
 } // namespace OHOS
