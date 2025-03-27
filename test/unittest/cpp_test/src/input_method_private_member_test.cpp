@@ -63,6 +63,7 @@ constexpr std::int32_t INVALID_USER_ID = 10001;
 constexpr std::int32_t INVALID_PROCESS_ID = -1;
 void InputMethodPrivateMemberTest::SetUpTestCase(void)
 {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUpTestCase");
     service_ = new (std::nothrow) InputMethodSystemAbility();
     if (service_ == nullptr) {
