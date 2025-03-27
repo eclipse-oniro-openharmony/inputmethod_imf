@@ -1553,7 +1553,8 @@ HWTEST_F(InputMethodAbilityTest, testOnCallingDisplayChange, TestSize.Level0)
         IMSA_HILOGI("coreProxy is null");
         return;
     }
-    EXPECT_NO_THROW(coreProxy->OnCallingDisplayChange(0));
+    coreProxy->OnCallingDisplayIdChange(0);
+    EXPECT_TRUE(coreProxy != nullptr);
 }
 } // namespace MiscServices
 } // namespace OHOS

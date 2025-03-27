@@ -2065,7 +2065,7 @@ int32_t PerUserSession::NotifyCallingDisplayChanged(uint64_t displayId)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     auto callBack = [&data, displayId]() -> int32_t {
-        data->core->OnCallingDisplayChange(displayId);
+        data->core->OnCallingDisplayIdChange(displayId);
         return ErrorCode::NO_ERROR;
     };
     auto ret = RequestIme(data, RequestType::NORMAL, callBack);
@@ -2087,7 +2087,7 @@ ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo 
         return finalWindowInfo;
     }
     FocusChangeInfo focusInfo;
-    WindowAdapter::GetFoucusInfo(focusInfo);
+    WindowAdapter::GetFocusInfo(focusInfo);
     if (!WindowAdapter::GetCallingWindowInfo(focusInfo.windowId_, userId_, callingWindowInfo)) {
         IMSA_HILOGE("GetCallingWindowInfo error!");
         return finalWindowInfo;

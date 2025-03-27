@@ -143,7 +143,7 @@ void TestGetInputPattern()
 void TestCallingDisplayChange(uint64_t fuzzedUint64)
 {
     sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->OnCallingDisplayChange(fuzzedUint64);
+    ability->OnCallingDisplayIdChange(fuzzedUint64);
 }
 } // namespace OHOS
 

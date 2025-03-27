@@ -61,15 +61,15 @@ HWTEST_F(WindowAdapterTest, WindowAdapter_GetCallingWindowInfo, TestSize.Level0)
 }
 
 /**
- * @tc.name: WindowAdapter_GetFoucusInfo
+ * @tc.name: WindowAdapter_GetFocusInfo
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(WindowAdapterTest, WindowAdapter_GetFoucusInfo, TestSize.Level0)
+HWTEST_F(WindowAdapterTest, WindowAdapter_GetFocusInfo, TestSize.Level0)
 {
     OHOS::Rosen::FocusChangeInfo focusInfo;
-    WindowAdapter::GetInstance().GetFoucusInfo(focusInfo);
+    WindowAdapter::GetInstance().GetFocusInfo(focusInfo);
     EXPECT_TRUE(focusInfo.displayId_ >= 0);
 }
 } // namespace MiscServices

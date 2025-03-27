@@ -144,7 +144,7 @@ void InputMethodCoreProxy::OnClientInactive(const sptr<IRemoteObject> &channel)
         nullptr, MessageOption::TF_ASYNC);
 }
 
-void InputMethodCoreProxy::OnCallingDisplayChange(uint64_t dispalyId)
+void InputMethodCoreProxy::OnCallingDisplayIdChange(uint64_t dispalyId)
 {
     SendRequest(
         ON_CALLING_DISPLAY_CHANGE,

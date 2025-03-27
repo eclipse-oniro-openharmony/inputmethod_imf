@@ -276,7 +276,7 @@ int32_t InputMethodCoreStub::IsPanelShown(const PanelInfo &panelInfo, bool &isSh
 
 void InputMethodCoreStub::OnClientInactive(const sptr<IRemoteObject> &channel) { }
 
-void InputMethodCoreStub::OnCallingDisplayChange(uint64_t dispalyId) { }
+void InputMethodCoreStub::OnCallingDisplayIdChange(uint64_t dispalyId) { }
 
 int32_t InputMethodCoreStub::OnCallingDisplayChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
@@ -285,7 +285,7 @@ int32_t InputMethodCoreStub::OnCallingDisplayChangeOnRemote(MessageParcel &data,
         IMSA_HILOGE("unmarshal failed!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = InputMethodAbility::GetInstance()->OnCallingDisplayChange(displayId);
+    int32_t ret = InputMethodAbility::GetInstance()->OnCallingDisplayIdChange(displayId);
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices

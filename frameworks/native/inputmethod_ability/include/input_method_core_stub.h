@@ -47,7 +47,7 @@ public:
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
     void OnClientInactive(const sptr<IRemoteObject> &channel) override;
     int32_t OnSetInputType(InputType inputType) override;
-    void OnCallingDisplayChange(uint64_t dispalyId) override;
+    void OnCallingDisplayIdChange(uint64_t dispalyId) override;
 
 private:
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);

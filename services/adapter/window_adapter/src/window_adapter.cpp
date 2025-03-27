@@ -34,7 +34,7 @@ WindowAdapter &WindowAdapter::GetInstance()
     return windowAdapter;
 }
 
-void WindowAdapter::GetFoucusInfo(FocusChangeInfo &focusInfo)
+void WindowAdapter::GetFocusInfo(FocusChangeInfo &focusInfo)
 {
 #ifdef SCENE_BOARD_ENABLE
     WindowManagerLite::GetInstance().GetFocusWindowInfo(focusInfo);

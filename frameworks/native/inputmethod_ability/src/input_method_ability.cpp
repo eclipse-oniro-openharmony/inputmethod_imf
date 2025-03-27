@@ -1561,7 +1561,7 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
     IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
 }
 
-int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
+int32_t InputMethodAbility::OnCallingDisplayIdChange(uint64_t displayId)
 {
     IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64".", displayId);
     if (imeListener_ == nullptr) {
