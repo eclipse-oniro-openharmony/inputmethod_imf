@@ -211,7 +211,7 @@ public:
 
     inline void SetWindowId(int32_t wid)
     {
-        if (wid <=0 ) {
+        if (wid <= 0) {
             windowId = 0;
         } else {
             windowId = static_cast<uint32_t>(wid);
