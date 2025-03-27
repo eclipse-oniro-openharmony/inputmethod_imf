@@ -494,12 +494,10 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
-    auto lastCallingDisplayId = GetInputAttribute().callingDisplayId;
-    bool isWait = lastCallingDisplayId != textConfig.inputAttribute.callingDisplayId;
-    auto task = [this, textConfig, isWait]() {
-        panels_.ForEach([&textConfig, isWait](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
+    auto task = [this, textConfig]() {
+        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(textConfig.windowId, isWait);
+                panel->SetCallingWindow(textConfig.windowId, true);
             }
             return false;
         });
@@ -1568,13 +1566,11 @@ int32_t InputMethodAbility::OnCallingDisplayIdChange(uint64_t displayId)
         IMSA_HILOGD("imeListener_ is nullptr!");
         return ErrorCode::NO_ERROR;
     }
-    bool isWait = displayId != GetInputAttribute().callingDisplayId;
     auto windowId = GetInputAttribute().windowId;
-    auto task = [this, windowId, isWait]() {
-        panels_.ForEach([windowId, isWait](const PanelType &panelType,
-                const std::shared_ptr<InputMethodPanel> &panel) {
+    auto task = [this, windowId]() {
+        panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(windowId, isWait);
+                panel->SetCallingWindow(windowId, true);
             }
             return false;
         });

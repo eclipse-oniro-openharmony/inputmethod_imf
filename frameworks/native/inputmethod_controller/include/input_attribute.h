@@ -76,6 +76,15 @@ struct InputAttribute {
         << "callingDisplayId:" << callingDisplayId << "]";
         return ss.str();
     }
+
+    inline void SetWindowId(int32_t wid)
+    {
+        if (wid <=0 ) {
+            windowId = 0;
+        } else {
+            windowId = static_cast<uint32_t>(wid);
+        }
+    }
 };
 } // namespace MiscServices
 } // namespace OHOS
