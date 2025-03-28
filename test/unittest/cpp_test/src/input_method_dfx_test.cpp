@@ -522,5 +522,42 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ALL, TestSize.Level0)
     int fd = 1;
     EXPECT_FALSE(!InputmethodDump::GetInstance().Dump(fd, args));
 }
+
+/**
+ * @tc.name: InputMethodDfxTest_Hisysevent_GetOperateAction
+ * @tc.desc: Hisysevent GetOperateAction.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_GetOperateAction, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_GetOperateAction");
+    std::string ret = "";
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ATTACH));
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ENEDITABLE));
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_NORMAL));
+    EXPECT_TRUE(ret == "show");
+
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(static_cast<int32_t>(OperateIMEInfoCode::IME_UNBIND));
+    EXPECT_TRUE(ret == "unbind");
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNBIND));
+    EXPECT_TRUE(ret == "hide and unbind");
+
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNEDITABLE));
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL));
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNFOCUSED));
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF));
+    EXPECT_TRUE(ret == "hide");
+
+    int32_t invalidNum = -1;
+    ret = InputMethodSysEvent::GetInstance().GetOperateAction(invalidNum);
+    EXPECT_TRUE(ret == "unknow action.");
+}
 } // namespace MiscServices
 } // namespace OHOS
