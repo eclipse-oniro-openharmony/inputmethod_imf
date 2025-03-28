@@ -30,7 +30,7 @@ public:
     static WindowAdapter &GetInstance();
     static bool  GetCallingWindowInfo(const uint32_t windId, const int32_t userId,
         Rosen::CallingWindowInfo &callingWindowInfo);
-    static void GetFoucusInfo(OHOS::Rosen::FocusChangeInfo &focusInfo);
+    static void GetFocusInfo(OHOS::Rosen::FocusChangeInfo &focusInfo);
     void RegisterCallingWindowInfoChangedListener(const WindowDisplayChangeHandler &handle);
 private:
     WindowAdapter() = default;

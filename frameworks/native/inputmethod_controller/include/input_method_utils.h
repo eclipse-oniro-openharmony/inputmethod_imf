@@ -340,7 +340,7 @@ struct AttachOptions {
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
 };
 struct ImfCallingWindowInfo {
-    int32_t windowId = INVALID_WINDOW_ID;
+    uint32_t windowId = INVALID_WINDOW_ID;
     uint64_t displayId = 0;
 };
 } // namespace MiscServices
