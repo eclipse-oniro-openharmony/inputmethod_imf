@@ -67,7 +67,7 @@ public:
     virtual int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0;
     virtual void OnClientInactive(const sptr<IRemoteObject> &channel) = 0;
     virtual int32_t OnSetInputType(InputType inputType) = 0;
-    virtual void OnCallingDisplayIdChange(uint64_t dispalyId) = 0;
+    virtual void OnCallingDisplayIdChanged(uint64_t dispalyId) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

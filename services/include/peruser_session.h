@@ -136,7 +136,7 @@ public:
     bool IsSaReady(int32_t saId);
     void UpdateUserLockState();
     void TryUnloadSystemAbility();
-    void OnCallingDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
+    void OnCallingDisplayIdChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
 private:
     struct ResetManager {

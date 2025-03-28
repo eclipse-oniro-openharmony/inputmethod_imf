@@ -1559,7 +1559,7 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
     IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
 }
 
-int32_t InputMethodAbility::OnCallingDisplayIdChange(uint64_t displayId)
+int32_t InputMethodAbility::OnCallingDisplayIdChanged(uint64_t displayId)
 {
     IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64".", displayId);
     if (imeListener_ == nullptr) {
@@ -1580,7 +1580,7 @@ int32_t InputMethodAbility::OnCallingDisplayIdChange(uint64_t displayId)
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.callingDisplayId = displayId;
     }
-    imeListener_->OnCallingDisplayChanged(displayId);
+    imeListener_->OnCallingDisplayIdChanged(displayId);
     return ErrorCode::NO_ERROR;
 }
 

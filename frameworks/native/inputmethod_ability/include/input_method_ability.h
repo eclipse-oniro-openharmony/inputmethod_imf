@@ -98,7 +98,7 @@ public:
     int32_t SendMessage(const ArrayBuffer &arrayBuffer);
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
     int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
-    int32_t OnCallingDisplayIdChange(uint64_t displayId);
+    int32_t OnCallingDisplayIdChanged(uint64_t displayId);
 
 public:
     /* called from TaskManager worker thread */

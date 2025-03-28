@@ -1768,7 +1768,7 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
             IMSA_HILOGE("[%{public}d] session is nullptr!", userId);
             return;
         };
-        session->OnCallingDisplayChanged(
+        session->OnCallingDisplayIdChanged(
             callingWindowInfo.windowId_, callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
     };
     WindowAdapter::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);

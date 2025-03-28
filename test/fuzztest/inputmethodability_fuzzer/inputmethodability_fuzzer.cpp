@@ -140,10 +140,10 @@ void TestGetInputPattern()
     ability->GetInputPattern(inputPattern);
 }
 
-void TestCallingDisplayChange(uint64_t fuzzedUint64)
+void TestCallingDisplayIdChanged(uint64_t fuzzedUint64)
 {
     sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->OnCallingDisplayIdChange(fuzzedUint64);
+    ability->OnCallingDisplayIdChanged(fuzzedUint64);
 }
 } // namespace OHOS
 
@@ -178,6 +178,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     OHOS::TestGetEnterKeyType();
     OHOS::TestGetInputPattern();
-    OHOS::TestCallingDisplayChange(fuzzedUint64);
+    OHOS::TestCallingDisplayIdChanged(fuzzedUint64);
     return 0;
 }
