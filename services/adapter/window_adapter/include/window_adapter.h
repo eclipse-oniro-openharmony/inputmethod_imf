@@ -26,11 +26,15 @@ namespace OHOS {
 namespace MiscServices {
 class WindowAdapter final {
 public:
+    static constexpr uint64_t DEFAULT_DISPLAY_ID = 0;
     ~WindowAdapter();
     static WindowAdapter &GetInstance();
     static bool  GetCallingWindowInfo(const uint32_t windId, const int32_t userId,
         Rosen::CallingWindowInfo &callingWindowInfo);
-    static void GetFoucusInfo(OHOS::Rosen::FocusChangeInfo &focusInfo);
+    static void GetFocusInfo(OHOS::Rosen::FocusChangeInfo &focusInfo, uint64_t displayId = DEFAULT_DISPLAY_ID);
+    static uint64_t GetDisplayIdByPid(int64_t callingPid);
+    static uint64_t GetDisplayIdByWindowId(int32_t callingWindowId);
+    static bool ListWindowInfo(std::vector<sptr<OHOS::Rosen::WindowInfo>> &windowInfos);
     void RegisterCallingWindowInfoChangedListener(const WindowDisplayChangeHandler &handle);
 private:
     WindowAdapter() = default;

@@ -87,9 +87,9 @@ public:
     bool EnableIme(const std::string &bundleName) override;
     int32_t GetInputMethodState(EnabledStatus &status) override;
     bool IsSystemApp() override;
-    int32_t RegisterProxy(
+    int32_t RegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
-    int32_t UnregisterProxy(uint64_t displayId) override;
+    int32_t UnregisterProxyIme(uint64_t displayId) override;
 
 protected:
     void OnStart() override;

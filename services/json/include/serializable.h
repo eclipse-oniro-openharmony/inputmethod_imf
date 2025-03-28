@@ -16,6 +16,7 @@
 #ifndef INPUT_METHOD_SERIALIZABLE_H
 #define INPUT_METHOD_SERIALIZABLE_H
 #include <string>
+#include <unordered_set>
 
 #include "cJSON.h"
 #include "global.h"
@@ -64,6 +65,33 @@ public:
                 return false;
             }
             ret = GetValue(item, "", values[i]) && ret;
+        }
+        return ret;
+    }
+    template<typename T>
+    static bool GetValue(cJSON *node, const std::string &name, std::unordered_set<T> &values, int32_t maxNum = 0)
+    {
+        auto subNode = GetSubNode(node, name);
+        if (!cJSON_IsArray(subNode)) {
+            IMSA_HILOGE("not array");
+            return false;
+        }
+        auto size = cJSON_GetArraySize(subNode);
+        IMSA_HILOGD("size:%{public}d, maxNum:%{public}d", size, maxNum);
+        if (maxNum > 0 && size > maxNum) {
+            size = maxNum;
+        }
+        bool ret = true;
+        for (int32_t i = 0; i < size; i++) {
+            auto item = cJSON_GetArrayItem(subNode, i);
+            if (item == NULL) {
+                return false;
+            }
+            T value;
+            ret = GetValue(item, "", value) && ret;
+            if (!values.count(value)) {
+                values.insert(value);
+            }
         }
         return ret;
     }

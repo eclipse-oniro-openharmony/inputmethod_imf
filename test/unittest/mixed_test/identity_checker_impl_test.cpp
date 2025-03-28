@@ -25,6 +25,7 @@ using namespace OHOS::MiscServices;
 using namespace Security::AccessToken;
 using namespace testing;
 
+static constexpr uint64_t INVALID_DISPLAY_ID = -1ULL;
 class MockAbilityManagerClient : public AAFwk::AbilityManagerClient {
 public:
     MOCK_METHOD2(CheckUIExtensionIsFocused, int(uint32_t, bool &));
@@ -292,4 +293,17 @@ TEST_F(IdentityCheckerImplTest, GetBundleNameByToken_InvalidToken_ReturnsEmptySt
     IdentityCheckerImpl identityChecker;
     EXPECT_CALL(*accessTokenKitMock, GetTokenTypeFlag(456)).WillOnce(Return(TOKEN_NATIVE));
     EXPECT_EQ(identityChecker.GetBundleNameByToken(456), "");
+}
+
+/**
+ * @tc.name: GetCallingDisplayId_WindowId_NULL
+ * @tc.desc: Verify that IdentityCheckerImpl::GetCallingDisplayId method
+ * returns an empty string when the token is invalid
+ * @tc.type: FUNC
+ */
+TEST_F(IdentityCheckerImplTest, GetCallingDisplayId_InvalidToken_ReturnsEmptyString)
+{
+    IdentityCheckerImpl identityChecker;
+    EXPECT_CALL(*accessTokenKitMock, GetTokenTypeFlag(456)).WillOnce(Return(TOKEN_NATIVE));
+    EXPECT_NE(identityChecker.GetCallingDisplayId(0), INVALID_DISPLAY_ID);
 }

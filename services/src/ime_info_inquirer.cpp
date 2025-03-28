@@ -72,6 +72,11 @@ bool ImeInfoInquirer::IsEnableAppAgent()
     return systemConfig_.enableAppAgentFeature;
 }
 
+bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)
+{
+    return systemConfig_.proxyImeUidList.find(callingUid) != systemConfig_.proxyImeUidList.end();
+}
+
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
 {
     IMSA_HILOGD("userId: %{public}d.", userId);

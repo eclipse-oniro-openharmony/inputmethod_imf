@@ -20,7 +20,6 @@
 
 #include "block_queue.h"
 #include "client_group.h"
-#include "display_manager.h"
 #include "enable_ime_data_parser.h"
 #include "event_status_manager.h"
 #include "freeze_manager.h"
@@ -138,14 +137,14 @@ public:
     int32_t SetInputType();
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
-    int32_t OnSetCallingWindow(uint32_t callingWindowId, sptr<IInputClient> client);
+    int32_t OnSetCallingWindow(uint32_t callingWindowId, uint64_t callingDisplayId, sptr<IInputClient> client);
     int32_t GetInputStartInfo(
         uint64_t displayId, bool &isInputStart, uint32_t &callingWndId, int32_t &requestKeyboardReason);
     bool IsSaReady(int32_t saId);
     void TryUnloadSystemAbility();
-    uint64_t GetDisplayGroupId(uint64_t displayId);
-    void OnCallingDisplayChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
+    void OnCallingDisplayIdChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
+    uint64_t GetDisplayGroupId(uint64_t displayId);
 private:
     struct ResetManager {
         uint32_t num{ 0 };

@@ -1485,9 +1485,11 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_006, TestSize.Level0)
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     PrivateDataValue privateDataValue2 = true;
     PrivateDataValue privateDataValue3 = 100;
+    PrivateDataValue privateDataValue4 = 0;
     privateCommand.emplace("value1", privateDataValue1);
     privateCommand.emplace("value2", privateDataValue2);
     privateCommand.emplace("value3", privateDataValue3);
+    privateCommand.emplace("displayId", privateDataValue4);
     TextConfig textConfig;
     textConfig.privateCommand = privateCommand;
     textConfig.windowId = 1;

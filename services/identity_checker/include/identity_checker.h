@@ -21,9 +21,8 @@ namespace OHOS {
 namespace MiscServices {
 class IdentityChecker {
 public:
-    static constexpr int64_t INVALID_PID = -1;
-    static constexpr uint64_t INVALID_DISPLAY_ID = -1ULL;
     static constexpr uint64_t DEFAULT_DISPLAY_ID = 0;
+    static constexpr int64_t INVALID_PID = -1;
     virtual ~IdentityChecker() = default;
     virtual bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) = 0;
     virtual bool IsSystemApp(uint64_t fullTokenId) = 0;
@@ -36,13 +35,17 @@ public:
     {
         return false;
     };
-    virtual bool IsTargetSa(int32_t callingUid, int32_t validUid)
-    {
-        return false;
-    };
-    virtual uint64_t GetCallingDisplayId(int64_t callingPid)
+    virtual uint64_t GetDisplayIdByWindowId(int32_t callingWindowId)
     {
         return DEFAULT_DISPLAY_ID;
+    };
+    virtual uint64_t GetDisplayIdByPid(int64_t callingPid)
+    {
+        return DEFAULT_DISPLAY_ID;
+    };
+    virtual bool IsValidVirtualIme(int32_t callingUid)
+    {
+        return false;
     };
 };
 } // namespace MiscServices

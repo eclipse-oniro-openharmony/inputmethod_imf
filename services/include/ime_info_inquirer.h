@@ -88,6 +88,7 @@ public:
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
     bool IsEnableAppAgent();
+    bool IsVirtualProxyIme(int32_t callingUid);
     EnabledStatus GetSystemInitEnabledState();
     void InitSystemConfig();
     ImeNativeCfg GetDefaultIme();

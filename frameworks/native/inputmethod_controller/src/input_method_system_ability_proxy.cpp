@@ -435,21 +435,21 @@ int32_t InputMethodSystemAbilityProxy::GetInputMethodState(EnabledStatus &status
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbilityProxy::RegisterProxy(
+int32_t InputMethodSystemAbilityProxy::RegisterProxyIme(
     uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     if (core == nullptr) {
         IMSA_HILOGE("core is nullptr.");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::REGISTER_PROXY_IME),
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::REGISTER_PROXY_IME_WITH_DISPLAY_ID),
         [displayId, core, agent](
             MessageParcel &data) { return ITypesUtil::Marshal(data, displayId, core->AsObject(), agent); });
 }
 
-int32_t InputMethodSystemAbilityProxy::UnregisterProxy(uint64_t displayId)
+int32_t InputMethodSystemAbilityProxy::UnregisterProxyIme(uint64_t displayId)
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTER_PROXY_IME),
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTER_PROXY_IME_WITH_DISPLAY_ID),
         [displayId](MessageParcel &data) { return ITypesUtil::Marshal(data, displayId); });
 }
 

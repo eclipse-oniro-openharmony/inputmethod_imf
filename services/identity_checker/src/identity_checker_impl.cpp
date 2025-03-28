@@ -14,16 +14,14 @@
  */
 #include "identity_checker_impl.h"
 
+#include <cinttypes>
+
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
+#include "ime_info_inquirer.h"
 #include "tokenid_kit.h"
-#include <cinttypes>
-#ifdef SCENE_BOARD_ENABLE
-#include "window_manager_lite.h"
-#else
-#include "window_manager.h"
-#endif
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -36,14 +34,10 @@ bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId,
         IMSA_HILOGD("focused app, pid: %{public}" PRId64 "", callingPid);
         return true;
     }
-    uint64_t displayId = GetCallingDisplayId(callingPid);
+    auto displayId = WindowAdapter::GetDisplayIdByPid(callingPid);
     if (focusedPid == INVALID_PID) {
         FocusChangeInfo focusInfo;
-#ifdef SCENE_BOARD_ENABLE
-        WindowManagerLite::GetInstance().GetFocusWindowInfo(focusInfo, displayId);
-#else
-        WindowManager::GetInstance().GetFocusWindowInfo(focusInfo, displayId);
-#endif
+        WindowAdapter::GetFocusInfo(focusInfo, displayId);
         focusedPid = focusInfo.pid_;
         if (callingPid == focusedPid) {
             IMSA_HILOGD("focused app, pid: %{public}" PRId64 ", display: %{public}" PRIu64 "", callingPid, displayId);
@@ -107,7 +101,7 @@ bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
 bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId)
 {
     bool isFocused = false;
-    auto ret = AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused, displayId);
+    auto ret = AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to CheckUIExtensionIsFocused, ret: %{public}d", ret);
         return false;
@@ -133,38 +127,19 @@ std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)
     return info.bundleName;
 }
 
-bool IdentityCheckerImpl::IsTargetSa(int32_t callingUid, int32_t validUid)
+uint64_t IdentityCheckerImpl::GetDisplayIdByWindowId(int32_t callingWindowId)
 {
-    return callingUid == validUid;
+    return WindowAdapter::GetDisplayIdByWindowId(callingWindowId);
 }
 
-uint64_t IdentityCheckerImpl::GetCallingDisplayId(int64_t callingPid)
+uint64_t IdentityCheckerImpl::GetDisplayIdByPid(int64_t callingPid)
 {
-    WindowInfoOption option;
-    std::vector<sptr<WindowInfo>> windowInfos;
-    WMError ret = WMError::WM_OK;
-#ifdef SCENE_BOARD_ENABLE
-    ret = WindowManagerLite::GetInstance().ListWindowInfo(option, windowInfos);
-#else
-    ret = WindowManager::GetInstance().ListWindowInfo(option, windowInfos);
-#endif
-    if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("ListWindowInfo failed, ret: %{public}d", ret);
-        return INVALID_DISPLAY_ID;
-    }
-    auto iter = std::find_if(windowInfos.begin(), windowInfos.end(), [&callingPid](const auto &windowInfo) {
-        if (windowInfo == nullptr) {
-            return false;
-        }
-        return windowInfo->pid == callingPid;
-    });
-    if (iter == windowInfos.end()) {
-        IMSA_HILOGE("not found window info with pid: %{public}" PRId64 "", callingPid);
-        return INVALID_DISPLAY_ID;
-    }
-    auto callingDisplayId = (*iter)->windowDisplayInfo.displayId;
-    IMSA_HILOGD("window pid: %{public}" PRId64 ", displayId: %{public}" PRIu64 "", callingPid, callingDisplayId);
-    return callingDisplayId;
+    return WindowAdapter::GetDisplayIdByPid(callingPid);
+}
+
+bool IdentityCheckerImpl::IsValidVirtualIme(int32_t callingUid)
+{
+    return ImeInfoInquirer::GetInstance().IsVirtualProxyIme(callingUid);
 }
 } // namespace MiscServices
 } // namespace OHOS

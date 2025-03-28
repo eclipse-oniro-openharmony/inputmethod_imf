@@ -166,6 +166,7 @@ int64_t ClientGroup::GetCurrentClientPid()
 {
     auto clientInfo = GetCurrentClientInfo();
     if (clientInfo == nullptr) {
+        IMSA_HILOGD("current client info not found");
         return INVALID_PID;
     }
     return clientInfo->pid;
@@ -175,10 +176,12 @@ int64_t ClientGroup::GetInactiveClientPid()
 {
     auto client = GetInactiveClient();
     if (client == nullptr) {
+        IMSA_HILOGD("no inactive client");
         return INVALID_PID;
     }
     auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
+        IMSA_HILOGD("client info not found");
         return INVALID_PID;
     }
     return clientInfo->pid;
@@ -266,8 +269,8 @@ int32_t ClientGroup::NotifyInputStartToClients(uint32_t callingWndId, int32_t re
     auto clientMap = GetClientMap();
     for (const auto &client : clientMap) {
         auto clientInfo = client.second;
-        if (clientInfo == nullptr || clientInfo->client == nullptr
-            || !EventStatusManager::IsInputStatusChangedOn(clientInfo->eventFlag)) {
+        if (clientInfo == nullptr || clientInfo->client == nullptr ||
+            !EventStatusManager::IsInputStatusChangedOn(clientInfo->eventFlag)) {
             IMSA_HILOGE("nullptr clientInfo or no need to notify");
             continue;
         }

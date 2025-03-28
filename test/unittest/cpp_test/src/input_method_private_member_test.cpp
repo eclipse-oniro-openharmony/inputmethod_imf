@@ -41,6 +41,7 @@
 #include "input_method_agent_proxy.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
+#include "itypes_util.h"
 #include "keyboard_event.h"
 #include "os_account_manager.h"
 #include "tdd_util.h"
@@ -63,6 +64,7 @@ constexpr std::int32_t INVALID_USER_ID = 10001;
 constexpr std::int32_t INVALID_PROCESS_ID = -1;
 void InputMethodPrivateMemberTest::SetUpTestCase(void)
 {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUpTestCase");
     service_ = new (std::nothrow) InputMethodSystemAbility();
     if (service_ == nullptr) {
@@ -1321,7 +1323,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     ret = userSession->BindClientWithIme(nullptr, ImeType::IME, false);
     userSession->UnBindClientWithIme(nullptr, options);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
-    ret = userSession->OnSetCallingWindow(0, nullptr);
+    ret = userSession->OnSetCallingWindow(0, 0, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 
     auto ret2 = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
@@ -1343,6 +1345,85 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     EXPECT_EQ(ret3, nullptr);
     ret3 = clientGroup->GetClientInfo(pid);
     EXPECT_EQ(ret3, nullptr);
+}
+
+/**
+ * @tc.name: SA_TestIMSAOnScreenUnlocked
+ * @tc.desc: SA_TestIMSAOnScreenUnlocked.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestIMSAOnScreenUnlocked, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestIMSAOnScreenUnlocked start.");
+    service_->OnScreenUnlock(nullptr);
+
+    MessageParcel *parcel = nullptr;
+    auto msg = std::make_shared<Message>(MessageID::MSG_ID_SCREEN_UNLOCK, parcel);
+    service_->OnScreenUnlock(msg.get());
+
+    int32_t userId = 1;
+    InputMethodPrivateMemberTest::service_->userId_ = 2;
+    parcel = new (std::nothrow) MessageParcel();
+    ASSERT_NE(parcel, nullptr);
+    EXPECT_TRUE(ITypesUtil::Marshal(*parcel, userId));
+    msg = std::make_shared<Message>(MessageID::MSG_ID_SCREEN_UNLOCK, parcel);
+    service_->OnScreenUnlock(msg.get());
+
+    UserSessionManager::GetInstance().userSessions_.clear();
+    InputMethodPrivateMemberTest::service_->userId_ = userId;
+    MessageParcel *parcel1 = new (std::nothrow) MessageParcel();
+    ASSERT_NE(parcel1, nullptr);
+    EXPECT_TRUE(ITypesUtil::Marshal(*parcel1, userId));
+    msg = std::make_shared<Message>(MessageID::MSG_ID_SCREEN_UNLOCK, parcel1);
+    service_->OnScreenUnlock(msg.get());
+    UserSessionManager::GetInstance().userSessions_.clear();
+}
+
+/**
+ * @tc.name: SA_TestPerUserSessionOnScreenUnlocked
+ * @tc.desc: SA_TestPerUserSessionOnScreenUnlocked.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestPerUserSessionOnScreenUnlocked, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestPerUserSessionOnScreenUnlocked start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->imeData_.clear();
+    userSession->OnScreenUnlock();
+
+    userSession->InitImeData({ "", "" });
+    userSession->OnScreenUnlock();
+
+    auto imeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(MAIN_USER_ID);
+    EXPECT_NE(imeCfg, nullptr);
+    userSession->imeData_.clear();
+    userSession->InitImeData({ imeCfg->bundleName, imeCfg->extName });
+    userSession->OnScreenUnlock();
+}
+
+/**
+ * @tc.name: SA_TestGetScreenLockIme
+ * @tc.desc: SA_TestGetScreenLockIme
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetScreenLockIme, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestGetScreenLockIme start.");
+    std::string ime;
+    auto ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(ime);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = InputMethodPrivateMemberTest::service_->GetAlternativeIme(ime);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    SystemConfig systemConfig_0 = ImeInfoInquirer::GetInstance().systemConfig_;
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = "abc";
+    ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(ime);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ImeInfoInquirer::GetInstance().systemConfig_ = systemConfig_0;
 }
 } // namespace MiscServices
 } // namespace OHOS

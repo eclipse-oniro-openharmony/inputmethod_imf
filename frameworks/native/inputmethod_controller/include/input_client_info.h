@@ -35,7 +35,7 @@ enum class UpdateFlag : uint32_t {
 enum class ImeType : int32_t {
     IME = 0,
     PROXY_IME,
-    AI_AGENT_IME,
+    PROXY_AGENT_IME,
     NONE
 };
 enum class ClientState : uint32_t {

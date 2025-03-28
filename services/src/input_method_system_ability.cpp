@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "unordered_map"
+#include "variant"
 #include "input_method_system_ability.h"
 #include "ability_manager_client.h"
 #include "combination_key.h"
@@ -53,7 +55,6 @@ constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
 constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
 constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
 constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
-constexpr int32_t AI_APP_SA_UID = 7101;
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 constexpr const char *UNLOAD_SA_TASK = "unloadInputMethodSaTask";
 constexpr int64_t DELAY_UNLOAD_SA_TIME = 20000; // 20s
@@ -532,6 +533,9 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     if (identityChecker_->IsFocusedUIExtension(tokenId)) {
         clientInfo.uiExtensionTokenId = tokenId;
     }
+    auto callingDisplayId = identityChecker_->GetDisplayIdByWindowId(clientInfo.config.windowId);
+    clientInfo.config.privateCommand.insert_or_assign("displayId",
+        PrivateDataValue(static_cast<int32_t>(callingDisplayId)));
     clientInfo.name = ImfHiSysEventUtil::GetAppName(tokenId);
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session != nullptr) {
@@ -601,7 +605,7 @@ int32_t InputMethodSystemAbility::StartInputInner(
         inputClientInfo.isNotifyInputStart = true;
     }
     auto displayGroupId = session->GetDisplayGroupId(displayId);
-    if (displayGroupId == DEFAULT_DISPLAY_ID && session->CheckPwdInputPatternConv(inputClientInfo, displayId)) {
+    if (session->CheckPwdInputPatternConv(inputClientInfo, displayId)) {
         inputClientInfo.needHide = true;
         inputClientInfo.isNotifyInputStart = true;
     }
@@ -769,14 +773,14 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
     return session->OnSetCoreAndAgent(core, agent);
 }
 
-int32_t InputMethodSystemAbility::RegisterProxy(
+int32_t InputMethodSystemAbility::RegisterProxyIme(
     uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     if (!ImeInfoInquirer::GetInstance().IsEnableAppAgent()) {
         IMSA_HILOGE("current device does not support app agent");
         return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
     }
-    if (!identityChecker_->IsTargetSa(static_cast<int32_t>(IPCSkeleton::GetCallingUid()), AI_APP_SA_UID)) {
+    if (!identityChecker_->IsValidVirtualIme(IPCSkeleton::GetCallingUid())) {
         IMSA_HILOGE("not agent sa");
         return ErrorCode::ERROR_NOT_AI_APP_IME;
     }
@@ -789,13 +793,13 @@ int32_t InputMethodSystemAbility::RegisterProxy(
     return session->OnRegisterProxyIme(displayId, core, agent);
 }
 
-int32_t InputMethodSystemAbility::UnregisterProxy(uint64_t displayId)
+int32_t InputMethodSystemAbility::UnregisterProxyIme(uint64_t displayId)
 {
     if (!ImeInfoInquirer::GetInstance().IsEnableAppAgent()) {
         IMSA_HILOGE("current device does not support app agent");
         return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
     }
-    if (!identityChecker_->IsTargetSa(static_cast<int32_t>(IPCSkeleton::GetCallingUid()), AI_APP_SA_UID)) {
+    if (!identityChecker_->IsValidVirtualIme(IPCSkeleton::GetCallingUid())) {
         IMSA_HILOGE("not agent sa");
         return ErrorCode::ERROR_NOT_AI_APP_IME;
     }
@@ -920,7 +924,8 @@ int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInpu
         IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnSetCallingWindow(windowId, client);
+    auto callingDisplayId = identityChecker_->GetDisplayIdByWindowId(windowId);
+    return session->OnSetCallingWindow(windowId, callingDisplayId, client);
 }
 
 int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart,
@@ -1814,7 +1819,7 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
             IMSA_HILOGE("[%{public}d] session is nullptr!", userId);
             return;
         };
-        session->OnCallingDisplayChanged(
+        session->OnCallingDisplayIdChanged(
             callingWindowInfo.windowId_, callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
     };
     WindowAdapter::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
@@ -2176,7 +2181,7 @@ int32_t InputMethodSystemAbility::GetCallingUserId()
 
 uint64_t InputMethodSystemAbility::GetCallingDisplayId()
 {
-    return identityChecker_->GetCallingDisplayId(IPCSkeleton::GetCallingPid());
+    return identityChecker_->GetDisplayIdByPid(IPCSkeleton::GetCallingPid());
 }
 
 bool InputMethodSystemAbility::IsCurrentIme(int32_t userId)
@@ -2449,7 +2454,7 @@ int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
     std::vector<Property> props;
     int32_t ret = ListInputMethod(status, props);
     if (ret == ErrorCode::NO_ERROR && !props.empty()) {
-        ime = props[0].id;
+        ime = props[0].name + "/" + props[0].id;
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGD("GetListEnableInputMethodIme is failed!");
@@ -2460,7 +2465,7 @@ int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
         return ErrorCode::ERROR_NOT_IME;
     }
     if (EnableIme(props[0].name)) {
-        ime = props[0].id;
+        ime = props[0].name + "/" + props[0].id;
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGE("GetAlternativeIme is failed!");

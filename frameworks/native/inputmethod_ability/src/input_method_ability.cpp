@@ -156,9 +156,9 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
     return proxy->UnRegisteredProxyIme(type, coreStub_);
 }
 
-int32_t InputMethodAbility::RegisterProxy(uint64_t displayId)
+int32_t InputMethodAbility::RegisterProxyIme(uint64_t displayId)
 {
-    IMSA_HILOGD("IMA, displayId: %{public}" PRId64 "", displayId);
+    IMSA_HILOGD("IMA, displayId: %{public}" PRIu64 "", displayId);
     TaskManager::GetInstance().SetInited(true);
 
     if (isBound_.load()) {
@@ -168,27 +168,35 @@ int32_t InputMethodAbility::RegisterProxy(uint64_t displayId)
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("imsa proxy is nullptr!");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    if (agentStub_ == nullptr) {
+        IMSA_HILOGE("agent nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    int32_t ret = proxy->RegisterProxy(displayId, coreStub_, agentStub_->AsObject());
+    int32_t ret = displayId == DEFAULT_DISPLAY_ID
+                      ? proxy->SetCoreAndAgent(coreStub_, agentStub_->AsObject())
+                      : proxy->RegisterProxyIme(displayId, coreStub_, agentStub_->AsObject());
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("set failed, ret: %{public}d!", ret);
+        IMSA_HILOGE("failed, displayId: %{public}" PRIu64 ", ret: %{public}d!", displayId, ret);
         return ret;
     }
     isBound_.store(true);
-    IMSA_HILOGD("set successfully.");
+    isProxyIme_.store(true);
+    IMSA_HILOGD("set successfully, displayId: %{public}" PRIu64 "", displayId);
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::UnregisterProxy(uint64_t displayId)
+int32_t InputMethodAbility::UnregisterProxyIme(uint64_t displayId)
 {
     isBound_.store(false);
+    isProxyIme_.store(false);
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("imsa proxy is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->UnregisterProxy(displayId);
+    return proxy->UnregisterProxyIme(displayId);
 }
 
 void InputMethodAbility::Initialize()
@@ -244,7 +252,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     IMSA_HILOGI("IMA showKeyboard:%{public}d,bindFromClient:%{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
-    if (clientInfo.needHide) {
+    if (clientInfo.needHide && !isProxyIme_.load()) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
         auto panel = GetSoftKeyboardPanel();
         if (panel != nullptr) {
@@ -529,12 +537,10 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
-    auto lastCallingDisplayId = GetInputAttribute().callingDisplayId;
-    bool isWait = lastCallingDisplayId != textConfig.inputAttribute.callingDisplayId;
-    auto task = [this, textConfig, isWait]() {
-        panels_.ForEach([&textConfig, isWait](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
+    auto task = [this, textConfig]() {
+        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(textConfig.windowId, isWait);
+                panel->SetCallingWindow(textConfig.windowId, true);
             }
             return false;
         });
@@ -1596,20 +1602,18 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
     IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
 }
 
-int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
+int32_t InputMethodAbility::OnCallingDisplayIdChanged(uint64_t displayId)
 {
     IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64".", displayId);
     if (imeListener_ == nullptr) {
         IMSA_HILOGD("imeListener_ is nullptr!");
         return ErrorCode::NO_ERROR;
     }
-    bool isWait = displayId != GetInputAttribute().callingDisplayId;
     auto windowId = GetInputAttribute().windowId;
-    auto task = [this, windowId, isWait]() {
-        panels_.ForEach([windowId, isWait](const PanelType &panelType,
-                const std::shared_ptr<InputMethodPanel> &panel) {
+    auto task = [this, windowId]() {
+        panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(windowId, isWait);
+                panel->SetCallingWindow(windowId, true);
             }
             return false;
         });
@@ -1619,7 +1623,7 @@ int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.callingDisplayId = displayId;
     }
-    imeListener_->OnCallingDisplayChanged(displayId);
+    imeListener_->OnCallingDisplayIdChanged(displayId);
     return ErrorCode::NO_ERROR;
 }
 
