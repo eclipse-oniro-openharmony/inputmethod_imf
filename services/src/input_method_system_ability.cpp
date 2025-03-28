@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "unordered_map"
+#include "variant"
 #include "input_method_system_ability.h"
 #include "ability_manager_client.h"
 #include "combination_key.h"
@@ -529,6 +531,9 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     if (identityChecker_->IsFocusedUIExtension(tokenId)) {
         clientInfo.uiExtensionTokenId = tokenId;
     }
+    auto callingDisplayId = identityChecker_->GetCallingDisplayId(clientInfo.config.windowId);
+    clientInfo.config.privateCommand.insert_or_assign("displayId",
+        PrivateDataValue(static_cast<int32_t>(callingDisplayId)));
     clientInfo.name = ImfHiSysEventUtil::GetAppName(tokenId);
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session != nullptr) {
@@ -876,7 +881,8 @@ int32_t InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, sptr<IInpu
         IMSA_HILOGE("%{public}d session is nullptr!", callingUserId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnSetCallingWindow(windowId, client);
+    auto callingDisplayId = identityChecker_->GetCallingDisplayId(windowId);
+    return session->OnSetCallingWindow(windowId, callingDisplayId, client);
 }
 
 int32_t InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart,
