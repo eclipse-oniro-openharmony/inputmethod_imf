@@ -208,15 +208,6 @@ public:
             std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
         return config;
     }
-
-    inline void SetWindowId(int32_t wid)
-    {
-        if (wid <= 0) {
-            windowId = 0;
-        } else {
-            windowId = static_cast<uint32_t>(wid);
-        }
-    }
 };
 struct TextConfig {
     InputAttribute inputAttribute = {};
@@ -349,7 +340,7 @@ struct AttachOptions {
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
 };
 struct ImfCallingWindowInfo {
-    int32_t windowId = INVALID_WINDOW_ID;
+    uint32_t windowId = INVALID_WINDOW_ID;
     uint64_t displayId = 0;
 };
 } // namespace MiscServices

@@ -1300,11 +1300,11 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
     InputClientInfo clientInfoTmp = *clientInfo;
     clientInfoTmp.config.windowId = callingWindowId;
     auto callingWindowInfo = GetCallingWindowInfo(clientInfoTmp);
-    if (static_cast<uint32_t>(callingWindowInfo.windowId) == clientInfo->config.windowId) {
+    if (callingWindowInfo.windowId == clientInfo->config.windowId) {
         return ErrorCode::NO_ERROR;
     }
-    clientInfo->config.SetWindowId(callingWindowInfo.windowId);
-    clientInfo->config.inputAttribute.SetWindowId(callingWindowInfo.windowId);
+    clientInfo->config.windowId = callingWindowInfo.windowId;
+    clientInfo->config.inputAttribute.windowId = callingWindowInfo.windowId;
     bool isNotifyDisplayChanged = clientInfo->config.inputAttribute.callingDisplayId != callingWindowInfo.displayId
                                   && SceneBoardJudgement::IsSceneBoardEnabled();
     clientInfo->config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;

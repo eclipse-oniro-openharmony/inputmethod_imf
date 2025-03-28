@@ -533,8 +533,8 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session != nullptr) {
         auto callingWindowInfo = session->GetCallingWindowInfo(clientInfo);
-        clientInfo.config.SetWindowId(callingWindowInfo.windowId);
-        clientInfo.config.inputAttribute.SetWindowId(callingWindowInfo.windowId);
+        clientInfo.config.windowId = callingWindowInfo.windowId;
+        clientInfo.config.inputAttribute.windowId = callingWindowInfo.windowId;
         clientInfo.config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
         IMSA_HILOGD("result:%{public}s,wid:%{public}d", clientInfo.config.inputAttribute.ToString().c_str(),
             clientInfo.config.windowId);

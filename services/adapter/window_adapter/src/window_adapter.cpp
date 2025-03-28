@@ -48,7 +48,7 @@ bool WindowAdapter::GetCallingWindowInfo(
 {
 #ifdef SCENE_BOARD_ENABLE
     IMSA_HILOGD("[%{public}d,%{public}d] run in.", userId, windId);
-    callingWindowInfo.windowId_ = windId;
+    callingWindowInfo.windowId_ = static_cast<int32_t>(windId);
     callingWindowInfo.userId_ = userId;
     auto wmErr = WindowManagerLite::GetInstance().GetCallingWindowInfo(callingWindowInfo);
     if (wmErr != WMError::WM_OK) {
