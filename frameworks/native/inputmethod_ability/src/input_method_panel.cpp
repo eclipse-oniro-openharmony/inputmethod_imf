@@ -411,10 +411,10 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodPanel::NotifyPanelStatus() {
+void InputMethodPanel::NotifyPanelStatus(PanelFlag panelFlag) {
     auto instance = InputMethodAbility::GetInstance();
     if (instance != nullptr) {
-        SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag_, keyboardSize_.width, keyboardSize_.height };
+        SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag, keyboardSize_.width, keyboardSize_.height };
         instance->NotifyPanelStatus(panelType_, sysPanelStatus);
     }
 }
@@ -472,14 +472,13 @@ int32_t InputMethodPanel::AdjustPanelRect(
         IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    if (panelFlag_ != panelFlag) {
-        NotifyPanelStatus();
-    }
-    panelFlag_ = panelFlag;
     auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("AdjustPanelRect error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (panelFlag_ != panelFlag) {
+        NotifyPanelStatus(panelFlag);
     }
     UpdateResizeParams();
     UpdateLayoutInfo(panelFlag, layoutParams, {}, keyboardLayoutParams_, false);
@@ -580,7 +579,7 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
     }
     SetHotAreas(hotAreas);
     if (panelFlag_ != panelFlag) {
-        NotifyPanelStatus();
+        NotifyPanelStatus(panelFlag);
     }
     UpdateLayoutInfo(panelFlag, {}, params, wmsParams, true);
     UpdateResizeParams();
@@ -1228,7 +1227,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     if (ret == WMError::WM_OK) {
         panelFlag_ = panelFlag;
     }
-    NotifyPanelStatus();
+    NotifyPanelStatus(panelFlag);
     IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
