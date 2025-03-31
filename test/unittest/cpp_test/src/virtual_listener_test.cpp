@@ -143,7 +143,7 @@ sptr<OnSystemCmdListener> VirtualListenerTest::systemCmdListener_ { nullptr };
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(VirtualListenerTest, testOnTextChangedListener_001, TestSize.Level0)
+HWTEST_F(VirtualListenerTest, testOnTextChangedListener_001, TestSize.Level1)
 {
     IMSA_HILOGI("VirtualListenerTest testOnTextChangedListener_001 START");
     ASSERT_NE(VirtualListenerTest::textListener_, nullptr);
@@ -165,7 +165,7 @@ HWTEST_F(VirtualListenerTest, testOnTextChangedListener_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_001, TestSize.Level0)
+HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_001, TestSize.Level1)
 {
     IMSA_HILOGI("VirtualListenerTest testInputMethodEngineListener_001 START");
     ASSERT_NE(VirtualListenerTest::engineListener_, nullptr);
@@ -180,7 +180,7 @@ HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_001, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_002, TestSize.Level0)
+HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_002, TestSize.Level1)
 {
     IMSA_HILOGI("VirtualListenerTest testInputMethodEngineListener_002 START");
     ASSERT_NE(VirtualListenerTest::engineListener_, nullptr);
@@ -196,7 +196,7 @@ HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_002, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(VirtualListenerTest, testImeEventListener_001, TestSize.Level0)
+HWTEST_F(VirtualListenerTest, testImeEventListener_001, TestSize.Level1)
 {
     IMSA_HILOGI("VirtualListenerTest testImeEventListener_001 START");
     ASSERT_NE(VirtualListenerTest::eventListener_, nullptr);
@@ -219,7 +219,7 @@ HWTEST_F(VirtualListenerTest, testImeEventListener_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(VirtualListenerTest, testOnSystemCmdListener_001, TestSize.Level0)
+HWTEST_F(VirtualListenerTest, testOnSystemCmdListener_001, TestSize.Level1)
 {
     IMSA_HILOGI("VirtualListenerTest testOnSystemCmdListener_001 START");
     sptr<OnSystemCmdListener> listener = new (std::nothrow) SystemCmdChannelListenerImpl();

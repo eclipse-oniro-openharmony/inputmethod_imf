@@ -114,6 +114,17 @@ public:
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodSystemAbility> imsa_;
+    static constexpr int32_t waitTaskEmptyTimes_ = 5000;
+    static constexpr int32_t waitTaskEmptyinterval_ = 20;
+
+    static bool IsTaskEmpty()
+    {
+        return TaskManager::GetInstance().curTask_ == nullptr &&
+               TaskManager::GetInstance().amsTasks_.empty() &&
+               TaskManager::GetInstance().imaTasks_.empty() &&
+               TaskManager::GetInstance().imsaTasks_.empty() &&
+               TaskManager::GetInstance().innerTasks_.empty();
+    }
 };
 sptr<InputMethodController> InputMethodEditorTest::inputMethodController_;
 sptr<InputMethodAbility> InputMethodEditorTest::inputMethodAbility_;
@@ -190,7 +201,7 @@ void InputMethodEditorTest::TearDown(void)
  * @tc.desc: InputMethodEditorTest Attach.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testIMCAttachUnfocused, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testIMCAttachUnfocused, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest Attach Unfocused Test START");
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
@@ -206,7 +217,7 @@ HWTEST_F(InputMethodEditorTest, testIMCAttachUnfocused, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest Unfocused
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testUnfocused, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testUnfocused, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest Unfocused Test START");
     int32_t ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
@@ -239,7 +250,7 @@ HWTEST_F(InputMethodEditorTest, testUnfocused, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest RequestShowInput/RequestHideInput neither permitted nor focused.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testRequestInput001, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testRequestInput001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestInput001 Test START");
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
@@ -253,7 +264,7 @@ HWTEST_F(InputMethodEditorTest, testRequestInput001, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest RequestShowInput/RequestHideInput with permitted and not focused.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testRequestInput002, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testRequestInput002, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestInput002 Test START");
     IdentityCheckerMock::SetPermission(true);
@@ -269,7 +280,7 @@ HWTEST_F(InputMethodEditorTest, testRequestInput002, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest Attach Focused
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest Attach Focused Test START");
     IdentityCheckerMock::SetFocused(true);
@@ -304,7 +315,7 @@ HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest ShowSoftKeyboard
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowSoftKeyboard Test START");
     IdentityCheckerMock::SetFocused(true);
@@ -321,6 +332,7 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
     InputMethodEditorTest::inputMethodController_->Close();
     IdentityCheckerMock::SetFocused(false);
     IdentityCheckerMock::SetPermission(false);
+    BlockRetry(waitTaskEmptyinterval_, waitTaskEmptyTimes_, IsTaskEmpty);
 }
 
 /**
@@ -328,7 +340,7 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest testHideTextInput.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
     IdentityCheckerMock::SetFocused(true);
@@ -360,6 +372,7 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     InputMethodEditorTest::inputMethodController_->Close();
     IdentityCheckerMock::SetFocused(false);
     IdentityCheckerMock::SetPermission(false);
+    BlockRetry(waitTaskEmptyinterval_, waitTaskEmptyTimes_, IsTaskEmpty);
 }
 
 /**
@@ -367,7 +380,7 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest testIMCDeactivateClient.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest testIMCDeactivateClient Test START");
     IdentityCheckerMock::SetFocused(true);
@@ -406,6 +419,7 @@ HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
     InputMethodEditorTest::inputMethodController_->Close();
     IdentityCheckerMock::SetFocused(false);
     IdentityCheckerMock::SetPermission(false);
+    BlockRetry(waitTaskEmptyinterval_, waitTaskEmptyTimes_, IsTaskEmpty);
 }
 
 /**
@@ -413,7 +427,7 @@ HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest ShowTextInput
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowTextInput Test START");
     IdentityCheckerMock::SetFocused(true);
@@ -432,6 +446,7 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
     EXPECT_TRUE(consumeResult);
     InputMethodEditorTest::inputMethodController_->Close();
     IdentityCheckerMock::SetFocused(false);
+    BlockRetry(waitTaskEmptyinterval_, waitTaskEmptyTimes_, IsTaskEmpty);
 }
 
 /**
@@ -439,7 +454,7 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest Close.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level1)
 {
     IMSA_HILOGI("IMC Close Test START");
     IdentityCheckerMock::SetFocused(true);
@@ -471,6 +486,7 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     IdentityCheckerMock::SetFocused(false);
     IdentityCheckerMock::SetPermission(false);
+    BlockRetry(waitTaskEmptyinterval_, waitTaskEmptyTimes_, IsTaskEmpty);
 }
 
 /**
@@ -478,7 +494,7 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest testRequestShowInput with focused.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestShowInput Test START");
     IdentityCheckerMock::SetFocused(true);
@@ -494,7 +510,7 @@ HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest testRequestHideInput with focused.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testRequestHideInput_001, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testRequestHideInput_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestHideInput_001 Test START");
     IdentityCheckerMock::SetFocused(true);
@@ -509,7 +525,7 @@ HWTEST_F(InputMethodEditorTest, testRequestHideInput_001, TestSize.Level0)
  * @tc.desc: InputMethodEditorTest testRequestHideInput with focused.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testRequestHideInput_002, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testRequestHideInput_002, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestHideInput_002 Test START");
     IdentityCheckerMock::SetFocused(true);

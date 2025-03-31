@@ -89,7 +89,7 @@ public:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallUint64, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallUint64, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallingUint64 Test START");
     MessageParcel data;
@@ -107,7 +107,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallUint64, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallProperty, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallProperty, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallProperty Test START");
     MessageParcel data;
@@ -126,7 +126,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallProperty, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallSubProperty, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallSubProperty, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallSubProperty Test START");
     MessageParcel data;
@@ -145,7 +145,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallSubProperty, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputAttribute Test START");
     MessageParcel data;
@@ -164,7 +164,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttributeSuccess_WithBundleName, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttributeSuccess_WithBundleName, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputAttributeSuccess Test START");
     MessageParcel data;
@@ -185,7 +185,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttributeSuccess_WithBund
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute_WithEmptyBundleName, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute_WithEmptyBundleName, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputAttributeSuccess Test START");
     MessageParcel data;
@@ -206,7 +206,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputAttribute_WithEmptyBundle
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallTextTotalConfig, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallTextTotalConfig, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallTextTotalConfig Test START");
     MessageParcel data;
@@ -223,7 +223,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallTextTotalConfig, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputClientInfo, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputClientInfo, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputClientInfo Test START");
     MessageParcel data;
@@ -240,7 +240,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputClientInfo, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallImeWindowInfo, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallImeWindowInfo, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallImeWindowInfo Test START");
     MessageParcel data;
@@ -257,7 +257,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallImeWindowInfo, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallSysPanelStatus, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallSysPanelStatus, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallSysPanelStatus Test START");
     MessageParcel data;
@@ -274,7 +274,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallSysPanelStatus, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallElementName, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallElementName, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallElementName Test START");
     MessageParcel data;
@@ -290,7 +290,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallElementName, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputType, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputType, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallInputType Test START");
     MessageParcel data;
@@ -309,7 +309,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallInputType, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallRange, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallRange, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testMarshallAndUnMarshallRange Test START");
     MessageParcel data;
@@ -325,7 +325,7 @@ HWTEST_F(ITypesUtilTest, testMarshallAndUnMarshallRange, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ITypesUtilTest, testInputMethodSysEvent, TestSize.Level0)
+HWTEST_F(ITypesUtilTest, testInputMethodSysEvent, TestSize.Level1)
 {
     IMSA_HILOGI("ITypesUtilTest testInputMethodSysEvent Test START");
     auto ret = InputMethodSysEvent::GetInstance().StartTimerForReport();

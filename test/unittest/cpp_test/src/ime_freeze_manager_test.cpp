@@ -183,7 +183,7 @@ std::shared_ptr<AppExecFwk::EventHandler> ImeFreezeManagerTest::eventHandler_ { 
  * @tc.desc: test start input
  * @tc.type: FUNC
  */
-HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInput_001, TestSize.Level0)
+HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInput_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_StartInput_001");
     ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
@@ -209,7 +209,7 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInput_001, TestSize.Level0)
  * @tc.desc: test freeze manager
  * @tc.type: FUNC
  */
-HWTEST_F(ImeFreezeManagerTest, SingleThread_StartAndStopInput_001, TestSize.Level0)
+HWTEST_F(ImeFreezeManagerTest, SingleThread_StartAndStopInput_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_StartAndStopInput_001");
     ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
@@ -232,7 +232,7 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartAndStopInput_001, TestSize.Leve
  * @tc.desc: test freeze manager
  * @tc.type: FUNC
  */
-HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndRequestHide_001, TestSize.Level0)
+HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndRequestHide_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_StartInputAndRequestHide_001");
     ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
@@ -250,7 +250,7 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndRequestHide_001, TestSi
  * @tc.desc: test freeze manager
  * @tc.type: FUNC
  */
-HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndNormalIPC_001, TestSize.Level0)
+HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndNormalIPC_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_StartInputAndNormalIPC_001");
     ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
@@ -271,7 +271,7 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndNormalIPC_001, TestSize
  * @tc.desc: test freeze manager
  * @tc.type: FUNC
  */
-HWTEST_F(ImeFreezeManagerTest, MultiThread_FullTest_001, TestSize.Level0)
+HWTEST_F(ImeFreezeManagerTest, MultiThread_FullTest_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::MultiThread_FullTest_001");
     ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
@@ -284,7 +284,7 @@ HWTEST_F(ImeFreezeManagerTest, MultiThread_FullTest_001, TestSize.Level0)
  * @tc.desc: test freeze manager
  * @tc.type: FUNC
  */
-HWTEST_F(ImeFreezeManagerTest, SingleThread_RequestShow_001, TestSize.Level0)
+HWTEST_F(ImeFreezeManagerTest, SingleThread_RequestShow_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_RequestShow_001");
     ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);

@@ -1368,6 +1368,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestIMSAOnScreenUnlocked, TestSize.Lev
     msg = std::make_shared<Message>(MessageID::MSG_ID_SCREEN_UNLOCK, parcel1);
     service_->OnScreenUnlock(msg.get());
     UserSessionManager::GetInstance().userSessions_.clear();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 /**
@@ -1391,6 +1392,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestPerUserSessionOnScreenUnlocked, Te
     userSession->imeData_.clear();
     userSession->InitImeData({ imeCfg->bundleName, imeCfg->extName });
     userSession->OnScreenUnlock();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 /**
@@ -1414,6 +1416,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetScreenLockIme, TestSize.Level0)
     ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(ime);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ImeInfoInquirer::GetInstance().systemConfig_ = systemConfig_0;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 } // namespace MiscServices
 } // namespace OHOS

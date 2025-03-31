@@ -391,7 +391,7 @@ void InputMethodMessageHandlerTest::TestGetMessageHandlerProxyMember(
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_001, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_001, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_001 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -419,7 +419,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_002, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_002, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_002 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -443,7 +443,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_003, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_003, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_003 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -468,7 +468,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_004, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_004, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_004 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -494,7 +494,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_005, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_005, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_005 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -521,7 +521,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_006, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_006, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_006 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -547,7 +547,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_006, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_007, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_007, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_007 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -572,7 +572,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_007, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_008, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_008, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_008 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -598,7 +598,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_008, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_009, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_009, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_009 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -623,7 +623,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_009, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_010, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_010, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_010 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -642,7 +642,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_010, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_011, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_011, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_011 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -669,7 +669,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_011, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_012, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_012, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_012 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::BASIC));
@@ -697,7 +697,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_012, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_013, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_013, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCSendMessage_013 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -721,7 +721,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_013, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_001, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_001, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_001 Test START");
     auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
@@ -746,7 +746,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_001, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_002 Test START");
     auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
@@ -787,7 +787,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_003, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_003, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_003 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -803,7 +803,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_003, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_004, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_004, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_004 Test START");
     auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
@@ -828,7 +828,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_004, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_005, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_005, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_005 Test START");
     auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
@@ -866,7 +866,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_005, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_006, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_006, TestSize.Level1)
 {
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_006 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -882,7 +882,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_006, TestSize.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_001, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_001, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_001 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -912,7 +912,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_002, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_002, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_002 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -939,7 +939,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_003, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_003, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_003 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -967,7 +967,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_004, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_004, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_004 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -996,7 +996,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_005, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_005, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_005 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -1026,7 +1026,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_006, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_006, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_006 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -1055,7 +1055,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_006, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_007, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_007, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_007 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -1083,7 +1083,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_007, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_008, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_008, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_008 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -1112,7 +1112,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_008, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_009, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_009, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_009 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -1139,7 +1139,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_009, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_010, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_010, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_010 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -1165,7 +1165,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_010, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_011, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_011, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_011 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -1195,7 +1195,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_011, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_012, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_012, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_012 Test START");
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
@@ -1219,7 +1219,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_012, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_013, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_013, TestSize.Level1)
 {
     IMSA_HILOGI("IMA testIMASendMessage_013 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
@@ -1248,7 +1248,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_013, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testCallbackTiming_001, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testCallbackTiming_001, TestSize.Level1)
 {
     ArrayBuffer arrayBufferA;
     arrayBufferA.msgId = "msgIdA";
@@ -1294,7 +1294,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testCallbackTiming_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, textMessageHandlerProxy_001, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, textMessageHandlerProxy_001, TestSize.Level1)
 {
     IMSA_HILOGI("Capi textMessageHandlerProxy_001 Test START");
     auto messageHanlderProxy = OH_MessageHandlerProxy_Create();
@@ -1310,7 +1310,7 @@ HWTEST_F(InputMethodMessageHandlerTest, textMessageHandlerProxy_001, TestSize.Le
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_001, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_001, TestSize.Level1)
 {
     IMSA_HILOGI("Capi testSendMessageCapi_001 Test START");
     InputMethod_InputMethodProxy *imeProxy = nullptr;
@@ -1356,7 +1356,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_001, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_002, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_002, TestSize.Level1)
 {
     IMSA_HILOGI("Capi testSendMessageCapi_002 Test START");
     InputMethod_InputMethodProxy *imeProxy = nullptr;
@@ -1393,7 +1393,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_002, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_001, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_001, TestSize.Level1)
 {
     IMSA_HILOGI("Capi testRecvMessageCapi_001 Test START");
     InputMethod_InputMethodProxy *imeProxy = nullptr;
@@ -1422,7 +1422,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_001, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_002, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_002, TestSize.Level1)
 {
     IMSA_HILOGI("Capi testRecvMessageCapi_002 Test START");
     InputMethod_InputMethodProxy *imeProxy = nullptr;
@@ -1446,7 +1446,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_002, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_003, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_003, TestSize.Level1)
 {
     IMSA_HILOGI("Capi testRecvMessageCapi_003 Test START");
     InputMethod_InputMethodProxy *imeProxy = nullptr;
@@ -1479,7 +1479,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_003, TestSize.Level0
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodMessageHandlerTest, testMessageHandelrCallbackCapi_001, TestSize.Level0)
+HWTEST_F(InputMethodMessageHandlerTest, testMessageHandelrCallbackCapi_001, TestSize.Level1)
 {
     IMSA_HILOGI("Capi testMessageHandelrCallbackCapi_001 Test START");
     InputMethod_InputMethodProxy *imeProxy = nullptr;
