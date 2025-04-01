@@ -59,7 +59,7 @@ public:
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool PostTaskToEventHandler(std::function<void()> task, const std::string &taskName) override;
     bool IsCallbackRegistered(const std::string &type) override;
-    void OnCallingDisplayIdChanged(uint64_t callingDisplayId) override;
+    void OnCallingDisplayChanged(uint64_t callingDisplayId) override;
 private:
     struct PanelContext : public AsyncCall::Context {
         PanelInfo panelInfo = PanelInfo();
