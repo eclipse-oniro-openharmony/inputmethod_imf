@@ -661,5 +661,17 @@ HWTEST_F(ImeProxyTest, testIsFromTs, TestSize.Level0)
     bool isFrom = testListener->IsFromTs();
     EXPECT_FALSE(isFrom);
 }
+
+/**
+ * @tc.name: DiscardTypingTextTest
+ * @tc.desc: DiscardTypingText
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeProxyTest, DiscardTypingTextTest, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::DiscardTypingTextTest");
+    auto ret = InputMethodAbility::GetInstance()->OnDiscardTypingText();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

@@ -31,6 +31,7 @@ public:
     int32_t DispatchKeyEvent(
         const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int height) override;
+    int32_t DiscardTypingText() override;
     void OnSelectionChange(
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void SetCallingWindow(uint32_t windowId) override;
@@ -43,6 +44,7 @@ private:
     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnAttributeChangeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t RecvMessageOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnSelectionChangeOnRemote(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace MiscServices
 } // namespace OHOS

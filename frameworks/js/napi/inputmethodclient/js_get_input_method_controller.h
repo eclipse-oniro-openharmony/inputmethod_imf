@@ -26,6 +26,15 @@
 
 namespace OHOS {
 namespace MiscServices {
+struct AttachInfo {
+    std::chrono::system_clock::time_point timestamp{};
+    InputAttribute attribute;
+    bool operator==(const AttachInfo &info) const
+    {
+        return (timestamp == info.timestamp && attribute == info.attribute);
+    }
+};
+
 struct HandleContext : public AsyncCall::Context {
     bool isHandle = false;
     napi_status status = napi_generic_failure;
@@ -53,6 +62,7 @@ struct AttachContext : public AsyncCall::Context {
     bool showKeyboard = false;
     int32_t requestKeyboardReason = 0;
     TextConfig textConfig;
+    AttachInfo info;
     AttachContext() : Context(nullptr, nullptr){};
     AttachContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
@@ -168,6 +178,7 @@ public:
     static napi_value Detach(napi_env env, napi_callback_info info);
     static napi_value ShowTextInput(napi_env env, napi_callback_info info);
     static napi_value HideTextInput(napi_env env, napi_callback_info info);
+    static napi_value DiscardTypingText(napi_env env, napi_callback_info info);
     static napi_value SetCallingWindow(napi_env env, napi_callback_info info);
     static napi_value UpdateCursor(napi_env env, napi_callback_info info);
     static napi_value ChangeSelection(napi_env env, napi_callback_info info);
@@ -266,6 +277,7 @@ private:
     static constexpr size_t PARAM_POS_TWO = 2;
     static constexpr size_t PARAM_POS_THREE = 3;
     static BlockQueue<MessageHandlerInfo> messageHandlerQueue_;
+    static BlockQueue<AttachInfo> attachQueue_;
 };
 } // namespace MiscServices
 } // namespace OHOS

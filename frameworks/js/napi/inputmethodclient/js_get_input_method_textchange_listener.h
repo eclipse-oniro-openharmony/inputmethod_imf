@@ -23,7 +23,7 @@ class JsGetInputMethodTextChangedListener : public OnTextChangedListener {
 public:
     JsGetInputMethodTextChangedListener() = default;
     ~JsGetInputMethodTextChangedListener() = default;
-    static sptr<JsGetInputMethodTextChangedListener> GetInstance();
+    static sptr<JsGetInputMethodTextChangedListener> GetTextListener(bool newEditBox = false);
 
     void InsertText(const std::u16string &text) override;
     void DeleteForward(int32_t length) override;
