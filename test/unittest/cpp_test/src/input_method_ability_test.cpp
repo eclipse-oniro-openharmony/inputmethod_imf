@@ -350,6 +350,19 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Le
 }
 
 /**
+ * @tc.name: testDiscardTypingTextWithoutImeListener
+ * @tc.desc: InputMethodAbility DiscardTypingText without imeListener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testDiscardTypingTextWithoutImeListener, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testDiscardTypingTextWithoutImeListener start.");
+    auto ret = inputMethodAbility_->OnDiscardTypingText();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: testStartInputWithoutPanel
  * @tc.desc: InputMethodAbility StartInput Without Panel
  * @tc.type: FUNC

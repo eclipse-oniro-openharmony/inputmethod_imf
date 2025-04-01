@@ -47,6 +47,18 @@ int32_t InputMethodAgentProxy::DispatchKeyEvent(
     return ret == ErrorCode::NO_ERROR ? res : ret;
 }
 
+int32_t InputMethodAgentProxy::DiscardTypingText()
+{
+    int32_t res = ErrorCode::NO_ERROR;
+    int32_t ret = SendRequest(
+        DISCARD_TYPING_TEXT,
+        nullptr,
+        [&res](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, res);
+        });
+    return ret == ErrorCode::NO_ERROR ? res : ret;
+}
+
 void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
     auto ret = SendRequest(ON_CURSOR_UPDATE, [positionX, positionY, height](MessageParcel &data) {

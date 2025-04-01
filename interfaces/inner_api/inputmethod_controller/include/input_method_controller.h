@@ -261,6 +261,14 @@ public:
     IMF_API int32_t OnCursorUpdate(CursorInfo cursorInfo);
 
     /**
+     * @brief Discard the typing text.
+     *
+     * @return Returns 0 for success, others for failure.
+     * @since 16
+     */
+    IMF_API int32_t DiscardTypingText();
+
+    /**
      * @brief A callback function when the cursor changes.
      *
      * This function is the callback when the cursor changes.

@@ -216,6 +216,7 @@ struct TextConfig {
     uint32_t windowId = INVALID_WINDOW_ID;
     double positionY = 0;
     double height = 0;
+    bool newEditBox = false;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
 
     std::string ToString() const

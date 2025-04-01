@@ -111,6 +111,18 @@ public:
     ~TaskImsaOnCursorUpdate() = default;
 };
 
+class TaskImsaDiscardTypingText : public Task {
+public:
+    TaskImsaDiscardTypingText() : Task(TASK_TYPE_IMSA_DISCARD_TYPING_TEXT)
+    {
+        auto func = []() {
+            InputMethodAbility::GetInstance()->OnDiscardTypingText();
+        };
+        actions_.emplace_back(std::make_unique<Action>(func));
+    }
+    ~TaskImsaDiscardTypingText() = default;
+};
+
 class TaskImsaSendPrivateCommand : public Task {
 public:
     TaskImsaSendPrivateCommand(std::unordered_map<std::string, PrivateDataValue> privateCommand)

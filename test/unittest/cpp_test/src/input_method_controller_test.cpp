@@ -595,6 +595,24 @@ HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testIMCDiscardTypingText
+ * @tc.desc: IMC DiscardTypingText.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIMCDiscardTypingText, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC DiscardTypingText Test START");
+    InputMethodControllerTest::inputMethodController_->Close();
+    auto ret = inputMethodController_->DiscardTypingText();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = inputMethodController_->Attach(textListener_);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->DiscardTypingText();
+    EXPECT_GE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: testGetIMSAProxy
  * @tc.desc: Get Imsa Proxy.
  * @tc.type: FUNC

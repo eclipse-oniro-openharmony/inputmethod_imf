@@ -33,6 +33,7 @@ constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr int32_t MAX_WAIT_TIME_MESSAGE_HANDLER = 2000;
+constexpr int32_t MAX_WAIT_TIME_ATTACH = 2000;
 const std::set<std::string> EVENT_TYPE{
     "selectByRange",
     "selectByMovement",
@@ -56,6 +57,7 @@ std::shared_ptr<JsGetInputMethodController> JsGetInputMethodController::controll
 std::mutex JsGetInputMethodController::eventHandlerMutex_;
 std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodController::handler_{ nullptr };
 BlockQueue<MessageHandlerInfo> JsGetInputMethodController::messageHandlerQueue_{ MAX_WAIT_TIME_MESSAGE_HANDLER };
+BlockQueue<AttachInfo> JsGetInputMethodController::attachQueue_{ MAX_WAIT_TIME_ATTACH };
 napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
 {
     napi_property_descriptor descriptor[] = {
@@ -89,6 +91,7 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
         DECLARE_NAPI_FUNCTION("sendMessage", SendMessage),
         DECLARE_NAPI_FUNCTION("recvMessage", RecvMessage),
+        DECLARE_NAPI_FUNCTION("discardTypingText", DiscardTypingText),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, IMC_CLASS_NAME.c_str(), IMC_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -538,6 +541,7 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, Range &ou
  *     end: number
  *   },
  *   windowId?: number
+ *   newEditBox?: boolean
  * }
  */
 bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfig &out)
@@ -571,6 +575,10 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
     if (!result) {
         IMSA_HILOGE("get windowId failed.");
     }
+    result = JsUtil::Object::ReadProperty(env, in, "newEditBox", out.newEditBox);
+    if (!result) {
+        IMSA_HILOGE("get newEditBox failed.");
+    }
     return ret;
 }
 
@@ -596,16 +604,20 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
                 JsUtil::GetValue(env, argv[2], ctxt->requestKeyboardReason);
             }
         }
+        ctxt->info = { std::chrono::system_clock::now(), ctxt->attribute};
+        attachQueue_.Push(ctxt->info);
         return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
-        ctxt->textListener = JsGetInputMethodTextChangedListener::GetInstance();
+        attachQueue_.Wait(ctxt->info);
+        ctxt->textListener = JsGetInputMethodTextChangedListener::GetTextListener(ctxt->textConfig.newEditBox);
         OHOS::MiscServices::AttachOptions attachOptions;
         attachOptions.isShowKeyboard = ctxt->showKeyboard;
         attachOptions.requestKeyboardReason =
               static_cast<OHOS::MiscServices::RequestKeyboardReason>(ctxt->requestKeyboardReason);
         auto status = InputMethodController::GetInstance()->Attach(
             ctxt->textListener, attachOptions, ctxt->textConfig, ClientType::JS);
+        attachQueue_.Pop();
         ctxt->SetErrorCode(status);
         CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "attach return error!");
         ctxt->SetState(napi_ok);
@@ -665,6 +677,13 @@ napi_value JsGetInputMethodController::HideTextInput(napi_env env, napi_callback
     InputMethodSyncTrace tracer("JsGetInputMethodController_HideTextInput");
     return HandleSoftKeyboard(
         env, info, [] { return InputMethodController::GetInstance()->HideTextInput(); }, false, true);
+}
+
+napi_value JsGetInputMethodController::DiscardTypingText(napi_env env, napi_callback_info info)
+{
+    InputMethodSyncTrace tracer("JsGetInputMethodController_DiscardTypingText");
+    return HandleSoftKeyboard(
+        env, info, [] { return InputMethodController::GetInstance()->DiscardTypingText(); }, false, true);
 }
 
 napi_value JsGetInputMethodController::SetCallingWindow(napi_env env, napi_callback_info info)

@@ -27,6 +27,10 @@ public:
     virtual void OnKeyboardStatus(bool isShow) = 0;
     virtual void OnInputStart() = 0;
     virtual int32_t OnInputStop() = 0;
+    virtual int32_t OnDiscardTypingText()
+    {
+        return ErrorCode::NO_ERROR;
+    }
     virtual void OnSecurityChange(int32_t security)
     {
     };
@@ -37,6 +41,10 @@ public:
     {
     }
     virtual bool IsEnable()
+    {
+        return false;
+    }
+    virtual bool IsCallbackRegistered(const std::string &type)
     {
         return false;
     }

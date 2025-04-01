@@ -640,6 +640,25 @@ void JsInputMethodEngineSetting::OnInputStart()
     }
 }
 
+int32_t JsInputMethodEngineSetting::OnDiscardTypingText()
+{
+    IMSA_HILOGI("DiscardTypingText start.");
+    std::string type = "discardTypingText";
+    auto entry = GetEntry(type);
+    if (entry == nullptr) {
+        IMSA_HILOGE("entry is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto task = [entry]() { JsCallbackHandler::Traverse(entry->vecCopy); };
+    return eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP)
+        ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME;
+}
+
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 {
     std::string type = isShow ? "keyboardShow" : "keyboardHide";
@@ -851,6 +870,17 @@ std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting:
         entrySetter(*entry);
     }
     return entry;
+}
+
+bool JsInputMethodEngineSetting::IsCallbackRegistered(const std::string &type)
+{
+    IMSA_HILOGD("type: %{public}s.", type.c_str());
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (jsCbMap_[type].empty()) {
+        IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+        return false;
+    }
+    return true;
 }
 
 void JsInputMethodEngineSetting::FreeWorkIfFail(int ret, uv_work_t *work)

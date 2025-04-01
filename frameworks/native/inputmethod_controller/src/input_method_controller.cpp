@@ -697,6 +697,20 @@ void InputMethodController::RestoreClientInfoInSaDied()
     }
 }
 
+int32_t InputMethodController::DiscardTypingText()
+{
+    if (!IsBound()) {
+        IMSA_HILOGE("not bound.");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return agent->DiscardTypingText();
+}
+
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
     if (!IsBound()) {

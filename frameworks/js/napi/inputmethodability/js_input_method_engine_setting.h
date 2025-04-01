@@ -52,12 +52,14 @@ public:
     void OnInputStart() override;
     void OnKeyboardStatus(bool isShow) override;
     int32_t OnInputStop() override;
+    int32_t OnDiscardTypingText() override;
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
     void OnSecurityChange(int32_t security) override;
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool PostTaskToEventHandler(std::function<void()> task, const std::string &taskName) override;
-    void OnCallingDisplayChanged(uint64_t callingDisplayId) override;
+    bool IsCallbackRegistered(const std::string &type) override;
+    void OnCallingDisplayIdChanged(uint64_t callingDisplayId) override;
 private:
     struct PanelContext : public AsyncCall::Context {
         PanelInfo panelInfo = PanelInfo();

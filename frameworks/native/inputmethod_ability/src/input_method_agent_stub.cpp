@@ -57,14 +57,7 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
             return ErrorCode::NO_ERROR;
         }
         case ON_SELECTION_CHANGE: {
-            std::u16string text = data.ReadString16();
-            int32_t oldBegin = data.ReadInt32();
-            int32_t oldEnd = data.ReadInt32();
-            int32_t newBegin = data.ReadInt32();
-            int32_t newEnd = data.ReadInt32();
-            OnSelectionChange(text, oldBegin, oldEnd, newBegin, newEnd);
-            reply.WriteNoException();
-            return ErrorCode::NO_ERROR;
+            return OnSelectionChangeOnRemote(data, reply);
         }
         case SEND_PRIVATE_COMMAND: {
             return SendPrivateCommandOnRemote(data, reply);
@@ -74,6 +67,10 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
         }
         case SEND_MESSAGE: {
             return RecvMessageOnRemote(data, reply);
+        }
+        case DISCARD_TYPING_TEXT: {
+            auto ret = DiscardTypingText();
+            return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
         }
         default: {
             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
@@ -101,6 +98,18 @@ int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, Mess
     sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(consumerObject);
     auto ret = InputMethodAbility::GetInstance()->DispatchKeyEvent(keyEvent, consumer);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodAgentStub::OnSelectionChangeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::u16string text = data.ReadString16();
+    int32_t oldBegin = data.ReadInt32();
+    int32_t oldEnd = data.ReadInt32();
+    int32_t newBegin = data.ReadInt32();
+    int32_t newEnd = data.ReadInt32();
+    OnSelectionChange(text, oldBegin, oldEnd, newBegin, newEnd);
+    reply.WriteNoException();
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAgentStub::SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -147,6 +156,20 @@ void InputMethodAgentStub::OnCursorUpdate(int32_t positionX, int32_t positionY, 
 {
     auto task = std::make_shared<TaskImsaOnCursorUpdate>(positionX, positionY, height);
     TaskManager::GetInstance().PostTask(task);
+}
+
+int32_t InputMethodAgentStub::DiscardTypingText()
+{
+    IMSA_HILOGD("DiscardTypingText run");
+    std::string type = "discardTypingText";
+    auto ret = InputMethodAbility::GetInstance()->IsCallbackRegistered(type);
+    if (!ret) {
+        IMSA_HILOGE("callback not registered");
+        return ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST;
+    }
+    auto task = std::make_shared<TaskImsaDiscardTypingText>();
+    TaskManager::GetInstance().PostTask(task);
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAgentStub::OnSelectionChange(
