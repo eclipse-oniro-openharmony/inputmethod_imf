@@ -90,5 +90,15 @@ bool JsGetInputMethodTextChangedListener::IsFromTs()
 {
     return true;
 }
+
+int32_t JsGetInputMethodTextChangedListener::SetPreviewText(const std::u16string &text, const Range &range)
+{
+    return JsGetInputMethodController::GetInstance()->SetPreviewText(text, range);
+}
+
+void JsGetInputMethodTextChangedListener::FinishTextPreview()
+{
+    return JsGetInputMethodController::GetInstance()->FinishTextPreview();
+}
 } // namespace MiscServices
 } // namespace OHOS

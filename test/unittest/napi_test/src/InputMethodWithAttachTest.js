@@ -42,6 +42,8 @@ describe('InputMethodWithAttachTest', function () {
     ADJUST_WITH_INVALID_AVOID_Y:17,
     ADJUST_WITH_INVALID_TYPE:18,
     ADJUST_SUCCESS: 19,
+    SET_PREVIEW_TEXT: 20,
+    FINISH_TEXT_PREVIEW: 21
   }
 
   beforeAll(async function (done) {
@@ -51,6 +53,9 @@ describe('InputMethodWithAttachTest', function () {
       id: 'InputMethodExtAbility'
     };
     await inputMethod.switchInputMethod(inputMethodProperty);
+    let inputMethodCtrl = inputMethod.getController();
+    inputMethodCtrl.on('finishTextPreview', () => {});
+    inputMethodCtrl.on('setPreviewText', () => {});
     setTimeout(() => {
       done();
     }, WAIT_DEAL_OK);
@@ -68,6 +73,9 @@ describe('InputMethodWithAttachTest', function () {
         await inputMethod.switchInputMethod(prop);
       }
     }
+    let inputMethodCtrl = inputMethod.getController();
+    inputMethodCtrl.off('finishTextPreview');
+    inputMethodCtrl.off('setPreviewText');
   });
 
   beforeEach(async function () {
@@ -1066,6 +1074,308 @@ describe('InputMethodWithAttachTest', function () {
       subscribe(subscribeInfo, TEST_FUNCTION.ADJUST_SUCCESS, done);
     } catch(error) {
       console.info(`inputmethod_test_adjustPanelRect_006 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_setPreviewText_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_setPreviewText_001', 0, async function (done) {
+    console.info('************* inputmethod_test_setPreviewText_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    try {
+      inputMethodCtrl.on('setPreviewText', (text, range) => {
+        console.info(`inputMethod setPreviewText success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+        expect(true).assertTrue();
+        done();
+      });
+      publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+    } catch(error) {
+      console.info(`inputmethod_test_setPreviewText_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_setPreviewText_002
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_setPreviewText_002', 0, async function (done) {
+    console.info('************* inputmethod_test_setPreviewText_002 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('setPreviewText', 'test');
+    } catch(error) {
+      console.info(`inputmethod_test_setPreviewText_002 result: ${JSON.stringify(error)}`);
+      expect(error.code === 401).assertTrue();
+      done();
+    }
+  });
+
+   /*
+   * @tc.number  inputmethod_test_setPreviewText_003
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+   it('inputmethod_test_setPreviewText_003', 0, async function (done) {
+    console.info('************* inputmethod_test_setPreviewText_003 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('setPreviewText');
+    } catch(error) {
+      console.info(`inputmethod_test_setPreviewText_003 result: ${JSON.stringify(error)}`);
+      expect(error.code === 401).assertTrue();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_setPreviewText_004
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_setPreviewText_004', 0, async function (done) {
+    console.info('************* inputmethod_test_setPreviewText_004 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    let index = 0;
+    let callback1 = (text, range) => {
+      console.info(`inputMethod setPreviewText 1 success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+      index += 1;
+    };
+    let callback2 = (text, range) => {
+      console.info(`inputMethod setPreviewText 2 success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+      index += 1;
+    };
+    try {
+      inputMethodCtrl.on('setPreviewText', callback1);
+      inputMethodCtrl.on('setPreviewText', callback2);
+      publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+      let timeOutCb = async () => {
+        console.info(`inputMethod setPreviewText timeout`);
+        clearTimeout(t);
+        expect(index).assertEqual(2);
+        done();
+      };
+      let t = setTimeout(timeOutCb, 500);
+    } catch(error) {
+      console.info(`inputmethod_test_setPreviewText_004 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_setPreviewText_005
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_setPreviewText_005', 0, async function (done) {
+    console.info('************* inputmethod_test_setPreviewText_005 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    let index = 0;
+    let callback1 = (text, range) => {
+      console.info(`inputMethod setPreviewText 1 success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+      index += 1;
+    };
+    let callback2 = (text, range) => {
+      console.info(`inputMethod setPreviewText 2 success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+      index += 1;
+    };
+    try {
+      inputMethodCtrl.on('setPreviewText', callback1);
+      inputMethodCtrl.on('setPreviewText', callback2);
+      publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+      let timeOutCb = async () => {
+        console.info(`inputMethod setPreviewText timeOutCb`);
+        clearTimeout(t);
+        expect(index).assertEqual(2);
+        inputMethodCtrl.off('setPreviewText', callback2);
+        publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+        let timeOutCb1 = async () => {
+          console.info(`inputMethod setPreviewText timeOutCb1`);
+          clearTimeout(t1);
+          expect(index).assertEqual(3);
+          inputMethodCtrl.off('setPreviewText');
+          publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+          let timeOutCb2 = async () => {
+            console.info(`inputMethod setPreviewText timeOutCb2`);
+            clearTimeout(t2);
+            expect(index).assertEqual(3);
+            inputMethodCtrl.on('setPreviewText', () => {});
+            done();
+          };
+          let t2 = setTimeout(timeOutCb2, 500);
+        };
+        let t1 = setTimeout(timeOutCb1, 500);
+      };
+      let t = setTimeout(timeOutCb, 500);
+    } catch(error) {
+      console.info(`inputmethod_test_setPreviewText_005 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_finishTextPreview_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_finishTextPreview_001', 0, async function (done) {
+    console.info('************* inputmethod_test_finishTextPreview_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    try {
+      inputMethodCtrl.on('finishTextPreview', () => {
+        console.info(`inputMethod finishTextPreview success`);
+        expect(true).assertTrue();
+        done();
+      });
+      publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+    } catch(error) {
+      console.info(`inputmethod_test_finishTextPreview_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_finishTextPreview_002
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_finishTextPreview_002', 0, async function (done) {
+    console.info('************* inputmethod_test_finishTextPreview_002 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('finishTextPreview');
+    } catch(error) {
+      console.info(`inputmethod_test_finishTextPreview_002 result: ${JSON.stringify(error)}`);
+      expect(error.code === 401).assertTrue();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_finishTextPreview_003
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_finishTextPreview_003', 0, async function (done) {
+    console.info('************* inputmethod_test_finishTextPreview_002 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('finishTextPreview', 0);
+    } catch(error) {
+      console.info(`inputmethod_test_finishTextPreview_003 result: ${JSON.stringify(error)}`);
+      expect(error.code === 401).assertTrue();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_finishTextPreview_004
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_finishTextPreview_004', 0, async function (done) {
+    console.info('************* inputmethod_test_finishTextPreview_004 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    let index = 0;
+    let callback1 = () => {
+      console.info(`inputMethod finishTextPreview 1 success`);
+      index += 1;
+    };
+    let callback2 = () => {
+      console.info(`inputMethod finishTextPreview 2 success`);
+      index += 1;
+    };
+    try {
+      inputMethodCtrl.on('finishTextPreview', callback1);
+      inputMethodCtrl.on('finishTextPreview', callback2);
+      publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+      let timeOutCb = async () => {
+        console.info(`inputMethod finishTextPreview timeout`);
+        clearTimeout(t);
+        expect(index).assertEqual(2);
+        done();
+      };
+      let t = setTimeout(timeOutCb, 500);
+    } catch(error) {
+      console.info(`inputmethod_test_finishTextPreview_004 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_finishTextPreview_005
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_finishTextPreview_005', 0, async function (done) {
+    console.info('************* inputmethod_test_finishTextPreview_005 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    let index = 0;
+    let callback1 = () => {
+      console.info(`inputMethod finishTextPreview 1 success`);
+      index += 1;
+    };
+    let callback2 = () => {
+      console.info(`inputMethod finishTextPreview 2 success`);
+      index += 1;
+    };
+    try {
+      inputMethodCtrl.on('finishTextPreview', callback1);
+      inputMethodCtrl.on('finishTextPreview', callback2);
+      publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+      let timeOutCb = async () => {
+        console.info(`inputMethod finishTextPreview timeOutCb`);
+        clearTimeout(t);
+        expect(index).assertEqual(2);
+
+        inputMethodCtrl.off('finishTextPreview', callback2);
+        publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+        let timeOutCb1 = async () => {
+          console.info(`inputMethod finishTextPreview timeOutCb1`);
+          clearTimeout(t1);
+          expect(index).assertEqual(3);
+          inputMethodCtrl.off('finishTextPreview');
+          publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+          let timeOutCb2 = async () => {
+            console.info(`inputMethod finishTextPreview timeOutCb2`);
+            clearTimeout(t2);
+            expect(index).assertEqual(3);
+            done();
+          };
+          let t2 = setTimeout(timeOutCb2, 500);
+        };
+        let t1 = setTimeout(timeOutCb1, 500);
+      };
+      let t = setTimeout(timeOutCb, 500);
+    } catch(error) {
+      console.info(`inputmethod_test_finishTextPreview_005 result: ${JSON.stringify(error)}`);
       expect().assertFail();
       done();
     }
