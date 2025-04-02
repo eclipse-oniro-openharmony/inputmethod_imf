@@ -401,6 +401,10 @@ int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
 int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client, uint32_t sessionId)
 {
     IMSA_HILOGD("PerUserSession::OnReleaseInput start");
+    if (client == nullptr) {
+        IMSA_HILOGE("client nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     auto clientGroup = GetClientGroup(client->AsObject());
     if (clientGroup == nullptr) {
         IMSA_HILOGD("client not found");
@@ -486,15 +490,15 @@ bool PerUserSession::IsProxyImeEnable()
 int32_t PerUserSession::OnStartInput(
     const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo)
 {
-    auto clientGroup = GetClientGroup(inputClientInfo.displayId);
-    if (clientGroup == nullptr) {
-        IMSA_HILOGE("client group not found");
-        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
-    }
     const sptr<IInputClient> &client = inputClientInfo.client;
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    auto clientGroup = GetClientGroup(inputClientInfo.displayId);
+    if (clientGroup == nullptr) {
+        IMSA_HILOGE("client group not found");
+        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     auto clientInfo = clientGroup->GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {

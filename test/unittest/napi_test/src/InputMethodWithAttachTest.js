@@ -124,7 +124,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_with_attach_test_showTextInput_001
    * @tc.name    Test whether the keyboard is displayed successfully.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_with_attach_test_showTextInput_001', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_showTextInput_001 Test start*************');
@@ -145,7 +145,7 @@ describe('InputMethodWithAttachTest', function () {
   * @tc.number  inputmethod_with_attach_test_showTextInput_002
   * @tc.name    Test whether the keyboard is displayed successfully.
   * @tc.desc    Function test
-  * @tc.level   2
+  * @tc.level   0
   */
   it('inputmethod_with_attach_test_showTextInput_002', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_showTextInput_002 Test start*************');
@@ -165,7 +165,7 @@ describe('InputMethodWithAttachTest', function () {
   * @tc.number  inputmethod_with_attach_test_hideTextInput_001
   * @tc.name    Test whether the keyboard is hide successfully.
   * @tc.desc    Function test
-  * @tc.level   2
+  * @tc.level   0
   */
   it('inputmethod_with_attach_test_hideTextInput_001', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_hideTextInput_001 Test start*************');
@@ -187,7 +187,7 @@ describe('InputMethodWithAttachTest', function () {
   * @tc.number  inputmethod_with_attach_test_hideTextInput_002
   * @tc.name    Test whether the keyboard is hide successfully.
   * @tc.desc    Function test
-  * @tc.level   2
+  * @tc.level   0
   */
   it('inputmethod_with_attach_test_hideTextInput_002', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_hideTextInput_002 Test start*************');
@@ -297,7 +297,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_with_attach_test_updateCursor_002
    * @tc.name    Test whether the notification input method is valid when the current application cursor has changed.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_with_attach_test_updateCursor_002', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_updateCursor_002 Test start*************');
@@ -808,7 +808,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_test_getForwardSync_001
    * @tc.name    Test Indicates the input method which will replace the current one.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_getForwardSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_getForwardSync_001 Test start*************');
@@ -833,7 +833,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_test_getBackwardSync_001
    * @tc.name    Test Indicates the input method which will replace the current one.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_getBackwardSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_getBackwardSync_001 Test start*************');
@@ -859,7 +859,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_test_isPanelShown_001
    * @tc.name    Test Indicates querying by isPanelShown.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_isPanelShown_001', 0, async function (done) {
     console.info('************* inputmethod_test_isPanelShown_001 Test start*************');
@@ -1331,7 +1331,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_test_finishTextPreview_005
    * @tc.name    Test Indicates the input method which will replace the current one.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_finishTextPreview_005', 0, async function (done) {
     console.info('************* inputmethod_test_finishTextPreview_005 Test start*************');

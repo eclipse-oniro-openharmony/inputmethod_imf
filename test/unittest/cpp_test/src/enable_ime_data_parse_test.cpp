@@ -77,7 +77,7 @@ void EnableImeDataParseTest::TearDown() { }
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testGetEnableData_001, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testGetEnableData_001, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testGetEnableData_001 START");
     std::vector<std::string> enableVec;
@@ -99,7 +99,7 @@ HWTEST_F(EnableImeDataParseTest, testGetEnableData_001, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testGetEnableData_002, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testGetEnableData_002, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testGetEnableData_002 START");
     std::vector<std::string> enableVec;
@@ -118,7 +118,7 @@ HWTEST_F(EnableImeDataParseTest, testGetEnableData_002, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testGetEnableData_003, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testGetEnableData_003, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testGetEnableData_003 START");
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : []}}";
@@ -136,7 +136,7 @@ HWTEST_F(EnableImeDataParseTest, testGetEnableData_003, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_001, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_001, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_001 START");
     SwitchInfo switchInfo;
@@ -153,7 +153,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_001, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_002, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_002, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_002 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
@@ -175,7 +175,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_002, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_003, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_003, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_003 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
@@ -195,7 +195,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_003, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_004, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_004, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_004 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
@@ -217,7 +217,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_004, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_005, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_005, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_005 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
@@ -240,7 +240,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_005, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_006, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_006, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_006 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
@@ -258,7 +258,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_006, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_007, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_007, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_007 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "defaultImeName";
@@ -276,7 +276,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_007, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_008, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_008, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_008 START");
     SwitchInfo switchInfo;
@@ -293,7 +293,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_008, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_009, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_009, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_009 START");
     SwitchInfo switchInfo;
@@ -309,7 +309,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_009, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_010, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_010, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_010 START");
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [ \"sougouIme\"], \"101\" : "
@@ -327,7 +327,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_010, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_011, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_011, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_011 START");
     EnableImeDataParseTest::resultSet_->strValue_ = "";
@@ -344,7 +344,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_011, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_012, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_012, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_012 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
@@ -366,7 +366,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_012, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_013 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
@@ -410,7 +410,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(EnableImeDataParseTest, testOnUserChanged_001, TestSize.Level0)
+HWTEST_F(EnableImeDataParseTest, testOnUserChanged_001, TestSize.Level1)
 {
     IMSA_HILOGI("EnableImeDataParseTest testOnUserChanged_001 START");
     int32_t ret = EnableImeDataParser::GetInstance()->GetEnableData(
