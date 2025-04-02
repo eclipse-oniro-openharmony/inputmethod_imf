@@ -35,6 +35,7 @@ enum class UpdateFlag : uint32_t {
 enum class ImeType : int32_t {
     IME = 0,
     PROXY_IME,
+    PROXY_AGENT_IME,
     NONE
 };
 enum class ClientState : uint32_t {
@@ -52,10 +53,13 @@ enum ClientType : uint32_t {
 
 constexpr uint32_t NO_EVENT_ON = 0;
 constexpr uint32_t IMF_INVALID_TOKENID = 0;
+constexpr uint64_t DEFAULT_DISPLAY_ID = 0;
+constexpr int64_t INVALID_PID = -1;
 struct InputClientInfo {
     pid_t pid { -1 };                        // process id
     pid_t uid { -1 };                        // uid
     int32_t userID { 0 };                    // user id of input client
+    uint64_t displayId { DEFAULT_DISPLAY_ID };
     bool isShowKeyboard { false };           // soft keyboard status
     ImeType bindImeType { ImeType::NONE };   // type of the ime client bind
     TextTotalConfig config = {};             // text config

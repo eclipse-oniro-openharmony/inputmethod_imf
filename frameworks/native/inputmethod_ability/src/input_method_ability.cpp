@@ -156,6 +156,49 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
     return proxy->UnRegisteredProxyIme(type, coreStub_);
 }
 
+int32_t InputMethodAbility::RegisterProxyIme(uint64_t displayId)
+{
+    IMSA_HILOGD("IMA, displayId: %{public}" PRIu64 "", displayId);
+    TaskManager::GetInstance().SetInited(true);
+
+    if (isBound_.load()) {
+        IMSA_HILOGD("already bound.");
+        return ErrorCode::NO_ERROR;
+    }
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("imsa proxy is nullptr!");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    if (agentStub_ == nullptr) {
+        IMSA_HILOGE("agent nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    int32_t ret = displayId == DEFAULT_DISPLAY_ID
+                      ? proxy->SetCoreAndAgent(coreStub_, agentStub_->AsObject())
+                      : proxy->RegisterProxyIme(displayId, coreStub_, agentStub_->AsObject());
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed, displayId: %{public}" PRIu64 ", ret: %{public}d!", displayId, ret);
+        return ret;
+    }
+    isBound_.store(true);
+    isProxyIme_.store(true);
+    IMSA_HILOGD("set successfully, displayId: %{public}" PRIu64 "", displayId);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodAbility::UnregisterProxyIme(uint64_t displayId)
+{
+    isBound_.store(false);
+    isProxyIme_.store(false);
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("imsa proxy is nullptr!");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    return proxy->UnregisterProxyIme(displayId);
+}
+
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGD("IMA init.");
@@ -209,7 +252,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     IMSA_HILOGI("IMA showKeyboard:%{public}d,bindFromClient:%{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
-    if (clientInfo.needHide) {
+    if (clientInfo.needHide && !isProxyIme_.load()) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
         auto panel = GetSoftKeyboardPanel();
         if (panel != nullptr) {

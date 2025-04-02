@@ -52,7 +52,7 @@ public:
         {
             return bundleName_;
     }
-    uint64_t GetCallingDisplayId(int32_t callingWindowId) override
+    uint64_t GetDisplayIdByWindowId(int32_t callingWindowId) override
     {
         return 0;
     }

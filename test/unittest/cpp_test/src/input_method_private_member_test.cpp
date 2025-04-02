@@ -37,6 +37,7 @@
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
 #include "ime_cfg_manager.h"
+#include "input_client_stub.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
@@ -248,9 +249,10 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSiz
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionCoreOrAgentNullptr TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     auto imc = InputMethodController::GetInstance();
-    int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.client);
+    auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
+    int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.client, clientGroup);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-    ret = userSession->HideKeyboard(imc->clientInfo_.client);
+    ret = userSession->HideKeyboard(imc->clientInfo_.client, clientGroup);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     ret = userSession->InitInputControlChannel();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
@@ -270,30 +272,31 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionClientError, TestSize.Level
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionClientError TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
     auto imc = InputMethodController::GetInstance();
-    sptr<InputMethodCoreStub> core = new InputMethodCoreStub();
 
-    auto clientInfo = userSession->GetClientInfo(imc->clientInfo_.client->AsObject());
+    auto clientInfo = clientGroup->GetClientInfo(imc->clientInfo_.client->AsObject());
     EXPECT_EQ(clientInfo, nullptr);
 
-    clientInfo = userSession->GetCurClientInfo();
+    clientInfo = clientGroup->GetCurrentClientInfo();
     EXPECT_EQ(clientInfo, nullptr);
 
-    bool clientInfoIsNull = userSession->IsCurClientFocused(INVALID_PROCESS_ID, INVALID_USER_ID);
+    bool clientInfoIsNull = clientGroup->IsCurClientFocused(INVALID_PROCESS_ID, INVALID_USER_ID);
     EXPECT_FALSE(clientInfoIsNull);
 
-    clientInfo = userSession->GetClientInfo(INVALID_USER_ID);
+    clientInfo = clientGroup->GetClientInfo(INVALID_USER_ID);
     EXPECT_EQ(clientInfo, nullptr);
 
-    userSession->SetCurrentClient(nullptr);
-    userSession->OnUnfocused(0, 0);
-    int32_t ret = userSession->OnHideCurrentInput();
+    clientGroup->SetCurrentClient(nullptr);
+    userSession->clientGroupMap_.clear();
+    userSession->OnUnfocused(DEFAULT_DISPLAY_ID, 0, 0);
+    int32_t ret = userSession->OnHideCurrentInput(DEFAULT_DISPLAY_ID);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-    ret = userSession->OnShowCurrentInput();
+    ret = userSession->OnShowCurrentInput(DEFAULT_DISPLAY_ID);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 
-    userSession->SetCurrentClient(imc->clientInfo_.client);
-    ret = userSession->OnShowCurrentInput();
+    clientGroup->SetCurrentClient(imc->clientInfo_.client);
+    ret = userSession->OnShowCurrentInput(DEFAULT_DISPLAY_ID);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
 
@@ -316,7 +319,8 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->OnReleaseInput(nullptr, 0);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-    auto client = userSession->GetClientInfo(nullptr);
+    auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
+    auto client = clientGroup->GetClientInfo(nullptr);
     EXPECT_EQ(client, nullptr);
 }
 
@@ -331,14 +335,11 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSi
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    sptr<InputMethodCoreStub> core = new InputMethodCoreStub();
+    auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
     userSession->OnClientDied(nullptr);
     userSession->OnImeDied(nullptr, ImeType::IME);
     bool isShowKeyboard = false;
-    userSession->UpdateClientInfo(nullptr,
-        {
-            { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard }
-    });
+    clientGroup->UpdateClientInfo(nullptr, { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
     int32_t ret = userSession->RemoveIme(nullptr, ImeType::IME);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
@@ -949,11 +950,12 @@ HWTEST_F(InputMethodPrivateMemberTest, TestOnSecurityChange, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest TestOnSecurityChange TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
     auto imc = InputMethodController::GetInstance();
-    int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.client);
+    int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.client, clientGroup);
     userSession->OnSecurityChange(10);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-    ret = userSession->ShowKeyboard(nullptr);
+    ret = userSession->ShowKeyboard(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 }
 
@@ -1017,7 +1019,8 @@ HWTEST_F(InputMethodPrivateMemberTest, TestOnUnRegisteredProxyIme, TestSize.Leve
     type = UnRegisteredType::SWITCH_PROXY_IME_TO_IME;
     ret = userSession->OnUnRegisteredProxyIme(type, core);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
-    ret = userSession->RemoveCurrentClient();
+    userSession->clientGroupMap_.clear();
+    ret = userSession->RemoveAllCurrentClient();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -1308,10 +1311,17 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
     ret = userSession->OnShowInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
-    ret = userSession->RemoveClient(nullptr, false, false, false);
+
+    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
+    ASSERT_NE(client, nullptr);
+    auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
+    DetachOptions options = { .isUnbindFromClient = false, .isInactiveClient = false, .isNotifyClientAsync = false };
+    ret = userSession->RemoveClient(nullptr, clientGroup, options);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    ret = userSession->RemoveClient(client, nullptr, options);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->BindClientWithIme(nullptr, ImeType::IME, false);
-    userSession->UnBindClientWithIme(nullptr, false, false);
+    userSession->UnBindClientWithIme(nullptr, options);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
     ret = userSession->OnSetCallingWindow(0, 0, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
@@ -1322,18 +1332,18 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     EXPECT_FALSE(ret2);
     ret2 = SettingsDataUtils::GetInstance()->EnableIme(INVALID_USER_ID, invaildString);
     EXPECT_FALSE(ret2);
-    ret2 = userSession->IsCurClientFocused(-1, -1);
+    ret2 = clientGroup->IsCurClientFocused(-1, -1);
     EXPECT_FALSE(ret2);
-    ret2 = userSession->IsCurClientUnFocused(-1, -1);
+    ret2 = clientGroup->IsCurClientUnFocused(-1, -1);
     EXPECT_FALSE(ret2);
     auto startRet = userSession->StartInputService(nullptr);
     EXPECT_EQ(startRet, ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR);
     startRet = userSession->StartIme(nullptr, false);
     EXPECT_EQ(startRet, ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR);
 
-    auto ret3 = userSession->GetClientInfo(nullptr);
+    auto ret3 = clientGroup->GetClientInfo(nullptr);
     EXPECT_EQ(ret3, nullptr);
-    ret3 = userSession->GetClientInfo(pid);
+    ret3 = clientGroup->GetClientInfo(pid);
     EXPECT_EQ(ret3, nullptr);
 }
 

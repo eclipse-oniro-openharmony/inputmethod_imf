@@ -49,6 +49,8 @@ public:
     int32_t SetCoreAndAgent();
     int32_t InitConnect();
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
+    int32_t RegisterProxyIme(uint64_t displayId = DEFAULT_DISPLAY_ID);
+    int32_t UnregisterProxyIme(uint64_t displayId);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     std::shared_ptr<InputMethodEngineListener> GetImeListener();
@@ -182,6 +184,7 @@ private:
     void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
     std::atomic_bool isBound_ { false };
+    std::atomic_bool isProxyIme_{ false };
 
     sptr<IInputMethodCore> coreStub_ { nullptr };
     sptr<IInputMethodAgent> agentStub_ { nullptr };
