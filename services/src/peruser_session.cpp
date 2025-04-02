@@ -146,39 +146,40 @@ void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client, const s
         IMSA_HILOGE("client is nullptr!");
         return;
     }
-    auto info = GetClientInfo(client);
-    if (info == nullptr) {
-        IMSA_HILOGE("client info is not exist!");
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    auto it = mapClients_.find(client);
+    if (it == mapClients_.end() || it->second == nullptr) {
+        IMSA_HILOGD("client not found.");
         return;
     }
     for (const auto &updateInfo : updateInfos) {
         switch (updateInfo.first) {
             case UpdateFlag::EVENTFLAG: {
-                info->eventFlag = std::get<uint32_t>(updateInfo.second);
+                it->second->eventFlag = std::get<uint32_t>(updateInfo.second);
                 break;
             }
             case UpdateFlag::ISSHOWKEYBOARD: {
-                info->isShowKeyboard = std::get<bool>(updateInfo.second);
+                it->second->isShowKeyboard = std::get<bool>(updateInfo.second);
                 break;
             }
             case UpdateFlag::BINDIMETYPE: {
-                info->bindImeType = std::get<ImeType>(updateInfo.second);
+                it->second->bindImeType = std::get<ImeType>(updateInfo.second);
                 break;
             }
             case UpdateFlag::STATE: {
-                info->state = std::get<ClientState>(updateInfo.second);
+                it->second->state = std::get<ClientState>(updateInfo.second);
                 break;
             }
             case UpdateFlag::TEXT_CONFIG: {
-                info->config = std::get<TextTotalConfig>(updateInfo.second);
+                it->second->config = std::get<TextTotalConfig>(updateInfo.second);
                 break;
             }
             case UpdateFlag::UIEXTENSION_TOKENID: {
-                info->uiExtensionTokenId = std::get<uint32_t>(updateInfo.second);
+                it->second->uiExtensionTokenId = std::get<uint32_t>(updateInfo.second);
                 break;
             }
             case UpdateFlag::CLIENT_TYPE: {
-                info->type = std::get<ClientType>(updateInfo.second);
+                it->second->type = std::get<ClientType>(updateInfo.second);
                 break;
             }
             default:
