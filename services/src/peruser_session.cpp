@@ -283,6 +283,10 @@ int32_t PerUserSession::OnShowCurrentInput(uint64_t displayId)
 int32_t PerUserSession::OnHideInput(sptr<IInputClient> client)
 {
     IMSA_HILOGD("PerUserSession::OnHideInput start.");
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     auto clientGroup = GetClientGroup(client->AsObject());
     if (clientGroup == nullptr) {
         IMSA_HILOGE("client group not found");
@@ -298,6 +302,10 @@ int32_t PerUserSession::OnHideInput(sptr<IInputClient> client)
 int32_t PerUserSession::OnShowInput(sptr<IInputClient> client, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("PerUserSession::OnShowInput start.");
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     auto clientGroup = GetClientGroup(client->AsObject());
     if (clientGroup == nullptr) {
         IMSA_HILOGE("client group not found");
@@ -391,6 +399,10 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid, uint64_t displayI
 int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
 {
     IMSA_HILOGD("PerUserSession::OnPrepareInput start");
+    if (clientInfo.client == nullptr) {
+        IMSA_HILOGE("client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     return AddClientInfo(clientInfo.client->AsObject(), clientInfo, PREPARE_INPUT);
 }
 
@@ -1196,18 +1208,18 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId,
     uint64_t callingDisplayId, sptr<IInputClient> client)
 {
     IMSA_HILOGD("OnSetCallingWindow enter");
+    if (client == nullptr) {
+        IMSA_HILOGE("nullptr client!");
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     auto clientGroup = GetClientGroup(client->AsObject());
     if (clientGroup == nullptr) {
         IMSA_HILOGE("clientGroup nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     if (!IsSameClient(client, clientGroup->GetCurrentClient())) {
         IMSA_HILOGE("client is not current client!");
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-    }
-    if (client == nullptr) {
-        IMSA_HILOGE("nullptr client!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     auto clientInfo = clientGroup->GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
