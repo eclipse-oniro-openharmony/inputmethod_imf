@@ -114,7 +114,7 @@ public:
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodSystemAbility> imsa_;
-    static constexpr int32_t waitTaskEmptyTimes_ = 5000;
+    static constexpr int32_t waitTaskEmptyTimes_ = 100;
     static constexpr int32_t waitTaskEmptyinterval_ = 20;
 
     static bool IsTaskEmpty()
@@ -192,7 +192,7 @@ void InputMethodEditorTest::SetUp(void)
 void InputMethodEditorTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodEditorTest::TearDown");
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    BlockRetry(waitTaskEmptyinterval_, waitTaskEmptyTimes_, IsTaskEmpty);
     TaskManager::GetInstance().Reset();
 }
 

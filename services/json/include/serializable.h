@@ -81,19 +81,20 @@ public:
         if (maxNum > 0 && size > maxNum) {
             size = maxNum;
         }
-        bool ret = true;
+        bool result = true;
         for (int32_t i = 0; i < size; i++) {
             auto item = cJSON_GetArrayItem(subNode, i);
             if (item == NULL) {
                 return false;
             }
             T value;
-            ret = GetValue(item, "", value) && ret;
-            if (!values.count(value)) {
+            bool ret = GetValue(item, "", value);
+            if (ret && !values.count(value)) {
                 values.insert(value);
             }
+            result = ret && result;
         }
-        return ret;
+        return result;
     }
     static bool SetValue(cJSON *node, const std::string &name, const std::string &value);
     static bool SetValue(cJSON *node, const std::string &name, const int32_t &value);
