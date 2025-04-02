@@ -112,7 +112,7 @@ private:
     bool IsHidden();
     int32_t SetPanelProperties();
     std::string GeneratePanelName();
-    void NotifyPanelStatus();
+    void NotifyPanelStatus(PanelFlag panelFlag);
     void PanelStatusChange(const InputWindowStatus &status);
     void PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect);
     bool MarkListener(const std::string &type, bool isRegister);

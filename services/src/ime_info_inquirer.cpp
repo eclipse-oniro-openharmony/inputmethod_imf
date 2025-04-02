@@ -1201,5 +1201,13 @@ std::string ImeInfoInquirer::GetTargetString(
     IMSA_HILOGD("No match target string");
     return "";
 }
+
+bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
+{
+    RunningProcessInfo info;
+    AppMgrClient client;
+    client.GetRunningProcessInfoByPid(pid, info);
+    return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
+}
 } // namespace MiscServices
 } // namespace OHOS

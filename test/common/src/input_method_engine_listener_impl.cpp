@@ -144,14 +144,7 @@ bool InputMethodEngineListenerImpl::WaitKeyboardStatus(bool state)
 
 bool InputMethodEngineListenerImpl::PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)
 {
-    if (eventHandler_ == nullptr) {
-        return false;
-    }
-    eventHandler_->PostTask(
-        [task]() {
-            task();
-        },
-        taskName, 0);
+    task();
     return true;
 }
 } // namespace MiscServices
