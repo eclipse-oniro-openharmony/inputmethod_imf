@@ -880,7 +880,7 @@ bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> ta
     return true;
 }
 
-void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplayId)
+void JsInputMethodEngineSetting::OnCallingDisplayIdChanged(uint64_t callingDisplayId)
 {
     std::string type = "callingDisplayDidChange";
     if (callingDisplayId > UINT32_MAX) {

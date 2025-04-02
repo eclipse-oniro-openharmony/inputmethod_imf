@@ -494,12 +494,10 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
-    auto lastCallingDisplayId = GetInputAttribute().callingDisplayId;
-    bool isWait = lastCallingDisplayId != textConfig.inputAttribute.callingDisplayId;
-    auto task = [this, textConfig, isWait]() {
-        panels_.ForEach([&textConfig, isWait](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
+    auto task = [this, textConfig]() {
+        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(textConfig.windowId, isWait);
+                panel->SetCallingWindow(textConfig.windowId, true);
             }
             return false;
         });
@@ -1561,20 +1559,18 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
     IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
 }
 
-int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
+int32_t InputMethodAbility::OnCallingDisplayIdChanged(uint64_t displayId)
 {
     IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64".", displayId);
     if (imeListener_ == nullptr) {
         IMSA_HILOGD("imeListener_ is nullptr!");
         return ErrorCode::NO_ERROR;
     }
-    bool isWait = displayId != GetInputAttribute().callingDisplayId;
     auto windowId = GetInputAttribute().windowId;
-    auto task = [this, windowId, isWait]() {
-        panels_.ForEach([windowId, isWait](const PanelType &panelType,
-                const std::shared_ptr<InputMethodPanel> &panel) {
+    auto task = [this, windowId]() {
+        panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(windowId, isWait);
+                panel->SetCallingWindow(windowId, true);
             }
             return false;
         });
@@ -1584,7 +1580,7 @@ int32_t InputMethodAbility::OnCallingDisplayChange(uint64_t displayId)
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.callingDisplayId = displayId;
     }
-    imeListener_->OnCallingDisplayChanged(displayId);
+    imeListener_->OnCallingDisplayIdChanged(displayId);
     return ErrorCode::NO_ERROR;
 }
 
