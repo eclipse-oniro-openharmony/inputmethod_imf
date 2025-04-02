@@ -59,7 +59,7 @@ sptr<InputMethodAbility> InputMethodAbilityExceptionTest::inputMethodAbility_;
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testMoveCursorException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testMoveCursorException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest MoveCursor Test START");
     auto ret = inputMethodAbility_->MoveCursor(4); // move cursor right
@@ -73,7 +73,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testMoveCursorException, TestSize.Leve
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testInsertTextException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testInsertTextException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest InsertText Test START");
     auto ret = inputMethodAbility_->InsertText("text");
@@ -87,7 +87,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testInsertTextException, TestSize.Leve
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testSendFunctionKeyException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testSendFunctionKeyException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest SendFunctionKey Test START");
     auto ret = inputMethodAbility_->SendFunctionKey(0);
@@ -101,7 +101,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSendFunctionKeyException, TestSize
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testSendExtendActionException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testSendExtendActionException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest SendExtendAction Test START");
     constexpr int32_t action = 1;
@@ -116,7 +116,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSendExtendActionException, TestSiz
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testSelectByRange START");
     // start < 0, end < 0
@@ -148,7 +148,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.L
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testSelectByMovementException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testSelectByMovementException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testSelectByMovement START");
     constexpr int32_t direction = 1;
@@ -163,7 +163,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSelectByMovementException, TestSiz
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testDeleteExceptionText, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testDeleteExceptionText, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testDelete Test START");
     int32_t deleteForwardLenth = 1;
@@ -181,7 +181,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDeleteExceptionText, TestSize.Leve
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testGetTextException001, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testGetTextException001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testGetText001 START");
     std::u16string text;
@@ -201,7 +201,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testGetTextException001, TestSize.Leve
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testGetEnterKeyType START");
     int32_t keyType2;
@@ -219,7 +219,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest DispatchKeyEvent START");
     // keyEvent == nullptr;
@@ -241,7 +241,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSiz
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_001 START");
     // channelObject == nullptr
@@ -258,7 +258,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_002 START");
     // imeListener_ == nullptr
@@ -291,7 +291,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testHideKeyboard_001 START");
     // imeListener_ == nullptr
@@ -327,7 +327,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
  * @tc.require:
  * @tc.author: mashaoyin
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testDispatchKeyEvent_001 START");
     sptr<InputMethodAgentStub> agentStub = new InputMethodAgentStub();

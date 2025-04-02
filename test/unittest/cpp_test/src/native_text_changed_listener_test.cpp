@@ -47,7 +47,7 @@ static void TestNativeTextChangedListener(NativeTextChangedListener *listener)
  * @tc.desc: Test textEditor_ is nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, NativeTextChangedListener_001, TestSize.Level0)
+HWTEST_F(NativeTextChangedListenerTest, NativeTextChangedListener_001, TestSize.Level1)
 {
     NativeTextChangedListener listener(nullptr);
     TestNativeTextChangedListener(&listener);
@@ -61,7 +61,7 @@ HWTEST_F(NativeTextChangedListenerTest, NativeTextChangedListener_001, TestSize.
  * @tc.desc: Test callback is null.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, CallbackIsNullTest_001, TestSize.Level0)
+HWTEST_F(NativeTextChangedListenerTest, CallbackIsNullTest_001, TestSize.Level1)
 {
     auto textEditor = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditor);
@@ -129,7 +129,7 @@ static void ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProx
  * @tc.desc: Test callback finish.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, CallbackFinishTest_001, TestSize.Level0)
+HWTEST_F(NativeTextChangedListenerTest, CallbackFinishTest_001, TestSize.Level1)
 {
     auto textEditor = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditor);
@@ -147,7 +147,7 @@ HWTEST_F(NativeTextChangedListenerTest, CallbackFinishTest_001, TestSize.Level0)
  * @tc.desc: Test ConvertKeyBoardStarus.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, ConvertKeyBoardStarusTest_001, TestSize.Level0)
+HWTEST_F(NativeTextChangedListenerTest, ConvertKeyBoardStarusTest_001, TestSize.Level1)
 {
     auto textEditor = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditor);
@@ -162,7 +162,7 @@ HWTEST_F(NativeTextChangedListenerTest, ConvertKeyBoardStarusTest_001, TestSize.
  * @tc.desc: Test ConvertToCEnterKeyType.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, ConvertToCEnterKeyTypeTest_001, TestSize.Level0)
+HWTEST_F(NativeTextChangedListenerTest, ConvertToCEnterKeyTypeTest_001, TestSize.Level1)
 {
     auto textEditor = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditor);
@@ -194,7 +194,7 @@ HWTEST_F(NativeTextChangedListenerTest, ConvertToCEnterKeyTypeTest_001, TestSize
  * @tc.desc: Test ConvertToCDirection.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, ConvertToCDirectionTest_001, TestSize.Level0)
+HWTEST_F(NativeTextChangedListenerTest, ConvertToCDirectionTest_001, TestSize.Level1)
 {
     auto textEditor = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditor);
@@ -211,7 +211,7 @@ HWTEST_F(NativeTextChangedListenerTest, ConvertToCDirectionTest_001, TestSize.Le
  * @tc.desc: Test ConvertToCExtendAction.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeTextChangedListenerTest, ConvertToCExtendActionTest_001, TestSize.Level0)
+HWTEST_F(NativeTextChangedListenerTest, ConvertToCExtendActionTest_001, TestSize.Level1)
 {
     auto textEditor = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditor);

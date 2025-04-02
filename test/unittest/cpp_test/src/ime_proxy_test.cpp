@@ -166,7 +166,7 @@ sptr<InputMethodController> ImeProxyTest::imc_;
  * @tc.desc: not in editor
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, RegisteredProxyNotInEditor_001, TestSize.Level0)
+HWTEST_F(ImeProxyTest, RegisteredProxyNotInEditor_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::RegisteredProxyNotInEditor_001");
     // RegisteredProxy not in ima bind
@@ -184,7 +184,7 @@ HWTEST_F(ImeProxyTest, RegisteredProxyNotInEditor_001, TestSize.Level0)
  * @tc.desc: not in editor
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.Level0)
+HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::AttachInPcAfterRegisteredProxyNotInEditor_002");
     TddUtil::GetFocused();
@@ -210,7 +210,7 @@ HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.L
  * @tc.desc: not in editor
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.Level0)
+HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::AttachInPeAfterRegisteredProxyNotInEditor_003");
     TddUtil::GetFocused();
@@ -236,7 +236,7 @@ HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.L
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level0)
+HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::RegisteredProxyInImaEditor_004");
     TddUtil::GetFocused();
@@ -266,7 +266,7 @@ HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.Level0)
+HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredAndRegisteredProxyInProxyBind_005");
     TddUtil::GetFocused();
@@ -303,7 +303,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.L
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_stop_006, TestSize.Level0)
+HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_stop_006, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyNotInBind_stop_006");
     InputMethodEngineListenerImpl::ResetParam();
@@ -320,7 +320,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_stop_006, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
+HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInProxyBind_stop_007");
     TddUtil::GetFocused();
@@ -350,7 +350,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBind_stop_008, TestSize.Level0)
+HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBind_stop_008, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInImaBind_stop_008");
     TddUtil::GetFocused();
@@ -379,7 +379,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBind_stop_008, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_switch_009, TestSize.Level0)
+HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_switch_009, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyNotInBind_switch_009");
     InputMethodEngineListenerImpl::isEnable_ = true;
@@ -394,7 +394,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_switch_009, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level0)
+HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInProxyBind_switch_010");
     TddUtil::GetFocused();
@@ -423,7 +423,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_011, TestSize.Level0)
+HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_011, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyWithErrorType_011");
     InputMethodEngineListenerImpl::isEnable_ = true;
@@ -438,7 +438,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_011, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level0)
+HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::AppUnFocusInProxyBindInPe_012");
     TddUtil::GetFocused();
@@ -466,7 +466,7 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level0)
+HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::AppUnFocusInProxyBindInPc_013");
     TddUtil::GetFocused();
@@ -494,7 +494,7 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
+HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::ProxyAndImaSwitchTest_014");
     TddUtil::GetFocused();
@@ -533,7 +533,7 @@ HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level0)
+HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::KeyboardListenerTest_015");
     // 1:positionX, 2: positionY, 5: height
@@ -550,7 +550,7 @@ HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, TextEditTest, TestSize.Level0)
+HWTEST_F(ImeProxyTest, TextEditTest, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::TextEditTest");
     TddUtil::GetFocused();
@@ -585,7 +585,7 @@ HWTEST_F(ImeProxyTest, TextEditTest, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, ClientDiedInImaBind_016, TestSize.Level0)
+HWTEST_F(ImeProxyTest, ClientDiedInImaBind_016, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::ClientDiedInImaBind_016");
     // open the app, click the edit box in pe, bind ima
@@ -605,7 +605,7 @@ HWTEST_F(ImeProxyTest, ClientDiedInImaBind_016, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
+HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::ClientDiedInProxyBind_017");
     // RegisteredProxy not in ima bind
@@ -630,7 +630,7 @@ HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
  * @tc.desc: close
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level0)
+HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::onInputFinishTest_StopInput");
     InputMethodAbility::GetInstance()->StopInput(nullptr, 0);
@@ -641,7 +641,7 @@ HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level0)
  * @tc.desc: OnClientInactive
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level0)
+HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::onInputFinishTest_OnClientInactive");
     InputMethodAbility::GetInstance()->OnClientInactive(nullptr);
