@@ -907,6 +907,8 @@ public:
 
     IMF_API void ReportBaseTextOperation(int32_t eventCode, int32_t errCode);
 
+    IMF_API void UpdateTextPreviewState(bool isSupport);
+
 private:
     InputMethodController();
     ~InputMethodController();

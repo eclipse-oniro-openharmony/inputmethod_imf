@@ -191,6 +191,8 @@ public:
     void HandleExtendAction(int32_t action);
     std::u16string GetText(const std::string &type, int32_t number);
     int32_t GetTextIndexAtCursor();
+    int32_t SetPreviewText(const std::u16string &text, const Range &range);
+    void FinishTextPreview();
 
     class JsMessageHandler : public MsgHandlerCallbackInterface {
     public:
@@ -211,6 +213,8 @@ private:
     static napi_value CreateSendFunctionKey(napi_env env, int32_t functionKey);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
+    bool IsRegister(const std::string &type);
+    void UpdateTextPreviewState(const std::string &type);
     static bool GetValue(napi_env env, napi_value in, CursorInfo &out);
     static bool GetValue(napi_env env, napi_value in, InputAttribute &out);
     static bool GetValue(napi_env env, napi_value in, TextConfig &out);
@@ -224,6 +228,7 @@ private:
     static napi_value GetJsEnabledStateProperty(napi_env env);
     static napi_value GetJsRequestKeyboardReasonProperty(napi_env env);
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
+    static bool IsTextPreviewSupported();
     static const std::set<std::string> TEXT_EVENT_TYPE;
     static constexpr int32_t MAX_TIMEOUT = 2500;
     struct UvEntry {

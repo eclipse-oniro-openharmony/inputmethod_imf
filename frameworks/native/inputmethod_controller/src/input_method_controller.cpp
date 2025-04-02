@@ -1630,5 +1630,19 @@ void InputMethodController::ReportBaseTextOperation(int32_t eventCode, int32_t e
                         .Build();
     ImcHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *evenInfo);
 }
+
+void InputMethodController::UpdateTextPreviewState(bool isSupport)
+{
+    if (textConfig_.inputAttribute.isTextPreviewSupported == isSupport) {
+        return;
+    }
+    textConfig_.inputAttribute.isTextPreviewSupported = isSupport;
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return;
+    }
+    agent->OnAttributeChange(textConfig_.inputAttribute);
+}
 } // namespace MiscServices
 } // namespace OHOS
