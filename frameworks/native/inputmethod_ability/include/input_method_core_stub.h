@@ -48,6 +48,7 @@ public:
     void OnClientInactive(const sptr<IRemoteObject> &channel) override;
     int32_t OnSetInputType(InputType inputType) override;
     void OnCallingDisplayIdChanged(uint64_t dispalyId) override;
+    int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -66,6 +67,7 @@ private:
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
     int32_t OnCallingDisplayChangeOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnSendPrivateDataOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (InputMethodCoreStub::*)(MessageParcel &, MessageParcel &);
     static constexpr RequestHandler HANDLERS[CORE_CMD_END] = {
         [SHOW_KEYBOARD] = &InputMethodCoreStub::ShowKeyboardOnRemote,
@@ -82,6 +84,7 @@ private:
         [ON_CONNECT_SYSTEM_CMD] = &InputMethodCoreStub::OnConnectSystemCmdOnRemote,
         [ON_SET_INPUT_TYPE] = &InputMethodCoreStub::OnSetInputTypeOnRemote,
         [ON_CALLING_DISPLAY_CHANGE] = &InputMethodCoreStub::OnCallingDisplayChangeOnRemote,
+        [ON_SEND_PRIVATE_DATA] = &InputMethodCoreStub::OnSendPrivateDataOnRemote,
     };
 };
 } // namespace MiscServices

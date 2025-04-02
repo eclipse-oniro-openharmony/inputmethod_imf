@@ -17,6 +17,7 @@
 #include "cinttypes"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
 #include "global.h"
 #include "tokenid_kit.h"
 #include <cinttypes>
@@ -30,6 +31,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
+constexpr uint32_t STYLUS_UID = 7555;
 bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
 {
     int64_t realFocusedPid = focusedPid;
@@ -165,6 +167,16 @@ uint64_t IdentityCheckerImpl::GetCallingDisplayId(int32_t callingWindowId)
     auto callingDisplayId = (*iter)->windowDisplayInfo.displayId;
     IMSA_HILOGD("window pid: %{public}d, displayId: %{public}" PRIu64 "", callingWindowId, callingDisplayId);
     return callingDisplayId;
+}
+
+bool IdentityCheckerImpl::IsStylusSa()
+{
+    auto uid = IPCSkeleton::GetCallingUid();
+    if (uid != STYLUS_UID) {
+        IMSA_HILOGE("not stylus uid!");
+        return false;
+    }
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

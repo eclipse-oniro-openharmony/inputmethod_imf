@@ -909,6 +909,17 @@ public:
 
     IMF_API void UpdateTextPreviewState(bool isSupport);
 
+    /**
+     * @brief Send Private Data.
+     *
+     * This function only available stylus service apply.
+     *
+     * @param privateCommand Indicates the private data information.
+     * @return Returns 0 for success, others for failure.
+     * @since 18
+     */
+    IMF_API int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+
 private:
     InputMethodController();
     ~InputMethodController();

@@ -481,5 +481,15 @@ int32_t InputMethodSystemAbilityStub::IsSystemAppOnRemote(MessageParcel &data, M
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsSystemApp()) ? ErrorCode::NO_ERROR
                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
 }
+
+int32_t InputMethodSystemAbilityStub::SendPrivateDataOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    if (!ITypesUtil::Unmarshal(data, privateCommand)) {
+        IMSA_HILOGE("failed to read message parcel!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return reply.WriteInt32(SendPrivateData(privateCommand)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
 } // namespace MiscServices
 } // namespace OHOS

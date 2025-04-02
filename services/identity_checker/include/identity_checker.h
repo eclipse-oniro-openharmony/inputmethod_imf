@@ -40,6 +40,7 @@ public:
     {
         return DEFAULT_DISPLAY_ID;
     };
+    virtual bool IsStylusSa() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

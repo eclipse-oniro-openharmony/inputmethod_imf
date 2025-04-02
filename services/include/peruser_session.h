@@ -68,6 +68,7 @@ struct ImeData {
           freezeMgr(std::make_shared<FreezeManager>(imePid))
     {
     }
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
 };
 /**@class PerUserSession
  *
@@ -138,6 +139,8 @@ public:
     void TryUnloadSystemAbility();
     void OnCallingDisplayIdChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
+    int32_t StylusScenarioCheck();
+    int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
 private:
     struct ResetManager {
         uint32_t num{ 0 };
@@ -184,7 +187,8 @@ private:
         const std::unordered_map<UpdateFlag,
             std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>> &updateInfos);
 
-    int32_t InitImeData(const std::pair<std::string, std::string> &ime);
+    int32_t InitImeData(const std::pair<std::string, std::string> &ime,
+        const std::shared_ptr<ImeNativeCfg> &imeNativeCfg = nullptr);
     int32_t UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     void RemoveImeData(ImeType type, bool isImeDied);

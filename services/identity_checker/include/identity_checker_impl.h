@@ -31,6 +31,7 @@ public:
     std::string GetBundleNameByToken(uint32_t tokenId) override;
     bool IsFocusedUIExtension(uint32_t callingTokenId) override;
     uint64_t GetCallingDisplayId(int32_t callingWindowId) override;
+    bool IsStylusSa() override;
 };
 } // namespace MiscServices
 } // namespace OHOS

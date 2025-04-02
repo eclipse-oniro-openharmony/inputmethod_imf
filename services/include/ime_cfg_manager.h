@@ -18,6 +18,7 @@
 
 #include <mutex>
 
+#include "input_method_utils.h"
 #include "serializable.h"
 namespace OHOS {
 namespace MiscServices {
@@ -70,6 +71,7 @@ struct ImeNativeCfg {
     std::string bundleName;
     std::string subName;
     std::string extName;
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
 };
 
 class ImeCfgManager {

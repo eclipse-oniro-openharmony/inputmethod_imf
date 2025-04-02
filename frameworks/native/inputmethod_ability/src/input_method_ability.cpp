@@ -1588,5 +1588,15 @@ uint64_t InputMethodAbility::GetCallingWindowDisplayId()
 {
     return GetInputAttribute().callingDisplayId;
 }
+
+int32_t InputMethodAbility::OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    auto ret = ReceivePrivateCommand(privateCommand);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("OnSendPrivateData failed!");
+    }
+    IMSA_HILOGI("InputMethodAbility OnSendPrivateData success.");
+    return ret;
+}
 } // namespace MiscServices
 } // namespace OHOS

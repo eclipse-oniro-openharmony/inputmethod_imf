@@ -187,6 +187,14 @@ void FUZZPrintLogIfAceTimeout(sptr<InputMethodController> imc, int64_t start)
 {
     imc->PrintLogIfAceTimeout(start);
 }
+
+void FUZZSendPrivateData(sptr imc, const std::string &fuzzedString)
+{
+    std::unordered_map<std::string, PrivateDataValue> fuzzedPrivateCommand;
+    PrivateDataValue privateDataValue = std::string(fuzzedString);
+    fuzzedPrivateCommand.emplace("value", privateDataValue);
+    imc->SendPrivateData(fuzzedPrivateCommand);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -220,5 +228,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::FUZZIsPanelShown(imc, data);
     OHOS::FUZZPrintLogIfAceTimeout(imc, fuzzedint64);
     OHOS::TestUpdateListenEventFlag(imc, fuzzedUint32);
+    OHOS::FUZZSendPrivateData(imc, fuzzedString);
     return 0;
 }

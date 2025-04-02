@@ -56,6 +56,10 @@ public:
     {
         return 0;
     }
+    bool IsStylusSa() override
+    {
+        return isStylusSa_;
+    }
     static void ResetParam()
     {
         isFocused_ = false;
@@ -64,6 +68,7 @@ public:
         hasPermission_ = false;
         isBroker_ = false;
         isNativeSa_ = false;
+        isStylusSa_ = false;
         bundleName_ = "";
     }
     static void SetFocused(bool isFocused)
@@ -95,6 +100,10 @@ public:
     {
         bundleName_ = bundleName;
     }
+    static void SetStylusSa(bool isStylusSa)
+    {
+        isStylusSa_ = isStylusSa;
+    }
 
 private:
     static bool isFocused_;
@@ -111,6 +120,7 @@ bool IdentityCheckerMock::isBundleNameValid_ { false };
 bool IdentityCheckerMock::hasPermission_ { false };
 bool IdentityCheckerMock::isBroker_ { false };
 bool IdentityCheckerMock::isNativeSa_ { false };
+bool IdentityCheckerMock::isStylusSa_ { false };
 std::string IdentityCheckerMock::bundleName_;
 } // namespace MiscServices
 } // namespace OHOS
