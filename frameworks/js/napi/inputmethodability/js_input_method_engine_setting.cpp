@@ -367,6 +367,12 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed",
             TYPE_NONE);
     }
+#ifndef SCENE_BOARD_ENABLE
+    if (type == "callingDisplayDidChange") {
+        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED),
+            "capability not supported.", TYPE_NONE);
+    }
+#endif
     IMSA_HILOGD("subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
@@ -872,6 +878,42 @@ bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> ta
     }
     eventHandler->PostTask(task, taskName, 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
+}
+
+void JsInputMethodEngineSetting::OnCallingDisplayChanged(uint64_t callingDisplayId)
+{
+    std::string type = "callingDisplayDidChange";
+    if (callingDisplayId > UINT32_MAX) {
+        IMSA_HILOGE("callingDisplayId over range!");
+        return;
+    }
+    auto entry = GetEntry(type, [&callingDisplayId](UvEntry &entry) { entry.callingDisplayId = callingDisplayId; });
+    if (entry == nullptr) {
+        return;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    IMSA_HILOGD("callingDisplayId: %{public}d", static_cast<uint32_t>(callingDisplayId));
+    auto task = [entry]() {
+        auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
+            }
+            if (entry == nullptr) {
+                return false;
+            }
+            // 0 means the first param of callback.
+            uint32_t displayId = static_cast<uint32_t>(entry->callingDisplayId);
+            args[0] = JsUtil::GetValue(env, displayId);
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
+    };
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 } // namespace MiscServices
 } // namespace OHOS
