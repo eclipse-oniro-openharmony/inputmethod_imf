@@ -955,7 +955,7 @@ bool InputMethodSystemAbility::IsSystemApp()
 int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId)
 {
     auto prop = std::make_shared<Property>();
-    auto ret = ImeInfoInquirer::GetInstance().GetDefaultInputMethod(userId, prop);
+    auto ret = ImeInfoInquirer::GetInstance().GetDefaultInputMethod(userId, prop, true);
     if (ret != ErrorCode::NO_ERROR || prop == nullptr) {
         IMSA_HILOGE("failed to get default ime!");
         return ErrorCode::ERROR_PERSIST_CONFIG;

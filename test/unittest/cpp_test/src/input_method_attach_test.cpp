@@ -48,7 +48,7 @@ public:
     static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
     static sptr<InputMethodSystemAbility> imsa_;
     static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 100;
-    static constexpr int32_t WAIT_TASK_EMPTY_TIMES = 5000;
+    static constexpr int32_t WAIT_TASK_EMPTY_TIMES = 100;
     static constexpr int32_t WAIT_TASK_EMPTY_INTERVAL = 20;
     static bool timeout_;
     static std::shared_ptr<AppExecFwk::EventHandler> textConfigHandler_;
