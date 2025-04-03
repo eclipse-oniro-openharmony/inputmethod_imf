@@ -1832,5 +1832,22 @@ HWTEST_F(InputMethodControllerTest, testIsDefaultImeSetAndEnableIme, TestSize.Le
     ret = inputMethodController_->EnableIme(bundleName);
     EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: testUpdateTextPreviewState
+ * @tc.desc: test IMC Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testUpdateTextPreviewState, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testUpdateTextPreviewState Test START");
+    ASSERT_NE(inputMethodController_, nullptr);
+    inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported = false;
+    inputMethodController_->UpdateTextPreviewState(true);
+    EXPECT_TRUE(inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported);
+    inputMethodController_->UpdateTextPreviewState(true);
+    EXPECT_TRUE(inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported);
+}
 } // namespace MiscServices
 } // namespace OHOS
