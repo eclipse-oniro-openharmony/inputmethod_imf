@@ -89,6 +89,9 @@ public:
     int32_t GetInputMethodState(EnabledStatus &status) override;
     int32_t GetInputStartInfo(bool &isInputStart, uint32_t &callingWndId, int32_t &requestKeyboardReason) override;
     int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t RegisterProxyIme(
+        uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
+    int32_t UnregisterProxyIme(uint64_t displayId) override;
 
 private:
     static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;

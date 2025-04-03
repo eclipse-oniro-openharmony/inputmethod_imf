@@ -15,6 +15,8 @@
 
 #include "window_adapter.h"
 
+#include <cinttypes>
+
 #include "global.h"
 #include "window.h"
 #include "wm_common.h"
@@ -34,12 +36,12 @@ WindowAdapter &WindowAdapter::GetInstance()
     return windowAdapter;
 }
 
-void WindowAdapter::GetFocusInfo(FocusChangeInfo &focusInfo)
+void WindowAdapter::GetFocusInfo(OHOS::Rosen::FocusChangeInfo &focusInfo, uint64_t displayId)
 {
 #ifdef SCENE_BOARD_ENABLE
-    WindowManagerLite::GetInstance().GetFocusWindowInfo(focusInfo);
+    WindowManagerLite::GetInstance().GetFocusWindowInfo(focusInfo, displayId);
 #else
-    WindowManager::GetInstance().GetFocusWindowInfo(focusInfo);
+    WindowManager::GetInstance().GetFocusWindowInfo(focusInfo, displayId);
 #endif
 }
 
@@ -75,6 +77,79 @@ void WindowAdapter::RegisterCallingWindowInfoChangedListener(const WindowDisplay
     auto wmErr = WMError::WM_OK;
     wmErr = WindowManagerLite::GetInstance().RegisterCallingWindowDisplayChangedListener(listener);
     IMSA_HILOGI("register focus changed listener ret: %{public}d", wmErr);
+#endif
+}
+
+bool WindowAdapter::ListWindowInfo(std::vector<sptr<OHOS::Rosen::WindowInfo>> &windowInfos)
+{
+#ifdef SCENE_BOARD_ENABLE
+    WindowInfoOption option;
+    WMError ret = WindowManagerLite::GetInstance().ListWindowInfo(option, windowInfos);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("ListWindowInfo failed, ret: %{public}d", ret);
+        return false;
+    }
+    return true;
+#else
+    IMSA_HILOGE("capability not supported");
+    return false;
+#endif
+}
+
+uint64_t WindowAdapter::GetDisplayIdByWindowId(int32_t callingWindowId)
+{
+#ifdef SCENE_BOARD_ENABLE
+    if (callingWindowId == DEFAULT_DISPLAY_ID) {
+        FocusChangeInfo info;
+        WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
+        callingWindowId = info.windowId_;
+    }
+    std::vector<sptr<WindowInfo>> windowInfos;
+    if (!ListWindowInfo(windowInfos)) {
+        return DEFAULT_DISPLAY_ID;
+    }
+    auto iter = std::find_if(windowInfos.begin(), windowInfos.end(), [&callingWindowId](const auto &windowInfo) {
+        if (windowInfo == nullptr) {
+            return false;
+        }
+        return windowInfo->windowMetaInfo.windowId == callingWindowId;
+    });
+    if (iter == windowInfos.end()) {
+        IMSA_HILOGE("not found window info with windowId: %{public}d", callingWindowId);
+        return DEFAULT_DISPLAY_ID;
+    }
+    auto callingDisplayId = (*iter)->windowDisplayInfo.displayId;
+    IMSA_HILOGD("window windowId: %{public}d, displayId: %{public}" PRIu64 "", callingWindowId, callingDisplayId);
+    return callingDisplayId;
+#else
+    IMSA_HILOGI("capability not supported");
+    return DEFAULT_DISPLAY_ID;
+#endif
+}
+
+uint64_t WindowAdapter::GetDisplayIdByPid(int64_t callingPid)
+{
+#ifdef SCENE_BOARD_ENABLE
+    std::vector<sptr<WindowInfo>> windowInfos;
+    if (!ListWindowInfo(windowInfos)) {
+        return DEFAULT_DISPLAY_ID;
+    }
+    auto iter = std::find_if(windowInfos.begin(), windowInfos.end(), [&callingPid](const auto &windowInfo) {
+        if (windowInfo == nullptr) {
+            return false;
+        }
+        return windowInfo->windowMetaInfo.pid == callingPid;
+    });
+    if (iter == windowInfos.end()) {
+        IMSA_HILOGE("not found window info with pid: %{public}" PRId64 "", callingPid);
+        return DEFAULT_DISPLAY_ID;
+    }
+    auto callingDisplayId = (*iter)->windowDisplayInfo.displayId;
+    IMSA_HILOGD("window pid: %{public}" PRId64 ", displayId: %{public}" PRIu64 "", callingPid, callingDisplayId);
+    return callingDisplayId;
+#else
+    IMSA_HILOGI("capability not supported");
+    return DEFAULT_DISPLAY_ID;
 #endif
 }
 } // namespace MiscServices

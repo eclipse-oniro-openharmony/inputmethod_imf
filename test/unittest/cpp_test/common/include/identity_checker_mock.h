@@ -52,7 +52,7 @@ public:
         {
             return bundleName_;
     }
-    uint64_t GetCallingDisplayId(int32_t callingWindowId) override
+    uint64_t GetDisplayIdByWindowId(int32_t callingWindowId) override
     {
         return 0;
     }
@@ -112,6 +112,7 @@ private:
     static bool hasPermission_;
     static bool isBroker_;
     static bool isNativeSa_;
+    static bool isStylusSa_;
     static std::string bundleName_;
 };
 bool IdentityCheckerMock::isFocused_ { false };

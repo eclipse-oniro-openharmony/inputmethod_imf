@@ -188,7 +188,7 @@ void FUZZPrintLogIfAceTimeout(sptr<InputMethodController> imc, int64_t start)
     imc->PrintLogIfAceTimeout(start);
 }
 
-void FUZZSendPrivateData(sptr imc, const std::string &fuzzedString)
+void FUZZSendPrivateData(sptr<InputMethodController> imc, const std::string &fuzzedString)
 {
     std::unordered_map<std::string, PrivateDataValue> fuzzedPrivateCommand;
     PrivateDataValue privateDataValue = std::string(fuzzedString);

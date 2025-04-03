@@ -1567,13 +1567,13 @@ HWTEST_F(InputMethodAbilityTest, testOnCallingDisplayIdChanged, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_001, TestSize.Level0)
 {
     IMSA_HILOGI("testOnSendPrivateData_001 start.");
-    sptr coreStub = new InputMethodCoreStub();
-    sptr core = coreStub;
-    inputMethodAbility_->SetImeListener(std::make_shared());
+    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub();
+    sptr<IInputMethodCore> core = coreStub;
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     MessageParcel data;
     data.WriteRemoteObject(core->AsObject());
-    sptr coreObject = data.ReadRemoteObject();
-    sptr coreProxy = new InputMethodCoreProxy(coreObject);
+    sptr<IRemoteObject> coreObject = data.ReadRemoteObject();
+    sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
     if (coreProxy == nullptr) {
         IMSA_HILOGI("coreProxy is null");
         return;

@@ -62,6 +62,8 @@ enum class InputMethodInterfaceCode {
     GET_IME_STATE,
     IS_SYSTEM_APP,
     SEND_PRIVATE_DATA,
+    REGISTER_PROXY_IME_WITH_DISPLAY_ID,
+    UNREGISTER_PROXY_IME_WITH_DISPLAY_ID,
     
     IMS_CMD_END,
 };

@@ -113,6 +113,10 @@ private:
     int32_t IsSystemAppOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t SendPrivateDataOnRemote(MessageParcel &data, MessageParcel &reply);
+    
+    int32_t RegisterProxyImeOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t UnregisterProxyImeOnRemote(MessageParcel &data, MessageParcel &reply);
 
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static inline constexpr RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_END)] = {
@@ -199,6 +203,10 @@ private:
             &InputMethodSystemAbilityStub::IsSystemAppOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::SEND_PRIVATE_DATA)] =
             &InputMethodSystemAbilityStub::SendPrivateDataOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::REGISTER_PROXY_IME_WITH_DISPLAY_ID)] =
+            &InputMethodSystemAbilityStub::RegisterProxyImeOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTER_PROXY_IME_WITH_DISPLAY_ID)] =
+            &InputMethodSystemAbilityStub::UnregisterProxyImeOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

@@ -1929,8 +1929,8 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_005, TestSize.Level0)
     InputMethodEngineListenerImpl::ResetParam();
     IdentityCheckerMock::SetStylusSa(true);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
-    PrivateDataValue privateDataValue1 = std::string("stringValue");
-    privateCommand.emplace("value1", privateDataValue1);
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
     auto ret = inputMethodController_->SendPrivateData(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_SCENE_UNSUPPORTEDP);
     inputMethodController_->Close();
@@ -1950,8 +1950,8 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_006, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
-    PrivateDataValue privateDataValue1 = std::string("stringValue");
-    privateCommand.emplace("value1", privateDataValue1);
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
     ret = inputMethodController_->SendPrivateData(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     inputMethodController_->Close();

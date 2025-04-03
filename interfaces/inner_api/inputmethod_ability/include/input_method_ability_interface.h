@@ -31,10 +31,32 @@ public:
     static InputMethodAbilityInterface &GetInstance();
     int32_t RegisteredProxy();
     int32_t UnRegisteredProxy(UnRegisteredType type);
+    /**
+     * @brief Register the proxy input method to input method service with displayId.
+     *
+     * This function can be successfully invoked only when the related feature is enabled.
+     *
+     * @param displayId Indicates the ID of the display where the proxy input method is located.
+     * @return Returns 0 for success, others for failure.
+     * @since 18
+     */
+    int32_t RegisterProxyIme(uint64_t displayId);
+    /**
+     * @brief Unregister proxy input method.
+     *
+     * This function can be successfully invoked only when the related feature is enabled.
+     *
+     * @param displayId Indicates the ID of the display where the proxy input method is located.
+     * @return Returns 0 for success, others for failure.
+     * @since 18
+     */
+    int32_t UnregisterProxyIme(uint64_t displayId);
     int32_t InsertText(const std::string &text);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t MoveCursor(int32_t keyCode);
+    int32_t GetInputAttribute(InputAttribute &attribute);
+    int32_t SendFunctionKey(int32_t funcKey);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
 

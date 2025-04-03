@@ -16,16 +16,19 @@
 #ifndef SERVICES_INCLUDE_PERUSER_SESSION_H
 #define SERVICES_INCLUDE_PERUSER_SESSION_H
 
+#include <unordered_set>
+
 #include "block_queue.h"
+#include "client_group.h"
 #include "enable_ime_data_parser.h"
 #include "event_status_manager.h"
 #include "freeze_manager.h"
 #include "i_input_method_core.h"
 #include "ime_cfg_manager.h"
-#include "input_type_manager.h"
-#include "inputmethod_sysevent.h"
-#include "inputmethod_message_handler.h"
 #include "input_method_types.h"
+#include "input_type_manager.h"
+#include "inputmethod_message_handler.h"
+#include "inputmethod_sysevent.h"
 #include "want.h"
 
 namespace OHOS {
@@ -87,26 +90,29 @@ public:
         const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     int32_t OnReleaseInput(const sptr<IInputClient> &client, uint32_t sessionId);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
-    int32_t OnHideCurrentInput();
-    int32_t OnShowCurrentInput();
+    int32_t OnHideCurrentInput(uint64_t displayId);
+    int32_t OnShowCurrentInput(uint64_t displayId);
     int32_t OnShowInput(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t OnHideInput(sptr<IInputClient> client);
-    int32_t OnRequestShowInput();
-    int32_t OnRequestHideInput(int32_t callingPid);
+    int32_t OnRequestShowInput(uint64_t displayId);
+    int32_t OnRequestHideInput(int32_t callingPid, uint64_t displayId);
     void OnSecurityChange(int32_t security);
     void OnHideSoftKeyBoardSelf();
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
     int32_t SwitchSubtype(const SubProperty &subProperty);
     int32_t SwitchSubtypeWithoutStartIme(const SubProperty &subProperty);
-    void OnFocused(int32_t pid, int32_t uid);
-    void OnUnfocused(int32_t pid, int32_t uid);
+    void OnFocused(uint64_t displayId, int32_t pid, int32_t uid);
+    void OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid);
     void OnScreenUnlock();
-    int64_t GetCurrentClientPid();
-    int64_t GetInactiveClientPid();
-    int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
+    int64_t GetCurrentClientPid(uint64_t displayId);
+    int64_t GetInactiveClientPid(uint64_t displayId);
+    int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info, uint64_t displayId);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
+    int32_t OnRegisterProxyIme(
+        uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
+    int32_t OnUnregisterProxyIme(uint64_t displayId);
     int32_t InitConnect(pid_t pid);
 
     int32_t StartCurrentIme(bool isStopCurrentIme = false);
@@ -116,50 +122,43 @@ public:
     void AddRestartIme();
 
     bool IsProxyImeEnable();
-    bool IsBoundToClient();
+    bool IsBoundToClient(uint64_t displayId);
     bool IsCurrentImeByPid(int32_t pid);
     int32_t RestoreCurrentImeSubType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
-    int32_t RemoveCurrentClient();
+    int32_t RemoveAllCurrentClient();
     std::shared_ptr<ImeData> GetReadyImeData(ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     BlockQueue<SwitchInfo>& GetSwitchQueue();
     bool IsWmsReady();
-    bool CheckPwdInputPatternConv(InputClientInfo &clientInfo);
+    bool CheckPwdInputPatternConv(InputClientInfo &clientInfo, uint64_t displayId);
     int32_t RestoreCurrentIme();
     int32_t SetInputType();
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
     int32_t OnSetCallingWindow(uint32_t callingWindowId, uint64_t callingDisplayId, sptr<IInputClient> client);
-    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason);
+    int32_t GetInputStartInfo(
+        uint64_t displayId, bool &isInputStart, uint32_t &callingWndId, int32_t &requestKeyboardReason);
     bool IsSaReady(int32_t saId);
-    void UpdateUserLockState();
     void TryUnloadSystemAbility();
     void OnCallingDisplayIdChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
     int32_t StylusScenarioCheck();
     int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+    uint64_t GetDisplayGroupId(uint64_t displayId);
 private:
     struct ResetManager {
         uint32_t num{ 0 };
         time_t last{};
     };
-    enum ClientAddEvent : int32_t {
-        PREPARE_INPUT = 0,
-        START_LISTENING,
-    };
     int32_t userId_; // the id of the user to whom the object is linking
-    std::recursive_mutex mtx;
-    std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     static const int MAX_IME_START_TIME = 2000;
 #else
     static const int MAX_IME_START_TIME = 1500;
 #endif
-    std::mutex clientLock_;
-    sptr<IInputClient> currentClient_; // the current input client
     std::mutex resetLock;
     ResetManager manager;
     using IpcExec = std::function<int32_t()>;
@@ -176,16 +175,14 @@ private:
     void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
-    void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
-    int32_t RemoveClient(const sptr<IInputClient> &client, uint32_t sessionId, bool isUnbindFromClient = false,
-        bool isInactiveClient = false, bool isNotifyClientAsync = false);
+    int32_t RemoveClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup,
+        const DetachOptions &options);
     void DeactivateClient(const sptr<IInputClient> &client);
-    std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
-    std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
-    std::shared_ptr<InputClientInfo> GetCurClientInfo();
-    void UpdateClientInfo(const sptr<IRemoteObject> &client,
-        const std::unordered_map<UpdateFlag,
-            std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>> &updateInfos);
+    std::shared_ptr<InputClientInfo> GetCurrentClientInfo(uint64_t displayId = DEFAULT_DISPLAY_ID);
+    std::shared_ptr<ClientGroup> GetClientGroup(uint64_t displayGroupId);
+    std::shared_ptr<ClientGroup> GetClientGroup(sptr<IRemoteObject> client);
+    std::shared_ptr<ClientGroup> GetClientGroup(ImeType type);
+    ImeType GetImeType(uint64_t displayId);
 
     int32_t InitImeData(const std::pair<std::string, std::string> &ime,
         const std::shared_ptr<ImeNativeCfg> &imeNativeCfg = nullptr);
@@ -196,33 +193,26 @@ private:
     std::shared_ptr<ImeData> GetValidIme(ImeType type);
 
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
-        bool isBindFromClient = false);
-    void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
-        uint32_t sessionId, bool isUnbindFromClient = false, bool isNotifyClientAsync = false);
+        bool isBindFromClient = false, uint64_t displayId = DEFAULT_DISPLAY_ID);
+    void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo, const DetachOptions &options);
     void StopClientInput(
         const std::shared_ptr<InputClientInfo> &clientInfo, bool isStopInactiveClient = false, bool isAsync = false);
     void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel, uint32_t sessionId);
 
-    int32_t HideKeyboard(const sptr<IInputClient> &currentClient);
-    int32_t ShowKeyboard(const sptr<IInputClient> &currentClient, int32_t requestKeyboardReason = 0);
+    int32_t HideKeyboard(const sptr<IInputClient> &currentClient, const std::shared_ptr<ClientGroup> &clientGroup);
+    int32_t ShowKeyboard(const sptr<IInputClient> &currentClient, const std::shared_ptr<ClientGroup> &clientGroup,
+        int32_t requestKeyboardReason = 0);
 
     int32_t InitInputControlChannel();
     void StartImeInImeDied();
     void StartImeIfInstalled();
-    void SetCurrentClient(sptr<IInputClient> client);
-    sptr<IInputClient> GetCurrentClient();
-    void ReplaceCurrentClient(const sptr<IInputClient> &client);
-    void SetInactiveClient(sptr<IInputClient> client);
-    sptr<IInputClient> GetInactiveClient();
-    bool IsCurClientFocused(int32_t pid, int32_t uid);
-    bool IsCurClientUnFocused(int32_t pid, int32_t uid);
+    void ReplaceCurrentClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup);
     bool IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest);
 
     bool IsImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInImeBind(ImeType bindImeType, ImeType startImeType);
     bool IsImeBindTypeChanged(ImeType bindImeType);
-    std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
 
     bool WaitForCurrentImeStop();
@@ -240,11 +230,7 @@ private:
     int32_t HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     int32_t HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
-    // from service notify clients input start and stop
-    int32_t NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason = 0);
-    int32_t NotifyInputStopToClients();
-    bool IsNotifyInputStop(const sptr<IInputClient> &client);
-    void HandleImeBindTypeChanged(InputClientInfo &newClientInfo);
+    void HandleImeBindTypeChanged(InputClientInfo &newClientInfo, const std::shared_ptr<ClientGroup> &clientGroup);
     int32_t NotifyCallingDisplayChanged(uint64_t displayId);
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     std::mutex imeStartLock_;
@@ -252,8 +238,6 @@ private:
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;
     std::unordered_map<ImeType, std::shared_ptr<ImeData>> imeData_;
-    std::mutex inactiveClientLock_;
-    sptr<IInputClient> inactiveClient_; // the inactive input client
     std::mutex focusedClientLock_;
 
     std::atomic<bool> isSwitching_ = false;
@@ -282,6 +266,12 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
+
+    std::mutex virtualDisplayLock_{};
+    std::unordered_set<uint64_t> virtualScreenDisplayId_;
+    std::atomic<uint64_t> agentDisplayId_{ DEFAULT_DISPLAY_ID };
+    std::mutex clientGroupLock_{};
+    std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
 };
 } // namespace MiscServices
 } // namespace OHOS

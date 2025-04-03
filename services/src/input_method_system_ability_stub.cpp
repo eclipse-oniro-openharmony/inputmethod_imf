@@ -491,5 +491,37 @@ int32_t InputMethodSystemAbilityStub::SendPrivateDataOnRemote(MessageParcel &dat
     }
     return reply.WriteInt32(SendPrivateData(privateCommand)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
+
+int32_t InputMethodSystemAbilityStub::RegisterProxyImeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t displayId = 0;
+    if (!ITypesUtil::Unmarshal(data, displayId)) {
+        IMSA_HILOGE("failed to read displayId");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto coreObject = data.ReadRemoteObject();
+    if (coreObject == nullptr) {
+        IMSA_HILOGE("coreObject is nullptr!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto agentObject = data.ReadRemoteObject();
+    if (agentObject == nullptr) {
+        IMSA_HILOGE("agentObject is nullptr!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = RegisterProxyIme(displayId, iface_cast<IInputMethodCore>(coreObject), agentObject);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::UnregisterProxyImeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t displayId = 0;
+    if (!ITypesUtil::Unmarshal(data, displayId)) {
+        IMSA_HILOGE("failed to read displayId");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = UnregisterProxyIme(displayId);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
 } // namespace MiscServices
 } // namespace OHOS
