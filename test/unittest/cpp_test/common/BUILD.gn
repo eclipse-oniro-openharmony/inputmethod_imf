@@ -66,6 +66,7 @@ ohos_static_library("inputmethod_tdd_util") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libdm",
+    "window_manager:libwsutils",
   ]
 
   if (window_manager_use_sceneboard) {

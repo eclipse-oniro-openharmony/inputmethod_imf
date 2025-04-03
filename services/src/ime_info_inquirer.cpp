@@ -67,6 +67,16 @@ EnabledStatus ImeInfoInquirer::GetSystemInitEnabledState()
     return systemConfig_.initEnabledState;
 }
 
+bool ImeInfoInquirer::IsEnableAppAgent()
+{
+    return systemConfig_.enableAppAgentFeature;
+}
+
+bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)
+{
+    return systemConfig_.proxyImeUidList.find(callingUid) != systemConfig_.proxyImeUidList.end();
+}
+
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
 {
     IMSA_HILOGD("userId: %{public}d.", userId);
@@ -1190,6 +1200,14 @@ std::string ImeInfoInquirer::GetTargetString(
     }
     IMSA_HILOGD("No match target string");
     return "";
+}
+
+bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
+{
+    RunningProcessInfo info;
+    AppMgrClient client;
+    client.GetRunningProcessInfoByPid(pid, info);
+    return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
 }
 } // namespace MiscServices
 } // namespace OHOS

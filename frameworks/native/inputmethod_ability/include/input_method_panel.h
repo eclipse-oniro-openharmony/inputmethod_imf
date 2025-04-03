@@ -77,7 +77,7 @@ public:
     WindowSize GetKeyboardSize();
     bool SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
-    int32_t SetCallingWindow(uint32_t windowId, bool isWait = false);
+    int32_t SetCallingWindow(uint32_t windowId, bool needWait = false);
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
@@ -112,7 +112,7 @@ private:
     bool IsHidden();
     int32_t SetPanelProperties();
     std::string GeneratePanelName();
-    void NotifyPanelStatus();
+    void NotifyPanelStatus(PanelFlag panelFlag);
     void PanelStatusChange(const InputWindowStatus &status);
     void PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect);
     bool MarkListener(const std::string &type, bool isRegister);

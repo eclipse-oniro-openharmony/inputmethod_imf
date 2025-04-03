@@ -87,7 +87,7 @@ public:
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseEnableIme001 START");
     std::vector<std::string> enableVec;
@@ -121,7 +121,7 @@ HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(JsonOperateTest, testParseEnableKeyboard001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseEnableKeyboard001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseEnableKeyboard001 START");
     std::vector<std::string> enableVec;
@@ -155,7 +155,7 @@ HWTEST_F(JsonOperateTest, testParseEnableKeyboard001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(JsonOperateTest, testParseSecurityMode001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseSecurityMode001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseSecurityMode001 START");
     SecurityModeParser::GetInstance()->fullModeList_.clear();
@@ -184,7 +184,7 @@ HWTEST_F(JsonOperateTest, testParseSecurityMode001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(JsonOperateTest, testParseImePersistCfg001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseImePersistCfg001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseImePersistCfg001 START");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
@@ -230,7 +230,7 @@ HWTEST_F(JsonOperateTest, testParseImePersistCfg001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(JsonOperateTest, testPackageImePersistCfg001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testPackageImePersistCfg001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testPackageImePersistCfg001 START");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
@@ -247,7 +247,7 @@ HWTEST_F(JsonOperateTest, testPackageImePersistCfg001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(JsonOperateTest, testParseSystemConfig001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseSystemConfig001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseSystemConfig001 START");
     ImeSystemConfig imeSystemConfig;
@@ -267,7 +267,7 @@ HWTEST_F(JsonOperateTest, testParseSystemConfig001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(JsonOperateTest, testParseInputType001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseInputType001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseInputType001 START");
     InputTypeCfg inputTypeCfg;
@@ -290,7 +290,7 @@ HWTEST_F(JsonOperateTest, testParseInputType001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseSubtype001 START");
     std::vector<std::string> profiles { { JsonOperateTest::SUBTYPE } };
@@ -323,7 +323,7 @@ HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testParseSysPanelAdjust001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseSysPanelAdjust001, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseSysPanelAdjust001 START");
     SysPanelAdjustCfg sysPanelAdjustCfg;
@@ -345,7 +345,7 @@ HWTEST_F(JsonOperateTest, testParseSysPanelAdjust001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testGetDumpInfo, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testGetDumpInfo, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testGetDumpInfo START");
     int32_t userId = 1234567890;
@@ -359,7 +359,7 @@ HWTEST_F(JsonOperateTest, testGetDumpInfo, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testListDisabledInputMethod, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testListDisabledInputMethod, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testListDisabledInputMethod START");
     int32_t userId = 1234567890;
@@ -378,7 +378,7 @@ HWTEST_F(JsonOperateTest, testListDisabledInputMethod, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testGetSwitchInfoBySwitchCount, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testGetSwitchInfoBySwitchCount, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testGetSwitchInfoBySwitchCount START");
     SwitchInfo switchInfo;
@@ -395,7 +395,7 @@ HWTEST_F(JsonOperateTest, testGetSwitchInfoBySwitchCount, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testGetInputMethodConfig, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testGetInputMethodConfig, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testGetInputMethodConfig START");
     AppExecFwk::ElementName inputMethodConfig;
@@ -410,7 +410,7 @@ HWTEST_F(JsonOperateTest, testGetInputMethodConfig, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testFindTargetSubtypeByCondition, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testFindTargetSubtypeByCondition, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testFindTargetSubtypeByCondition START");
     std::vector<SubProperty> subProps;
@@ -429,7 +429,7 @@ HWTEST_F(JsonOperateTest, testFindTargetSubtypeByCondition, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testParseSubtypeProfile, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseSubtypeProfile, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testParseSubtypeProfile START");
     std::vector<std::string> profiles;
@@ -444,7 +444,7 @@ HWTEST_F(JsonOperateTest, testParseSubtypeProfile, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testGetResMgr, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testGetResMgr, TestSize.Level1)
 {
     IMSA_HILOGI("JsonOperateTest testGetResMgr START");
     std::string resourcePath = "";

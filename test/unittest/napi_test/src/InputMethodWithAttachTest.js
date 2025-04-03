@@ -124,7 +124,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_with_attach_test_showTextInput_001
    * @tc.name    Test whether the keyboard is displayed successfully.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_with_attach_test_showTextInput_001', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_showTextInput_001 Test start*************');
@@ -145,7 +145,7 @@ describe('InputMethodWithAttachTest', function () {
   * @tc.number  inputmethod_with_attach_test_showTextInput_002
   * @tc.name    Test whether the keyboard is displayed successfully.
   * @tc.desc    Function test
-  * @tc.level   2
+  * @tc.level   0
   */
   it('inputmethod_with_attach_test_showTextInput_002', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_showTextInput_002 Test start*************');
@@ -165,7 +165,7 @@ describe('InputMethodWithAttachTest', function () {
   * @tc.number  inputmethod_with_attach_test_hideTextInput_001
   * @tc.name    Test whether the keyboard is hide successfully.
   * @tc.desc    Function test
-  * @tc.level   2
+  * @tc.level   0
   */
   it('inputmethod_with_attach_test_hideTextInput_001', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_hideTextInput_001 Test start*************');
@@ -187,7 +187,7 @@ describe('InputMethodWithAttachTest', function () {
   * @tc.number  inputmethod_with_attach_test_hideTextInput_002
   * @tc.name    Test whether the keyboard is hide successfully.
   * @tc.desc    Function test
-  * @tc.level   2
+  * @tc.level   0
   */
   it('inputmethod_with_attach_test_hideTextInput_002', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_hideTextInput_002 Test start*************');
@@ -297,7 +297,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_with_attach_test_updateCursor_002
    * @tc.name    Test whether the notification input method is valid when the current application cursor has changed.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_with_attach_test_updateCursor_002', 0, async function (done) {
     console.info('************* inputmethod_with_attach_test_updateCursor_002 Test start*************');
@@ -808,7 +808,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_test_getForwardSync_001
    * @tc.name    Test Indicates the input method which will replace the current one.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_getForwardSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_getForwardSync_001 Test start*************');
@@ -833,7 +833,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_test_getBackwardSync_001
    * @tc.name    Test Indicates the input method which will replace the current one.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_getBackwardSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_getBackwardSync_001 Test start*************');
@@ -859,7 +859,7 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.number  inputmethod_test_isPanelShown_001
    * @tc.name    Test Indicates querying by isPanelShown.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_isPanelShown_001', 0, async function (done) {
     console.info('************* inputmethod_test_isPanelShown_001 Test start*************');
@@ -1140,6 +1140,97 @@ describe('InputMethodWithAttachTest', function () {
   });
 
   /*
+   * @tc.number  inputmethod_test_setPreviewText_004
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_setPreviewText_004', 0, async function (done) {
+    console.info('************* inputmethod_test_setPreviewText_004 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    let index = 0;
+    let callback1 = (text, range) => {
+      console.info(`inputMethod setPreviewText 1 success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+      index += 1;
+    };
+    let callback2 = (text, range) => {
+      console.info(`inputMethod setPreviewText 2 success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+      index += 1;
+    };
+    try {
+      inputMethodCtrl.on('setPreviewText', callback1);
+      inputMethodCtrl.on('setPreviewText', callback2);
+      publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+      let timeOutCb = async () => {
+        console.info(`inputMethod setPreviewText timeout`);
+        clearTimeout(t);
+        expect(index).assertEqual(2);
+        done();
+      };
+      let t = setTimeout(timeOutCb, 500);
+    } catch(error) {
+      console.info(`inputmethod_test_setPreviewText_004 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_setPreviewText_005
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_setPreviewText_005', 0, async function (done) {
+    console.info('************* inputmethod_test_setPreviewText_005 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    let index = 0;
+    let callback1 = (text, range) => {
+      console.info(`inputMethod setPreviewText 1 success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+      index += 1;
+    };
+    let callback2 = (text, range) => {
+      console.info(`inputMethod setPreviewText 2 success, text: ${JSON.stringify(text)}, start: ${range.start}, end: ${range.end}`);
+      index += 1;
+    };
+    try {
+      inputMethodCtrl.on('setPreviewText', callback1);
+      inputMethodCtrl.on('setPreviewText', callback2);
+      publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+      let timeOutCb = async () => {
+        console.info(`inputMethod setPreviewText timeOutCb`);
+        clearTimeout(t);
+        expect(index).assertEqual(2);
+        inputMethodCtrl.off('setPreviewText', callback2);
+        publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+        let timeOutCb1 = async () => {
+          console.info(`inputMethod setPreviewText timeOutCb1`);
+          clearTimeout(t1);
+          expect(index).assertEqual(3);
+          inputMethodCtrl.off('setPreviewText');
+          publishCommonEvent(TEST_FUNCTION.SET_PREVIEW_TEXT);
+          let timeOutCb2 = async () => {
+            console.info(`inputMethod setPreviewText timeOutCb2`);
+            clearTimeout(t2);
+            expect(index).assertEqual(3);
+            inputMethodCtrl.on('setPreviewText', () => {});
+            done();
+          };
+          let t2 = setTimeout(timeOutCb2, 500);
+        };
+        let t1 = setTimeout(timeOutCb1, 500);
+      };
+      let t = setTimeout(timeOutCb, 500);
+    } catch(error) {
+      console.info(`inputmethod_test_setPreviewText_005 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
    * @tc.number  inputmethod_test_finishTextPreview_001
    * @tc.name    Test Indicates the input method which will replace the current one.
    * @tc.desc    Function test
@@ -1195,6 +1286,97 @@ describe('InputMethodWithAttachTest', function () {
     } catch(error) {
       console.info(`inputmethod_test_finishTextPreview_003 result: ${JSON.stringify(error)}`);
       expect(error.code === 401).assertTrue();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_finishTextPreview_004
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_finishTextPreview_004', 0, async function (done) {
+    console.info('************* inputmethod_test_finishTextPreview_004 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    let index = 0;
+    let callback1 = () => {
+      console.info(`inputMethod finishTextPreview 1 success`);
+      index += 1;
+    };
+    let callback2 = () => {
+      console.info(`inputMethod finishTextPreview 2 success`);
+      index += 1;
+    };
+    try {
+      inputMethodCtrl.on('finishTextPreview', callback1);
+      inputMethodCtrl.on('finishTextPreview', callback2);
+      publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+      let timeOutCb = async () => {
+        console.info(`inputMethod finishTextPreview timeout`);
+        clearTimeout(t);
+        expect(index).assertEqual(2);
+        done();
+      };
+      let t = setTimeout(timeOutCb, 500);
+    } catch(error) {
+      console.info(`inputmethod_test_finishTextPreview_004 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_finishTextPreview_005
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   0
+   */
+  it('inputmethod_test_finishTextPreview_005', 0, async function (done) {
+    console.info('************* inputmethod_test_finishTextPreview_005 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    let index = 0;
+    let callback1 = () => {
+      console.info(`inputMethod finishTextPreview 1 success`);
+      index += 1;
+    };
+    let callback2 = () => {
+      console.info(`inputMethod finishTextPreview 2 success`);
+      index += 1;
+    };
+    try {
+      inputMethodCtrl.on('finishTextPreview', callback1);
+      inputMethodCtrl.on('finishTextPreview', callback2);
+      publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+      let timeOutCb = async () => {
+        console.info(`inputMethod finishTextPreview timeOutCb`);
+        clearTimeout(t);
+        expect(index).assertEqual(2);
+
+        inputMethodCtrl.off('finishTextPreview', callback2);
+        publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+        let timeOutCb1 = async () => {
+          console.info(`inputMethod finishTextPreview timeOutCb1`);
+          clearTimeout(t1);
+          expect(index).assertEqual(3);
+          inputMethodCtrl.off('finishTextPreview');
+          publishCommonEvent(TEST_FUNCTION.FINISH_TEXT_PREVIEW);
+          let timeOutCb2 = async () => {
+            console.info(`inputMethod finishTextPreview timeOutCb2`);
+            clearTimeout(t2);
+            expect(index).assertEqual(3);
+            done();
+          };
+          let t2 = setTimeout(timeOutCb2, 500);
+        };
+        let t1 = setTimeout(timeOutCb1, 500);
+      };
+      let t = setTimeout(timeOutCb, 500);
+    } catch(error) {
+      console.info(`inputmethod_test_finishTextPreview_005 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
       done();
     }
   });

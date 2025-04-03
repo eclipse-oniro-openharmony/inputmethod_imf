@@ -49,8 +49,12 @@ public:
         return isNativeSa_;
     }
     std::string GetBundleNameByToken(uint32_t tokenId) override
+        {
+            return bundleName_;
+    }
+    uint64_t GetDisplayIdByWindowId(int32_t callingWindowId) override
     {
-        return bundleName_;
+        return 0;
     }
     static void ResetParam()
     {

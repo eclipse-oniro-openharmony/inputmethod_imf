@@ -21,6 +21,7 @@ namespace OHOS {
 namespace MiscServices {
 class IdentityChecker {
 public:
+    static constexpr uint64_t DEFAULT_DISPLAY_ID = 0;
     static constexpr int64_t INVALID_PID = -1;
     virtual ~IdentityChecker() = default;
     virtual bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) = 0;
@@ -30,7 +31,19 @@ public:
     virtual bool IsBroker(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual std::string GetBundleNameByToken(uint32_t tokenId);
-    virtual bool IsFocusedUIExtension(uint32_t callingTokenId)
+    virtual bool IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId = DEFAULT_DISPLAY_ID)
+    {
+        return false;
+    };
+    virtual uint64_t GetDisplayIdByWindowId(int32_t callingWindowId)
+    {
+        return DEFAULT_DISPLAY_ID;
+    };
+    virtual uint64_t GetDisplayIdByPid(int64_t callingPid)
+    {
+        return DEFAULT_DISPLAY_ID;
+    };
+    virtual bool IsValidVirtualIme(int32_t callingUid)
     {
         return false;
     };

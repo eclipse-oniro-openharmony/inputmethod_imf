@@ -14,42 +14,41 @@
  */
 #include "identity_checker_impl.h"
 
+#include <cinttypes>
+
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
+#include "ime_info_inquirer.h"
 #include "tokenid_kit.h"
-#include <cinttypes>
-#ifdef SCENE_BOARD_ENABLE
-#include "window_manager_lite.h"
-#else
-#include "window_manager.h"
-#endif
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
+using namespace OHOS::AAFwk;
 bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
 {
-    int64_t realFocusedPid = focusedPid;
-    if (realFocusedPid == INVALID_PID) {
-        FocusChangeInfo info;
-#ifdef SCENE_BOARD_ENABLE
-        WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
-#else
-        WindowManager::GetInstance().GetFocusWindowInfo(info);
-#endif
-        realFocusedPid = info.pid_;
-    }
-    if (callingPid == realFocusedPid) {
+    if (focusedPid != INVALID_PID && callingPid == focusedPid) {
         IMSA_HILOGD("focused app, pid: %{public}" PRId64 "", callingPid);
         return true;
     }
-    bool isFocused = IsFocusedUIExtension(callingTokenId);
+    auto displayId = WindowAdapter::GetDisplayIdByPid(callingPid);
+    if (focusedPid == INVALID_PID) {
+        FocusChangeInfo focusInfo;
+        WindowAdapter::GetFocusInfo(focusInfo, displayId);
+        focusedPid = focusInfo.pid_;
+        if (callingPid == focusedPid) {
+            IMSA_HILOGD("focused app, pid: %{public}" PRId64 ", display: %{public}" PRIu64 "", callingPid, displayId);
+            return true;
+        }
+    }
+    bool isFocused = IsFocusedUIExtension(callingTokenId, displayId);
     if (!isFocused) {
         IMSA_HILOGE("not focused, focusedPid: %{public}" PRId64 ", callerPid: %{public}" PRId64 ", callerToken: "
                     "%{public}d",
-            realFocusedPid, callingPid, callingTokenId);
+            focusedPid, callingPid, callingTokenId);
     }
     return isFocused;
 }
@@ -99,15 +98,16 @@ bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
     return AccessTokenKit::GetTokenTypeFlag(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE;
 }
 
-bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId)
+bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId)
 {
     bool isFocused = false;
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
+    auto ret = AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to CheckUIExtensionIsFocused, ret: %{public}d", ret);
         return false;
     }
-    IMSA_HILOGD("tokenId: %{public}d, check result: %{public}d, isFocused: %{public}d", callingTokenId, ret, isFocused);
+    IMSA_HILOGD("tokenId: %{public}d, displayId: %{public}" PRIu64 ", isFocused: %{public}d", callingTokenId,
+        displayId, isFocused);
     return isFocused;
 }
 
@@ -125,6 +125,21 @@ std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)
         return "";
     }
     return info.bundleName;
+}
+
+uint64_t IdentityCheckerImpl::GetDisplayIdByWindowId(int32_t callingWindowId)
+{
+    return WindowAdapter::GetDisplayIdByWindowId(callingWindowId);
+}
+
+uint64_t IdentityCheckerImpl::GetDisplayIdByPid(int64_t callingPid)
+{
+    return WindowAdapter::GetDisplayIdByPid(callingPid);
+}
+
+bool IdentityCheckerImpl::IsValidVirtualIme(int32_t callingUid)
+{
+    return ImeInfoInquirer::GetInstance().IsVirtualProxyIme(callingUid);
 }
 } // namespace MiscServices
 } // namespace OHOS

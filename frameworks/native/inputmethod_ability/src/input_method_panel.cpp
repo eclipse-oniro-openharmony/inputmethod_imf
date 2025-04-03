@@ -411,10 +411,10 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodPanel::NotifyPanelStatus() {
+void InputMethodPanel::NotifyPanelStatus(PanelFlag panelFlag) {
     auto instance = InputMethodAbility::GetInstance();
     if (instance != nullptr) {
-        SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag_, keyboardSize_.width, keyboardSize_.height };
+        SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag, keyboardSize_.width, keyboardSize_.height };
         instance->NotifyPanelStatus(panelType_, sysPanelStatus);
     }
 }
@@ -472,14 +472,13 @@ int32_t InputMethodPanel::AdjustPanelRect(
         IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    if (panelFlag_ != panelFlag) {
-        NotifyPanelStatus();
-    }
-    panelFlag_ = panelFlag;
     auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("AdjustPanelRect error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (panelFlag_ != panelFlag) {
+        NotifyPanelStatus(panelFlag);
     }
     UpdateResizeParams();
     UpdateLayoutInfo(panelFlag, layoutParams, {}, keyboardLayoutParams_, false);
@@ -580,7 +579,7 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
     }
     SetHotAreas(hotAreas);
     if (panelFlag_ != panelFlag) {
-        NotifyPanelStatus();
+        NotifyPanelStatus(panelFlag);
     }
     UpdateLayoutInfo(panelFlag, {}, params, wmsParams, true);
     UpdateResizeParams();
@@ -1228,7 +1227,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     if (ret == WMError::WM_OK) {
         panelFlag_ = panelFlag;
     }
-    NotifyPanelStatus();
+    NotifyPanelStatus(panelFlag);
     IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
@@ -1321,7 +1320,7 @@ int32_t InputMethodPanel::HidePanel()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId, bool isWait)
+int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId, bool needWait)
 {
     IMSA_HILOGD("InputMethodPanel start, windowId: %{public}d.", windowId);
     if (window_ == nullptr) {
@@ -1329,18 +1328,24 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId, bool isWait)
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
     auto ret = window_->SetCallingWindow(windowId);
-    if (isWait) {
-        bool retBlock = BlockRetry(INTERVAL_TIME, RETRY_TIMES, [this]()->bool {
+    if (needWait) {
+        IMSA_HILOGD("retry start.");
+        bool blockRet = BlockRetry(INTERVAL_TIME, RETRY_TIMES, [this]()->bool {
             uint64_t displayId = 0;
-            if (GetDisplayId(displayId) != ErrorCode::NO_ERROR) {
-                return false;
+            auto ret = GetDisplayId(displayId);
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("GetDisplayId ret:%{public}d", ret);
+                return true;
             }
             auto callingDisplayId = InputMethodAbility::GetInstance()->GetInputAttribute().callingDisplayId;
-            IMSA_HILOGI("wait dispalyId:%{public}" PRIu64", calingDisplayId::%{public}" PRIu64"",
+            if (displayId == callingDisplayId) {
+                return true;
+            }
+            IMSA_HILOGI("retry, dispalyId:%{public}" PRIu64", calingDisplayId:%{public}" PRIu64"",
                 displayId, callingDisplayId);
-            return displayId == callingDisplayId;
+            return false;
         });
-        IMSA_HILOGD("retry result:%{public}d", retBlock);
+        IMSA_HILOGD("retry ret: %{public}d.", blockRet);
     }
     IMSA_HILOGI("ret: %{public}d, windowId: %{public}u", ret, windowId);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_WINDOW_MANAGER;

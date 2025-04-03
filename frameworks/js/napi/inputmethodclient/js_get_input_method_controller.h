@@ -214,6 +214,7 @@ private:
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     bool IsRegister(const std::string &type);
+    void UpdateTextPreviewState(const std::string &type);
     static bool GetValue(napi_env env, napi_value in, CursorInfo &out);
     static bool GetValue(napi_env env, napi_value in, InputAttribute &out);
     static bool GetValue(napi_env env, napi_value in, TextConfig &out);

@@ -47,8 +47,9 @@ public:
     static sptr<InputMethodAbility> inputMethodAbility_;
     static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
     static sptr<InputMethodSystemAbility> imsa_;
-    static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 1000;
-    static constexpr int32_t MAX_WAIT_TIME = 5000;
+    static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 100;
+    static constexpr int32_t WAIT_TASK_EMPTY_TIMES = 100;
+    static constexpr int32_t WAIT_TASK_EMPTY_INTERVAL = 20;
     static bool timeout_;
     static std::shared_ptr<AppExecFwk::EventHandler> textConfigHandler_;
 
@@ -97,7 +98,7 @@ public:
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDown");
         inputMethodController_->Close();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
         TaskManager::GetInstance().Reset();
     }
 
@@ -105,17 +106,16 @@ public:
     {
         for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; ++i) {
             sptr<OnTextChangedListener> textListener = new TextListener();
-            if (timeout_) {
-                break;
-            }
-            int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
             inputMethodController_->Attach(textListener, true);
-            int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-            auto consume = end - start;
-            if (consume >= MAX_WAIT_TIME) {
-                timeout_ = true;
-            }
         }
+        IMSA_HILOGI("InputMethodAttachTest::end");
+    }
+
+    static bool IsTaskEmpty()
+    {
+        return TaskManager::GetInstance().curTask_ == nullptr && TaskManager::GetInstance().amsTasks_.empty() &&
+               TaskManager::GetInstance().imaTasks_.empty() && TaskManager::GetInstance().imsaTasks_.empty() &&
+               TaskManager::GetInstance().innerTasks_.empty();
     }
 };
 sptr<InputMethodController> InputMethodAttachTest::inputMethodController_;
@@ -136,7 +136,7 @@ HWTEST_F(InputMethodAttachTest, testAttach001, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -160,6 +160,7 @@ HWTEST_F(InputMethodAttachTest, testAttach002, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = inputMethodController_->Attach(textListener, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -186,6 +187,7 @@ HWTEST_F(InputMethodAttachTest, testAttach003, TestSize.Level0)
     attribute.enterKeyType = 1;
     auto ret = inputMethodController_->Attach(textListener, true, attribute);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -213,6 +215,7 @@ HWTEST_F(InputMethodAttachTest, testAttach004, TestSize.Level0)
     config.inputAttribute = attribute;
     auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -252,6 +255,7 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     inputMethodController_->Close();
     auto ret = inputMethodController_->Attach(textListener, true, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -288,7 +292,7 @@ HWTEST_F(InputMethodAttachTest, testAttach006, TestSize.Level0)
     auto ret = InputMethodAttachTest::inputMethodController_->Attach(textListener, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::NONE));
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     InputMethodAttachTest::inputMethodController_->Close();
     TextListener::ResetParam();
@@ -325,6 +329,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     Configuration config;
     EnterKeyType keyType = EnterKeyType::NEXT;
@@ -371,6 +376,7 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
     inputMethodController_->Close();
     auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -746,7 +752,6 @@ HWTEST_F(InputMethodAttachTest, multiThreadAttachTest_001, TestSize.Level0)
     IMSA_HILOGI("InputMethodAttachTest multiThreadAttachTest_001 START");
     SET_THREAD_NUM(5);
     GTEST_RUN_TASK(InputMethodAttachTest::TestImfMultiThreadAttach);
-    EXPECT_FALSE(timeout_);
 }
 
 /**

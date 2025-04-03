@@ -71,7 +71,7 @@ void InputMethodServiceTest::TearDown(void)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_001, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_001, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_UNKNOWN_001 TEST START");
     bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_0);
@@ -84,7 +84,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_001, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_002, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_002, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_UNKNOWN_002 TEST START");
     bool result = KeyEventUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_0, MMI::KeyEvent::KEYCODE_1 });
@@ -97,7 +97,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_002, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_CAPS_001, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CAPS_001, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_CAPS_001 TEST START");
     bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CAPS_LOCK);
@@ -110,7 +110,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CAPS_001, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_001, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_001, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_001 TEST START");
     bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CTRL_LEFT);
@@ -123,7 +123,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_001, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_002, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_002, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_002 TEST START");
     bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CTRL_RIGHT);
@@ -136,7 +136,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_002, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_001, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_001, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_SHIFT_001 TEST START");
     bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
@@ -149,7 +149,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_001, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_002, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_002, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_SHIFT_002 TEST START");
     bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
@@ -162,7 +162,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_002, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_001, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_001, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_001 TEST START");
     bool result =
@@ -176,7 +176,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_001, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_002, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_002, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_002 TEST START");
     bool result =
@@ -190,7 +190,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_002, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_003, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_003, TestSize.Level1)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_003 TEST START");
     bool result =
@@ -204,7 +204,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_003, TestSize.Level0)
  * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_004, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_004, TestSize.Level1)
 {
     IMSA_HILOGI("SubscribeKeyboardEvent007 TEST START");
     bool result =

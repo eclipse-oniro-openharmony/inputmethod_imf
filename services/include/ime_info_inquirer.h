@@ -87,6 +87,8 @@ public:
     int32_t GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int32_t userId, bool enableOn, uint32_t cacheCount);
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
+    bool IsEnableAppAgent();
+    bool IsVirtualProxyIme(int32_t callingUid);
     EnabledStatus GetSystemInitEnabledState();
     void InitSystemConfig();
     ImeNativeCfg GetDefaultIme();
@@ -98,6 +100,7 @@ public:
     std::vector<std::string> GetRunningIme(int32_t userId);
     bool IsDefaultImeSet(int32_t userId);
     bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
+    bool IsInputMethodExtension(pid_t pid);
 
 private:
     ImeInfoInquirer() = default;

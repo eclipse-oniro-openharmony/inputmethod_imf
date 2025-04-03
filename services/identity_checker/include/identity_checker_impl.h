@@ -29,7 +29,10 @@ public:
     bool IsBroker(Security::AccessToken::AccessTokenID tokenId) override;
     bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override;
     std::string GetBundleNameByToken(uint32_t tokenId) override;
-    bool IsFocusedUIExtension(uint32_t callingTokenId) override;
+    bool IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId = DEFAULT_DISPLAY_ID) override;
+    uint64_t GetDisplayIdByWindowId(int32_t callingWindowId) override;
+    uint64_t GetDisplayIdByPid(int64_t callingPid) override;
+    bool IsValidVirtualIme(int32_t callingUid) override;
 };
 } // namespace MiscServices
 } // namespace OHOS

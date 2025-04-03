@@ -349,7 +349,7 @@ bool ITypesUtil::Marshalling(const SysPanelStatus &input, MessageParcel &data)
     bool ret = data.WriteInt32(static_cast<int32_t>(input.inputType)) &&
         data.WriteInt32(input.flag) &&
         data.WriteUint32(input.width) &&
-        data.WriteUint32(input.height);
+        data.WriteUint32(input.height) &&
         data.WriteBool(input.isMainDisplay);
     return ret;
 }

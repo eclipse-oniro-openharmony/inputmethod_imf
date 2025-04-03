@@ -68,6 +68,9 @@ public:
     virtual int32_t ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0;
     virtual int32_t GetInputMethodState(EnabledStatus &status) = 0;
     virtual bool IsSystemApp() = 0;
+    virtual int32_t RegisterProxyIme(
+        uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) = 0;
+    virtual int32_t UnregisterProxyIme(uint64_t displayId) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

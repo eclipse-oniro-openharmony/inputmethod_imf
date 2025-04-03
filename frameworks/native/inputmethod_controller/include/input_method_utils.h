@@ -31,6 +31,7 @@ constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
 constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
 constexpr size_t MAX_ARRAY_BUFFER_MSG_ID_SIZE = 256; // 256B
 constexpr size_t MAX_ARRAY_BUFFER_MSG_PARAM_SIZE = 128 * 1024; // 128KB
+static constexpr uint64_t INVALID_DISPLAY_ID = -1ULL;
 const constexpr char *SYSTEM_CMD_KEY = "sys_cmd";
 enum class EnterKeyType {
     UNSPECIFIED = 0,
@@ -340,8 +341,15 @@ struct AttachOptions {
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
 };
 struct ImfCallingWindowInfo {
-    int32_t windowId = INVALID_WINDOW_ID;
+    uint32_t windowId = INVALID_WINDOW_ID;
     uint64_t displayId = 0;
+};
+
+struct DetachOptions {
+    uint32_t sessionId{ 0 };
+    bool isUnbindFromClient{ false };
+    bool isInactiveClient{ false };
+    bool isNotifyClientAsync{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS
