@@ -708,9 +708,8 @@ napi_value JsTextInputClientEngine::SendExtendAction(napi_env env, napi_callback
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_generic_failure);
         auto status = JsUtils::GetValue(env, argv[0], ctxt->action);
-        if (status != napi_ok) {
-            ctxt->SetErrorMessage("action must be number and should in ExtendAction");
-        }
+        PARAM_CHECK_RETURN(env, status == napi_ok, "action must be number and should in ExtendAction",
+            TYPE_NONE, napi_generic_failure);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
