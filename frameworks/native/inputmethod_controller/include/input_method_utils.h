@@ -22,6 +22,7 @@
 #include "global.h"
 #include "input_attribute.h"
 #include "panel_info.h"
+#include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -120,6 +121,56 @@ struct CursorInfo {
     }
 };
 
+struct CursorInfoInner : public Parcelable {
+    double left = -1.0;
+    double top = -1.0;
+    double width = -1.0;
+    double height = -1.0;
+    bool operator==(const CursorInfoInner &info) const
+    {
+        return (left == info.left && top == info.top && width == info.width && height == info.height);
+    }
+
+    bool ReadFromParcel(Parcel &in)
+    {
+        left = in.ReadDouble();
+        top = in.ReadDouble();
+        width = in.ReadDouble();
+        height = in.ReadDouble();
+        return true;
+    }
+
+    bool Marshalling(Parcel &out) const
+    {
+        if (!out.WriteDouble(left)) {
+            return false;
+        }
+    
+        if (!out.WriteDouble(top)) {
+            return false;
+        }
+    
+        if (!out.WriteDouble(width)) {
+            return false;
+        }
+    
+        if (!out.WriteDouble(height)) {
+            return false;
+        }
+        return true;
+    }
+
+    static CursorInfoInner *Unmarshalling(Parcel &in)
+    {
+        CursorInfoInner *data = new (std::nothrow) CursorInfoInner();
+        if (data && !data->ReadFromParcel(in)) {
+            delete data;
+            data = nullptr;
+        }
+        return data;
+    }
+};
+
 class KeyEvent { };
 
 enum class KeyboardStatus : int32_t {
@@ -133,7 +184,8 @@ enum Trigger : int32_t {
     IMF,
     END
 };
-struct PanelStatusInfo {
+
+struct PanelStatusInfo : public Parcelable {
     PanelInfo panelInfo;
     bool visible { false };
     Trigger trigger { END };
@@ -143,6 +195,10 @@ struct PanelStatusInfo {
         return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType &&
             info.visible == visible && info.trigger == trigger;
     }
+
+    bool ReadFromParcel(Parcel &in);
+    bool Marshalling(Parcel &out) const;
+    static PanelStatusInfo *Unmarshalling(Parcel &in);
 };
 
 class FunctionKey {
@@ -170,11 +226,57 @@ struct Range {
     }
 };
 
+struct RangeInner : public Parcelable {
+    int32_t start = INVALID_VALUE;
+    int32_t end = INVALID_VALUE;
+    bool operator==(const RangeInner &range) const
+    {
+        return start == range.start && end == range.end;
+    }
+    bool ReadFromParcel(Parcel &in)
+    {
+        start = in.ReadInt32();
+        end = in.ReadInt32();
+        return true;
+    }
+    bool Marshalling(Parcel &out) const
+    {
+        if (!out.WriteInt32(start)) {
+            return false;
+        }
+    
+        if (!out.WriteInt32(end)) {
+            return false;
+        }
+        return true;
+    }
+    static RangeInner *Unmarshalling(Parcel &in)
+    {
+        RangeInner *data = new (std::nothrow) RangeInner();
+        if (data && !data->ReadFromParcel(in)) {
+            delete data;
+            data = nullptr;
+        }
+        return data;
+    }
+};
+
 struct TextSelection {
     int32_t oldBegin = INVALID_VALUE;
     int32_t oldEnd = INVALID_VALUE;
     int32_t newBegin = INVALID_VALUE;
     int32_t newEnd = INVALID_VALUE;
+};
+
+struct TextSelectionInner : public Parcelable {
+    int32_t oldBegin = INVALID_VALUE;
+    int32_t oldEnd = INVALID_VALUE;
+    int32_t newBegin = INVALID_VALUE;
+    int32_t newEnd = INVALID_VALUE;
+
+    bool ReadFromParcel(Parcel &in);
+    bool Marshalling(Parcel &out) const;
+    static TextSelectionInner *Unmarshalling(Parcel &in);
 };
 
 enum PrivateDataValueType : int32_t {
@@ -183,6 +285,25 @@ enum PrivateDataValueType : int32_t {
     VALUE_TYPE_NUMBER
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
+using ValueMap = std::unordered_map<std::string, PrivateDataValue>;
+
+struct Value : public Parcelable {
+    Value(const std::unordered_map<std::string, PrivateDataValue>& map) : valueMap(map) {}
+    Value() = default;
+    bool ReadFromParcel(Parcel &in);
+    bool Marshalling(Parcel &out) const override;
+    static Value *Unmarshalling(Parcel &in);
+
+    ValueMap valueMap;
+};
+
+struct KeyEventValue : public Parcelable {
+    bool ReadFromParcel(Parcel &in);
+    bool Marshalling(Parcel &out) const override;
+    static KeyEventValue *Unmarshalling(Parcel &in);
+
+    std::shared_ptr<MMI::KeyEvent> event;
+};
 
 struct TextTotalConfig {
 public:
@@ -193,6 +314,37 @@ public:
     double positionY = 0;
     double height = 0;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
+
+    std::string ToString() const
+    {
+        std::string config;
+        config.append("pattern/enterKey/preview: " + std::to_string(inputAttribute.inputPattern) + "/" +
+            std::to_string(inputAttribute.enterKeyType) + "/" + std::to_string(inputAttribute.isTextPreviewSupported));
+        config.append(" windowId/y/height: " + std::to_string(windowId) + "/" + std::to_string(positionY) + "/" +
+            std::to_string(height));
+        config.append(
+            " oldRange: " + std::to_string(textSelection.oldBegin) + "/" + std::to_string(textSelection.oldEnd));
+        config.append(
+            " newRange: " + std::to_string(textSelection.newBegin) + "/" + std::to_string(textSelection.newEnd));
+        config.append(" cursor: " + std::to_string(cursorInfo.left) + "/" + std::to_string(cursorInfo.top) + "/" +
+            std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
+        return config;
+    }
+};
+
+struct TextTotalConfigInner : public Parcelable  {
+public:
+    InputAttributeInner inputAttribute = {};
+    CursorInfoInner cursorInfo = {};
+    TextSelectionInner textSelection = {};
+    uint32_t windowId = INVALID_WINDOW_ID;
+    double positionY = 0;
+    double height = 0;
+    Value commandValue;
+
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static TextTotalConfigInner *Unmarshalling(Parcel &parcel);
 
     std::string ToString() const
     {
@@ -307,7 +459,7 @@ enum class SwitchTrigger : uint32_t {
     NATIVE_SA
 };
 
-struct ArrayBuffer {
+struct ArrayBuffer : public Parcelable {
     size_t jsArgc = 0;
     std::string msgId;
     std::vector<uint8_t> msgParam;
@@ -327,6 +479,10 @@ struct ArrayBuffer {
     {
         return jsArgc == arrayBuffer.jsArgc && msgId == arrayBuffer.msgId && msgParam == arrayBuffer.msgParam;
     }
+
+    bool ReadFromParcel(Parcel &in);
+    bool Marshalling(Parcel &out) const;
+    static ArrayBuffer *Unmarshalling(Parcel &in);
 };
 
 enum class RequestKeyboardReason : int32_t {

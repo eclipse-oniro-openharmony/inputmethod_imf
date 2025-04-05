@@ -26,7 +26,7 @@
 #include "input_attribute.h"
 #include "js_callback_object.h"
 #include "keyboard_listener.h"
-#include "keyevent_consumer_proxy.h"
+#include "key_event_consumer_proxy.h"
 #include "napi/native_api.h"
 
 namespace OHOS {
@@ -47,6 +47,8 @@ public:
     void OnTextChange(const std::string &text) override;
     void OnEditorAttributeChange(const InputAttribute &inputAttribute) override;
     bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
+    void OnKeyEventConsumeResult(bool isConsumed, sptr<KeyEventConsumerProxy> consumer);
+    void OnKeyCodeConsumeResult(bool isConsumed, sptr<KeyEventConsumerProxy> consumer);
 
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
@@ -104,6 +106,11 @@ private:
     static std::shared_ptr<JsKeyboardDelegateSetting> keyboardDelegate_;
     static std::mutex eventHandlerMutex_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
+
+    bool keyEventConsume_ = false;
+    bool keyCodeConsume_ = false;
+    bool keyEventResult_ = false;
+    bool keyCodeResult_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

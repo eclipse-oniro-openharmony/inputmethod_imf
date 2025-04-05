@@ -19,10 +19,11 @@
 #include <cstdint>
 #include <sstream>
 
-#include "message_parcel.h"
+#include "parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
+
 struct InputAttribute {
     static const int32_t PATTERN_TEXT = 0x00000001;
     static const int32_t PATTERN_PASSWORD = 0x00000007;
@@ -37,22 +38,6 @@ struct InputAttribute {
     int32_t immersiveMode = 0;
     uint32_t windowId = 0; // for transfer
     uint64_t callingDisplayId = 0;
-
-    static bool Marshalling(const InputAttribute &in, MessageParcel &data)
-    {
-        return data.WriteInt32(in.inputPattern) && data.WriteInt32(in.enterKeyType) &&
-            data.WriteInt32(in.inputOption) && data.WriteString(in.bundleName) &&
-            data.WriteInt32(in.immersiveMode) && data.WriteUint32(in.windowId) &&
-            data.WriteUint64(in.callingDisplayId);
-    }
-
-    static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
-    {
-        return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) &&
-            data.ReadInt32(out.inputOption) && data.ReadString(out.bundleName) &&
-            data.ReadInt32(out.immersiveMode) && data.ReadUint32(out.windowId) &&
-            data.ReadUint64(out.callingDisplayId);
-    }
 
     bool GetSecurityFlag() const
     {
@@ -75,6 +60,86 @@ struct InputAttribute {
         << "immersiveMode:" << immersiveMode << "windowId:" << windowId
         << "callingDisplayId:" << callingDisplayId << "]";
         return ss.str();
+    }
+};
+
+struct InputAttributeInner : public Parcelable {
+    static const int32_t PATTERN_TEXT = 0x00000001;
+    static const int32_t PATTERN_PASSWORD = 0x00000007;
+    static const int32_t PATTERN_PASSWORD_NUMBER = 0x00000008;
+    static const int32_t PATTERN_PASSWORD_SCREEN_LOCK = 0x00000009;
+    static const int32_t PATTERN_NEWPASSWORD = 0x0000000b;
+    int32_t inputPattern = 0;
+    int32_t enterKeyType = 0;
+    int32_t inputOption = 0;
+    bool isTextPreviewSupported { false };
+    std::string bundleName { "" };
+    int32_t immersiveMode = 0;
+    uint32_t windowId = 0; // for transfer
+    uint64_t callingDisplayId = 0;
+
+    bool ReadFromParcel(Parcel &in)
+    {
+        inputPattern = in.ReadInt32();
+        enterKeyType = in.ReadInt32();
+        inputOption = in.ReadInt32();
+        isTextPreviewSupported = in.ReadBool();
+        bundleName = in.ReadString();
+        immersiveMode = in.ReadInt32();
+        windowId = in.ReadUint32();
+        callingDisplayId = in.ReadUint64();
+        return true;
+    }
+
+    bool Marshalling(Parcel &out) const
+    {
+        if (!out.WriteInt32(inputPattern)) {
+            return false;
+        }
+        if (!out.WriteInt32(enterKeyType)) {
+            return false;
+        }
+        if (!out.WriteInt32(inputOption)) {
+            return false;
+        }
+        if (!out.WriteBool(isTextPreviewSupported)) {
+            return false;
+        }
+        if (!out.WriteString(bundleName)) {
+            return false;
+        }
+        if (!out.WriteInt32(immersiveMode)) {
+            return false;
+        }
+        if (!out.WriteUint32(windowId)) {
+            return false;
+        }
+        if (!out.WriteUint64(callingDisplayId)) {
+            return false;
+        }
+        return true;
+    }
+
+    static InputAttributeInner *Unmarshalling(Parcel &in)
+    {
+        InputAttributeInner *data = new (std::nothrow) InputAttributeInner();
+        if (data && !data->ReadFromParcel(in)) {
+            delete data;
+            data = nullptr;
+        }
+        return data;
+    }
+
+    bool operator==(const InputAttribute &info) const
+    {
+        return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType &&
+            inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
+    }
+
+    bool GetSecurityFlag() const
+    {
+        return inputPattern == PATTERN_PASSWORD || inputPattern == PATTERN_PASSWORD_SCREEN_LOCK ||
+            PATTERN_PASSWORD_NUMBER == inputPattern || PATTERN_NEWPASSWORD == inputPattern;
     }
 };
 } // namespace MiscServices

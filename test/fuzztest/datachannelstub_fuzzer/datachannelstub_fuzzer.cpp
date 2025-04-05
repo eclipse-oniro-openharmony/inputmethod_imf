@@ -19,7 +19,7 @@
 #include <cstdint>
 
 #include "global.h"
-#include "input_data_channel_stub.h"
+#include "input_data_channel_service_impl.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
@@ -50,7 +50,7 @@ bool FuzzDataChannelStub(const uint8_t *rawData, size_t size)
     MessageParcel reply;
     MessageOption option;
 
-    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelServiceImpl();
     channelStub->OnRemoteRequest(code, data, reply, option);
 
     return true;

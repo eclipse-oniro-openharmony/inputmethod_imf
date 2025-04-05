@@ -19,8 +19,8 @@
 #include <cstdint>
 
 #include "global.h"
-#include "input_client_stub.h"
-#include "input_method_agent_stub.h"
+#include "input_client_service_impl.h"
+#include "input_method_agent_service_impl.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
@@ -51,23 +51,25 @@ void FuzzInputClientStub(const uint8_t *rawData, size_t size)
     MessageParcel reply;
     MessageOption option;
 
-    sptr<InputClientStub> mClient = new InputClientStub();
+    sptr<InputClientStub> mClient = new InputClientServiceImpl();
     mClient->OnRemoteRequest(code, data, reply, option);
 }
 
 void TextOnInputReady()
 {
-    sptr<InputClientStub> mClient = new InputClientStub();
-    sptr<InputMethodAgentStub> mInputMethodAgentStub = new InputMethodAgentStub();
+    sptr<InputClientStub> mClient = new InputClientServiceImpl();
+    sptr<InputMethodAgentStub> mInputMethodAgentStub = new InputMethodAgentServiceImpl();
     MessageParcel data;
     data.WriteRemoteObject(mInputMethodAgentStub->AsObject());
     auto remoteObject = data.ReadRemoteObject();
-    mClient->OnInputReady(remoteObject);
+    int64_t pid = 0;
+    std::string bundleName = "bundleName";
+    mClient->OnInputReady(remoteObject, pid, bundleName);
 }
 
 void TestOnSwitchInput()
 {
-    sptr<InputClientStub> mClient = new InputClientStub();
+    sptr<InputClientStub> mClient = new InputClientServiceImpl();
     Property property = {};
     SubProperty subProperty = {};
 

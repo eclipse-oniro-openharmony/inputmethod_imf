@@ -25,6 +25,7 @@
 #include "inputmethod_sysevent.h"
 #include "itypes_util.h"
 #include "tdd_util.h"
+#include "input_method_engine_listener.h"
 
 using namespace testing::ext;
 namespace OHOS {

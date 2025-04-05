@@ -272,7 +272,9 @@ std::shared_ptr<InputMethodPanel> InputMethodPanelTest::CreatePanel()
 {
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     return inputMethodPanel;
@@ -459,7 +461,9 @@ HWTEST_F(InputMethodPanelTest, testCreatePanel, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testCreatePanel start.");
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->DestroyPanel();
@@ -494,7 +498,9 @@ HWTEST_F(InputMethodPanelTest, testResizePanel001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
@@ -534,7 +540,9 @@ HWTEST_F(InputMethodPanelTest, testResizePanel002, TestSize.Level0)
     auto ret = inputMethodPanel->Resize(1, 1);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -576,7 +584,9 @@ HWTEST_F(InputMethodPanelTest, testMovePanel, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -609,7 +619,9 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testShowPanel start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     // 0、not create panel, show panel failed.
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::ERROR_IMA_NULLPTR);
@@ -658,7 +670,9 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_001 start.");
     InputMethodPanelTest::Attach();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
 
@@ -684,7 +698,9 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_002 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
 
     // query panel with old info when panel changes its flag.
@@ -711,7 +727,8 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_003 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = STATUS_BAR };
+    PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
 
     // query status bar's status when it is showing
@@ -741,7 +758,9 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener01, TestSize.Level0)
     inputMethodPanel->SetPanelStatusListener(statusListener, "hide");
 
     AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -763,7 +782,9 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener02, TestSize.Level0)
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
 
     AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -795,7 +816,9 @@ HWTEST_F(InputMethodPanelTest, testGetPanelType, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testGetPanelType start.");
     AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto type = inputMethodPanel->GetPanelType();
@@ -814,7 +837,9 @@ HWTEST_F(InputMethodPanelTest, testGetPanelFlag, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testGetPanelFlag start.");
     AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto flag = inputMethodPanel->GetPanelFlag();
@@ -845,8 +870,10 @@ HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
     auto ret = inputMethodPanel->ChangePanelFlag(flag);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
-    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    PanelInfo panelInfo1;
+    panelInfo1.panelType = SOFT_KEYBOARD;
+    panelInfo1.panelFlag = FLG_FLOATING;
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // panelFlag is same with the original
@@ -860,7 +887,9 @@ HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
 
     inputMethodPanel->DestroyPanel();
 
-    panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
+	PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
+    panelInfo.panelFlag = FLG_FLOATING;
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     // panelType is STATUS_BAR, not allow ChangePanelFlag
@@ -934,7 +963,9 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     IdentityCheckerMock::SetBundleNameValid(true);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
     // imeShow
@@ -969,7 +1000,9 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
     // imeShow
@@ -1005,7 +1038,9 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
 
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_CANDIDATE_COLUMN;
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
     // imeShow
@@ -1041,7 +1076,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
 
-    PanelInfo panelInfo = { .panelType = STATUS_BAR };
+    PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
     // imeShow
@@ -1076,7 +1112,9 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusChangeEventPublicTest, TestSize.Le
     auto subscriber = std::make_shared<TestEventSubscriber>(subscriberInfo);
     auto ret = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
     EXPECT_TRUE(ret);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
     // imeShow
@@ -1124,7 +1162,9 @@ HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
     auto ret = inputMethodPanel->SetCallingWindow(windowId);
     EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
 
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -1143,7 +1183,8 @@ HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testKeyboardPanelInfoChangeListenerRegister_001 start.");
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
     ASSERT_NE(panel, nullptr);
@@ -1164,7 +1205,8 @@ HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_001, 
 HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testKeyboardPanelInfoChangeListenerRegister_002 start.");
-    PanelInfo panelInfo = { .panelType = STATUS_BAR };
+    PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
     ASSERT_NE(panel, nullptr);
@@ -1181,7 +1223,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_001, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
@@ -1203,7 +1247,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_002, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
@@ -1225,7 +1271,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_003, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
@@ -1247,7 +1295,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_004, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
@@ -1269,7 +1319,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_005, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
@@ -1291,7 +1343,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_006, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1317,7 +1371,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_007, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1343,7 +1399,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_008, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1369,7 +1427,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_009, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1395,7 +1455,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_010, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
@@ -1417,7 +1479,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_011, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
@@ -1439,7 +1503,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_012, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
@@ -1461,7 +1527,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_013, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
@@ -1483,7 +1551,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_014, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1509,7 +1579,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_015, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1535,7 +1607,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_016, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1561,7 +1635,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_017, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1587,7 +1663,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
@@ -1613,7 +1691,9 @@ HWTEST_F(InputMethodPanelTest, testAdjustKeyboard_001, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto ret = inputMethodPanel->AdjustKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1631,7 +1711,9 @@ HWTEST_F(InputMethodPanelTest, testSetPrivacyMode, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto ret = inputMethodPanel->SetPrivacyMode(true);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
@@ -1695,7 +1777,9 @@ HWTEST_F(InputMethodPanelTest, testSizeChange, TestSize.Level0)
 {
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1728,7 +1812,9 @@ HWTEST_F(InputMethodPanelTest, testSetTextFieldAvoidInfo02, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto ret = inputMethodPanel->SetTextFieldAvoidInfo(0, 0);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1759,7 +1845,9 @@ HWTEST_F(InputMethodPanelTest, testGetCallingWindowInfo02, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     CallingWindowInfo windowInfo;
     auto ret = inputMethodPanel->GetCallingWindowInfo(windowInfo);
@@ -1790,7 +1878,9 @@ HWTEST_F(InputMethodPanelTest, testSetUiContent02, TestSize.Level0)
 {
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     auto ret = inputMethodPanel->SetUiContent("text", nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
@@ -1836,7 +1926,9 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusListener01, TestSize.Level0)
     inputMethodPanel->ClearPanelListener("show");
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
+    panelInfo.panelFlag = FLG_FIXED;
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1855,7 +1947,9 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusListener02, TestSize.Level0)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1882,7 +1976,9 @@ HWTEST_F(InputMethodPanelTest, testStartMoving01, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
+    panelInfo.panelFlag = FLG_FLOATING;
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->StartMoving();
@@ -1922,7 +2018,9 @@ HWTEST_F(InputMethodPanelTest, testGetDisplayId01, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
+    panelInfo.panelFlag = FLG_FLOATING;
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -1942,7 +2040,9 @@ HWTEST_F(InputMethodPanelTest, testSetImmersiveMode, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testSetImmersiveMode start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
@@ -1974,7 +2074,9 @@ HWTEST_F(InputMethodPanelTest, testGetImmersiveMode, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testGetImmersiveMode start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
@@ -2003,7 +2105,9 @@ HWTEST_F(InputMethodPanelTest, testParameterValidationInterface, TestSize.Level0
 {
     IMSA_HILOGI("InputMethodPanelTest::testParameterValidationInterface start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
@@ -2065,7 +2169,9 @@ HWTEST_F(InputMethodPanelTest, testMoveEnhancedPanelRect, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testMoveEnhancedPanelRect start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FLOATING;
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);

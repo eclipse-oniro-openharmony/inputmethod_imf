@@ -1405,7 +1405,8 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
 void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect)
 {
     ImeWindowInfo info;
-    info.panelInfo = { panelType_, panelFlag_ };
+    info.panelInfo.panelType = panelType_;
+    info.panelInfo.panelFlag = panelFlag_;
     if (info.panelInfo.panelType != SOFT_KEYBOARD || info.panelInfo.panelFlag == FLG_CANDIDATE_COLUMN) {
         IMSA_HILOGD("no need to deal.");
         return;
@@ -1416,11 +1417,15 @@ void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, c
         return;
     }
     std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
-    info.windowInfo = { std::move(name), rect.posX_, rect.posY_, rect.width_, rect.height_ };
+    info.windowInfo.name = std::move(name);
+    info.windowInfo.left = rect.posX_;
+    info.windowInfo.top = rect.posY_;
+    info.windowInfo.width = rect.width_;
+    info.windowInfo.height = rect.height_;
     IMSA_HILOGD("rect[%{public}d, %{public}d, %{public}u, %{public}u], status: %{public}d, "
                 "panelFlag: %{public}d.",
         rect.posX_, rect.posY_, rect.width_, rect.height_, status, info.panelInfo.panelFlag);
-    proxy->PanelStatusChange(status, info);
+    proxy->PanelStatusChange(static_cast<uint32_t>(status), info);
 }
 
 bool InputMethodPanel::IsShowing()

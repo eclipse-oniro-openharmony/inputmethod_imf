@@ -45,6 +45,7 @@ ohos_shared_library("cj_inputmethod_ffi") {
     ubsan = true
   }
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "src/cj_input_method_controller.cpp",
     "src/cj_input_method_textchanged_listener.cpp",
     "src/input_method_ffi.cpp",

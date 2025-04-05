@@ -675,7 +675,12 @@ void JsGetInputMethodSetting::OnImeShow(const ImeWindowInfo &info)
     auto showingFlag = GetSoftKbShowingFlag();
     // FLG_FIXED->FLG_FLOATING in show
     if (info.panelInfo.panelFlag == FLG_FLOATING && showingFlag == FLG_FIXED) {
-        InputWindowInfo windowInfo{ info.windowInfo.name, 0, 0, 0, 0 };
+        InputWindowInfo windowInfo;
+        windowInfo.name = info.windowInfo.name;
+        windowInfo.left = 0;
+        windowInfo.top = 0;
+        windowInfo.width = 0;
+        windowInfo.height = 0;
         OnPanelStatusChange("imeHide", windowInfo);
     }
     // FLG_FLOATING->FLG_FIXED in show/show FLG_FIXED/ rotating(resize) in FLG_FIXED show

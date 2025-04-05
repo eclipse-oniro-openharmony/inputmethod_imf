@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+sequenceable input_method_utils..OHOS.MiscServices.TextTotalConfigInner;
+sequenceable input_method_utils..OHOS.MiscServices.KeyboardStatus;
+sequenceable input_method_utils..OHOS.MiscServices.PanelStatusInfo;
+sequenceable input_method_utils..OHOS.MiscServices.FunctionKey;
+sequenceable input_method_utils..OHOS.MiscServices.Value;
+sequenceable input_method_utils..OHOS.MiscServices.RangeInner;
+sequenceable input_method_utils..OHOS.MiscServices.ArrayBuffer;
+interface OHOS.MiscServices.IInputDataChannel {
+    void InsertText([in] String text);
+    void DeleteForward([in] int length);
+    void DeleteBackward([in] int length);
+    void GetTextBeforeCursor([in] int number, [out] String text);
+    void GetTextAfterCursor([in] int number, [out] String text);
+    void GetTextConfig([out] struct TextTotalConfigInner textConfiginner);
+    [oneway] void SendKeyboardStatus([in] int status);
+    void SendFunctionKey([in] int funcKey);
+    void MoveCursor([in] int keyCode);
+    void GetEnterKeyType([out] int keyType);
+    void GetInputPattern([out] int inputPattern);
+    void SelectByRange([in] int start, [in] int end);
+    void SelectByMovement([in] int direction, [in] int cursorMoveSkip);
+    void HandleExtendAction([in] int action);
+    void GetTextIndexAtCursor([out] int index);
+    [oneway] void NotifyPanelStatusInfo([in] PanelStatusInfo info);
+    [oneway] void NotifyKeyboardHeight([in] unsigned int height);
+    void SendPrivateCommand([in] Value value);
+    void SetPreviewText([in] String text, [in] RangeInner rangeInner);
+    [oneway] void FinishTextPreviewAsync();
+    void FinishTextPreview();
+    void SendMessage([in] ArrayBuffer arraybuffer);
+}

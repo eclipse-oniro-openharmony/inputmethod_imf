@@ -16,6 +16,8 @@
 #ifndef INPUTMETHOD_IMF_PANEL_INFO_H
 #define INPUTMETHOD_IMF_PANEL_INFO_H
 
+#include "parcel.h"
+
 namespace OHOS {
 namespace MiscServices {
 enum PanelType {
@@ -29,9 +31,37 @@ enum PanelFlag {
     FLG_CANDIDATE_COLUMN,
 };
 
-struct PanelInfo {
+struct PanelInfo : public Parcelable {
     PanelType panelType = SOFT_KEYBOARD;
     PanelFlag panelFlag = FLG_FIXED;
+
+    bool ReadFromParcel(Parcel &in)
+    {
+        int32_t panelTypeData = in.ReadInt32();
+        int32_t panelFlagData = in.ReadInt32();
+        panelType = static_cast<PanelType>(panelTypeData);
+        panelFlag = static_cast<PanelFlag>(panelFlagData);
+        return true;
+    }
+    bool Marshalling(Parcel &out) const
+    {
+        if (!out.WriteInt32(static_cast<int32_t>(panelType))) {
+            return false;
+        }
+        if (!out.WriteInt32(static_cast<int32_t>(panelFlag))) {
+            return false;
+        }
+        return true;
+    }
+    static PanelInfo *Unmarshalling(Parcel &in)
+    {
+        PanelInfo *data = new (std::nothrow) PanelInfo();
+        if (data && !data->ReadFromParcel(in)) {
+            delete data;
+            data = nullptr;
+        }
+        return data;
+    }
 };
 
 enum class ImmersiveMode : int32_t {

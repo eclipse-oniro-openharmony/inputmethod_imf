@@ -64,11 +64,16 @@ ohos_shared_library("inputmethod_extension") {
     "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension_context.cpp",
   ]
   configs = [ ":ability_config" ]
-  public_configs = [ ":ability_public_config" ]
+  public_configs = [
+    ":ability_public_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_native_public_config",
+  ]
 
   deps = [
     "${inputmethod_path}/common:inputmethod_common",
     "${inputmethod_path}/frameworks/js/napi/common:inputmethod_js_common",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_extension_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
   ]
 

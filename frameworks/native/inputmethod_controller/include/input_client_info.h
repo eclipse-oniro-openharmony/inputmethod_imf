@@ -16,8 +16,8 @@
 #ifndef INPUTMETHOD_IMF_INPUT__CLIENT_INFO_H
 #define INPUTMETHOD_IMF_INPUT__CLIENT_INFO_H
 
-#include "i_input_client.h"
-#include "i_input_data_channel.h"
+#include "iinput_client.h"
+#include "iinput_data_channel.h"
 #include "input_attribute.h"
 #include "input_death_recipient.h"
 
@@ -75,6 +75,34 @@ struct InputClientInfo {
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE }; // show keyboard reason
     ClientType type{ INNER_KIT };                                               // for hiSysEvent
     std::string name; // for hiSysEvent, client name:SA/processName app/bundleName
+};
+
+struct InputClientInfoInner : public Parcelable {
+    pid_t pid { -1 };                        // process id
+    pid_t uid { -1 };                        // uid
+    int32_t userID { 0 };                    // user id of input client
+    uint64_t displayId { DEFAULT_DISPLAY_ID };
+    bool isShowKeyboard { false };           // soft keyboard status
+    ImeType bindImeType { ImeType::NONE };   // type of the ime client bind
+    TextTotalConfigInner config = {};             // text config
+    uint32_t eventFlag { NO_EVENT_ON };      // the flag of the all listen event
+    InputAttributeInner attribute;                // the input client attribute
+    sptr<IInputClient> client { nullptr };   // the remote object handler for service to callback input client
+    sptr<IRemoteObject> channel { nullptr }; // the remote object handler for ime to callback input client
+    sptr<InputDeathRecipient> deathRecipient { nullptr }; // death recipient of client
+    ClientState state { ClientState::INACTIVE };          // the state of input client
+    bool isNotifyInputStart { true };
+    bool needHide { false }; // panel needs to be hidden first, when input pattern is switched between pwd and normal
+    uint32_t uiExtensionTokenId { IMF_INVALID_TOKENID }; // the value is valid only in curClient and only UIExtension
+    RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE }; // show keyboard reason
+    ClientType type{ INNER_KIT };                                               // for hiSysEvent
+    std::string name; // for hiSysEvent, client name:SA/processName app/bundleName
+
+    bool ReadFromParcel(Parcel &in);
+    bool Marshalling(Parcel &out) const;
+    bool MarshallingOne(Parcel &in) const;
+    bool MarshallingTwo(Parcel &in) const;
+    static InputClientInfoInner *Unmarshalling(Parcel &in);
 };
 
 struct HiSysEventClientInfo {
