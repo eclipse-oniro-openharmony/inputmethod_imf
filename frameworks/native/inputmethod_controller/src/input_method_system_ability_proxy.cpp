@@ -507,5 +507,14 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
     }
     return ErrorCode::NO_ERROR;
 }
+
+int32_t InputMethodSystemAbilityProxy::SendPrivateData(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SEND_PRIVATE_DATA),
+        [&privateCommand](MessageParcel &parcel) {
+            return ITypesUtil::Marshal(parcel, privateCommand);
+        }, nullptr);
+}
 } // namespace MiscServices
 } // namespace OHOS

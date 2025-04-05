@@ -18,6 +18,7 @@
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
 #include "global.h"
 #include "ime_info_inquirer.h"
 #include "tokenid_kit.h"
@@ -140,6 +141,12 @@ uint64_t IdentityCheckerImpl::GetDisplayIdByPid(int64_t callingPid)
 bool IdentityCheckerImpl::IsValidVirtualIme(int32_t callingUid)
 {
     return ImeInfoInquirer::GetInstance().IsVirtualProxyIme(callingUid);
+}
+
+bool IdentityCheckerImpl::IsSpecialSaUid()
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    return ImeInfoInquirer::GetInstance().IsSpecialSaUid(callingUid);
 }
 } // namespace MiscServices
 } // namespace OHOS

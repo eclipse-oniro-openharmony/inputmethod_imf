@@ -47,6 +47,7 @@ public:
     void OnClientInactive(const sptr<IRemoteObject> &channel) override;
     int32_t OnSetInputType(InputType inputType) override;
     void OnCallingDisplayIdChanged(uint64_t dispalyId) override;
+    int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:
     static inline BrokerDelegator<InputMethodCoreProxy> delegator_;

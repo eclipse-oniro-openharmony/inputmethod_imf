@@ -288,5 +288,21 @@ int32_t InputMethodCoreStub::OnCallingDisplayChangeOnRemote(MessageParcel &data,
     int32_t ret = InputMethodAbility::GetInstance()->OnCallingDisplayIdChanged(displayId);
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
+
+int32_t InputMethodCoreStub::OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    return InputMethodAbility::GetInstance()->OnSendPrivateData(privateCommand);
+}
+
+int32_t InputMethodCoreStub::OnSendPrivateDataOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    if (!ITypesUtil::Unmarshal(data, privateCommand)) {
+        IMSA_HILOGE("failed to read message parcel!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto ret = OnSendPrivateData(privateCommand);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
 } // namespace MiscServices
 } // namespace OHOS

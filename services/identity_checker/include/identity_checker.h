@@ -47,6 +47,7 @@ public:
     {
         return false;
     };
+    virtual bool IsSpecialSaUid() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

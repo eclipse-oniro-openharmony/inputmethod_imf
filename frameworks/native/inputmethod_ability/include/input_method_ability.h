@@ -101,6 +101,7 @@ public:
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
     int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
     int32_t OnCallingDisplayIdChanged(uint64_t displayId);
+    int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
 
 public:
     /* called from TaskManager worker thread */

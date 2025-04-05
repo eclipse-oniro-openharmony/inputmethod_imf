@@ -112,6 +112,8 @@ private:
 
     int32_t IsSystemAppOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t SendPrivateDataOnRemote(MessageParcel &data, MessageParcel &reply);
+    
     int32_t RegisterProxyImeOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t UnregisterProxyImeOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -199,6 +201,8 @@ private:
             &InputMethodSystemAbilityStub::GetInputMethodStateOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::IS_SYSTEM_APP)] =
             &InputMethodSystemAbilityStub::IsSystemAppOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::SEND_PRIVATE_DATA)] =
+            &InputMethodSystemAbilityStub::SendPrivateDataOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::REGISTER_PROXY_IME_WITH_DISPLAY_ID)] =
             &InputMethodSystemAbilityStub::RegisterProxyImeOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTER_PROXY_IME_WITH_DISPLAY_ID)] =

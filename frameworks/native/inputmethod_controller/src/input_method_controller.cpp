@@ -1651,5 +1651,15 @@ void InputMethodController::UpdateTextPreviewState(bool isSupport)
     }
     agent->OnAttributeChange(textConfig_.inputAttribute);
 }
+
+int32_t InputMethodController::SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->SendPrivateData(privateCommand);
+}
 } // namespace MiscServices
 } // namespace OHOS

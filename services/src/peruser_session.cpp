@@ -561,6 +561,15 @@ int32_t PerUserSession::BindClientWithIme(
     if (data == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
+
+    if (!data->imeExtendInfo.privateCommand.empty()) {
+        auto ret = SendPrivateData(data->imeExtendInfo.privateCommand);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("before start input notify send private data failed, ret: %{public}d!", ret);
+            return ret;
+        }
+    }
+
     auto ret = RequestIme(data, RequestType::START_INPUT,
         [&data, &clientInfo, isBindFromClient]() { return data->core->StartInput(*clientInfo, isBindFromClient); });
     if (ret != ErrorCode::NO_ERROR) {
@@ -579,9 +588,8 @@ int32_t PerUserSession::BindClientWithIme(
             return ErrorCode::ERROR_IMSA_CLIENT_INPUT_READY_FAILED;
         }
     }
-    clientGroup->UpdateClientInfo(clientInfo->client->AsObject(),
-        { { UpdateFlag::BINDIMETYPE, type }, { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard },
-            { UpdateFlag::STATE, ClientState::ACTIVE } });
+    clientGroup->UpdateClientInfo(clientInfo->client->AsObject(), { { UpdateFlag::BINDIMETYPE, type },
+        { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard }, { UpdateFlag::STATE, ClientState::ACTIVE } });
     ReplaceCurrentClient(clientInfo->client, clientGroup);
     if (clientInfo->isShowKeyboard) {
         clientGroup->NotifyInputStartToClients(
@@ -1127,7 +1135,7 @@ int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &i
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    InitImeData({ imeToStart->bundleName, imeToStart->extName });
+    InitImeData({ imeToStart->bundleName, imeToStart->extName }, ime);
     isImeStarted_.Clear(false);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
@@ -1538,7 +1546,8 @@ BlockQueue<SwitchInfo>& PerUserSession::GetSwitchQueue()
     return switchQueue_;
 }
 
-int32_t PerUserSession::InitImeData(const std::pair<std::string, std::string> &ime)
+int32_t PerUserSession::InitImeData(
+    const std::pair<std::string, std::string> &ime, const std::shared_ptr<ImeNativeCfg> &imeNativeCfg)
 {
     std::lock_guard<std::mutex> lock(imeDataLock_);
     auto it = imeData_.find(ImeType::IME);
@@ -1548,6 +1557,9 @@ int32_t PerUserSession::InitImeData(const std::pair<std::string, std::string> &i
     auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, -1);
     imeData->startTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     imeData->ime = ime;
+    if (imeNativeCfg != nullptr && !imeNativeCfg->imeExtendInfo.privateCommand.empty()) {
+        imeData->imeExtendInfo.privateCommand = imeNativeCfg->imeExtendInfo.privateCommand;
+    }
     imeData_.insert({ ImeType::IME, imeData });
     return ErrorCode::NO_ERROR;
 }
@@ -2076,6 +2088,78 @@ bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, Cal
         return false;
     }
     return !(callingWindowInfo.callingPid_ != clientInfo.pid && clientInfo.uiExtensionTokenId == IMF_INVALID_TOKENID);
+}
+
+bool PerUserSession::SpecialScenarioCheck()
+{
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("send failed, not input Status!");
+        return false;
+    }
+    if (clientInfo->config.inputAttribute.GetSecurityFlag()) {
+        IMSA_HILOGE("send failed, is special input box!");
+        return false;
+    }
+    if (clientInfo->bindImeType == ImeType::PROXY_IME) {
+        IMSA_HILOGE("send failed, is collaborative input!");
+        return false;
+    }
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+        IMSA_HILOGE("send failed, is screen locked");
+        return false;
+    }
+    return true;
+}
+
+int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string,
+    PrivateDataValue> &privateCommand)
+{
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (defaultIme == nullptr) {
+        IMSA_HILOGE("failed to get default ime!");
+        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
+    }
+    auto imeData = GetReadyImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        auto ret = StartIme(defaultIme, true);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
+        }
+        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
+    }
+    if (defaultIme->bundleName == imeData->ime.first) {
+        auto ret = SendPrivateData(privateCommand);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("Notify send private data failed, ret: %{public}d!", ret);
+        }
+        return ret;
+    }
+    defaultIme->imeExtendInfo.privateCommand = privateCommand;
+    auto ret = StartIme(defaultIme);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
+    }
+    return ret;
+}
+    
+int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    auto data = GetReadyImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("data is nullptr");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    auto ret = RequestIme(data, RequestType::NORMAL,
+        [&data, &privateCommand] { return data->core->OnSendPrivateData(privateCommand); });
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("notify send private data failed, ret: %{public}d!", ret);
+    }
+    if (!data->imeExtendInfo.privateCommand.empty()) {
+        data->imeExtendInfo.privateCommand.clear();
+    }
+    IMSA_HILOGI("notify send private data success.");
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -77,6 +77,11 @@ bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)
     return systemConfig_.proxyImeUidList.find(callingUid) != systemConfig_.proxyImeUidList.end();
 }
 
+bool ImeInfoInquirer::IsSpecialSaUid(int32_t callingUid)
+{
+    return systemConfig_.specialSaUidList.find(callingUid) != systemConfig_.specialSaUidList.end();
+}
+
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
 {
     IMSA_HILOGD("userId: %{public}d.", userId);

@@ -22,6 +22,7 @@
 #include "i_system_cmd_channel.h"
 #include "input_method_status.h"
 #include "input_method_types.h"
+#include "input_method_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -78,6 +79,7 @@ public:
 
     virtual int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) = 0;
     virtual int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason) = 0;
+    virtual int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

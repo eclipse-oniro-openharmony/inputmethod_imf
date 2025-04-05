@@ -187,5 +187,14 @@ int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelH
     }
     return ret;
 }
+
+int32_t InputMethodCoreProxy::OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    return SendRequest(
+        ON_SEND_PRIVATE_DATA,
+        [&privateCommand](MessageParcel &parcel) {
+            return ITypesUtil::Marshal(parcel, privateCommand);
+        }, nullptr);
+}
 } // namespace MiscServices
 } // namespace OHOS

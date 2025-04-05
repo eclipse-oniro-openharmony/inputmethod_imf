@@ -2473,5 +2473,32 @@ int32_t InputMethodSystemAbility::GetAlternativeIme(std::string &ime)
     IMSA_HILOGE("GetAlternativeIme is failed!");
     return ErrorCode::ERROR_NOT_IME;
 }
+
+int32_t InputMethodSystemAbility::SendPrivateData(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    if (privateCommand.empty()) {
+        IMSA_HILOGE("privateCommand is empty!");
+        return ErrorCode::ERROR_PRIVATE_COMMAND_IS_EMPTY;
+    }
+    if (!identityChecker_->IsSpecialSaUid()) {
+        IMSA_HILOGE("uid failed, not permission!");
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("UserId: %{public}d session is nullptr!", userId_);
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
+    }
+    if (!session->SpecialScenarioCheck()) {
+        IMSA_HILOGE("Special check permission failed!");
+        return ErrorCode::ERROR_SCENE_UNSUPPORTED;
+    }
+    auto ret = session->SpecialSendPrivateData(privateCommand);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Special send private data failed, ret: %{public}d!", ret);
+    }
+    return ret;
+}
 } // namespace MiscServices
 } // namespace OHOS

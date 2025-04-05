@@ -1834,6 +1834,130 @@ HWTEST_F(InputMethodControllerTest, testIsDefaultImeSetAndEnableIme, TestSize.Le
 }
 
 /**
+ * @tc.name: testSendPrivateData_001
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_001, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_001 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PRIVATE_COMMAND_IS_EMPTY);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_002
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_002, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_002 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_003
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_003, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_003 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(true);
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_004
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_004, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_004 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(true);
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = std::string("stringValue");
+    PrivateDataValue privateDataValue2 = true;
+    PrivateDataValue privateDataValue3 = 0;
+    privateCommand.emplace("value1", privateDataValue1);
+    privateCommand.emplace("value2", privateDataValue2);
+    privateCommand.emplace("value3", privateDataValue3);
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_005
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_005, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_005 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(true);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    auto ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_SCENE_UNSUPPORTED);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_006
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_006, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_006 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(false);
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+    inputMethodController_->Close();
+}
+
+/**
  * @tc.name: testUpdateTextPreviewState
  * @tc.desc: test IMC Reset
  * @tc.type: FUNC

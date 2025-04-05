@@ -66,6 +66,10 @@ public:
         {
             return "";
         }
+        bool IsSpecialSaUid() override
+        {
+            return true;
+        }
         static bool isFocused_;
         static bool isSystemApp_;
         static bool isBundleNameValid_;

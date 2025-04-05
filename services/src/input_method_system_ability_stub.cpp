@@ -482,6 +482,16 @@ int32_t InputMethodSystemAbilityStub::IsSystemAppOnRemote(MessageParcel &data, M
                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::SendPrivateDataOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    if (!ITypesUtil::Unmarshal(data, privateCommand)) {
+        IMSA_HILOGE("failed to read message parcel!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return reply.WriteInt32(SendPrivateData(privateCommand)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::RegisterProxyImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     uint64_t displayId = 0;

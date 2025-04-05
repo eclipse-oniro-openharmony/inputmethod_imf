@@ -49,6 +49,7 @@ public:
         ON_CONNECT_SYSTEM_CMD,
         ON_SET_INPUT_TYPE,
         ON_CALLING_DISPLAY_CHANGE,
+        ON_SEND_PRIVATE_DATA,
         CORE_CMD_END,
     };
 
@@ -68,6 +69,7 @@ public:
     virtual void OnClientInactive(const sptr<IRemoteObject> &channel) = 0;
     virtual int32_t OnSetInputType(InputType inputType) = 0;
     virtual void OnCallingDisplayIdChanged(uint64_t dispalyId) = 0;
+    virtual int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
