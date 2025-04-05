@@ -291,7 +291,7 @@ int32_t InputMethodCoreStub::OnCallingDisplayChangeOnRemote(MessageParcel &data,
 
 int32_t InputMethodCoreStub::OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    return ErrorCode::NO_ERROR;
+    return InputMethodAbility::GetInstance()->OnSendPrivateData(privateCommand);
 }
 
 int32_t InputMethodCoreStub::OnSendPrivateDataOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -301,7 +301,7 @@ int32_t InputMethodCoreStub::OnSendPrivateDataOnRemote(MessageParcel &data, Mess
         IMSA_HILOGE("failed to read message parcel!");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto ret = InputMethodAbility::GetInstance()->OnSendPrivateData(privateCommand);
+    auto ret = OnSendPrivateData(privateCommand);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices

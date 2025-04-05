@@ -71,7 +71,7 @@ struct ImeData {
           freezeMgr(std::make_shared<FreezeManager>(imePid))
     {
     }
-    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    ImeExtendInfo imeExtendInfo;
 };
 /**@class PerUserSession
  *
@@ -145,8 +145,8 @@ public:
     void TryUnloadSystemAbility();
     void OnCallingDisplayIdChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
-    int32_t StylusScenarioCheck();
-    int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+    bool SpecialScenarioCheck();
+    int32_t SpecialSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     uint64_t GetDisplayGroupId(uint64_t displayId);
 private:
     struct ResetManager {
@@ -233,6 +233,8 @@ private:
     void HandleImeBindTypeChanged(InputClientInfo &newClientInfo, const std::shared_ptr<ClientGroup> &clientGroup);
     int32_t NotifyCallingDisplayChanged(uint64_t displayId);
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
+    int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };

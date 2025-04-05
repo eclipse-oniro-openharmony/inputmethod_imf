@@ -912,7 +912,7 @@ public:
     /**
      * @brief Send Private Data.
      *
-     * This function only available stylus service apply.
+     * This function only available special service apply.
      *
      * @param privateCommand Indicates the private data information.
      * @return Returns 0 for success, others for failure.

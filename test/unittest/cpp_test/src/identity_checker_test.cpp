@@ -66,7 +66,7 @@ public:
         {
             return "";
         }
-        bool IsStylusSa() override
+        bool IsSpecialSaUid() override
         {
             return true;
         }

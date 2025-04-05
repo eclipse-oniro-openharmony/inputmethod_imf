@@ -1881,7 +1881,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_003, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateData_003 Test START");
     InputMethodEngineListenerImpl::ResetParam();
-    IdentityCheckerMock::SetStylusSa(true);
+    IdentityCheckerMock::SetSpecialSaUid(true);
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
@@ -1902,7 +1902,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_004, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateData_004 Test START");
     InputMethodEngineListenerImpl::ResetParam();
-    IdentityCheckerMock::SetStylusSa(true);
+    IdentityCheckerMock::SetSpecialSaUid(true);
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
@@ -1927,12 +1927,12 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_005, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateData_005 Test START");
     InputMethodEngineListenerImpl::ResetParam();
-    IdentityCheckerMock::SetStylusSa(true);
+    IdentityCheckerMock::SetSpecialSaUid(true);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue = std::string("stringValue");
     privateCommand.emplace("value", privateDataValue);
     auto ret = inputMethodController_->SendPrivateData(privateCommand);
-    EXPECT_EQ(ret, ErrorCode::ERROR_SCENE_UNSUPPORTEDP);
+    EXPECT_EQ(ret, ErrorCode::ERROR_SCENE_UNSUPPORTED);
     inputMethodController_->Close();
 }
 
@@ -1946,7 +1946,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_006, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateData_006 Test START");
     InputMethodEngineListenerImpl::ResetParam();
-    IdentityCheckerMock::SetStylusSa(false);
+    IdentityCheckerMock::SetSpecialSaUid(false);
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
@@ -1955,6 +1955,23 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_006, TestSize.Level0)
     ret = inputMethodController_->SendPrivateData(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testUpdateTextPreviewState
+ * @tc.desc: test IMC Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testUpdateTextPreviewState, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testUpdateTextPreviewState Test START");
+    ASSERT_NE(inputMethodController_, nullptr);
+    inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported = false;
+    inputMethodController_->UpdateTextPreviewState(true);
+    EXPECT_TRUE(inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported);
+    inputMethodController_->UpdateTextPreviewState(true);
+    EXPECT_TRUE(inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported);
 }
 } // namespace MiscServices
 } // namespace OHOS

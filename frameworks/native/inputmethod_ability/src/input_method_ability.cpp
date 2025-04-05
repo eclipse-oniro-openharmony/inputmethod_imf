@@ -1638,7 +1638,7 @@ int32_t InputMethodAbility::OnSendPrivateData(const std::unordered_map<std::stri
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("OnSendPrivateData failed!");
     }
-    IMSA_HILOGI("InputMethodAbility OnSendPrivateData success.");
+    IMSA_HILOGE("InputMethodAbility ReceivePrivateCommand success.");
     return ret;
 }
 } // namespace MiscServices

@@ -31,7 +31,6 @@ public:
     virtual bool IsBroker(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual std::string GetBundleNameByToken(uint32_t tokenId);
-    virtual bool IsStylusSa() = 0;
     virtual bool IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId = DEFAULT_DISPLAY_ID)
     {
         return false;
@@ -48,6 +47,7 @@ public:
     {
         return false;
     };
+    virtual bool IsSpecialSaUid() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

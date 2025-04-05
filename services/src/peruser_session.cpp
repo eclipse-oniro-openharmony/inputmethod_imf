@@ -562,8 +562,8 @@ int32_t PerUserSession::BindClientWithIme(
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
 
-    if (!data->privateCommand.empty()) {
-        auto ret = OnSendPrivateData(data->privateCommand);
+    if (!data->imeExtendInfo.privateCommand.empty()) {
+        auto ret = SendPrivateData(data->imeExtendInfo.privateCommand);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("before start input notify send private data failed, ret: %{public}d!", ret);
             return ret;
@@ -1557,8 +1557,8 @@ int32_t PerUserSession::InitImeData(
     auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, -1);
     imeData->startTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     imeData->ime = ime;
-    if (imeNativeCfg) {
-        imeData->privateCommand = imeNativeCfg->privateCommand;
+    if (imeNativeCfg != nullptr && !imeNativeCfg->imeExtendInfo.privateCommand.empty()) {
+        imeData->imeExtendInfo.privateCommand = imeNativeCfg->imeExtendInfo.privateCommand;
     }
     imeData_.insert({ ImeType::IME, imeData });
     return ErrorCode::NO_ERROR;
@@ -2090,29 +2090,60 @@ bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, Cal
     return !(callingWindowInfo.callingPid_ != clientInfo.pid && clientInfo.uiExtensionTokenId == IMF_INVALID_TOKENID);
 }
 
-int32_t PerUserSession::StylusScenarioCheck()
+bool PerUserSession::SpecialScenarioCheck()
 {
     auto clientInfo = GetCurrentClientInfo();
     if (clientInfo == nullptr) {
         IMSA_HILOGE("send failed, not input Status!");
-        return ErrorCode::ERROR_SCENE_UNSUPPORTEDP;
+        return false;
     }
     if (clientInfo->config.inputAttribute.GetSecurityFlag()) {
         IMSA_HILOGE("send failed, is special input box!");
-        return ErrorCode::ERROR_SCENE_UNSUPPORTEDP;
+        return false;
     }
     if (clientInfo->bindImeType == ImeType::PROXY_IME) {
         IMSA_HILOGE("send failed, is collaborative input!");
-        return ErrorCode::ERROR_SCENE_UNSUPPORTEDP;
+        return false;
     }
     if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         IMSA_HILOGE("send failed, is screen locked");
-        return ErrorCode::ERROR_SCENE_UNSUPPORTEDP;
+        return false;
     }
-    return ErrorCode::NO_ERROR;
+    return true;
 }
 
-int32_t PerUserSession::OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string,
+    PrivateDataValue> &privateCommand)
+{
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    if (defaultIme == nullptr) {
+        IMSA_HILOGE("failed to get default ime!");
+        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
+    }
+    auto imeData = GetReadyImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        auto ret = StartIme(defaultIme, true);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
+        }
+        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
+    }
+    if (defaultIme->bundleName == imeData->ime.first) {
+        auto ret = SendPrivateData(privateCommand);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("Notify send private data failed, ret: %{public}d!", ret);
+        }
+        return ret;
+    }
+    defaultIme->imeExtendInfo.privateCommand = privateCommand;
+    auto ret = StartIme(defaultIme);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
+    }
+    return ret;
+}
+    
+int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     auto data = GetReadyImeData(ImeType::IME);
     if (data == nullptr) {
@@ -2124,8 +2155,8 @@ int32_t PerUserSession::OnSendPrivateData(const std::unordered_map<std::string, 
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("notify send private data failed, ret: %{public}d!", ret);
     }
-    if (!data->privateCommand.empty()) {
-        data->privateCommand.clear();
+    if (!data->imeExtendInfo.privateCommand.empty()) {
+        data->imeExtendInfo.privateCommand.clear();
     }
     IMSA_HILOGI("notify send private data success.");
     return ret;

@@ -2481,44 +2481,22 @@ int32_t InputMethodSystemAbility::SendPrivateData(
         IMSA_HILOGE("privateCommand is empty!");
         return ErrorCode::ERROR_PRIVATE_COMMAND_IS_EMPTY;
     }
-    if (!identityChecker_->IsStylusSa()) {
+    if (!identityChecker_->IsSpecialSaUid()) {
         IMSA_HILOGE("uid failed, not permission!");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-
     auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
     if (session == nullptr) {
-        IMSA_HILOGE("userId: %{public}d session is nullptr!", userId_);
+        IMSA_HILOGE("UserId: %{public}d session is nullptr!", userId_);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
-    auto ret = session->StylusScenarioCheck();
+    if (!session->SpecialScenarioCheck()) {
+        IMSA_HILOGE("Special check permission failed!");
+        return ErrorCode::ERROR_SCENE_UNSUPPORTED;
+    }
+    auto ret = session->SpecialSendPrivateData(privateCommand);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("stylus check permission failed!");
-        return ret;
-    }
-    
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
-    if (defaultIme == nullptr) {
-        IMSA_HILOGE("failed to get default ime!");
-        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
-    }
-    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    if (currentImeCfg == nullptr) {
-        IMSA_HILOGE("currentImeCfg is nullptr!");
-        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
-    }
-    if (defaultIme->bundleName == currentImeCfg->bundleName) {
-        auto ret = session->OnSendPrivateData(privateCommand);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("notify send private data failed, ret: %{public}d!", ret);
-        }
-        IMSA_HILOGI("notify send private data success.");
-        return ret;
-    }
-    defaultIme->privateCommand = privateCommand;
-    ret = session->StartIme(defaultIme);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
+        IMSA_HILOGE("Special send private data failed, ret: %{public}d!", ret);
     }
     return ret;
 }

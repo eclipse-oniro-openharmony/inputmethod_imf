@@ -29,7 +29,6 @@ namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
 using namespace OHOS::AAFwk;
-constexpr uint32_t STYLUS_UID = 7555;
 bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
 {
     if (focusedPid != INVALID_PID && callingPid == focusedPid) {
@@ -144,14 +143,10 @@ bool IdentityCheckerImpl::IsValidVirtualIme(int32_t callingUid)
     return ImeInfoInquirer::GetInstance().IsVirtualProxyIme(callingUid);
 }
 
-bool IdentityCheckerImpl::IsStylusSa()
+bool IdentityCheckerImpl::IsSpecialSaUid()
 {
-    auto uid = IPCSkeleton::GetCallingUid();
-    if (uid != STYLUS_UID) {
-        IMSA_HILOGE("not stylus uid!");
-        return false;
-    }
-    return true;
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    return ImeInfoInquirer::GetInstance().IsSpecialSaUid(callingUid);
 }
 } // namespace MiscServices
 } // namespace OHOS

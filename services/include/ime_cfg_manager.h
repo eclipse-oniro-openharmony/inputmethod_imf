@@ -66,12 +66,16 @@ struct ImePersistCfg : public Serializable {
     }
 };
 
+struct ImeExtendInfo {
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+};
+
 struct ImeNativeCfg {
     std::string imeId;
     std::string bundleName;
     std::string subName;
     std::string extName;
-    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    ImeExtendInfo imeExtendInfo;
 };
 
 class ImeCfgManager {

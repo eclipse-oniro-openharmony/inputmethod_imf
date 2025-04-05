@@ -1567,22 +1567,11 @@ HWTEST_F(InputMethodAbilityTest, testOnCallingDisplayIdChanged, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_001, TestSize.Level0)
 {
     IMSA_HILOGI("testOnSendPrivateData_001 start.");
-    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub();
-    sptr<IInputMethodCore> core = coreStub;
-    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
-    MessageParcel data;
-    data.WriteRemoteObject(core->AsObject());
-    sptr<IRemoteObject> coreObject = data.ReadRemoteObject();
-    sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
-    if (coreProxy == nullptr) {
-        IMSA_HILOGI("coreProxy is null");
-        return;
-    }
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue = std::string("stringValue");
     privateCommand.insert({ "value", privateDataValue });
-    coreProxy->OnSendPrivateData(privateCommand);
-    EXPECT_TRUE(coreProxy != nullptr);
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->OnSendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -1595,23 +1584,6 @@ HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_001, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_002, TestSize.Level0)
 {
     IMSA_HILOGI("testOnSendPrivateData_002 start.");
-    std::unordered_map<std::string, PrivateDataValue> privateCommand;
-    PrivateDataValue privateDataValue = std::string("stringValue");
-    privateCommand.insert({ "value", privateDataValue });
-    auto ret = InputMethodAbilityTest::inputMethodAbility_->OnSendPrivateData(privateCommand);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-}
-
-/**
- * @tc.name: testOnSendPrivateData_003
- * @tc.desc: IMA InputMethodCoreProxy OnSendPrivateData
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
-*/
-HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_003, TestSize.Level0)
-{
-    IMSA_HILOGI("testOnSendPrivateData_003 start.");
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue = std::string("stringValue");
     privateCommand.insert({ "value", privateDataValue });
