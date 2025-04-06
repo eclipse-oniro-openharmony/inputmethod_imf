@@ -178,6 +178,7 @@ ohos_static_library("inputmethod_service_static") {
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",
     "src/ime_info_inquirer.cpp",
+    "src/input_control_channel_service_impl.cpp",
     "src/input_method_system_ability.cpp",
     "src/input_type_manager.cpp",
     "src/peruser_session.cpp",
