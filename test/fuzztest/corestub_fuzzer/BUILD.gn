@@ -37,7 +37,7 @@ ohos_fuzztest("CoreStubFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-
+  configs = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config" ]
   sources = [ "corestub_fuzzer.cpp" ]
 
   deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static" ]
@@ -45,6 +45,7 @@ ohos_fuzztest("CoreStubFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
   ]
 }

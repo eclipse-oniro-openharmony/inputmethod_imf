@@ -43,14 +43,16 @@
 #include "ability_manager_client.h"
 #include "block_data.h"
 #include "global.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_system_ability.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_system_ability.h"
 #include "identity_checker_mock.h"
 #include "if_system_ability_manager.h"
 #include "input_client_stub.h"
+#include "input_client_service_impl.h"
 #include "input_death_recipient.h"
 #include "input_method_ability.h"
 #include "input_method_engine_listener_impl.h"
+#include "input_data_channel_service_impl.h"
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
@@ -614,7 +616,7 @@ HWTEST_F(InputMethodControllerTest, testGetIMSAProxy, TestSize.Level0)
  */
 HWTEST_F(InputMethodControllerTest, testWriteReadIInputDataChannel, TestSize.Level0)
 {
-    sptr<InputDataChannelStub> mInputDataChannel = new InputDataChannelStub();
+    sptr<InputDataChannelStub> mInputDataChannel = new InputDataChannelServiceImpl();
     MessageParcel data;
     auto ret = data.WriteRemoteObject(mInputDataChannel->AsObject());
     EXPECT_TRUE(ret);
@@ -630,7 +632,7 @@ HWTEST_F(InputMethodControllerTest, testWriteReadIInputDataChannel, TestSize.Lev
  */
 HWTEST_F(InputMethodControllerTest, testIMCBindToIMSA, TestSize.Level0)
 {
-    sptr<InputClientStub> mClient = new InputClientStub();
+    sptr<InputClientStub> mClient = new InputClientServiceImpl();
     MessageParcel data;
     auto ret = data.WriteRemoteObject(mClient->AsObject());
     EXPECT_TRUE(ret);
@@ -1624,66 +1626,6 @@ HWTEST_F(InputMethodControllerTest, testIsPanelShown, TestSize.Level0)
     bool isShown = false;
     auto ret = inputMethodController_->IsPanelShown(panelInfo, isShown);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
-}
-
-/**
- * @tc.name: testOnKeyEventConsumeResult
- * @tc.desc: IMC OnKeyEventConsumeResult
- * @tc.type: IMC
- * @tc.require:
- */
-HWTEST_F(InputMethodControllerTest, testOnKeyEventConsumeResult, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testOnKeyEventConsumeResult Test START");
-    bool isConsumed = true;
-    sptr<IRemoteObject> object;
-    std::shared_ptr<KeyEventConsumerProxy> keyEventConsumerProxy = std::make_shared<KeyEventConsumerProxy>(object);
-    keyEventConsumerProxy->OnKeyEventConsumeResult(isConsumed);
-    keyEventConsumerProxy->OnKeyCodeConsumeResult(isConsumed);
-    EXPECT_TRUE(isConsumed);
-}
-
-/**
- * @tc.name: test_InputDataChannelStub_OnRemote
- * @tc.desc: Checkout InputDataChannelStub_OnRemote.
- * @tc.type: FUNC
- */
-HWTEST_F(InputMethodControllerTest, InputDataChannelStub_OnRemote, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC InputDataChannelStub_OnRemote Test START");
-    sptr<InputDataChannelStub> mInputDataChannel = new InputDataChannelStub();
-    MessageParcel data;
-    MessageParcel reply;
-    auto ret = mInputDataChannel->InsertTextOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->DeleteForwardOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->DeleteBackwardOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->GetTextBeforeCursorOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->GetTextAfterCursorOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SendKeyboardStatusOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SendFunctionKeyOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->MoveCursorOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SelectByRangeOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SelectByMovementOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->HandleExtendActionOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->NotifyPanelStatusInfoOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->NotifyKeyboardHeightOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SendPrivateCommandOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SetPreviewTextOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
 }
 
 /**

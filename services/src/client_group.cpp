@@ -321,7 +321,7 @@ int32_t ClientGroup::NotifyPanelStatusChange(const InputWindowStatus &status, co
             IMSA_HILOGD("has not imeHide callback");
             continue;
         }
-        int32_t ret = clientInfo->client->OnPanelStatusChange(status, info);
+        int32_t ret = clientInfo->client->OnPanelStatusChange(static_cast<uint32_t>(status), info);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to NotifyPanelStatusChange, ret: %{public}d", ret);
             continue;

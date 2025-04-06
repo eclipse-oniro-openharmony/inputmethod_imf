@@ -15,7 +15,6 @@
 
 #include "unregisteredproxyime_fuzzer.h"
 #include "imf_sa_stub_fuzz_util.h"
-#include "inputmethod_service_ipc_interface_code.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -24,6 +23,7 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(data, size, InputMethodInterfaceCode::UNREGISTERED_PROXY_IME);
+    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(data, size,
+        IInputMethodSystemAbilityIpcCode::COMMAND_UN_REGISTERED_PROXY_IME);
     return 0;
 }

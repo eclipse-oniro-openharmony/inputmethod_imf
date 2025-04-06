@@ -23,7 +23,7 @@
 #include "enable_ime_data_parser.h"
 #include "event_status_manager.h"
 #include "freeze_manager.h"
-#include "i_input_method_core.h"
+#include "iinput_method_core.h"
 #include "ime_cfg_manager.h"
 #include "input_method_types.h"
 #include "input_type_manager.h"

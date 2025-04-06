@@ -33,10 +33,11 @@ ohos_fuzztest("InputMethodAbilityFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-
+  configs = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config" ]
   sources = [ "inputmethodability_fuzzer.cpp" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/json:imf_json_static",

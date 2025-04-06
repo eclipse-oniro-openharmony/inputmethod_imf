@@ -12,7 +12,43 @@
 # limitations under the License.
 
 import("//base/inputmethod/imf/inputmethod.gni")
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
+
+idl_gen_interface("input_control_channel_interface") {
+  src_idl = rebase_path(
+          "${inputmethod_path}/frameworks/native/inputmethod_ability/IInputControlChannel.idl")
+}
+
+idl_gen_interface("input_data_channel_interface") {
+  src_idl = rebase_path(
+          "${inputmethod_path}/frameworks/native/inputmethod_controller/IInputDataChannel.idl")
+}
+
+idl_gen_interface("input_method_core_interface") {
+  src_idl = rebase_path(
+          "${inputmethod_path}/frameworks/native/inputmethod_ability/IInputMethodCore.idl")
+}
+
+idl_gen_interface("input_method_extension_interface") {
+  src_idl = rebase_path(
+          "${inputmethod_path}/frameworks/native/inputmethod_ability/IInputMethodExtensionAbility.idl")
+}
+
+idl_gen_interface("system_cmd_channel_interface") {
+  src_idl = rebase_path(
+          "${inputmethod_path}/frameworks/native/inputmethod_controller/ISystemCmdChannel.idl")
+}
+
+idl_gen_interface("input_method_system_ability_interface") {
+  src_idl = rebase_path(
+          "${inputmethod_path}/frameworks/native/inputmethod_controller/IInputMethodSystemAbility.idl")
+}
+
+idl_gen_interface("keyevent_consumer_interface") {
+  src_idl = rebase_path(
+          "${inputmethod_path}/frameworks/native/inputmethod_controller/IKeyEventConsumer.idl")
+}
 
 config("inputmethod_ability_native_config") {
   visibility = [ ":*" ]
@@ -23,19 +59,246 @@ config("inputmethod_ability_native_config") {
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/include",
+    "${target_gen_dir}",
   ]
 }
 config("inputmethod_ability_native_public_config") {
-  visibility = [ "./*" ]
+  visibility = [
+    "${inputmethod_path}/common/*",
+    "${inputmethod_path}/frameworks/kits/extension/*",
+    "${inputmethod_path}/frameworks/ndk/*",
+    "${inputmethod_path}/test/fuzztest/*",
+    "${inputmethod_path}/test/unittest/*",
+    "../inputmethod_controller/*",
+    "./*",
+  ]
   include_dirs = [
     "include",
     "${inputmethod_path}/common/include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/services/json/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/include",
+    "${target_gen_dir}",
   ]
+}
+
+ohos_source_set("input_control_channel_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_ability_native_config" ]
+  output_values = get_target_outputs(":input_control_channel_interface")
+  sources = filter_include(output_values, [ "*_proxy.cpp" ])
+  deps = [ ":input_control_channel_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("input_control_channel_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_ability_native_config" ]
+  output_values = get_target_outputs(":input_control_channel_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":input_control_channel_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("input_data_channel_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_ability_native_public_config" ]
+  output_values = get_target_outputs(":input_data_channel_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":input_data_channel_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("input_method_core_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_ability_native_public_config" ]
+  configs = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config" ]
+  output_values = get_target_outputs(":input_method_core_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":input_method_core_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("input_method_core_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_ability_native_public_config" ]
+  configs = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config" ]
+  output_values = get_target_outputs(":input_method_core_interface")
+  sources = filter_include(output_values, [ "*_proxy.cpp" ])
+  deps = [ ":input_method_core_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("system_cmd_channel_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_ability_native_public_config" ]
+  output_values = get_target_outputs(":system_cmd_channel_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":system_cmd_channel_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("input_method_extension_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_ability_native_public_config" ]
+  output_values = get_target_outputs(":input_method_extension_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":input_method_extension_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("input_method_system_ability_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [
+    ":inputmethod_ability_native_public_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config",
+  ]
+  output_values = get_target_outputs(":input_method_system_ability_interface")
+  sources = filter_include(output_values, [ "*_proxy.cpp" ])
+  deps = [ ":input_method_system_ability_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("input_method_system_ability_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [
+    ":inputmethod_ability_native_public_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config",
+  ]
+  output_values = get_target_outputs(":input_method_system_ability_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":input_method_system_ability_interface" ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("keyevent_consumer_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_ability_native_public_config" ]
+  output_values = get_target_outputs(":keyevent_consumer_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":keyevent_consumer_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
 }
 
 ohos_shared_library("inputmethod_ability") {
@@ -52,17 +315,15 @@ ohos_shared_library("inputmethod_ability") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_interface.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_utils.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_panel.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/task_manager.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/tasks/task.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/window_change_listener_impl.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_system_ability_proxy.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/system_cmd_channel_proxy.cpp",
-    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/services/src/sys_cfg_parser.cpp",
   ]
   cflags_cc = [
@@ -97,11 +358,74 @@ ohos_shared_library("inputmethod_ability") {
   public_external_deps = [ "window_manager:libwm" ]
 
   deps = [
+    ":input_control_channel_interface",
+    ":input_data_channel_interface",
+    ":input_method_core_interface",
+    ":input_method_extension_interface",
+    ":input_method_system_ability_interface",
+    ":keyevent_consumer_interface",
+    ":system_cmd_channel_interface",
     "${inputmethod_path}/common:inputmethod_common",
     "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_stub",
     "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
   ]
+
+  input_control_channel_output_values =
+      get_target_outputs(":input_control_channel_interface")
+  sources += filter_include(input_control_channel_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  data_channel_output_values =
+      get_target_outputs(":input_data_channel_interface")
+  sources += filter_include(data_channel_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  core_output_values = get_target_outputs(":input_method_core_interface")
+  sources += filter_include(core_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  system_cmd_channel_output_values =
+      get_target_outputs(":system_cmd_channel_interface")
+  sources += filter_include(system_cmd_channel_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  input_method_system_ability_output_values =
+      get_target_outputs(":input_method_system_ability_interface")
+  sources += filter_include(input_method_system_ability_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  input_method_extension_output_values =
+      get_target_outputs(":input_method_extension_interface")
+  sources += filter_include(input_method_extension_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  keyevent_consumer_output_values =
+      get_target_outputs(":keyevent_consumer_interface")
+  sources += filter_include(keyevent_consumer_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]
 
@@ -121,17 +445,15 @@ ohos_static_library("inputmethod_ability_static") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_interface.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_utils.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_panel.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/task_manager.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/tasks/task.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/window_change_listener_impl.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_system_ability_proxy.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/system_cmd_channel_proxy.cpp",
-    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/services/src/sys_cfg_parser.cpp",
   ]
 
@@ -157,11 +479,66 @@ ohos_static_library("inputmethod_ability_static") {
   public_external_deps = [ "window_manager:libwm" ]
 
   deps = [
+    ":input_control_channel_interface",
+    ":input_data_channel_interface",
+    ":input_method_core_interface",
+    ":input_method_system_ability_interface",
+    ":keyevent_consumer_interface",
+    ":system_cmd_channel_interface",
     "${inputmethod_path}/common:inputmethod_common",
     "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_stub",
     "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
   ]
+
+  input_control_channel_output_values =
+      get_target_outputs(":input_control_channel_interface")
+  sources += filter_include(input_control_channel_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  data_channel_output_values =
+      get_target_outputs(":input_data_channel_interface")
+  sources += filter_include(data_channel_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  core_output_values = get_target_outputs(":input_method_core_interface")
+  sources += filter_include(core_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  system_cmd_channel_output_values =
+      get_target_outputs(":system_cmd_channel_interface")
+  sources += filter_include(system_cmd_channel_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  input_method_system_ability_output_values =
+      get_target_outputs(":input_method_system_ability_interface")
+  sources += filter_include(input_method_system_ability_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
+
+  keyevent_consumer_output_values =
+      get_target_outputs(":keyevent_consumer_interface")
+  sources += filter_include(keyevent_consumer_output_values,
+                            [
+                              "*_proxy.cpp",
+                              "*_stub.cpp",
+                            ])
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]
 

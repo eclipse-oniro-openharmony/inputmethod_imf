@@ -16,6 +16,7 @@
 #define protected public
 #include "input_method_controller.h"
 #include "input_method_system_ability_proxy.h"
+#include "input_client_service_impl.h"
 #undef private
 
 #include "inputmethodcontroller_fuzzer.h"
@@ -149,14 +150,14 @@ void TestAttach(sptr<InputMethodController> imc, int32_t fuzzedInt32)
 
 void FUZZHideInput(sptr<InputMethodController> imc)
 {
-    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
     imc->HideInput(client);
     imc->RequestHideInput();
 }
 
 void FUZZShowInput(sptr<InputMethodController> imc)
 {
-    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
     imc->ShowInput(client);
     imc->RequestShowInput();
 }
@@ -178,7 +179,9 @@ void InputType(sptr<InputMethodController> imc)
 
 void FUZZIsPanelShown(sptr<InputMethodController> imc, const uint8_t *data)
 {
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     bool flag = static_cast<bool>(data[0] % 2);
     imc->IsPanelShown(panelInfo, flag);
 }

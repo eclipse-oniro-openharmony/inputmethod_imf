@@ -61,23 +61,16 @@ int32_t CjInputMethodController::Attach(const CTextConfig &txtCfg, bool showKeyb
         IMSA_HILOGE("failed to create CjInputMethodTextChangedListener!");
         return ERR_NO_MEMORY;
     }
-    TextConfig textCfg = {
-        .inputAttribute = {
-            .inputPattern = txtCfg.inputAttrbute.textInputType,
-            .enterKeyType = txtCfg.inputAttrbute.enterKeyType
-        },
-        .cursorInfo = {
-            .left = txtCfg.cursor.left,
-            .top = txtCfg.cursor.top,
-            .width = txtCfg.cursor.width,
-            .height = txtCfg.cursor.height
-        },
-        .range = {
-            .start = txtCfg.range.start,
-            .end = txtCfg.range.end
-        },
-        .windowId = txtCfg.windowId
-    };
+    TextConfig textCfg;
+    textCfg.inputAttribute.inputPattern = txtCfg.inputAttrbute.textInputType;
+    textCfg.inputAttribute.enterKeyType = txtCfg.inputAttrbute.enterKeyType;
+    textCfg.cursorInfo.left = txtCfg.cursor.left;
+    textCfg.cursorInfo.top = txtCfg.cursor.top;
+    textCfg.cursorInfo.width = txtCfg.cursor.width;
+    textCfg.cursorInfo.height = txtCfg.cursor.height;
+    textCfg.range.start = txtCfg.range.start;
+    textCfg.range.end = txtCfg.range.end;
+    textCfg.windowId = txtCfg.windowId;
 
     auto controller = InputMethodController::GetInstance();
     if (controller == nullptr) {
@@ -128,12 +121,11 @@ int32_t CjInputMethodController::UpdateCursor(const CCursorInfo &cursor)
     if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
-    CursorInfo cursorInfo = {
-        .left = cursor.left,
-        .top = cursor.top,
-        .width = cursor.width,
-        .height = cursor.height
-    };
+    CursorInfo cursorInfo;
+    cursorInfo.left = cursor.left;
+    cursorInfo.top = cursor.top;
+    cursorInfo.width = cursor.width;
+    cursorInfo.height = cursor.height;
     return controller->OnCursorUpdate(cursorInfo);
 }
 
@@ -304,7 +296,9 @@ void CjInputMethodController::OnSelectByRange(int32_t start, int32_t end)
         return;
     }
     IMSA_HILOGD("onSelelctByRange runs");
-    Range range = { .start = start, .end = end };
+    Range range;
+    range.start = start;
+    range.end = end;
     return onSelectByRange(range);
 }
 

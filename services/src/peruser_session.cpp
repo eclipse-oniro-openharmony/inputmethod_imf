@@ -20,7 +20,7 @@
 #include "identity_checker_impl.h"
 #include "ime_connection.h"
 #include "ime_info_inquirer.h"
-#include "input_control_channel_stub.h"
+#include "input_control_channel_service_impl.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "mem_mgr_client.h"
@@ -37,6 +37,7 @@
 #include "screenlock_manager.h"
 #endif
 #include "window_adapter.h"
+#include "input_method_tools.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -496,7 +497,12 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
 bool PerUserSession::IsProxyImeEnable()
 {
     auto data = GetReadyImeData(ImeType::PROXY_IME);
-    return data != nullptr && data->core != nullptr && data->core->IsEnable();
+    bool ret;
+    if (data == nullptr || data->core == nullptr) {
+        return false;
+    }
+    data->core->IsEnable(ret);
+    return data != nullptr && data->core != nullptr && ret;
 }
 
 int32_t PerUserSession::OnStartInput(
@@ -561,7 +567,6 @@ int32_t PerUserSession::BindClientWithIme(
     if (data == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-
     if (!data->imeExtendInfo.privateCommand.empty()) {
         auto ret = SendPrivateData(data->imeExtendInfo.privateCommand);
         if (ret != ErrorCode::NO_ERROR) {
@@ -569,9 +574,12 @@ int32_t PerUserSession::BindClientWithIme(
             return ret;
         }
     }
-
     auto ret = RequestIme(data, RequestType::START_INPUT,
-        [&data, &clientInfo, isBindFromClient]() { return data->core->StartInput(*clientInfo, isBindFromClient); });
+        [&data, &clientInfo, isBindFromClient]() {
+            InputClientInfoInner inputClientInfoInner =
+                InputMethodTools::GetInstance().InputClientInfoToInner(const_cast<InputClientInfo &>(*clientInfo));
+            return data->core->StartInput(inputClientInfoInner, isBindFromClient);
+    });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start input failed, ret: %{public}d!", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
@@ -582,7 +590,7 @@ int32_t PerUserSession::BindClientWithIme(
         Memory::MemMgrClient::GetInstance().SetCritical(getpid(), true, INPUT_METHOD_SYSTEM_ABILITY_ID);
     }
     if (!isBindFromClient) {
-        ret = clientInfo->client->OnInputReady(data->agent, { data->pid, data->ime.first });
+        ret = clientInfo->client->OnInputReady(data->agent, data->pid, data->ime.first);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("start client input failed, ret: %{public}d!", ret);
             return ErrorCode::ERROR_IMSA_CLIENT_INPUT_READY_FAILED;
@@ -617,7 +625,12 @@ void PerUserSession::StopClientInput(
     if (clientInfo == nullptr || clientInfo->client == nullptr) {
         return;
     }
-    auto ret = clientInfo->client->OnInputStop(isStopInactiveClient, isAsync);
+    int32_t ret;
+    if (isAsync == true) {
+        ret = clientInfo->client->OnInputStopAsync(isStopInactiveClient);
+    } else {
+        ret = clientInfo->client->OnInputStop(isStopInactiveClient);
+    }
     IMSA_HILOGI("isStopInactiveClient: %{public}d, client pid: %{public}d, ret: %{public}d.", isStopInactiveClient,
         clientInfo->pid, ret);
 }
@@ -760,9 +773,10 @@ int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr
         if (clientInfo->bindImeType == ImeType::PROXY_IME) {
             UnBindClientWithIme(clientInfo, { .sessionId = 0 });
         }
-        InputClientInfo infoTemp = { .isShowKeyboard = true,
-            .client = clientInfo->client,
-            .channel = clientInfo->channel };
+        InputClientInfo infoTemp;
+        infoTemp.isShowKeyboard = true;
+        infoTemp.client = clientInfo->client;
+        infoTemp.channel = clientInfo->channel;
         return BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), ImeType::IME);
     }
     return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -771,7 +785,7 @@ int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr
 int32_t PerUserSession::InitInputControlChannel()
 {
     IMSA_HILOGD("PerUserSession::InitInputControlChannel start.");
-    sptr<IInputControlChannel> inputControlChannel = new InputControlChannelStub(userId_);
+    sptr<IInputControlChannel> inputControlChannel = new InputControlChannelServiceImpl(userId_);
     auto data = GetReadyImeData(ImeType::IME);
     if (data == nullptr) {
         IMSA_HILOGE("ime: %{public}d is not exist!", ImeType::IME);
@@ -1323,7 +1337,8 @@ int32_t PerUserSession::SetInputType()
         IMSA_HILOGE("ime: %{public}d is not exist!", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    return RequestIme(data, RequestType::NORMAL, [&data, &inputType] { return data->core->OnSetInputType(inputType); });
+    return RequestIme(data, RequestType::NORMAL,
+        [&data, &inputType] { return data->core->OnSetInputType(static_cast<int32_t>(inputType)); });
 }
 
 bool PerUserSession::IsBoundToClient(uint64_t displayId)
@@ -1357,7 +1372,9 @@ int32_t PerUserSession::RestoreCurrentImeSubType()
     if (imeData == nullptr || imeData->ime.first != cfgIme->bundleName || imeData->ime.second != cfgIme->extName) {
         return ErrorCode::NO_ERROR;
     }
-    SubProperty subProp = { .name = cfgIme->bundleName, .id = cfgIme->subName };
+    SubProperty subProp;
+    subProp.name = cfgIme->bundleName;
+    subProp.id = cfgIme->subName;
     auto subPropTemp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
     if (subPropTemp != nullptr) {
         subProp = *subPropTemp;
@@ -2151,7 +2168,10 @@ int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, Pr
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     auto ret = RequestIme(data, RequestType::NORMAL,
-        [&data, &privateCommand] { return data->core->OnSendPrivateData(privateCommand); });
+        [&data, &privateCommand] {
+        Value value(privateCommand);
+        return data->core->OnSendPrivateData(value);
+    });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("notify send private data failed, ret: %{public}d!", ret);
     }

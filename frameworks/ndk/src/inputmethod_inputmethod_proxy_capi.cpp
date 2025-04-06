@@ -121,8 +121,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
         IMSA_HILOGE("cursorInfo is nullptr");
         return IME_ERR_NULL_POINTER;
     }
-    return ErrorCodeConvert(InputMethodController::GetInstance()->OnCursorUpdate(
-        CursorInfo({ cursorInfo->left, cursorInfo->top, cursorInfo->width, cursorInfo->height })));
+    CursorInfo info;
+    info.left = cursorInfo->left;
+    info.top = cursorInfo->top;
+    info.width = cursorInfo->width;
+    info.height = cursorInfo->height;
+    return ErrorCodeConvert(InputMethodController::GetInstance()->OnCursorUpdate(info));
 }
 
 InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(

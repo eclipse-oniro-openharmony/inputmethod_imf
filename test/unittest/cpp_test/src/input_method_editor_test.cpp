@@ -34,15 +34,14 @@
 #include <vector>
 
 #include "global.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_system_ability.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_system_ability.h"
 #include "identity_checker_mock.h"
 #include "input_client_stub.h"
-#include "input_data_channel_stub.h"
+#include "input_data_channel_service_impl.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
-#include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"

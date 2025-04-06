@@ -81,13 +81,14 @@ HWTEST_F(FullImeInfoManagerTest, test_Init_001, TestSize.Level0)
  */
 HWTEST_F(FullImeInfoManagerTest, test_Init_002, TestSize.Level0)
 {
+    Property prop;
+    prop.name = "bundleName";
     IMSA_HILOGI("test_Init_002 start");
     int32_t userId = 100;
     bool isNewIme = false;
     uint32_t tokenId = 2;
     std::string appId = "appId";
     uint32_t versionCode = 11;
-    Property prop { "bundleName" };
     std::vector<FullImeInfo> imeInfos;
     imeInfos.push_back({ isNewIme, tokenId, appId, versionCode, prop });
     std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
@@ -144,6 +145,8 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_002, TestSize.Level0)
  */
 HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
 {
+    Property prop;
+    Property prop1;
     IMSA_HILOGI("test_Add_003 start");
     int32_t userId = 100;
     std::vector<FullImeInfo> imeInfos;
@@ -153,11 +156,11 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
     uint32_t tokenId = 2;
     std::string appId = "appId";
     uint32_t versionCode = 11;
-    Property prop { "bundleName" };
+    prop.name = "bundleName";
     FullImeInfo imeInfo { isNewIme, tokenId, appId, versionCode, prop };
     uint32_t tokenId1 = 2;
     std::string appId1 = "appId1";
-    Property prop1 { "bundleName1" };
+    prop1.name = "bundleName1";
     FullImeInfo imeInfo1 { isNewIme, tokenId1, appId1, versionCode, prop1 };
     imeInfos.push_back(imeInfo);
     imeInfos.push_back(imeInfo1);

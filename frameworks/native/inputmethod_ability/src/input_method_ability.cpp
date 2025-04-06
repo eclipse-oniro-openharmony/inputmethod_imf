@@ -20,8 +20,8 @@
 
 #include "global.h"
 #include "ima_hisysevent_reporter.h"
-#include "input_method_agent_stub.h"
-#include "input_method_core_stub.h"
+#include "input_method_agent_service_impl.h"
+#include "input_method_core_service_impl.h"
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "inputmethod_sysevent.h"
@@ -36,6 +36,7 @@
 #include "task_manager.h"
 #include "tasks/task.h"
 #include "tasks/task_imsa.h"
+#include "input_method_tools.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -153,7 +154,7 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
         IMSA_HILOGE("imsa proxy is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return proxy->UnRegisteredProxyIme(type, coreStub_);
+    return proxy->UnRegisteredProxyIme(static_cast<int32_t>(type), coreStub_);
 }
 
 int32_t InputMethodAbility::RegisterProxyIme(uint64_t displayId)
@@ -202,12 +203,12 @@ int32_t InputMethodAbility::UnregisterProxyIme(uint64_t displayId)
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGD("IMA init.");
-    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreStub();
+    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreServiceImpl();
     if (coreStub == nullptr) {
         IMSA_HILOGE("failed to create core!");
         return;
     }
-    sptr<InputMethodAgentStub> agentStub = new (std::nothrow) InputMethodAgentStub();
+    sptr<InputMethodAgentStub> agentStub = new (std::nothrow) InputMethodAgentServiceImpl();
     if (agentStub == nullptr) {
         IMSA_HILOGE("failed to create agent!");
         return;
@@ -278,7 +279,8 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
         if (needShow) {
             ret = ShowKeyboardImplWithoutLock(cmdId_);
         }
-        ReportImeStartInput(IInputMethodCore::START_INPUT, ret, needShow, endTime - startTime);
+        ReportImeStartInput(static_cast<int32_t>(IInputMethodCoreIpcCode::COMMAND_START_INPUT),
+            ret, needShow, endTime - startTime);
         isImeTerminating.store(false);
     };
     if (!imeListener_) {
@@ -287,9 +289,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     uint64_t seqId = Task::GetNextSeqId();
     imeListener_->PostTaskToEventHandler(
-        [seqId] {
-            TaskManager::GetInstance().Complete(seqId);
-        },
+        [seqId] { TaskManager::GetInstance().Complete(seqId); },
         "task_manager_complete");
     TaskManager::GetInstance().WaitExec(seqId, START_INPUT_CALLBACK_TIMEOUT_MS, showPanel);
     return ErrorCode::NO_ERROR;
@@ -309,7 +309,7 @@ void InputMethodAbility::OnSetInputType(InputType inputType)
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
         auto keyboardSize = panel->GetKeyboardSize();
-        SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
+        SysPanelStatus sysPanelStatus{ inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
         NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
     }
 }
@@ -497,7 +497,7 @@ int32_t InputMethodAbility::ShowKeyboardImplWithoutLock(int32_t cmdId)
     IMSA_HILOGI("panel not create.");
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
-        channel->SendKeyboardStatus(KeyboardStatus::SHOW);
+        channel->SendKeyboardStatus(static_cast<int32_t>(KeyboardStatus::SHOW));
     }
     imeListener_->OnKeyboardStatus(true);
     return ErrorCode::NO_ERROR;
@@ -587,7 +587,7 @@ int32_t InputMethodAbility::InsertTextInner(const std::string &text)
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    return channel->InsertText(Str8ToStr16(text));
+    return channel->InsertText(text);
 }
 
 int32_t InputMethodAbility::DeleteForwardInner(int32_t length)
@@ -658,7 +658,10 @@ int32_t InputMethodAbility::GetTextBeforeCursorInner(int32_t number, std::u16str
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return channel->GetTextBeforeCursor(number, text);
+    std::string textu8 = "";
+    auto ret = channel->GetTextBeforeCursor(number, textu8);
+    text = Str8ToStr16(textu8);
+    return ret;
 }
 
 int32_t InputMethodAbility::GetTextAfterCursorInner(int32_t number, std::u16string &text)
@@ -670,7 +673,10 @@ int32_t InputMethodAbility::GetTextAfterCursorInner(int32_t number, std::u16stri
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return channel->GetTextAfterCursor(number, text);
+    std::string textu8 = "";
+    auto ret = channel->GetTextAfterCursor(number, textu8);
+    text = Str8ToStr16(textu8);
+    return ret;
 }
 
 int32_t InputMethodAbility::MoveCursor(int32_t keyCode)
@@ -751,7 +757,10 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    auto ret = channel->GetTextConfig(textConfig);
+    TextTotalConfigInner textConfigInner = {};
+    textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
+    auto ret = channel->GetTextConfig(textConfigInner);
+    textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
     if (ret == ErrorCode::NO_ERROR) {
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
@@ -867,7 +876,7 @@ int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channe
             return ErrorCode::ERROR_CLIENT_NULL_POINTER;
         }
     }
-    systemAgentStub_ = new (std::nothrow) InputMethodAgentStub();
+    systemAgentStub_ = new (std::nothrow) InputMethodAgentServiceImpl();
     if (systemAgentStub_ == nullptr) {
         IMSA_HILOGE("failed to create agent!");
         systemCmdChannelProxy_ = nullptr;
@@ -1008,10 +1017,12 @@ int32_t InputMethodAbility::ShowPanel(
     NotifyPanelStatus(inputMethodPanel->GetPanelType(), sysPanelStatus);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
-        NotifyPanelStatusInfo({
-            {inputMethodPanel->GetPanelType(), flag},
-            true, trigger
-        });
+        PanelStatusInfo info;
+        info.panelInfo.panelType = inputMethodPanel->GetPanelType();
+        info.panelInfo.panelFlag = flag;
+        info.visible = true;
+        info.trigger = trigger;
+        NotifyPanelStatusInfo(info);
     }
     return ret;
 }
@@ -1027,10 +1038,13 @@ int32_t InputMethodAbility::HidePanel(
         IMSA_HILOGD("failed, ret: %{public}d", ret);
         return ret;
     }
-    NotifyPanelStatusInfo({
-        {inputMethodPanel->GetPanelType(), flag},
-        false, trigger, sessionId
-    });
+    PanelStatusInfo info;
+    info.panelInfo.panelType = inputMethodPanel->GetPanelType();
+    info.panelInfo.panelFlag = flag;
+    info.visible = false;
+    info.trigger = trigger;
+    info.sessionId = sessionId;
+    NotifyPanelStatusInfo(info);
     if (trigger == Trigger::IMF && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
         FinishTextPreview(true);
     }
@@ -1105,7 +1119,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger, uint32_t sessionId)
     imeListener_->OnKeyboardStatus(false);
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
-        channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        channel->SendKeyboardStatus(static_cast<int32_t>(KeyboardStatus::HIDE));
     }
     auto controlChannel = GetInputControlChannel();
     if (controlChannel != nullptr && trigger == Trigger::IME_APP) {
@@ -1144,11 +1158,13 @@ bool InputMethodAbility::IsCurrentIme()
         IMSA_HILOGE("failed to get imsa proxy!");
         return false;
     }
-    if (proxy->IsCurrentIme()) {
+
+    bool ret = false;
+    proxy->IsCurrentIme(ret);
+    if (ret) {
         isCurrentIme_ = true;
-        return true;
     }
-    return false;
+    return ret;
 }
 
 bool InputMethodAbility::IsDefaultIme()
@@ -1198,11 +1214,12 @@ bool InputMethodAbility::IsSystemApp()
         IMSA_HILOGE("failed to get imsa proxy!");
         return false;
     }
-    if (proxy->IsSystemApp()) {
+    bool ret = false;
+    proxy->IsSystemApp(ret);
+    if (ret) {
         isSystemApp_ = true;
-        return true;
     }
-    return false;
+    return ret;
 }
 
 int32_t InputMethodAbility::ExitCurrentInputType()
@@ -1273,8 +1290,12 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
                 IMSA_HILOGE("failed, ret: %{public}d", ret);
                 return false;
             }
-            NotifyPanelStatusInfo({ { panel->GetPanelType(), panel->GetPanelFlag() }, false, Trigger::IME_APP },
-                channelProxy);
+            PanelStatusInfo info;
+            info.panelInfo.panelType = panel->GetPanelType();
+            info.panelInfo.panelFlag = panel->GetPanelFlag();
+            info.visible = false;
+            info.trigger = Trigger::IME_APP;
+            NotifyPanelStatusInfo(info, channelProxy);
             // finish previewing text when soft keyboard hides
             if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
                 FinishTextPreview(true);
@@ -1316,14 +1337,16 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
             IMSA_HILOGE("channel is nullptr!");
             return ErrorCode::ERROR_SYSTEM_CMD_CHANNEL_ERROR;
         }
-        return systemChannel->SendPrivateCommand(privateCommand);
+        Value commandValueMap(privateCommand);
+        return systemChannel->SendPrivateCommand(commandValueMap);
     } else {
         auto channel = GetInputDataChannelProxy();
         if (channel == nullptr) {
             IMSA_HILOGE("channel is nullptr!");
             return ErrorCode::ERROR_CLIENT_NULL_POINTER;
         }
-        return channel->SendPrivateCommand(privateCommand);
+        Value commandValueMap(privateCommand);
+        return channel->SendPrivateCommand(commandValueMap);
     }
 }
 
@@ -1346,7 +1369,9 @@ int32_t InputMethodAbility::SetPreviewTextInner(const std::string &text, const R
         IMSA_HILOGE("dataChannel is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    return dataChannel->SetPreviewText(text, range);
+    RangeInner rangeInner = {};
+    rangeInner = InputMethodTools::GetInstance().RangeToInner(range);
+    return dataChannel->SetPreviewText(text, rangeInner);
 }
 
 int32_t InputMethodAbility::FinishTextPreviewInner(bool isAsync)
@@ -1357,7 +1382,13 @@ int32_t InputMethodAbility::FinishTextPreviewInner(bool isAsync)
         IMSA_HILOGE("dataChannel is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    return dataChannel->FinishTextPreview(isAsync);
+    int32_t ret;
+    if (isAsync == true) {
+        ret = dataChannel->FinishTextPreviewAsync();
+    } else {
+        ret = dataChannel->FinishTextPreview();
+    }
+    return ret;
 }
 
 int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
@@ -1399,7 +1430,9 @@ void InputMethodAbility::NotifyPanelStatusInfo(
         return;
     }
     if (channelProxy != nullptr) {
-        channelProxy->NotifyPanelStatusInfo(info);
+        PanelStatusInfoInner inner = {};
+        inner = InputMethodTools::GetInstance().PanelStatusInfoToInner(info);
+        channelProxy->NotifyPanelStatusInfo(inner);
     }
 
     auto controlChannel = GetInputControlChannel();
@@ -1480,7 +1513,8 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     if (ret == ErrorCode::NO_ERROR) {
         return ret;
     }
-    ReportImeStartInput(IInputMethodCore::START_INPUT, ret, clientInfo.isShowKeyboard);
+    ReportImeStartInput(static_cast<int32_t>(IInputMethodCoreIpcCode::COMMAND_START_INPUT),
+        ret, clientInfo.isShowKeyboard);
     return ret;
 }
 
@@ -1489,7 +1523,7 @@ int32_t InputMethodAbility::InsertText(const std::string text)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = InsertTextInner(text);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(IInputDataChannel::INSERT_TEXT, ret, end - start);
+    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_INSERT_TEXT), ret, end - start);
     return ret;
 }
 
@@ -1498,7 +1532,7 @@ int32_t InputMethodAbility::DeleteForward(int32_t length)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = DeleteForwardInner(length);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(IInputDataChannel::DELETE_FORWARD, ret, end - start);
+    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_FORWARD), ret, end - start);
     return ret;
 }
 
@@ -1507,7 +1541,7 @@ int32_t InputMethodAbility::DeleteBackward(int32_t length)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = DeleteBackwardInner(length);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(IInputDataChannel::DELETE_BACKWARD, ret, end - start);
+    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_BACKWARD), ret, end - start);
     return ret;
 }
 
@@ -1516,7 +1550,7 @@ int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range 
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = SetPreviewTextInner(text, range);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(IInputDataChannel::SET_PREVIEW_TEXT, ret, end - start);
+    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_SET_PREVIEW_TEXT), ret, end - start);
     return ret;
 }
 
@@ -1525,7 +1559,8 @@ int32_t InputMethodAbility::FinishTextPreview(bool isSync)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = FinishTextPreviewInner(isSync);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(IInputDataChannel::FINISH_TEXT_PREVIEW, ret, end - start);
+    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_FINISH_TEXT_PREVIEW),
+        ret, end - start);
     return ret;
 }
 
@@ -1534,7 +1569,8 @@ int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextBeforeCursorInner(number, text);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(IInputDataChannel::GET_TEXT_BEFORE_CURSOR, ret, end - start);
+    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_BEFORE_CURSOR),
+        ret, end - start);
     return ret;
 }
 int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &text)
@@ -1542,7 +1578,8 @@ int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &t
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextAfterCursorInner(number, text);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(IInputDataChannel::GET_TEXT_AFTER_CURSOR, ret, end - start);
+    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_AFTER_CURSOR),
+        ret, end - start);
     return ret;
 }
 int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index)
@@ -1550,7 +1587,8 @@ int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextIndexAtCursorInner(index);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(IInputDataChannel::GET_TEXT_INDEX_AT_CURSOR, ret, end - start);
+    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_INDEX_AT_CURSOR),
+        ret, end - start);
     return ret;
 }
 
