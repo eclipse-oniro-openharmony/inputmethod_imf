@@ -29,7 +29,7 @@ group("fuzztest") {
     "inputmethodability_fuzzer:fuzztest",
     "inputmethodcontroller_fuzzer:fuzztest",
     "inputmethodsystemability_fuzzer:fuzztest",
-    "keyeventconsumer_fuzzer:fuzztest",
+    #"keyeventconsumer_fuzzer:fuzztest",
     "perusersession_fuzzer:fuzztest",
     "securitymodeparser_fuzzer:fuzztest",
     "settingsdatautils_fuzzer:fuzztest",

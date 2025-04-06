@@ -18,7 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "keyevent_consumer_stub.h"
+#include "keyevent_consumer_service_impl.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
@@ -51,7 +51,7 @@ bool FuzzKeyEventConsumerStub(const uint8_t *rawData, size_t size)
 
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
 
-    sptr <KeyEventConsumerStub> stub = new KeyEventConsumerStub(
+    sptr <KeyEventConsumerStub> stub = new KeyEventConsumerServiceImpl(
             [](std::shared_ptr <MMI::KeyEvent> &keyEvent, bool isConsumed) {}, keyEvent);
     stub->OnKeyEventResult(isConsumed);
     stub->OnRemoteRequest(code, data, reply, option);
