@@ -179,5 +179,25 @@ InputClientInfo InputMethodTools::InnerToInputClientInfo(const InputClientInfoIn
     inputClientInfo.name = inner.name;
     return inputClientInfo;
 }
+
+PanelStatusInfoInner InputMethodTools::PanelStatusInfoToInner(const PanelStatusInfo &panelStatusInfo)
+{
+    PanelStatusInfoInner inner;
+    inner.panelInfo = panelStatusInfo.panelInfo;
+    inner.visible = panelStatusInfo.visible;
+    inner.trigger = panelStatusInfo.trigger;
+    inner.sessionId = panelStatusInfo.sessionId;
+    return inner;
+}
+
+PanelStatusInfo InputMethodTools::InnerToPanelStatusInfo(const PanelStatusInfoInner &inner)
+{
+    PanelStatusInfo panelStatusInfo;
+    panelStatusInfo.panelInfo = inner.panelInfo;
+    panelStatusInfo.visible = inner.visible;
+    panelStatusInfo.trigger = inner.trigger;
+    panelStatusInfo.sessionId = inner.sessionId;
+    return panelStatusInfo;
+}
 } // namespace MiscServices
 } // namespace OHOS

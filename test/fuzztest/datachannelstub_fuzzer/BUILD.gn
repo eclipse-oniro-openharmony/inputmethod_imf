@@ -40,9 +40,7 @@ ohos_fuzztest("DataChannelStubFuzzTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_native_public_config",
   ]
-  sources = [
-    "datachannelstub_fuzzer.cpp",
-  ]
+  sources = [ "datachannelstub_fuzzer.cpp" ]
 
   deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static" ]
 

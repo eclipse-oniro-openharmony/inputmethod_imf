@@ -16,7 +16,7 @@
 namespace OHOS {
 namespace MiscServices {
 
-bool PanelStatusInfo::ReadFromParcel(Parcel &in)
+bool PanelStatusInfoInner::ReadFromParcel(Parcel &in)
 {
     std::unique_ptr<PanelInfo> panelDataInfo(in.ReadParcelable<PanelInfo>());
     if (panelDataInfo == nullptr) {
@@ -113,9 +113,9 @@ bool ArrayBuffer::ReadFromParcel(Parcel &in)
     return true;
 }
 
-PanelStatusInfo *PanelStatusInfo::Unmarshalling(Parcel &in)
+PanelStatusInfoInner *PanelStatusInfoInner::Unmarshalling(Parcel &in)
 {
-    PanelStatusInfo *data = new (std::nothrow) PanelStatusInfo();
+    PanelStatusInfoInner *data = new (std::nothrow) PanelStatusInfoInner();
     if (data && !data->ReadFromParcel(in)) {
         delete data;
         data = nullptr;
@@ -174,7 +174,7 @@ ArrayBuffer *ArrayBuffer::Unmarshalling(Parcel &in)
     return data;
 }
 
-bool PanelStatusInfo::Marshalling(Parcel &out) const
+bool PanelStatusInfoInner::Marshalling(Parcel &out) const
 {
     if (!out.WriteParcelable(&panelInfo)) {
         return false;

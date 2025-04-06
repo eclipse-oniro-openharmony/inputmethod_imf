@@ -48,7 +48,7 @@ public:
     ErrCode SelectByMovement(int32_t direction, int32_t cursorMoveSkip) override;
     ErrCode HandleExtendAction(int32_t action) override;
     ErrCode GetTextIndexAtCursor(int32_t &index) override;
-    ErrCode NotifyPanelStatusInfo(const PanelStatusInfo &info) override;
+    ErrCode NotifyPanelStatusInfo(const PanelStatusInfoInner &info) override;
     ErrCode NotifyKeyboardHeight(uint32_t height) override;
     ErrCode SendPrivateCommand(const Value &value) override;
     ErrCode SetPreviewText(const std::string &text, const RangeInner &rangeInner) override;

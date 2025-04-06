@@ -15,7 +15,7 @@
 
 sequenceable input_method_utils..OHOS.MiscServices.TextTotalConfigInner;
 sequenceable input_method_utils..OHOS.MiscServices.KeyboardStatus;
-sequenceable input_method_utils..OHOS.MiscServices.PanelStatusInfo;
+sequenceable input_method_utils..OHOS.MiscServices.PanelStatusInfoInner;
 sequenceable input_method_utils..OHOS.MiscServices.FunctionKey;
 sequenceable input_method_utils..OHOS.MiscServices.Value;
 sequenceable input_method_utils..OHOS.MiscServices.RangeInner;
@@ -36,7 +36,7 @@ interface OHOS.MiscServices.IInputDataChannel {
     void SelectByMovement([in] int direction, [in] int cursorMoveSkip);
     void HandleExtendAction([in] int action);
     void GetTextIndexAtCursor([out] int index);
-    [oneway] void NotifyPanelStatusInfo([in] PanelStatusInfo info);
+    [oneway] void NotifyPanelStatusInfo([in] PanelStatusInfoInner info);
     [oneway] void NotifyKeyboardHeight([in] unsigned int height);
     void SendPrivateCommand([in] Value value);
     void SetPreviewText([in] String text, [in] RangeInner rangeInner);

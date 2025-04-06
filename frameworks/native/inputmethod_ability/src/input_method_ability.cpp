@@ -289,9 +289,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     uint64_t seqId = Task::GetNextSeqId();
     imeListener_->PostTaskToEventHandler(
-        [seqId] {
-            TaskManager::GetInstance().Complete(seqId);
-        },
+        [seqId] { TaskManager::GetInstance().Complete(seqId); },
         "task_manager_complete");
     TaskManager::GetInstance().WaitExec(seqId, START_INPUT_CALLBACK_TIMEOUT_MS, showPanel);
     return ErrorCode::NO_ERROR;
@@ -1432,7 +1430,9 @@ void InputMethodAbility::NotifyPanelStatusInfo(
         return;
     }
     if (channelProxy != nullptr) {
-        channelProxy->NotifyPanelStatusInfo(info);
+        PanelStatusInfoInner inner = {};
+        inner = InputMethodTools::GetInstance().PanelStatusInfoToInner(info);
+        channelProxy->NotifyPanelStatusInfo(inner);
     }
 
     auto controlChannel = GetInputControlChannel();

@@ -119,9 +119,11 @@ ErrCode InputDataChannelServiceImpl::HandleExtendAction(int32_t action)
     return InputMethodController::GetInstance()->HandleExtendAction(action);
 }
 
-ErrCode InputDataChannelServiceImpl::NotifyPanelStatusInfo(const PanelStatusInfo &info)
+ErrCode InputDataChannelServiceImpl::NotifyPanelStatusInfo(const PanelStatusInfoInner &info)
 {
-    InputMethodController::GetInstance()->NotifyPanelStatusInfo(info);
+    PanelStatusInfo panelStatusInfo = {};
+    panelStatusInfo = InputMethodTools::GetInstance().InnerToPanelStatusInfo(info);
+    InputMethodController::GetInstance()->NotifyPanelStatusInfo(panelStatusInfo);
     return ERR_OK;
 }
 

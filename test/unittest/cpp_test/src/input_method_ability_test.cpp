@@ -301,7 +301,7 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute_WithSpecificBundle
     EXPECT_TRUE(inAttribute.Marshalling(data));
     auto ret = InputAttributeInner::Unmarshalling(data);
     EXPECT_NE(ret, nullptr);
-	EXPECT_EQ(inAttribute.bundleName, ret->bundleName);
+    EXPECT_EQ(inAttribute.bundleName, ret->bundleName);
 }
 
 /**

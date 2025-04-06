@@ -31,6 +31,7 @@ group("system_ability_stub_fuzztest") {
     ":HideCurrentInputDeprecatedFuzzTest",
     ":HideCurrentInputFuzzTest",
     ":HideInputFuzzTest",
+
     #":ImsCmdLastFuzzTest",
     ":IsCurrentImeFuzzTest",
     ":IsDefaultImeFuzzTest",
@@ -68,9 +69,9 @@ common_external_deps = [
 ]
 
 common_deps = [
+  "${inputmethod_path}/services:inputmethod_service_static",
   "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
   "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static",
-  "${inputmethod_path}/services:inputmethod_service_static",
 ]
 
 ##############################fuzztest##########################################

@@ -185,7 +185,7 @@ enum Trigger : int32_t {
     END
 };
 
-struct PanelStatusInfo : public Parcelable {
+struct PanelStatusInfo {
     PanelInfo panelInfo;
     bool visible { false };
     Trigger trigger { END };
@@ -195,10 +195,22 @@ struct PanelStatusInfo : public Parcelable {
         return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType &&
             info.visible == visible && info.trigger == trigger;
     }
+};
+
+struct PanelStatusInfoInner : public Parcelable {
+    PanelInfo panelInfo;
+    bool visible { false };
+    Trigger trigger { END };
+    uint32_t sessionId { 0 };
+    bool operator==(const PanelStatusInfoInner &info) const
+    {
+        return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType &&
+            info.visible == visible && info.trigger == trigger;
+    }
 
     bool ReadFromParcel(Parcel &in);
     bool Marshalling(Parcel &out) const;
-    static PanelStatusInfo *Unmarshalling(Parcel &in);
+    static PanelStatusInfoInner *Unmarshalling(Parcel &in);
 };
 
 class FunctionKey {

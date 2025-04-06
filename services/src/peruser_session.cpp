@@ -567,7 +567,6 @@ int32_t PerUserSession::BindClientWithIme(
     if (data == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-
     if (!data->imeExtendInfo.privateCommand.empty()) {
         auto ret = SendPrivateData(data->imeExtendInfo.privateCommand);
         if (ret != ErrorCode::NO_ERROR) {
@@ -575,13 +574,12 @@ int32_t PerUserSession::BindClientWithIme(
             return ret;
         }
     }
-
     auto ret = RequestIme(data, RequestType::START_INPUT,
         [&data, &clientInfo, isBindFromClient]() {
-            InputClientInfoInner inputClientInfoInner;
-            inputClientInfoInner =
-            InputMethodTools::GetInstance().InputClientInfoToInner(const_cast<InputClientInfo &>(*clientInfo));
-            return data->core->StartInput(inputClientInfoInner, isBindFromClient);});
+            InputClientInfoInner inputClientInfoInner =
+                InputMethodTools::GetInstance().InputClientInfoToInner(const_cast<InputClientInfo &>(*clientInfo));
+            return data->core->StartInput(inputClientInfoInner, isBindFromClient);
+    });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start input failed, ret: %{public}d!", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
@@ -2171,8 +2169,9 @@ int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, Pr
     }
     auto ret = RequestIme(data, RequestType::NORMAL,
         [&data, &privateCommand] {
-        Value value(privateCommand);    
-        return data->core->OnSendPrivateData(value);});
+        Value value(privateCommand);
+        return data->core->OnSendPrivateData(value);
+    });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("notify send private data failed, ret: %{public}d!", ret);
     }

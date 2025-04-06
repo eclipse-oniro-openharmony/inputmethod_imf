@@ -39,6 +39,8 @@ public:
     TextTotalConfig InnerToTextTotalConfig(const TextTotalConfigInner &inner);
     InputClientInfoInner InputClientInfoToInner(const InputClientInfo &inputClientInfo);
     InputClientInfo InnerToInputClientInfo(const InputClientInfoInner &inner);
+    PanelStatusInfoInner PanelStatusInfoToInner(const PanelStatusInfo &panelStatusInfo);
+    PanelStatusInfo InnerToPanelStatusInfo(const PanelStatusInfoInner &inner);
 private:
     InputMethodTools() = default;
 };

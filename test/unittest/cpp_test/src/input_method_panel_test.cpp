@@ -887,7 +887,7 @@ HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
 
     inputMethodPanel->DestroyPanel();
 
-	PanelInfo panelInfo;
+    PanelInfo panelInfo;
     panelInfo.panelType = STATUS_BAR;
     panelInfo.panelFlag = FLG_FLOATING;
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
