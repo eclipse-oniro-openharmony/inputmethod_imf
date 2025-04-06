@@ -55,6 +55,9 @@ ohos_shared_library("inputmethod_service") {
     "-Wno-c99-designator",
   ]
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_change_listener.cpp",
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_monitor_manager.cpp",
     "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
@@ -77,9 +80,6 @@ ohos_shared_library("inputmethod_service") {
     "src/peruser_session.cpp",
     "src/sys_cfg_parser.cpp",
     "src/user_session_manager.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
   ]
 
   configs = [ ":inputmethod_services_native_config" ]
@@ -89,14 +89,14 @@ ohos_shared_library("inputmethod_service") {
   deps = [
     "${inputmethod_path}/common:inputmethod_common",
     "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_system_ability_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_proxy",
     "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_stub",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_system_ability_stub",
   ]
 
   external_deps = [
@@ -189,10 +189,10 @@ ohos_static_library("inputmethod_service_static") {
   public_configs = [ ":inputmethod_services_native_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_system_ability_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_proxy",
   ]
 
   public_deps = [
