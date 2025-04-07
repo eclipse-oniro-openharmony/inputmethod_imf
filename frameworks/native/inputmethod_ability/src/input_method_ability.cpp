@@ -283,14 +283,13 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
             ret, needShow, endTime - startTime);
         isImeTerminating.store(false);
     };
-    if (!imeListener_) {
+    uint64_t seqId = Task::GetNextSeqId();
+    if (imeListener_ == nullptr ||
+        !imeListener_->PostTaskToEventHandler([seqId] { TaskManager::GetInstance().Complete(seqId); },
+            "task_manager_complete")) {
         showPanel();
         return ErrorCode::NO_ERROR;
     }
-    uint64_t seqId = Task::GetNextSeqId();
-    imeListener_->PostTaskToEventHandler(
-        [seqId] { TaskManager::GetInstance().Complete(seqId); },
-        "task_manager_complete");
     TaskManager::GetInstance().WaitExec(seqId, START_INPUT_CALLBACK_TIMEOUT_MS, showPanel);
     return ErrorCode::NO_ERROR;
 }

@@ -14,6 +14,7 @@
  */
 #define private public
 #define protected public
+#include "client_group.h"
 #include "full_ime_info_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
@@ -1451,6 +1452,59 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetScreenLockIme, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ImeInfoInquirer::GetInstance().systemConfig_ = systemConfig_0;
     std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+/**
+ * @tc.name: Test_ClientGroup_UpdateClientInfo
+ * @tc.desc: Test UpdateClientInfo
+ * @tc.type: FUNC
+ * @tc.require:IBZ0Y6
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, Test_ClientGroup_UpdateClientInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest Test_ClientGroup_UpdateClientInfo TEST START");
+    auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
+    clientGroup->mapClients_.clear();
+    bool isShowKeyboard = true;
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+    ASSERT_NE(client, nullptr);
+    // not find client
+    clientGroup->UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+    clientGroup->mapClients_.insert({ client->AsObject(), nullptr });
+    // client info is nullptr
+    clientGroup->UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+
+    auto info = std::make_shared<InputClientInfo>();
+    clientGroup->mapClients_.insert_or_assign(client->AsObject(), info);
+    // update abnormal
+    clientGroup->UpdateClientInfo(client->AsObject(), { { UpdateFlag::CLIENT_TYPE, isShowKeyboard } });
+    auto it = clientGroup->mapClients_.find(client->AsObject());
+    ASSERT_NE(it, clientGroup->mapClients_.end());
+    ASSERT_NE(it->second, nullptr);
+    EXPECT_EQ(it->second->type, ClientType::INNER_KIT);
+    // update correctly
+    uint32_t eventFlag = 10;
+    TextTotalConfig config;
+    config.windowId = 1000;
+    ImeType bindImeType = ImeType::PROXY_IME;
+    ClientState state = ClientState::ACTIVE;
+    uint32_t uiExtensionTokenId = 9999;
+    ClientType type = ClientType::JS;
+    clientGroup->UpdateClientInfo(client->AsObject(),
+        { { UpdateFlag::BINDIMETYPE, bindImeType }, { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard },
+            { UpdateFlag::EVENTFLAG, eventFlag }, { UpdateFlag::TEXT_CONFIG, config }, { UpdateFlag::STATE, state },
+            { UpdateFlag::UIEXTENSION_TOKENID, uiExtensionTokenId }, { UpdateFlag::CLIENT_TYPE, type } });
+    it = clientGroup->mapClients_.find(client->AsObject());
+    ASSERT_NE(it, clientGroup->mapClients_.end());
+    ASSERT_NE(it->second, nullptr);
+    EXPECT_EQ(it->second->isShowKeyboard, isShowKeyboard);
+    EXPECT_EQ(it->second->eventFlag, eventFlag);
+    EXPECT_EQ(it->second->config.windowId, config.windowId);
+    EXPECT_EQ(it->second->bindImeType, bindImeType);
+    EXPECT_EQ(it->second->uiExtensionTokenId, uiExtensionTokenId);
+    EXPECT_EQ(it->second->state, state);
+    EXPECT_EQ(it->second->type, type);
 }
 } // namespace MiscServices
 } // namespace OHOS
