@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,27 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_PARAM_CHECK_H
-#define OHOS_PARAM_CHECK_H
-#include <string>
+#ifndef INPUTMETHOD_IMF_TEXT_INPUT_CLIENT_LISTENER_H
+#define INPUTMETHOD_IMF_TEXT_INPUT_CLIENT_LISTENER_H
 
 namespace OHOS {
 namespace MiscServices {
-enum class EventSubscribeModule : uint32_t {
-    MODULE_BEGIN = 0,
-    INPUT_METHOD_CONTROLLER = MODULE_BEGIN,
-    INPUT_METHOD_SETTING,
-    INPUT_METHOD_ABILITY,
-    KEYBOARD_DELEGATE,
-    KEYBOARD_PANEL_MANAGER,
-    PANEL,
-    TEXT_INPUT_CLIENT,
-    MODULE_END,
-};
-class EventChecker {
+class TextInputClientListener {
 public:
-    static bool IsValidEventType(EventSubscribeModule module, const std::string &type);
+    virtual ~TextInputClientListener() = default;
+    virtual void OnAttachOptionsChanged(const AttachOptions &attachOptions) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // OHOS_PARAM_CHECK_H
+#endif // INPUTMETHOD_IMF_TEXT_INPUT_CLIENT_LISTENER_H

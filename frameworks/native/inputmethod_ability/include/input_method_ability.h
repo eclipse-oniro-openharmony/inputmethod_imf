@@ -32,9 +32,11 @@
 #include "input_method_engine_listener.h"
 #include "input_method_panel.h"
 #include "input_method_types.h"
+#include "input_method_utils.h"
 #include "iremote_object.h"
 #include "keyboard_listener.h"
 #include "key_event_consumer_proxy.h"
+#include "text_input_client_listener.h"
 #include "msg_handler_callback_interface.h"
 #include "private_command_interface.h"
 #include "system_cmd_channel_proxy.h"
@@ -56,6 +58,7 @@ public:
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     std::shared_ptr<InputMethodEngineListener> GetImeListener();
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
+    void SetTextInputClientListener(std::shared_ptr<TextInputClientListener> textInputClientListener);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
@@ -97,6 +100,7 @@ public:
     int32_t FinishTextPreview(bool isAsync);
     int32_t NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
+    RequestKeyboardReason GetRequestKeyboardReason();
     void OnSetInputType(InputType inputType);
     int32_t SendMessage(const ArrayBuffer &arrayBuffer);
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
@@ -132,6 +136,7 @@ private:
 
     std::shared_ptr<InputMethodEngineListener> imeListener_;
     std::shared_ptr<KeyboardListener> kdListener_;
+    std::shared_ptr<TextInputClientListener> textInputClientListener_;
 
     static std::mutex instanceLock_;
     static sptr<InputMethodAbility> instance_;
@@ -154,7 +159,7 @@ private:
     void Initialize();
     int32_t InvokeStartInputCallback(bool isNotifyInputStart);
     int32_t InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart);
-
+    bool IsInputClientAttachOptionsChanged(const TextTotalConfig &textConfig);
     int32_t HideKeyboard(Trigger trigger, uint32_t sessionId);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
     /* param flag: ShowPanel is async, show/hide softkeyboard in alphabet keyboard attached,
@@ -164,6 +169,8 @@ private:
         const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger, uint32_t sessionId);
     void SetInputAttribute(const InputAttribute &inputAttribute);
     void ClearInputAttribute();
+    void SetRequestKeyboardReason(RequestKeyboardReason requestKeyboardReason);
+    void ClearRequestKeyboardReason();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
     int32_t HideKeyboardImplWithoutLock(int32_t cmdId, uint32_t sessionId);
     int32_t ShowKeyboardImplWithLock(int32_t cmdId);
@@ -201,6 +208,8 @@ private:
     bool isDefaultIme_ = false;
     std::mutex inputAttrLock_;
     InputAttribute inputAttribute_ {};
+    std::mutex requestKeyboardReasonLock_;
+    RequestKeyboardReason requestKeyboardReason_ = RequestKeyboardReason::NONE;
     std::recursive_mutex keyboardCmdLock_;
     int32_t cmdId_ = 0;
 
