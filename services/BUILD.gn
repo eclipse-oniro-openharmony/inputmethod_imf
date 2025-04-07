@@ -127,6 +127,7 @@ ohos_shared_library("inputmethod_service") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "window_manager:libdm",
     "window_manager:libwsutils",
   ]
 

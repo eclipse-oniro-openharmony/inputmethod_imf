@@ -990,6 +990,7 @@ ohos_unittest("SecurityModeParseTest") {
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "window_manager:libdm",
   ]
 }
 
