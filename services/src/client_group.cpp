@@ -19,6 +19,7 @@
 
 #include "event_status_manager.h"
 #include "identity_checker_impl.h"
+#include "variant_util.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -108,31 +109,31 @@ void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client, const std:
     for (const auto &updateInfo : updateInfos) {
         switch (updateInfo.first) {
             case UpdateFlag::EVENTFLAG: {
-                it->second->eventFlag = std::get<uint32_t>(updateInfo.second);
+                VariantUtil::GetValue(updateInfo.second, it->second->eventFlag);
                 break;
             }
             case UpdateFlag::ISSHOWKEYBOARD: {
-                it->second->isShowKeyboard = std::get<bool>(updateInfo.second);
+                VariantUtil::GetValue(updateInfo.second, it->second->isShowKeyboard);
                 break;
             }
             case UpdateFlag::BINDIMETYPE: {
-                it->second->bindImeType = std::get<ImeType>(updateInfo.second);
+                VariantUtil::GetValue(updateInfo.second, it->second->bindImeType);
                 break;
             }
             case UpdateFlag::STATE: {
-                it->second->state = std::get<ClientState>(updateInfo.second);
+                VariantUtil::GetValue(updateInfo.second, it->second->state);
                 break;
             }
             case UpdateFlag::TEXT_CONFIG: {
-                it->second->config = std::get<TextTotalConfig>(updateInfo.second);
+                VariantUtil::GetValue(updateInfo.second, it->second->config);
                 break;
             }
             case UpdateFlag::UIEXTENSION_TOKENID: {
-                it->second->uiExtensionTokenId = std::get<uint32_t>(updateInfo.second);
+                VariantUtil::GetValue(updateInfo.second, it->second->uiExtensionTokenId);
                 break;
             }
             case UpdateFlag::CLIENT_TYPE: {
-                it->second->type = std::get<ClientType>(updateInfo.second);
+                VariantUtil::GetValue(updateInfo.second, it->second->type);
                 break;
             }
             default:
