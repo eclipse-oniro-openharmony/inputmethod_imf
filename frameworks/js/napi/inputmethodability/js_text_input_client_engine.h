@@ -16,17 +16,21 @@
 #define INTERFACE_KITS_JS_NAPI_INPUTMETHODENGINE_INCLUDE_JS_TEXT_INPUT_CLIENT_H
 
 #include <unordered_map>
+#include <mutex>
 
 #include "async_call.h"
 #include "block_queue.h"
 #include "calling_window_info.h"
 #include "global.h"
+#include "js_callback_object.h"
 #include "js_message_handler_info.h"
 #include "js_util.h"
 #include "msg_handler_callback_interface.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "wm_common.h"
+#include "text_input_client_listener.h"
+#include "input_method_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -57,6 +61,11 @@ struct JsRange {
 struct JsInputAttribute {
     static napi_value Write(napi_env env, const InputAttribute &nativeObject);
     static bool Read(napi_env env, napi_value jsObject, InputAttribute &nativeObject);
+};
+
+struct JsAttachOptions {
+    static napi_value Write(napi_env env, const AttachOptions &attachOptions);
+    static bool Read(napi_env env, napi_value jsObject, AttachOptions &attachOptions);
 };
 
 struct SendKeyFunctionContext : public AsyncCall::Context {
@@ -362,7 +371,7 @@ struct FinishTextPreviewContext : public AsyncCall::Context {
     }
 };
 
-class JsTextInputClientEngine {
+class JsTextInputClientEngine : public TextInputClientListener {
 public:
     JsTextInputClientEngine() = default;
     ~JsTextInputClientEngine() = default;
@@ -398,6 +407,10 @@ public:
     static napi_value FinishTextPreviewSync(napi_env env, napi_callback_info info);
     static napi_value SendMessage(napi_env env, napi_callback_info info);
     static napi_value RecvMessage(napi_env env, napi_callback_info info);
+    static napi_value GetAttachOptions(napi_env env, napi_callback_info info);
+    static napi_value Subscribe(napi_env env, napi_callback_info info);
+    static napi_value UnSubscribe(napi_env env, napi_callback_info info);
+    void OnAttachOptionsChanged(const AttachOptions &attachOptions) override;
     class JsMessageHandler : public MsgHandlerCallbackInterface {
     public:
         explicit JsMessageHandler(napi_env env, napi_value onTerminated, napi_value onMessage)
@@ -415,12 +428,31 @@ private:
     static napi_status GetSelectMovement(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
 
     static napi_value JsConstructor(napi_env env, napi_callback_info info);
+    static std::shared_ptr<JsTextInputClientEngine> GetTextInputClientEngine();
+    static bool InitTextInputClientEngine();
     static napi_value GetResult(napi_env env, std::string &text);
     static napi_value GetResultEditorAttribute(napi_env env,
         std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
     static napi_value HandleParamCheckFailure(napi_env env);
     static napi_status GetPreviewTextParam(napi_env env, size_t argc, napi_value *argv, std::string &text,
         Range &range);
+    void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
+    void UnRegisterListener(napi_value callback, std::string type);
+
+    struct UvEntry {
+        std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
+        std::string type;
+        AttachOptions attachOptions;
+        explicit UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
+            : vecCopy(cbVec), type(type)
+        {
+        }
+    };
+    using EntrySetter = std::function<void(UvEntry &)>;
+    static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
+    std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
+    std::recursive_mutex mutex_;
+    std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
 
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;
@@ -434,6 +466,10 @@ private:
     static uint32_t traceId_;
 
     static BlockQueue<MessageHandlerInfo> messageHandlerQueue_;
+    static std::mutex engineMutex_;
+    static std::shared_ptr<JsTextInputClientEngine> textInputClientEngine_;
+    static std::mutex eventHandlerMutex_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

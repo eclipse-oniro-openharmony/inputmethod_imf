@@ -235,6 +235,10 @@ bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
         IMSA_HILOGE("write privateCommand to message parcel failed.");
         return false;
     }
+    if (!Marshal(data, input.requestKeyboardReason)) {
+        IMSA_HILOGE("write requestKeyboardReason to message parcel failed.");
+        return false;
+    }
     return true;
 }
 
@@ -268,6 +272,10 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
     }
     if (!Unmarshal(data, output.privateCommand)) {
         IMSA_HILOGE("read privateCommand from message parcel failed.");
+        return false;
+    }
+    if (!Unmarshal(data, output.requestKeyboardReason)) {
+        IMSA_HILOGE("read requestKeyboardReason from message parcel failed.");
         return false;
     }
     return true;

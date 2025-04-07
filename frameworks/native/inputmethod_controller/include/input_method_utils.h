@@ -317,6 +317,13 @@ struct KeyEventValue : public Parcelable {
     std::shared_ptr<MMI::KeyEvent> event;
 };
 
+enum class RequestKeyboardReason : int32_t {
+    NONE = 0,          // no event reason
+    MOUSE = 1,         // user triggered mouse event
+	TOUCH = 2,         // user triggered touch event
+    OTHER = 20         // other reason
+};
+
 struct TextTotalConfig {
 public:
     InputAttribute inputAttribute = {};
@@ -326,6 +333,7 @@ public:
     double positionY = 0;
     double height = 0;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
+    RequestKeyboardReason requestKeyboardReason = RequestKeyboardReason::NONE;
 
     std::string ToString() const
     {
@@ -495,13 +503,6 @@ struct ArrayBuffer : public Parcelable {
     bool ReadFromParcel(Parcel &in);
     bool Marshalling(Parcel &out) const;
     static ArrayBuffer *Unmarshalling(Parcel &in);
-};
-
-enum class RequestKeyboardReason : int32_t {
-    NONE = 0,          // no event reason
-    MOUSE = 1,         // user triggered mouse event
-	TOUCH = 2,         // user triggered touch event
-    OTHER = 20         // other reason
 };
 
 struct AttachOptions {

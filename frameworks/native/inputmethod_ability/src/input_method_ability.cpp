@@ -238,6 +238,14 @@ void InputMethodAbility::SetKdListener(std::shared_ptr<KeyboardListener> kdListe
     }
 }
 
+void InputMethodAbility::SetTextInputClientListener(std::shared_ptr<TextInputClientListener> textInputClientListener)
+{
+    IMSA_HILOGD("InputMethodAbility start.");
+    if (textInputClientListener_ == nullptr) {
+        textInputClientListener_ = std::move(textInputClientListener);
+    }
+}
+
 void InputMethodAbility::OnInitInputControlChannel(sptr<IRemoteObject> channelObj)
 {
     IMSA_HILOGD("InputMethodAbility::OnInitInputControlChannel start.");
@@ -335,6 +343,7 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject, uint32_
     HideKeyboardImplWithoutLock(cmdCount, sessionId);
     ClearDataChannel(channelObject);
     ClearInputAttribute();
+    ClearRequestKeyboardReason();
     ClearInputType();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
@@ -550,6 +559,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
+    IsInputClientAttachOptionsChanged(textConfig);
     if (isNotifyInputStart) {
         imeListener_->OnInputStart();
     }
@@ -575,6 +585,21 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
     return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodAbility::IsInputClientAttachOptionsChanged(const TextTotalConfig &textConfig)
+{
+    if (textInputClientListener_ != nullptr) {
+        RequestKeyboardReason requestKeyboardReason = textConfig.requestKeyboardReason;
+        if (requestKeyboardReason != GetRequestKeyboardReason()) {
+            AttachOptions attachOptions;
+            attachOptions.requestKeyboardReason = requestKeyboardReason;
+            textInputClientListener_->OnAttachOptionsChanged(attachOptions);
+            SetRequestKeyboardReason(requestKeyboardReason);
+            return true;
+        }
+    }
+    return false;
 }
 
 int32_t InputMethodAbility::InsertTextInner(const std::string &text)
@@ -1089,6 +1114,24 @@ InputAttribute InputMethodAbility::GetInputAttribute()
 {
     std::lock_guard<std::mutex> lock(inputAttrLock_);
     return inputAttribute_;
+}
+
+void InputMethodAbility::SetRequestKeyboardReason(RequestKeyboardReason requestKeyboardReason)
+{
+    std::lock_guard<std::mutex> lock(requestKeyboardReasonLock_);
+    requestKeyboardReason_ = requestKeyboardReason;
+}
+
+void InputMethodAbility::ClearRequestKeyboardReason()
+{
+    std::lock_guard<std::mutex> lock(requestKeyboardReasonLock_);
+    requestKeyboardReason_ = RequestKeyboardReason::NONE;
+}
+
+RequestKeyboardReason InputMethodAbility::GetRequestKeyboardReason()
+{
+    std::lock_guard<std::mutex> lock(requestKeyboardReasonLock_);
+    return requestKeyboardReason_;
 }
 
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger, uint32_t sessionId)

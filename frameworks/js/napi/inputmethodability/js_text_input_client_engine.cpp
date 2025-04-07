@@ -15,8 +15,10 @@
 
 #include "js_text_input_client_engine.h"
 
+#include "event_checker.h"
 #include "input_method_ability.h"
 #include "inputmethod_trace.h"
+#include "js_callback_handler.h"
 #include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
@@ -38,6 +40,10 @@ constexpr size_t ARGC_ONE = 1;
 std::shared_ptr<AsyncCall::TaskQueue> JsTextInputClientEngine::taskQueue_ = std::make_shared<AsyncCall::TaskQueue>();
 BlockQueue<PrivateCommandInfo> JsTextInputClientEngine::privateCommandQueue_{ MAX_WAIT_TIME_PRIVATE_COMMAND };
 BlockQueue<MessageHandlerInfo> JsTextInputClientEngine::messageHandlerQueue_{ MAX_WAIT_TIME_MESSAGE_HANDLER };
+std::mutex JsTextInputClientEngine::engineMutex_;
+std::shared_ptr<JsTextInputClientEngine> JsTextInputClientEngine::textInputClientEngine_{ nullptr };
+std::mutex JsTextInputClientEngine::eventHandlerMutex_;
+std::shared_ptr<AppExecFwk::EventHandler> JsTextInputClientEngine::handler_{ nullptr };
 uint32_t JsTextInputClientEngine::traceId_{ 0 };
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
 {
@@ -68,7 +74,10 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("finishTextPreview", FinishTextPreview),
         DECLARE_NAPI_FUNCTION("finishTextPreviewSync", FinishTextPreviewSync),
         DECLARE_NAPI_FUNCTION("sendMessage", SendMessage),
-        DECLARE_NAPI_FUNCTION("recvMessage", RecvMessage), };
+        DECLARE_NAPI_FUNCTION("recvMessage", RecvMessage),
+        DECLARE_NAPI_FUNCTION("getAttachOptions", GetAttachOptions),
+        DECLARE_NAPI_FUNCTION("on", Subscribe),
+        DECLARE_NAPI_FUNCTION("off", UnSubscribe) };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
@@ -133,27 +142,53 @@ napi_value JsTextInputClientEngine::JsConstructor(napi_env env, napi_callback_in
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
 
-    JsTextInputClientEngine *clientObject = new (std::nothrow) JsTextInputClientEngine();
-    if (clientObject == nullptr) {
+    auto clientObject = GetTextInputClientEngine();
+    if (clientObject == nullptr || !InitTextInputClientEngine()) {
         IMSA_HILOGE("clientObject is nullptr!");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
-    auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGD("finalize.");
-        auto *objInfo = reinterpret_cast<JsTextInputClientEngine *>(data);
-        if (objInfo != nullptr) {
-            delete objInfo;
-        }
-    };
-    napi_status status = napi_wrap(env, thisVar, clientObject, finalize, nullptr, nullptr);
+    napi_status status =
+        napi_wrap(env, thisVar, clientObject.get(), [](napi_env env, void *data, void *hint) { }, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("failed to wrap: %{public}d!", status);
-        delete clientObject;
         return nullptr;
     }
     return thisVar;
+}
+
+std::shared_ptr<JsTextInputClientEngine> JsTextInputClientEngine::GetTextInputClientEngine()
+{
+    if (textInputClientEngine_ == nullptr) {
+        std::lock_guard<std::mutex> lock(engineMutex_);
+        if (textInputClientEngine_ == nullptr) {
+            auto engine = std::make_shared<JsTextInputClientEngine>();
+            if (engine == nullptr) {
+                IMSA_HILOGE("create engine failed!");
+                return nullptr;
+            }
+            textInputClientEngine_ = engine;
+        }
+    }
+    return textInputClientEngine_;
+}
+
+bool JsTextInputClientEngine::InitTextInputClientEngine()
+{
+    if (!InputMethodAbility::GetInstance()->IsCurrentIme()) {
+        return false;
+    }
+    auto engine = GetTextInputClientEngine();
+    if (engine == nullptr) {
+        return false;
+    }
+    InputMethodAbility::GetInstance()->SetTextInputClientListener(engine);
+    {
+        std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+        handler_ = AppExecFwk::EventHandler::Current();
+    }
+    return true;
 }
 
 napi_value JsTextInputClientEngine::GetTextInputClientInstance(napi_env env)
@@ -899,6 +934,54 @@ napi_status JsTextInputClientEngine::GetPreviewTextParam(napi_env env, size_t ar
     return napi_ok;
 }
 
+void JsTextInputClientEngine::RegisterListener(napi_value callback, std::string type,
+    std::shared_ptr<JSCallbackObject> callbackObj)
+{
+    IMSA_HILOGD("register listener: %{public}s.", type.c_str());
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
+        IMSA_HILOGD("methodName: %{public}s not registered!", type.c_str());
+    }
+    auto callbacks = jsCbMap_[type];
+    bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
+        return JsUtils::Equals(cb->env_, callback, cb->callback_, cb->threadId_);
+    });
+    if (ret) {
+        IMSA_HILOGD("JsTextInputClientEngine callback already registered!");
+        return;
+    }
+
+    IMSA_HILOGI("add %{public}s callbackObj into jsCbMap_.", type.c_str());
+    jsCbMap_[type].push_back(std::move(callbackObj));
+}
+
+void JsTextInputClientEngine::UnRegisterListener(napi_value callback, std::string type)
+{
+    IMSA_HILOGI("unregister listener: %{public}s.", type.c_str());
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
+        IMSA_HILOGE("methodName: %{public}s already unregistered!", type.c_str());
+        return;
+    }
+
+    if (callback == nullptr) {
+        jsCbMap_.erase(type);
+        IMSA_HILOGE("callback is nullptr.");
+        return;
+    }
+
+    for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
+        if (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
+            jsCbMap_[type].erase(item);
+            break;
+        }
+    }
+
+    if (jsCbMap_[type].empty()) {
+        jsCbMap_.erase(type);
+    }
+}
+
 napi_value JsRect::Write(napi_env env, const Rosen::Rect &nativeObject)
 {
     napi_value jsObject = nullptr;
@@ -989,6 +1072,23 @@ bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &n
     return ret;
 }
 
+napi_value JsAttachOptions::Write(napi_env env, const AttachOptions &attachOptions)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(
+        env, jsObject, "requestKeyboardReason", static_cast<uint32_t>(attachOptions.requestKeyboardReason));
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsAttachOptions::Read(napi_env env, napi_value jsObject, AttachOptions &attachOptions)
+{
+    uint32_t requestKeyboardReason = static_cast<uint32_t>(RequestKeyboardReason::NONE);
+    auto ret = JsUtil::Object::ReadProperty(env, jsObject, "requestKeyboardReason", requestKeyboardReason);
+    attachOptions.requestKeyboardReason = static_cast<RequestKeyboardReason>(requestKeyboardReason);
+    return ret;
+}
+
 napi_value JsTextInputClientEngine::SendMessage(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<SendMessageContext>();
@@ -1075,6 +1175,131 @@ napi_value JsTextInputClientEngine::RecvMessage(napi_env env, napi_callback_info
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
+}
+
+void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attachOptions)
+{
+    std::string type = "attachOptionsChanged";
+    auto entry = GetEntry(type, [&attachOptions](UvEntry &entry) {
+        entry.attachOptions.requestKeyboardReason = attachOptions.requestKeyboardReason;
+    });
+    if (entry == nullptr) {
+        IMSA_HILOGE("failed to get uv entry!");
+        return;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    auto task = [entry]() {
+        auto gitAttachOptionsParams = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
+            }
+            napi_value attachOptions = JsAttachOptions::Write(env, entry->attachOptions);
+            // 0 means the first param of callback.
+            args[0] = { attachOptions };
+            return true;
+        };
+        JsCallbackHandler::Traverse({ entry->vecCopy }, { 1, gitAttachOptionsParams });
+    };
+    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+}
+
+napi_value JsTextInputClientEngine::GetAttachOptions(napi_env env, napi_callback_info info)
+{
+    AttachOptions attachOptions;
+    attachOptions.requestKeyboardReason = InputMethodAbility::GetInstance()->GetRequestKeyboardReason();
+    return JsAttachOptions::Write(env, attachOptions);
+}
+
+napi_value JsTextInputClientEngine::Subscribe(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = { nullptr };
+    napi_value thisVar = nullptr;
+    void *data = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
+    std::string type;
+    // 2 means least param num.
+    if (argc < ARGC_TWO || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::TEXT_INPUT_CLIENT, type) ||
+        JsUtil::GetType(env, argv[1]) != napi_function) {
+        IMSA_HILOGE("subscribe failed, type: %{public}s.", type.c_str());
+        return nullptr;
+    }
+    IMSA_HILOGD("subscribe type:%{public}s.", type.c_str());
+    auto engine = reinterpret_cast<JsTextInputClientEngine *>(JsUtils::GetNativeSelf(env, info));
+    if (engine == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<JSCallbackObject> callback =
+        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id(),
+            AppExecFwk::EventHandler::Current());
+    engine->RegisterListener(argv[ARGC_ONE], type, callback);
+
+    napi_value result = nullptr;
+    napi_get_null(env, &result);
+    return result;
+}
+
+napi_value JsTextInputClientEngine::UnSubscribe(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = { nullptr };
+    napi_value thisVar = nullptr;
+    void *data = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
+    std::string type;
+    // 1 means least param num.
+    if (argc < ARGC_ONE || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::TEXT_INPUT_CLIENT, type)) {
+        IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
+        return nullptr;
+    }
+    // if the second param is not napi_function/napi_null/napi_undefined, return
+    auto paramType = JsUtil::GetType(env, argv[1]);
+    if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
+        return nullptr;
+    }
+    // if the second param is napi_function, delete it, else delete all
+    argv[1] = paramType == napi_function ? argv[1] : nullptr;
+
+    IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());
+    auto setting = reinterpret_cast<JsTextInputClientEngine *>(JsUtils::GetNativeSelf(env, info));
+    if (setting == nullptr) {
+        return nullptr;
+    }
+    setting->UnRegisterListener(argv[ARGC_ONE], type);
+    napi_value result = nullptr;
+    napi_get_null(env, &result);
+    return result;
+}
+
+std::shared_ptr<AppExecFwk::EventHandler> JsTextInputClientEngine::GetEventHandler()
+{
+    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+    return handler_;
+}
+
+std::shared_ptr<JsTextInputClientEngine::UvEntry> JsTextInputClientEngine::GetEntry(
+    const std::string &type, EntrySetter entrySetter)
+{
+    IMSA_HILOGD("type: %{public}s.", type.c_str());
+    std::shared_ptr<UvEntry> entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
+            return nullptr;
+        }
+        entry = std::make_shared<UvEntry>(jsCbMap_[type], type);
+    }
+    if (entrySetter != nullptr) {
+        entrySetter(*entry);
+    }
+    return entry;
 }
 
 int32_t JsTextInputClientEngine::JsMessageHandler::OnTerminated()
