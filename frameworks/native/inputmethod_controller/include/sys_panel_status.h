@@ -28,6 +28,7 @@ struct SysPanelStatus {
     int32_t flag = FLG_FIXED;
     uint32_t width = 0;
     uint32_t height = 0;
+    bool isMainDisplay = true;
 };
 } // namespace MiscServices
 } // namespace OHOS

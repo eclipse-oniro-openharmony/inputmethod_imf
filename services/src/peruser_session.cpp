@@ -28,12 +28,14 @@
 #include "security_mode_parser.h"
 #include "system_ability_definition.h"
 #include "wms_connection_observer.h"
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
 using namespace MessageID;
 using namespace OHOS::AppExecFwk;
+using namespace OHOS::Rosen;
 constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
 constexpr const char *STRICT_MODE = "strictMode";
@@ -66,12 +68,14 @@ int PerUserSession::AddClientInfo(sptr<IRemoteObject> inputClient, const InputCl
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
         IMSA_HILOGD("info is existed.");
-        if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID &&
-            clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
-            UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
+        if (event == PREPARE_INPUT) {
+            if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID &&
+                clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
+                UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
+            }
+            UpdateClientInfo(inputClient,
+                { { UpdateFlag::TEXT_CONFIG, clientInfo.config }, { UpdateFlag::CLIENT_TYPE, clientInfo.type } });
         }
-        UpdateClientInfo(inputClient,
-            { { UpdateFlag::TEXT_CONFIG, clientInfo.config }, { UpdateFlag::CLIENT_TYPE, clientInfo.type } });
         if (event == START_LISTENING) {
             UpdateClientInfo(inputClient, { { UpdateFlag::EVENTFLAG, clientInfo.eventFlag } });
         }
@@ -1289,11 +1293,24 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId, sptr<IInput
         IMSA_HILOGE("nullptr clientInfo!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    // if windowId change, refresh windowId info and notify clients input start;
-    if (clientInfo->config.windowId != callingWindowId) {
-        IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
-        clientInfo->config.windowId = callingWindowId;
-        return NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    if (clientInfo->config.windowId == callingWindowId) {
+        return ErrorCode::NO_ERROR;
+    }
+    InputClientInfo clientInfoTmp = *clientInfo;
+    clientInfoTmp.config.windowId = callingWindowId;
+    auto callingWindowInfo = GetCallingWindowInfo(clientInfoTmp);
+    if (callingWindowInfo.windowId == clientInfo->config.windowId) {
+        return ErrorCode::NO_ERROR;
+    }
+    clientInfo->config.windowId = callingWindowInfo.windowId;
+    clientInfo->config.inputAttribute.windowId = callingWindowInfo.windowId;
+    bool isNotifyDisplayChanged = clientInfo->config.inputAttribute.callingDisplayId != callingWindowInfo.displayId
+                                  && SceneBoardJudgement::IsSceneBoardEnabled();
+    clientInfo->config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
+    IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
+    NotifyInputStartToClients(callingWindowInfo.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    if (isNotifyDisplayChanged) {
+        NotifyCallingDisplayChanged(callingWindowInfo.displayId);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -2013,6 +2030,81 @@ void PerUserSession::TryUnloadSystemAbility()
 
     auto onDemandStartStopSa = std::make_shared<OnDemandStartStopSa>();
     onDemandStartStopSa->UnloadInputMethodSystemAbility();
+}
+
+void PerUserSession::OnCallingDisplayIdChanged(
+    const int32_t windowId, const int32_t callingPid, const uint64_t displayId)
+{
+    IMSA_HILOGD("enter!windowId:%{public}d,callingPid:%{public}d,displayId:%{public}" PRIu64 "", windowId,
+        callingPid, displayId);
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (clientInfo == nullptr) {
+        IMSA_HILOGD("clientInfo is null");
+        return;
+    }
+    IMSA_HILOGD("userId:%{public}d, windowId:%{public}d", userId_, clientInfo->config.windowId);
+    if (clientInfo->config.windowId != static_cast<uint32_t>(windowId)) {
+        return;
+    }
+    uint64_t curDisplay = clientInfo->config.inputAttribute.callingDisplayId;
+    if (curDisplay == displayId) {
+        return;
+    }
+    clientInfo->config.inputAttribute.callingDisplayId = displayId;
+    NotifyCallingDisplayChanged(displayId);
+}
+
+int32_t PerUserSession::NotifyCallingDisplayChanged(uint64_t displayId)
+{
+    IMSA_HILOGD("enter displayId:%{public}" PRIu64 "", displayId);
+    auto data = GetValidIme(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    auto callBack = [&data, displayId]() -> int32_t {
+        data->core->OnCallingDisplayIdChanged(displayId);
+        return ErrorCode::NO_ERROR;
+    };
+    auto ret = RequestIme(data, RequestType::NORMAL, callBack);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("notify calling window display changed failed, ret: %{public}d!", ret);
+    }
+    return ret;
+}
+
+ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo)
+{
+    ImfCallingWindowInfo finalWindowInfo{ clientInfo.config.windowId, 0 };
+    if (!SceneBoardJudgement::IsSceneBoardEnabled()) {
+        return finalWindowInfo;
+    }
+    CallingWindowInfo callingWindowInfo;
+    if (GetCallingWindowInfo(clientInfo, callingWindowInfo)) {
+        finalWindowInfo.displayId = callingWindowInfo.displayId_;
+        return finalWindowInfo;
+    }
+    FocusChangeInfo focusInfo;
+    WindowAdapter::GetFocusInfo(focusInfo);
+    if (!WindowAdapter::GetCallingWindowInfo(focusInfo.windowId_, userId_, callingWindowInfo)) {
+        IMSA_HILOGE("GetCallingWindowInfo error!");
+        return finalWindowInfo;
+    }
+    // The value set from the IMC is used and does not need to be modified on the service side
+    return { clientInfo.config.windowId, callingWindowInfo.displayId_ };
+}
+
+bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, CallingWindowInfo &callingWindowInfo)
+{
+    auto windowId = clientInfo.config.windowId;
+    if (windowId == INVALID_WINDOW_ID) {
+        return false;
+    }
+    if (!WindowAdapter::GetCallingWindowInfo(windowId, userId_, callingWindowInfo)) {
+        return false;
+    }
+    return !(callingWindowInfo.callingPid_ != clientInfo.pid && clientInfo.uiExtensionTokenId == IMF_INVALID_TOKENID);
 }
 } // namespace MiscServices
 } // namespace OHOS

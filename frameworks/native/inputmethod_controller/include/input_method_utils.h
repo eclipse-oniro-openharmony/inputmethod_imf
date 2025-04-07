@@ -338,7 +338,10 @@ struct AttachOptions {
     bool isShowKeyboard = false;
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
 };
-
+struct ImfCallingWindowInfo {
+    uint32_t windowId = INVALID_WINDOW_ID;
+    uint64_t displayId = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

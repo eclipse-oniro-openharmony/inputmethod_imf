@@ -57,7 +57,7 @@ public:
     void OnSecurityChange(int32_t security) override;
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool PostTaskToEventHandler(std::function<void()> task, const std::string &taskName) override;
-
+    void OnCallingDisplayIdChanged(uint64_t callingDisplayId) override;
 private:
     struct PanelContext : public AsyncCall::Context {
         PanelInfo panelInfo = PanelInfo();
@@ -104,6 +104,7 @@ private:
         uint32_t windowid = 0;
         int32_t security = 0;
         SubProperty subProperty;
+        uint64_t callingDisplayId = 0;
         std::unordered_map<std::string, PrivateDataValue> privateCommand;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)

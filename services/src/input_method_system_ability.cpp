@@ -37,6 +37,7 @@
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 #include "on_demand_start_stop_sa.h"
 #endif
+#include "window_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -544,6 +545,15 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
         clientInfo.uiExtensionTokenId = tokenId;
     }
     clientInfo.name = ImfHiSysEventUtil::GetAppName(tokenId);
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session != nullptr) {
+        auto callingWindowInfo = session->GetCallingWindowInfo(clientInfo);
+        clientInfo.config.windowId = callingWindowInfo.windowId;
+        clientInfo.config.inputAttribute.windowId = callingWindowInfo.windowId;
+        clientInfo.config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
+        IMSA_HILOGD("result:%{public}s,wid:%{public}d", clientInfo.config.inputAttribute.ToString().c_str(),
+            clientInfo.config.windowId);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1752,6 +1762,22 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
     FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
         [this](bool isOnFocused, int32_t pid, int32_t uid) { HandleFocusChanged(isOnFocused, pid, uid); });
 }
+void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
+{
+    IMSA_HILOGD("enter.");
+    auto callBack = [this](OHOS::Rosen::CallingWindowInfo callingWindowInfo) {
+        IMSA_HILOGD("WindowDisplayChanged callbak.");
+        int32_t userId = callingWindowInfo.userId_;
+        auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+        if (session == nullptr) {
+            IMSA_HILOGE("[%{public}d] session is nullptr!", userId);
+            return;
+        };
+        session->OnCallingDisplayIdChanged(
+            callingWindowInfo.windowId_, callingWindowInfo.callingPid_, callingWindowInfo.displayId_);
+    };
+    WindowAdapter::GetInstance().RegisterCallingWindowInfoChangedListener(callBack);
+}
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
 {
@@ -2030,6 +2056,7 @@ void InputMethodSystemAbility::HandleWmsStarted()
     if (isScbEnable_.load()) {
         IMSA_HILOGI("scb enable, register WMS connection listener.");
         InitWmsConnectionMonitor();
+        InitWindowDisplayChangedMonitor();
         return;
     }
     // clear client

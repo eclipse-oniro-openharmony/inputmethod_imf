@@ -207,8 +207,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
         IMSA_HILOGE("channelObject is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    IMSA_HILOGI(
-        "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
+    IMSA_HILOGI("IMA showKeyboard:%{public}d,bindFromClient:%{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
     if (clientInfo.needHide) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
@@ -220,6 +219,8 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     {
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.bundleName = clientInfo.config.inputAttribute.bundleName;
+        inputAttribute_.windowId = clientInfo.config.windowId;
+        inputAttribute_.callingDisplayId = clientInfo.config.inputAttribute.callingDisplayId;
     }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart) :
                                      InvokeStartInputCallback(clientInfo.isNotifyInputStart);
@@ -322,6 +323,10 @@ int32_t InputMethodAbility::DispatchKeyEvent(
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)
 {
     IMSA_HILOGD("InputMethodAbility windowId: %{public}d.", windowId);
+    {
+        std::lock_guard<std::mutex> lock(inputAttrLock_);
+        inputAttribute_.windowId = windowId;
+    }
     panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         panel->SetCallingWindow(windowId);
         return false;
@@ -362,6 +367,8 @@ void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
     }
     IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d.", attribute.enterKeyType, attribute.inputPattern);
     attribute.bundleName = GetInputAttribute().bundleName;
+    attribute.windowId = GetInputAttribute().windowId;
+    attribute.callingDisplayId = GetInputAttribute().callingDisplayId;
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();
@@ -487,7 +494,17 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
+    auto task = [this, textConfig]() {
+        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
+            if (panel != nullptr) {
+                panel->SetCallingWindow(textConfig.windowId, true);
+            }
+            return false;
+        });
+    };
+    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     SetInputAttribute(textConfig.inputAttribute);
+    IMSA_HILOGD("attribute info:%{public}s", textConfig.inputAttribute.ToString().c_str());
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
@@ -512,13 +529,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
                 textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
     }
-    auto task = [this, textConfig]() {
-        panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
-            panel->SetCallingWindow(textConfig.windowId);
-            return false;
-        });
-    };
-    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     if (textConfig.windowId != INVALID_WINDOW_ID) {
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
@@ -701,6 +711,8 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
     auto ret = channel->GetTextConfig(textConfig);
     if (ret == ErrorCode::NO_ERROR) {
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
+        textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
+        textConfig.inputAttribute.windowId = textConfig.windowId;
     }
     return ret;
 }
@@ -997,6 +1009,10 @@ int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatu
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
+        sysPanelStatus.isMainDisplay = panel->IsInMainDisplay();
     }
     return systemChannel->NotifyPanelStatus(sysPanelStatus);
 }
@@ -1541,6 +1557,36 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
                         .Build();
     ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *evenInfo);
     IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
+}
+
+int32_t InputMethodAbility::OnCallingDisplayIdChanged(uint64_t displayId)
+{
+    IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64".", displayId);
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGD("imeListener_ is nullptr!");
+        return ErrorCode::NO_ERROR;
+    }
+    auto windowId = GetInputAttribute().windowId;
+    auto task = [this, windowId]() {
+        panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+            if (panel != nullptr) {
+                panel->SetCallingWindow(windowId, true);
+            }
+            return false;
+        });
+    };
+    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
+    {
+        std::lock_guard<std::mutex> lock(inputAttrLock_);
+        inputAttribute_.callingDisplayId = displayId;
+    }
+    imeListener_->OnCallingDisplayIdChanged(displayId);
+    return ErrorCode::NO_ERROR;
+}
+
+uint64_t InputMethodAbility::GetCallingWindowDisplayId()
+{
+    return GetInputAttribute().callingDisplayId;
 }
 } // namespace MiscServices
 } // namespace OHOS

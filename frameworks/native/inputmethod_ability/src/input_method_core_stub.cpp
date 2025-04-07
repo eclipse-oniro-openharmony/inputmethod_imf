@@ -271,5 +271,17 @@ int32_t InputMethodCoreStub::IsPanelShown(const PanelInfo &panelInfo, bool &isSh
 
 void InputMethodCoreStub::OnClientInactive(const sptr<IRemoteObject> &channel) { }
 
+void InputMethodCoreStub::OnCallingDisplayIdChanged(uint64_t dispalyId) { }
+
+int32_t InputMethodCoreStub::OnCallingDisplayChangeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t displayId = 0;
+    if (!ITypesUtil::Unmarshal(data, displayId)) {
+        IMSA_HILOGE("unmarshal failed!");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = InputMethodAbility::GetInstance()->OnCallingDisplayIdChanged(displayId);
+    return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
 } // namespace MiscServices
 } // namespace OHOS

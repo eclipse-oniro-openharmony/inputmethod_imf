@@ -113,6 +113,12 @@ public:
         {
             IMSA_HILOGI("InputMethodEngineListenerImpl ReceivePrivateCommand");
         }
+
+        void OnCallingDisplayIdChanged(uint64_t callingDisplayId)
+        {
+            IMSA_HILOGI("InputMethodEngineListenerImpl OnCallingDisplayIdChanged displayId:%{public}" PRIu64"",
+                callingDisplayId);
+        }
     };
 
     static void SetUpTestCase(void)
@@ -1525,6 +1531,30 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     EXPECT_FALSE(ret2);
     ret2 = imsa_->IsStartInputTypePermitted(vailidUserId);
     EXPECT_FALSE(ret2);
+}
+
+/**
+ * @tc.name: testOnCallingDisplayIdChanged
+ * @tc.desc: Test InputMethodCoreProxy OnCallingDisplayIdChanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testOnCallingDisplayIdChanged, TestSize.Level0)
+{
+    IMSA_HILOGI("testOnCallingDisplayIdChanged start.");
+    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub();
+    sptr<IInputMethodCore> core = coreStub;
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    MessageParcel data;
+    data.WriteRemoteObject(core->AsObject());
+    sptr<IRemoteObject> coreObject = data.ReadRemoteObject();
+    sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
+    if (coreProxy == nullptr) {
+        IMSA_HILOGI("coreProxy is null");
+        return;
+    }
+    coreProxy->OnCallingDisplayIdChanged(0);
+    EXPECT_TRUE(coreProxy != nullptr);
 }
 } // namespace MiscServices
 } // namespace OHOS

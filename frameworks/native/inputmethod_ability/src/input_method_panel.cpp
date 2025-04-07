@@ -43,6 +43,8 @@ constexpr int32_t DEFAULT_AVOID_HEIGHT = -1;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_ { 0 };
 constexpr int32_t MAXWAITTIME = 30;
 constexpr int32_t WAITTIME = 10;
+constexpr uint32_t INTERVAL_TIME = 5;
+constexpr uint32_t RETRY_TIMES = 4;
 InputMethodPanel::~InputMethodPanel() = default;
 
 int32_t InputMethodPanel::CreatePanel(
@@ -539,11 +541,13 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
         return ErrorCode::ERROR_INVALID_PANEL_TYPE;
     }
     FullPanelAdjustInfo adjustInfo;
-    auto ret = GetAdjustInfo(panelFlag, adjustInfo);
-    if (ret != ErrorCode::NO_ERROR) {
-        return ret;
+    if (IsNeedConfig()) {
+        auto ret = GetAdjustInfo(panelFlag, adjustInfo);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
     }
-    ret = ParseEnhancedParams(panelFlag, adjustInfo, params);
+    auto ret = ParseEnhancedParams(panelFlag, adjustInfo, params);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
@@ -1063,11 +1067,11 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
     PanelAdjustInfo &porIterValue, const LayoutParams &layoutParams)
 {
     auto instance = InputMethodAbility::GetInstance();
-    if (instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) {
+    if (!IsNeedConfig()) {
         IMSA_HILOGI("The security keyboard is handled according to no configuration file");
         return CalculateNoConfigRect(panelFlag, layoutParams);
     }
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    auto defaultDisplay = GetCurDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed!");
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
@@ -1306,7 +1310,7 @@ int32_t InputMethodPanel::HidePanel()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
+int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId, bool needWait)
 {
     IMSA_HILOGD("InputMethodPanel start, windowId: %{public}d.", windowId);
     if (window_ == nullptr) {
@@ -1314,6 +1318,25 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
     auto ret = window_->SetCallingWindow(windowId);
+    if (needWait) {
+        IMSA_HILOGD("retry start.");
+        bool blockRet = BlockRetry(INTERVAL_TIME, RETRY_TIMES, [this]()->bool {
+            uint64_t displayId = 0;
+            auto ret = GetDisplayId(displayId);
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("GetDisplayId ret:%{public}d", ret);
+                return true;
+            }
+            auto callingDisplayId = InputMethodAbility::GetInstance()->GetInputAttribute().callingDisplayId;
+            if (displayId == callingDisplayId) {
+                return true;
+            }
+            IMSA_HILOGI("retry, dispalyId:%{public}" PRIu64", calingDisplayId:%{public}" PRIu64"",
+                displayId, callingDisplayId);
+            return false;
+        });
+        IMSA_HILOGD("retry ret: %{public}d.", blockRet);
+    }
     IMSA_HILOGI("ret: %{public}d, windowId: %{public}u", ret, windowId);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_WINDOW_MANAGER;
 }
@@ -1549,7 +1572,7 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
         IMSA_HILOGE("width or height over maximum!");
         return false;
     }
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    auto defaultDisplay = GetCurDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed!");
         return false;
@@ -1704,7 +1727,7 @@ void InputMethodPanel::HandleKbPanelInfoChange(const KeyboardPanelInfo &keyboard
 
 bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
 {
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    auto defaultDisplay = GetCurDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed!");
         return false;
@@ -1722,7 +1745,7 @@ bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
 
 bool InputMethodPanel::IsDisplayPortrait()
 {
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    auto defaultDisplay = GetCurDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed!");
         return false;
@@ -1774,7 +1797,7 @@ void InputMethodPanel::SetPanelHeightCallback(CallbackFunc heightCallback)
 
 int32_t InputMethodPanel::GetDensityDpi(float &densityDpi)
 {
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    auto defaultDisplay = GetCurDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
@@ -1794,7 +1817,7 @@ int32_t InputMethodPanel::GetDensityDpi(float &densityDpi)
 
 int32_t InputMethodPanel::GetDisplaySize(DisplaySize &size)
 {
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    auto defaultDisplay = GetCurDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
@@ -1860,6 +1883,54 @@ HotAreas InputMethodPanel::GetHotAreas()
 {
     std::lock_guard<std::mutex> lock(hotAreasLock_);
     return hotAreas_;
+}
+
+
+sptr<Rosen::Display> InputMethodPanel::GetCurDisplay()
+{
+    IMSA_HILOGD("enter!!");
+    uint64_t displayId = Rosen::DISPLAY_ID_INVALID;
+    auto ret = GetDisplayId(displayId);
+    sptr<Rosen::Display> displayInfo = nullptr;
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("get window displayId err:%{public}d!", ret);
+        displayInfo = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    } else {
+        displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
+        if (displayInfo == nullptr) {
+            IMSA_HILOGE("get display info err:%{public}" PRIu64"!", displayId);
+            displayInfo = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+        }
+    }
+    return displayInfo;
+}
+
+bool InputMethodPanel::IsInMainDisplay()
+{
+    IMSA_HILOGD("enter!!");
+    uint64_t displayId = 0;
+    auto ret = GetDisplayId(displayId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetDisplayId err:%{public}d!", ret);
+        return true;
+    }
+    auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    if (primaryDisplay == nullptr) {
+        IMSA_HILOGE("primaryDisplay failed!");
+        return true;
+    }
+    return primaryDisplay->GetId() == displayId;
+}
+
+bool InputMethodPanel::IsNeedConfig()
+{
+    auto instance = InputMethodAbility::GetInstance();
+    bool needConfig = true;
+    if ((instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) ||
+        !IsInMainDisplay()) {
+            needConfig = false;
+    }
+    return needConfig;
 }
 } // namespace MiscServices
 } // namespace OHOS
