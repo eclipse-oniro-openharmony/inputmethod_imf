@@ -174,7 +174,7 @@ private:
     void OnClientDied(sptr<IInputClient> remote);
     void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
 
-    int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
+    int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo);
     int32_t RemoveClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup,
         const DetachOptions &options);
     void DeactivateClient(const sptr<IInputClient> &client);

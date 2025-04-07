@@ -80,6 +80,7 @@ ohos_shared_library("inputmethod_service") {
     "src/peruser_session.cpp",
     "src/sys_cfg_parser.cpp",
     "src/user_session_manager.cpp",
+    "src/ime_event_listener_manager.cpp",
   ]
 
   configs = [ ":inputmethod_services_native_config" ]
@@ -184,6 +185,7 @@ ohos_static_library("inputmethod_service_static") {
     "src/peruser_session.cpp",
     "src/sys_cfg_parser.cpp",
     "src/user_session_manager.cpp",
+    "src/ime_event_listener_manager.cpp",
   ]
 
   public_configs = [ ":inputmethod_services_native_config" ]

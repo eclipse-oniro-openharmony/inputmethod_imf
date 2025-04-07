@@ -25,6 +25,7 @@ group("unittest") {
       "cpp_test:ITypesUtilTest",
       "cpp_test:IdentityCheckerTest",
       "cpp_test:ImeControllerCpaiTest",
+      "cpp_test:ImeEventListenerManagerTest",
       "cpp_test:ImeFreezeManagerTest",
       "cpp_test:ImeProxyTest",
       "cpp_test:ImeSystemChannelTest",
