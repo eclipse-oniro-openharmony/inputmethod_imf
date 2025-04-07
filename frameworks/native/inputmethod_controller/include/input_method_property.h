@@ -17,21 +17,67 @@
 #include <thread>
 #include <vector>
 
+#include "parcel.h"
+
 #ifndef INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 #define INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 
 namespace OHOS {
 namespace MiscServices {
-struct Property {
+struct Property : public Parcelable {
     std::string name;     // the bundleName of inputMethod
     std::string id;       // the extensionName of inputMethod
     std::string label;    // the label of inputMethod
     uint32_t labelId = 0; // the labelId of inputMethod
     std::string icon;     // the icon of inputMethod
     uint32_t iconId = 0;  // the icon id of inputMethod
+
+    bool ReadFromParcel(Parcel &in)
+    {
+        name = in.ReadString();
+        id = in.ReadString();
+        label = in.ReadString();
+        labelId = in.ReadUint32();
+        icon = in.ReadString();
+        iconId = in.ReadUint32();
+        return true;
+    }
+
+    bool Marshalling(Parcel &out) const
+    {
+        if (!out.WriteString(name)) {
+            return false;
+        }
+        if (!out.WriteString(id)) {
+            return false;
+        }
+        if (!out.WriteString(label)) {
+            return false;
+        }
+        if (!out.WriteUint32(labelId)) {
+            return false;
+        }
+        if (!out.WriteString(icon)) {
+            return false;
+        }
+        if (!out.WriteUint32(iconId)) {
+            return false;
+        }
+        return true;
+    }
+
+    static Property *Unmarshalling(Parcel &in)
+    {
+        Property *data = new (std::nothrow) Property();
+        if (data && !data->ReadFromParcel(in)) {
+            delete data;
+            data = nullptr;
+        }
+        return data;
+    }
 };
 
-struct SubProperty {
+struct SubProperty : public Parcelable {
     std::string label;    // the label of subtype
     uint32_t labelId = 0; // the labelId of subtype
     std::string name;     // the bundleName of inputMethod
@@ -41,6 +87,61 @@ struct SubProperty {
     std::string language; // the language of subtype
     std::string icon;     // the icon of subtype
     uint32_t iconId = 0;  // the icon id of subtype
+
+    bool ReadFromParcel(Parcel &in)
+    {
+        label = in.ReadString();
+        labelId = in.ReadUint32();
+        name = in.ReadString();
+        id = in.ReadString();
+        mode = in.ReadString();
+        locale = in.ReadString();
+        language = in.ReadString();
+        icon = in.ReadString();
+        iconId = in.ReadUint32();
+        return true;
+    }
+
+    bool Marshalling(Parcel &out) const
+    {
+        if (!out.WriteString(label)) {
+            return false;
+        }
+        if (!out.WriteUint32(labelId)) {
+            return false;
+        }
+        if (!out.WriteString(name)) {
+            return false;
+        }
+        if (!out.WriteString(id)) {
+            return false;
+        }
+        if (!out.WriteString(mode)) {
+            return false;
+        }
+        if (!out.WriteString(locale)) {
+            return false;
+        }
+        if (!out.WriteString(language)) {
+            return false;
+        }
+        if (!out.WriteString(icon)) {
+            return false;
+        }
+        if (!out.WriteUint32(iconId)) {
+            return false;
+        }
+        return true;
+    }
+    static SubProperty *Unmarshalling(Parcel &in)
+    {
+        SubProperty *data = new (std::nothrow) SubProperty();
+        if (data && !data->ReadFromParcel(in)) {
+            delete data;
+            data = nullptr;
+        }
+        return data;
+    }
 };
 
 struct FullImeInfo {

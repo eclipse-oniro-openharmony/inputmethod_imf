@@ -19,7 +19,7 @@
 #include <cstdint>
 
 #include "global.h"
-#include "input_control_channel_stub.h"
+#include "input_control_channel_service_impl.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
@@ -51,7 +51,7 @@ bool FuzzControlChannel(const uint8_t *rawData, size_t size)
     MessageParcel reply;
     MessageOption option;
 
-    sptr<InputControlChannelStub> controlChannel = new InputControlChannelStub(MAIN_USER_ID);
+    sptr<InputControlChannelStub> controlChannel = new InputControlChannelServiceImpl(MAIN_USER_ID);
     controlChannel->OnRemoteRequest(code, data, reply, option);
 
     return true;

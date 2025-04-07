@@ -18,7 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "system_cmd_channel_stub.h"
+#include "system_cmd_channel_service_impl.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
@@ -61,7 +61,7 @@ bool FuzzSystemCmdChannelStub(const uint8_t *rawData, size_t size)
     MessageParcel reply;
     MessageOption option;
 
-    sptr <SystemCmdChannelStub> stub = new SystemCmdChannelStub();
+    sptr <SystemCmdChannelStub> stub = new SystemCmdChannelServiceImpl();
     stub->SendPrivateCommand(privateCommand);
     stub->NotifyPanelStatus(sysPanelStatus);
     stub->OnRemoteRequest(code, data, reply, option);

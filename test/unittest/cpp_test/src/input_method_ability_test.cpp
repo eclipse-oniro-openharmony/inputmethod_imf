@@ -32,20 +32,21 @@
 #include <vector>
 
 #include "global.h"
-#include "i_input_data_channel.h"
+#include "iinput_data_channel.h"
 #include "identity_checker_mock.h"
 #include "input_attribute.h"
 #include "input_control_channel_stub.h"
 #include "input_data_channel_proxy.h"
-#include "input_data_channel_stub.h"
-#include "input_method_ability_interface.h"
-#include "input_method_agent_stub.h"
+#include "input_data_channel_service_impl.h"
 #include "input_method_core_proxy.h"
+#include "input_method_ability_interface.h"
+#include "input_method_agent_service_impl.h"
+#include "input_method_core_service_impl.h"
 #include "input_method_core_stub.h"
 #include "input_method_panel.h"
-#include "input_method_system_ability_proxy.h"
 #include "inputmethod_message_handler.h"
 #include "scope_utils.h"
+#include "input_method_system_ability_proxy.h"
 #include "tdd_util.h"
 #include "text_listener.h"
 
@@ -209,17 +210,23 @@ public:
             } else {
                 EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
             }
-            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({
-                { info.panelInfo.panelType, info.panelInfo.panelFlag },
-                info.visible, info.trigger
-            }));
+            PanelStatusInfo statusInfo;
+            statusInfo.panelInfo.panelType = info.panelInfo.panelType;
+            statusInfo.panelInfo.panelFlag = info.panelInfo.panelFlag;
+            statusInfo.visible = info.visible;
+            statusInfo.trigger = info.trigger;
+            
+            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(statusInfo));
             return;
         }
         EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback({
-            { info.panelInfo.panelType, info.panelInfo.panelFlag },
-            info.visible, info.trigger
-        }));
+        PanelStatusInfo statusInfo1;
+        statusInfo1.panelInfo.panelType = info.panelInfo.panelType;
+        statusInfo1.panelInfo.panelFlag = info.panelInfo.panelFlag;
+        statusInfo1.visible = info.visible;
+        statusInfo1.trigger = info.trigger;
+        
+        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(statusInfo1));
     }
     void CheckPanelInfoInHide(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
     {
@@ -232,17 +239,23 @@ public:
             } else {
                 EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
             };
-            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({
-                { info.panelInfo.panelType, info.panelInfo.panelFlag },
-                info.visible, info.trigger
-            }));
+            PanelStatusInfo statusInfo1;
+            statusInfo1.panelInfo.panelType = info.panelInfo.panelType;
+            statusInfo1.panelInfo.panelFlag = info.panelInfo.panelFlag;
+            statusInfo1.visible = info.visible;
+            statusInfo1.trigger = info.trigger;
+            
+            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(statusInfo1));
             return;
         }
         EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
-        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback({
-            { info.panelInfo.panelType, info.panelInfo.panelFlag },
-            info.visible, info.trigger
-        }));
+        PanelStatusInfo statusInfo;
+        statusInfo.panelInfo.panelType = info.panelInfo.panelType;
+        statusInfo.panelInfo.panelFlag = info.panelInfo.panelFlag;
+        statusInfo.visible = info.visible;
+        statusInfo.trigger = info.trigger;
+        
+        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(statusInfo));
     }
 };
 
@@ -266,13 +279,13 @@ sptr<InputMethodSystemAbilityProxy> InputMethodAbilityTest::imsaProxy_;
  */
 HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 {
-    InputAttribute inAttribute;
-    inAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
+    InputAttributeInner inAttribute;
+    inAttribute.inputPattern = InputAttributeInner::PATTERN_PASSWORD;
     MessageParcel data;
-    EXPECT_TRUE(InputAttribute::Marshalling(inAttribute, data));
-    InputAttribute outAttribute;
-    EXPECT_TRUE(InputAttribute::Unmarshalling(outAttribute, data));
-    EXPECT_TRUE(outAttribute.GetSecurityFlag());
+    EXPECT_TRUE(inAttribute.Marshalling(data));
+    InputAttributeInner outAttribute;
+    auto attribute = InputAttributeInner::Unmarshalling(data);
+    EXPECT_TRUE(attribute->GetSecurityFlag());
 }
 
 /**
@@ -282,13 +295,13 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
  */
 HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute_WithSpecificBundleName, TestSize.Level0)
 {
-    InputAttribute inAttribute;
+    InputAttributeInner inAttribute;
     inAttribute.bundleName = "com.example.inputmethod";
     MessageParcel data;
-    EXPECT_TRUE(InputAttribute::Marshalling(inAttribute, data));
-    InputAttribute outAttribute;
-    EXPECT_TRUE(InputAttribute::Unmarshalling(outAttribute, data));
-    EXPECT_EQ(inAttribute.bundleName, outAttribute.bundleName);
+    EXPECT_TRUE(inAttribute.Marshalling(data));
+    auto ret = InputAttributeInner::Unmarshalling(data);
+    EXPECT_NE(ret, nullptr);
+    EXPECT_EQ(inAttribute.bundleName, ret->bundleName);
 }
 
 /**
@@ -300,9 +313,9 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute_WithSpecificBundle
 HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
 {
     IMSA_HILOGI("testShowKeyboardInputMethodCoreProxy start.");
-    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub();
+    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreServiceImpl();
     sptr<IInputMethodCore> core = coreStub;
-    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelServiceImpl();
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
 
     MessageParcel data;
@@ -317,7 +330,7 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = coreProxy->InitInputControlChannel(nullptr);
-    EXPECT_EQ(ErrorCode::ERROR_EX_NULL_POINTER, ret);
+    EXPECT_EQ(ERR_INVALID_DATA, ret);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(showKeyboard_, true);
@@ -359,7 +372,7 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testStartInputWithoutAttach start.");
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
-    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelServiceImpl();
     InputClientInfo clientInfo;
     clientInfo.channel = channelStub;
     auto ret = inputMethodAbility_->StartInput(clientInfo, false);
@@ -392,7 +405,9 @@ HWTEST_F(InputMethodAbilityTest, testStartInputBeforeCreatePanel, TestSize.Level
     std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
     {
         AccessScope scope(currentImeTokenId_, currentImeUid_);
-        PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+        PanelInfo panelInfo = {};
+        panelInfo.panelType = SOFT_KEYBOARD;
+        panelInfo.panelFlag = FLG_FIXED;
         ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel);
         EXPECT_EQ(ErrorCode::NO_ERROR, ret);
     }
@@ -684,7 +699,9 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel001 START. You can not create two SOFT_KEYBOARD panel.");
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
     EXPECT_TRUE(softKeyboardPanel1 != nullptr);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -712,7 +729,8 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel002, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel002 START. You can not create two STATUS_BAR panel.");
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> statusBar1 = nullptr;
-    PanelInfo panelInfo = { .panelType = STATUS_BAR };
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = STATUS_BAR;
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, statusBar1);
     EXPECT_TRUE(statusBar1 != nullptr);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -741,12 +759,15 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel003, TestSize.Level0)
                 "one STATUS_BAR panel.");
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
-    PanelInfo panelInfo1 = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo1;
+    panelInfo1.panelType = SOFT_KEYBOARD;
+    panelInfo1.panelFlag = FLG_FIXED;
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo1, softKeyboardPanel);
     EXPECT_TRUE(softKeyboardPanel != nullptr);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    PanelInfo panelInfo2 = { .panelType = STATUS_BAR };
+    PanelInfo panelInfo2;
+    panelInfo2.panelType = STATUS_BAR;
     std::shared_ptr<InputMethodPanel> statusBar = nullptr;
     ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo2, statusBar);
     EXPECT_TRUE(statusBar != nullptr);
@@ -771,24 +792,28 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
                 "one STATUS_BAR panel.");
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> inputMethodPanel = nullptr;
-    PanelInfo panelInfo1 = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
-    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo1, inputMethodPanel);
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, inputMethodPanel);
     EXPECT_TRUE(inputMethodPanel != nullptr);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = inputMethodAbility_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    PanelInfo panelInfo2 = { .panelType = STATUS_BAR };
-    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo2, inputMethodPanel);
-    EXPECT_TRUE(inputMethodPanel != nullptr);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    ret = inputMethodAbility_->DestroyPanel(inputMethodPanel);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    panelInfo1.panelFlag = FLG_FLOATING;
+    PanelInfo panelInfo1;
+    panelInfo1.panelType = STATUS_BAR;
     ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo1, inputMethodPanel);
+    EXPECT_TRUE(inputMethodPanel != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    PanelInfo panelInfo2;
+    panelInfo2.panelFlag = FLG_FLOATING;
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo2, inputMethodPanel);
     EXPECT_TRUE(inputMethodPanel != nullptr);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -807,7 +832,9 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel005, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel005 START.");
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
     EXPECT_TRUE(softKeyboardPanel1 != nullptr);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -835,7 +862,9 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel006, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START.");
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
     EXPECT_TRUE(softKeyboardPanel1 != nullptr);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -894,13 +923,16 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_001 START");
     imc_->Attach(textListener_);
-    PanelInfo info = { .panelType = STATUS_BAR };
+    PanelInfo info;
+    info.panelType = STATUS_BAR;
     auto panel = std::make_shared<InputMethodPanel>();
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto panel1 = std::make_shared<InputMethodPanel>();
-    PanelInfo info1 = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo info1;
+    info1.panelType = SOFT_KEYBOARD;
+    info1.panelFlag = FLG_FIXED;
     ret = inputMethodAbility_->CreatePanel(nullptr, info1, panel1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -908,13 +940,21 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_001, TestSize.Level0)
     ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({ info1, true, Trigger::IMF }));
+    PanelStatusInfo statusInfo;
+    statusInfo.panelInfo = info1;
+    statusInfo.visible = true;
+    statusInfo.trigger = Trigger::IMF;
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(statusInfo));
 
     TextListener::ResetParam();
     ret = inputMethodAbility_->HideKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
-    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({ info1, false, Trigger::IMF }));
+    PanelStatusInfo statusInfo1;
+    statusInfo1.panelInfo = info1;
+    statusInfo1.visible = false;
+    statusInfo1.trigger = Trigger::IMF;
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(statusInfo1));
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -934,16 +974,25 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_002 START");
     imc_->Attach(textListener_);
-    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo info1;
+    info1.panelType = SOFT_KEYBOARD;
+    info1.panelFlag = FLG_FLOATING;
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto panel = std::make_shared<InputMethodPanel>();
-    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, info1, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
+    PanelStatusInfo statusInfo;
+    statusInfo.panelInfo = info1;
+    statusInfo.visible = true;
+    statusInfo.trigger = Trigger::IME_APP;
     // ShowPanel
-    CheckPanelStatusInfo(panel, { info, true, Trigger::IME_APP });
+    CheckPanelStatusInfo(panel, statusInfo);
+    PanelStatusInfo statusInfo1;
+    statusInfo1.panelInfo = info1;
+    statusInfo1.visible = false;
+    statusInfo1.trigger = Trigger::IME_APP;
     // HidePanel
-    CheckPanelStatusInfo(panel, { info, false, Trigger::IME_APP });
+    CheckPanelStatusInfo(panel, statusInfo1);
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -961,17 +1010,25 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_003 START");
     imc_->Attach(textListener_, false);
-    PanelInfo info = { .panelType = STATUS_BAR };
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = STATUS_BAR;
     auto panel = std::make_shared<InputMethodPanel>();
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-
+    PanelStatusInfo statusInfo;
+    statusInfo.panelInfo = panelInfo;
+    statusInfo.visible = true;
+    statusInfo.trigger = Trigger::IME_APP;
     // ShowPanel
-    CheckPanelStatusInfo(panel, { info, true, Trigger::IME_APP });
+    CheckPanelStatusInfo(panel, statusInfo);
+    PanelStatusInfo statusInfo1;
+    statusInfo1.panelInfo = panelInfo;
+    statusInfo1.visible = false;
+    statusInfo1.trigger = Trigger::IME_APP;
     // HidePanel
-    CheckPanelStatusInfo(panel, { info, false, Trigger::IME_APP });
+    CheckPanelStatusInfo(panel, statusInfo1);
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -988,16 +1045,25 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_004 START");
     imc_->Attach(textListener_);
-    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
+    PanelInfo info;
+    info.panelType = SOFT_KEYBOARD;
+    info.panelFlag = FLG_CANDIDATE_COLUMN;
     auto panel = std::make_shared<InputMethodPanel>();
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
+    PanelStatusInfo statusInfo;
+    statusInfo.panelInfo = info;
+    statusInfo.visible = true;
+    statusInfo.trigger = Trigger::IME_APP;
     // ShowPanel
-    CheckPanelStatusInfo(panel, { info, true, Trigger::IME_APP });
+    CheckPanelStatusInfo(panel, statusInfo);
+    PanelStatusInfo statusInfo1;
+    statusInfo1.panelInfo = info;
+    statusInfo1.visible = false;
+    statusInfo1.trigger = Trigger::IME_APP;
     // HidePanel
-    CheckPanelStatusInfo(panel, { info, false, Trigger::IME_APP });
+    CheckPanelStatusInfo(panel, statusInfo1);
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1013,7 +1079,9 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_004, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_005 START");
-    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    PanelInfo info;
+    info.panelType = SOFT_KEYBOARD;
+    info.panelFlag = FLG_FLOATING;
     imc_->Attach(textListener_);
 
     // has no panel
@@ -1021,7 +1089,11 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
     auto ret = inputMethodAbility_->HideKeyboardSelf();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
-    EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback({ info, false, Trigger::IME_APP }));
+    PanelStatusInfo statusInfo;
+    statusInfo.panelInfo = info;
+    statusInfo.visible = false;
+    statusInfo.trigger = Trigger::IME_APP;
+    EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(statusInfo));
 
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto panel = std::make_shared<InputMethodPanel>();
@@ -1034,7 +1106,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
     ret = inputMethodAbility_->HideKeyboardSelf();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
-    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({ info, false, Trigger::IME_APP }));
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(statusInfo));
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1086,7 +1158,9 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_003 START");
     TextListener::ResetParam();
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
+    PanelInfo info;
+    info.panelType = SOFT_KEYBOARD;
+    info.panelFlag = FLG_CANDIDATE_COLUMN;
     auto panel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1108,9 +1182,11 @@ HWTEST_F(InputMethodAbilityTest, testAdjustKeyboard_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testAdjustKeyboard_001 START");
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto panel = std::make_shared<InputMethodPanel>();
-    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = inputMethodAbility_->AdjustKeyboard();
@@ -1256,7 +1332,8 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_003, TestSize.Level0)
     InputMethodAbilityTest::GetIMCAttachIMA();
     // only STATUS_BAR panel in IMA
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo info = { PanelType::STATUS_BAR };
+    PanelInfo info;
+    info.panelType = STATUS_BAR;
     InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
     CallingWindowInfo windowInfo;
     int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
@@ -1280,7 +1357,9 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_004, TestSize.Level0)
     InputMethodAbilityTest::GetIMCAttachIMA();
     // SOFT_KEYBOARD panel exists
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo info = { PanelType::SOFT_KEYBOARD, PanelFlag::FLG_FIXED };
+    PanelInfo info;
+    info.panelType = SOFT_KEYBOARD;
+    info.panelFlag = FLG_FIXED;
     InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
     // invalid window id
     InputMethodAbilityTest::imc_->clientInfo_.config.windowId = INVALID_WINDOW_ID;
@@ -1305,7 +1384,9 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_005, TestSize.Level0)
     // SOFT_KEYBOARD window is created
     InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo info = { PanelType::SOFT_KEYBOARD, PanelFlag::FLG_FIXED };
+    PanelInfo info;
+    info.panelType = SOFT_KEYBOARD;
+    info.panelFlag = FLG_FIXED;
     InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
     // bind IMC
     InputMethodAbilityTest::GetIMCAttachIMA();
@@ -1448,7 +1529,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_003, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testGetInputMethodState_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest GetInputMethodState_001 Test START");
-    EnabledStatus status = EnabledStatus::DISABLED;
+    int32_t status = 0;
     auto ret = InputMethodAbilityTest::imsa_->GetInputMethodState(status);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_IME);
 }
@@ -1542,7 +1623,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testOnCallingDisplayIdChanged, TestSize.Level0)
 {
     IMSA_HILOGI("testOnCallingDisplayIdChanged start.");
-    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub();
+    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreServiceImpl();
     sptr<IInputMethodCore> core = coreStub;
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     MessageParcel data;
@@ -1555,6 +1636,41 @@ HWTEST_F(InputMethodAbilityTest, testOnCallingDisplayIdChanged, TestSize.Level0)
     }
     coreProxy->OnCallingDisplayIdChanged(0);
     EXPECT_TRUE(coreProxy != nullptr);
+}
+
+/**
+ * @tc.name: testOnSendPrivateData_001
+ * @tc.desc: IMA InputMethodCoreProxy OnSendPrivateData
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+*/
+HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_001, TestSize.Level0)
+{
+    IMSA_HILOGI("testOnSendPrivateData_001 start.");
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.insert({ "value", privateDataValue });
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->OnSendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testOnSendPrivateData_002
+ * @tc.desc: IMA InputMethodCoreProxy OnSendPrivateData
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+*/
+HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_002, TestSize.Level0)
+{
+    IMSA_HILOGI("testOnSendPrivateData_002 start.");
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.insert({ "value", privateDataValue });
+    InputMethodAbilityTest::inputMethodAbility_->imeListener_ = nullptr;
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->OnSendPrivateData(privateCommand);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

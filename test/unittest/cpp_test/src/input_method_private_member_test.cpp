@@ -17,6 +17,8 @@
 #include "full_ime_info_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
+#include "input_method_agent_service_impl.h"
+#include "input_method_core_service_impl.h"
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
 #include "peruser_session.h"
@@ -34,13 +36,12 @@
 #include "combination_key.h"
 #include "focus_change_listener.h"
 #include "global.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_core.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_core.h"
 #include "ime_cfg_manager.h"
-#include "input_client_stub.h"
-#include "input_method_agent_proxy.h"
-#include "input_method_agent_stub.h"
-#include "input_method_core_stub.h"
+#include "input_method_agent_service_impl.h"
+#include "input_method_core_service_impl.h"
+#include "input_client_service_impl.h"
 #include "itypes_util.h"
 #include "keyboard_event.h"
 #include "os_account_manager.h"
@@ -405,8 +406,10 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_003, TestSize.L
     ImeCfgManager cfgManager;
     FullImeInfo info;
     info.isNewIme = true;
-    info.prop = { .name = "testBundleName" };
-    info.subProps = { { .id = "testSubName" } };
+    info.prop.name = "testBundleName";
+    SubProperty sub;
+    sub.id = "testSubName";
+    info.subProps.push_back(sub);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
         { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
@@ -427,10 +430,13 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.L
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_004 TEST START");
     FullImeInfo info;
-    info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProps = {
-        { .name = "testBundleName", .id = "testSubName", .language = "French" }
-    };
+    info.prop.name = "testBundleName";
+    info.prop.id = "testExtName";
+    SubProperty sub;
+    sub.name = "testBundleName";
+    sub.id = "testSubName";
+    sub.language = "French";
+    info.subProps.push_back(sub);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
         { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
@@ -449,10 +455,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_005, TestSize.L
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_005 TEST START");
     FullImeInfo info;
-    info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProps = {
-        { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" }
-    };
+    info.prop.name = "testBundleName";
+    info.prop.id = "testExtName";
+    SubProperty sub;
+    sub.name = "testBundleName";
+    sub.id = "testSubName";
+    sub.mode = "upper";
+    sub.language = "english";
+    info.subProps.push_back(sub);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
         { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
@@ -473,11 +483,20 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.L
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_006 TEST START");
     FullImeInfo info;
-    info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProps = {
-        { .name = "testBundleName", .id = "testSubName",  .mode = "upper", .language = "english" },
-        { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" }
-    };
+    info.prop.name = "testBundleName";
+    info.prop.id = "testExtName";
+    SubProperty sub;
+    sub.name = "testBundleName";
+    sub.id = "testSubName";
+    sub.mode = "upper";
+    sub.language = "english";
+    info.subProps.push_back(sub);
+    SubProperty sub1;
+    sub1.name = "testBundleName";
+    sub1.id = "testSubName1";
+    sub1.mode = "lower";
+    sub1.language = "chinese";
+    info.subProps.push_back(sub1);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
 
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
@@ -727,7 +746,7 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest IMC_testDeactivateClient Test START");
     auto imc = InputMethodController::GetInstance();
-    imc->agent_ = std::make_shared<InputMethodAgentStub>();
+    imc->agent_ = std::make_shared<InputMethodAgentServiceImpl>();
     MessageParcel data;
     data.WriteRemoteObject(imc->agent_->AsObject());
     imc->agentObject_ = data.ReadRemoteObject();
@@ -747,7 +766,9 @@ HWTEST_F(InputMethodPrivateMemberTest, testIsPanelShown, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     bool flag = true;
     auto ret = userSession->IsPanelShown(panelInfo, flag);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -969,7 +990,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestServiceStartInputType, TestSize.Level
 {
     auto ret = service_->ExitCurrentInputType();
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
-    ret = service_->StartInputType(InputType::NONE);
+    ret = service_->StartInputType(static_cast<int32_t>(InputType::NONE));
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
     const PanelInfo panelInfo;
     bool isShown = false;
@@ -1034,7 +1055,8 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsInputTypeSupported, TestSize.Level0
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest TestIsInputTypeSupported TEST START");
     InputType type = InputType::SECURITY_INPUT;
-    auto ret = service_->IsInputTypeSupported(type);
+    bool resultValue = false;
+    auto ret = service_->IsInputTypeSupported(static_cast<int32_t>(type), resultValue);
     EXPECT_FALSE(ret);
 }
 
@@ -1048,7 +1070,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestStartInputType, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest TestStartInputType TEST START");
     InputType type = InputType::NONE;
-    auto ret = service_->StartInputType(type);
+    auto ret = service_->StartInputType(static_cast<int32_t>(type));
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 
@@ -1110,8 +1132,10 @@ HWTEST_F(InputMethodPrivateMemberTest, TestFullImeInfoManager_Get, TestSize.Leve
     IMSA_HILOGI("InputMethodPrivateMemberTest TestFullImeInfoManager_Get TEST START");
     FullImeInfo info;
     info.isNewIme = true;
-    info.prop = { .name = "testBundleName" };
-    info.subProps = { { .id = "testSubName" } };
+    info.prop.name = "testBundleName";
+    SubProperty sub;
+    sub.id = "testSubName";
+    info.subProps.push_back(sub);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
     uint32_t invalidTokenId = 4294967295;
     auto ret = FullImeInfoManager::GetInstance().Get(MAIN_USER_ID, invalidTokenId);
@@ -1212,7 +1236,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage001, TestSize.Level0)
     const std::string bundleName;
     const std::string subName;
     SwitchTrigger trigger = SwitchTrigger::IMSA;
-    ret2 = service_->SwitchInputMethod(bundleName, subName, trigger);
+    ret2 = service_->SwitchInputMethod(bundleName, subName, static_cast<uint32_t>(trigger));
     EXPECT_EQ(ret2, ErrorCode::ERROR_BAD_PARAMETERS);
 
     const std::shared_ptr<ImeInfo> info = nullptr;
@@ -1312,7 +1336,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     ret = userSession->OnShowInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 
-    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
     ASSERT_NE(client, nullptr);
     auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
     DetachOptions options = { .isUnbindFromClient = false, .isInactiveClient = false, .isNotifyClientAsync = false };

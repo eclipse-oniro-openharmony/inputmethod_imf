@@ -66,6 +66,10 @@ public:
         {
             return "";
         }
+        bool IsSpecialSaUid() override
+        {
+            return true;
+        }
         static bool isFocused_;
         static bool isSystemApp_;
         static bool isBundleNameValid_;
@@ -142,9 +146,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_001, TestSize.Level1)
     IMSA_HILOGI("IdentityCheckerTest testStartInput_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
     sptr<IRemoteObject> agent = nullptr;
-    InputClientInfo inputClientInfo;
-    std::pair<int64_t, std::string> imeInfo;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, imeInfo);
+    InputClientInfoInner inputClientInfo;
+    int64_t pid = 0;
+    std::string bundleName;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, pid, bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
 
@@ -161,9 +166,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     sptr<IRemoteObject> agent = nullptr;
-    InputClientInfo inputClientInfo;
-    std::pair<int64_t, std::string> imeInfo;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, imeInfo);
+    InputClientInfoInner inputClientInfo;
+    int64_t pid = 0;
+    std::string bundleName;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, pid, bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
@@ -180,9 +186,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     sptr<IRemoteObject> agent = nullptr;
-    InputClientInfo inputClientInfo;
-    std::pair<int64_t, std::string> imeInfo;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, imeInfo);
+    InputClientInfoInner inputClientInfo;
+    int64_t pid = 0;
+    std::string bundleName;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, pid, bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
@@ -199,9 +206,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     sptr<IRemoteObject> agent = nullptr;
-    InputClientInfo inputClientInfo;
-    std::pair<int64_t, std::string> imeInfo;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, imeInfo);
+    InputClientInfoInner inputClientInfo;
+    int64_t pid = 0;
+    std::string bundleName;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, pid, bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
@@ -392,7 +400,8 @@ HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_001, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_001 start");
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
-    int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(UnRegisteredType::REMOVE_PROXY_IME, nullptr);
+    int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(
+        static_cast<int32_t>(UnRegisteredType::REMOVE_PROXY_IME), nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
 
@@ -407,7 +416,8 @@ HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_002, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
-    int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(UnRegisteredType::NONE, nullptr);
+    int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(
+        static_cast<int32_t>(UnRegisteredType::NONE), nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
@@ -422,7 +432,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    bool ret = IdentityCheckerTest::service_->IsCurrentIme();
+    bool ret = IdentityCheckerTest::service_->IsCurrentIme(MAIN_USER_ID);
     EXPECT_FALSE(ret);
 }
 
@@ -437,7 +447,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
-    bool ret = IdentityCheckerTest::service_->IsCurrentIme();
+    bool ret = IdentityCheckerTest::service_->IsCurrentIme(MAIN_USER_ID);
     EXPECT_FALSE(ret);
 }
 
@@ -550,7 +560,7 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_001, TestSize.Level1)
     service_->identityChecker_ = identityCheckerImpl_;
     InputWindowStatus status = InputWindowStatus::SHOW;
     ImeWindowInfo info {};
-    int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, info);
+    int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(static_cast<uint32_t>(status), info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
 
@@ -567,7 +577,7 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     InputWindowStatus status = InputWindowStatus::SHOW;
     ImeWindowInfo info {};
-    int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, info);
+    int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(static_cast<uint32_t>(status), info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
 
@@ -582,7 +592,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_001, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    InputClientInfo clientInfo {};
+    InputClientInfoInner clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
 
@@ -605,7 +615,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_002, TestSize.Level1)
     IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isSystemApp_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
-    InputClientInfo clientInfo {};
+    InputClientInfoInner clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 
@@ -628,7 +638,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_003, TestSize.Level1)
     IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_003 start");
     IdentityCheckerTest::IdentityCheckerMock::isSystemApp_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
-    InputClientInfo clientInfo {};
+    InputClientInfoInner clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
 
@@ -666,7 +676,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level1)
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
-        CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
+        CURRENT_BUNDLENAME, CURRENT_SUBNAME, static_cast<uint32_t>(SwitchTrigger::CURRENT_IME));
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
 
@@ -683,7 +693,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
-        CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
+        CURRENT_BUNDLENAME, CURRENT_SUBNAME, static_cast<uint32_t>(SwitchTrigger::CURRENT_IME));
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED);
 }
 
@@ -700,7 +710,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
-        CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
+        CURRENT_BUNDLENAME, CURRENT_SUBNAME, static_cast<uint32_t>(SwitchTrigger::CURRENT_IME));
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED);
 }
 

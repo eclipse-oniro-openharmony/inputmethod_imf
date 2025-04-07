@@ -16,7 +16,6 @@
 #include "updatelisteneventflag_fuzzer.h"
 
 #include "imf_sa_stub_fuzz_util.h"
-#include "inputmethod_service_ipc_interface_code.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -25,6 +24,7 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(data, size, InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG);
+    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(data, size,
+        IInputMethodSystemAbilityIpcCode::COMMAND_UPDATE_LISTEN_EVENT_FLAG);
     return 0;
 }

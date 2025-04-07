@@ -149,7 +149,9 @@ std::shared_ptr<InputMethodPanel> InputMethodPanelAdjustTest::CreatePanel()
 {
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     return inputMethodPanel;
@@ -214,7 +216,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_001, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_001 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = STATUS_BAR };
+    PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     EnhancedLayoutParams params;
@@ -233,7 +236,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_002, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_002 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     Rosen::Rect portraitRect = { -1, -1, 100, 100 };
@@ -258,7 +262,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_003, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_003 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     Rosen::Rect portraitRect = { -1, -1, 100, 100 };
@@ -283,7 +288,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_004, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_004 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -310,7 +316,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_005, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_005 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -337,7 +344,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_006, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_006 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -364,7 +372,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_007, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_007 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -391,7 +400,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_008, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_008 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -418,7 +428,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_009, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_009 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -445,7 +456,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_010, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_010 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -472,7 +484,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_011, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_011 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -499,7 +512,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_012, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_012 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -528,7 +542,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_013, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_013 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -557,7 +572,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_014, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_014 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -588,7 +604,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_015, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_015 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -619,7 +636,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_016, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_016 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -650,7 +668,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_017, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_017 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -690,7 +709,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_018, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_018 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
@@ -733,7 +753,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_019, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_019 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD };
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     inputMethodPanel->isScbEnable_ = true;
     DisplaySize display;
@@ -776,7 +797,9 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_020, TestSize.L
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testAdjustEnhancedPanelRect_020 Test START");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    InputMethodPanelAdjustTest::ImaCreatePanel({ .panelType = SOFT_KEYBOARD }, inputMethodPanel);
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     inputMethodPanel->isScbEnable_ = true;
     DisplaySize display;
     ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);

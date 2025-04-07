@@ -45,6 +45,7 @@ ohos_shared_library("inputmethod") {
     ubsan = true
   }
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "async_call.cpp",
     "input_method_module.cpp",
     "js_get_input_method_controller.cpp",

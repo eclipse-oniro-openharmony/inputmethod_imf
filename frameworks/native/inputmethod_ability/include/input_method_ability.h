@@ -21,11 +21,11 @@
 #include "calling_window_info.h"
 #include "concurrent_map.h"
 #include "context.h"
-#include "i_input_control_channel.h"
-#include "i_input_data_channel.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_core.h"
-#include "i_input_method_system_ability.h"
+#include "iinput_control_channel.h"
+#include "iinput_data_channel.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_core.h"
+#include "iinput_method_system_ability.h"
 #include "input_attribute.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
@@ -34,10 +34,11 @@
 #include "input_method_types.h"
 #include "iremote_object.h"
 #include "keyboard_listener.h"
-#include "keyevent_consumer_proxy.h"
+#include "key_event_consumer_proxy.h"
 #include "msg_handler_callback_interface.h"
 #include "private_command_interface.h"
 #include "system_cmd_channel_proxy.h"
+#include "inputmethod_message_handler.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -101,6 +102,7 @@ public:
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
     int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
     int32_t OnCallingDisplayIdChanged(uint64_t displayId);
+    int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
 
 public:
     /* called from TaskManager worker thread */

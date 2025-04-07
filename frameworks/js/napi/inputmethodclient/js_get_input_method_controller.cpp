@@ -880,7 +880,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         InputMethodController::GetInstance()->ReportBaseTextOperation(
-            IInputDataChannel::INSERT_TEXT, ErrorCode::ERROR_JS_CB_NOT_REGISTER);
+            static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_INSERT_TEXT), ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -912,7 +912,8 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         InputMethodController::GetInstance()->ReportBaseTextOperation(
-            IInputDataChannel::DELETE_FORWARD, ErrorCode::ERROR_JS_CB_NOT_REGISTER);
+            static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_FORWARD),
+            ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -945,7 +946,8 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         InputMethodController::GetInstance()->ReportBaseTextOperation(
-            IInputDataChannel::DELETE_BACKWARD, ErrorCode::ERROR_JS_CB_NOT_REGISTER);
+            static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_BACKWARD),
+            ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
     auto eventHandler = GetEventHandler();

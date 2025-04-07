@@ -316,7 +316,8 @@ bool ITypesUtil::Unmarshalling(ImeWindowInfo &output, MessageParcel &data)
         IMSA_HILOGE("read InputWindowInfo from message parcel failed.");
         return false;
     }
-    output.panelInfo = { static_cast<PanelType>(panelType), static_cast<PanelFlag>(panelFlag) };
+    output.panelInfo.panelType = static_cast<PanelType>(panelType);
+    output.panelInfo.panelFlag = static_cast<PanelFlag>(panelFlag);
     output.windowInfo = windowInfo;
     return true;
 }
@@ -339,8 +340,11 @@ bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
         !data.ReadUint32(sessionId)) {
         return false;
     }
-    output = { { static_cast<PanelType>(type), static_cast<PanelFlag>(flag) }, visible, static_cast<Trigger>(trigger),
-        sessionId };
+    output.panelInfo.panelType = static_cast<PanelType>(type);
+    output.panelInfo.panelFlag = static_cast<PanelFlag>(flag);
+    output.visible = visible;
+    output.trigger = static_cast<Trigger>(trigger);
+    output.sessionId = sessionId;
     return true;
 }
 

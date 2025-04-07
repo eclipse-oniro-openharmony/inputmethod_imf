@@ -26,15 +26,15 @@
 #include <string_ex.h>
 
 #include "global.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_core.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_core.h"
 #include "input_client_proxy.h"
-#include "input_client_stub.h"
+#include "input_client_service_impl.h"
 #include "input_method_ability.h"
 #include "input_method_agent_proxy.h"
-#include "input_method_agent_stub.h"
+#include "input_method_agent_service_impl.h"
 #include "input_method_core_proxy.h"
-#include "input_method_core_stub.h"
+#include "input_method_core_service_impl.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_types.h"
@@ -57,7 +57,7 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 
 bool InitializeClientInfo(InputClientInfo &clientInfo)
 {
-    sptr<IInputClient> clientStub = new (std::nothrow) InputClientStub();
+    sptr<IInputClient> clientStub = new (std::nothrow) InputClientServiceImpl();
     if (clientStub == nullptr) {
         IMSA_HILOGE("failed to create client");
         return false;
@@ -80,12 +80,12 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
         return false;
     }
     auto client = iface_cast<IInputClient>(clientInfo.client->AsObject());
-    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreStub();
+    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreServiceImpl();
     if (coreStub == nullptr) {
         return false;
     }
     auto core = iface_cast<IInputMethodCore>(coreStub->AsObject());
-    sptr<InputMethodAgentStub> agentStub = new (std::nothrow) InputMethodAgentStub();
+    sptr<InputMethodAgentStub> agentStub = new (std::nothrow) InputMethodAgentServiceImpl();
     if (agentStub == nullptr) {
         return false;
     }

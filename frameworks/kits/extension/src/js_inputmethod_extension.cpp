@@ -20,7 +20,7 @@
 #include "configuration_utils.h"
 #include "global.h"
 #include "input_method_ability.h"
-#include "inputmethod_extension_ability_stub.h"
+#include "inputmethod_extension_ability_service_impl.h"
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
 #include "js_extension_context.h"
@@ -307,9 +307,9 @@ sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
 {
     IMSA_HILOGI("JsInputMethodExtension OnConnect start.");
     Extension::OnConnect(want);
-    auto remoteObj = new (std::nothrow) InputMethodExtensionAbilityStub();
+    auto remoteObj = new (std::nothrow) InputMethodExtensionAbilityServiceImpl();
     if (remoteObj == nullptr) {
-        IMSA_HILOGE("failed to create InputMethodExtensionAbilityStub!");
+        IMSA_HILOGE("failed to create InputMethodExtensionAbilityServiceImpl!");
         return nullptr;
     }
     return remoteObj;

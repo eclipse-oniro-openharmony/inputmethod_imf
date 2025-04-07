@@ -39,6 +39,14 @@ ohos_unittest("InputMethodControllerTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_service_impl.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "${inputmethod_path}/services/src/input_type_manager.cpp",
     "src/ime_event_monitor_manager_test.cpp",
     "src/input_method_controller_test.cpp",
@@ -47,7 +55,11 @@ ohos_unittest("InputMethodControllerTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -91,12 +103,23 @@ ohos_unittest("InputMethodAttachTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_attach_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
+    "${inputmethod_path}/test/common/src/keyboard_listener_test_impl.cpp",
+    "src/input_method_attach_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/services/json:imf_json_static",
@@ -138,12 +161,15 @@ ohos_unittest("InputMethodAbilityTest") {
   module_out_path = module_output_path
 
   sources = [
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_proxy.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/task_manager.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/tasks/task.cpp",
-    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "src/input_method_ability_exception_test.cpp",
     "src/input_method_ability_test.cpp",
   ]
@@ -151,7 +177,13 @@ ohos_unittest("InputMethodAbilityTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/services/json:imf_json_static",
@@ -241,13 +273,26 @@ ohos_unittest("InputMethodDfxTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_dfx_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
+    "src/input_method_dfx_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
     "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -291,11 +336,22 @@ ohos_unittest("InputMethodPanelTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_panel_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
+    "src/input_method_panel_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
@@ -342,12 +398,24 @@ ohos_unittest("InputMethodPanelAdjustTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_panel_adjust_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
+    "src/input_method_panel_adjust_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -389,11 +457,21 @@ ohos_unittest("InputMethodSwitchTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_switch_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "src/input_method_switch_test.cpp",
+  ]
 
-  configs = [ ":module_private_config" ]
+  configs = [
+    ":module_private_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_native_public_config",
+  ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
@@ -429,18 +507,29 @@ ohos_unittest("ITypesUtilTest") {
   module_out_path = module_output_path
 
   sources = [
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/task_manager.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/tasks/task.cpp",
-    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "src/input_method_ability_exception_test.cpp",
     "src/itypes_util_test.cpp",
   ]
 
-  configs = [ ":module_private_config" ]
+  include_dirs =
+      [ "${inputmethod_path}/services/adapter/os_account_adapter/include" ]
+  configs = [
+    ":module_private_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_native_public_config",
+  ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
@@ -457,6 +546,7 @@ ohos_unittest("ITypesUtilTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "window_manager:libwm_lite",
   ]
 }
 
@@ -470,23 +560,34 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   module_out_path = module_output_path
 
   sources = [
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/task_manager.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/tasks/task.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_observer.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_utils.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/src/enable_ime_data_parser.cpp",
-    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "mock/datashare_helper.cpp",
     "src/input_method_private_member_test.cpp",
   ]
 
-  configs = [ ":module_private_config" ]
+  configs = [
+    ":module_private_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config",
+  ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
@@ -527,12 +628,23 @@ ohos_unittest("InputMethodEditorTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_editor_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_service_impl.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
+    "src/input_method_editor_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/services/json:imf_json_static",
@@ -575,11 +687,21 @@ ohos_unittest("NewImeSwitchTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/newIme_switch_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "src/newIme_switch_test.cpp",
+  ]
 
-  configs = [ ":module_private_config" ]
+  configs = [
+    ":module_private_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_native_public_config",
+  ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
@@ -616,7 +738,10 @@ ohos_unittest("IdentityCheckerTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "src/identity_checker_test.cpp",
   ]
 
@@ -662,12 +787,19 @@ ohos_unittest("TextListenerInnerApiTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/text_listener_inner_api_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "src/text_listener_inner_api_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -708,12 +840,23 @@ ohos_unittest("ImeProxyTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/ime_proxy_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/test/common/src/keyboard_listener_test_impl.cpp",
+    "src/ime_proxy_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -813,15 +956,20 @@ ohos_unittest("SecurityModeParseTest") {
   ]
 
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_observer.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_utils.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/src/security_mode_parser.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "mock/datashare_helper.cpp",
     "src/security_mode_parser_test.cpp",
   ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
     "${inputmethod_path}/services:inputmethod_service_static",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
@@ -887,7 +1035,12 @@ ohos_unittest("ImeFreezeManagerTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/ime_freeze_manager_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
+    "src/ime_freeze_manager_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
@@ -910,6 +1063,7 @@ ohos_unittest("ImeFreezeManagerTest") {
     "input:libmmi-client",
     "ipc:ipc_core",
     "ipc:ipc_single",
+    "napi:ace_napi",
     "os_account:os_account_innerkits",
   ]
 
@@ -944,6 +1098,7 @@ ohos_unittest("JsonOperateTest") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "hilog:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
     "resource_management:global_resmgr",
   ]
@@ -1003,12 +1158,16 @@ ohos_unittest("ImeSystemChannelTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/ime_system_channel_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/system_cmd_channel_service_impl.cpp",
+    "src/ime_system_channel_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -1069,6 +1228,9 @@ ohos_unittest("ImeControllerCpaiTest") {
     "src/inputmethod_controller_capi_test.cpp",
     "src/native_text_changed_listener_test.cpp",
   ]
+
+  configs = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_native_public_config" ]
+
   include_dirs = [
     "${inputmethod_path}/interfaces/kits/c",
     "${inputmethod_path}/frameworks/ndk/include",
@@ -1124,15 +1286,29 @@ ohos_unittest("InputMethodMessageHandlerTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "${inputmethod_path}/services/src/input_type_manager.cpp",
     "src/input_method_message_handler_test.cpp",
   ]
 
-  configs = [ ":module_private_config" ]
+  configs = [
+    ":module_private_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config",
+  ]
 
   deps = [
     "${inputmethod_path}/frameworks/ndk:ohinputmethod_static",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -1205,7 +1381,11 @@ ohos_unittest("ImfHisysEventReporterTest") {
   include_dirs = [ "${inputmethod_path}/common/include" ]
   sources = [ "src/imf_hisysevent_report_test.cpp" ]
 
-  configs = [ ":module_private_config" ]
+  configs = [
+    ":module_private_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_native_public_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config",
+  ]
 
   deps = [
     "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
@@ -1218,6 +1398,7 @@ ohos_unittest("ImfHisysEventReporterTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hisysevent:libhisyseventmanager",
+    "input:libmmi-client",
   ]
 }
 

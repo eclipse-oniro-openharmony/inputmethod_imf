@@ -18,7 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "input_method_agent_stub.h"
+#include "input_method_agent_service_impl.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
@@ -49,7 +49,7 @@ bool FuzzAgentStub(const uint8_t *rawData, size_t size)
     MessageParcel reply;
     MessageOption option;
 
-    sptr<InputMethodAgentStub> stub = new InputMethodAgentStub();
+    sptr<InputMethodAgentStub> stub = new InputMethodAgentServiceImpl();
     stub->OnRemoteRequest(code, data, reply, option);
 
     return true;

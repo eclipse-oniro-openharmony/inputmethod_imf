@@ -350,7 +350,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodEnable, TestSize.Level0)
 HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype_001, TestSize.Level0)
 {
     IMSA_HILOGI("IMC tesIMCtListInputMethodSubtype_001 Test Start");
-    Property property = { .name = newImeBundleName };
+    Property property;
+    property.name = newImeBundleName;
     std::vector<SubProperty> subProps;
     auto ret = imc_->ListInputMethodSubtype(property, subProps);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -371,7 +372,8 @@ HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype_001, TestSize.Leve
 HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype_002, TestSize.Level0)
 {
     IMSA_HILOGI("IMC tesIMCtListInputMethodSubtype_002 Test Start");
-    Property property = { .name = bundleName };
+    Property property;
+    property.name = bundleName;
     std::vector<SubProperty> subProps;
     auto ret = imc_->ListInputMethodSubtype(property, subProps);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

@@ -18,7 +18,7 @@
 
 #include "input_attribute.h"
 #include "key_event.h"
-#include "keyevent_consumer_proxy.h"
+#include "key_event_consumer_proxy.h"
 namespace OHOS {
 namespace MiscServices {
 class KeyboardListener {

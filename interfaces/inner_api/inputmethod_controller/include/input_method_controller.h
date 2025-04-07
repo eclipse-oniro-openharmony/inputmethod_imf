@@ -29,8 +29,8 @@
 #include "element_name.h"
 #include "event_handler.h"
 #include "global.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_system_ability.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_system_ability.h"
 #include "ime_event_listener.h"
 #include "input_client_info.h"
 #include "input_method_property.h"
@@ -908,6 +908,17 @@ public:
     IMF_API void ReportBaseTextOperation(int32_t eventCode, int32_t errCode);
 
     IMF_API void UpdateTextPreviewState(bool isSupport);
+
+    /**
+     * @brief Send Private Data.
+     *
+     * This function only available special service apply.
+     *
+     * @param privateCommand Indicates the private data information.
+     * @return Returns 0 for success, others for failure.
+     * @since 18
+     */
+    IMF_API int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
 
 private:
     InputMethodController();

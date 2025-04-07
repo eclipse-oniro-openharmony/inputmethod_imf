@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+sequenceable input_client_info..OHOS.MiscServices.InputClientInfoInner;
+sequenceable input_method_property..OHOS.MiscServices.SubProperty;
+sequenceable input_method_utils..OHOS.MiscServices.Value;
+sequenceable panel_info..OHOS.MiscServices.PanelInfo;
+sequenceable OHOS.IRemoteObject;
+interface OHOS.MiscServices.IInputControlChannel;
+interface OHOS.MiscServices.IInputMethodCore {
+    void StartInput([in] InputClientInfoInner clientInfoInner, [in] boolean isBindFromClient);
+    void StopInput([in] IRemoteObject channel, [in] unsigned int sessionId);
+    void ShowKeyboard();
+    void HideKeyboard();
+    void InitInputControlChannel([in] IInputControlChannel inputControlChannel);
+    void StopInputService([in] boolean isTerminateIme);
+    void SetSubtype([in] SubProperty property);
+    void IsEnable([out] boolean resultValue);
+    void IsPanelShown([in] PanelInfo panelInfo, [out] boolean isShown);
+    void OnSecurityChange([in] int security);
+    void OnConnectSystemCmd([in] IRemoteObject channel, [out] IRemoteObject agent);
+    [oneway] void OnClientInactive([in] IRemoteObject channel);
+    [oneway] void OnSetInputType([in] int inputType);
+    void OnCallingDisplayIdChanged([in] unsigned long dispalyId);
+    void OnSendPrivateData([in] Value value);
+}

@@ -31,7 +31,8 @@ const std::u16string SYSTEMABILITY_INTERFACE_TOKEN = u"ohos.miscservices.inputme
 constexpr const int32_t USER_ID = 100;
 class ImfSaStubFuzzUtil {
 public:
-    static bool FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size, InputMethodInterfaceCode code);
+    static bool FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size,
+        IInputMethodSystemAbilityIpcCode code);
 
 private:
     static void InitKeyboardDelegate();

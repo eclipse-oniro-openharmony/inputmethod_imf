@@ -56,6 +56,10 @@ public:
     {
         return 0;
     }
+    bool IsSpecialSaUid() override
+    {
+        return isSpecialSaUid_;
+    }
     static void ResetParam()
     {
         isFocused_ = false;
@@ -64,6 +68,7 @@ public:
         hasPermission_ = false;
         isBroker_ = false;
         isNativeSa_ = false;
+        isSpecialSaUid_ = false;
         bundleName_ = "";
     }
     static void SetFocused(bool isFocused)
@@ -95,6 +100,10 @@ public:
     {
         bundleName_ = bundleName;
     }
+    static void SetSpecialSaUid(bool isSpecialSaUid)
+    {
+        isSpecialSaUid_ = isSpecialSaUid;
+    }
 
 private:
     static bool isFocused_;
@@ -103,6 +112,7 @@ private:
     static bool hasPermission_;
     static bool isBroker_;
     static bool isNativeSa_;
+    static bool isSpecialSaUid_;
     static std::string bundleName_;
 };
 bool IdentityCheckerMock::isFocused_ { false };
@@ -111,6 +121,7 @@ bool IdentityCheckerMock::isBundleNameValid_ { false };
 bool IdentityCheckerMock::hasPermission_ { false };
 bool IdentityCheckerMock::isBroker_ { false };
 bool IdentityCheckerMock::isNativeSa_ { false };
+bool IdentityCheckerMock::isSpecialSaUid_ { false };
 std::string IdentityCheckerMock::bundleName_;
 } // namespace MiscServices
 } // namespace OHOS

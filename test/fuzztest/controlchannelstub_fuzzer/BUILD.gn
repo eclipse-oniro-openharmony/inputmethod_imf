@@ -34,7 +34,10 @@ ohos_fuzztest("ControlChannelStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "controlchannelstub_fuzzer.cpp" ]
+  sources = [
+    "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
+    "controlchannelstub_fuzzer.cpp",
+  ]
 
   deps = [ "${inputmethod_path}/services:inputmethod_service_static" ]
 

@@ -33,6 +33,7 @@ public:
     uint64_t GetDisplayIdByWindowId(int32_t callingWindowId) override;
     uint64_t GetDisplayIdByPid(int64_t callingPid) override;
     bool IsValidVirtualIme(int32_t callingUid) override;
+    bool IsSpecialSaUid() override;
 };
 } // namespace MiscServices
 } // namespace OHOS
