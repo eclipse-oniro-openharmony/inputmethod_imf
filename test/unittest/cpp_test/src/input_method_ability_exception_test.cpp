@@ -18,7 +18,10 @@
 #define protected public
 #include "input_method_ability.h"
 #undef private
-#include "i_input_method_agent.h"
+#include "iinput_method_agent.h"
+#include "input_data_channel_service_impl.h"
+#include "input_method_agent_service_impl.h"
+#include "input_method_engine_listener_impl.h"
 #include "input_data_channel_stub.h"
 #include "input_method_agent_stub.h"
 #include "input_method_engine_listener_impl.h"
@@ -267,7 +270,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level1)
 
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetImeListener(imeListener);
-    sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
+    sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
     inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
     // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     auto panel = std::make_shared<InputMethodPanel>();
@@ -301,7 +304,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level1)
     // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetImeListener(imeListener);
-    sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
+    sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
     inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
@@ -330,7 +333,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level1)
 HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testDispatchKeyEvent_001 START");
-    sptr<InputMethodAgentStub> agentStub = new InputMethodAgentStub();
+    sptr<InputMethodAgentStub> agentStub = new InputMethodAgentServiceImpl();
     MessageParcel data;
     data.WriteInterfaceToken(AGENTSTUB_INTERFACE_TOKEN);
     MessageParcel reply;
@@ -339,8 +342,9 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Lev
     keyEvent->WriteToParcel(data);
     data.WriteRemoteObject(nullptr);
     auto ret =
-        agentStub->OnRemoteRequest(static_cast<uint32_t>(IInputMethodAgent::DISPATCH_KEY_EVENT), data, reply, option);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+        agentStub->OnRemoteRequest(static_cast<uint32_t>(IInputMethodAgentIpcCode::COMMAND_DISPATCH_KEY_EVENT),
+        data, reply, option);
+    EXPECT_EQ(ret, ERR_TRANSACTION_FAILED);
 }
 } // namespace MiscServices
 } // namespace OHOS

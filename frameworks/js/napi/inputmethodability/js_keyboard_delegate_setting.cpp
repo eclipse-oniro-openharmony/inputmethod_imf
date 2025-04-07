@@ -388,7 +388,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
 
     IMSA_HILOGI("run in.");
     StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
-    auto task = [entry]() {
+    auto task = [entry, this]() {
         auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             InputMethodSyncTrace tracer("Create parameter");
             if (argc == 0) {
@@ -409,7 +409,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         auto consumer = entry->keyEvenetConsumer;
         if (consumer != nullptr) {
             IMSA_HILOGE("consumer result: %{public}d!", isConsumed);
-            consumer->OnKeyEventConsumeResult(isConsumed);
+            OnKeyEventConsumeResult(isConsumed, consumer);
         }
         FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     };
@@ -436,7 +436,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, s
 
     IMSA_HILOGI("run in.");
     StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
-    auto task = [entry]() {
+    auto task = [entry, this]() {
         InputMethodSyncTrace tracer("OnkeyEvent UV_QUEUE_WORK");
         auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             InputMethodSyncTrace tracer("Create parameter");
@@ -458,12 +458,36 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, s
         auto consumer = entry->keyEvenetConsumer;
         if (consumer != nullptr) {
             IMSA_HILOGE("consumer result: %{public}d!", isConsumed);
-            consumer->OnKeyCodeConsumeResult(isConsumed);
+            OnKeyCodeConsumeResult(isConsumed, consumer);
         }
         FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     };
     eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
+}
+
+void JsKeyboardDelegateSetting::OnKeyEventConsumeResult(bool isConsumed, sptr<KeyEventConsumerProxy> consumer)
+{
+    IMSA_HILOGI("result: %{public}d.", isConsumed);
+    keyEventConsume_ = true;
+    keyEventResult_ = isConsumed;
+    if (keyEventConsume_ && keyCodeConsume_) {
+        consumer->OnKeyEventResult(keyCodeResult_ || keyEventResult_);
+        keyEventConsume_ = false;
+        keyEventResult_ = false;
+    }
+}
+
+void JsKeyboardDelegateSetting::OnKeyCodeConsumeResult(bool isConsumed, sptr<KeyEventConsumerProxy> consumer)
+{
+    IMSA_HILOGI("result: %{public}d.", isConsumed);
+    keyCodeConsume_ = true;
+    keyCodeResult_ = isConsumed;
+    if (keyEventConsume_ && keyCodeConsume_) {
+        consumer->OnKeyEventResult(keyCodeResult_ || keyEventResult_);
+        keyCodeConsume_ = false;
+        keyCodeResult_ = false;
+    }
 }
 
 void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)

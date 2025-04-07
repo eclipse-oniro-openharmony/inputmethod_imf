@@ -29,9 +29,6 @@ InputAttribute KeyboardListenerTestImpl::inputAttribute_ { 0, 0, 0 };
 bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
 {
     keyCode_ = keyCode;
-    if (consumer != nullptr) {
-        consumer->OnKeyCodeConsumeResult(true);
-    }
     return true;
 }
 

@@ -56,7 +56,8 @@ void ImfSaStubFuzzUtil::GrantNativePermission()
     delete[] perms;
 }
 
-bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size, InputMethodInterfaceCode code)
+bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size,
+    IInputMethodSystemAbilityIpcCode code)
 {
     if (!isInitialize_) {
         Initialize();

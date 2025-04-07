@@ -34,15 +34,14 @@
 #include <vector>
 
 #include "global.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_system_ability.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_system_ability.h"
 #include "identity_checker_mock.h"
 #include "input_client_stub.h"
-#include "input_data_channel_stub.h"
+#include "input_data_channel_service_impl.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
-#include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
@@ -114,7 +113,7 @@ public:
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodSystemAbility> imsa_;
-    static constexpr int32_t waitTaskEmptyTimes_ = 5000;
+    static constexpr int32_t waitTaskEmptyTimes_ = 100;
     static constexpr int32_t waitTaskEmptyinterval_ = 20;
 
     static bool IsTaskEmpty()
@@ -192,7 +191,7 @@ void InputMethodEditorTest::SetUp(void)
 void InputMethodEditorTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodEditorTest::TearDown");
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    BlockRetry(waitTaskEmptyinterval_, waitTaskEmptyTimes_, IsTaskEmpty);
     TaskManager::GetInstance().Reset();
 }
 

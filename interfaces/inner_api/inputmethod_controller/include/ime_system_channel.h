@@ -17,14 +17,16 @@
 #define INPUTMETHOD_CONTROLLER_IME_SYSTEM_CHANNEL_H
 
 #include "bundle_mgr_client.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_system_ability.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_system_ability.h"
 #include "input_method_utils.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "private_command_interface.h"
 #include "refbase.h"
 #include "visibility.h"
+#include "sys_panel_status.h"
+#include "isystem_cmd_channel.h"
 
 namespace OHOS {
 namespace MiscServices {

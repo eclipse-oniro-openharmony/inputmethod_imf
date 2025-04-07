@@ -43,14 +43,16 @@
 #include "ability_manager_client.h"
 #include "block_data.h"
 #include "global.h"
-#include "i_input_method_agent.h"
-#include "i_input_method_system_ability.h"
+#include "iinput_method_agent.h"
+#include "iinput_method_system_ability.h"
 #include "identity_checker_mock.h"
 #include "if_system_ability_manager.h"
 #include "input_client_stub.h"
+#include "input_client_service_impl.h"
 #include "input_death_recipient.h"
 #include "input_method_ability.h"
 #include "input_method_engine_listener_impl.h"
+#include "input_data_channel_service_impl.h"
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
@@ -614,7 +616,7 @@ HWTEST_F(InputMethodControllerTest, testGetIMSAProxy, TestSize.Level0)
  */
 HWTEST_F(InputMethodControllerTest, testWriteReadIInputDataChannel, TestSize.Level0)
 {
-    sptr<InputDataChannelStub> mInputDataChannel = new InputDataChannelStub();
+    sptr<InputDataChannelStub> mInputDataChannel = new InputDataChannelServiceImpl();
     MessageParcel data;
     auto ret = data.WriteRemoteObject(mInputDataChannel->AsObject());
     EXPECT_TRUE(ret);
@@ -630,7 +632,7 @@ HWTEST_F(InputMethodControllerTest, testWriteReadIInputDataChannel, TestSize.Lev
  */
 HWTEST_F(InputMethodControllerTest, testIMCBindToIMSA, TestSize.Level0)
 {
-    sptr<InputClientStub> mClient = new InputClientStub();
+    sptr<InputClientStub> mClient = new InputClientServiceImpl();
     MessageParcel data;
     auto ret = data.WriteRemoteObject(mClient->AsObject());
     EXPECT_TRUE(ret);
@@ -1627,66 +1629,6 @@ HWTEST_F(InputMethodControllerTest, testIsPanelShown, TestSize.Level0)
 }
 
 /**
- * @tc.name: testOnKeyEventConsumeResult
- * @tc.desc: IMC OnKeyEventConsumeResult
- * @tc.type: IMC
- * @tc.require:
- */
-HWTEST_F(InputMethodControllerTest, testOnKeyEventConsumeResult, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testOnKeyEventConsumeResult Test START");
-    bool isConsumed = true;
-    sptr<IRemoteObject> object;
-    std::shared_ptr<KeyEventConsumerProxy> keyEventConsumerProxy = std::make_shared<KeyEventConsumerProxy>(object);
-    keyEventConsumerProxy->OnKeyEventConsumeResult(isConsumed);
-    keyEventConsumerProxy->OnKeyCodeConsumeResult(isConsumed);
-    EXPECT_TRUE(isConsumed);
-}
-
-/**
- * @tc.name: test_InputDataChannelStub_OnRemote
- * @tc.desc: Checkout InputDataChannelStub_OnRemote.
- * @tc.type: FUNC
- */
-HWTEST_F(InputMethodControllerTest, InputDataChannelStub_OnRemote, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC InputDataChannelStub_OnRemote Test START");
-    sptr<InputDataChannelStub> mInputDataChannel = new InputDataChannelStub();
-    MessageParcel data;
-    MessageParcel reply;
-    auto ret = mInputDataChannel->InsertTextOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->DeleteForwardOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->DeleteBackwardOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->GetTextBeforeCursorOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->GetTextAfterCursorOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SendKeyboardStatusOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SendFunctionKeyOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->MoveCursorOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SelectByRangeOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SelectByMovementOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->HandleExtendActionOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->NotifyPanelStatusInfoOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->NotifyKeyboardHeightOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SendPrivateCommandOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-    ret = mInputDataChannel->SetPreviewTextOnRemote(data, reply);
-    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
-}
-
-/**
  * @tc.name: testIMCDispatchKeyEvent_null
  * @tc.desc: test IMC DispatchKeyEvent with keyEvent null
  * @tc.type: FUNC
@@ -1831,6 +1773,147 @@ HWTEST_F(InputMethodControllerTest, testIsDefaultImeSetAndEnableIme, TestSize.Le
     const std::string bundleName = "";
     ret = inputMethodController_->EnableIme(bundleName);
     EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: testSendPrivateData_001
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_001, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_001 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PRIVATE_COMMAND_IS_EMPTY);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_002
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_002, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_002 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_003
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_003, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_003 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(true);
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_004
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_004, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_004 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(true);
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = std::string("stringValue");
+    PrivateDataValue privateDataValue2 = true;
+    PrivateDataValue privateDataValue3 = 0;
+    privateCommand.emplace("value1", privateDataValue1);
+    privateCommand.emplace("value2", privateDataValue2);
+    privateCommand.emplace("value3", privateDataValue3);
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_005
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_005, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_005 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(true);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    auto ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_SCENE_UNSUPPORTED);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateData_006
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_006, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_006 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(false);
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testUpdateTextPreviewState
+ * @tc.desc: test IMC Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testUpdateTextPreviewState, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testUpdateTextPreviewState Test START");
+    ASSERT_NE(inputMethodController_, nullptr);
+    inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported = false;
+    inputMethodController_->UpdateTextPreviewState(true);
+    EXPECT_TRUE(inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported);
+    inputMethodController_->UpdateTextPreviewState(true);
+    EXPECT_TRUE(inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported);
 }
 } // namespace MiscServices
 } // namespace OHOS

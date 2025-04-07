@@ -45,7 +45,11 @@ ohos_static_library("inputmethod_tdd_util") {
     "src/key_event_util.cpp",
     "src/tdd_util.cpp",
   ]
-  configs = [ ":inputmethod_tdd_util_config" ]
+  configs = [
+    ":inputmethod_tdd_util_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_native_public_config",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_native_public_config",
+  ]
   public_configs = [ ":inputmethod_tdd_util_public_config" ]
   deps = [
     "${inputmethod_path}/services:inputmethod_service",
@@ -65,6 +69,7 @@ ohos_static_library("inputmethod_tdd_util") {
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "window_manager:libwsutils",
   ]
 
   if (window_manager_use_sceneboard) {

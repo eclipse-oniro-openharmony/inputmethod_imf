@@ -120,26 +120,19 @@ static int32_t IsValidTextEditorProxy(InputMethod_TextEditorProxy *textEditor)
 
 static TextConfig ConstructTextConfig(const InputMethod_TextConfig &config)
 {
-    TextConfig textConfig = {
-        .inputAttribute = {
-            .inputPattern = static_cast<InputMethod_TextInputType>(config.inputType),
-            .enterKeyType = static_cast<InputMethod_EnterKeyType>(config.enterKeyType),
-            .isTextPreviewSupported = config.previewTextSupported,
-        },
-        .cursorInfo = {
-            .left = config.cursorInfo.left,
-            .top = config.cursorInfo.top,
-            .width = config.cursorInfo.width,
-            .height = config.cursorInfo.height,
-        },
-        .range = {
-            .start = config.selectionStart,
-            .end = config.selectionEnd,
-        },
-        .windowId = config.windowId,
-        .positionY = config.avoidInfo.positionY,
-        .height = config.avoidInfo.height,
-    };
+    TextConfig textConfig;
+    textConfig.inputAttribute.inputPattern = static_cast<InputMethod_TextInputType>(config.inputType);
+    textConfig.inputAttribute.enterKeyType = static_cast<InputMethod_EnterKeyType>(config.enterKeyType);
+    textConfig.inputAttribute.isTextPreviewSupported = config.previewTextSupported;
+    textConfig.cursorInfo.left = config.cursorInfo.left;
+    textConfig.cursorInfo.top = config.cursorInfo.top;
+    textConfig.cursorInfo.width = config.cursorInfo.width;
+    textConfig.cursorInfo.height = config.cursorInfo.height;
+    textConfig.range.start = config.selectionStart;
+    textConfig.range.end = config.selectionEnd;
+    textConfig.windowId = config.windowId;
+    textConfig.positionY = config.avoidInfo.positionY;
+    textConfig.height = config.avoidInfo.height;
 
     return textConfig;
 }

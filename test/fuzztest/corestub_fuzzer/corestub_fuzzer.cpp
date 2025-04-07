@@ -18,7 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "input_method_core_stub.h"
+#include "input_method_core_service_impl.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
@@ -49,7 +49,7 @@ bool FuzzCoreStub(const uint8_t *rawData, size_t size)
     MessageParcel reply;
     MessageOption option;
 
-    sptr<InputMethodCoreStub> stub = new InputMethodCoreStub();
+    sptr<InputMethodCoreStub> stub = new InputMethodCoreServiceImpl();
     stub->OnRemoteRequest(code, data, reply, option);
 
     return true;

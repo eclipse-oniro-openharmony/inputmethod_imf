@@ -160,6 +160,7 @@ HWTEST_F(InputMethodAttachTest, testAttach002, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = inputMethodController_->Attach(textListener, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -186,6 +187,7 @@ HWTEST_F(InputMethodAttachTest, testAttach003, TestSize.Level0)
     attribute.enterKeyType = 1;
     auto ret = inputMethodController_->Attach(textListener, true, attribute);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -213,6 +215,7 @@ HWTEST_F(InputMethodAttachTest, testAttach004, TestSize.Level0)
     config.inputAttribute = attribute;
     auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -252,6 +255,7 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     inputMethodController_->Close();
     auto ret = inputMethodController_->Attach(textListener, true, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -325,6 +329,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     Configuration config;
     EnterKeyType keyType = EnterKeyType::NEXT;
@@ -371,6 +376,7 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
     inputMethodController_->Close();
     auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

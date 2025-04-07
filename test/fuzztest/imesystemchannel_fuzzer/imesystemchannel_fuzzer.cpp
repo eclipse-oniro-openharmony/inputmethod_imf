@@ -19,11 +19,11 @@
 #undef private
 
 #include "imesystemchannel_fuzzer.h"
-#include "system_cmd_channel_stub.h"
+#include "system_cmd_channel_service_impl.h"
 #include <cstddef>
 #include <cstdint>
 
-#include "input_method_agent_stub.h"
+#include "input_method_agent_service_impl.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
@@ -56,7 +56,7 @@ void FuzzSystemCmdAgent()
 
 void FuzzOnSystemCmdAgent()
 {
-    sptr<SystemCmdChannelStub> stub = new SystemCmdChannelStub();
+    sptr<SystemCmdChannelStub> stub = new SystemCmdChannelServiceImpl();
 
     MessageParcel data;
     data.WriteRemoteObject(stub->AsObject());

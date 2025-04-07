@@ -18,6 +18,7 @@
 #include <algorithm>
 
 #include "input_method_controller.h"
+#include "event_status_manager.h"
 
 namespace OHOS {
 namespace MiscServices {

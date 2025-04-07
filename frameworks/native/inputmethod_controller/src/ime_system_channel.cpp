@@ -22,7 +22,7 @@
 #include "iservice_registry.h"
 #include "on_demand_start_stop_sa.h"
 #include "system_ability_definition.h"
-#include "system_cmd_channel_stub.h"
+#include "system_cmd_channel_service_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -105,7 +105,7 @@ int32_t ImeSystemCmdChannel::RunConnectSystemCmd()
     if (systemChannelStub_ == nullptr) {
         std::lock_guard<decltype(systemChannelMutex_)> lock(systemChannelMutex_);
         if (systemChannelStub_ == nullptr) {
-            systemChannelStub_ = new (std::nothrow) SystemCmdChannelStub();
+            systemChannelStub_ = new (std::nothrow) SystemCmdChannelServiceImpl();
         }
         if (systemChannelStub_ == nullptr) {
             IMSA_HILOGE("channel is nullptr!");
@@ -222,7 +222,8 @@ int32_t ImeSystemCmdChannel::SendPrivateCommand(const std::unordered_map<std::st
             IMSA_HILOGE("agent is nullptr!");
             return ErrorCode::ERROR_CLIENT_NOT_BOUND;
         }
-        return agent->SendPrivateCommand(privateCommand);
+        Value value(privateCommand);
+        return agent->SendPrivateCommand(value);
     }
     return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND;
 }
@@ -284,7 +285,13 @@ int32_t ImeSystemCmdChannel::GetDefaultImeCfg(std::shared_ptr<Property> &propert
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return proxy->GetDefaultInputMethod(property, true);
+    Property prop;
+    auto ret = proxy->GetDefaultInputMethod(prop, true);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    property = std::make_shared<Property>(prop);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -27,12 +27,22 @@ InputMethodAbilityInterface &InputMethodAbilityInterface::GetInstance()
 
 int32_t InputMethodAbilityInterface::RegisteredProxy()
 {
-    return InputMethodAbility::GetInstance()->SetCoreAndAgent();
+    return InputMethodAbility::GetInstance()->RegisterProxyIme();
 }
 
 int32_t InputMethodAbilityInterface::UnRegisteredProxy(UnRegisteredType type)
 {
     return InputMethodAbility::GetInstance()->UnRegisteredProxyIme(type);
+}
+
+int32_t InputMethodAbilityInterface::RegisterProxyIme(uint64_t displayId)
+{
+    return InputMethodAbility::GetInstance()->RegisterProxyIme(displayId);
+}
+
+int32_t InputMethodAbilityInterface::UnregisterProxyIme(uint64_t displayId)
+{
+    return InputMethodAbility::GetInstance()->UnregisterProxyIme(displayId);
 }
 
 int32_t InputMethodAbilityInterface::InsertText(const std::string &text)
@@ -53,6 +63,19 @@ int32_t InputMethodAbilityInterface::DeleteBackward(int32_t length)
 int32_t InputMethodAbilityInterface::MoveCursor(int32_t keyCode)
 {
     return InputMethodAbility::GetInstance()->MoveCursor(keyCode);
+}
+
+int32_t InputMethodAbilityInterface::GetInputAttribute(InputAttribute &attribute)
+{
+    TextTotalConfig config;
+    auto ret = InputMethodAbility::GetInstance()->GetTextConfig(config);
+    attribute = config.inputAttribute;
+    return ret;
+}
+
+int32_t InputMethodAbilityInterface::SendFunctionKey(int32_t funcKey)
+{
+    return InputMethodAbility::GetInstance()->SendFunctionKey(funcKey);
 }
 
 void InputMethodAbilityInterface::SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)

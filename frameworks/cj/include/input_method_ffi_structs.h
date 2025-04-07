@@ -74,7 +74,7 @@ extern "C" {
         double height;
     };
 
-    struct Range {
+    struct CRange {
         int32_t start;
         int32_t end;
     };
@@ -82,7 +82,7 @@ extern "C" {
     struct CTextConfig {
         CInputAttribute inputAttrbute;
         CCursorInfo cursor;
-        Range range;
+        CRange range;
         uint32_t windowId;
     };
 }

@@ -67,6 +67,21 @@ EnabledStatus ImeInfoInquirer::GetSystemInitEnabledState()
     return systemConfig_.initEnabledState;
 }
 
+bool ImeInfoInquirer::IsEnableAppAgent()
+{
+    return systemConfig_.enableAppAgentFeature;
+}
+
+bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)
+{
+    return systemConfig_.proxyImeUidList.find(callingUid) != systemConfig_.proxyImeUidList.end();
+}
+
+bool ImeInfoInquirer::IsSpecialSaUid(int32_t callingUid)
+{
+    return systemConfig_.specialSaUidList.find(callingUid) != systemConfig_.specialSaUidList.end();
+}
+
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
 {
     IMSA_HILOGD("userId: %{public}d.", userId);
@@ -284,11 +299,13 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
         if (IsTempInputMethod(extension)) {
             continue;
         }
-        props.push_back({ .name = extension.bundleName,
-            .id = extension.name,
-            .label = GetTargetString(extension, ImeTargetString::LABEL, userId),
-            .labelId = extension.applicationInfo.labelId,
-            .iconId = extension.applicationInfo.iconId });
+        Property prop;
+        prop.name = extension.bundleName;
+        prop.id = extension.name;
+        prop.label = GetTargetString(extension, ImeTargetString::LABEL, userId);
+        prop.labelId = extension.applicationInfo.labelId;
+        prop.iconId = extension.applicationInfo.iconId;
+        props.push_back(prop);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -533,12 +550,13 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
         if (InputTypeManager::GetInstance().IsInputType({ extInfo.bundleName, subtype.id })) {
             continue;
         }
-        SubProperty subProp{ .label = subtype.label,
-            .name = extInfo.bundleName,
-            .id = subtype.id,
-            .mode = subtype.mode,
-            .locale = subtype.locale,
-            .icon = subtype.icon };
+        SubProperty subProp;
+        subProp.label = subtype.label;
+        subProp.name = extInfo.bundleName;
+        subProp.id = subtype.id;
+        subProp.mode = subtype.mode;
+        subProp.locale = subtype.locale;
+        subProp.icon = subtype.icon;
         auto pos = subProp.label.find(':');
         if (pos != std::string::npos && pos + 1 < subProp.label.size()) {
             int32_t labelId = atoi(subProp.label.substr(pos + 1).c_str());
@@ -655,11 +673,12 @@ std::shared_ptr<Property> ImeInfoInquirer::GetImeProperty(
         IMSA_HILOGE("userId: %{public}d getExtInfosByBundleName %{public}s failed!", userId, bundleName.c_str());
         return nullptr;
     }
-    Property prop = { .name = extInfos[0].bundleName,
-        .id = extName.empty() ? extInfos[0].name : extName,
-        .label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId),
-        .labelId = extInfos[0].applicationInfo.labelId,
-        .iconId = extInfos[0].applicationInfo.iconId };
+    Property prop;
+    prop.name = extInfos[0].bundleName;
+    prop.id = extName.empty() ? extInfos[0].name : extName;
+    prop.label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId);
+    prop.labelId = extInfos[0].applicationInfo.labelId;
+    prop.iconId = extInfos[0].applicationInfo.iconId;
     return std::make_shared<Property>(prop);
 }
 

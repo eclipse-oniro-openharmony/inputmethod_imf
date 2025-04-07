@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+sequenceable input_client_info..OHOS.MiscServices.InputClientInfoInner;
+sequenceable input_method_property..OHOS.MiscServices.Property;
+sequenceable input_method_property..OHOS.MiscServices.SubProperty;
+sequenceable input_window_info..OHOS.MiscServices.ImeWindowInfo;
+sequenceable input_method_utils..OHOS.MiscServices.Value;
+sequenceable panel_info..OHOS.MiscServices.PanelInfo;
+sequenceable element_name..OHOS.AppExecFwk.ElementName;
+sequenceable OHOS.IRemoteObject;
+interface OHOS.MiscServices.IInputClient;
+interface OHOS.MiscServices.IInputMethodCore;
+interface OHOS.MiscServices.IInputMethodSystemAbility {
+    void StartInput([in] InputClientInfoInner inputClientInfoInner,
+        [out] IRemoteObject agent, [out] long pid, [out] String bundleName);
+    void ShowCurrentInput([in] unsigned int type);
+    void HideCurrentInput();
+    void StopInputSession();
+    void ShowInput([in] IInputClient client, [in] unsigned int type, [in] int requestKeyboardReason);
+    void HideInput([in] IInputClient client);
+    void ReleaseInput([in] IInputClient client, [in] unsigned int sessionId);
+    void RequestShowInput();
+    void RequestHideInput([in] boolean isFocusTriggered);
+    void GetDefaultInputMethod([out] Property prop, [in] boolean isBrief);
+    void GetInputMethodConfig([out] ElementName inputMethodConfig);
+    void GetCurrentInputMethod([out] Property resultValue);
+    void GetCurrentInputMethodSubtype([out] SubProperty resultValue);
+    void ListInputMethod([in] unsigned int status, [out] Property[] props);
+    void DisplayOptionalInputMethod();
+    void SetCoreAndAgent([in] IInputMethodCore core, [in] IRemoteObject agent);
+    void InitConnect();
+    void UnRegisteredProxyIme([in] int type, [in] IInputMethodCore core);
+    void ListCurrentInputMethodSubtype([out] SubProperty[] subProps);
+    void ListInputMethodSubtype([in] String name, [out] SubProperty[] subProps);
+    void SwitchInputMethod([in] String bundleName, [in] String name, [in] unsigned int trigger);
+    [oneway] void PanelStatusChange([in] unsigned int status, [in] ImeWindowInfo info);
+    void UpdateListenEventFlag([in] InputClientInfoInner clientInfoInner, [in] unsigned int eventFlag);
+    void IsCurrentIme([out] boolean resultValue);
+    void IsInputTypeSupported([in] int type, [out] boolean resultValue);
+    void IsCurrentImeByPid([in] int pid, [out] boolean resultValue);
+    void StartInputType([in] int type);
+    void ExitCurrentInputType();
+    void IsPanelShown([in] PanelInfo panelInfo, [out] boolean isShown);
+    void GetSecurityMode([out] int security);
+    void IsDefaultIme();
+    void IsDefaultImeSet([out] boolean resultValue);
+    void EnableIme([in] String bundleName, [out] boolean resultValue);
+    void ConnectSystemCmd([in] IRemoteObject channel, [out] IRemoteObject agent);
+    void GetInputMethodState([out] int state);
+    void IsSystemApp([out] boolean resultValue);
+    void HideCurrentInputDeprecated();
+    void ShowCurrentInputDeprecated();
+    void SetCallingWindow([in] unsigned int windowId, [in] IInputClient client);
+    void GetInputStartInfo(
+        [out] boolean isInputStart, [out] unsigned int callingWndId, [out] int requestKeyboardReason);
+    void RegisterProxyIme([in] unsigned long displayId, [in] IInputMethodCore core, [in] IRemoteObject agent);
+    void UnregisterProxyIme([in] unsigned long displayId);
+    void SendPrivateData([in] Value value);
+}

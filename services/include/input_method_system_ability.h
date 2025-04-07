@@ -40,53 +40,57 @@ public:
     ~InputMethodSystemAbility();
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent,
-        std::pair<int64_t, std::string> &imeInfo) override;
-    int32_t ShowCurrentInput(ClientType type = ClientType::INNER_KIT) override;
-    int32_t HideCurrentInput() override;
-    int32_t ShowInput(
-        sptr<IInputClient> client, ClientType type = ClientType::INNER_KIT, int32_t requestKeyboardReason = 0) override;
-    int32_t HideInput(sptr<IInputClient> client) override;
-    int32_t StopInputSession() override;
-    int32_t ReleaseInput(sptr<IInputClient> client, uint32_t sessionId) override;
-    int32_t RequestShowInput() override;
-    int32_t RequestHideInput(bool isFocusTriggered) override;
-    int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop, bool isBrief) override;
-    int32_t GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig) override;
-    std::shared_ptr<Property> GetCurrentInputMethod() override;
-    std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
-    int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
-    int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
-    int32_t ListInputMethodSubtype(const std::string &bundleName, std::vector<SubProperty> &subProps) override;
-    int32_t SwitchInputMethod(
-        const std::string &bundleName, const std::string &subName, SwitchTrigger trigger) override;
-    int32_t DisplayOptionalInputMethod() override;
-    int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
-    int32_t InitConnect() override;
-    int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
-    int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
-    int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) override;
-    int32_t SetCallingWindow(uint32_t windowId, sptr<IInputClient> client) override;
-    int32_t GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason) override;
+    ErrCode StartInput(const InputClientInfoInner &inputClientInfoInner, sptr<IRemoteObject> &agent,
+        int64_t &pid, std::string &bundleName) override;
+    ErrCode ShowCurrentInput(uint32_t type = static_cast<uint32_t>(ClientType::INNER_KIT)) override;
+    ErrCode HideCurrentInput() override;
+    ErrCode ShowInput(const sptr<IInputClient>& client, uint32_t type = static_cast<uint32_t>(ClientType::INNER_KIT),
+        int32_t requestKeyboardReason = 0) override;
+    ErrCode HideInput(const sptr<IInputClient>& client) override;
+    ErrCode StopInputSession() override;
+    ErrCode ReleaseInput(const sptr<IInputClient>& client, uint32_t sessionId) override;
+    ErrCode RequestShowInput() override;
+    ErrCode RequestHideInput(bool isFocusTriggered) override;
+    ErrCode GetDefaultInputMethod(Property &prop, bool isBrief) override;
+    ErrCode GetInputMethodConfig(ElementName &inputMethodConfig) override;
+    ErrCode GetCurrentInputMethod(Property& resultValue) override;
+    ErrCode GetCurrentInputMethodSubtype(SubProperty& resultValue) override;
+    ErrCode ListInputMethod(uint32_t status, std::vector<Property> &props) override;
+    ErrCode ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
+    ErrCode ListInputMethodSubtype(const std::string &bundleName, std::vector<SubProperty> &subProps) override;
+    ErrCode SwitchInputMethod(
+        const std::string &bundleName, const std::string &subName, uint32_t trigger) override;
+    ErrCode DisplayOptionalInputMethod() override;
+    ErrCode SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
+    ErrCode InitConnect() override;
+    ErrCode UnRegisteredProxyIme(int32_t type, const sptr<IInputMethodCore> &core) override;
+    ErrCode PanelStatusChange(uint32_t status, const ImeWindowInfo &info) override;
+    ErrCode UpdateListenEventFlag(const InputClientInfoInner &clientInfoInner, uint32_t eventFlag) override;
+    ErrCode SetCallingWindow(uint32_t windowId, const sptr<IInputClient>& client) override;
+    ErrCode GetInputStartInfo(bool& isInputStart, uint32_t& callingWndId, int32_t& requestKeyboardReason) override;
+    ErrCode SendPrivateData(const Value &value) override;
 
-    bool IsCurrentIme() override;
-    bool IsInputTypeSupported(InputType type) override;
-    bool IsCurrentImeByPid(int32_t pid) override;
-    int32_t StartInputType(InputType type) override;
-    int32_t ExitCurrentInputType() override;
-    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
-    int32_t GetSecurityMode(int32_t &security) override;
-    int32_t ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
+    ErrCode IsCurrentIme(bool& resultValue) override;
+    ErrCode IsInputTypeSupported(int32_t type, bool& resultValue) override;
+    ErrCode IsCurrentImeByPid(int32_t pid, bool& resultValue) override;
+    ErrCode StartInputType(int32_t type) override;
+    ErrCode ExitCurrentInputType() override;
+    ErrCode IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
+    ErrCode GetSecurityMode(int32_t &security) override;
+    ErrCode ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
     // Deprecated because of no permission check, kept for compatibility
-    int32_t HideCurrentInputDeprecated() override;
-    int32_t ShowCurrentInputDeprecated() override;
+    ErrCode HideCurrentInputDeprecated() override;
+    ErrCode ShowCurrentInputDeprecated() override;
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
-    int32_t IsDefaultIme() override;
-    bool IsDefaultImeSet() override;
-    bool EnableIme(const std::string &bundleName) override;
-    int32_t GetInputMethodState(EnabledStatus &status) override;
-    bool IsSystemApp() override;
+    ErrCode IsDefaultIme() override;
+    ErrCode IsDefaultImeSet(bool& resultValue) override;
+    ErrCode EnableIme(const std::string &bundleName, bool& resultValue) override;
+    ErrCode GetInputMethodState(int32_t &status) override;
+    ErrCode IsSystemApp(bool& resultValue) override;
+    int32_t RegisterProxyIme(
+        uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
+    int32_t UnregisterProxyIme(uint64_t displayId) override;
 
 protected:
     void OnStart() override;
@@ -106,6 +110,7 @@ private:
         const std::shared_ptr<ImeInfo> &info);
     int32_t GetUserId(int32_t uid);
     int32_t GetCallingUserId();
+    uint64_t GetCallingDisplayId();
     std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;
     int32_t PrepareInput(int32_t userId, InputClientInfo &clientInfo);
     void WorkThread();
@@ -141,7 +146,7 @@ private:
     void HandleMemStarted();
     void HandleDataShareReady();
     void HandleOsAccountStarted();
-    void HandleFocusChanged(bool isFocused, int32_t pid, int32_t uid);
+    void HandleFocusChanged(bool isFocused, uint64_t displayId, int32_t pid, int32_t uid);
     void HandleImeCfgCapsState();
     void StopImeInBackground();
     int32_t InitAccountMonitor();
@@ -176,8 +181,6 @@ private:
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
     int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    bool IsSecurityMode(int32_t userId, const std::string &bundleName);
-    int32_t GetImeEnablePattern(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t StartInputInner(
         InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
@@ -195,6 +198,7 @@ private:
     bool IsValidBundleName(const std::string &bundleName);
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
+
     std::atomic<bool> enableImeOn_ = false;
     std::atomic<bool> enableSecurityMode_ = false;
     std::atomic<bool> isBundleScanFinished_ = false;
