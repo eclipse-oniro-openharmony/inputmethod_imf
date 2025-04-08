@@ -551,7 +551,6 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
     CHECK_RETURN(status == napi_ok, "inputAttribute must be InputAttribute!", false);
     bool ret = JsGetInputMethodController::GetValue(env, attributeResult, out.inputAttribute);
     CHECK_RETURN(ret, "inputAttribute of TextConfig must be valid!", ret);
-
     napi_value cursorInfoResult = nullptr;
     status = JsUtils::GetValue(env, in, "cursorInfo", cursorInfoResult);
     bool result = false;
@@ -769,7 +768,12 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
 bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, InputAttribute &out)
 {
     auto ret = JsUtil::Object::ReadProperty(env, in, "textInputType", out.inputPattern);
-    return ret && JsUtil::Object::ReadProperty(env, in, "enterKeyType", out.enterKeyType);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "enterKeyType", out.enterKeyType);
+    // compatibility with older versions may not exist
+    JsUtil::Object::ReadProperty(env, in, "placeholder", out.placeholder);
+    // compatibility with older versions may not exist
+    JsUtil::Object::ReadProperty(env, in, "abilityName", out.abilityName);
+    return ret;
 }
 
 napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callback_info info)

@@ -32,6 +32,7 @@
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
+#include "itypes_util.h"
 #include "keyevent_consumer_stub.h"
 #include "on_demand_start_stop_sa.h"
 #include "string_ex.h"
@@ -53,6 +54,8 @@ constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t LOG_MAX_TIME = 20;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
+constexpr int32_t MAX_PLACEHODER_SIZE = 256; // 256 char
+constexpr int32_t MAX_ABILITY_NAME_SIZE = 32; // 32 char
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure.");
@@ -246,6 +249,19 @@ int32_t InputMethodController::IsValidTextConfig(const TextConfig &textConfig)
     if (textConfig.inputAttribute.immersiveMode < static_cast<int32_t>(ImmersiveMode::NONE_IMMERSIVE) ||
         textConfig.inputAttribute.immersiveMode >= static_cast<int32_t>(ImmersiveMode::END)) {
         IMSA_HILOGE("invalid immersiveMode: %{public}d", textConfig.inputAttribute.immersiveMode);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+    int32_t uft16CharLen = ITypesUtil::CountUtf16Chars(textConfig.inputAttribute.placeholder);
+    if (uft16CharLen > MAX_PLACEHODER_SIZE) {
+        IMSA_HILOGE("invalid placeholder:%{public}s over limit num:%{public}d",
+            Str16ToStr8(textConfig.inputAttribute.placeholder).c_str(), uft16CharLen);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+
+    uft16CharLen = ITypesUtil::CountUtf16Chars(textConfig.inputAttribute.abilityName);
+    if (uft16CharLen > MAX_ABILITY_NAME_SIZE) {
+        IMSA_HILOGE("invalid abilityName:%{public}s, over limit num:%{public}d",
+            Str16ToStr8(textConfig.inputAttribute.abilityName).c_str(), uft16CharLen);
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     return ErrorCode::NO_ERROR;

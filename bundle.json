@@ -58,7 +58,9 @@
               "hicollie",
               "resource_management",
               "screenlock_mgr",
-              "cJSON"
+              "cJSON",
+              "bounds_checking_function",
+              "icu"
           ]
       }, 
       "build": {

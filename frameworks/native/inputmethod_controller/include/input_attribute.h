@@ -16,6 +16,7 @@
 #ifndef SERVICES_INCLUDE_INPUT_ATTRIBUTE_H
 #define SERVICES_INCLUDE_INPUT_ATTRIBUTE_H
 
+#include <codecvt>
 #include <cstdint>
 #include <sstream>
 
@@ -37,13 +38,16 @@ struct InputAttribute {
     int32_t immersiveMode = 0;
     uint32_t windowId = 0; // for transfer
     uint64_t callingDisplayId = 0;
+    std::u16string placeholder { u"" };
+    std::u16string abilityName { u"" };
 
     static bool Marshalling(const InputAttribute &in, MessageParcel &data)
     {
         return data.WriteInt32(in.inputPattern) && data.WriteInt32(in.enterKeyType) &&
             data.WriteInt32(in.inputOption) && data.WriteString(in.bundleName) &&
             data.WriteInt32(in.immersiveMode) && data.WriteUint32(in.windowId) &&
-            data.WriteUint64(in.callingDisplayId);
+            data.WriteUint64(in.callingDisplayId) &&
+            data.WriteString16(in.placeholder) && data.WriteString16(in.abilityName);
     }
 
     static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
@@ -51,7 +55,8 @@ struct InputAttribute {
         return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) &&
             data.ReadInt32(out.inputOption) && data.ReadString(out.bundleName) &&
             data.ReadInt32(out.immersiveMode) && data.ReadUint32(out.windowId) &&
-            data.ReadUint64(out.callingDisplayId);
+            data.ReadUint64(out.callingDisplayId) &&
+            data.ReadString16(out.placeholder) && data.ReadString16(out.abilityName);
     }
 
     bool GetSecurityFlag() const
@@ -66,6 +71,12 @@ struct InputAttribute {
             inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
     }
 
+    inline std::string ToUtf8(const std::u16string &in) const
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+        return converter.to_bytes(in);
+    }
+
     inline std::string ToString() const
     {
         std::stringstream ss;
@@ -73,7 +84,9 @@ struct InputAttribute {
         << "enterKeyType:" << enterKeyType << "inputOption:" << inputOption
         << "isTextPreviewSupported:" << isTextPreviewSupported << "bundleName:" << bundleName
         << "immersiveMode:" << immersiveMode << "windowId:" << windowId
-        << "callingDisplayId:" << callingDisplayId << "]";
+        << "callingDisplayId:" << callingDisplayId
+        << "placeholder:" << ToUtf8(placeholder) << "abilityName:" << ToUtf8(abilityName)
+        << "]";
         return ss.str();
     }
 };

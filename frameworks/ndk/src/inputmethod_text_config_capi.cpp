@@ -12,11 +12,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "ashmem.h"
+#include "securec.h"
+
 #include "global.h"
+#include "itypes_util.h"
 #include "native_inputmethod_types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+constexpr int32_t MAX_PLACEHOLDER_SIZE = 256; // 256 utf-16 chars
+constexpr int32_t MAX_ABILITY_NAME_SIZE = 32; // 32 utf-16 chars
+
+InputMethod_TextConfig::InputMethod_TextConfig()
+{
+    placeholder = nullptr;
+    placeholderLength = 0;
+    abilityName = nullptr;
+    abilityNameLength = 0;
+}
+
+InputMethod_TextConfig::~InputMethod_TextConfig()
+{
+    if (placeholder != nullptr) {
+        delete []placeholder;
+        placeholder = nullptr;
+    }
+    placeholderLength = 0;
+    if (abilityName != nullptr) {
+        delete []abilityName;
+        abilityName = nullptr;
+    }
+    abilityNameLength = 0;
+}
 
 InputMethod_TextConfig *OH_TextConfig_Create(void)
 {
@@ -79,6 +107,98 @@ InputMethod_ErrorCode OH_TextConfig_SetWindowId(InputMethod_TextConfig *config, 
     }
 
     config->windowId = windowId;
+    return IME_ERR_OK;
+}
+
+InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *config, const char16_t *placeholder,
+    size_t length)
+{
+    if (config == nullptr) {
+        IMSA_HILOGE("config is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (length <= 0) {
+        if (config->placeholder != nullptr) {
+            delete []config->placeholder;
+            config->placeholder = nullptr;
+        }
+        config->placeholderLength = 0;
+        return IME_ERR_OK;
+    }
+    if (placeholder == nullptr) {
+        IMSA_HILOGE("placeholder is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    char16_t *newPlaceholder = new (std::nothrow) char16_t[length];
+    if (newPlaceholder == nullptr) {
+        IMSA_HILOGE("allocate memory‌ failed len:%{public}zu.", length);
+        return IME_ERR_NULL_POINTER;
+    }
+    auto byteLen = length * sizeof(char16_t);
+    errno_t err = memcpy_s(newPlaceholder, byteLen, placeholder, byteLen);
+    if (err != EOK) {
+        IMSA_HILOGE("placeholder content copy error:%{public}d", (int32_t)err);
+        delete []newPlaceholder;
+        return IME_ERR_PARAMCHECK;
+    }
+    std::u16string u16Placeholder(newPlaceholder, length);
+    int32_t charsLen = OHOS::MiscServices::ITypesUtil::CountUtf16Chars(u16Placeholder);
+    if (charsLen > MAX_PLACEHOLDER_SIZE) {
+        IMSA_HILOGE("length exceeds limit inputLen:%{public}d", charsLen);
+        delete []newPlaceholder;
+        return IME_ERR_PARAMCHECK;
+    }
+    if (config->placeholder != nullptr) {
+        delete []config->placeholder;
+    }
+    config->placeholder = newPlaceholder;
+    config->placeholderLength = length;
+    return IME_ERR_OK;
+}
+
+InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *config, const char16_t *abilityName,
+    size_t length)
+{
+    if (config == nullptr) {
+        IMSA_HILOGE("config is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (length <= 0) {
+        if (config->abilityName != nullptr) {
+            delete []config->abilityName;
+            config->abilityName = nullptr;
+        }
+        config->abilityNameLength = 0;
+        return IME_ERR_OK;
+    }
+    if (abilityName == nullptr) {
+        IMSA_HILOGE("abilityName is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    char16_t *newAbilityName = new char16_t[length];
+    if (newAbilityName == nullptr) {
+        IMSA_HILOGE("allocate memory‌ failed len:%{public}zu.", length);
+        return IME_ERR_NULL_POINTER;
+    }
+    auto byteLen = length * sizeof(char16_t);
+    errno_t err = memcpy_s(newAbilityName, byteLen, abilityName, byteLen);
+    if (err != EOK) {
+        IMSA_HILOGE("abilityName content copy error:%{public}d", (int32_t)err);
+        delete []newAbilityName;
+        return IME_ERR_PARAMCHECK;
+    }
+    std::u16string u16AbilityName(newAbilityName, length);
+    int32_t charsLen = OHOS::MiscServices::ITypesUtil::CountUtf16Chars(u16AbilityName);
+    if (charsLen > MAX_ABILITY_NAME_SIZE) {
+        IMSA_HILOGE("length exceeds limit inputLen:%{public}d", charsLen);
+        delete []newAbilityName;
+        return IME_ERR_PARAMCHECK;
+    }
+    if (config->abilityName != nullptr) {
+        delete []config->abilityName;
+    }
+    config->abilityName = newAbilityName;
+    config->abilityNameLength = length;
     return IME_ERR_OK;
 }
 
@@ -184,6 +304,83 @@ InputMethod_ErrorCode OH_TextConfig_GetWindowId(InputMethod_TextConfig *config, 
         return IME_ERR_NULL_POINTER;
     }
     *windowId = config->windowId;
+    return IME_ERR_OK;
+}
+
+InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *config, char16_t **placeholder,
+    size_t* const length)
+{
+    if (config == nullptr) {
+        IMSA_HILOGE("config is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (placeholder == nullptr) {
+        IMSA_HILOGE("placeholder is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (!length) {
+        IMSA_HILOGE("length is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    *placeholder = nullptr;
+    *length = 0;
+    if (config->placeholderLength <=0 || (!config->placeholder)) {
+        return IME_ERR_OK;
+    }
+    auto byteLen = config->placeholderLength * sizeof(char16_t);
+    *placeholder = static_cast<char16_t *>(malloc(byteLen));
+    if ((*placeholder) == nullptr) {
+        IMSA_HILOGE("placeholder return value failed to allocate memory");
+        return IME_ERR_NULL_POINTER;
+    }
+    *length = config->placeholderLength;
+    errno_t err = memcpy_s((*placeholder), byteLen, config->placeholder, byteLen);
+    if (err != EOK) {
+        IMSA_HILOGE("placeholder content copy error:%{public}d", (int32_t)err);
+        free(*placeholder);
+        *placeholder = nullptr;
+        *length = 0;
+        return IME_ERR_PARAMCHECK;
+    }
+    IMSA_HILOGI("placeholder copy dest info:%{public}d", (*placeholder)[0]);
+    return IME_ERR_OK;
+}
+
+InputMethod_ErrorCode OH_TextConfig_GetAbilityName(InputMethod_TextConfig *config, char16_t **abilityName,
+    size_t* const length)
+{
+    if (config == nullptr) {
+        IMSA_HILOGE("config is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (abilityName == nullptr) {
+        IMSA_HILOGE("abilityName is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    if (!length) {
+        IMSA_HILOGE("length is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    *abilityName = nullptr;
+    *length = 0;
+    if (config->abilityNameLength <=0 || (!config->abilityName)) {
+        return IME_ERR_OK;
+    }
+    auto byteLen = config->abilityNameLength * sizeof(char16_t);
+    *abilityName = static_cast<char16_t *>(malloc(byteLen));
+    if ((*abilityName) == nullptr) {
+        IMSA_HILOGE("abilityName return value failed to allocate memory");
+        return IME_ERR_NULL_POINTER;
+    }
+    *length = config->abilityNameLength;
+    errno_t err = memcpy_s(*abilityName, byteLen, config->abilityName, byteLen);
+    if (err != EOK) {
+        IMSA_HILOGE("abilityName content copy error:%{public}d", (int32_t)err);
+        free(*abilityName);
+        *abilityName = nullptr;
+        *length = 0;
+        return IME_ERR_PARAMCHECK;
+    }
     return IME_ERR_OK;
 }
 #ifdef __cplusplus
