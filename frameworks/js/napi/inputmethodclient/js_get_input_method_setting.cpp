@@ -66,6 +66,7 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("displayOptionalInputMethod", DisplayOptionalInputMethod),
         DECLARE_NAPI_FUNCTION("showOptionalInputMethods", ShowOptionalInputMethods),
         DECLARE_NAPI_FUNCTION("isPanelShown", IsPanelShown),
+        DECLARE_NAPI_FUNCTION("enableInputMethod", EnableInputMethod),
         DECLARE_NAPI_FUNCTION("getInputMethodState", GetInputMethodState),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
@@ -453,6 +454,43 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
         return JsUtil::Const::Null(env);
     }
     return JsUtil::GetValue(env, isShown);
+}
+
+napi_value JsGetInputMethodSetting::EnableInputMethod(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("run in");
+    auto ctxt = std::make_shared<EnableInputContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 2, "at least three parameters is required!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env,
+            JsUtil::GetType(env, argv[0]) == napi_string && JsUtil::GetValue(env, argv[0], ctxt->bundleName),
+            "bundleName type must be string!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, !ctxt->bundleName.empty(), "bundleName can not be empty!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env,
+            JsUtil::GetType(env, argv[1]) == napi_string && JsUtil::GetValue(env, argv[1], ctxt->extName),
+            "extensionName type must be string!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, !ctxt->extName.empty(), "extensionName can not be empty!", TYPE_NONE, napi_invalid_arg);
+        int32_t status = 0;
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[2]) == napi_number && JsUtil::GetValue(env, argv[2], status),
+            "enabledState type must be EnabledState!", TYPE_NONE, napi_invalid_arg);
+        ctxt->enabledStatus = static_cast<EnabledStatus>(status);
+        return napi_ok;
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t errCode =
+            InputMethodController::GetInstance()->EnableIme(ctxt->bundleName, ctxt->extName, ctxt->enabledStatus);
+        if (errCode == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+        ctxt->SetErrorCode(errCode);
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    // 3 means JsAPI:enableInputMethod has 3 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 3);
+    return asyncCall.Call(env, exec, "EnableInputMethod");
 }
 
 napi_value JsGetInputMethodSetting::GetInputMethodState(napi_env env, napi_callback_info info)

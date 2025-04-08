@@ -637,7 +637,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestListEnabledInputMethod_001, TestS
     // currentIme is empty
     std::vector<Property> props;
     auto currentUserId = TddUtil::GetCurrentUserId();
-    auto ret = ImeInfoInquirer::GetInstance().ListEnabledInputMethod(currentUserId, props, false);
+    auto ret = ImeInfoInquirer::GetInstance().ListEnabledInputMethod(currentUserId, props);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -669,7 +669,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestListInputMethod_001, TestSize.Lev
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestListInputMethod_001 TEST START");
     std::vector<Property> props;
-    auto ret = ImeInfoInquirer::GetInstance().ListInputMethod(60, InputMethodStatus(10), props, false);
+    auto ret = ImeInfoInquirer::GetInstance().ListInputMethod(60, InputMethodStatus(10), props);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
@@ -1303,15 +1303,15 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage003, TestSize.Level0)
     EXPECT_TRUE(ret3 == "");
 
     std::vector<Property> props = {};
-    ret = inquirer.ListEnabledInputMethod(INVALID_USER_ID, props, false);
+    ret = inquirer.ListEnabledInputMethod(INVALID_USER_ID, props);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 
-    ret = inquirer.ListDisabledInputMethod(INVALID_USER_ID, props, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inquirer.ListDisabledInputMethod(INVALID_USER_ID, props);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 
     SwitchInfo switchInfo;
     uint32_t cacheCount = -1;
-    ret = inquirer.GetSwitchInfoBySwitchCount(switchInfo, INVALID_USER_ID, false, cacheCount);
+    ret = inquirer.GetSwitchInfoBySwitchCount(switchInfo, INVALID_USER_ID, cacheCount);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 
@@ -1326,9 +1326,9 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     sptr<SettingsDataObserver> observer;
     std::shared_ptr<DataShare::DataShareHelper> helper;
-    std::string invaildString = "";
+    std::string invaildString;
     pid_t pid { -1 };
-    auto ret = SettingsDataUtils::GetInstance()->RegisterObserver(observer);
+    auto ret = SettingsDataUtils::GetInstance()->RegisterObserver(invaildString, observer);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = SettingsDataUtils::GetInstance()->GetStringValue(invaildString, invaildString, invaildString);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);

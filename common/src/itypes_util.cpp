@@ -148,7 +148,8 @@ bool ITypesUtil::Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.name, input.id, input.label, input.labelId, input.icon, input.iconId)) {
+    if (!Marshal(data, input.name, input.id, input.label, input.labelId, input.icon, input.iconId,
+                 static_cast<int32_t>(input.status))) {
         IMSA_HILOGE("write Property to message parcel failed.");
         return false;
     }
@@ -157,10 +158,12 @@ bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(Property &output, MessageParcel &data)
 {
-    if (!Unmarshal(data, output.name, output.id, output.label, output.labelId, output.icon, output.iconId)) {
+    int32_t status = 0;
+    if (!Unmarshal(data, output.name, output.id, output.label, output.labelId, output.icon, output.iconId, status)) {
         IMSA_HILOGE("read Property from message parcel failed.");
         return false;
     }
+    output.status = static_cast<EnabledStatus>(status);
     return true;
 }
 

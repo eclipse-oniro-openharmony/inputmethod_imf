@@ -17,9 +17,9 @@
 #define SERVICES_INCLUDE_IME_INFO_ENQUIRER_H
 
 #include "bundle_mgr_proxy.h"
-#include "enable_ime_data_parser.h"
 #include "ime_cfg_manager.h"
 #include "input_method_info.h"
+#include "input_method_property.h"
 #include "resource_manager.h"
 #include "sys_cfg_parser.h"
 namespace OHOS {
@@ -81,17 +81,17 @@ public:
     bool GetImeVersionCode(int32_t userId, const std::string &bundleName, uint32_t &versionCode);
     int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief = false);
     int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
-    int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
+    int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props);
     int32_t ListInputMethodSubtype(int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(int32_t userId, std::vector<SubProperty> &subProps);
-    int32_t GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int32_t userId, bool enableOn, uint32_t cacheCount);
+    int32_t GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int32_t userId, uint32_t cacheCount);
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
     bool IsEnableAppAgent();
     bool IsVirtualProxyIme(int32_t callingUid);
     bool IsSpecialSaUid(int32_t callingUid);
-    EnabledStatus GetSystemInitEnabledState();
     void InitSystemConfig();
+    SystemConfig GetSystemConfig();
     ImeNativeCfg GetDefaultIme();
     int32_t QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &imeInfos);
     int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos);
@@ -123,8 +123,9 @@ private:
     bool IsNewExtInfos(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
     std::vector<InputMethodInfo> ListInputMethodInfo(const int32_t userId);
     int32_t ListInputMethod(const int32_t userId, std::vector<Property> &props);
-    int32_t ListEnabledInputMethod(const int32_t userId, std::vector<Property> &props, bool enableOn);
-    int32_t ListDisabledInputMethod(const int32_t userId, std::vector<Property> &props, bool enableOn);
+    int32_t ListEnabledInputMethod(const int32_t userId, std::vector<Property> &props);
+    int32_t ListDisabledInputMethod(const int32_t userId, std::vector<Property> &props);
+    int32_t ListAllInputMethod(const int32_t userId, std::vector<Property> &props);
     int32_t ListInputMethodSubtype(const int32_t userId,
         const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps);
     int32_t ListInputMethodSubtype(const int32_t userId, const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,

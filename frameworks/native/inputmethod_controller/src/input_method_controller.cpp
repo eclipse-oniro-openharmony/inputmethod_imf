@@ -569,7 +569,8 @@ bool InputMethodController::IsDefaultImeSet()
     return ret;
 }
 
-bool InputMethodController::EnableIme(const std::string &bundleName)
+int32_t InputMethodController::EnableIme(
+    const std::string &bundleName, const std::string &extensionName, EnabledStatus status)
 {
     IMSA_HILOGI("enter.");
     auto proxy = GetSystemAbilityProxy();
@@ -577,9 +578,7 @@ bool InputMethodController::EnableIme(const std::string &bundleName)
         IMSA_HILOGE("proxy is nullptr!");
         return false;
     }
-    bool ret = false;
-    proxy->EnableIme(bundleName, ret);
-    return ret;
+    return proxy->EnableIme(bundleName, extensionName, static_cast<int32_t>(status));
 }
 
 int32_t InputMethodController::StartInput(

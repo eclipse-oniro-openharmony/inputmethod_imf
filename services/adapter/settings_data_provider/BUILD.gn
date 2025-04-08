@@ -36,8 +36,7 @@ ohos_static_library("settings_data_static") {
   sources = [
     "common/src/settings_data_observer.cpp",
     "common/src/settings_data_utils.cpp",
-    "src/enable_ime_data_parser.cpp",
-    "src/security_mode_parser.cpp",
+    "src/ime_enabled_info_manager.cpp",
   ]
 
   public_configs = [ ":settings_data_config" ]
@@ -51,7 +50,9 @@ ohos_static_library("settings_data_static") {
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_single",
     "resource_management:global_resmgr",

@@ -13,14 +13,13 @@
  * limitations under the License.
  */
 
+#ifndef INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
+#define INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 #include <mutex>
 #include <thread>
 #include <vector>
-
+#include "input_method_status.h"
 #include "parcel.h"
-
-#ifndef INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
-#define INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 
 namespace OHOS {
 namespace MiscServices {
@@ -31,6 +30,7 @@ struct Property : public Parcelable {
     uint32_t labelId = 0; // the labelId of inputMethod
     std::string icon;     // the icon of inputMethod
     uint32_t iconId = 0;  // the icon id of inputMethod
+    EnabledStatus status { EnabledStatus::DISABLED };  // the enabled status of inputMethod
 
     bool ReadFromParcel(Parcel &in)
     {
@@ -40,6 +40,7 @@ struct Property : public Parcelable {
         labelId = in.ReadUint32();
         icon = in.ReadString();
         iconId = in.ReadUint32();
+        status = static_cast<EnabledStatus>(in.ReadInt32());
         return true;
     }
 
@@ -61,6 +62,9 @@ struct Property : public Parcelable {
             return false;
         }
         if (!out.WriteUint32(iconId)) {
+            return false;
+        }
+        if (!out.WriteInt32(static_cast<int32_t>(status))) {
             return false;
         }
         return true;
@@ -149,6 +153,7 @@ struct FullImeInfo {
     uint32_t tokenId { 0 };
     std::string appId;
     uint32_t versionCode;
+    std::string installTime;
     Property prop;
     std::vector<SubProperty> subProps;
 };
@@ -156,6 +161,16 @@ struct FullImeInfo {
 struct ImeInfo : public FullImeInfo {
     SubProperty subProp;
     bool isSpecificSubName { true };
+};
+
+struct SwitchInfo {
+    std::chrono::system_clock::time_point timestamp{};
+    std::string bundleName;
+    std::string subName;
+    bool operator==(const SwitchInfo &info) const
+    {
+        return (timestamp == info.timestamp && bundleName == info.bundleName && subName == info.subName);
+    }
 };
 } // namespace MiscServices
 } // namespace OHOS
