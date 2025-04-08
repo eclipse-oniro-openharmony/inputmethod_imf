@@ -1195,9 +1195,9 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
     {
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
         std::string targetImeName = info->prop.name + "/" + info->prop.id;
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id, true });
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, switchInfo.subName, true });
         auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg{
-            targetImeName, info->prop.name, switchInfo.subName.empty() ? "" : info->subProp.id, info->prop.id });
+            targetImeName, info->prop.name, switchInfo.subName, info->prop.id });
         ret = session->StartIme(targetIme);
         if (ret != ErrorCode::NO_ERROR) {
             InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
