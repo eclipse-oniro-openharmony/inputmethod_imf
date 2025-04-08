@@ -238,7 +238,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
         ReportImeStartInput(IInputMethodCore::START_INPUT, ret, needShow, endTime - startTime);
         isImeTerminating.store(false);
     };
-    if (imeListener_ == nullptr) {
+    if (!imeListener_) {
         showPanel();
         return ErrorCode::NO_ERROR;
     }
