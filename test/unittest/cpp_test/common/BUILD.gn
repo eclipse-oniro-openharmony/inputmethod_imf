@@ -63,6 +63,7 @@ ohos_static_library("inputmethod_tdd_util") {
     "cJSON:cjson",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
