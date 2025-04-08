@@ -30,22 +30,24 @@ ImeEventListenerManager &ImeEventListenerManager::GetInstance()
 
 int32_t ImeEventListenerManager::UpdateListenerInfo(int32_t userId, const ImeEventListenerInfo &info)
 {
+    IMSA_HILOGI("enter.");
     std::lock_guard<std::mutex> lock(imeEventListenersLock_);
-    ImeEventListenerInfo imeIistenerInfo  = info;
+    ImeEventListenerInfo imeIistenerInfo = info;
     auto it = imeEventListeners_.find(userId);
     if (it == imeEventListeners_.end()) {
-        GenerateListenerDied(userId, imeIistenerInfo);
+        GenerateListenerDeath(userId, imeIistenerInfo);
         imeEventListeners_.insert({ userId, { imeIistenerInfo } });
         return ErrorCode::NO_ERROR;
     }
-
+    IMSA_HILOGI("ImeEventListenerManager, pid/eventFlag: %{public}lld/%{public}u",
+        imeIistenerInfo.pid, imeIistenerInfo.eventFlag);
     auto iter = std::find_if(it->second.begin(), it->second.end(),
         [&imeIistenerInfo](const ImeEventListenerInfo &listenerInfo) {
         return (listenerInfo.client != nullptr && imeIistenerInfo.client != nullptr
             && listenerInfo.client->AsObject() == imeIistenerInfo.client->AsObject());
     });
     if (iter == it->second.end()) {
-        GenerateListenerDied(userId, imeIistenerInfo);
+        GenerateListenerDeath(userId, imeIistenerInfo);
         it->second.push_back(imeIistenerInfo);
         return ErrorCode::NO_ERROR;
     }
@@ -61,6 +63,7 @@ int32_t ImeEventListenerManager::UpdateListenerInfo(int32_t userId, const ImeEve
 
 std::vector<ImeEventListenerInfo> ImeEventListenerManager::GetListenerInfo(int32_t userId)
 {
+    IMSA_HILOGI("ImeEventListenerManager::GetListenerInfo enter");
     std::lock_guard<std::mutex> lock(imeEventListenersLock_);
     std::vector<ImeEventListenerInfo> allListenerInfos;
     auto it = imeEventListeners_.find(userId);
@@ -75,11 +78,17 @@ std::vector<ImeEventListenerInfo> ImeEventListenerManager::GetListenerInfo(int32
         return allListenerInfos;
     }
     allListenerInfos.insert(allListenerInfos.end(), iter->second.begin(), iter->second.end());
+    IMSA_HILOGI("ImeEventListenerManager::GetListenerInfo end");
     return allListenerInfos;
 }
 
-int32_t ImeEventListenerManager::GenerateListenerDied(int32_t userId, ImeEventListenerInfo &listenerInfo)
+int32_t ImeEventListenerManager::GenerateListenerDeath(int32_t userId, ImeEventListenerInfo &listenerInfo)
 {
+    IMSA_HILOGI("enter.");
+    if (listenerInfo.client == nullptr) {
+        IMSA_HILOGE("listenerInfo.client is nullptr!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     auto deathRecipient = new (std::nothrow) InputDeathRecipient();
     if (deathRecipient == nullptr) {
         IMSA_HILOGE("failed to new deathRecipient!");
@@ -96,14 +105,14 @@ int32_t ImeEventListenerManager::GenerateListenerDied(int32_t userId, ImeEventLi
     }
     if (obj->IsProxyObject() && !obj->AddDeathRecipient(listenerInfo.deathRecipient)) {
         IMSA_HILOGE("failed to add client death recipient!");
-        return ErrorCode::ERROR_CLIENT_ADD_FAILED;
+        return ErrorCode::ERROR_CLIENT_ADD_DEATH_FAILED;
     }
-    IMSA_HILOGD("GenerateListenerDied success!");
     return ErrorCode::NO_ERROR;
 }
 
 void ImeEventListenerManager::OnListenerDied(int32_t userId, const wptr<IRemoteObject> &object)
 {
+    IMSA_HILOGI("enter.");
     if (object == nullptr) {
         return;
     }
@@ -111,9 +120,11 @@ void ImeEventListenerManager::OnListenerDied(int32_t userId, const wptr<IRemoteO
     if (it == imeEventListeners_.end()) {
         return;
     }
-    auto listererInfos =  it->second;
+    auto listererInfos = it->second;
     auto iter = std::find_if(listererInfos.begin(), listererInfos.end(),
-        [&object](const ImeEventListenerInfo &info) { return info.client->AsObject() == object; });
+        [&object](const ImeEventListenerInfo &info) {
+            return (info.client != nullptr && info.client->AsObject() == object);
+        });
     if (iter == listererInfos.end()) {
         return;
     }
@@ -129,7 +140,7 @@ void ImeEventListenerManager::OnListenerDied(int32_t userId, const wptr<IRemoteO
 
 int32_t ImeEventListenerManager::NotifyInputStart(int32_t userId, int32_t callingWndId, int32_t requestKeyboardReason)
 {
-    IMSA_HILOGD("NotifyInputStartToClients enter");
+    IMSA_HILOGD("enter.");
     auto listenerInfos = GetListenerInfo(userId);
     for (const auto &listenerInfo : listenerInfos) {
         if (listenerInfo.client == nullptr ||
@@ -137,6 +148,7 @@ int32_t ImeEventListenerManager::NotifyInputStart(int32_t userId, int32_t callin
             IMSA_HILOGE("nullptr listenerInfo or no need to notify");
             continue;
         }
+        IMSA_HILOGI("pid/eventFlag: %{public}lld/%{public}u", listenerInfo.pid, listenerInfo.eventFlag);
         int32_t ret = listenerInfo.client->NotifyInputStart(callingWndId, requestKeyboardReason);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to notify OnInputStart, errorCode: %{public}d", ret);
@@ -148,7 +160,7 @@ int32_t ImeEventListenerManager::NotifyInputStart(int32_t userId, int32_t callin
 
 int32_t ImeEventListenerManager::NotifyInputStop(int32_t userId)
 {
-    IMSA_HILOGD("NotifyInputStopToClients enter");
+    IMSA_HILOGI("enter.");
     auto listenerInfos = GetListenerInfo(userId);
     for (const auto &listenerInfo : listenerInfos) {
         if (listenerInfo.client == nullptr ||
@@ -156,18 +168,21 @@ int32_t ImeEventListenerManager::NotifyInputStop(int32_t userId)
             IMSA_HILOGE("nullptr clientInfo or no need to notify");
             continue;
         }
+        IMSA_HILOGI("pid/eventFlag: %{public}lld/%{public}u", listenerInfo.pid, listenerInfo.eventFlag);
         int32_t ret = listenerInfo.client->NotifyInputStop();
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to notify OnInputStop, errorCode: %{public}d", ret);
             continue;
         }
     }
+    IMSA_HILOGI("NotifyInputStopToClients end");
     return ErrorCode::NO_ERROR;
 }
 
 int32_t ImeEventListenerManager::NotifyPanelStatusChange(int32_t userId,
     const InputWindowStatus &status, const ImeWindowInfo &info)
 {
+    IMSA_HILOGI("enter.");
     auto listenerInfos = GetListenerInfo(userId);
     for (const auto &listenerInfo : listenerInfos) {
         if (listenerInfo.client == nullptr) {
@@ -194,13 +209,14 @@ int32_t ImeEventListenerManager::NotifyPanelStatusChange(int32_t userId,
 int32_t ImeEventListenerManager::NotifyImeChange(int32_t userId,
     const Property &property, const SubProperty &subProperty)
 {
+    IMSA_HILOGI("enter.");
     auto listenerInfos = GetListenerInfo(userId);
     for (const auto &listenerInfo : listenerInfos) {
         if (listenerInfo.client == nullptr || !EventStatusManager::IsImeChangeOn(listenerInfo.eventFlag)) {
             IMSA_HILOGD("client nullptr or no need to notify.");
             continue;
         }
-        IMSA_HILOGD("notify client: [%{public}d]", static_cast<int32_t>(listenerInfo.pid));
+        IMSA_HILOGI("pid/eventFlag: %{public}lld/%{public}u", listenerInfo.pid, listenerInfo.eventFlag);
         int32_t ret = listenerInfo.client->OnSwitchInput(property, subProperty);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("notify failed, ret: %{public}d, uid: %{public}d!",

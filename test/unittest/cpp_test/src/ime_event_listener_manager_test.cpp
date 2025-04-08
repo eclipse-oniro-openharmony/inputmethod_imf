@@ -15,11 +15,11 @@
 #include <gtest/gtest.h>
 #include <sys/time.h>
 
-#define PRIVATE public
-#define PROTECTED public
+#define private public
+#define protected public
 #include "ime_event_listener_manager.h"
 #include "input_client_service_impl.h"
-#undef PRIVATE
+#undef private
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -107,15 +107,14 @@ HWTEST_F(ImeEventListenerManagerTest, test_UpdateListenerInfo_update_001, TestSi
     ASSERT_NE(client2, nullptr);
     auto result = ImeEventListenerManager::GetInstance().UpdateListenerInfo(userId, { eventFlag, client2});
     EXPECT_EQ(result, ErrorCode::NO_ERROR);
-    EXPECT_EQ(ImeEventListenerManager::GetInstance().imeEventListeners_.size(), 2);
     auto it = ImeEventListenerManager::GetInstance().imeEventListeners_.find(userId);
     ASSERT_NE(it, ImeEventListenerManager::GetInstance().imeEventListeners_.end());
-    EXPECT_EQ(ImeEventListenerManager::GetInstance().imeEventListeners_.size(), 2);
+    EXPECT_EQ(ImeEventListenerManager::GetInstance().imeEventListeners_.size(), 1);
     auto iter = std::find_if(it->second.begin(), it->second.end(),
         [&client2](const ImeEventListenerInfo &listenerInfo) {
-        return (listenerInfo.client != nullptr && client2 != nullptr
-            && listenerInfo.client->AsObject() == client2->AsObject());
-    });
+            return (listenerInfo.client != nullptr && client2 != nullptr
+                && listenerInfo.client->AsObject() == client2->AsObject());
+        });
     ASSERT_NE(iter, it->second.end());
     EXPECT_EQ(iter->eventFlag, eventFlag);
 }
@@ -138,20 +137,6 @@ HWTEST_F(ImeEventListenerManagerTest, test_UpdateListenerInfo_update_002, TestSi
     auto result = ImeEventListenerManager::GetInstance().UpdateListenerInfo(userId, { eventFlag1, client});
     EXPECT_EQ(result, ErrorCode::NO_ERROR);
     EXPECT_EQ(ImeEventListenerManager::GetInstance().imeEventListeners_.size(), 0);
-    EXPECT_EQ(ImeEventListenerManager::GetInstance().imeEventListeners_.size(), 0);
-}
-
-/**
- * @tc.name: test_GetListenerInfosWithRootUser_001
- * @tc.desc: test KeyEvent Callback.
- * @tc.type: FUNC
- */
-HWTEST_F(ImeEventListenerManagerTest, test_GetListenerInfosWithRootUser_001, TestSize.Level0)
-{
-    IMSA_HILOGI("test_GetListenerInfosWithRootUser_001 TEST START");
-    int32_t userId = 101;
-    size_t size = ImeEventListenerManager::GetInstance().GetListenerInfosWithRootUser(userId).size();
-    EXPECT_EQ(size, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

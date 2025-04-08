@@ -535,6 +535,7 @@ int32_t PerUserSession::OnStartInput(
     infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
     infoTemp.needHide = inputClientInfo.needHide;
     infoTemp.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
+    infoTemp.config.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
     int32_t ret =
         BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true, inputClientInfo.displayId);
     if (ret != ErrorCode::NO_ERROR) {
@@ -868,12 +869,6 @@ void PerUserSession::ReplaceCurrentClient(
 
 void PerUserSession::NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGD("start.");
-    auto clientGroup = GetClientGroup(DEFAULT_DISPLAY_ID);
-    if (clientGroup == nullptr) {
-        IMSA_HILOGD("no client need to notify");
-        return;
-    }
     ImeEventListenerManager::GetInstance().NotifyImeChange(userId_, property, subProperty);
 }
 
@@ -1196,11 +1191,6 @@ int64_t PerUserSession::GetInactiveClientPid(uint64_t displayId)
 int32_t PerUserSession::OnPanelStatusChange(
     const InputWindowStatus &status, const ImeWindowInfo &info, uint64_t displayId)
 {
-    auto clientGroup = GetClientGroup(displayId);
-    if (clientGroup == nullptr) {
-        IMSA_HILOGD("client nullptr");
-        return ErrorCode::NO_ERROR;
-    }
     return ImeEventListenerManager::GetInstance().NotifyPanelStatusChange(userId_, status, info);
 }
 

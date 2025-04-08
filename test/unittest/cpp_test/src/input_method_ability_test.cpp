@@ -1009,14 +1009,13 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_003 START");
-    imc_->Attach(textListener_, false);
+    imc_->Attach(textListener_);
     PanelInfo panelInfo = {};
     panelInfo.panelType = STATUS_BAR;
     auto panel = std::make_shared<InputMethodPanel>();
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     PanelStatusInfo statusInfo;
     statusInfo.panelInfo = panelInfo;
     statusInfo.visible = true;

@@ -49,7 +49,7 @@ private:
     std::mutex imeEventListenersLock_;
     std::map<int32_t, std::vector<ImeEventListenerInfo>> imeEventListeners_;
     void OnListenerDied(int32_t userId, const wptr<IRemoteObject> &object);
-    int32_t  GenerateListenerDied(int32_t userId, ImeEventListenerInfo &listenerInfo);
+    int32_t GenerateListenerDeath(int32_t userId, ImeEventListenerInfo &listenerInfo);
     std::vector<ImeEventListenerInfo> GetListenerInfo(int32_t userId);
 };
 } // namespace MiscServices

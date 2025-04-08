@@ -42,6 +42,7 @@
 #include "on_demand_start_stop_sa.h"
 #endif
 #include "window_adapter.h"
+#include "display_manager.h"
 #include "input_method_tools.h"
 
 namespace OHOS {
@@ -698,6 +699,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
         session->RestoreCurrentImeSubType();
     }
+    ChangeToDefaultImeForHiCar(userId, inputClientInfo);
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         std::string ime;
@@ -709,6 +711,42 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     }
 #endif
     return session->RestoreCurrentIme();
+}
+
+void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo)
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId);
+        return;
+    }
+    auto callingWindowInfo = session->GetCallingWindowInfo(inputClientInfo);
+    sptr<Rosen::Display> displayInfo = nullptr;
+    displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(callingWindowInfo.displayId);
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("displayInfo is null!");
+        return;
+    }
+    std::string displayName = displayInfo->GetName();
+    if (displayName == "HiCar" || displayName == "SuperLauncher") {
+        auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+        auto imeToStart = std::make_shared<ImeNativeCfg>();
+        auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+        if (defaultIme == nullptr) {
+            IMSA_HILOGE("failed to get default ime");
+            return;
+        }
+        if (defaultIme->bundleName == currentIme->bundleName) {
+            IMSA_HILOGD("is default ime, not need change ime");
+            imeToStart = currentIme;
+            return;
+        }
+        imeToStart = defaultIme;
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, imeToStart->imeId);
+        return;
+    }
+    ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
+    return;
 }
 
 int32_t InputMethodSystemAbility::ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason)

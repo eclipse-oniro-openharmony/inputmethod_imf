@@ -28,12 +28,15 @@ int32_t ClientGroup::AddClientInfo(
     const sptr<IRemoteObject> &inputClient, const InputClientInfo &clientInfo)
 {
     auto cacheInfo = GetClientInfo(inputClient);
+    IMSA_HILOGI("ClientGroup enter");
     if (cacheInfo != nullptr) {
         IMSA_HILOGD("info is existed.");
         if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID
             && clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
             UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
         }
+        UpdateClientInfo(inputClient,
+            { { UpdateFlag::TEXT_CONFIG, clientInfo.config }, { UpdateFlag::CLIENT_TYPE, clientInfo.type } });
         return ErrorCode::NO_ERROR;
     }
     auto info = std::make_shared<InputClientInfo>(clientInfo);
