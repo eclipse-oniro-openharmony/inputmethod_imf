@@ -42,6 +42,7 @@ ohos_static_library("keboard_event_static") {
   cflags_cc = [ "-fvisibility=hidden" ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
