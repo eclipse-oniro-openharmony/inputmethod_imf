@@ -135,32 +135,34 @@ InputMethod_ErrorCode OH_TextConfig_SetWindowId(InputMethod_TextConfig *config, 
  * @brief Set placeholder into TextConfig.
  *
  * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
- * @param placeholder The placeholder, which is defined in {@link InputMethod_TextConfig}. Max size 256 char16_t.
- * @param length The size of placeholder. Max is char16_t.
+ * @param placeholder The placeholder, which is defined in {@link InputMethod_TextConfig}.
+ *     Cannot exceed 256 UTF-16 encoded characters.
+ * @param length The size of placeholder. Counting unit chart16_t.
  *     The placeholderlength, which is defined in {@link InputMethod_TextConfig}.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
  *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
- * @since 18
+ * @since 20
  */
-InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *config, const char16_t *placeholder,
+ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *config, const char16_t *placeholder,
     size_t length);
 
 /**
  * @brief Set placeholder into TextConfig.
  *
  * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
- * @param abilityName The abilityName, which is defined in {@link InputMethod_TextConfig}. Max size 32 char16_t.
- * @param length The size of abilityName. Max is 32 char16_t.
+ * @param abilityName The abilityName, which is defined in {@link InputMethod_TextConfig}.
+ *     Cannot exceed 256 UTF-16 encoded characters.
+ * @param length The size of abilityName. Counting unit chart16_t.
  *     The abilityNamelength, which is defined in {@link InputMethod_TextConfig}.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
  *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
- * @since 18
+ * @since 20
  */
 InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *config, const char16_t *abilityName,
     size_t length);
