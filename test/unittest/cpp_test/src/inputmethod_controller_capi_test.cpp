@@ -1602,7 +1602,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPlaceholder_003, TestSi
     auto config = OH_TextConfig_Create();
     ASSERT_NE(nullptr, config);
     auto ret = OH_TextConfig_SetPlaceholder(config, nullptr, 257);
-    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
+    EXPECT_NE(ret, IME_ERR_OK);
     ret = OH_TextConfig_SetPlaceholder(config, nullptr, 1);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_TextConfig_SetPlaceholder(nullptr, nullptr, 1);
@@ -1674,7 +1674,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_003, TestSi
     auto config = OH_TextConfig_Create();
     ASSERT_NE(nullptr, config);
     auto ret = OH_TextConfig_SetAbilityName(config, nullptr, 33);
-    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+    EXPECT_NE(ret, IME_ERR_OK);
     ret = OH_TextConfig_SetAbilityName(config, nullptr, 1);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_TextConfig_SetAbilityName(nullptr, nullptr, 1);

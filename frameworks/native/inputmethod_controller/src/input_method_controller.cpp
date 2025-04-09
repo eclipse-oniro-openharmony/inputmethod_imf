@@ -54,7 +54,7 @@ constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t LOG_MAX_TIME = 20;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
-constexpr int32_t MAX_PLACEHODER_SIZE = 256; // 256 char
+constexpr int32_t MAX_PLACEHOLDER_SIZE = 256; // 256 char
 constexpr int32_t MAX_ABILITY_NAME_SIZE = 32; // 32 char
 InputMethodController::InputMethodController()
 {
@@ -252,7 +252,7 @@ int32_t InputMethodController::IsValidTextConfig(const TextConfig &textConfig)
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     int32_t uft16CharLen = ITypesUtil::CountUtf16Chars(textConfig.inputAttribute.placeholder);
-    if (uft16CharLen > MAX_PLACEHODER_SIZE) {
+    if (uft16CharLen > MAX_PLACEHOLDER_SIZE) {
         IMSA_HILOGE("invalid placeholder:%{public}s over limit num:%{public}d",
             Str16ToStr8(textConfig.inputAttribute.placeholder).c_str(), uft16CharLen);
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
