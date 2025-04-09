@@ -473,6 +473,10 @@ napi_value JsGetInputMethodSetting::EnableInputMethod(napi_env env, napi_callbac
         int32_t status = 0;
         PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[2]) == napi_number && JsUtil::GetValue(env, argv[2], status),
             "enabledState type must be EnabledState!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env,
+            status >= static_cast<int32_t>(EnabledStatus::DISABLED) &&
+                status <= static_cast<int32_t>(EnabledStatus::FULL_EXPERIENCE_MODE),
+            "The value range of enabledState is wrong!", TYPE_NONE, napi_invalid_arg);
         ctxt->enabledStatus = static_cast<EnabledStatus>(status);
         return napi_ok;
     };

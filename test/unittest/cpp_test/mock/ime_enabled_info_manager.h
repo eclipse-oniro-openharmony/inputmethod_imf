@@ -45,8 +45,6 @@ using EnableChangedHandler =
     std::function<void(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)>;
 class ImeEnabledInfoManager {
 public:
-    static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
-    static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
     static ImeEnabledInfoManager &GetInstance();
     void SetEnableChangedHandler(EnableChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
@@ -60,7 +58,8 @@ public:
     int32_t GetEnabledState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t GetEnabledStates(int32_t userId, std::vector<Property> &props); // props not has sysSpecialIme
     bool IsDefaultFullMode(int32_t userId, const std::string &bundleName);
-    void OnFullExperienceTableChanged(int32_t userId); // add for compatibility
+    /* add for compatibility that sys ime mod full experience table in it's full experience switch changed */
+    void OnFullExperienceTableChanged(int32_t userId);
 private:
     ImeEnabledInfoManager() = default;
     ~ImeEnabledInfoManager();

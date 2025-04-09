@@ -31,7 +31,7 @@ const std::unordered_set<std::string> EVENT_TYPES[static_cast<uint32_t>(EventSub
         "keyEvent", "cursorContextChange", "selectionChange", "textChange" },
     [static_cast<uint32_t>(EventSubscribeModule::KEYBOARD_PANEL_MANAGER)] = { "panelPrivateCommand", "isPanelShow" },
     [static_cast<uint32_t>(EventSubscribeModule::PANEL)] = { "show", "hide", "sizeChange", "sizeUpdate" },
-    [static_cast<uint32_t>(EventSubscribeModule::TEXT_INPUT_CLIENT)] = { "attachOptionsChanged" }
+    [static_cast<uint32_t>(EventSubscribeModule::TEXT_INPUT_CLIENT)] = { "attachOptionsDidChange" }
 };
 
 bool EventChecker::IsValidEventType(EventSubscribeModule module, const std::string &type)

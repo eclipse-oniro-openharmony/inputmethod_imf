@@ -30,21 +30,10 @@ constexpr const char *SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/en
 constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
 constexpr const char *SETTINGS_USER_DATA_URI = "datashare:///com.ohos.settingsdata/"
                                                "entry/settingsdata/USER_SETTINGSDATA_";
-struct UserImeConfig : public Serializable {
-    std::string userId;
-    std::vector<std::string> identities;
-    bool Unmarshal(cJSON *node) override
-    {
-        return GetValue(node, userId, identities);
-    }
-    bool Marshal(cJSON *node) const override
-    {
-        return SetValue(node, userId, identities);
-    }
-};
-
 class SettingsDataUtils : public RefBase {
 public:
+    static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
+    static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
     static sptr<SettingsDataUtils> GetInstance();
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper(const std::string &uriProxy);
     int32_t CreateAndRegisterObserver(

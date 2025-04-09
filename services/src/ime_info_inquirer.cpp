@@ -678,7 +678,6 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
             return std::make_shared<SubProperty>(*iter);
         }
         IMSA_HILOGW("subtype %{public}s not found.", currentIme->subName.c_str());
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, currentIme->imeId, imeInfo.subProps[0].id, false });
         return std::make_shared<SubProperty>(imeInfo.subProps[0]);
     }
 
@@ -725,16 +724,10 @@ std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToStart(int32_t userId)
     IMSA_HILOGD("userId: %{public}d, currentIme: %{public}s.", userId, currentImeCfg->imeId.c_str());
     if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)) {
         auto newIme = GetDefaultIme();
-        auto info = GetDefaultImeInfo(userId);
-        if (info == nullptr) {
-            IMSA_HILOGW("failed to GetDefaultImeInfo");
-            newIme.subName = "";
-        } else {
-            newIme.subName = info->subProp.id;
-        }
+        newIme.subName = "";
         currentImeCfg->imeId.empty()
-            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, newIme.subName, false })
-            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, newIme.subName, false});
+            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, "", false })
+            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, "", false});
         return std::make_shared<ImeNativeCfg>(newIme);
     }
     return currentImeCfg;
@@ -949,7 +942,7 @@ std::shared_ptr<ResourceManager> ImeInfoInquirer::GetResMgr(const std::string &r
 
 int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos)
 {
-    auto userIds = OsAccountAdapter::QueryActiveOsAccountIds();
+    auto userIds = OsAccountAdapter::QueryActiveOsAccountIds();  // todo 全部用户
     if (userIds.empty()) {
         return ErrorCode::ERROR_OS_ACCOUNT;
     }
@@ -967,7 +960,7 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::ve
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfo)
+int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfo, bool needSubProps)
 {
     std::vector<ExtensionAbilityInfo> extInfos;
     auto ret = ImeInfoInquirer::GetInstance().QueryImeExtInfos(userId, extInfos);
@@ -990,7 +983,7 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInf
 
     for (const auto &extInfo : tempExtInfos) {
         FullImeInfo info;
-        auto errNo = GetFullImeInfo(userId, extInfo.second, info);
+        auto errNo = GetFullImeInfo(userId, extInfo.second, info, isBrief);
         if (errNo != ErrorCode::NO_ERROR) {
             return errNo;
         }
@@ -1019,17 +1012,19 @@ int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId, const std::string &bundl
 }
 
 int32_t ImeInfoInquirer::GetFullImeInfo(
-    int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo)
+    int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo, bool needSubProps)
 {
     if (extInfos.empty()) {
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    imeInfo.isNewIme = IsNewExtInfos(extInfos);
-    auto ret = imeInfo.isNewIme ? ListInputMethodSubtype(userId, extInfos[0], imeInfo.subProps)
-                        : ListInputMethodSubtype(userId, extInfos, imeInfo.subProps);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("[%{public}d,%{public}s] list Subtype failed!", userId, extInfos[0].bundleName.c_str());
-        return ret;
+    if (needSubProps) {
+        imeInfo.isNewIme = IsNewExtInfos(extInfos);
+        auto ret = imeInfo.isNewIme ? ListInputMethodSubtype(userId, extInfos[0], imeInfo.subProps)
+                                    : ListInputMethodSubtype(userId, extInfos, imeInfo.subProps);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("[%{public}d,%{public}s] list Subtype failed!", userId, extInfos[0].bundleName.c_str());
+            return ret;
+        }
     }
     imeInfo.tokenId = extInfos[0].applicationInfo.accessTokenId;
     imeInfo.prop.name = extInfos[0].bundleName;

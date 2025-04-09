@@ -24,27 +24,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-// old ime enabled cfg
-struct EnabledImeCfg : public Serializable {
-    UserImeConfig userImeCfg;
-    bool Unmarshal(cJSON *node) override
-    {
-        return GetValue(node, GET_NAME(enableImeList), userImeCfg);
-    }
-    bool Marshal(cJSON *node) const override
-    {
-        return SetValue(node, GET_NAME(enableImeList), userImeCfg);
-    }
-};
-// old ime full experience cfg
-struct SecurityModeCfg : public Serializable {
-    UserImeConfig userImeCfg;
-    bool Unmarshal(cJSON *node) override
-    {
-        return GetValue(node, GET_NAME(fullExperienceList), userImeCfg);
-    }
-};
-
 struct ImeEnabledInfo : public Serializable {
     std::string bundleName;
     std::string extensionName;
@@ -77,7 +56,7 @@ struct ImeEnabledInfo : public Serializable {
     }
 };
 struct ImeEnabledCfg : public Serializable {
-    std::string version;
+    std::string version{ "empty" };
     std::vector<ImeEnabledInfo> enabledInfos;
     bool Unmarshal(cJSON *node) override
     {
@@ -98,8 +77,6 @@ using EnableChangedHandler =
     std::function<void(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)>;
 class ImeEnabledInfoManager {
 public:
-    static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
-    static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
     static ImeEnabledInfoManager &GetInstance();
     void SetEnableChangedHandler(EnableChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
@@ -113,44 +90,37 @@ public:
     int32_t GetEnabledState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t GetEnabledStates(int32_t userId, std::vector<Property> &props); // props not has sysSpecialIme
     bool IsDefaultFullMode(int32_t userId, const std::string &bundleName);
-    void OnFullExperienceTableChanged(int32_t userId); // add for compatibility
+    /* add for compatibility that sys ime mod full experience table in it's full experience switch changed */
+    void OnFullExperienceTableChanged(int32_t userId);
 
 private:
     ImeEnabledInfoManager() = default;
     ~ImeEnabledInfoManager();
-    int32_t CorrectAdd(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
-    int32_t AddUser(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
-    int32_t GetEnabledStateInner(int32_t userId, const std::string &bundleName, EnabledStatus &status);
-    int32_t GetEnabledStateInner(int32_t userId, std::vector<Property> &props);
-    int32_t GetEnabledCfg(
-        int32_t userId, ImeEnabledCfg &cfg, bool isCorrectByBmg, const std::vector<FullImeInfo> &imeInfos = {});
+    int32_t UpdateEnabledCfgCache(int32_t userId);
+    int32_t UpdateEnabledCfgCache(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
+    int32_t UpdateEnabledCfgCache(int32_t userId, const ImeEnabledCfg &cfg);
+    int32_t GetEnabledCfg(int32_t userId, ImeEnabledCfg &cfg, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t GetEnabledTableCfg(int32_t userId, ImeEnabledCfg &cfg);
-    int32_t GetOldEnabledTableCfg(int32_t userId, const std::string &content, ImeEnabledCfg &cfg);
-    int32_t GetNewEnabledTableCfg(int32_t userId, const std::string &content, ImeEnabledCfg &cfg);
-    int32_t MergeFullExperienceTableCfg(int32_t userId, ImeEnabledCfg &cfg);
-    int32_t ParseFullExperienceTableCfg(int32_t userId, const std::string &content, std::set<std::string> &bundleNames);
     int32_t CorrectByBundleMgr(
         int32_t userId, std::vector<ImeEnabledInfo> &enabledInfos, const std::vector<FullImeInfo> &imeInfos);
-    void CorrectBySysEnabledSwitch(ImeEnabledInfo &info);
-    void CorrectBySysEnabledSwitch(std::vector<ImeEnabledInfo> &infos);
-    void CorrectBySysIme(ImeEnabledInfo &info);
-    void CorrectBySysIme(std::vector<ImeEnabledInfo> &infos);
-    int32_t SetEnabledCfg(int32_t userId, const ImeEnabledCfg &cfg);
-    int32_t GetEnabledCfgFromCache(int32_t userId, ImeEnabledCfg &enabledCfg);
-    int32_t GetEnabledCfgFromCacheWithCorrect(int32_t userId, ImeEnabledCfg &enabledCfg);
-    void PostCorrectAddTask(int32_t userId);
-    void NotifyEnableChange(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
+    void ComputeEnabledStatus(ImeEnabledInfo &info);
+    void ComputeEnabledStatus(std::vector<ImeEnabledInfo> &infos);
+    int32_t GetEnabledStateInner(int32_t userId, const std::string &bundleName, EnabledStatus &status);
+    int32_t GetEnabledStatesInner(int32_t userId, std::vector<Property> &props);
+    int32_t GetEnabledCache(int32_t userId, ImeEnabledCfg &enabledCfg);
+    int32_t GetEnabledCacheWithCorrect(int32_t userId, ImeEnabledCfg &enabledCfg);
+    void PostUpdateCfgCacheTask(int32_t userId);
     std::pair<int32_t, bool> CheckUpdate(
         int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status);
+    void NotifyEnableChanged(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
     bool HasEnabledSwitch();
     bool IsExpired(const std::string &expirationTime);
-    void ModGlobalEnabledTable(int32_t userId, const ImeEnabledCfg &newEnabledCfg); // add for compatibility
-    std::string GetGlobalTableUserId(const std::string &valueStr);                  // add for compatibility
+    /* add for compatibility that sys ime listen global table change for smart menu in tablet */
+    void UpdateGlobalEnabledTable(int32_t userId, const ImeEnabledCfg &newEnabledCfg);
     std::mutex imeEnabledCfgLock_;
     std::map<int32_t, ImeEnabledCfg> imeEnabledCfg_;
     EnableChangedHandler enableChangedHandler_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_{ nullptr };
-    std::mutex settingOperateLock_;
     int32_t currentUserId_{ -1 };
 };
 } // namespace MiscServices

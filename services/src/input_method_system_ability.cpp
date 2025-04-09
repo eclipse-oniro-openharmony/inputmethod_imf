@@ -1212,9 +1212,9 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
     {
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
         std::string targetImeName = info->prop.name + "/" + info->prop.id;
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id, true });
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, switchInfo.subName, true });
         auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg{
-            targetImeName, info->prop.name, switchInfo.subName.empty() ? "" : info->subProp.id, info->prop.id });
+            targetImeName, info->prop.name, switchInfo.subName, info->prop.id });
         ret = session->StartIme(targetIme);
         if (ret != ErrorCode::NO_ERROR) {
             InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
@@ -1953,13 +1953,13 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
 void InputMethodSystemAbility::RegisterSecurityModeObserver()
 {
     int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(SETTING_URI_PROXY,
-        ImeEnabledInfoManager::SECURITY_MODE, [this]() { DatashareCallback(ImeEnabledInfoManager::SECURITY_MODE); });
+        SettingsDataUtils::SECURITY_MODE, [this]() { DatashareCallback(SettingsDataUtils::SECURITY_MODE); });
     IMSA_HILOGI("register security mode observer, ret: %{public}d", ret);
 }
 
 void InputMethodSystemAbility::DatashareCallback(const std::string &key)
 {
-    if (key != ImeEnabledInfoManager::SECURITY_MODE) {
+    if (key != SettingsDataUtils::SECURITY_MODE) {
         return;
     }
     IMSA_HILOGI("%{public}d full experience change.", userId_);
@@ -2048,9 +2048,9 @@ void InputMethodSystemAbility::OnSecurityModeChange(
     IMSA_HILOGI("ime: %{public}s securityMode change to: %{public}d.", imeData->ime.first.c_str(),
         static_cast<int32_t>(newStatus));
     if (newStatus == EnabledStatus::BASIC_MODE) {
-        session->OnSecurityChange(0);
+        session->OnSecurityChange(static_cast<int32_t>(SecurityMode::BASIC));
     } else {
-        session->OnSecurityChange(1);
+        session->OnSecurityChange(static_cast<int32_t>(SecurityMode::FULL));
     }
     session->AddRestartIme();
 }
@@ -2067,14 +2067,14 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
             return ErrorCode::ERROR_NOT_IME;
         }
     }
-    security = 0;
+    security = static_cast<int32_t>(SecurityMode::BASIC);
     EnabledStatus status = EnabledStatus::BASIC_MODE;
     auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("[%{public}d, %{public}s] get enabled status failed:%{public}d,!", userId, bundleName.c_str(), ret);
     }
     if (status == EnabledStatus::FULL_EXPERIENCE_MODE) {
-        security = 1;
+        security = static_cast<int32_t>(SecurityMode::FULL);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -2107,8 +2107,8 @@ ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<
 
 int32_t InputMethodSystemAbility::CheckEnableAndSwitchPermission()
 {
-    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingFullTokenID())
-        && !identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
+    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingFullTokenID()) &&
+        !identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
         IMSA_HILOGE("not native sa or system app!");
         return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
     }
@@ -2337,7 +2337,6 @@ int32_t InputMethodSystemAbility::GetUserId(int32_t uid)
     auto userId = OsAccountAdapter::GetOsAccountLocalIdFromUid(uid);
     // 0 represents user 0 in the system
     if (userId == 0) {
-        IMSA_HILOGI("user 0");
         IMSA_HILOGI("user 0");
         return userId_;
     }

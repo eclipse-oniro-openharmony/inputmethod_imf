@@ -89,7 +89,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_IMC_NULLPTR, EXCEPTION_IMMS },
     { ErrorCode::ERROR_DEVICE_UNSUPPORTED, EXCEPTION_UNSUPPORTED },
     { ErrorCode::ERROR_IME_NOT_FOUND, EXCEPTION_IME_NOT_FOUND },
-    { ErrorCode::ERROR_DISABLE_SYS_IME, EXCEPTION_DISABLE_SYS_IME },
+    { ErrorCode::ERROR_DISABLE_SYSTEM_IME, EXCEPTION_DISABLE_DEFAULTIME },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -114,8 +114,8 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_REQUEST_NOT_ACCEPT, "the another side does not accept the request." },
     { EXCEPTION_EDITABLE, "the edit mode need enable." },
     { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
-	{ EXCEPTION_IME_NOT_FOUND, "the input method does not exist." },
-    { EXCEPTION_DISABLE_SYS_IME, " the sys ime does not allow to disabled" },
+    { EXCEPTION_IME_NOT_FOUND, "the input method does not exist." },
+    { EXCEPTION_DISABLE_DEFAULTIME, "the default input method does not allow to disabled" },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {

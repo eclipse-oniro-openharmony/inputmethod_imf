@@ -53,6 +53,7 @@ constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
 constexpr int32_t MAX_RESTART_NUM = 3;
 constexpr int32_t IME_RESET_TIME_OUT = 3;
 constexpr int32_t MAX_RESTART_TASKS = 2;
+constexpr const char *UNDEFINED = "undefined";
 PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
@@ -1054,6 +1055,11 @@ int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
     if (currentImeInfo == nullptr) {
         IMSA_HILOGD("currentImeInfo is nullptr!");
         return ErrorCode::NO_ERROR;
+    }
+    if (imeToStart->subName.empty()) {
+        IMSA_HILOGW("undefined subtype");
+        currentImeInfo->subProp.id = UNDEFINED;
+        currentImeInfo->subProp.name = UNDEFINED;
     }
 
     NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);

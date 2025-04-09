@@ -94,7 +94,7 @@ public:
     SystemConfig GetSystemConfig();
     ImeNativeCfg GetDefaultIme();
     int32_t QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &imeInfos);
-    int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos);
+    int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos, bool needSubProps = true);
     int32_t GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo);
     bool IsInputMethod(int32_t userId, const std::string &bundleName);
     bool IsRunningIme(int32_t userId, const std::string &bundleName);
@@ -139,8 +139,8 @@ private:
     void CovertToLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
     std::shared_ptr<Global::Resource::ResourceManager> GetResMgr(const std::string &resourcePath);
-    int32_t GetFullImeInfo(
-        int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo);
+    int32_t GetFullImeInfo(int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos,
+        FullImeInfo &imeInfo, bool needSubProps = true);
 
     SystemConfig systemConfig_;
     bool IsTempInputMethod(const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo);
