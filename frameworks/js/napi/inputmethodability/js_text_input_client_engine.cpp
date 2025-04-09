@@ -1179,7 +1179,7 @@ napi_value JsTextInputClientEngine::RecvMessage(napi_env env, napi_callback_info
 
 void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attachOptions)
 {
-    std::string type = "attachOptionsChanged";
+    std::string type = "attachOptionsDidChange";
     auto entry = GetEntry(type, [&attachOptions](UvEntry &entry) {
         entry.attachOptions.requestKeyboardReason = attachOptions.requestKeyboardReason;
     });
