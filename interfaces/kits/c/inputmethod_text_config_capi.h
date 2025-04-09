@@ -146,7 +146,7 @@ InputMethod_ErrorCode OH_TextConfig_SetWindowId(InputMethod_TextConfig *config, 
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 20
  */
- InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *config, const char16_t *placeholder,
+InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *config, const char16_t *placeholder,
     size_t length);
 
 /**
@@ -164,7 +164,7 @@ InputMethod_ErrorCode OH_TextConfig_SetWindowId(InputMethod_TextConfig *config, 
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 20
  */
-InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *config, const char16_t *abilityName,
+ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *config, const char16_t *abilityName,
     size_t length);
 
 /**
