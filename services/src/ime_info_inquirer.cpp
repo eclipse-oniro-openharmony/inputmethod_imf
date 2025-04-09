@@ -822,6 +822,10 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
         return ErrorCode::NO_ERROR;
     }
     prop = GetImeProperty(userId, defaultIme->name, defaultIme->id);
+    if (prop == nullptr) {
+        IMSA_HILOGE("prop is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     return ErrorCode::NO_ERROR;
 }
 
