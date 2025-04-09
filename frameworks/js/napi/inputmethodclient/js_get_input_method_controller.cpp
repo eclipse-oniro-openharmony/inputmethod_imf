@@ -165,6 +165,11 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     napi_value typeUrl = nullptr;
     napi_value typeVisiblePassword = nullptr;
     napi_value typeNumberPassword = nullptr;
+    napi_value typeScreenLockPassword = nullptr;
+    napi_value typeUserName = nullptr;
+    napi_value typeNewPassword = nullptr;
+    napi_value typeNumberDecimal = nullptr;
+    napi_value typeOneTimeCode = nullptr;
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NONE), &typeNone));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::TEXT), &typeText));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::MULTILINE), &typeMultiline));
@@ -175,6 +180,12 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::URL), &typeUrl));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD), &typeVisiblePassword));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NUMBER_PASSWORD), &typeNumberPassword));
+    NAPI_CALL(env, napi_create_int32(env,
+        static_cast<int32_t>(TextInputType::SCREEN_LOCK_PASSWORD), &typeScreenLockPassword));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::USER_NAME), &typeUserName));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NEW_PASSWORD), &typeNewPassword));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NUMBER_DECIMAL), &typeNumberDecimal));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::ONE_TIME_CODE), &typeOneTimeCode));
     NAPI_CALL(env, napi_create_object(env, &textInputType));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "NONE", typeNone));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "TEXT", typeText));
@@ -186,6 +197,11 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "URL", typeUrl));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "VISIBLE_PASSWORD", typeVisiblePassword));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "NUMBER_PASSWORD", typeNumberPassword));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "SCREEN_LOCK_PASSWORD", typeScreenLockPassword));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "USER_NAME", typeUserName));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "NEW_PASSWORD", typeNewPassword));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "NUMBER_DECIMAL", typeNumberDecimal));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "ONE_TIME_CODE", typeOneTimeCode));
     return textInputType;
 }
 

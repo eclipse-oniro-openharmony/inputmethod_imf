@@ -171,7 +171,7 @@ private:
     bool IsCurrentIme(int32_t userId);
     int32_t StartInputType(int32_t userId, InputType type);
     // if switch input type need to switch ime, then no need to hide panel first.
-    void NeedHideWhenSwitchInputType(int32_t userId, bool &needHide);
+    void NeedHideWhenSwitchInputType(int32_t userId, InputType type, bool &needHide);
     bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
@@ -185,6 +185,8 @@ private:
     std::pair<int64_t, std::string> GetCurrentImeInfoForHiSysEvent(int32_t userId);
     int32_t GetScreenLockIme(std::string &ime);
     int32_t GetAlternativeIme(std::string &ime);
+    static InputType GetSecurityInputType(const InputClientInfo &inputClientInfo);
+    int32_t StartSecurityIme(int32_t &userId, InputClientInfo &inputClientInfo);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
     void ResetDelayUnloadTask(uint32_t code = 0);

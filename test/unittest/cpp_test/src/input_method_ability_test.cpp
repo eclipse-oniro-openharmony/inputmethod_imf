@@ -276,6 +276,23 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testSerializedInputAttribute001
+ * @tc.desc: Checkout the serialization of InputAttribute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute001, TestSize.Level0)
+{
+    InputAttribute inAttribute;
+    inAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
+    MessageParcel data;
+    EXPECT_TRUE(InputAttribute::Marshalling(inAttribute, data));
+    InputAttribute outAttribute;
+    EXPECT_TRUE(InputAttribute::Unmarshalling(outAttribute, data));
+    EXPECT_TRUE(outAttribute.IsSecurityImeFlag());
+    EXPECT_TRUE(outAttribute.IsOneTimeCodeFlag());
+}
+
+/**
  * @tc.name: testSerializedInputAttribute
  * @tc.desc: Checkout the serialization of InputAttribute.
  * @tc.type: FUNC
@@ -1525,6 +1542,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     std::string vailidString = "";
     std::shared_ptr<ImeInfo> info;
     bool needHide = false;
+    InputType type = InputType::NONE;
     auto ret = imsa_->OnStartInputType(vailidUserId, switchInfo, true);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 
@@ -1533,7 +1551,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     ret = imsa_->SwitchExtension(vailidUserId, info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchSubType(vailidUserId, info);
-    imsa_->NeedHideWhenSwitchInputType(vailidUserId, needHide);
+    imsa_->NeedHideWhenSwitchInputType(vailidUserId, type, needHide);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchInputType(vailidUserId, switchInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND);

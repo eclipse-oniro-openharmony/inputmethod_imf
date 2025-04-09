@@ -59,6 +59,7 @@ enum class TextInputType {
     USER_NAME,
     NEW_PASSWORD,
     NUMBER_DECIMAL,
+    ONE_TIME_CODE,
 };
 
 enum class Direction {
@@ -297,6 +298,7 @@ enum class InputType : int32_t {
     SECURITY_INPUT,
     VOICE_INPUT,
     VOICEKB_INPUT,
+    ONE_TIME_CODE = 13,
     END
 };
 
