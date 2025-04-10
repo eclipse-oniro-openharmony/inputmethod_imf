@@ -16,6 +16,9 @@
 #include "unordered_map"
 #include "variant"
 #include "peruser_session.h"
+
+#include <cinttypes>
+
 #include "ability_manager_client.h"
 #include "identity_checker_impl.h"
 #include "ime_connection.h"
