@@ -35,8 +35,6 @@ struct InputMethod_TextAvoidInfo {
     double height;
 };
 struct InputMethod_TextConfig {
-    InputMethod_TextConfig();
-    ~InputMethod_TextConfig();
     InputMethod_TextInputType inputType;
     InputMethod_EnterKeyType enterKeyType;
     bool previewTextSupported;
@@ -45,10 +43,10 @@ struct InputMethod_TextConfig {
     int32_t selectionStart;
     int32_t selectionEnd;
     int32_t windowId;
-    char16_t *placeholder;
+    char16_t placeholder[512];
     int32_t placeholderLength;
-    char16_t *abilityName;
-    int32_t abilityNameLength;
+    char16_t abilityName[64];
+    int32_t abilityNameLength;;
 };
 
 struct InputMethod_MessageHandlerProxy {
