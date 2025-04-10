@@ -488,6 +488,7 @@ ohos_unittest("InputMethodSwitchTest") {
     "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
+    "safwk:system_ability_fwk",
   ]
 
   if (window_manager_use_sceneboard) {
@@ -546,6 +547,7 @@ ohos_unittest("ITypesUtilTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libwm_lite",
   ]
 }
@@ -718,6 +720,7 @@ ohos_unittest("NewImeSwitchTest") {
     "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
+    "safwk:system_ability_fwk",
   ]
 
   if (window_manager_use_sceneboard) {
@@ -880,6 +883,7 @@ ohos_unittest("ImeProxyTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 
@@ -1065,6 +1069,7 @@ ohos_unittest("ImeFreezeManagerTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
+    "safwk:system_ability_fwk",
   ]
 
   if (window_manager_use_sceneboard) {

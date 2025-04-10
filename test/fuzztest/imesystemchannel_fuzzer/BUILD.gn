@@ -47,6 +47,7 @@ ohos_fuzztest("ImeSystemChannelFuzzTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "safwk:system_ability_fwk",
   ]
 }
 
