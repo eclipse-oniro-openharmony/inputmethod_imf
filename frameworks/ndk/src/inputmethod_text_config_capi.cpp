@@ -99,7 +99,8 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         return IME_ERR_OK;
     }
     if (length > MAX_PLACEHOLDER_INPUT_SIZE) {
-        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d, limit len:%{public}d", length, MAX_PLACEHOLDER_INPUT_SIZE);
+        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d, limit len:%{public}d", length,
+            MAX_PLACEHOLDER_INPUT_SIZE);
         return IME_ERR_PARAMCHECK;
     }
     if (placeholder == nullptr) {
@@ -149,7 +150,8 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
         return IME_ERR_PARAMCHECK;
     }
     auto byteLen = length * sizeof(char16_t);
-    errno_t err = memcpy_s(config->abilityName, (MAX_ABILITY_NAME_INPUT_SIZE + 1) * sizeof(char16_t), abilityName, byteLen);
+    errno_t err = memcpy_s(config->abilityName, (MAX_ABILITY_NAME_INPUT_SIZE + 1) * sizeof(char16_t),
+        abilityName, byteLen);
     if (err != EOK) {
         IMSA_HILOGE("abilityName content copy error:%{public}d", (int32_t)err);
         return IME_ERR_PARAMCHECK;

@@ -1608,6 +1608,9 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPlaceholder_002, TestSi
     EXPECT_EQ(ret, IME_ERR_OK);
     size_t outLen = 512;
     char16_t *pOut = new (std::nothrow) char16_t[outLen];
+    if (pOut == nullptr) {
+        return;
+    }
     ret = OH_TextConfig_GetPlaceholder(config, pOut, &outLen);
     EXPECT_EQ(ret, IME_ERR_OK);
     EXPECT_EQ(outLen, 0);
@@ -1636,6 +1639,15 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPlaceholder_003, TestSi
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
     ret = OH_TextConfig_SetPlaceholder(config, input.data(), input.size());
     EXPECT_EQ(ret, IME_ERR_OK);
+    size_t outLen = input.size();
+    char16_t *pOut = new (std::nothrow) char16_t[outLen];
+    if (pOut == nullptr) {
+        return;
+    }
+    ret = OH_TextConfig_GetPlaceholder(config, pOut, &outLen);
+    std::u16string out(pOut, outLen);
+    EXPECT_EQ(out.compare(input), 0);
+    delete []pOut;
     input.append(u"a");
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
     ret = OH_TextConfig_SetPlaceholder(config, input.data(), input.size());
@@ -1734,6 +1746,15 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_003, TestSi
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
     ret = OH_TextConfig_SetAbilityName(config, input.data(), input.size());
     EXPECT_EQ(ret, IME_ERR_OK);
+    size_t outLen = input.size();
+    char16_t *pOut = new (std::nothrow) char16_t[outLen];
+    if (pOut == nullptr) {
+        return;
+    }
+    ret = OH_TextConfig_GetAbilityName(config, pOut, &outLen);
+    std::u16string out(pOut, outLen);
+    EXPECT_EQ(out.compare(input), 0);
+    delete []pOut;
     input.append(u"a");
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
     ret = OH_TextConfig_SetAbilityName(config, input.data(), input.size());
