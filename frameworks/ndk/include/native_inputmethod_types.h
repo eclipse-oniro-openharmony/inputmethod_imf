@@ -18,6 +18,8 @@
 #include <variant>
 
 #include "inputmethod_controller_capi.h"
+constexpr int32_t MAX_PLACEHOLDER_INPUT_SIZE = 512; // char16_t max size
+constexpr int32_t MAX_ABILITY_NAME_INPUT_SIZE = 64; // char16_t max size
 struct InputMethod_PrivateCommand {
     std::string key;
     std::variant<std::string, bool, int32_t> value;
@@ -43,9 +45,9 @@ struct InputMethod_TextConfig {
     int32_t selectionStart;
     int32_t selectionEnd;
     int32_t windowId;
-    char16_t placeholder[512];
+    char16_t placeholder[MAX_PLACEHOLDER_INPUT_SIZE + 1];
     int32_t placeholderLength;
-    char16_t abilityName[64];
+    char16_t abilityName[MAX_ABILITY_NAME_INPUT_SIZE + 1];
     int32_t abilityNameLength;;
 };
 

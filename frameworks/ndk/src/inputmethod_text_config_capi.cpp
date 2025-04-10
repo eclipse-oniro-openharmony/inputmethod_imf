@@ -22,8 +22,6 @@ extern "C" {
 #endif /* __cplusplus */
 constexpr int32_t MAX_PLACEHOLDER_SIZE = 256; // 256 utf-16 chars
 constexpr int32_t MAX_ABILITY_NAME_SIZE = 32; // 32 utf-16 chars
-constexpr int32_t MAX_PLACEHOLDER_INPUT_SIZE = 2 * MAX_PLACEHOLDER_SIZE; // char16_t max size
-constexpr int32_t MAX_ABILITY_NAME_INPUT_SIZE = 2 * MAX_ABILITY_NAME_SIZE; // char16_t max size
 
 InputMethod_TextConfig *OH_TextConfig_Create(void)
 {
@@ -101,7 +99,7 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         return IME_ERR_OK;
     }
     if (length > MAX_PLACEHOLDER_INPUT_SIZE) {
-        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d", MAX_PLACEHOLDER_INPUT_SIZE);
+        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d, limit len:%{public}d", length, MAX_PLACEHOLDER_INPUT_SIZE);
         return IME_ERR_PARAMCHECK;
     }
     if (placeholder == nullptr) {
@@ -115,7 +113,8 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         return IME_ERR_PARAMCHECK;
     }
     auto byteLen = length * sizeof(char16_t);
-    errno_t err = memcpy_s(config->placeholder, MAX_PLACEHOLDER_INPUT_SIZE, placeholder, byteLen);
+    errno_t err = memcpy_s(config->placeholder, (MAX_PLACEHOLDER_INPUT_SIZE + 1) * sizeof(char16_t),
+        placeholder, byteLen);
     if (err != EOK) {
         IMSA_HILOGE("placeholder content copy error:%{public}d", (int32_t)err);
         return IME_ERR_PARAMCHECK;
@@ -150,7 +149,7 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
         return IME_ERR_PARAMCHECK;
     }
     auto byteLen = length * sizeof(char16_t);
-    errno_t err = memcpy_s(config->abilityName, MAX_ABILITY_NAME_INPUT_SIZE, abilityName, byteLen);
+    errno_t err = memcpy_s(config->abilityName, (MAX_ABILITY_NAME_INPUT_SIZE + 1) * sizeof(char16_t), abilityName, byteLen);
     if (err != EOK) {
         IMSA_HILOGE("abilityName content copy error:%{public}d", (int32_t)err);
         return IME_ERR_PARAMCHECK;
