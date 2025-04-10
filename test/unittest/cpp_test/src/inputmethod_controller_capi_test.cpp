@@ -1635,7 +1635,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_001, TestSi
     size_t outLen = 64;
     char16_t *pOut = new (std::nothrow) char16_t[outLen];
     if (pOut == nullptr) {
-        return;  
+        return;
     }
     ret = OH_TextConfig_GetAbilityName(config, pOut, &outLen);
     EXPECT_EQ(ret, IME_ERR_OK);
