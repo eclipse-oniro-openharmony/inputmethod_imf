@@ -99,7 +99,7 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         return IME_ERR_OK;
     }
     if (length > MAX_PLACEHOLDER_INPUT_SIZE) {
-        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d, limit len:%{public}d", length,
+        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
             MAX_PLACEHOLDER_INPUT_SIZE);
         return IME_ERR_PARAMCHECK;
     }
@@ -140,7 +140,7 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
         return IME_ERR_NULL_POINTER;
     }
     if (length > MAX_ABILITY_NAME_INPUT_SIZE) {
-        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d", MAX_ABILITY_NAME_INPUT_SIZE);
+        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu", MAX_ABILITY_NAME_INPUT_SIZE);
         return IME_ERR_PARAMCHECK;
     }
     std::u16string u16AbilityName(abilityName, length);
@@ -279,18 +279,18 @@ InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *confi
         }
         return IME_ERR_NULL_POINTER;
     }
-    if (!length) {
+    if (length == nullptr) {
         IMSA_HILOGE("length is nullptr");
         return IME_ERR_NULL_POINTER;
     }
     if ((*length) < config->placeholderLength) {
-        IMSA_HILOGE("input memory is less than the length of the obtained memory. actual length:%{public}d",
+        IMSA_HILOGE("input memory is less than the length of the obtained memory. actual length:%{public}zu",
             config->placeholderLength);
         *length = config->placeholderLength;
         return IME_ERR_PARAMCHECK;
     }
     if ((*length) > MAX_PLACEHOLDER_INPUT_SIZE) {
-        IMSA_HILOGE("input memory exceeds the limit. actual length:%{public}d",
+        IMSA_HILOGE("input memory exceeds the limit. actual length:%{public}zu",
             config->placeholderLength);
         *length = config->placeholderLength;
         return IME_ERR_PARAMCHECK;
@@ -323,18 +323,18 @@ InputMethod_ErrorCode OH_TextConfig_GetAbilityName(InputMethod_TextConfig *confi
         }
         return IME_ERR_NULL_POINTER;
     }
-    if (!length) {
+    if (length == nullptr) {
         IMSA_HILOGE("length is nullptr");
         return IME_ERR_NULL_POINTER;
     }
     if ((*length) < config->abilityNameLength) {
-        IMSA_HILOGE("input memory is less than the length of the obtained memory. actual length:%{public}d",
+        IMSA_HILOGE("input memory is less than the length of the obtained memory. actual length:%{public}zu",
             config->abilityNameLength);
         *length = config->abilityNameLength;
         return IME_ERR_PARAMCHECK;
     }
     if ((*length) > MAX_ABILITY_NAME_INPUT_SIZE) {
-        IMSA_HILOGE("input memory exceeds the limit. actual length:%{public}d",
+        IMSA_HILOGE("input memory exceeds the limit. actual length:%{public}zu",
             config->abilityNameLength);
         *length = config->abilityNameLength;
         return IME_ERR_PARAMCHECK;
