@@ -48,7 +48,7 @@ struct InputMethod_TextConfig {
     char16_t placeholder[MAX_PLACEHOLDER_INPUT_SIZE + 1];
     size_t placeholderLength;
     char16_t abilityName[MAX_ABILITY_NAME_INPUT_SIZE + 1];
-    size_t abilityNameLength;;
+    size_t abilityNameLength;
 };
 
 struct InputMethod_MessageHandlerProxy {

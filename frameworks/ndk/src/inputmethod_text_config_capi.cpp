@@ -274,7 +274,7 @@ InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *confi
     }
     if (placeholder == nullptr) {
         IMSA_HILOGE("placeholder is nullptr");
-        if (!length) {
+        if (length != nullptr) {
             *length = config->placeholderLength;
         }
         return IME_ERR_NULL_POINTER;
@@ -318,7 +318,7 @@ InputMethod_ErrorCode OH_TextConfig_GetAbilityName(InputMethod_TextConfig *confi
     }
     if (abilityName == nullptr) {
         IMSA_HILOGE("abilityName is nullptr");
-        if (!length) {
+        if (length != nullptr) {
             *length = config->abilityNameLength;
         }
         return IME_ERR_NULL_POINTER;
