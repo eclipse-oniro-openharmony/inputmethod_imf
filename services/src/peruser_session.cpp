@@ -141,7 +141,9 @@ int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient,
         IMSA_HILOGE("ime: %{public}d is not exist!", clientInfo->bindImeType);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = RequestIme(data, RequestType::REQUEST_SHOW, [&data] { return data->core->ShowKeyboard(); });
+    auto ret = RequestIme(data, RequestType::REQUEST_SHOW, [&data, requestKeyboardReason] {
+        return data->core->ShowKeyboard(requestKeyboardReason);
+    });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to show keyboard, ret: %{public}d!", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
@@ -354,7 +356,9 @@ int32_t PerUserSession::OnRequestShowInput(uint64_t displayId)
         IMSA_HILOGE("ime: %{public}d doesn't exist!", type);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = RequestIme(data, RequestType::REQUEST_SHOW, [&data] { return data->core->ShowKeyboard(); });
+    auto ret = RequestIme(data, RequestType::REQUEST_SHOW, [&data] {
+        return data->core->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
+    });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to show keyboard, ret: %{public}d!", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;

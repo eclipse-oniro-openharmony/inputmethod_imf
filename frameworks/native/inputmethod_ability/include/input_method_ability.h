@@ -112,7 +112,7 @@ public:
     /* called from TaskManager worker thread */
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
     int32_t StopInput(sptr<IRemoteObject> channelObj, uint32_t sessionId);
-    int32_t ShowKeyboard();
+    int32_t ShowKeyboard(int32_t requestKeyboardReason);
     int32_t HideKeyboard();
 
     void OnInitInputControlChannel(sptr<IRemoteObject> channelObj);
@@ -159,7 +159,7 @@ private:
     void Initialize();
     int32_t InvokeStartInputCallback(bool isNotifyInputStart);
     int32_t InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart);
-    bool IsInputClientAttachOptionsChanged(const TextTotalConfig &textConfig);
+    bool IsInputClientAttachOptionsChanged(RequestKeyboardReason requestKeyboardReason);
     int32_t HideKeyboard(Trigger trigger, uint32_t sessionId);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
     /* param flag: ShowPanel is async, show/hide softkeyboard in alphabet keyboard attached,

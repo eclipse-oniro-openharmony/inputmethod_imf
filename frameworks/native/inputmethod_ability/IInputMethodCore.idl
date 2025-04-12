@@ -22,7 +22,7 @@ interface OHOS.MiscServices.IInputControlChannel;
 interface OHOS.MiscServices.IInputMethodCore {
     void StartInput([in] InputClientInfoInner clientInfoInner, [in] boolean isBindFromClient);
     void StopInput([in] IRemoteObject channel, [in] unsigned int sessionId);
-    void ShowKeyboard();
+    void ShowKeyboard([in] int requestKeyboardReason);
     void HideKeyboard();
     void InitInputControlChannel([in] IInputControlChannel inputControlChannel);
     void StopInputService([in] boolean isTerminateIme);
