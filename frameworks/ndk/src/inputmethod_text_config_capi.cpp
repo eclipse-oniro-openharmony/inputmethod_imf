@@ -94,8 +94,9 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         IMSA_HILOGE("config is nullptr");
         return IME_ERR_NULL_POINTER;
     }
-    if (length <= 0) {
-        config->placeholderLength = 0;
+    if (length <= 0 || placeholder == nullptr) {
+        config->placeholderLength = ENDING_SYMBOL_SIZE;
+        config->placeholder[0] = UTF16_ENDING_SYMBOL;
         return IME_ERR_OK;
     }
     if (length > MAX_PLACEHOLDER_INPUT_SIZE) {
@@ -103,9 +104,19 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
             MAX_PLACEHOLDER_INPUT_SIZE);
         return IME_ERR_PARAMCHECK;
     }
-    if (placeholder == nullptr) {
-        IMSA_HILOGE("placeholder is nullptr");
-        return IME_ERR_NULL_POINTER;
+    if (length == 1) {
+        if (placeholder[length - 1] == UTF16_ENDING_SYMBOL) {
+            config->placeholderLength = ENDING_SYMBOL_SIZE;
+            config->placeholder[0] = UTF16_ENDING_SYMBOL;
+            return IME_ERR_OK;
+        }
+    }
+    if (length == MAX_PLACEHOLDER_INPUT_SIZE) {
+        if (placeholder[length - 1] != UTF16_ENDING_SYMBOL) {
+            IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
+                MAX_PLACEHOLDER_INPUT_SIZE);
+            return IME_ERR_PARAMCHECK;
+        }
     }
     std::u16string u16Placeholder(placeholder, length);
     int32_t charsLen = OHOS::MiscServices::ITypesUtil::CountUtf16Chars(u16Placeholder);
@@ -114,13 +125,17 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         return IME_ERR_PARAMCHECK;
     }
     auto byteLen = length * sizeof(char16_t);
-    errno_t err = memcpy_s(config->placeholder, (MAX_PLACEHOLDER_INPUT_SIZE + 1) * sizeof(char16_t),
+    errno_t err = memcpy_s(config->placeholder, MAX_PLACEHOLDER_INPUT_SIZE * sizeof(char16_t),
         placeholder, byteLen);
     if (err != EOK) {
         IMSA_HILOGE("placeholder content copy error:%{public}d", (int32_t)err);
         return IME_ERR_PARAMCHECK;
     }
     config->placeholderLength = length;
+    if (config->placeholder[config->placeholderLength-1] != UTF16_ENDING_SYMBOL) {
+        config->placeholder[config->placeholderLength] = UTF16_ENDING_SYMBOL;
+        config->placeholderLength += ENDING_SYMBOL_SIZE;
+    }
     return IME_ERR_OK;
 }
 
@@ -131,32 +146,48 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
         IMSA_HILOGE("config is nullptr");
         return IME_ERR_NULL_POINTER;
     }
-    if (length <= 0) {
-        config->abilityNameLength = 0;
+    if (length <= 0 || abilityName == nullptr) {
+        config->abilityNameLength = ENDING_SYMBOL_SIZE;
+        config->abilityName[0] = UTF16_ENDING_SYMBOL;
         return IME_ERR_OK;
     }
-    if (abilityName == nullptr) {
-        IMSA_HILOGE("abilityName is nullptr");
-        return IME_ERR_NULL_POINTER;
-    }
     if (length > MAX_ABILITY_NAME_INPUT_SIZE) {
-        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu", MAX_ABILITY_NAME_INPUT_SIZE);
+        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
+            MAX_ABILITY_NAME_INPUT_SIZE);
         return IME_ERR_PARAMCHECK;
     }
-    std::u16string u16AbilityName(abilityName, length);
-    int32_t charsLen = OHOS::MiscServices::ITypesUtil::CountUtf16Chars(u16AbilityName);
+    if (length == 1) {
+        if (abilityName[length - 1] == UTF16_ENDING_SYMBOL) {
+            config->abilityNameLength = ENDING_SYMBOL_SIZE;
+            config->abilityName[0] = UTF16_ENDING_SYMBOL;
+            return IME_ERR_OK;
+        }
+    }
+    if (length == MAX_ABILITY_NAME_INPUT_SIZE) {
+        if (abilityName[length - 1] != UTF16_ENDING_SYMBOL) {
+            IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
+                MAX_ABILITY_NAME_INPUT_SIZE);
+            return IME_ERR_PARAMCHECK;
+        }
+    }
+    std::u16string u16Placeholder(abilityName, length);
+    int32_t charsLen = OHOS::MiscServices::ITypesUtil::CountUtf16Chars(u16Placeholder);
     if (charsLen > MAX_ABILITY_NAME_SIZE) {
-        IMSA_HILOGE("length exceeds limit inputLen:%{public}d", charsLen);
+        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d", charsLen);
         return IME_ERR_PARAMCHECK;
     }
     auto byteLen = length * sizeof(char16_t);
-    errno_t err = memcpy_s(config->abilityName, (MAX_ABILITY_NAME_INPUT_SIZE + 1) * sizeof(char16_t),
+    errno_t err = memcpy_s(config->placeholder, MAX_ABILITY_NAME_INPUT_SIZE * sizeof(char16_t),
         abilityName, byteLen);
     if (err != EOK) {
         IMSA_HILOGE("abilityName content copy error:%{public}d", (int32_t)err);
         return IME_ERR_PARAMCHECK;
     }
     config->abilityNameLength = length;
+    if (config->abilityName[config->abilityNameLength-1] != UTF16_ENDING_SYMBOL) {
+        config->abilityName[config->abilityNameLength] = UTF16_ENDING_SYMBOL;
+        config->abilityNameLength += ENDING_SYMBOL_SIZE;
+    }
     return IME_ERR_OK;
 }
 
@@ -276,6 +307,10 @@ InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *confi
         IMSA_HILOGE("length is nullptr");
         return IME_ERR_NULL_POINTER;
     }
+    if (config->placeholderLength <= ENDING_SYMBOL_SIZE) {
+        config->placeholderLength = ENDING_SYMBOL_SIZE;
+        config->placeholder[0] = UTF16_ENDING_SYMBOL;
+    }
     if (placeholder == nullptr) {
         IMSA_HILOGE("placeholder is nullptr");
         *length = config->placeholderLength;
@@ -292,10 +327,6 @@ InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *confi
             config->placeholderLength);
         *length = config->placeholderLength;
         return IME_ERR_PARAMCHECK;
-    }
-    if (config->placeholderLength <=0) {
-        *length = config->placeholderLength;
-        return IME_ERR_OK;
     }
     auto byteLen = (*length) * sizeof(char16_t);
     *length = config->placeholderLength;
@@ -322,6 +353,10 @@ InputMethod_ErrorCode OH_TextConfig_GetAbilityName(InputMethod_TextConfig *confi
         IMSA_HILOGE("abilityName is nullptr");
         *length = config->abilityNameLength;
         return IME_ERR_NULL_POINTER;
+    }
+    if (config->abilityNameLength <= ENDING_SYMBOL_SIZE) {
+        config->abilityNameLength = ENDING_SYMBOL_SIZE;
+        config->abilityName[0] = UTF16_ENDING_SYMBOL;
     }
     if ((*length) < config->abilityNameLength) {
         IMSA_HILOGE("input memory is less than the length of the obtained memory. actual length:%{public}zu",

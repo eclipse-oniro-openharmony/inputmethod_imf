@@ -18,6 +18,7 @@
 #include "global.h"
 #include "iremote_object.h"
 #include "unicode/ustring.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -558,7 +559,10 @@ bool ITypesUtil::Unmarshalling(RequestKeyboardReason &output, MessageParcel &dat
 
 int32_t ITypesUtil::CountUtf16Chars(const std::u16string &in)
 {
-    return u_countChar32(in.data(), in.size());
+    int32_t ret = u_countChar32(in.data(), in.size());
+    IMSA_HILOGD("size:%{public}zu,ret:%{public}d, data:[%{public}s]", 
+        in.size(), ret, Str16ToStr8(in).c_str());
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

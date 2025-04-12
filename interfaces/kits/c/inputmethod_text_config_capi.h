@@ -35,6 +35,7 @@
  * @version 1.0
  */
 #include <stdint.h>
+#include <uchar.h>
 
 #include "inputmethod_cursor_info_capi.h"
 #include "inputmethod_text_avoid_info_capi.h"
