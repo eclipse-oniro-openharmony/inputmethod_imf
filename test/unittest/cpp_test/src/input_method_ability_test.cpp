@@ -326,7 +326,7 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
 
     sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
     sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
-    auto ret = coreProxy->ShowKeyboard();
+    auto ret = coreProxy->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = coreProxy->InitInputControlChannel(nullptr);
@@ -345,7 +345,7 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
 HWTEST_F(InputMethodAbilityTest, testShowKeyboardWithoutImeListener, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testShowKeyboardWithoutImeListener start.");
-    auto ret = inputMethodAbility_->ShowKeyboard();
+    auto ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -937,7 +937,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextListener::ResetParam();
-    ret = inputMethodAbility_->ShowKeyboard();
+    ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     PanelStatusInfo statusInfo;

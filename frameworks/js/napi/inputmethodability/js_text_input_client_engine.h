@@ -436,6 +436,7 @@ private:
     static napi_value HandleParamCheckFailure(napi_env env);
     static napi_status GetPreviewTextParam(napi_env env, size_t argc, napi_value *argv, std::string &text,
         Range &range);
+    static bool IsTargetDeviceType(int32_t resDeviceType);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
 
@@ -470,6 +471,7 @@ private:
     static std::shared_ptr<JsTextInputClientEngine> textInputClientEngine_;
     static std::mutex eventHandlerMutex_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
+    static int32_t deviceTypeCache_;
 };
 } // namespace MiscServices
 } // namespace OHOS
