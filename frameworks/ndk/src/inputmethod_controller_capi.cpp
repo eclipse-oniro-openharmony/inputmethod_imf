@@ -140,7 +140,16 @@ static TextConfig ConstructTextConfig(const InputMethod_TextConfig &config)
         .positionY = config.avoidInfo.positionY,
         .height = config.avoidInfo.height,
     };
-
+    auto placeholderLength = config.placeholderLength;
+    if (placeholderLength >0 &&  config.placeholder[placeholderLength - 1] == UTF16_ENDING_SYMBOL) {
+        placeholderLength = placeholderLength -1;
+    }
+    auto abilityNameLength = config.abilityNameLength;
+    if (abilityNameLength >0 && config.abilityName[abilityNameLength - 1] == UTF16_ENDING_SYMBOL) {
+        abilityNameLength = abilityNameLength - 1;
+    }
+    textConfig.inputAttribute.placeholder = std::u16string(config.placeholder, placeholderLength);
+    textConfig.inputAttribute.abilityName =  std::u16string(config.abilityName, abilityNameLength);
     return textConfig;
 }
 

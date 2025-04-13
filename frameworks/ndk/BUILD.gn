@@ -41,7 +41,10 @@ ohos_shared_library("ohinputmethod") {
     "include",
     "${inputmethod_path}/interfaces/kits/c",
   ]
-  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client" ]
+  deps = [
+    "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -86,7 +89,10 @@ ohos_static_library("ohinputmethod_static") {
     "${inputmethod_path}/interfaces/kits/c",
   ]
 
-  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static" ]
+  deps = [
+    "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+  ]
 
   external_deps = [
     "c_utils:utils",

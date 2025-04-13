@@ -35,6 +35,7 @@
  * @version 1.0
  */
 #include <stdint.h>
+#include <uchar.h>
 
 #include "inputmethod_cursor_info_capi.h"
 #include "inputmethod_text_avoid_info_capi.h"
@@ -132,6 +133,42 @@ InputMethod_ErrorCode OH_TextConfig_SetSelection(InputMethod_TextConfig *config,
 InputMethod_ErrorCode OH_TextConfig_SetWindowId(InputMethod_TextConfig *config, int32_t windowId);
 
 /**
+ * @brief Set placeholder into TextConfig.
+ *
+ * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
+ * @param placeholder The placeholder, which is defined in {@link InputMethod_TextConfig}.
+ *     Cannot exceed 256 UTF-16 encoded characters.
+ * @param length The size of placeholder. Counting unit char16_t.
+ *     The length, which is defined in {@link InputMethod_TextConfig}.
+ * @return Returns a specific error code.
+ *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
+ * @since 20
+ */
+InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *config, const char16_t *placeholder,
+    size_t length);
+
+/**
+ * @brief Set placeholder into TextConfig.
+ *
+ * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
+ * @param abilityName The abilityName, which is defined in {@link InputMethod_TextConfig}.
+ *     Cannot exceed 256 UTF-16 encoded characters.
+ * @param length The size of abilityName. Counting unit char16_t.
+ *     The length, which is defined in {@link InputMethod_TextConfig}.
+ * @return Returns a specific error code.
+ *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
+ * @since 20
+ */
+InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *config, const char16_t *abilityName,
+    size_t length);
+
+/**
  * @brief Get input type from TextConfig
  *
  * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be get from.
@@ -139,6 +176,7 @@ InputMethod_ErrorCode OH_TextConfig_SetWindowId(InputMethod_TextConfig *config, 
  *     The text input type of text Editor
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
  *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
  * @since 12
@@ -210,6 +248,7 @@ InputMethod_ErrorCode OH_TextConfig_GetTextAvoidInfo(
  * @since 12
  */
 InputMethod_ErrorCode OH_TextConfig_GetSelection(InputMethod_TextConfig *config, int32_t *start, int32_t *end);
+
 /**
  * @brief Get window id from TextConfig.
  *
@@ -222,6 +261,43 @@ InputMethod_ErrorCode OH_TextConfig_GetSelection(InputMethod_TextConfig *config,
  * @since 12
  */
 InputMethod_ErrorCode OH_TextConfig_GetWindowId(InputMethod_TextConfig *config, int32_t *windowId);
+
+/**
+ * @brief Get placeholder into TextConfig.
+ *
+ * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
+ * @param placeholder Returns the placeholder. which is defined in {@link InputMethod_TextConfig}.
+ *     The user needs to allocate memory.
+ * @param length Input and output parameters. The input is the size requested by the user (unit: char16_t).
+ *     The length, which is defined in {@link InputMethod_TextConfig}.
+ * @return Returns a specific error code.
+ *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
+ * @since 20
+ */
+InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *config, char16_t *placeholder,
+    size_t *length);
+
+/**
+ * @brief Get abilityName into TextConfig.
+ *
+ * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
+ * @param abilityName The abilityName, which is defined in {@link InputMethod_TextConfig}.
+ *     The free function needs to be called externally to release the internal requested memory.
+ * @param length Input and output parameters. The input is the size requested by the user (unit: char16_t),
+ *     returns the size of the ability name.
+ *     The length, which is defined in {@link InputMethod_TextConfig}.
+ * @return Returns a specific error code.
+ *     {@link IME_ERR_OK} - success.
+ *     {@link IME_ERR_PARAMCHECK} - parameter check failed.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
+ * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
+ * @since 20
+ */
+InputMethod_ErrorCode OH_TextConfig_GetAbilityName(InputMethod_TextConfig *config, char16_t *abilityName,
+    size_t *length);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

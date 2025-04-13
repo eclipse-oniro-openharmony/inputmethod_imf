@@ -17,6 +17,8 @@
 
 #include "global.h"
 #include "iremote_object.h"
+#include "unicode/ustring.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -187,7 +189,8 @@ bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 {
     if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption, input.isTextPreviewSupported,
-        input.bundleName, input.immersiveMode, input.windowId, input.callingDisplayId)) {
+        input.bundleName, input.immersiveMode, input.windowId, input.callingDisplayId,
+        input.placeholder, input.abilityName)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed.");
         return false;
     }
@@ -197,7 +200,8 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption, output.isTextPreviewSupported,
-        output.bundleName, output.immersiveMode, output.windowId, output.callingDisplayId)) {
+        output.bundleName, output.immersiveMode, output.windowId, output.callingDisplayId,
+        output.placeholder, output.abilityName)) {
         IMSA_HILOGE("read InputAttribute from message parcel failed.");
         return false;
     }
@@ -551,6 +555,14 @@ bool ITypesUtil::Unmarshalling(RequestKeyboardReason &output, MessageParcel &dat
     }
     output = static_cast<RequestKeyboardReason>(ret);
     return true;
+}
+
+int32_t ITypesUtil::CountUtf16Chars(const std::u16string &in)
+{
+    int32_t ret = u_countChar32(in.data(), in.size());
+    IMSA_HILOGD("size:%{public}zu,ret:%{public}d, data:[%{public}s]",
+        in.size(), ret, Str16ToStr8(in).c_str());
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -69,6 +69,7 @@ ohos_shared_library("inputmethod_common") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "hitrace:libhitracechain",
+    "icu:shared_icuuc",
     "input:libmmi-client",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
