@@ -313,6 +313,7 @@ InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *confi
         config->placeholderLength = ENDING_SYMBOL_SIZE;
         config->placeholder[0] = UTF16_ENDING_SYMBOL;
     }
+    IMSA_HILOGD("curLen:%{public}zu,inputLen:%{public}zu", config->placeholderLength, *length);
     if (placeholder == nullptr) {
         IMSA_HILOGE("placeholder is nullptr");
         *length = config->placeholderLength;
@@ -320,12 +321,6 @@ InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *confi
     }
     if ((*length) < config->placeholderLength) {
         IMSA_HILOGE("input memory is less than the length of the obtained memory. actual length:%{public}zu",
-            config->placeholderLength);
-        *length = config->placeholderLength;
-        return IME_ERR_PARAMCHECK;
-    }
-    if ((*length) > MAX_PLACEHOLDER_INPUT_SIZE) {
-        IMSA_HILOGE("input memory exceeds the limit. actual length:%{public}zu",
             config->placeholderLength);
         *length = config->placeholderLength;
         return IME_ERR_PARAMCHECK;
@@ -360,21 +355,12 @@ InputMethod_ErrorCode OH_TextConfig_GetAbilityName(InputMethod_TextConfig *confi
         config->abilityNameLength = ENDING_SYMBOL_SIZE;
         config->abilityName[0] = UTF16_ENDING_SYMBOL;
     }
+    IMSA_HILOGD("curLen:%{public}zu,inputLen:%{public}zu", config->placeholderLength, *length);
     if ((*length) < config->abilityNameLength) {
         IMSA_HILOGE("input memory is less than the length of the obtained memory. actual length:%{public}zu",
             config->abilityNameLength);
         *length = config->abilityNameLength;
         return IME_ERR_PARAMCHECK;
-    }
-    if ((*length) > MAX_ABILITY_NAME_INPUT_SIZE) {
-        IMSA_HILOGE("input memory exceeds the limit. actual length:%{public}zu",
-            config->abilityNameLength);
-        *length = config->abilityNameLength;
-        return IME_ERR_PARAMCHECK;
-    }
-    if (config->abilityNameLength <= 0) {
-        *length = config->abilityNameLength;
-        return IME_ERR_OK;
     }
     auto byteLen = (*length) * sizeof(char16_t);
     *length = config->abilityNameLength;
