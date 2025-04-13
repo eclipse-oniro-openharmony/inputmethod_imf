@@ -119,8 +119,11 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         }
     }
     std::u16string u16Placeholder(placeholder, length);
+    if (placeholder[length -1] != UTF16_ENDING_SYMBOL) {
+        u16Placeholder.push_back(UTF16_ENDING_SYMBOL);
+    }
     int32_t charsLen = OHOS::MiscServices::ITypesUtil::CountUtf16Chars(u16Placeholder);
-    if (charsLen > MAX_PLACEHOLDER_SIZE) {
+    if (charsLen > MAX_PLACEHOLDER_SIZE + 1) {
         IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d", charsLen);
         return IME_ERR_PARAMCHECK;
     }
@@ -132,10 +135,13 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         return IME_ERR_PARAMCHECK;
     }
     config->placeholderLength = length;
-    if (config->placeholder[config->placeholderLength-1] != UTF16_ENDING_SYMBOL) {
+    IMSA_HILOGD("placeholder length:%{public}zu, lastChar16_t:%{public}u",
+        config->placeholderLength, static_cast<uint32_t>(placeholder[length - 1]));
+    if (placeholder[length - 1] != UTF16_ENDING_SYMBOL) {
         config->placeholder[config->placeholderLength] = UTF16_ENDING_SYMBOL;
         config->placeholderLength += ENDING_SYMBOL_SIZE;
     }
+    IMSA_HILOGD("placeholder length:%{public}zu", config->placeholderLength);
     return IME_ERR_OK;
 }
 
@@ -170,24 +176,30 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
             return IME_ERR_PARAMCHECK;
         }
     }
-    std::u16string u16Placeholder(abilityName, length);
-    int32_t charsLen = OHOS::MiscServices::ITypesUtil::CountUtf16Chars(u16Placeholder);
-    if (charsLen > MAX_ABILITY_NAME_SIZE) {
+    std::u16string u16abilityName(abilityName, length);
+    if (abilityName[length -1] != UTF16_ENDING_SYMBOL) {
+        u16abilityName.push_back(UTF16_ENDING_SYMBOL);
+    }
+    int32_t charsLen = OHOS::MiscServices::ITypesUtil::CountUtf16Chars(u16abilityName);
+    if (charsLen > MAX_ABILITY_NAME_SIZE + 1) {
         IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d", charsLen);
         return IME_ERR_PARAMCHECK;
     }
     auto byteLen = length * sizeof(char16_t);
-    errno_t err = memcpy_s(config->placeholder, MAX_ABILITY_NAME_INPUT_SIZE * sizeof(char16_t),
+    errno_t err = memcpy_s(config->abilityName, MAX_ABILITY_NAME_INPUT_SIZE * sizeof(char16_t),
         abilityName, byteLen);
     if (err != EOK) {
         IMSA_HILOGE("abilityName content copy error:%{public}d", (int32_t)err);
         return IME_ERR_PARAMCHECK;
     }
     config->abilityNameLength = length;
-    if (config->abilityName[config->abilityNameLength-1] != UTF16_ENDING_SYMBOL) {
+    IMSA_HILOGD("abilityNameLength length:%{public}zu, lastChar16_t:%{public}u",
+        config->abilityNameLength, static_cast<uint32_t>(abilityName[length - 1]));
+    if (abilityName[length - 1] != UTF16_ENDING_SYMBOL) {
         config->abilityName[config->abilityNameLength] = UTF16_ENDING_SYMBOL;
         config->abilityNameLength += ENDING_SYMBOL_SIZE;
     }
+    IMSA_HILOGD("abilityNameLength length:%{public}zu", config->abilityNameLength);
     return IME_ERR_OK;
 }
 
