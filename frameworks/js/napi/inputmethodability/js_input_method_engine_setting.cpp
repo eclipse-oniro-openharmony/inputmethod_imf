@@ -77,6 +77,14 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
             "PATTERN_PASSWORD_NUMBER", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
         DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_SCREEN_LOCK",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::SCREEN_LOCK_PASSWORD))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_USER_NAME", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::USER_NAME))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_NEW_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NEW_PASSWORD))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_NUMBER_DECIMAL", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_DECIMAL))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_ONE_TIME_CODE", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::ONE_TIME_CODE))),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
         DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
         DECLARE_NAPI_STATIC_PROPERTY("PanelType", GetJsPanelTypeProperty(env)),
@@ -89,7 +97,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
     return InitProperty(env, exports);
-};
+}
 
 napi_value JsInputMethodEngineSetting::InitProperty(napi_env env, napi_value exports)
 {

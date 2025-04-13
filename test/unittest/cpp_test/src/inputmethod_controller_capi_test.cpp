@@ -144,6 +144,26 @@ HWTEST_F(InputMethodControllerCapiTest, TestTextConfig_001, TestSize.Level0)
 
     OH_TextConfig_Destroy(config);
 }
+
+/**
+ * @tc.name: TestTextConfig_002
+ * @tc.desc: create and destroy TestTextConfig success
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, TestTextConfig_002, TestSize.Level0)
+{
+    auto config = OH_TextConfig_Create();
+    ASSERT_NE(nullptr, config);
+
+    // test set and get inputType
+    InputMethod_TextInputType expInputType = IME_TEXT_INPUT_TYPE_ONE_TIME_CODE;
+    InputMethod_TextInputType actInputType = IME_TEXT_INPUT_TYPE_NONE;
+    EXPECT_EQ(IME_ERR_OK, OH_TextConfig_SetInputType(config, expInputType));
+    EXPECT_EQ(IME_ERR_OK, OH_TextConfig_GetInputType(config, &actInputType));
+    EXPECT_EQ(expInputType, actInputType);
+    OH_TextConfig_Destroy(config);
+}
+
 void GetTextConfigFunc(InputMethod_TextEditorProxy *proxy, InputMethod_TextConfig *config) { }
 void InsertTextFunc(InputMethod_TextEditorProxy *proxy, const char16_t *text, size_t length) { }
 void DeleteForwardFunc(InputMethod_TextEditorProxy *proxy, int32_t length) { }
