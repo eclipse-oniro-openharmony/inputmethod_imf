@@ -104,19 +104,15 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
             MAX_PLACEHOLDER_INPUT_SIZE);
         return IME_ERR_PARAMCHECK;
     }
-    if (length == 1) {
-        if (placeholder[length - 1] == UTF16_ENDING_SYMBOL) {
-            config->placeholderLength = ENDING_SYMBOL_SIZE;
-            config->placeholder[0] = UTF16_ENDING_SYMBOL;
-            return IME_ERR_OK;
-        }
+    if (length == 1 && placeholder[length - 1] == UTF16_ENDING_SYMBOL) {
+        config->placeholderLength = ENDING_SYMBOL_SIZE;
+        config->placeholder[0] = UTF16_ENDING_SYMBOL;
+        return IME_ERR_OK;
     }
-    if (length == MAX_PLACEHOLDER_INPUT_SIZE) {
-        if (placeholder[length - 1] != UTF16_ENDING_SYMBOL) {
-            IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
-                MAX_PLACEHOLDER_INPUT_SIZE);
-            return IME_ERR_PARAMCHECK;
-        }
+    if (length == MAX_PLACEHOLDER_INPUT_SIZE && placeholder[length - 1] != UTF16_ENDING_SYMBOL) {
+        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
+            MAX_PLACEHOLDER_INPUT_SIZE);
+        return IME_ERR_PARAMCHECK;
     }
     std::u16string u16Placeholder(placeholder, length);
     if (placeholder[length -1] != UTF16_ENDING_SYMBOL) {
@@ -127,9 +123,8 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d", charsLen);
         return IME_ERR_PARAMCHECK;
     }
-    auto byteLen = length * sizeof(char16_t);
     errno_t err = memcpy_s(config->placeholder, MAX_PLACEHOLDER_INPUT_SIZE * sizeof(char16_t),
-        placeholder, byteLen);
+        placeholder, length * sizeof(char16_t));
     if (err != EOK) {
         IMSA_HILOGE("placeholder content copy error:%{public}d", (int32_t)err);
         return IME_ERR_PARAMCHECK;
@@ -162,19 +157,15 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
             MAX_ABILITY_NAME_INPUT_SIZE);
         return IME_ERR_PARAMCHECK;
     }
-    if (length == 1) {
-        if (abilityName[length - 1] == UTF16_ENDING_SYMBOL) {
-            config->abilityNameLength = ENDING_SYMBOL_SIZE;
-            config->abilityName[0] = UTF16_ENDING_SYMBOL;
-            return IME_ERR_OK;
-        }
+    if (length == 1 && abilityName[length - 1] == UTF16_ENDING_SYMBOL) {
+        config->abilityNameLength = ENDING_SYMBOL_SIZE;
+        config->abilityName[0] = UTF16_ENDING_SYMBOL;
+        return IME_ERR_OK;
     }
-    if (length == MAX_ABILITY_NAME_INPUT_SIZE) {
-        if (abilityName[length - 1] != UTF16_ENDING_SYMBOL) {
-            IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
-                MAX_ABILITY_NAME_INPUT_SIZE);
-            return IME_ERR_PARAMCHECK;
-        }
+    if (length == MAX_ABILITY_NAME_INPUT_SIZE && abilityName[length - 1] != UTF16_ENDING_SYMBOL) {
+        IMSA_HILOGE("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
+            MAX_ABILITY_NAME_INPUT_SIZE);
+        return IME_ERR_PARAMCHECK;
     }
     std::u16string u16abilityName(abilityName, length);
     if (abilityName[length -1] != UTF16_ENDING_SYMBOL) {
@@ -185,9 +176,8 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
         IMSA_HILOGE("chars length exceeds limit inputLen:%{public}d", charsLen);
         return IME_ERR_PARAMCHECK;
     }
-    auto byteLen = length * sizeof(char16_t);
     errno_t err = memcpy_s(config->abilityName, MAX_ABILITY_NAME_INPUT_SIZE * sizeof(char16_t),
-        abilityName, byteLen);
+        abilityName, length * sizeof(char16_t));
     if (err != EOK) {
         IMSA_HILOGE("abilityName content copy error:%{public}d", (int32_t)err);
         return IME_ERR_PARAMCHECK;

@@ -143,7 +143,7 @@ static TextConfig ConstructTextConfig(const InputMethod_TextConfig &config)
     auto placeholderLength = config.placeholderLength;
     if (placeholderLength >0 &&  config.placeholder[placeholderLength - 1] == UTF16_ENDING_SYMBOL) {
         placeholderLength = placeholderLength -1;
-    } 
+    }
     auto abilityNameLength = config.abilityNameLength;
     if (abilityNameLength >0 && config.abilityName[abilityNameLength - 1] == UTF16_ENDING_SYMBOL) {
         abilityNameLength = abilityNameLength - 1;
