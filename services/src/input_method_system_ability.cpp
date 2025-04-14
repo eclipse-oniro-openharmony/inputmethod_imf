@@ -41,7 +41,8 @@
 #include "on_demand_start_stop_sa.h"
 #endif
 #include "window_adapter.h"
-#include "display_manager.h"
+#include "display_manager_lite.h"
+#include "display_info.h"
 #include "input_method_tools.h"
 
 namespace OHOS {
@@ -720,8 +721,14 @@ void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputC
         return;
     }
     auto callingWindowInfo = session->GetCallingWindowInfo(inputClientInfo);
-    sptr<Rosen::Display> displayInfo = nullptr;
-    displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(callingWindowInfo.displayId);
+    sptr<Rosen::DisplayLite> display = nullptr;
+    display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(callingWindowInfo.displayId);
+    if (display == nullptr) {
+        IMSA_HILOGE("display is null!");
+        return;
+    }
+    sptr<Rosen::DisplayInfo> displayInfo = nullptr;
+    displayInfo = display->GetDisplayInfo();
     if (displayInfo == nullptr) {
         IMSA_HILOGE("displayInfo is null!");
         return;

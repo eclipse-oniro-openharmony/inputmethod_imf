@@ -70,7 +70,7 @@ ohos_static_library("inputmethod_tdd_util") {
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "window_manager:libdm",
+    "window_manager:libdm_lite",
     "window_manager:libwsutils",
   ]
 
