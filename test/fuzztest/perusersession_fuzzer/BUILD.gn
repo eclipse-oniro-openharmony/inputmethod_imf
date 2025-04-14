@@ -59,6 +59,7 @@ ohos_fuzztest("PerUserSessionFuzzTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "safwk:system_ability_fwk",
     "window_manager:libdm",
   ]
 

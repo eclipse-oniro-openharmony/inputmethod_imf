@@ -19,7 +19,7 @@ sequenceable input_method_utils..OHOS.MiscServices.KeyEventValue;
 sequenceable input_method_utils..OHOS.MiscServices.ArrayBuffer;
 interface OHOS.MiscServices.IKeyEventConsumer;
 interface OHOS.MiscServices.IInputMethodAgent {
-    void DispatchKeyEvent([in] KeyEventValue keyEvent, [in] IKeyEventConsumer consumer);
+    [ipccode 0] void DispatchKeyEvent([in] KeyEventValue keyEvent, [in] IKeyEventConsumer consumer);
     void OnCursorUpdate([in] int positionX, [in] int positionY, [in] int height);
     void OnSelectionChange([in] String text, [in] int oldBegin, [in] int oldEnd, [in] int newBegin, [in] int newEnd);
     void SetCallingWindow([in] unsigned int windowId);
