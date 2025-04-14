@@ -71,6 +71,19 @@ bool SysCfgParser::ParseDefaultFullIme(std::vector<DefaultFullImeInfo> &defaultF
     return ret;
 }
 
+bool SysCfgParser::ParseIgnoreSysPanelAdjust(IgnoreSysPanelAdjust &ignoreSysPanelAdjust)
+{
+    auto content = GetSysCfgContent(GET_NAME(ignoreSysPanelAdjust));
+    if (content.empty()) {
+        IMSA_HILOGD("content is empty");
+        return false;
+    }
+    IgnoreSysPanelAdjustCfg ignoreSysPanelAdjustCfg;
+    auto ret = ignoreSysPanelAdjustCfg.Unmarshall(content);
+    ignoreSysPanelAdjust = ignoreSysPanelAdjustCfg.ignoreSysPanelAdjust;
+    return ret;
+}
+
 std::string SysCfgParser::GetSysCfgContent(const std::string &key)
 {
     std::string content;

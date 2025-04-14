@@ -1951,14 +1951,44 @@ bool InputMethodPanel::IsInMainDisplay()
     return primaryDisplay->GetId() == displayId;
 }
 
+void InputMethodPanel::SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes)
+{
+    std::lock_guard<std::mutex> lock(ignoreAdjustInputTypeLock_);
+    ignoreAdjustInputTypes_ = inputTypes;
+}
+
+std::vector<int32_t> InputMethodPanel::GetIgnoreAdjustInputTypes()
+{
+    std::lock_guard<std::mutex> lock(ignoreAdjustInputTypeLock_);
+    return ignoreAdjustInputTypes_;
+}
+
 bool InputMethodPanel::IsNeedConfig()
 {
-    auto instance = InputMethodAbility::GetInstance();
     bool needConfig = true;
-    if ((instance != nullptr && instance->GetInputAttribute().GetSecurityFlag()) ||
-        !IsInMainDisplay()) {
-            needConfig = false;
+    bool isSpecialInputType = false;
+    auto instance = InputMethodAbility::GetInstance();
+    if (instance != nullptr) {
+        auto inputType = instance->GetInputType();
+        if (!isIgnorePanelAdjustInitialized_.load()) {
+            IgnoreSysPanelAdjust ignoreSysPanelAdjust;
+            auto isSuccess = SysCfgParser::ParseIgnoreSysPanelAdjust(ignoreSysPanelAdjust);
+            if (isSuccess) {
+                SetIgnoreAdjustInputTypes(ignoreSysPanelAdjust.inputType);
+            }
+            isIgnorePanelAdjustInitialized_.store(true);
+        }
+        std::vector<int32_t> ignoreAdjustInputTypes = GetIgnoreAdjustInputTypes();
+        auto it = std::find_if(
+            ignoreAdjustInputTypes.begin(), ignoreAdjustInputTypes.end(), [inputType](const int32_t &mInputType) {
+                return static_cast<int32_t>(inputType) == mInputType;
+            });
+        isSpecialInputType = (it != ignoreAdjustInputTypes.end());
     }
+    if (isSpecialInputType || !IsInMainDisplay()) {
+        needConfig = false;
+    }
+    IMSA_HILOGD("isNeedConfig is %{public}d", needConfig);
     return needConfig;
 }
 } // namespace MiscServices
