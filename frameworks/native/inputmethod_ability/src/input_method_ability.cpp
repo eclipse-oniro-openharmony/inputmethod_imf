@@ -183,7 +183,7 @@ int32_t InputMethodAbility::RegisterProxyIme(uint64_t displayId)
         return ret;
     }
     isBound_.store(true);
-    isProxyIme_.store(true);
+    isProxyIme_.store(displayId != DEFAULT_DISPLAY_ID);
     IMSA_HILOGD("set successfully, displayId: %{public}" PRIu64 "", displayId);
     return ErrorCode::NO_ERROR;
 }

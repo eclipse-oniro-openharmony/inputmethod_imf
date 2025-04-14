@@ -120,7 +120,7 @@ int32_t PerUserSession::HideKeyboard(
     }
     bool isShowKeyboard = false;
     clientGroup->UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
-    RestoreCurrentImeSubType();
+    RestoreCurrentImeSubType(clientGroup->GetDisplayGroupId());
     return ErrorCode::NO_ERROR;
 }
 
@@ -177,14 +177,14 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
             StopImeInput(clientInfo->bindImeType, clientInfo->channel, 0);
         }
         clientGroup->SetCurrentClient(nullptr);
-        RestoreCurrentImeSubType();
+        RestoreCurrentImeSubType(clientGroup->GetDisplayGroupId());
     }
     if (IsSameClient(remote, clientGroup->GetInactiveClient())) {
         if (clientInfo != nullptr) {
             StopImeInput(clientInfo->bindImeType, clientInfo->channel, 0);
         }
         clientGroup->SetInactiveClient(nullptr);
-        RestoreCurrentImeSubType();
+        RestoreCurrentImeSubType(clientGroup->GetDisplayGroupId());
     }
     clientGroup->RemoveClientInfo(remote->AsObject(), true);
 }
@@ -339,7 +339,7 @@ void PerUserSession::OnHideSoftKeyBoardSelf()
         return;
     }
     clientGroup->UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, false } });
-    RestoreCurrentImeSubType();
+    RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
 }
 
 int32_t PerUserSession::OnRequestShowInput(uint64_t displayId)
@@ -387,7 +387,7 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid, uint64_t displayI
 
     auto clientGroup = GetClientGroup(displayId);
     if (clientGroup == nullptr) {
-        RestoreCurrentImeSubType();
+        RestoreCurrentImeSubType(displayId);
         return ErrorCode::NO_ERROR;
     }
     auto currentClient = clientGroup->GetCurrentClient();
@@ -400,7 +400,7 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid, uint64_t displayI
         DetachOptions options = { .sessionId = 0, .isUnbindFromClient = false, .isInactiveClient = true };
         RemoveClient(inactiveClient, clientGroup, options);
     }
-    RestoreCurrentImeSubType();
+    RestoreCurrentImeSubType(displayId);
     clientGroup->NotifyInputStopToClients();
     return ErrorCode::NO_ERROR;
 }
@@ -455,7 +455,7 @@ int32_t PerUserSession::RemoveClient(
     if (IsSameClient(client, clientGroup->GetCurrentClient())) {
         UnBindClientWithIme(clientInfo, options);
         clientGroup->SetCurrentClient(nullptr);
-        RestoreCurrentImeSubType();
+        RestoreCurrentImeSubType(clientGroup->GetDisplayGroupId());
         StopClientInput(clientInfo, false, options.isNotifyClientAsync);
     }
     if (IsSameClient(client, clientGroup->GetInactiveClient())) {
@@ -660,7 +660,7 @@ void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject>
         Memory::MemMgrClient::GetInstance().SetCritical(getpid(), false, INPUT_METHOD_SYSTEM_ABILITY_ID);
     }
     if (currentType == ImeType::IME) {
-        RestoreCurrentImeSubType();
+        RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
     }
 }
 
@@ -1369,8 +1369,12 @@ bool PerUserSession::IsBoundToClient(uint64_t displayId)
     return true;
 }
 
-int32_t PerUserSession::RestoreCurrentImeSubType()
+int32_t PerUserSession::RestoreCurrentImeSubType(uint64_t callingDisplayId)
 {
+    if (!IsDefaultDisplayGroup(callingDisplayId)) {
+        IMSA_HILOGI("only need restore in default display, calling display: %{public}" PRIu64 "", callingDisplayId);
+        return ErrorCode::NO_ERROR;
+    }
     if (!InputTypeManager::GetInstance().IsStarted()) {
         IMSA_HILOGD("already exit.");
         return ErrorCode::NO_ERROR;
@@ -1843,8 +1847,12 @@ int32_t PerUserSession::HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &im
     return ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP;
 }
 
-int32_t PerUserSession::RestoreCurrentIme()
+int32_t PerUserSession::RestoreCurrentIme(uint64_t callingDisplayId)
 {
+    if (!IsDefaultDisplayGroup(callingDisplayId)) {
+        IMSA_HILOGI("only need restore in default display, calling display: %{public}" PRIu64 "", callingDisplayId);
+        return ErrorCode::NO_ERROR;
+    }
     InputTypeManager::GetInstance().Set(false);
     auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     auto imeData = GetReadyImeData(ImeType::IME);
@@ -2194,6 +2202,11 @@ int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, Pr
     }
     IMSA_HILOGI("notify send private data success.");
     return ret;
+}
+
+bool PerUserSession::IsDefaultDisplayGroup(uint64_t displayId)
+{
+    return GetDisplayGroupId(displayId) == DEFAULT_DISPLAY_ID;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -23,6 +23,11 @@
 
 namespace OHOS {
 namespace MiscServices {
+uint64_t ClientGroup::GetDisplayGroupId()
+{
+    return displayGroupId_;
+}
+
 int32_t ClientGroup::AddClientInfo(
     const sptr<IRemoteObject> &inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
 {
