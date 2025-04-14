@@ -2152,12 +2152,13 @@ int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::str
         return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
     }
     auto imeData = GetReadyImeData(ImeType::IME);
+    defaultIme->imeExtendInfo.privateCommand = privateCommand;
     if (imeData == nullptr) {
         auto ret = StartIme(defaultIme, true);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
         }
-        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
+        return ret;
     }
     if (defaultIme->bundleName == imeData->ime.first) {
         auto ret = SendPrivateData(privateCommand);
@@ -2166,7 +2167,6 @@ int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::str
         }
         return ret;
     }
-    defaultIme->imeExtendInfo.privateCommand = privateCommand;
     auto ret = StartIme(defaultIme);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
@@ -2186,11 +2186,12 @@ int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, Pr
         Value value(privateCommand);
         return data->core->OnSendPrivateData(value);
     });
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("notify send private data failed, ret: %{public}d!", ret);
-    }
     if (!data->imeExtendInfo.privateCommand.empty()) {
         data->imeExtendInfo.privateCommand.clear();
+    }
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("notify send private data failed, ret: %{public}d!", ret);
+        return ret;
     }
     IMSA_HILOGI("notify send private data success.");
     return ret;
