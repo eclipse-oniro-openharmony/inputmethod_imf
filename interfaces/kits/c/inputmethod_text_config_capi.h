@@ -265,10 +265,12 @@ InputMethod_ErrorCode OH_TextConfig_GetWindowId(InputMethod_TextConfig *config, 
 /**
  * @brief Get placeholder into TextConfig.
  *
- * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
+ * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be get from.
  * @param placeholder Returns the placeholder. which is defined in {@link InputMethod_TextConfig}.
  *     The user needs to allocate memory.
  * @param length Input and output parameters. The input is the size requested by the user (unit: char16_t).
+ *     Check the validity of the memory requested by the user based on the input length.
+ *     If the value is smaller than the actual size, the actual length is returned.
  *     The length, which is defined in {@link InputMethod_TextConfig}.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
@@ -283,11 +285,12 @@ InputMethod_ErrorCode OH_TextConfig_GetPlaceholder(InputMethod_TextConfig *confi
 /**
  * @brief Get abilityName into TextConfig.
  *
- * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
+ * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be get from.
  * @param abilityName The abilityName, which is defined in {@link InputMethod_TextConfig}.
  *     The free function needs to be called externally to release the internal requested memory.
  * @param length Input and output parameters. The input is the size requested by the user (unit: char16_t),
- *     returns the size of the ability name.
+ *     Check the validity of the memory requested by the user based on the input length.
+ *     If the value is smaller than the actual size, the actual length is returned.
  *     The length, which is defined in {@link InputMethod_TextConfig}.
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.

@@ -1584,6 +1584,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPlaceholder_001, TestSi
     size_t outLen = 513;
     char16_t *pOut = new (std::nothrow) char16_t[outLen];
     if (pOut == nullptr) {
+        OH_TextConfig_Destroy(config);
         return;
     }
     ret = OH_TextConfig_GetPlaceholder(config, pOut, nullptr);
@@ -1600,11 +1601,13 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPlaceholder_001, TestSi
     ret = OH_TextConfig_GetPlaceholder(config, pOut, &outLen);
     EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
     std::u16string out(pOut, outLen);
-    EXPECT_EQ(out.compare(input), 1);
+    bool bGreater = out.size() > input.size();
+    EXPECT_EQ(bGreater, true);
     delete []pOut;
     outLen = input.size() -1;
     pOut = new (std::nothrow) char16_t[outLen];
     if (pOut == nullptr) {
+        OH_TextConfig_Destroy(config);
         return;
     }
     ret = OH_TextConfig_GetPlaceholder(config, pOut, &outLen);
@@ -1629,6 +1632,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPlaceholder_002, TestSi
     size_t outLen = 512;
     char16_t *pOut = new (std::nothrow) char16_t[outLen];
     if (pOut == nullptr) {
+        OH_TextConfig_Destroy(config);
         return;
     }
     ret = OH_TextConfig_GetPlaceholder(config, pOut, &outLen);
@@ -1662,12 +1666,14 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPlaceholder_003, TestSi
     size_t outLen = input.size() + 1;
     char16_t *pOut = new (std::nothrow) char16_t[outLen];
     if (pOut == nullptr) {
+        OH_TextConfig_Destroy(config);
         return;
     }
     ret = OH_TextConfig_GetPlaceholder(config, pOut, &outLen);
     EXPECT_EQ(ret, IME_ERR_OK);
     std::u16string out(pOut, outLen);
-    EXPECT_EQ(out.compare(input), 1);
+    bool bGreater = out.size() > input.size();
+    EXPECT_EQ(bGreater, true);
     delete []pOut;
     input.append(u"a");
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
@@ -1695,6 +1701,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_001, TestSi
     size_t outLen = 66;
     char16_t *pOut = new (std::nothrow) char16_t[outLen];
     if (pOut == nullptr) {
+        OH_TextConfig_Destroy(config);
         return;
     }
     ret = OH_TextConfig_GetAbilityName(config, pOut, nullptr);
@@ -1713,7 +1720,8 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_001, TestSi
     std::u16string out(pOut, outLen);
     IMSA_HILOGI("outLen:%{public}zu,out:%{public}s,outSize:%{public}zu", outLen,
         Str16ToStr8(out).c_str(), out.size());
-    EXPECT_EQ(out.compare(input), 1);
+    bool bGreater = out.size() > input.size();
+    EXPECT_EQ(bGreater, true);
     outLen = input.size();
     ret = OH_TextConfig_GetAbilityName(config, pOut, &outLen);
     EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
@@ -1766,6 +1774,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_003, TestSi
     size_t outLen = input.size() + 1;
     char16_t *pOut = new (std::nothrow) char16_t[outLen];
     if (pOut == nullptr) {
+        OH_TextConfig_Destroy(config);
         return;
     }
     ret = OH_TextConfig_GetAbilityName(config, pOut, &outLen);
@@ -1773,7 +1782,8 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_003, TestSi
     std::u16string out(pOut, outLen);
     IMSA_HILOGI("outLen:%{public}zu,input:%{public}s,outSize:%{public}zu,inputSize:%{public}zu", outLen,
         Str16ToStr8(input).c_str(), out.size(), input.size());
-    EXPECT_EQ(out.compare(input), 1);
+    bool bGreater = out.size() > input.size();
+    EXPECT_EQ(bGreater, true);
     delete []pOut;
     input.append(u"a");
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
@@ -1786,6 +1796,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_003, TestSi
     EXPECT_EQ(ret, IME_ERR_OK);
     pOut = new char16_t[66];
     if (pOut == nullptr) {
+        OH_TextConfig_Destroy(config);
         return;
     }
     outLen = 33;

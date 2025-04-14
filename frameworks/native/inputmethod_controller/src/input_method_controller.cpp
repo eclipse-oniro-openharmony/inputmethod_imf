@@ -253,15 +253,13 @@ int32_t InputMethodController::IsValidTextConfig(const TextConfig &textConfig)
     }
     int32_t uft16CharLen = ITypesUtil::CountUtf16Chars(textConfig.inputAttribute.placeholder);
     if (uft16CharLen > MAX_PLACEHOLDER_SIZE) {
-        IMSA_HILOGE("invalid placeholder:%{public}s over limit num:%{public}d",
-            Str16ToStr8(textConfig.inputAttribute.placeholder).c_str(), uft16CharLen);
+        IMSA_HILOGE("invalid placeholder over limit num:%{public}d", uft16CharLen);
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
 
     uft16CharLen = ITypesUtil::CountUtf16Chars(textConfig.inputAttribute.abilityName);
     if (uft16CharLen > MAX_ABILITY_NAME_SIZE) {
-        IMSA_HILOGE("invalid abilityName:%{public}s, over limit num:%{public}d",
-            Str16ToStr8(textConfig.inputAttribute.abilityName).c_str(), uft16CharLen);
+        IMSA_HILOGE("invalid abilityName over limit num:%{public}d", uft16CharLen);
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     return ErrorCode::NO_ERROR;
