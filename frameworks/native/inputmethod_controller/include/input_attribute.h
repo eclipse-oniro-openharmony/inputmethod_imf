@@ -82,12 +82,6 @@ struct InputAttribute {
             inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
     }
 
-    inline std::string ToUtf8(const std::u16string &in) const
-    {
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-        return converter.to_bytes(in);
-    }
-
     inline std::string ToString() const
     {
         std::stringstream ss;
@@ -96,7 +90,6 @@ struct InputAttribute {
         << "isTextPreviewSupported:" << isTextPreviewSupported << "bundleName:" << bundleName
         << "immersiveMode:" << immersiveMode << "windowId:" << windowId
         << "callingDisplayId:" << callingDisplayId
-        << "placeholder:" << ToUtf8(placeholder) << "abilityName:" << ToUtf8(abilityName)
         << "]";
         return ss.str();
     }

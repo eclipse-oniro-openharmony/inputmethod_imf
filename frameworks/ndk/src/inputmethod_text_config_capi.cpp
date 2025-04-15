@@ -355,7 +355,7 @@ InputMethod_ErrorCode OH_TextConfig_GetAbilityName(InputMethod_TextConfig *confi
         config->abilityNameLength = ENDING_SYMBOL_SIZE;
         config->abilityName[0] = UTF16_ENDING_SYMBOL;
     }
-    IMSA_HILOGD("curLen:%{public}zu,inputLen:%{public}zu", config->placeholderLength, *length);
+    IMSA_HILOGD("curLen:%{public}zu,inputLen:%{public}zu", config->abilityNameLength, *length);
     if ((*length) < config->abilityNameLength) {
         IMSA_HILOGE("input memory is less than the length of the obtained memory. actual length:%{public}zu",
             config->abilityNameLength);
