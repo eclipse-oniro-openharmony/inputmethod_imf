@@ -1762,14 +1762,35 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_003, TestSi
     EXPECT_EQ(ret, IME_ERR_OK);
     ret = OH_TextConfig_SetAbilityName(config, nullptr, 1);
     EXPECT_EQ(ret, IME_ERR_OK);
+    char16_t *input = new (std::nothrow) char16_t(u'0');
+    if (input != nullptr) {
+        OH_TextConfig_Destroy(config);
+        return;
+    }
+    ret = OH_TextConfig_SetAbilityName(config, input, 0);
+    EXPECT_EQ(ret, IME_ERR_OK);
+    ret = OH_TextConfig_SetAbilityName(config, input, 1);
+    EXPECT_EQ(ret, IME_ERR_OK);
     ret = OH_TextConfig_SetAbilityName(nullptr, nullptr, 1);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+    delete input;
+    OH_TextConfig_Destroy(config);
+}
+
+/**
+ * @tc.name: OH_TextConfig_SetAbilityName_004
+ * @tc.desc: Invalid test input parameter
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_004, TestSize.Level0) {
+    auto config = OH_TextConfig_Create();
+    ASSERT_NE(nullptr, config);
     std::u16string input = u"";
     for (int i = 0; i < 32; ++i) {
         input.append(u"𪛊");
     }
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
-    ret = OH_TextConfig_SetAbilityName(config, input.data(), input.size());
+    auto ret = OH_TextConfig_SetAbilityName(config, input.data(), input.size());
     EXPECT_EQ(ret, IME_ERR_OK);
     size_t outLen = input.size() + 1;
     char16_t *pOut = new (std::nothrow) char16_t[outLen];
@@ -1794,7 +1815,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_003, TestSi
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", charInputLen, Str16ToStr8(input).c_str());
     ret = OH_TextConfig_SetAbilityName(config, charInput, charInputLen);
     EXPECT_EQ(ret, IME_ERR_OK);
-    pOut = new char16_t[66];
+    pOut = new (std::nothrow) char16_t[66];
     if (pOut == nullptr) {
         OH_TextConfig_Destroy(config);
         return;
