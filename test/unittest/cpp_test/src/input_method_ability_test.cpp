@@ -1196,6 +1196,22 @@ HWTEST_F(InputMethodAbilityTest, testAdjustKeyboard_001, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testGetInputType_001
+ * @tc.desc: get inputType
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: guojin
+ */
+HWTEST_F(InputMethodAbilityTest, testGetInputType_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetInputType_001 START");
+    imc_->Attach(textListener_);
+
+    InputType inputType = inputMethodAbility_->GetInputType();
+    EXPECT_EQ(inputType, InputType::NONE);
+}
+
+/**
  * @tc.name: testOnSecurityChange
  * @tc.desc: OnSecurityChange
  * @tc.type: FUNC

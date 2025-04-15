@@ -321,6 +321,11 @@ void InputMethodAbility::OnSetInputType(InputType inputType)
     }
 }
 
+InputType InputMethodAbility::GetInputType()
+{
+    return inputType_;
+}
+
 void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
 {
     std::lock_guard<std::mutex> lock(dataChannelLock_);

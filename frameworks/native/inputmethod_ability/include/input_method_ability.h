@@ -85,6 +85,7 @@ public:
     bool IsCurrentIme();
     bool IsEnable();
     bool IsSystemApp();
+    InputType GetInputType();
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     int32_t GetSecurityMode(int32_t &security);

@@ -177,6 +177,8 @@ private:
     void SetHotAreas(const HotAreas &hotAreas);
     HotAreas GetHotAreas();
     sptr<Rosen::Display> GetCurDisplay();
+    void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
+    std::vector<int32_t> GetIgnoreAdjustInputTypes();
     bool IsNeedConfig();
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
@@ -197,6 +199,9 @@ private:
     std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
     std::mutex adjustInfoInitLock_;
     std::atomic<bool> isAdjustInfoInitialized_{ false };
+    std::atomic<bool> isIgnorePanelAdjustInitialized_{ false };
+    std::mutex ignoreAdjustInputTypeLock_;
+    std::vector<int32_t> ignoreAdjustInputTypes_;
 
     std::mutex hotAreasLock_;
     HotAreas hotAreas_;

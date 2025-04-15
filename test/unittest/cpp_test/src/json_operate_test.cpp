@@ -73,7 +73,7 @@ public:
     static constexpr const char *SYS_PANEL_ADJUST = "{\"sysPanelAdjust\":"
                                                     "[{\"style\": [\"fix\",\"default\",\"landscape\"],"
                                                     "\"top\": 1,\"left\": 2,\"right\": 3,\"bottom\": 4}]}";
-
+    static constexpr const char *IGNORE_SYS_PANEL_ADJUST = "{\"ignoreSysPanelAdjust\":{\"inputType\": [0, 1, 3]}}";
     static void SetUpTestCase() { }
     static void TearDownTestCase() { }
     void SetUp() { }
@@ -337,6 +337,38 @@ HWTEST_F(JsonOperateTest, testParseSysPanelAdjust001, TestSize.Level1)
     EXPECT_EQ(panelAdjust[0].left, 2);
     EXPECT_EQ(panelAdjust[0].right, 3);
     EXPECT_EQ(panelAdjust[0].bottom, 4);
+}
+
+/**
+@tc.name: testParseIgnoreSysPanelAdjust001
+@tc.desc: parse IgnoreSysPanelAdjust
+@tc.type: FUNC
+@tc.require:
+*/
+HWTEST_F(JsonOperateTest, testParseIgnoreSysPanelAdjust001, TestSize.Level1)
+{
+    IMSA_HILOGI("JsonOperateTest testParseIgnoreSysPanelAdjust001 START");
+    IgnoreSysPanelAdjustCfg ignoreSysPanelAdjustCfg;
+    auto ret = ignoreSysPanelAdjustCfg.Unmarshall("");
+    ASSERT_FALSE(ret);
+}
+
+/**
+@tc.name: testParseIgnoreSysPanelAdjust002
+@tc.desc: parse IgnoreSysPanelAdjust
+@tc.type: FUNC
+@tc.require:
+*/
+HWTEST_F(JsonOperateTest, testParseIgnoreSysPanelAdjust002, TestSize.Level1)
+{
+    IMSA_HILOGI("JsonOperateTest testParseIgnoreSysPanelAdjust002 START");
+    IgnoreSysPanelAdjustCfg ignoreSysPanelAdjustCfg;
+    auto ret = ignoreSysPanelAdjustCfg.Unmarshall(IGNORE_SYS_PANEL_ADJUST);
+    ASSERT_TRUE(ret);
+    auto ignoreSysPanelAdjust = ignoreSysPanelAdjustCfg.ignoreSysPanelAdjust;
+    EXPECT_EQ(ignoreSysPanelAdjust.inputType[0], 0);
+    EXPECT_EQ(ignoreSysPanelAdjust.inputType[1], 1);
+    EXPECT_EQ(ignoreSysPanelAdjust.inputType[2], 3);
 }
 
 /**
