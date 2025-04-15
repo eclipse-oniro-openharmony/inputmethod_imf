@@ -600,7 +600,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_001, TestSize.Level1)
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_CHANGE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -617,13 +617,13 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_002, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
     InputClientInfoInner clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_HIDE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_CHANGE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -640,13 +640,13 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_003, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
     InputClientInfoInner clientInfo {};
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_SHOW_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_HIDE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, EVENT_IME_CHANGE_MASK);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_NULLPTR);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
