@@ -54,7 +54,10 @@ ohos_static_library("inputmethod_js_common") {
   configs = [ ":inputmethod_js_common_config" ]
   public_configs = [ ":inputmethod_js_common_public_config" ]
   deps = [ "${inputmethod_path}/common:inputmethod_common" ]
-  external_deps = [ "napi:ace_napi" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "napi:ace_napi",
+  ]
   subsystem_name = "inputmethod"
   part_name = "imf"
 }

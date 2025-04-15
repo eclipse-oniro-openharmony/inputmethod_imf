@@ -25,6 +25,8 @@
 #include "napi/native_node_api.h"
 #include "string_ex.h"
 #include "wm_common.h"
+#include "res_config.h"
+#include "resource_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -32,6 +34,7 @@ namespace MiscServices {
 using namespace std::chrono;
 thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
+constexpr int32_t DEVICE_TYPE_2IN1 = 7;
 constexpr int32_t MAX_WAIT_TIME = 5000;
 constexpr int32_t MAX_WAIT_TIME_PRIVATE_COMMAND = 2000;
 constexpr int32_t MAX_WAIT_TIME_MESSAGE_HANDLER = 2000;
@@ -45,6 +48,7 @@ std::shared_ptr<JsTextInputClientEngine> JsTextInputClientEngine::textInputClien
 std::mutex JsTextInputClientEngine::eventHandlerMutex_;
 std::shared_ptr<AppExecFwk::EventHandler> JsTextInputClientEngine::handler_{ nullptr };
 uint32_t JsTextInputClientEngine::traceId_{ 0 };
+int32_t JsTextInputClientEngine::deviceTypeCache_{ -1 };
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
 {
     IMSA_HILOGD("JsTextInputClientEngine init");
@@ -85,6 +89,34 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
     NAPI_CALL(env, napi_set_named_property(env, info, TIC_CLASS_NAME.c_str(), cons));
 
     return info;
+}
+
+bool JsTextInputClientEngine::IsTargetDeviceType(int32_t resDeviceType)
+{
+    if (deviceTypeCache_ != -1) {
+        if (deviceTypeCache_ == resDeviceType) {
+            return true;
+        }
+        return false;
+    }
+    std::shared_ptr<AbilityRuntime::ApplicationContext> context =
+        AbilityRuntime::ApplicationContext::GetApplicationContext();
+    if (context == nullptr) {
+        return false;
+    }
+    auto resourceManager = context->GetResourceManager();
+    auto resConfig = std::unique_ptr<Global::Resource::ResConfig>(Global::Resource::CreateResConfig());
+    if (resourceManager == nullptr || resConfig == nullptr) {
+        return false;
+    }
+    resourceManager->GetResConfig(*resConfig);
+
+    Global::Resource::DeviceType deviceType = resConfig->GetDeviceType();
+    deviceTypeCache_ = static_cast<int32_t>(deviceType);
+    if (static_cast<int32_t>(deviceType) == resDeviceType) {
+        return true;
+    }
+    return false;
 }
 
 napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info info)
@@ -1179,7 +1211,8 @@ napi_value JsTextInputClientEngine::RecvMessage(napi_env env, napi_callback_info
 
 void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attachOptions)
 {
-    std::string type = "attachOptionsChanged";
+    IMSA_HILOGD("OnAttachOptionsChanged requestKeyboardReason:%{public}d.", attachOptions.requestKeyboardReason);
+    std::string type = "attachOptionsDidChange";
     auto entry = GetEntry(type, [&attachOptions](UvEntry &entry) {
         entry.attachOptions.requestKeyboardReason = attachOptions.requestKeyboardReason;
     });
@@ -1209,6 +1242,14 @@ void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attach
 
 napi_value JsTextInputClientEngine::GetAttachOptions(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGD("GetAttachOptions requestKeyboardReason:%{public}d.",
+        InputMethodAbility::GetInstance()->GetRequestKeyboardReason());
+    bool flag = IsTargetDeviceType(DEVICE_TYPE_2IN1);
+    if (!flag) {
+        JsUtils::ThrowException(
+            env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED), "only 2in1 supported!", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
     AttachOptions attachOptions;
     attachOptions.requestKeyboardReason = InputMethodAbility::GetInstance()->GetRequestKeyboardReason();
     return JsAttachOptions::Write(env, attachOptions);
@@ -1228,6 +1269,11 @@ napi_value JsTextInputClientEngine::Subscribe(napi_env env, napi_callback_info i
         JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("subscribe failed, type: %{public}s.", type.c_str());
         return nullptr;
+    }
+    if (type == "attachOptionsDidChange" && !IsTargetDeviceType(DEVICE_TYPE_2IN1)) {
+        JsUtils::ThrowException(
+            env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED), "only 2in1 supported!", TYPE_NONE);
+        return JsUtil::Const::Null(env);
     }
     IMSA_HILOGD("subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsTextInputClientEngine *>(JsUtils::GetNativeSelf(env, info));

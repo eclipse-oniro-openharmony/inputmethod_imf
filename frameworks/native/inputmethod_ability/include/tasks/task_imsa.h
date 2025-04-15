@@ -53,10 +53,10 @@ public:
 
 class TaskImsaShowKeyboard : public Task {
 public:
-    TaskImsaShowKeyboard() : Task(TASK_TYPE_IMSA_SHOW_KEYBOARD)
+    TaskImsaShowKeyboard(int32_t requestKeyboardReason = 0) : Task(TASK_TYPE_IMSA_SHOW_KEYBOARD)
     {
-        auto func = []() {
-            InputMethodAbility::GetInstance()->ShowKeyboard();
+        auto func = [requestKeyboardReason]() {
+            InputMethodAbility::GetInstance()->ShowKeyboard(requestKeyboardReason);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }

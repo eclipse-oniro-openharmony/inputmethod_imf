@@ -713,7 +713,6 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
             return std::make_shared<SubProperty>(*iter);
         }
         IMSA_HILOGW("subtype %{public}s not found.", currentIme->subName.c_str());
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, currentIme->imeId, it->subProps[0].id, false });
         return std::make_shared<SubProperty>(it->subProps[0]);
     }
 
@@ -760,16 +759,10 @@ std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToStart(int32_t userId)
     IMSA_HILOGD("userId: %{public}d, currentIme: %{public}s.", userId, currentImeCfg->imeId.c_str());
     if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)) {
         auto newIme = GetDefaultIme();
-        auto info = GetDefaultImeInfo(userId);
-        if (info == nullptr) {
-            IMSA_HILOGW("failed to GetDefaultImeInfo");
-            newIme.subName = "";
-        } else {
-            newIme.subName = info->subProp.id;
-        }
+        newIme.subName = "";
         currentImeCfg->imeId.empty()
-            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, newIme.subName, false })
-            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, newIme.subName, false});
+            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, "", false })
+            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, "", false});
         return std::make_shared<ImeNativeCfg>(newIme);
     }
     return currentImeCfg;
@@ -829,6 +822,10 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
         return ErrorCode::NO_ERROR;
     }
     prop = GetImeProperty(userId, defaultIme->name, defaultIme->id);
+    if (prop == nullptr) {
+        IMSA_HILOGE("prop is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     return ErrorCode::NO_ERROR;
 }
 

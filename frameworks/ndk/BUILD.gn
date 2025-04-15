@@ -48,6 +48,7 @@ ohos_shared_library("ohinputmethod") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -95,6 +96,7 @@ ohos_static_library("ohinputmethod_static") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",

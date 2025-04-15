@@ -33,6 +33,7 @@ public:
     {
     }
 
+    uint64_t GetDisplayGroupId();
     int32_t AddClientInfo(
         const sptr<IRemoteObject> &inputClient, const InputClientInfo &clientInfo);
     void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);

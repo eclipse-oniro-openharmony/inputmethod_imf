@@ -13,10 +13,13 @@
  * limitations under the License.
  */
 
+#include "input_method_system_ability.h"
+
+#include <cinttypes>
+
 #include "securec.h"
 #include "unordered_map"
 #include "variant"
-#include "input_method_system_ability.h"
 #include "ability_manager_client.h"
 #include "combination_key.h"
 #include "full_ime_info_manager.h"
@@ -42,7 +45,8 @@
 #include "on_demand_start_stop_sa.h"
 #endif
 #include "window_adapter.h"
-#include "display_manager.h"
+#include "display_manager_lite.h"
+#include "display_info.h"
 #include "input_method_tools.h"
 
 namespace OHOS {
@@ -639,12 +643,11 @@ int32_t InputMethodSystemAbility::StartInputInner(
         // notify inputStart when caller pid different from both current client and inactive client
         inputClientInfo.isNotifyInputStart = true;
     }
-    auto displayGroupId = session->GetDisplayGroupId(displayId);
     if (session->CheckPwdInputPatternConv(inputClientInfo, displayId)) {
         inputClientInfo.needHide = true;
         inputClientInfo.isNotifyInputStart = true;
     }
-    if (displayGroupId == DEFAULT_DISPLAY_ID && !session->IsProxyImeEnable()) {
+    if (session->IsDefaultDisplayGroup(displayId) && !session->IsProxyImeEnable()) {
         auto ret = CheckInputTypeOption(userId, inputClientInfo);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("%{public}d failed to CheckInputTypeOption!", userId);
@@ -697,7 +700,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     }
     if (InputTypeManager::GetInstance().IsStarted()) {
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
-        session->RestoreCurrentImeSubType();
+        session->RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
     }
     ChangeToDefaultImeForHiCar(userId, inputClientInfo);
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
@@ -710,7 +713,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, ime);
     }
 #endif
-    return session->RestoreCurrentIme();
+    return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
 }
 
 void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo)
@@ -721,8 +724,14 @@ void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputC
         return;
     }
     auto callingWindowInfo = session->GetCallingWindowInfo(inputClientInfo);
-    sptr<Rosen::Display> displayInfo = nullptr;
-    displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(callingWindowInfo.displayId);
+    sptr<Rosen::DisplayLite> display = nullptr;
+    display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(callingWindowInfo.displayId);
+    if (display == nullptr) {
+        IMSA_HILOGE("display is null!");
+        return;
+    }
+    sptr<Rosen::DisplayInfo> displayInfo = nullptr;
+    displayInfo = display->GetDisplayInfo();
     if (displayInfo == nullptr) {
         IMSA_HILOGE("displayInfo is null!");
         return;
@@ -1047,9 +1056,9 @@ ErrCode InputMethodSystemAbility::ExitCurrentInputType()
     auto typeIme = InputTypeManager::GetInstance().GetCurrentIme();
     auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (cfgIme->bundleName == typeIme.bundleName) {
-        return session->RestoreCurrentImeSubType();
+        return session->RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
     }
-    return session->RestoreCurrentIme();
+    return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
 }
 
 ErrCode InputMethodSystemAbility::IsDefaultIme()
@@ -1188,9 +1197,9 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
     {
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
         std::string targetImeName = info->prop.name + "/" + info->prop.id;
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, info->subProp.id, true });
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, switchInfo.subName, true });
         auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg{
-            targetImeName, info->prop.name, switchInfo.subName.empty() ? "" : info->subProp.id, info->prop.id });
+            targetImeName, info->prop.name, switchInfo.subName, info->prop.id });
         ret = session->StartIme(targetIme);
         if (ret != ErrorCode::NO_ERROR) {
             InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
@@ -2021,7 +2030,7 @@ ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<
         if (session->CheckSecurityMode()) {
             ret = StartInputType(userId, InputType::SECURITY_INPUT);
         } else {
-            ret = session->RestoreCurrentIme();
+            ret = session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
         }
         if (ret != ErrorCode::NO_ERROR) {
             return ret;
@@ -2303,13 +2312,17 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
+    if (!session->IsDefaultDisplayGroup(GetCallingDisplayId())) {
+        IMSA_HILOGI("only need input type in default display");
+        return ErrorCode::NO_ERROR;
+    }
     ImeIdentification ime;
     int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("not find input type: %{public}d.", type);
         // add for not adapter for SECURITY_INPUT
         if (type == InputType::SECURITY_INPUT) {
-            return session->RestoreCurrentIme();
+            return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
         }
         return ret;
     }
