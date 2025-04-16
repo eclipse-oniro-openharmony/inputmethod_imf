@@ -20,6 +20,7 @@
 #include "input_type_manager.h"
 #include "iservice_registry.h"
 #include "locale_config.h"
+#include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
 #include "system_ability_definition.h"
