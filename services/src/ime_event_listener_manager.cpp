@@ -116,11 +116,12 @@ void ImeEventListenerManager::OnListenerDied(int32_t userId, const wptr<IRemoteO
     if (object == nullptr) {
         return;
     }
+    std::lock_guard<std::mutex> lock(imeEventListenersLock_);
     auto it = imeEventListeners_.find(userId);
     if (it == imeEventListeners_.end()) {
         return;
     }
-    auto listererInfos = it->second;
+    auto &listererInfos = it->second;
     auto iter = std::find_if(listererInfos.begin(), listererInfos.end(),
         [&object](const ImeEventListenerInfo &info) {
             return (info.client != nullptr && info.client->AsObject() == object);
