@@ -1,0 +1,14 @@
+diff a/frameworks/native/inputmethod_controller/include/input_attribute.h b/frameworks/native/inputmethod_controller/include/input_attribute.h	(rejected hunks)
+@@ -82,12 +95,6 @@ struct InputAttribute {
+             inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
+     }
+ 
+-    inline std::string ToUtf8(const std::u16string &in) const
+-    {
+-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+-        return converter.to_bytes(in);
+-    }
+-
+     inline std::string ToString() const
+     {
+         std::stringstream ss;

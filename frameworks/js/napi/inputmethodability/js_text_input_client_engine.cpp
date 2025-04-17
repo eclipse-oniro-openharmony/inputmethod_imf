@@ -977,6 +977,8 @@ napi_value JsInputAttribute::Write(napi_env env, const InputAttribute &nativeObj
         static_cast<uint32_t>(nativeObject.callingDisplayId));
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "placeholder", Str16ToStr8(nativeObject.placeholder));
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "abilityName", Str16ToStr8(nativeObject.abilityName));
+    int32_t capitalizeMode = static_cast<int32_t>(nativeObject.capitalizeMode);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "capitalizeMode", capitalizeMode);
     return ret ? jsObject : JsUtil::Const::Null(env);
 }
 
@@ -990,6 +992,11 @@ bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &n
     JsUtil::Object::ReadProperty(env, jsObject, "bundleName", nativeObject.bundleName);
     JsUtil::Object::ReadProperty(env, jsObject, "placeholder", nativeObject.placeholder);
     JsUtil::Object::ReadProperty(env, jsObject, "abilityName", nativeObject.abilityName);
+    int32_t capitalizeMode;
+    if (!JsUtil::Object::ReadProperty(env, jsObject, "capitalizeMode", capitalizeMode)) {
+        nativeObject.capitalizeMode = CapitalizeMode::NONE;
+    }
+    nativeObject.capitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
     ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "immersiveMode", nativeObject.immersiveMode);
     return ret;
 }
