@@ -54,7 +54,7 @@ int32_t ImeEnabledInfoManager::Delete(int32_t userId)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeEnabledInfoManager::Add(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
+int32_t ImeEnabledInfoManager::Switch(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
 {
     return ErrorCode::NO_ERROR;
 }

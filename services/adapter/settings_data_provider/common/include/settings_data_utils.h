@@ -42,7 +42,6 @@ public:
     bool SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value);
     bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
     Uri GenerateTargetUri(const std::string &uriProxy, const std::string &key);
-    bool EnableIme(int32_t userId, const std::string &bundleName);
     void NotifyDataShareReady();
     bool IsDataShareReady();
 
@@ -52,8 +51,6 @@ private:
     int32_t RegisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer);
     int32_t UnregisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer);
     sptr<IRemoteObject> GetToken();
-    std::vector<std::string> Split(const std::string &text, char separator);
-    std::string SetSettingValues(const std::string &settingValue, const std::string &bundleName);
 
 private:
     static std::mutex instanceMutex_;

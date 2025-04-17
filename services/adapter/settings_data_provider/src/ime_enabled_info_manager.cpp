@@ -23,7 +23,6 @@
 
 #include "enable_upgrade_manager.h"
 #include "ime_info_inquirer.h"
-#include "parameter.h"
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
@@ -50,7 +49,7 @@ void ImeEnabledInfoManager::SetEventHandler(const std::shared_ptr<AppExecFwk::Ev
     serviceHandler_ = eventHandler;
 }
 
-int32_t ImeEnabledInfoManager::Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos)
+int32_t ImeEnabledInfoManager::RegularInit(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos)
 {
     if (!HasEnabledSwitch()) {
         return ErrorCode::NO_ERROR;
@@ -62,7 +61,19 @@ int32_t ImeEnabledInfoManager::Init(const std::map<int32_t, std::vector<FullImeI
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeEnabledInfoManager::Add(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
+int32_t ImeEnabledInfoManager::Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos)
+{
+    if (!HasEnabledSwitch()) {
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGI("run in, user num:%{public}zu.", fullImeInfos.size());
+    for (const auto &fullImeInfo : fullImeInfos) {
+        UpdateEnabledCfgCacheIfNoCache(fullImeInfo.first, fullImeInfo.second);
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ImeEnabledInfoManager::Switch(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
 {
     IMSA_HILOGI("userId:%{public}d", userId);
     currentUserId_ = userId;
@@ -75,14 +86,13 @@ int32_t ImeEnabledInfoManager::Add(int32_t userId, const std::vector<FullImeInfo
     return UpdateEnabledCfgCache(userId, imeInfos);
 }
 
-int32_t ImeEnabledInfoManager::UpdateEnabledCfgCache(int32_t userId)
+int32_t ImeEnabledInfoManager::UpdateEnabledCfgCacheIfNoCache(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
 {
     ImeEnabledCfg cfg;
     auto ret = GetEnabledCache(userId, cfg);
     if (ret == ErrorCode::NO_ERROR) {
         return ret;
     }
-    std::vector<FullImeInfo> imeInfos;
     return UpdateEnabledCfgCache(userId, imeInfos);
 }
 
@@ -93,7 +103,7 @@ int32_t ImeEnabledInfoManager::UpdateEnabledCfgCache(int32_t userId, const std::
     }
     IMSA_HILOGI("run in, userId:%{public}d", userId);
     ImeEnabledCfg cfg;
-    auto ret = GetEnabledCfg(userId, cfg, imeInfos);
+    auto ret = GetEnabledCfg(userId, cfg, true, imeInfos);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("userId:%{public}d get enabled cfg failed:%{public}d.", userId, ret);
         return ret;
@@ -385,9 +395,9 @@ int32_t ImeEnabledInfoManager::GetEnabledCache(int32_t userId, ImeEnabledCfg &en
 }
 
 int32_t ImeEnabledInfoManager::GetEnabledCfg(
-    int32_t userId, ImeEnabledCfg &cfg, const std::vector<FullImeInfo> &imeInfos)
+    int32_t userId, ImeEnabledCfg &cfg, bool needCorrectByBundleMgr, const std::vector<FullImeInfo> &imeInfos)
 {
-    if (!SettingsDataUtils::GetInstance()->IsDataShareReady()) {
+    if (!SettingsDataUtils::GetInstance()->IsDataShareReady()) {  // todo 會不會導致查不到，原來能查到，現在產不到
         IMSA_HILOGE("data share not ready.");
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -395,9 +405,11 @@ int32_t ImeEnabledInfoManager::GetEnabledCfg(
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    ret = CorrectByBundleMgr(userId, cfg.enabledInfos, imeInfos);
-    if (ret != ErrorCode::NO_ERROR) {
-        return ret;
+    if (needCorrectByBundleMgr) {
+        ret = CorrectByBundleMgr(userId, cfg.enabledInfos, imeInfos);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
     }
     ComputeEnabledStatus(cfg.enabledInfos);
     return ErrorCode::NO_ERROR;
@@ -528,9 +540,9 @@ void ImeEnabledInfoManager::PostUpdateCfgCacheTask(int32_t userId)
     if (serviceHandler_ == nullptr) {
         return;
     }
-    auto task = [this, userId]() { UpdateEnabledCfgCache(userId); };
+    auto task = [this, userId]() { UpdateEnabledCfgCacheIfNoCache(userId); };
     // 60000: ms, the task is time-consuming, prevent it is performed during the device boot
-    serviceHandler_->PostTask(task, "UpdateEnabledCfgCache", 60000, AppExecFwk::EventQueue::Priority::LOW);
+    serviceHandler_->PostTask(task, "UpdateEnabledCfgCacheIfNoCache", 60000, AppExecFwk::EventQueue::Priority::LOW);
 }
 
 void ImeEnabledInfoManager::NotifyEnableChanged(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)

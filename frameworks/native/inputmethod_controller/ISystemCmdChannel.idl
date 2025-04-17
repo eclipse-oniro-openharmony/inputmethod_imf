@@ -16,6 +16,6 @@
 sequenceable input_method_utils..OHOS.MiscServices.Value;
 sequenceable sys_panel_status..OHOS.MiscServices.SysPanelStatus;
 interface OHOS.MiscServices.ISystemCmdChannel {
-    [oneway] void SendPrivateCommand([in] Value value);
+    [ipccode 0, oneway] void SendPrivateCommand([in] Value value);
     [oneway] void NotifyPanelStatus([in] SysPanelStatus sysPanelStatus);
 }

@@ -80,8 +80,9 @@ public:
     static ImeEnabledInfoManager &GetInstance();
     void SetEnableChangedHandler(EnableChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
+    int32_t RegularInit(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
-    int32_t Add(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
+    int32_t Switch(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
     int32_t Delete(int32_t userId);
     int32_t Add(int32_t userId, const FullImeInfo &imeInfo);
     int32_t Delete(int32_t userId, const std::string &bundleName);
@@ -96,10 +97,10 @@ public:
 private:
     ImeEnabledInfoManager() = default;
     ~ImeEnabledInfoManager();
-    int32_t UpdateEnabledCfgCache(int32_t userId);
+    int32_t UpdateEnabledCfgCacheIfNoCache(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t UpdateEnabledCfgCache(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
     int32_t UpdateEnabledCfgCache(int32_t userId, const ImeEnabledCfg &cfg);
-    int32_t GetEnabledCfg(int32_t userId, ImeEnabledCfg &cfg, const std::vector<FullImeInfo> &imeInfos = {});
+    int32_t GetEnabledCfg(int32_t userId, ImeEnabledCfg &cfg, bool needCorrectByBundleMgr = false, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t GetEnabledTableCfg(int32_t userId, ImeEnabledCfg &cfg);
     int32_t CorrectByBundleMgr(
         int32_t userId, std::vector<ImeEnabledInfo> &enabledInfos, const std::vector<FullImeInfo> &imeInfos);

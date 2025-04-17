@@ -13,14 +13,19 @@
  * limitations under the License.
  */
 
+#include "input_method_system_ability.h"
+
+#include <cinttypes>
+
 #include "securec.h"
 #include "unordered_map"
 #include "variant"
-#include "input_method_system_ability.h"
 #include "ability_manager_client.h"
 #include "combination_key.h"
 #include "full_ime_info_manager.h"
+#include "ime_enabled_info_manager.h"
 #include "im_common_event_manager.h"
+#include "ime_event_listener_manager.h"
 #include "imsa_hisysevent_reporter.h"
 #include "input_manager.h"
 #include "ipc_skeleton.h"
@@ -41,7 +46,8 @@
 #include "on_demand_start_stop_sa.h"
 #endif
 #include "window_adapter.h"
-#include "display_manager.h"
+#include "display_manager_lite.h"
+#include "display_info.h"
 #include "input_method_tools.h"
 
 namespace OHOS {
@@ -435,11 +441,11 @@ void InputMethodSystemAbility::Initialize()
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     IMSA_HILOGI("start get scene board enable status");
-    isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
     ImeEnabledInfoManager::GetInstance().SetEnableChangedHandler(
         [this](int32_t userId, const std::string &bundleName, EnabledStatus oldStatus) {
             OnImeEnabledStatusChange(userId, bundleName, oldStatus);
         });
+    isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
     IMSA_HILOGI("InputMethodSystemAbility::Initialize end.");
 }
 
@@ -638,12 +644,11 @@ int32_t InputMethodSystemAbility::StartInputInner(
         // notify inputStart when caller pid different from both current client and inactive client
         inputClientInfo.isNotifyInputStart = true;
     }
-    auto displayGroupId = session->GetDisplayGroupId(displayId);
     if (session->CheckPwdInputPatternConv(inputClientInfo, displayId)) {
         inputClientInfo.needHide = true;
         inputClientInfo.isNotifyInputStart = true;
     }
-    if (displayGroupId == DEFAULT_DISPLAY_ID && !session->IsProxyImeEnable()) {
+    if (session->IsDefaultDisplayGroup(displayId) && !session->IsProxyImeEnable()) {
         auto ret = CheckInputTypeOption(userId, inputClientInfo);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("%{public}d failed to CheckInputTypeOption!", userId);
@@ -696,7 +701,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     }
     if (InputTypeManager::GetInstance().IsStarted()) {
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
-        session->RestoreCurrentImeSubType();
+        session->RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
     }
     ChangeToDefaultImeForHiCar(userId, inputClientInfo);
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
@@ -709,7 +714,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId, ime);
     }
 #endif
-    return session->RestoreCurrentIme();
+    return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
 }
 
 void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo)
@@ -720,8 +725,14 @@ void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputC
         return;
     }
     auto callingWindowInfo = session->GetCallingWindowInfo(inputClientInfo);
-    sptr<Rosen::Display> displayInfo = nullptr;
-    displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(callingWindowInfo.displayId);
+    sptr<Rosen::DisplayLite> display = nullptr;
+    display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(callingWindowInfo.displayId);
+    if (display == nullptr) {
+        IMSA_HILOGE("display is null!");
+        return;
+    }
+    sptr<Rosen::DisplayInfo> displayInfo = nullptr;
+    displayInfo = display->GetDisplayInfo();
     if (displayInfo == nullptr) {
         IMSA_HILOGE("displayInfo is null!");
         return;
@@ -968,17 +979,9 @@ ErrCode InputMethodSystemAbility::UpdateListenEventFlag(const InputClientInfoInn
             return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
         }
     }
-    auto userId = GetCallingUserId();
-    auto ret = GenerateClientInfo(userId, const_cast<InputClientInfo &>(clientInfo));
-    if (ret != ErrorCode::NO_ERROR) {
-        return ret;
-    }
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return session->OnUpdateListenEventFlag(clientInfo);
+    auto userId = OsAccountAdapter::GetOsAccountLocalIdFromUid(IPCSkeleton::GetCallingUid());
+    return ImeEventListenerManager::GetInstance().UpdateListenerInfo(userId,
+        { eventFlag, clientInfo.client, IPCSkeleton::GetCallingPid()});
 }
 
 ErrCode InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, const sptr<IInputClient>& client)
@@ -1054,9 +1057,9 @@ ErrCode InputMethodSystemAbility::ExitCurrentInputType()
     auto typeIme = InputTypeManager::GetInstance().GetCurrentIme();
     auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     if (cfgIme->bundleName == typeIme.bundleName) {
-        return session->RestoreCurrentImeSubType();
+        return session->RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
     }
-    return session->RestoreCurrentIme();
+    return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
 }
 
 ErrCode InputMethodSystemAbility::IsDefaultIme()
@@ -1503,7 +1506,8 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().Update();
                 break;
             }
-            case MSG_ID_BOOT_COMPLETED: {
+            case MSG_ID_BOOT_COMPLETED:
+            case MSG_ID_OS_ACCOUNT_STARTED: {
                 FullImeInfoManager::GetInstance().Init();
                 break;
             }
@@ -1512,7 +1516,7 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_REGULAR_UPDATE_IME_INFO: {
-                FullImeInfoManager::GetInstance().Init();
+                FullImeInfoManager::GetInstance().RegularInit();
                 break;
             }
             default: {
@@ -1537,7 +1541,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto newUserId = msg->msgContent_->ReadInt32();
-    FullImeInfoManager::GetInstance().Add(newUserId);
+    FullImeInfoManager::GetInstance().Switch(newUserId);
     // if scb enable, deal when receive wmsConnected.
     if (isScbEnable_.load()) {
         return ErrorCode::NO_ERROR;
@@ -2096,7 +2100,7 @@ ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<
         if (session->CheckSecurityMode()) {
             ret = StartInputType(userId, InputType::SECURITY_INPUT);
         } else {
-            ret = session->RestoreCurrentIme();
+            ret = session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
         }
         if (ret != ErrorCode::NO_ERROR) {
             return ret;
@@ -2313,6 +2317,11 @@ void InputMethodSystemAbility::HandleOsAccountStarted()
     if (userId_ != userId) {
         UpdateUserInfo(userId);
     }
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_OS_ACCOUNT_STARTED, nullptr);
+    if (msg == nullptr) {
+        return;
+    }
+    MessageHandler::Instance()->SendMessage(msg);
 }
 
 void InputMethodSystemAbility::StopImeInBackground()
@@ -2377,13 +2386,17 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
+    if (!session->IsDefaultDisplayGroup(GetCallingDisplayId())) {
+        IMSA_HILOGI("only need input type in default display");
+        return ErrorCode::NO_ERROR;
+    }
     ImeIdentification ime;
     int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("not find input type: %{public}d.", type);
         // add for not adapter for SECURITY_INPUT
         if (type == InputType::SECURITY_INPUT) {
-            return session->RestoreCurrentIme();
+            return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
         }
         return ret;
     }

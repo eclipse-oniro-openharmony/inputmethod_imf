@@ -248,7 +248,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_001 START");
     // channelObject == nullptr
-    auto ret = inputMethodAbility_->ShowKeyboard();
+    auto ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     ResetMemberVar();
@@ -265,7 +265,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_002 START");
     // imeListener_ == nullptr
-    auto ret = inputMethodAbility_->ShowKeyboard();
+    auto ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
@@ -277,11 +277,11 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level1)
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
     panel->windowId_ = 2;
     inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
-    ret = inputMethodAbility_->ShowKeyboard();
+    ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     // panel not exist
     inputMethodAbility_->panels_.Clear();
-    ret = inputMethodAbility_->ShowKeyboard();
+    ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ResetMemberVar();

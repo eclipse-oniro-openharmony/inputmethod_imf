@@ -14,6 +14,7 @@
  */
 #include "enable_upgrade_manager.h"
 
+#include "parameter.h"
 #include "settings_data_utils.h"
 namespace OHOS {
 namespace MiscServices {
@@ -233,7 +234,7 @@ std::string EnableUpgradeManager::GenerateGlobalContent(int32_t userId, const st
     std::string newGlobalContent;
     cfg.userImeCfg.userId = std::to_string(userId);
     if (!cfg.Marshall(newGlobalContent)) {
-        IMSA_HILOGE("%{public}d Marshall failed:%{public}s.", userId);
+        IMSA_HILOGE("%{public}d Marshall failed.", userId);
     }
     return newGlobalContent;
 }
@@ -251,7 +252,7 @@ bool EnableUpgradeManager::SetUserEnabledTable(int32_t userId, const std::string
 
 bool EnableUpgradeManager::SetEnabledTable(const std::string &uriProxy, const std::string &content)
 {
-    return SettingsDataUtils::GetInstance()->SetStringValue(uriProxy, SettingsDataUtils::ENABLE_IME, content)
+    return SettingsDataUtils::GetInstance()->SetStringValue(uriProxy, SettingsDataUtils::ENABLE_IME, content);
 }
 } // namespace MiscServices
 } // namespace OHOS

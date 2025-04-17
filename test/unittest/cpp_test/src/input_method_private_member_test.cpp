@@ -1355,8 +1355,6 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     EXPECT_TRUE(ret2);
     ret2 = SettingsDataUtils::GetInstance()->SetStringValue(invaildString, invaildString, invaildString);
     EXPECT_FALSE(ret2);
-    ret2 = SettingsDataUtils::GetInstance()->EnableIme(INVALID_USER_ID, invaildString);
-    EXPECT_FALSE(ret2);
     ret2 = clientGroup->IsCurClientFocused(-1, -1);
     EXPECT_FALSE(ret2);
     ret2 = clientGroup->IsCurClientUnFocused(-1, -1);
@@ -1440,15 +1438,16 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetScreenLockIme, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestGetScreenLockIme start.");
     std::string ime;
-    auto ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(ime);
+    int32_t userId = MAIN_USER_ID;
+    auto ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(userId, ime);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    ret = InputMethodPrivateMemberTest::service_->GetAlternativeIme(ime);
+    ret = InputMethodPrivateMemberTest::service_->GetAlternativeIme(userId, ime);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     SystemConfig systemConfig_0 = ImeInfoInquirer::GetInstance().systemConfig_;
     ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = "abc";
-    ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(ime);
+    ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(userId, ime);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ImeInfoInquirer::GetInstance().systemConfig_ = systemConfig_0;
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -1499,7 +1498,7 @@ HWTEST_F(InputMethodPrivateMemberTest, Test_ClientGroup_UpdateClientInfo, TestSi
     ASSERT_NE(it, clientGroup->mapClients_.end());
     ASSERT_NE(it->second, nullptr);
     EXPECT_EQ(it->second->isShowKeyboard, isShowKeyboard);
-    EXPECT_EQ(it->second->eventFlag, eventFlag);
+    ASSERT_NE(it->second->eventFlag, eventFlag);
     EXPECT_EQ(it->second->config.windowId, config.windowId);
     EXPECT_EQ(it->second->bindImeType, bindImeType);
     EXPECT_EQ(it->second->uiExtensionTokenId, uiExtensionTokenId);

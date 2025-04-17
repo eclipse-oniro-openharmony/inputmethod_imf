@@ -14,5 +14,5 @@
  */
 
 interface OHOS.MiscServices.IKeyEventConsumer {
-    [oneway] void OnKeyEventResult([in] boolean isConsumed);
+    [ipccode 0, oneway] void OnKeyEventResult([in] boolean isConsumed);
 }

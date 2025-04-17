@@ -42,9 +42,9 @@ ErrCode InputMethodCoreServiceImpl::InitInputControlChannel(const sptr<IInputCon
     return ERR_OK;
 }
 
-ErrCode InputMethodCoreServiceImpl::ShowKeyboard()
+ErrCode InputMethodCoreServiceImpl::ShowKeyboard(int32_t requestKeyboardReason)
 {
-    auto task = std::make_shared<TaskImsaShowKeyboard>();
+    auto task = std::make_shared<TaskImsaShowKeyboard>(requestKeyboardReason);
     TaskManager::GetInstance().PostTask(task);
     return ERR_OK;
 }

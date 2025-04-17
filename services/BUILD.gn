@@ -73,6 +73,7 @@ ohos_shared_library("inputmethod_service") {
     "src/full_ime_info_manager.cpp",
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",
+    "src/ime_event_listener_manager.cpp",
     "src/ime_info_inquirer.cpp",
     "src/input_control_channel_service_impl.cpp",
     "src/input_method_system_ability.cpp",
@@ -127,7 +128,7 @@ ohos_shared_library("inputmethod_service") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "window_manager:libdm",
+    "window_manager:libdm_lite",
     "window_manager:libwsutils",
   ]
 
@@ -178,6 +179,7 @@ ohos_static_library("inputmethod_service_static") {
     "src/full_ime_info_manager.cpp",
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",
+    "src/ime_event_listener_manager.cpp",
     "src/ime_info_inquirer.cpp",
     "src/input_control_channel_service_impl.cpp",
     "src/input_method_system_ability.cpp",
@@ -233,6 +235,7 @@ ohos_static_library("inputmethod_service_static") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
+    "window_manager:libdm_lite",
   ]
 
   defines = []

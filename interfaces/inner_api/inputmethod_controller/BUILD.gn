@@ -221,6 +221,7 @@ ohos_shared_library("inputmethod_client") {
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
   public_external_deps = [ "ability_base:want" ]
@@ -292,6 +293,7 @@ ohos_static_library("inputmethod_client_static") {
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 

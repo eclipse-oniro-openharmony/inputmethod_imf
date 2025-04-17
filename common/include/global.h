@@ -151,6 +151,7 @@ enum {
     ERROR_IME_NOT_FOUND,
     ERROR_DISABLE_SYSTEM_IME,
     ERROR_IMSA_END,
+    ERROR_CLIENT_ADD_DEATH_FAILED,
 };
 }; // namespace ErrorCode
 

@@ -123,7 +123,7 @@ public:
     bool IsProxyImeEnable();
     bool IsBoundToClient(uint64_t displayId);
     bool IsCurrentImeByPid(int32_t pid);
-    int32_t RestoreCurrentImeSubType();
+    int32_t RestoreCurrentImeSubType(uint64_t callingDisplayId);
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
@@ -133,7 +133,7 @@ public:
     BlockQueue<SwitchInfo>& GetSwitchQueue();
     bool IsWmsReady();
     bool CheckPwdInputPatternConv(InputClientInfo &clientInfo, uint64_t displayId);
-    int32_t RestoreCurrentIme();
+    int32_t RestoreCurrentIme(uint64_t callingDisplayId);
     int32_t SetInputType();
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
@@ -147,6 +147,8 @@ public:
     bool SpecialScenarioCheck();
     int32_t SpecialSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     uint64_t GetDisplayGroupId(uint64_t displayId);
+    bool IsDefaultDisplayGroup(uint64_t displayId);
+
 private:
     struct ResetManager {
         uint32_t num{ 0 };
@@ -173,7 +175,7 @@ private:
     void OnClientDied(sptr<IInputClient> remote);
     void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
 
-    int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
+    int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo);
     int32_t RemoveClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup,
         const DetachOptions &options);
     void DeactivateClient(const sptr<IInputClient> &client);

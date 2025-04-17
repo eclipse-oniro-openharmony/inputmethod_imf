@@ -17,9 +17,11 @@
 #include "app_mgr_client.h"
 #include "bundle_mgr_client_impl.h"
 #include "full_ime_info_manager.h"
+#include "ime_enabled_info_manager.h"
 #include "input_type_manager.h"
 #include "iservice_registry.h"
 #include "locale_config.h"
+#include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
 #include "system_ability_definition.h"
@@ -52,11 +54,6 @@ void ImeInfoInquirer::InitSystemConfig()
     }
 }
 
-SystemConfig ImeInfoInquirer::GetSystemConfig()
-{
-    return systemConfig_;
-}
-
 bool ImeInfoInquirer::IsEnableAppAgent()
 {
     return systemConfig_.enableAppAgentFeature;
@@ -70,6 +67,11 @@ bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)
 bool ImeInfoInquirer::IsSpecialSaUid(int32_t callingUid)
 {
     return systemConfig_.specialSaUidList.find(callingUid) != systemConfig_.specialSaUidList.end();
+}
+
+SystemConfig ImeInfoInquirer::GetSystemConfig()
+{
+    return systemConfig_;
 }
 
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
@@ -785,6 +787,10 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
         return ErrorCode::NO_ERROR;
     }
     prop = GetImeProperty(userId, defaultIme->name, defaultIme->id);
+    if (prop == nullptr) {
+        IMSA_HILOGE("prop is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -983,7 +989,7 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInf
 
     for (const auto &extInfo : tempExtInfos) {
         FullImeInfo info;
-        auto errNo = GetFullImeInfo(userId, extInfo.second, info, isBrief);
+        auto errNo = GetFullImeInfo(userId, extInfo.second, info, needSubProps);
         if (errNo != ErrorCode::NO_ERROR) {
             return errNo;
         }

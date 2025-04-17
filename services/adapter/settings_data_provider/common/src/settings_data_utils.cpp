@@ -223,58 +223,6 @@ sptr<IRemoteObject> SettingsDataUtils::GetToken()
     return remoteObj_;
 }
 
-bool SettingsDataUtils::EnableIme(int32_t userId, const std::string &bundleName)
-{
-    const int32_t mainUserId = 100;
-    if (userId != mainUserId) {
-        IMSA_HILOGE("user is not main.");
-        return false;
-    }
-    const char *settingKey = "settings.inputmethod.enable_ime";
-    std::string settingValue = "";
-    GetStringValue(std::string(SETTING_URI_PROXY), settingKey, settingValue);
-    IMSA_HILOGI("settingValue: %{public}s", settingValue.c_str());
-    std::string value = "";
-    if (settingValue == "") {
-        value = "{\"enableImeList\" : {\"100\" : [\"" + bundleName + "\"]}}";
-    } else {
-        value = SetSettingValues(settingValue, bundleName);
-    }
-    IMSA_HILOGI("value: %{public}s", value.c_str());
-    return SetStringValue(std::string(SETTING_URI_PROXY), settingKey, value);
-}
- 
-std::vector<std::string> SettingsDataUtils::Split(const std::string &text, char delim)
-{
-    std::vector<std::string> tokens;
-    std::stringstream ss(text);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        if (!item.empty()) {
-            tokens.push_back(item);
-        }
-    }
-    return tokens;
-}
- 
-std::string SettingsDataUtils::SetSettingValues(const std::string &settingValue, const std::string &bundleName)
-{
-    std::string value = "";
-    std::vector<std::string> settingValues = Split(settingValue, ']');
-    for (uint32_t i = 0; i < settingValues.size(); ++i) {
-        if (i == 0) {
-            if (settingValues[0].back() == '[') {
-                value += settingValues[i] + "\"" + bundleName + "\"" + "]";
-            } else {
-                value += settingValues[i] + ",\"" + bundleName + "\"" + "]";
-            }
-        } else {
-            value += settingValues[i];
-        }
-    }
-    return value;
-}
-
 void SettingsDataUtils::NotifyDataShareReady()
 {
     isDataShareReady_.store(true);

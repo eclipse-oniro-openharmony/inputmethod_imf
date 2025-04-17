@@ -183,7 +183,7 @@ int32_t InputMethodAbility::RegisterProxyIme(uint64_t displayId)
         return ret;
     }
     isBound_.store(true);
-    isProxyIme_.store(true);
+    isProxyIme_.store(displayId != DEFAULT_DISPLAY_ID);
     IMSA_HILOGD("set successfully, displayId: %{public}" PRIu64 "", displayId);
     return ErrorCode::NO_ERROR;
 }
@@ -319,6 +319,11 @@ void InputMethodAbility::OnSetInputType(InputType inputType)
         SysPanelStatus sysPanelStatus{ inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
         NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
     }
+}
+
+InputType InputMethodAbility::GetInputType()
+{
+    return inputType_;
 }
 
 void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
@@ -462,10 +467,11 @@ int32_t InputMethodAbility::HideKeyboardImplWithoutLock(int32_t cmdId, uint32_t 
     return HideKeyboard(Trigger::IMF, sessionId);
 }
 
-int32_t InputMethodAbility::ShowKeyboard()
+int32_t InputMethodAbility::ShowKeyboard(int32_t requestKeyboardReason)
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     int32_t cmdCount = ++cmdId_;
+    IsInputClientAttachOptionsChanged(static_cast<RequestKeyboardReason>(requestKeyboardReason));
     return ShowKeyboardImplWithoutLock(cmdCount);
 }
 
@@ -559,7 +565,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
-    IsInputClientAttachOptionsChanged(textConfig);
+    IsInputClientAttachOptionsChanged(textConfig.requestKeyboardReason);
     if (isNotifyInputStart) {
         imeListener_->OnInputStart();
     }
@@ -587,15 +593,16 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodAbility::IsInputClientAttachOptionsChanged(const TextTotalConfig &textConfig)
+bool InputMethodAbility::IsInputClientAttachOptionsChanged(RequestKeyboardReason requestKeyboardReason)
 {
-    if (textInputClientListener_ != nullptr) {
-        RequestKeyboardReason requestKeyboardReason = textConfig.requestKeyboardReason;
-        if (requestKeyboardReason != GetRequestKeyboardReason()) {
+    IMSA_HILOGD("AttachOptionsChanged newReason:%{public}d, oldReason:%{public}d", requestKeyboardReason,
+        GetRequestKeyboardReason());
+    if (requestKeyboardReason != GetRequestKeyboardReason()) {
+        SetRequestKeyboardReason(requestKeyboardReason);
+        if (textInputClientListener_ != nullptr) {
             AttachOptions attachOptions;
             attachOptions.requestKeyboardReason = requestKeyboardReason;
             textInputClientListener_->OnAttachOptionsChanged(attachOptions);
-            SetRequestKeyboardReason(requestKeyboardReason);
             return true;
         }
     }
@@ -1346,6 +1353,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         return false;
     });
     ClearDataChannel(channel);
+    ClearRequestKeyboardReason();
 }
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)

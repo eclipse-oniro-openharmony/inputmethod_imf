@@ -126,12 +126,29 @@ struct DefaultFullImeCfg : Serializable {
     }
 };
 
+struct IgnoreSysPanelAdjust : public Serializable {
+    std::vector<int32_t> inputType;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(inputType), inputType);
+    }
+};
+
+struct IgnoreSysPanelAdjustCfg : public Serializable {
+    IgnoreSysPanelAdjust ignoreSysPanelAdjust;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(ignoreSysPanelAdjust), ignoreSysPanelAdjust);
+    }
+};
+
 class SysCfgParser {
 public:
     static bool ParseSystemConfig(SystemConfig &systemConfig);
     static bool ParseInputType(std::vector<InputTypeInfo> &inputType);
     static bool ParsePanelAdjust(std::vector<SysPanelAdjust> &sysPanelAdjust);
     static bool ParseDefaultFullIme(std::vector<DefaultFullImeInfo> &defaultFullImeList);
+    static bool ParseIgnoreSysPanelAdjust(IgnoreSysPanelAdjust &ignoreSysPanelAdjust);
 
 private:
     static std::string GetSysCfgContent(const std::string &key);
