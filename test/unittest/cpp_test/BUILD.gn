@@ -1315,49 +1315,6 @@ ohos_unittest("ImeControllerCpaiTest") {
   ]
 }
 
-ohos_unittest("ImeEventListenerManagerTest") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-    blocklist = "./inputmethod_blocklist.txt"
-  }
-  module_out_path = module_output_path
-
-  sources = [
-    "${inputmethod_path}/services/src/ime_event_listener_manager.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
-    "src/ime_event_listener_manager_test.cpp",
-  ]
-  include_dirs = [
-    "${inputmethod_path}/services/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
-    "${inputmethod_path}/common/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
-    "${inputmethod_path}/frameworks/common",
-    "${inputmethod_path}/services/adapter/settings_data_provider/include",
-    "${inputmethod_path}/unittest/cpp_test/mock",
-    "${inputmethod_path}/test/common",
-  ]
-
-  deps = [
-    "${inputmethod_path}/services:inputmethod_service_static",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/test/common:inputmethod_test_common",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "input:libmmi-client",
-    "ipc:ipc_single",
-    "data_share:datashare_common",
-    "data_share:datashare_consumer",
-  ]
-}
-
 ohos_unittest("FullImeInfoManagerTest") {
   sanitize = {
     cfi = true
