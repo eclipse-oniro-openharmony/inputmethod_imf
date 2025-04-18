@@ -1059,13 +1059,13 @@ int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
         IMSA_HILOGD("currentImeInfo is nullptr!");
         return ErrorCode::NO_ERROR;
     }
+    NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
     if (imeToStart->subName.empty()) {
         IMSA_HILOGW("undefined subtype");
         currentImeInfo->subProp.id = UNDEFINED;
         currentImeInfo->subProp.name = UNDEFINED;
     }
 
-    NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);
     ret = SwitchSubtypeWithoutStartIme(currentImeInfo->subProp);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("SwitchSubtype failed!");
