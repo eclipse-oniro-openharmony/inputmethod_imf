@@ -57,7 +57,7 @@ struct InputAttribute {
             data.WriteInt32(in.immersiveMode) && data.WriteUint32(in.windowId) &&
             data.WriteUint64(in.callingDisplayId) &&
             data.WriteString16(in.placeholder) && data.WriteString16(in.abilityName) &&
-            data.WriteInt32(static_cast<int32_t>(in.capitalizeMode));;
+            data.WriteInt32(static_cast<int32_t>(in.capitalizeMode));
     }
 
     static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
@@ -69,8 +69,8 @@ struct InputAttribute {
             data.ReadString16(out.placeholder) && data.ReadString16(out.abilityName);
         int32_t capitalizeMode = 0;
         ret = ret && data.ReadInt32(capitalizeMode);
-        if (capitalizeMode < static_cast<int32_t>CapitalizeMode::NONE ||
-            capitalizeMode > static_cast<int32_t>CapitalizeMode::CHARACTERS) {
+        if (capitalizeMode < static_cast<int32_t>(CapitalizeMode::NONE) ||
+            capitalizeMode > static_cast<int32_t>(CapitalizeMode::CHARACTERS)) {
             capitalizeMode = 0;
         }
         out.capitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
