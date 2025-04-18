@@ -69,6 +69,10 @@ struct InputAttribute {
             data.ReadString16(out.placeholder) && data.ReadString16(out.abilityName);
         int32_t capitalizeMode = 0;
         ret = ret && data.ReadInt32(capitalizeMode);
+        if (capitalizeMode < static_cast<int32_t>CapitalizeMode::NONE ||
+            capitalizeMode > static_cast<int32_t>CapitalizeMode::CHARACTERS) {
+            capitalizeMode = 0;
+        }
         out.capitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
         return ret;
     }

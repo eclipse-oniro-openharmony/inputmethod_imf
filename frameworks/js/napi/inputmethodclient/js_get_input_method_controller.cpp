@@ -614,10 +614,12 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
     if (!result) {
         IMSA_HILOGE("not found capitalizeMode.");
     }
-    tempCapitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
-    if (tempCapitalizeMode < CapitalizeMode::NONE || tempCapitalizeMode > CapitalizeMode::CHARACTERS) {
-        IMSA_HILOGE("get capitalize mode value failed.");
+    if (capitalizeMode < static_cast<int32_t>CapitalizeMode::NONE ||
+        capitalizeMode > static_cast<int32_t>CapitalizeMode::CHARACTERS) {
+        capitalizeMode = 0; // 0 Default value
+        IMSA_HILOGE("capitalizeMode value invalid.");
     }
+    tempCapitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
     out.inputAttribute.capitalizeMode = tempCapitalizeMode;
     return ret;
 }
