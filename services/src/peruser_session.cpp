@@ -22,7 +22,6 @@
 #include "ability_manager_client.h"
 #include "identity_checker_impl.h"
 #include "ime_connection.h"
-#include "ime_event_listener_manager.h"
 #include "ime_info_inquirer.h"
 #include "input_control_channel_service_impl.h"
 #include "ipc_skeleton.h"
@@ -75,16 +74,16 @@ PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk:
 PerUserSession::~PerUserSession() { }
 
 int PerUserSession::AddClientInfo(
-    sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo)
+    sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
 {
     IMSA_HILOGD("PerUserSession start.");
     auto clientGroup = GetClientGroup(clientInfo.displayId);
     if (clientGroup != nullptr) {
-        return clientGroup->AddClientInfo(inputClient, clientInfo);
+        return clientGroup->AddClientInfo(inputClient, clientInfo, event);
     }
     clientGroup = std::make_shared<ClientGroup>(
         clientInfo.displayId, [this](const sptr<IInputClient> &remote) { this->OnClientDied(remote); });
-    auto ret = clientGroup->AddClientInfo(inputClient, clientInfo);
+    auto ret = clientGroup->AddClientInfo(inputClient, clientInfo, event);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to AddClientInfo: %{public}d", ret);
         return ret;
@@ -151,8 +150,7 @@ int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient,
     }
     bool isShowKeyboard = true;
     clientGroup->UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
-    ImeEventListenerManager::GetInstance().NotifyInputStart(userId_,
-        clientInfo->config.windowId, requestKeyboardReason);
+    clientGroup->NotifyInputStartToClients(clientInfo->config.windowId, requestKeyboardReason);
     return ErrorCode::NO_ERROR;
 }
 
@@ -170,7 +168,7 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
         return;
     }
     if (clientGroup->IsNotifyInputStop(remote)) {
-        ImeEventListenerManager::GetInstance().NotifyInputStop(userId_);
+        clientGroup->NotifyInputStopToClients();
     }
     auto clientInfo = clientGroup->GetClientInfo(remote->AsObject());
     IMSA_HILOGI("userId: %{public}d.", userId_);
@@ -217,7 +215,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     auto clientGroup = GetClientGroup(type);
     auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
-        ImeEventListenerManager::GetInstance().NotifyInputStop(userId_);
+        clientGroup->NotifyInputStopToClients();
         StopClientInput(clientInfo);
         if (type == ImeType::IME) {
             StartImeInImeDied();
@@ -403,7 +401,7 @@ int32_t PerUserSession::OnRequestHideInput(int32_t callingPid, uint64_t displayI
         RemoveClient(inactiveClient, clientGroup, options);
     }
     RestoreCurrentImeSubType(displayId);
-    ImeEventListenerManager::GetInstance().NotifyInputStop(userId_);
+    clientGroup->NotifyInputStopToClients();
     return ErrorCode::NO_ERROR;
 }
 
@@ -414,7 +412,7 @@ int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
         IMSA_HILOGE("client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return AddClientInfo(clientInfo.client->AsObject(), clientInfo);
+    return AddClientInfo(clientInfo.client->AsObject(), clientInfo, PREPARE_INPUT);
 }
 
 /** Release input. Called by an input client.Run in work thread of this user
@@ -441,7 +439,7 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client, uint32_
         return ret;
     }
     if (isReady) {
-        ImeEventListenerManager::GetInstance().NotifyInputStop(userId_);
+        clientGroup->NotifyInputStopToClients();
     }
     return ErrorCode::NO_ERROR;
 }
@@ -611,7 +609,7 @@ int32_t PerUserSession::BindClientWithIme(
         { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard }, { UpdateFlag::STATE, ClientState::ACTIVE } });
     ReplaceCurrentClient(clientInfo->client, clientGroup);
     if (clientInfo->isShowKeyboard) {
-        ImeEventListenerManager::GetInstance().NotifyInputStart(userId_,
+        clientGroup->NotifyInputStartToClients(
             clientInfo->config.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     }
     return ErrorCode::NO_ERROR;
@@ -877,7 +875,13 @@ void PerUserSession::ReplaceCurrentClient(
 
 void PerUserSession::NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty)
 {
-    ImeEventListenerManager::GetInstance().NotifyImeChange(userId_, property, subProperty);
+    IMSA_HILOGD("start.");
+    auto clientGroup = GetClientGroup(DEFAULT_DISPLAY_ID);
+    if (clientGroup == nullptr) {
+        IMSA_HILOGD("no client need to notify");
+        return;
+    }
+    clientGroup->NotifyImeChangeToClients(property, subProperty);
 }
 
 int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid)
@@ -1204,13 +1208,18 @@ int64_t PerUserSession::GetInactiveClientPid(uint64_t displayId)
 int32_t PerUserSession::OnPanelStatusChange(
     const InputWindowStatus &status, const ImeWindowInfo &info, uint64_t displayId)
 {
-    return ImeEventListenerManager::GetInstance().NotifyPanelStatusChange(userId_, status, info);
+    auto clientGroup = GetClientGroup(displayId);
+    if (clientGroup == nullptr) {
+        IMSA_HILOGD("client nullptr");
+        return ErrorCode::NO_ERROR;
+    }
+    return clientGroup->NotifyPanelStatusChange(status, info);
 }
 
 int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInfo)
 {
     auto remoteClient = clientInfo.client->AsObject();
-    auto ret = AddClientInfo(remoteClient, clientInfo);
+    auto ret = AddClientInfo(remoteClient, clientInfo, START_LISTENING);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to AddClientInfo!");
         return ret;
@@ -1270,8 +1279,8 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId,
     clientInfo->config.privateCommand.insert_or_assign("displayId",
         PrivateDataValue(static_cast<int32_t>(callingDisplayId)));
     IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
-    ImeEventListenerManager::GetInstance().NotifyInputStart(userId_,
-        callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+    clientGroup->NotifyInputStartToClients(
+        callingWindowInfo.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
     if (isNotifyDisplayChanged) {
         NotifyCallingDisplayChanged(callingWindowInfo.displayId);
     }
@@ -1494,7 +1503,7 @@ int32_t PerUserSession::RemoveAllCurrentClient()
         if (clientGroupObject == nullptr) {
             continue;
         }
-        ImeEventListenerManager::GetInstance().NotifyInputStop(userId_);
+        clientGroupObject->NotifyInputStopToClients();
         DetachOptions options = { .sessionId = 0, .isUnbindFromClient = false };
         RemoveClient(clientGroupObject->GetCurrentClient(), clientGroupObject, options);
     }
