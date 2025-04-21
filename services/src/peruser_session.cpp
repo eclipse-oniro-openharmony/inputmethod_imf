@@ -1102,7 +1102,7 @@ bool PerUserSession::CanStartIme()
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     IsSaReady(SCREENLOCK_SERVICE_ID) &&
 #endif
-    runningIme_.empty() && SettingsDataUtils::GetInstance()->IsDataShareReady()); // todo 收到的太迟，键盘拉起太慢了，如果不校验，可能会导致拉起的输入法完整体验模式不对
+    runningIme_.empty();
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(

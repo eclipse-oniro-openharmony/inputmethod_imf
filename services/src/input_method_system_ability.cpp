@@ -1880,14 +1880,6 @@ void InputMethodSystemAbility::HandleDataShareReady()
         return;
     }
     SettingsDataUtils::GetInstance()->NotifyDataShareReady();
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        UserSessionManager::GetInstance().AddUserSession(userId_);
-    }
-    session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session != nullptr) {
-        session->AddRestartIme();
-    }
     FullImeInfoManager::GetInstance().Init();
 }
 

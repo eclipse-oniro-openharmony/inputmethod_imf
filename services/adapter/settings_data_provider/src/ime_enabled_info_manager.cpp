@@ -66,6 +66,10 @@ int32_t ImeEnabledInfoManager::Init(const std::map<int32_t, std::vector<FullImeI
     if (!HasEnabledSwitch()) {
         return ErrorCode::NO_ERROR;
     }
+    if (!SettingsDataUtils::GetInstance()->IsDataShareReady()) {
+        IMSA_HILOGE("data share not ready.");
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
     IMSA_HILOGI("run in, user num:%{public}zu.", fullImeInfos.size());
     for (const auto &fullImeInfo : fullImeInfos) {
         UpdateEnabledCfgCacheIfNoCache(fullImeInfo.first, fullImeInfo.second);
@@ -76,6 +80,11 @@ int32_t ImeEnabledInfoManager::Init(const std::map<int32_t, std::vector<FullImeI
 int32_t ImeEnabledInfoManager::Switch(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
 {
     IMSA_HILOGI("userId:%{public}d", userId);
+    if (currentUserId_ == -1 && !SettingsDataUtils::GetInstance()->IsDataShareReady()) {
+        IMSA_HILOGE("data share not ready.");
+        currentUserId_ = userId;
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
     currentUserId_ = userId;
     ImeEnabledCfg cfg;
     auto ret = GetEnabledCache(userId, cfg);
@@ -397,10 +406,6 @@ int32_t ImeEnabledInfoManager::GetEnabledCache(int32_t userId, ImeEnabledCfg &en
 int32_t ImeEnabledInfoManager::GetEnabledCfg(
     int32_t userId, ImeEnabledCfg &cfg, bool needCorrectByBundleMgr, const std::vector<FullImeInfo> &imeInfos)
 {
-    if (!SettingsDataUtils::GetInstance()->IsDataShareReady()) {  // todo 會不會導致查不到，原來能查到，現在產不到
-        IMSA_HILOGE("data share not ready.");
-        return ErrorCode::ERROR_ENABLE_IME;
-    }
     auto ret = GetEnabledTableCfg(userId, cfg);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
@@ -537,6 +542,10 @@ int32_t ImeEnabledInfoManager::UpdateEnabledCfgCache(int32_t userId, const ImeEn
 
 void ImeEnabledInfoManager::PostUpdateCfgCacheTask(int32_t userId)
 {
+    if (!SettingsDataUtils::GetInstance()->IsDataShareReady()) {
+        IMSA_HILOGE("data share not ready.");
+        return;
+    }
     if (serviceHandler_ == nullptr) {
         return;
     }
