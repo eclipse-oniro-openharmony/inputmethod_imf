@@ -510,7 +510,7 @@ bool PerUserSession::IsProxyImeEnable()
         return false;
     }
     data->core->IsEnable(ret);
-    return data != nullptr && data->core != nullptr && ret;
+    return ret;
 }
 
 int32_t PerUserSession::OnStartInput(
