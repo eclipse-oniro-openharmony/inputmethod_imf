@@ -80,7 +80,7 @@ private:
     // first:event+eventCode+errCode+peerName+peerUserId  second: first:last report time  second:report num
     std::unordered_map<std::string, std::pair<int64_t, uint32_t>> faultEventRecords_;
     std::mutex timerLock_;
-    Utils::Timer timer_{ "imfHiSysEventTimer" };
+    Utils::Timer timer_{ "OS_imfHiSysEventTimer" };
     uint32_t timerId_{ 0 };
 };
 } // namespace MiscServices
