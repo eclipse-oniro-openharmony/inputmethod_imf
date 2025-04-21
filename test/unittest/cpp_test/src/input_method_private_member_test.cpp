@@ -1498,7 +1498,7 @@ HWTEST_F(InputMethodPrivateMemberTest, Test_ClientGroup_UpdateClientInfo, TestSi
     ASSERT_NE(it, clientGroup->mapClients_.end());
     ASSERT_NE(it->second, nullptr);
     EXPECT_EQ(it->second->isShowKeyboard, isShowKeyboard);
-    ASSERT_NE(it->second->eventFlag, eventFlag);
+    EXPECT_EQ(it->second->eventFlag, eventFlag);
     EXPECT_EQ(it->second->config.windowId, config.windowId);
     EXPECT_EQ(it->second->bindImeType, bindImeType);
     EXPECT_EQ(it->second->uiExtensionTokenId, uiExtensionTokenId);

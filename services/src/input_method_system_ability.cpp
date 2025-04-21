@@ -25,7 +25,6 @@
 #include "full_ime_info_manager.h"
 #include "ime_enabled_info_manager.h"
 #include "im_common_event_manager.h"
-#include "ime_event_listener_manager.h"
 #include "imsa_hisysevent_reporter.h"
 #include "input_manager.h"
 #include "ipc_skeleton.h"
@@ -979,9 +978,17 @@ ErrCode InputMethodSystemAbility::UpdateListenEventFlag(const InputClientInfoInn
             return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
         }
     }
-    auto userId = OsAccountAdapter::GetOsAccountLocalIdFromUid(IPCSkeleton::GetCallingUid());
-    return ImeEventListenerManager::GetInstance().UpdateListenerInfo(userId,
-        { eventFlag, clientInfo.client, IPCSkeleton::GetCallingPid()});
+    auto userId = GetCallingUserId();
+    auto ret = GenerateClientInfo(userId, const_cast<InputClientInfo &>(clientInfo));
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->OnUpdateListenEventFlag(clientInfo);
 }
 
 ErrCode InputMethodSystemAbility::SetCallingWindow(uint32_t windowId, const sptr<IInputClient>& client)
