@@ -39,7 +39,6 @@ struct InputMethod_TextAvoidInfo {
     double positionY;
     double height;
 };
-
 struct InputMethod_TextConfig {
     InputMethod_TextInputType inputType;
     InputMethod_EnterKeyType enterKeyType;
