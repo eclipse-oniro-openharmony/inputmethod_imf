@@ -24,6 +24,7 @@
 #include "ime_setting_listener_test_impl.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
+#include "key_event_util.h"
 #include "tdd_util.h"
 
 using namespace testing::ext;
@@ -46,6 +47,7 @@ public:
     static std::vector<std::string> language;
     static std::string beforeValue;
     static std::string allEnableIme;
+    static std::string noEnableIme;
 };
 sptr<InputMethodController> NewImeSwitchTest::imc_;
 std::string NewImeSwitchTest::bundleName = "com.example.newTestIme";
@@ -55,6 +57,7 @@ std::vector<std::string> NewImeSwitchTest::locale { "en-US", "en-US", "zh-CN" };
 std::vector<std::string> NewImeSwitchTest::language { "english", "english", "chinese" };
 std::string NewImeSwitchTest::beforeValue;
 std::string NewImeSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\"]}}";
+std::string NewImeSwitchTest::noEnableIme = "{\"enableImeList\" : {\"100\" : []}}";
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
 constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
@@ -119,6 +122,25 @@ void NewImeSwitchTest::CheckCurrentSubProps()
         EXPECT_EQ(subProps[i].language, language[i]);
         EXPECT_EQ(subProps[i].locale, locale[i]);
     }
+}
+
+/**
+* @tc.name: testSwitchType
+* @tc.desc: switch ime to newTestIme.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: chenyu
+ */
+HWTEST_F(NewImeSwitchTest, testSwitchType, TestSize.Level0)
+{
+    IMSA_HILOGI("newIme testSwitchType Test START");
+    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, noEnableIme);
+    ImeSettingListenerTestImpl::ResetParam();
+    bool result =
+        KeyEventUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT });
+    EXPECT_TRUE(result);
+    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
+    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
 }
 
 /**

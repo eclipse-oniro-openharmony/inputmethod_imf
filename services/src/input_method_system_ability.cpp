@@ -1813,27 +1813,31 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
 
 int32_t InputMethodSystemAbility::SwitchType()
 {
-    SwitchInfo switchInfo = { std::chrono::system_clock::now(), "", "" };
+    SwitchInfo nextSwitchInfo = { std::chrono::system_clock::now(), "", "" };
     uint32_t cacheCount = 0;
     {
         std::lock_guard<std::mutex> lock(switchImeMutex_);
         cacheCount = targetSwitchCount_.exchange(0);
     }
-    int32_t ret =
-        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_.load(), cacheCount);
+    int32_t ret = ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(
+        nextSwitchInfo, userId_, enableImeOn_.load(), cacheCount);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get next SwitchInfo failed, stop switching ime.");
         return ret;
     }
-    IMSA_HILOGD("switch to: %{public}s.", switchInfo.bundleName.c_str());
-    switchInfo.timestamp = std::chrono::system_clock::now();
+    if (nextSwitchInfo.bundleName.empty()) {
+        IMSA_HILOGD("Stay current ime, no need to switch.");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGD("switch to: %{public}s.", nextSwitchInfo.bundleName.c_str());
+    nextSwitchInfo.timestamp = std::chrono::system_clock::now();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    session->GetSwitchQueue().Push(switchInfo);
-    return OnSwitchInputMethod(userId_, switchInfo, SwitchTrigger::IMSA);
+    session->GetSwitchQueue().Push(nextSwitchInfo);
+    return OnSwitchInputMethod(userId_, nextSwitchInfo, SwitchTrigger::IMSA);
 }
 
 void InputMethodSystemAbility::InitMonitors()
