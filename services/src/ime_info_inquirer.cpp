@@ -15,7 +15,7 @@
 
 #include "ime_info_inquirer.h"
 #include "app_mgr_client.h"
-#include "bundle_mgr_client_impl.h"
+#include "bundle_mgr_client.h"
 #include "full_ime_info_manager.h"
 #include "input_type_manager.h"
 #include "iservice_registry.h"
@@ -23,6 +23,7 @@
 #include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
+#include "singleton.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -598,9 +599,9 @@ int32_t ImeInfoInquirer::ParseSubtype(const OHOS::AppExecFwk::ExtensionAbilityIn
         IMSA_HILOGE("find metadata name: SUBTYPE_PROFILE_METADATA_NAME failed!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    OHOS::AppExecFwk::BundleMgrClientImpl clientImpl;
+    OHOS::AppExecFwk::BundleMgrClient client;
     std::vector<std::string> profiles;
-    if (!clientImpl.GetResConfigFile(extInfo, iter->name, profiles)) {
+    if (!client.GetResConfigFile(extInfo, iter->name, profiles)) {
         IMSA_HILOGE("failed to GetProfileFromExtension!");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
@@ -1112,8 +1113,12 @@ std::vector<std::string> ImeInfoInquirer::GetRunningIme(int32_t userId)
 {
     std::vector<std::string> bundleNames;
     std::vector<RunningProcessInfo> infos;
-    AppMgrClient client;
-    auto ret = client.GetProcessRunningInfosByUserId(infos, userId);
+    auto appMgrClient = DelayedSingleton<AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        IMSA_HILOGE("appMgrClient is nullptr.");
+        return bundleNames;
+    }
+    auto ret = appMgrClient->GetProcessRunningInfosByUserId(infos, userId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
         return bundleNames;
@@ -1212,8 +1217,12 @@ std::string ImeInfoInquirer::GetTargetString(
 bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
 {
     RunningProcessInfo info;
-    AppMgrClient client;
-    client.GetRunningProcessInfoByPid(pid, info);
+    auto appMgrClient = DelayedSingleton<AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        IMSA_HILOGE("appMgrClient is nullptr.");
+        return false;
+    }
+    appMgrClient->GetRunningProcessInfoByPid(pid, info);
     return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
 }
 } // namespace MiscServices
