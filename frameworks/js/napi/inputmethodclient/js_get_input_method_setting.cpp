@@ -710,6 +710,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
+    IMSA_HILOGI("type: %{public}s", type.c_str());
     auto task = [entry]() {
         auto getWindowInfo = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 1) {

@@ -29,7 +29,7 @@ public:
     virtual int32_t OnInputStop() = 0;
     virtual void OnSecurityChange(int32_t security)
     {
-    };
+    }
     virtual void OnSetCallingWindow(uint32_t windowId) = 0;
     virtual void OnSetSubtype(const SubProperty &property) = 0;
     virtual void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;

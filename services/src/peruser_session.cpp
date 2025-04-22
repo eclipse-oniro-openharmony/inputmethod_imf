@@ -1486,7 +1486,7 @@ bool PerUserSession::IsCurrentImeByPid(int32_t pid)
 int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     if (GetCurrentClient() == nullptr) {
-        IMSA_HILOGD("not in bound state.");
+        IMSA_HILOGI("not in bound state.");
         isShown = false;
         return ErrorCode::NO_ERROR;
     }

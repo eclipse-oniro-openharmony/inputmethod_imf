@@ -63,7 +63,7 @@ InputMethod_AttachOptions *OH_AttachOptions_Create(bool showKeyboard);
  * @param requestKeyboardReason  the reason for showKeyboard.
  * @return If the creation succeeds, a pointer to the newly created {@link InputMethod_AttachOptions}
  * instance is returned. If the creation fails, NULL is returned, possible cause is insufficient memory.
- * @since 15
+ * @since 16
  */
 InputMethod_AttachOptions *OH_AttachOptions_CreateWithRequestKeyboardReason(
     bool showKeyboard, InputMethod_RequestKeyboardReason requestKeyboardReason);
@@ -96,9 +96,9 @@ InputMethod_ErrorCode OH_AttachOptions_IsShowKeyboard(InputMethod_AttachOptions 
  * be get value from
  * @return Returns a specific error code.
  *     {@link IME_ERR_OK} - success.
- *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer. If options is NULL, or requestKeyboardReason is NULL.
+ *     {@link IME_ERR_NULL_POINTER} - unexpected null pointer.
  * Specific error codes can be referenced {@link InputMethod_ErrorCode}.
- * @since 15
+ * @since 19
  */
 InputMethod_ErrorCode OH_AttachOptions_GetRequestKeyboardReason(
     InputMethod_AttachOptions *options, int *requestKeyboardReason);

@@ -75,15 +75,16 @@ public:
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
     /**
-     * @brief Get smart menu config from default input method.
+     * @brief Get smart menue config from default input method.
      *
-     * This function is used to get smart menu config from default input method.
-     *
+     * This function is used to get smart menue config from default input method.
+     *.
      * @return string.
      * @since 12
      */
     IMF_API std::string GetSmartMenuCfg();
-    int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t ReceivePrivateCommand(
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t NotifyPanelStatus(const SysPanelStatus &sysPanelStatus);
     void OnConnectCmdReady(const sptr<IRemoteObject> &agentObject);
     IMF_API int32_t GetDefaultImeCfg(std::shared_ptr<Property> &property);

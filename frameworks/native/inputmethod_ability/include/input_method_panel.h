@@ -81,6 +81,7 @@ public:
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
+    bool IsDisplayPortrait();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
     void SetPanelHeightCallback(CallbackFunc heightCallback);
     int32_t IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayoutParams &params);
@@ -156,7 +157,6 @@ private:
     int32_t MovePanelRect(int32_t x, int32_t y);
     int32_t MoveEnhancedPanelRect(int32_t x, int32_t y);
 
-    bool IsDisplayPortrait();
     bool IsDisplayUnfolded();
     int32_t GetDisplaySize(DisplaySize &size);
     int32_t GetDensityDpi(float &densityDpi);
