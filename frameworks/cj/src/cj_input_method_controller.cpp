@@ -48,7 +48,9 @@ std::shared_ptr<CjInputMethodController> CjInputMethodController::GetInstance()
         if (controller_ == nullptr) {
             auto controller = std::make_shared<CjInputMethodController>();
             controller_ = controller;
-            InputMethodController::GetInstance()->SetControllerListener(controller_);
+            if (InputMethodController::GetInstance() != nullptr){
+                InputMethodController::GetInstance()->SetControllerListener(controller_);
+            }
         }
     }
     return controller_;
