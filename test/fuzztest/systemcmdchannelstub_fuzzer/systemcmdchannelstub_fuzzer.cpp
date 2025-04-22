@@ -26,7 +26,7 @@ namespace OHOS {
 constexpr size_t THRESHOLD = 10;
 constexpr int32_t OFFSET = 4;
 constexpr int32_t PRIVATEDATAVALUE = 100;
-const std::u16string AGENTSTUB_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.ISystemCmdChannel";
+const std::u16string AGENTSTUB_INTERFACE_TOKEN = u"OHOS.MiscServices.ISystemCmdChannel";
 uint32_t ConvertToUint32(const uint8_t *ptr)
 {
     if (ptr == nullptr) {

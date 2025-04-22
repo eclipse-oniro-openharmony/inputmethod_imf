@@ -65,7 +65,7 @@ void GrantNativePermission()
 }
 constexpr size_t THRESHOLD = 10;
 constexpr int32_t OFFSET = 4;
-const std::u16string SYSTEMABILITY_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodSystemAbility";
+const std::u16string SYSTEMABILITY_INTERFACE_TOKEN = u"OHOS.MiscServices.IInputMethodSystemAbility";
 
 uint32_t ConvertToUint32(const uint8_t *ptr)
 {

@@ -31,8 +31,6 @@ group("system_ability_stub_fuzztest") {
     ":HideCurrentInputDeprecatedFuzzTest",
     ":HideCurrentInputFuzzTest",
     ":HideInputFuzzTest",
-
-    #":ImsCmdLastFuzzTest",
     ":IsCurrentImeFuzzTest",
     ":IsDefaultImeFuzzTest",
     ":IsInputTypeSupportedFuzzTest",
