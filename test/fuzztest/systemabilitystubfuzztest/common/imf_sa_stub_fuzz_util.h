@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-const std::u16string SYSTEMABILITY_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodSystemAbility";
+const std::u16string SYSTEMABILITY_INTERFACE_TOKEN = u"OHOS.MiscServices.IInputMethodSystemAbility";
 constexpr const int32_t USER_ID = 100;
 class ImfSaStubFuzzUtil {
 public:

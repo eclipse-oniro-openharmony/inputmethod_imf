@@ -27,7 +27,7 @@ using namespace OHOS::MiscServices;
 namespace OHOS {
 constexpr size_t THRESHOLD = 10;
 constexpr int32_t OFFSET = 4;
-const std::u16string INPUTCLIENTSTUB_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.InputClient";
+const std::u16string INPUTCLIENTSTUB_INTERFACE_TOKEN = u"OHOS.MiscServices.IInputClient";
 
 uint32_t ConvertToUint32(const uint8_t *ptr)
 {
