@@ -505,7 +505,7 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
 bool PerUserSession::IsProxyImeEnable()
 {
     auto data = GetReadyImeData(ImeType::PROXY_IME);
-    bool ret;
+    bool ret = false;
     if (data == nullptr || data->core == nullptr) {
         return false;
     }

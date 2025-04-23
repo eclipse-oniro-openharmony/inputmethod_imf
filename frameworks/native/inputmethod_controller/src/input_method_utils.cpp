@@ -50,10 +50,12 @@ bool Value::ReadFromParcel(Parcel &in)
         IMSA_HILOGE("size is zero!");
         return true;
     }
-    if (size > UINT32_MAX) {
+
+    if (size > MAX_VALUE_MAP_COUNT) {
         IMSA_HILOGE("size is invalid!");
-        return true;
+        return false;
     }
+
     for (uint32_t index = 0; index < size; index++) {
         std::string key = in.ReadString();
         int32_t valueType = in.ReadInt32();
@@ -154,7 +156,11 @@ KeyEventValue *KeyEventValue::Unmarshalling(Parcel &in)
         return data;
     }
     data->event = MMI::KeyEvent::Create();
-    if (data->event && !data->event->ReadFromParcel(in)) {
+    if (data->event == nullptr) {
+        delete data;
+        return nullptr;
+    }
+    if (!data->event->ReadFromParcel(in)) {
         delete data;
         data = nullptr;
     }

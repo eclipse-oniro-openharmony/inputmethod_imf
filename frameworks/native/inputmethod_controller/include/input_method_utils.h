@@ -30,6 +30,7 @@ constexpr uint32_t INVALID_WINDOW_ID = 0;
 constexpr int32_t INVALID_VALUE = -1;
 constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
 constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
+constexpr size_t MAX_VALUE_MAP_COUNT = 256;
 constexpr size_t MAX_ARRAY_BUFFER_MSG_ID_SIZE = 256; // 256B
 constexpr size_t MAX_ARRAY_BUFFER_MSG_PARAM_SIZE = 128 * 1024; // 128KB
 static constexpr uint64_t INVALID_DISPLAY_ID = -1ULL;
