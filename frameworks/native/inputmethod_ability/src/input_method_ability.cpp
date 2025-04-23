@@ -33,9 +33,9 @@
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
-#include "task_manager.h"
 #include "tasks/task.h"
 #include "tasks/task_imsa.h"
+#include "task_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -893,8 +893,8 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
             inputMethodPanel = nullptr;
             return false;
         });
-    if (flag && isShowAfterCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD &&
-        panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
+    if (flag && isShowAfterCreate_.load() && panelInfo.panelType == SOFT_KEYBOARD
+        && panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
         isShowAfterCreate_.store(false);
         auto task = std::make_shared<TaskImsaShowKeyboard>();
         TaskManager::GetInstance().PostTask(task);
@@ -936,8 +936,8 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
         return ErrorCode::NO_ERROR;
     }
-    if (isShowAfterCreate_.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD &&
-        inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_CANDIDATE_COLUMN) {
+    if (isShowAfterCreate_.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD
+        && inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_CANDIDATE_COLUMN) {
         isShowAfterCreate_.store(false);
     }
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);

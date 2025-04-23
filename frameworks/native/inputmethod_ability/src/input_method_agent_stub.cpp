@@ -30,8 +30,8 @@ InputMethodAgentStub::InputMethodAgentStub() { }
 
 InputMethodAgentStub::~InputMethodAgentStub() { }
 
-int32_t InputMethodAgentStub::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int32_t InputMethodAgentStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+    MessageOption &option)
 {
     IMSA_HILOGD("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d.", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
@@ -132,8 +132,8 @@ int32_t InputMethodAgentStub::OnAttributeChangeOnRemote(MessageParcel &data, Mes
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAgentStub::DispatchKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer)
+int32_t InputMethodAgentStub::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
+    sptr<IKeyEventConsumer> &consumer)
 {
     return false;
 }
@@ -149,8 +149,8 @@ void InputMethodAgentStub::OnCursorUpdate(int32_t positionX, int32_t positionY, 
     TaskManager::GetInstance().PostTask(task);
 }
 
-void InputMethodAgentStub::OnSelectionChange(
-    std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
+void InputMethodAgentStub::OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin,
+    int32_t newEnd)
 {
     auto task = std::make_shared<TaskImsaOnSelectionChange>(text, oldBegin, oldEnd, newBegin, newEnd);
     TaskManager::GetInstance().PostTask(task);

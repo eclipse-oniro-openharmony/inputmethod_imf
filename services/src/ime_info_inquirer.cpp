@@ -51,12 +51,12 @@ void ImeInfoInquirer::InitSystemConfig()
         return;
     }
 }
-
+ 
 bool ImeInfoInquirer::IsEnableInputMethod()
 {
     return systemConfig_.enableInputMethodFeature;
 }
-
+ 
 bool ImeInfoInquirer::IsEnableSecurityMode()
 {
     return systemConfig_.enableFullExperienceFeature;
@@ -145,8 +145,8 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
     return info;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
-    const int32_t userId, const std::string &bundleName, const std::string &subName)
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(const int32_t userId, const std::string &bundleName,
+    const std::string &subName)
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s.", userId, bundleName.c_str(),
         subName.c_str());
@@ -1081,7 +1081,7 @@ bool ImeInfoInquirer::IsInputMethod(int32_t userId, const std::string &bundleNam
     }
     return false;
 }
- 
+
 bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
 {
     auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),

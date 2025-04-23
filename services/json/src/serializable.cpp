@@ -21,7 +21,7 @@ bool Serializable::Unmarshall(const std::string &content)
 {
     auto root = cJSON_Parse(content.c_str());
     if (root == NULL) {
-        IMSA_HILOGE("content parse failed!");
+        IMSA_HILOGE("%{public}s: parse failed!", content.c_str());
         return false;
     }
     auto ret = Unmarshal(root);

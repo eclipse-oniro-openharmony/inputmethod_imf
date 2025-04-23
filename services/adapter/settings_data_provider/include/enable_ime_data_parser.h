@@ -93,8 +93,8 @@ private:
     bool ParseEnableIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool ParseEnableKeyboard(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool ParseTempIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &tempVector);
-    bool CheckTargetEnableName(const std::string &key, const std::string &targetName, std::string &nextIme,
-        const int32_t userId);
+    bool CheckTargetEnableName(
+        const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();
     void OnBackgroundPackageAdded(int32_t userId, const std::string &bundleName, const std::string &globalContent);
     void OnForegroundPackageAdded(int32_t userId, const std::string &bundleName, const std::string &globalContent);
