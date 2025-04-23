@@ -22,6 +22,7 @@
 #include "hisysevent.h"
 #include "ipc_skeleton.h"
 #include "running_process_info.h"
+#include "singleton.h"
 namespace OHOS {
 namespace MiscServices {
 using namespace OHOS::AppExecFwk;
@@ -117,8 +118,8 @@ std::string ImfHiSysEventUtil::GetAppName(uint64_t fullTokenId)
         case ATokenTypeEnum::TOKEN_HAP: {
             if (fullTokenId == IPCSkeleton::GetSelfTokenID()) {
                 RunningProcessInfo info;
-                AppMgrClient client;
-                if (client.GetProcessRunningInformation(info) == 0) {
+                auto appMgrClient = DelayedSingleton<AppMgrClient>::GetInstance();
+                if (appMgrClient != nullptr && appMgrClient->GetProcessRunningInformation(info) == 0) {
                     name = info.processName_;
                 }
                 break;
