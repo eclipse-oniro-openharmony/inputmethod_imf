@@ -779,7 +779,6 @@ HWTEST_F(InputMethodAttachTest, testAttach007, TestSize.Level0)
     EXPECT_EQ(inputPattern, config.inputAttribute.inputPattern);
 }
 
-
 /**
  * @tc.name: testSetCapitalizeMode_001
  * @tc.desc: test set capitalizeMode after attach
