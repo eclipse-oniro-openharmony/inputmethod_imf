@@ -748,24 +748,25 @@ bool JsPanelRect::Read(napi_env env, napi_value object, LayoutParams &layoutPara
     return ret;
 }
 
-bool JsEnhancedPanelRect::Read(napi_env env, napi_value object, EnhancedLayoutParams &params)
+bool JsEnhancedPanelRect::Read(napi_env env, napi_value object, EnhancedLayoutParams &layoutParams)
 {
     napi_status status = napi_generic_failure;
     napi_value jsObject = nullptr;
     bool ret = JsUtils::ReadOptionalProperty(
-        env, object, { napi_boolean, TYPE_BOOLEAN, "fullScreenMode" }, params.isFullScreen);
-    if (ret && params.isFullScreen) {
+        env, object, { napi_boolean, TYPE_BOOLEAN, "fullScreenMode" }, layoutParams.isFullScreen);
+    if (ret && layoutParams.isFullScreen) {
         IMSA_HILOGD("full screen mode, no need to parse rect");
     } else {
         ret = JsUtils::ReadOptionalProperty(
-            env, object, { napi_object, TYPE_OBJECT, "landscapeRect" }, params.landscape.rect);
+            env, object, { napi_object, TYPE_OBJECT, "landscapeRect" }, layoutParams.landscape.rect);
         ret = ret && JsUtils::ReadOptionalProperty(
-            env, object, { napi_object, TYPE_OBJECT, "portraitRect" }, params.portrait.rect);
+            env, object, { napi_object, TYPE_OBJECT, "portraitRect" }, layoutParams.portrait.rect);
         PARAM_CHECK_RETURN(env, ret, "landscapeRect and portraitRect should not be empty", TYPE_NONE, false);
     }
     JsUtils::ReadOptionalProperty(
-        env, object, { napi_number, TYPE_NUMBER, "landscapeAvoidY" }, params.landscape.avoidY);
-    JsUtils::ReadOptionalProperty(env, object, { napi_number, TYPE_NUMBER, "portraitAvoidY" }, params.portrait.avoidY);
+        env, object, { napi_number, TYPE_NUMBER, "landscapeAvoidY" }, layoutParams.landscape.avoidY);
+    JsUtils::ReadOptionalProperty(
+        env, object, { napi_number, TYPE_NUMBER, "portraitAvoidY" }, layoutParams.portrait.avoidY);
     return ret;
 }
 
