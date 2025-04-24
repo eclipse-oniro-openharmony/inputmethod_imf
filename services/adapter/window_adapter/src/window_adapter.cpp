@@ -74,8 +74,7 @@ void WindowAdapter::RegisterCallingWindowInfoChangedListener(const WindowDisplay
         IMSA_HILOGE("failed to create listener");
         return;
     }
-    auto wmErr = WMError::WM_OK;
-    wmErr = WindowManagerLite::GetInstance().RegisterCallingWindowDisplayChangedListener(listener);
+    auto wmErr = WindowManagerLite::GetInstance().RegisterCallingWindowDisplayChangedListener(listener);
     IMSA_HILOGI("register focus changed listener ret: %{public}d", wmErr);
 #endif
 }
