@@ -74,8 +74,8 @@ void ImsaHiSysEventReporter::ReportStatisticsEvent()
         clientAttachInfo_ = ClientAttachAllInfo(COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM);
         clientShowInfo_ = ClientShowAllInfo(COUNT_STATISTICS_INTERVAL_NUM, COUNT_STATISTICS_INTERVAL_NUM);
     }
-    std::string attachStatistics;
     if (!clientAttachInfo.appNames.empty()) {
+        std::string attachStatistics;
         clientAttachInfo.succeedRateInfo.Marshall(attachStatistics);
         ImfHiSysEventUtil::ReportStatisticsEvent(GET_NAME(CLIENT_ATTACH_STATISTICS), clientAttachInfo.imeNames,
             clientAttachInfo.appNames, { attachStatistics });
