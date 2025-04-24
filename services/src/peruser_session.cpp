@@ -695,6 +695,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
     auto imeType = ImeType::IME;
     auto clientInfo = GetCurrentClientInfo();
     if (clientInfo != nullptr && IsImeStartInBind(clientInfo->bindImeType, imeType)) {
+        ClearRequestKeyboardReason(clientInfo);
         BindClientWithIme(clientInfo, imeType);
         SetInputType();
     }
@@ -2209,5 +2210,11 @@ bool PerUserSession::IsDefaultDisplayGroup(uint64_t displayId)
 {
     return GetDisplayGroupId(displayId) == DEFAULT_DISPLAY_ID;
 }
+
+void PerUserSession::ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo)
+{
+    clientInfo->requestKeyboardReason = RequestKeyboardReason::NONE;
+}
+
 } // namespace MiscServices
 } // namespace OHOS
