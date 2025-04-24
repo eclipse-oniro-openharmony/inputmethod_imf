@@ -221,12 +221,9 @@ bool InputMethodSystemAbility::IsValidBundleName(const std::string &bundleName)
         return false;
     }
 
-    for (auto &prop : props) {
-        if (prop.name == bundleName) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(props.begin(), props.end(), [&bundleName](const auto &prop) {
+        return prop.name == bundleName;
+    });
 }
 
 std::string InputMethodSystemAbility::GetRestoreBundleName(MessageParcel &data)
