@@ -195,12 +195,7 @@ std::shared_ptr<JsTextInputClientEngine> JsTextInputClientEngine::GetTextInputCl
     if (textInputClientEngine_ == nullptr) {
         std::lock_guard<std::mutex> lock(engineMutex_);
         if (textInputClientEngine_ == nullptr) {
-            auto engine = std::make_shared<JsTextInputClientEngine>();
-            if (engine == nullptr) {
-                IMSA_HILOGE("create engine failed!");
-                return nullptr;
-            }
-            textInputClientEngine_ = engine;
+            textInputClientEngine_ = std::make_shared<JsTextInputClientEngine>();
         }
     }
     return textInputClientEngine_;
