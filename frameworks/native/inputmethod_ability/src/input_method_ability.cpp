@@ -788,8 +788,7 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    TextTotalConfigInner textConfigInner = {};
-    textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
+    TextTotalConfigInner textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
     auto ret = channel->GetTextConfig(textConfigInner);
     textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
     if (ret == ErrorCode::NO_ERROR) {
@@ -1419,8 +1418,7 @@ int32_t InputMethodAbility::SetPreviewTextInner(const std::string &text, const R
         IMSA_HILOGE("dataChannel is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    RangeInner rangeInner = {};
-    rangeInner = InputMethodTools::GetInstance().RangeToInner(range);
+    RangeInner rangeInner = InputMethodTools::GetInstance().RangeToInner(range);
     return dataChannel->SetPreviewText(text, rangeInner);
 }
 
@@ -1480,8 +1478,7 @@ void InputMethodAbility::NotifyPanelStatusInfo(
         return;
     }
     if (channelProxy != nullptr) {
-        PanelStatusInfoInner inner = {};
-        inner = InputMethodTools::GetInstance().PanelStatusInfoToInner(info);
+        PanelStatusInfoInner inner = InputMethodTools::GetInstance().PanelStatusInfoToInner(info);
         channelProxy->NotifyPanelStatusInfo(inner);
     }
 

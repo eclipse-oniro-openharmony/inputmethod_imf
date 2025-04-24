@@ -75,8 +75,7 @@ ErrCode InputMethodAgentServiceImpl::SendPrivateCommand(
 
 ErrCode InputMethodAgentServiceImpl::OnAttributeChange(const InputAttributeInner &attributeInner)
 {
-    InputAttribute attribute = {};
-    attribute = InputMethodTools::GetInstance().InnerToAttribute(attributeInner);
+    InputAttribute attribute = InputMethodTools::GetInstance().InnerToAttribute(attributeInner);
     auto task = std::make_shared<TaskImsaAttributeChange>(attribute);
     TaskManager::GetInstance().PostTask(task);
     return ERR_OK;
