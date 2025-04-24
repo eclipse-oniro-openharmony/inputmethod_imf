@@ -28,6 +28,7 @@
 #include "os_account_adapter.h"
 #include "scene_board_judgement.h"
 #include "system_ability_definition.h"
+#include <cinttypes>
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
 #include "screenlock_manager.h"
 #endif

@@ -29,6 +29,7 @@
 #include "system_ability_definition.h"
 #include "wms_connection_observer.h"
 #include "window_adapter.h"
+#include <cinttypes>
 
 namespace OHOS {
 namespace MiscServices {
