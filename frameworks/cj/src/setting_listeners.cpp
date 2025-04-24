@@ -67,7 +67,6 @@ int32_t CJGetInputMethodSetting::UnSubscribe(uint32_t type)
 
 void CJGetInputMethodSetting::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
-    std::string type = "imeChange";
     IMSA_HILOGD("start");
     CInputMethodProperty prop;
     CInputMethodSubtype subProp;
