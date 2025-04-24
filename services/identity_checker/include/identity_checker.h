@@ -48,6 +48,10 @@ public:
         return false;
     };
     virtual bool IsSpecialSaUid() = 0;
+    virtual bool IsDefaultImeScreen(const std::string &screenName)
+    {
+        return false;
+    };
 };
 } // namespace MiscServices
 } // namespace OHOS

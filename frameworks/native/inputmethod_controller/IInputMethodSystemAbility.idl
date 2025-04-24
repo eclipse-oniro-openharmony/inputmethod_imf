@@ -69,4 +69,5 @@ interface OHOS.MiscServices.IInputMethodSystemAbility {
     void RegisterProxyIme([in] unsigned long displayId, [in] IInputMethodCore core, [in] IRemoteObject agent);
     void UnregisterProxyIme([in] unsigned long displayId);
     void SendPrivateData([in] Value value);
+    void IsDefaultImeScreen([in] unsigned long displayId, [out] boolean resultValue);
 }

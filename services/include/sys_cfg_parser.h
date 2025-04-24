@@ -30,6 +30,7 @@ struct SystemConfig : public Serializable {
     bool enableAppAgentFeature = false;
     std::unordered_set<int32_t> proxyImeUidList;
     std::unordered_set<int32_t> specialSaUidList;
+    std::unordered_set<std::string> defaultImeScreenList;
     bool Unmarshal(cJSON *node) override
     {
         GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);
@@ -42,6 +43,7 @@ struct SystemConfig : public Serializable {
         GetValue(node, GET_NAME(enableAppAgentFeature), enableAppAgentFeature);
         GetValue(node, GET_NAME(proxyImeUidList), proxyImeUidList);
         GetValue(node, GET_NAME(specialSaUidList), specialSaUidList);
+        GetValue(node, GET_NAME(defaultImeScreenList), defaultImeScreenList);
         return true;
     }
 };

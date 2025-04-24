@@ -723,20 +723,7 @@ void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputC
         return;
     }
     auto callingWindowInfo = session->GetCallingWindowInfo(inputClientInfo);
-    sptr<Rosen::DisplayLite> display = nullptr;
-    display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(callingWindowInfo.displayId);
-    if (display == nullptr) {
-        IMSA_HILOGE("display is null!");
-        return;
-    }
-    sptr<Rosen::DisplayInfo> displayInfo = nullptr;
-    displayInfo = display->GetDisplayInfo();
-    if (displayInfo == nullptr) {
-        IMSA_HILOGE("displayInfo is null!");
-        return;
-    }
-    std::string displayName = displayInfo->GetName();
-    if (displayName == "HiCar" || displayName == "SuperLauncher") {
+    if (IsDefaultImeScreen(callingWindowInfo.displayId)) {
         auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
         auto imeToStart = std::make_shared<ImeNativeCfg>();
         auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
@@ -755,6 +742,28 @@ void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputC
     }
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
     return;
+}
+
+bool InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId)
+{
+    sptr<Rosen::DisplayLite> display =
+        Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
+    if (display == nullptr) {
+        IMSA_HILOGE("display is null!");
+        return false;
+    }
+    sptr<Rosen::DisplayInfo> displayInfo = display->GetDisplayInfo();
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("displayInfo is null!");
+        return false;
+    }
+    return identityChecker_->IsDefaultImeScreen(displayInfo->GetName());
+}
+
+ErrCode InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId, bool &resultValue)
+{
+    resultValue = IsDefaultImeScreen(displayId);
+    return ERR_OK;
 }
 
 int32_t InputMethodSystemAbility::ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason)

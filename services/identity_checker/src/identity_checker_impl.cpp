@@ -148,5 +148,10 @@ bool IdentityCheckerImpl::IsSpecialSaUid()
     auto callingUid = IPCSkeleton::GetCallingUid();
     return ImeInfoInquirer::GetInstance().IsSpecialSaUid(callingUid);
 }
+
+bool IdentityCheckerImpl::IsDefaultImeScreen(const std::string &screenName)
+{
+    return ImeInfoInquirer::GetInstance().IsDefaultImeScreen(screenName);
+}
 } // namespace MiscServices
 } // namespace OHOS
