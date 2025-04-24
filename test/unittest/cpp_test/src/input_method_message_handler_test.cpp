@@ -341,7 +341,9 @@ void InputMethodMessageHandlerTest::ResetParam()
     }
     InputMethodEngineListenerImpl::ResetParam();
     MessageHandlerCallback::ClearArrayBuffer();
-    inputMethodAbility_->RegisterMsgHandler();
+    if (inputMethodAbility_ != nullptr) {
+        inputMethodAbility_->RegisterMsgHandler();
+    }
     inputMethodController_->RegisterMsgHandler();
     g_onTerminated = false;
     g_onMessage = false;
