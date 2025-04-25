@@ -589,8 +589,7 @@ ErrCode InputMethodSystemAbility::ReleaseInput(const sptr<IInputClient>& client,
 ErrCode InputMethodSystemAbility::StartInput(
     const InputClientInfoInner &inputClientInfoInner, sptr<IRemoteObject> &agent, int64_t &pid, std::string &bundleName)
 {
-    InputClientInfo inputClientInfo = {};
-    inputClientInfo =
+    InputClientInfo inputClientInfo =
         InputMethodTools::GetInstance().InnerToInputClientInfo(inputClientInfoInner);
     agent = nullptr;
     pid = 0;
@@ -959,8 +958,7 @@ ErrCode InputMethodSystemAbility::PanelStatusChange(uint32_t status, const ImeWi
 
 ErrCode InputMethodSystemAbility::UpdateListenEventFlag(const InputClientInfoInner &clientInfoInner, uint32_t eventFlag)
 {
-    InputClientInfo clientInfo = {};
-    clientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(clientInfoInner);
+    InputClientInfo clientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(clientInfoInner);
     IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u.", clientInfo.eventFlag, eventFlag);
     if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag) ||
         EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
