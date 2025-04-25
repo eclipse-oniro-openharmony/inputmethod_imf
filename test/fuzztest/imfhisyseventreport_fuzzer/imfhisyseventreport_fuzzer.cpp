@@ -45,7 +45,6 @@ constexpr ClientType PARAM_CLIENT_TYPE = ClientType::INNER_KIT;
 constexpr int32_t PARAM_INPUT_PATTERN = 6;
 void TestClientAttach01(const uint8_t *data, size_t size)
 {
-    std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     auto errCode = static_cast<int32_t>(size);
     auto paramIsShowkeyboard = static_cast<bool>(data[0] % 2);
     auto info = HiSysOriginalInfo::Builder()
