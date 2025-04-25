@@ -995,8 +995,9 @@ bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &n
     int32_t capitalizeMode;
     if (!JsUtil::Object::ReadProperty(env, jsObject, "capitalizeMode", capitalizeMode)) {
         nativeObject.capitalizeMode = CapitalizeMode::NONE;
+    } else {
+        nativeObject.capitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
     }
-    nativeObject.capitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
     ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "immersiveMode", nativeObject.immersiveMode);
     return ret;
 }
