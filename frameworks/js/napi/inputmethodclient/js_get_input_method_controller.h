@@ -237,6 +237,7 @@ private:
     static napi_value GetJsDirectionProperty(napi_env env);
     static napi_value GetJsExtendActionProperty(napi_env env);
     static napi_value GetJsEnabledStateProperty(napi_env env);
+    static napi_value GetJsCapitalizeModeProperty(napi_env env);
     static napi_value GetJsRequestKeyboardReasonProperty(napi_env env);
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     static bool IsTextPreviewSupported();

@@ -24,6 +24,13 @@
 
 namespace OHOS {
 namespace MiscServices {
+enum class CapitalizeMode: int32_t {
+    NONE = 0,
+    SENTENCES,
+    WORDS,
+    CHARACTERS
+};
+
 struct InputAttribute {
     static const int32_t PATTERN_TEXT = 0x00000001;
     static const int32_t PATTERN_PASSWORD = 0x00000007;
@@ -41,6 +48,7 @@ struct InputAttribute {
     uint64_t callingDisplayId = 0;
     std::u16string placeholder { u"" };
     std::u16string abilityName { u"" };
+    CapitalizeMode capitalizeMode = CapitalizeMode::NONE;
 
     static bool Marshalling(const InputAttribute &in, MessageParcel &data)
     {
@@ -48,16 +56,25 @@ struct InputAttribute {
             data.WriteInt32(in.inputOption) && data.WriteString(in.bundleName) &&
             data.WriteInt32(in.immersiveMode) && data.WriteUint32(in.windowId) &&
             data.WriteUint64(in.callingDisplayId) &&
-            data.WriteString16(in.placeholder) && data.WriteString16(in.abilityName);
+            data.WriteString16(in.placeholder) && data.WriteString16(in.abilityName) &&
+            data.WriteInt32(static_cast<int32_t>(in.capitalizeMode));
     }
 
     static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
     {
-        return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) &&
+        bool ret = data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) &&
             data.ReadInt32(out.inputOption) && data.ReadString(out.bundleName) &&
             data.ReadInt32(out.immersiveMode) && data.ReadUint32(out.windowId) &&
             data.ReadUint64(out.callingDisplayId) &&
             data.ReadString16(out.placeholder) && data.ReadString16(out.abilityName);
+        int32_t capitalizeMode = 0;
+        ret = ret && data.ReadInt32(capitalizeMode);
+        if (capitalizeMode < static_cast<int32_t>(CapitalizeMode::NONE) ||
+            capitalizeMode > static_cast<int32_t>(CapitalizeMode::CHARACTERS)) {
+            capitalizeMode = 0;
+        }
+        out.capitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
+        return ret;
     }
 
     bool GetSecurityFlag() const

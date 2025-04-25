@@ -778,5 +778,28 @@ HWTEST_F(InputMethodAttachTest, testAttach007, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, config.inputAttribute.inputPattern);
 }
+
+/**
+ * @tc.name: testSetCapitalizeMode_001
+ * @tc.desc: test set capitalizeMode after attach
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAttachTest, testSetCapitalizeMode_001, TestSize.Level0)
+{
+    IMSA_HILOGI("test testSetCapitalizeMode_001.");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputAttribute attribute;
+    attribute.inputPattern = 0;
+    attribute.enterKeyType = 0;
+    TextConfig config;
+    config.inputAttribute = attribute;
+    config.inputAttribute.capitalizeMode = CapitalizeMode::WORDS;
+    auto ret = inputMethodController_->Attach(textListener, false, config);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    TextTotalConfig totalConfig;
+    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(totalConfig.inputAttribute.capitalizeMode, config.inputAttribute.capitalizeMode);
+}
 } // namespace MiscServices
 } // namespace OHOS
