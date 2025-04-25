@@ -267,11 +267,7 @@ int32_t InputMethodSystemAbility::RestoreInputmethod(std::string &bundleName)
 {
     Property propertyData;
     GetCurrentInputMethod(propertyData);
-    std::shared_ptr<Property> prop = std::make_shared<Property>(propertyData);
-    if (prop == nullptr) {
-        IMSA_HILOGE("GetCurrentInputMethod failed");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
+    auto prop = std::make_shared<Property>(propertyData);
     std::string currentInputMethod = prop->name;
     if (currentInputMethod == bundleName) {
         IMSA_HILOGW("currentInputMethod=%{public}s, has been set", currentInputMethod.c_str());

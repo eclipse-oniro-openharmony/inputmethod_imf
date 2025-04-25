@@ -530,10 +530,6 @@ std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
     Property propertyData;
     proxy->GetCurrentInputMethod(propertyData);
     auto property = std::make_shared<Property>(propertyData);
-    if (property == nullptr) {
-        IMSA_HILOGE("property is nullptr!");
-        return nullptr;
-    }
     return property;
 }
 
@@ -549,10 +545,6 @@ std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype
     SubProperty subPropertyData;
     proxy->GetCurrentInputMethodSubtype(subPropertyData);
     auto subProperty = std::make_shared<SubProperty>(subPropertyData);
-    if (subProperty == nullptr) {
-        IMSA_HILOGE("property is nullptr!");
-        return nullptr;
-    }
     return subProperty;
 }
 
