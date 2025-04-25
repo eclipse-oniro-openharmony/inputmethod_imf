@@ -54,30 +54,6 @@ FullImeInfoManager &FullImeInfoManager::GetInstance()
     return instance;
 }
 
-int32_t FullImeInfoManager::RegularInit()
-{
-    auto userIds = OsAccountAdapter::QueryActiveOsAccountIds();
-    if (userIds.empty()) {
-        return ErrorCode::ERROR_OS_ACCOUNT;
-    }
-    int32_t ret = ErrorCode::NO_ERROR;
-    std::map<int32_t, std::vector<FullImeInfo>> userImeInfos;
-    for (auto &userId : userIds) {
-        std::vector<FullImeInfo> infos;
-        ret = Add(userId, infos);
-        if (ret != ErrorCode::NO_ERROR) {
-            continue;
-        }
-        userImeInfos.insert({ userId, infos });
-    }
-    if (userImeInfos.empty()) {
-        return ret;
-    }
-    auto task = [userImeInfos]() { ImeEnabledInfoManager::GetInstance().RegularInit(userImeInfos); };
-    PostEnableTask(task, "enableRegularInit");
-    return ErrorCode::NO_ERROR;
-}
-
 int32_t FullImeInfoManager::Init()
 {
     auto userIds = OsAccountAdapter::QueryActiveOsAccountIds();
@@ -111,6 +87,28 @@ int32_t FullImeInfoManager::Switch(int32_t userId)
     return ret;
 }
 
+int32_t FullImeInfoManager::Update()
+{
+    {
+        std::lock_guard<std::mutex> lock(lock_);
+        fullImeInfos_.clear();
+    }
+    IMSA_HILOGI("run in.");
+    std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
+    auto ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(fullImeInfos);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGW("failed to QueryFullImeInfo, ret:%{public}d", ret);
+        return ret;
+    }
+    {
+        std::lock_guard<std::mutex> lock(lock_);
+        for (const auto &infos : fullImeInfos) {
+            fullImeInfos_.insert_or_assign(infos.first, infos.second);
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t FullImeInfoManager::Delete(int32_t userId)
 {
     {
@@ -135,84 +133,6 @@ int32_t FullImeInfoManager::Add(int32_t userId, const std::string &bundleName)
 }
 
 int32_t FullImeInfoManager::Delete(int32_t userId, const std::string &bundleName)
-{
-    auto ret = DeletePackage(userId, bundleName);
-    auto task = [userId, bundleName]() { ImeEnabledInfoManager::GetInstance().Delete(userId, bundleName); };
-    PostEnableTask(task, "enableBundleDelete");
-    return ret;
-}
-
-int32_t FullImeInfoManager::AddIfNoCache(int32_t userId, std::vector<FullImeInfo> &infos)
-{
-    {
-        std::lock_guard<std::mutex> lock(lock_);
-        auto it = fullImeInfos_.find(userId);
-        if (it != fullImeInfos_.end()) {
-            infos = it->second;
-            return ErrorCode::NO_ERROR;
-        }
-    }
-    return Add(userId, infos);
-}
-
-int32_t FullImeInfoManager::Add(int32_t userId, std::vector<FullImeInfo> &infos)
-{
-    auto ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId, infos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to QueryFullImeInfo, userId:%{public}d, ret:%{public}d", userId, ret);
-        return ret;
-    }
-    std::lock_guard<std::mutex> lock(lock_);
-    fullImeInfos_.insert_or_assign(userId, infos);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t FullImeInfoManager::Update()
-{
-    {
-        std::lock_guard<std::mutex> lock(lock_);
-        fullImeInfos_.clear();
-    }
-    IMSA_HILOGI("run in.");
-    std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
-    auto ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(fullImeInfos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGW("failed to QueryFullImeInfo, ret:%{public}d", ret);
-        return ret;
-    }
-    {
-        std::lock_guard<std::mutex> lock(lock_);
-        for (const auto &infos : fullImeInfos) {
-            fullImeInfos_.insert_or_assign(infos.first, infos.second);
-        }
-    }
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t FullImeInfoManager::AddPackage(int32_t userId, const std::string &bundleName, FullImeInfo &info)
-{
-    auto ret = ImeInfoInquirer::GetInstance().GetFullImeInfo(userId, bundleName, info);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to GetFullImeInfo failed, userId:%{public}d, bundleName:%{public}s, ret:%{public}d",
-            userId, bundleName.c_str(), ret);
-        return ErrorCode::ERROR_PACKAGE_MANAGER;
-    }
-    std::lock_guard<std::mutex> lock(lock_);
-    auto it = fullImeInfos_.find(userId);
-    if (it == fullImeInfos_.end()) {
-        fullImeInfos_.insert({ userId, { info } });
-        return ErrorCode::NO_ERROR;
-    }
-    auto iter = std::find_if(it->second.begin(), it->second.end(),
-        [&bundleName](const FullImeInfo &info) { return bundleName == info.prop.name; });
-    if (iter != it->second.end()) {
-        it->second.erase(iter);
-    }
-    it->second.push_back(info);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t FullImeInfoManager::DeletePackage(int32_t userId, const std::string &bundleName)
 {
     std::lock_guard<std::mutex> lock(lock_);
     auto it = fullImeInfos_.find(userId);
@@ -325,6 +245,78 @@ std::string FullImeInfoManager::Get(int32_t userId, uint32_t tokenId)
         return "";
     }
     return (*iter).prop.name;
+}
+
+int32_t FullImeInfoManager::RegularInit()
+{
+    auto userIds = OsAccountAdapter::QueryActiveOsAccountIds();
+    if (userIds.empty()) {
+        return ErrorCode::ERROR_OS_ACCOUNT;
+    }
+    int32_t ret = ErrorCode::NO_ERROR;
+    std::map<int32_t, std::vector<FullImeInfo>> userImeInfos;
+    for (auto &userId : userIds) {
+        std::vector<FullImeInfo> infos;
+        ret = Add(userId, infos);
+        if (ret != ErrorCode::NO_ERROR) {
+            continue;
+        }
+        userImeInfos.insert({ userId, infos });
+    }
+    if (userImeInfos.empty()) {
+        return ret;
+    }
+    auto task = [userImeInfos]() { ImeEnabledInfoManager::GetInstance().RegularInit(userImeInfos); };
+    PostEnableTask(task, "enableRegularInit");
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t FullImeInfoManager::Add(int32_t userId, std::vector<FullImeInfo> &infos)
+{
+    auto ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId, infos);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to QueryFullImeInfo, userId:%{public}d, ret:%{public}d", userId, ret);
+        return ret;
+    }
+    std::lock_guard<std::mutex> lock(lock_);
+    fullImeInfos_.insert_or_assign(userId, infos);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t FullImeInfoManager::AddPackage(int32_t userId, const std::string &bundleName, FullImeInfo &info)
+{
+    auto ret = ImeInfoInquirer::GetInstance().GetFullImeInfo(userId, bundleName, info);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to GetFullImeInfo failed, userId:%{public}d, bundleName:%{public}s, ret:%{public}d",
+                    userId, bundleName.c_str(), ret);
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    }
+    std::lock_guard<std::mutex> lock(lock_);
+    auto it = fullImeInfos_.find(userId);
+    if (it == fullImeInfos_.end()) {
+        fullImeInfos_.insert({ userId, { info } });
+        return ErrorCode::NO_ERROR;
+    }
+    auto iter = std::find_if(it->second.begin(), it->second.end(),
+                             [&bundleName](const FullImeInfo &info) { return bundleName == info.prop.name; });
+    if (iter != it->second.end()) {
+        it->second.erase(iter);
+    }
+    it->second.push_back(info);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t FullImeInfoManager::AddIfNoCache(int32_t userId, std::vector<FullImeInfo> &infos)
+{
+    {
+        std::lock_guard<std::mutex> lock(lock_);
+        auto it = fullImeInfos_.find(userId);
+        if (it != fullImeInfos_.end()) {
+            infos = it->second;
+            return ErrorCode::NO_ERROR;
+        }
+    }
+    return Add(userId, infos);
 }
 
 void FullImeInfoManager::PostEnableTask(const std::function<void()> &task, const std::string &taskName)

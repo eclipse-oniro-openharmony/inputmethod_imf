@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace MiscServices {
 
-static const std::string THREAD_NAME = "imf_task_manager";
+static const std::string THREAD_NAME = "OS_imf_task_manager";
 
 TaskManager::TaskManager()
 {

@@ -235,6 +235,7 @@ private:
     int32_t NotifyCallingDisplayChanged(uint64_t displayId);
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+    void ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo);
 
     std::mutex imeStartLock_;
 

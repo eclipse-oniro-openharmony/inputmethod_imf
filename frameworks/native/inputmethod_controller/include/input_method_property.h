@@ -153,7 +153,6 @@ struct FullImeInfo {
     uint32_t tokenId { 0 };
     std::string appId;
     uint32_t versionCode;
-    std::string installTime;
     Property prop;
     std::vector<SubProperty> subProps;
 };

@@ -372,7 +372,7 @@ int32_t InputMethodSystemAbility::Init()
     }
     IMSA_HILOGI("publish success");
     state_ = ServiceRunningState::STATE_RUNNING;
-    ImeCfgManager::GetInstance().Init();
+    // ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitSystemConfig();
 #endif
     InitMonitors();
@@ -1180,16 +1180,8 @@ ErrCode InputMethodSystemAbility::EnableIme(
 int32_t InputMethodSystemAbility::EnableIme(
     int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status)
 {
-    int32_t ret = ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
-    if (serviceHandler_ == nullptr) {
-        return ret;
-    }
-    auto task = [&userId, &bundleName, &extensionName, &status, &ret]() {
-        ret = ImeEnabledInfoManager::GetInstance().Update(
-            userId, bundleName, extensionName, static_cast<EnabledStatus>(status));
-    };
-    serviceHandler_->PostSyncTask(task, "enableUpdate", AppExecFwk::EventQueue::Priority::VIP);
-    return ret;
+    return ImeEnabledInfoManager::GetInstance().Update(
+        userId, bundleName, extensionName, static_cast<EnabledStatus>(status));
 }
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const SwitchInfo &switchInfo,
@@ -1573,7 +1565,7 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
         session->StopCurrentIme();
         UserSessionManager::GetInstance().RemoveUserSession(userId);
     }
-    ImeCfgManager::GetInstance().DeleteImeCfg(userId);
+    // ImeCfgManager::GetInstance().DeleteImeCfg(userId);
     FullImeInfoManager::GetInstance().Delete(userId);
     return ErrorCode::NO_ERROR;
 }
@@ -1832,27 +1824,31 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
 
 int32_t InputMethodSystemAbility::SwitchType()
 {
-    SwitchInfo switchInfo = { std::chrono::system_clock::now(), "", "" };
+    SwitchInfo nextSwitchInfo = { std::chrono::system_clock::now(), "", "" };
     uint32_t cacheCount = 0;
     {
         std::lock_guard<std::mutex> lock(switchImeMutex_);
         cacheCount = targetSwitchCount_.exchange(0);
     }
     int32_t ret =
-        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, cacheCount);
+        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(nextSwitchInfo, userId_, cacheCount);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get next SwitchInfo failed, stop switching ime.");
         return ret;
     }
-    IMSA_HILOGD("switch to: %{public}s.", switchInfo.bundleName.c_str());
-    switchInfo.timestamp = std::chrono::system_clock::now();
+    if (nextSwitchInfo.bundleName.empty()) {
+        IMSA_HILOGD("Stay current ime, no need to switch.");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGD("switch to: %{public}s.", nextSwitchInfo.bundleName.c_str());
+    nextSwitchInfo.timestamp = std::chrono::system_clock::now();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId_);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    session->GetSwitchQueue().Push(switchInfo);
-    return OnSwitchInputMethod(userId_, switchInfo, SwitchTrigger::IMSA);
+    session->GetSwitchQueue().Push(nextSwitchInfo);
+    return OnSwitchInputMethod(userId_, nextSwitchInfo, SwitchTrigger::IMSA);
 }
 
 void InputMethodSystemAbility::InitMonitors()
@@ -2420,8 +2416,19 @@ void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, bool 
 
 void InputMethodSystemAbility::HandleBundleScanFinished()
 {
-    isBundleScanFinished_.store(true);
     HandleImeCfgCapsState();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+    auto imeData = session->GetImeData(ImeType::IME);
+    if (imeData != nullptr) {
+        return;
+    }
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    session->AddRestartIme();
+#endif
 }
 
 bool InputMethodSystemAbility::ModifyImeCfgWithWrongCaps()
@@ -2477,7 +2484,7 @@ bool InputMethodSystemAbility::GetDeviceFunctionKeyState(int32_t functionKey, bo
 
 void InputMethodSystemAbility::HandleImeCfgCapsState()
 {
-    if (!isBundleScanFinished_.load()) {
+    if (ImCommonEventManager::IsBundleScanFinished()) {
         IMSA_HILOGE("Bundle scan is not ready.");
         return;
     }

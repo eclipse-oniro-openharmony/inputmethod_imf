@@ -26,6 +26,50 @@
 
 namespace OHOS {
 namespace MiscServices {
+struct ImePersistInfo : public Serializable {
+    ImePersistInfo() = default;
+    ImePersistInfo(int32_t userId, std::string currentIme, std::string currentSubName, bool isDefaultImeSet)
+        : userId(userId), currentIme(std::move(currentIme)), currentSubName(std::move(currentSubName)),
+          isDefaultImeSet(isDefaultImeSet){};
+    static constexpr int32_t INVALID_USERID = -1;
+    int32_t userId{ INVALID_USERID };
+    std::string currentIme;
+    std::string currentSubName;
+    std::string tempScreenLockIme;
+    bool isDefaultImeSet{ false };
+
+    bool Marshal(cJSON *node) const override
+    {
+        auto ret = SetValue(node, GET_NAME(userId), userId);
+        ret = SetValue(node, GET_NAME(currentIme), currentIme) && ret;
+        ret = SetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
+        SetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme);
+        ret = SetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
+        return ret;
+    }
+    bool Unmarshal(cJSON *node) override
+    {
+        auto ret = GetValue(node, GET_NAME(userId), userId);
+        ret = GetValue(node, GET_NAME(currentIme), currentIme) && ret;
+        ret = GetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
+        GetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme);
+        ret = GetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
+        return ret;
+    }
+};
+
+struct ImePersistCfg : public Serializable {
+    std::vector<ImePersistInfo> imePersistInfo;
+    bool Marshal(cJSON *node) const override
+    {
+        return SetValue(node, GET_NAME(imeCfgList), imePersistInfo);
+    }
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(imeCfgList), imePersistInfo);
+    }
+};
+
 struct UserImeConfig : public Serializable {
     std::string userId;
     std::vector<std::string> identities;
@@ -59,7 +103,7 @@ struct SecurityModeCfg : public Serializable {
 class EnableUpgradeManager {
 public:
     static EnableUpgradeManager &GetInstance();
-    int32_t Upgrade(int32_t userId);
+    int32_t Upgrade(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
     int32_t GetFullExperienceTable(int32_t userId, std::set<std::string> &bundleNames);
     /* add for compatibility that sys ime listen global table change for smart menu in tablet */
     void UpdateGlobalEnabledTable(int32_t userId, const std::vector<std::string> &bundleNames);
@@ -76,13 +120,18 @@ private:
     int32_t GetEnabledTable(int32_t userId, const std::string &uriProxy, std::set<std::string> &bundleNames);
     int32_t GetEnabledTable(int32_t userId, const std::string &uriProxy, std::string &content);
     int32_t ParseEnabledTable(int32_t userId, std::string &content, std::set<std::string> &bundleNames);
-    void MergeTwoTable(const std::set<std::string> &enabledBundleNames,
-        const std::set<std::string> &fullModeBundleNames, std::string &newContent);
+    std::pair<int32_t, std::string> GenerateNewUserEnabledTable(int32_t userId,
+        const std::set<std::string> &enabledBundleNames, const std::set<std::string> &fullModeBundleNames,
+        const ImePersistInfo &persistInfo, const std::vector<FullImeInfo> &imeInfos);
     int32_t GetGlobalTableUserId(const std::string &valueStr);
     std::string GenerateGlobalContent(int32_t userId, const std::vector<std::string> &bundleNames);
     bool SetGlobalEnabledTable(const std::string &content);
     bool SetUserEnabledTable(int32_t userId, const std::string &content);
     bool SetEnabledTable(const std::string &uriProxy, const std::string &content);
+    void PaddedByBundleMgr(
+        int32_t userId, const std::vector<FullImeInfo> &imeInfos, std::vector<ImeEnabledInfo> &enabledInfos);
+    void PaddedByImePersistCfg(const ImePersistInfo &persistInfo, std::vector<ImeEnabledInfo> &enabledInfos);
+    int32_t GetImePersistCfg(int32_t userId, ImePersistInfo &persisInfo);
     std::mutex upgradedLock_;
     std::set<int32_t> upgradedUserId_;
 };

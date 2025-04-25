@@ -43,12 +43,16 @@ ohos_static_library("settings_data_static") {
   public_configs = [ ":settings_data_config" ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
-  deps = [ "${inputmethod_path}/services/json:imf_json_static" ]
+  deps = [
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+  ]
   external_deps = [
     "ability_base:zuri",
     "ability_runtime:dataobs_manager",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "eventhandler:libeventhandler",

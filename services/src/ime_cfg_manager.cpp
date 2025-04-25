@@ -15,6 +15,7 @@
 
 #include "ime_cfg_manager.h"
 #include "file_operator.h"
+#include "ime_enabled_info_manager.h"
 namespace OHOS {
 namespace MiscServices {
 namespace {
@@ -81,44 +82,26 @@ std::string ImeCfgManager::PackageImeCfg()
     }
     std::string content;
     auto ret = cfg.Marshall(content);
-    IMSA_HILOGD("ret: %{public}d, content: %{public}s, size: %{public}zu", ret, content.c_str(),
-        cfg.imePersistInfo.size());
+    IMSA_HILOGD(
+        "ret: %{public}d, content: %{public}s, size: %{public}zu", ret, content.c_str(), cfg.imePersistInfo.size());
     return content;
 }
 
 void ImeCfgManager::AddImeCfg(const ImePersistInfo &cfg)
 {
-    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    imeConfigs_.push_back(cfg);
-    WriteImeCfg();
+    ImeEnabledInfoManager::GetInstance().SetCurrentIme(
+        cfg.userId, cfg.currentIme, cfg.currentSubName, cfg.isDefaultImeSet);
 }
 
 void ImeCfgManager::ModifyImeCfg(const ImePersistInfo &cfg)
 {
-    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
-        [&cfg](const ImePersistInfo &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
-    if (it != imeConfigs_.end()) {
-        ImePersistInfo imePersistInfo;
-        imePersistInfo.userId = cfg.userId;
-        imePersistInfo.currentIme = it->tempScreenLockIme.empty() ? cfg.currentIme : it->currentIme;
-        imePersistInfo.currentSubName = it->tempScreenLockIme.empty() ? cfg.currentSubName : it->currentSubName;
-        imePersistInfo.tempScreenLockIme = it->tempScreenLockIme;
-        imePersistInfo.isDefaultImeSet = it->isDefaultImeSet ? true : cfg.isDefaultImeSet;
-        *it = imePersistInfo;
-    }
-    WriteImeCfg();
+    ImeEnabledInfoManager::GetInstance().SetCurrentIme(
+        cfg.userId, cfg.currentIme, cfg.currentSubName, cfg.isDefaultImeSet);
 }
 
 void ImeCfgManager::ModifyTempScreenLockImeCfg(int32_t userId, const std::string &ime)
 {
-    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
-        [userId, &ime](const ImePersistInfo &imeCfg) { return imeCfg.userId == userId; });
-    if (it != imeConfigs_.end()) {
-        it->tempScreenLockIme = ime;
-    }
-    WriteImeCfg();
+    ImeEnabledInfoManager::GetInstance().SetTmpIme(userId, ime);
 }
 
 void ImeCfgManager::DeleteImeCfg(int32_t userId)
@@ -136,8 +119,8 @@ void ImeCfgManager::DeleteImeCfg(int32_t userId)
 ImePersistInfo ImeCfgManager::GetImeCfg(int32_t userId)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
-        [userId](const ImePersistInfo &cfg) { return cfg.userId == userId; });
+    auto it = std::find_if(
+        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImePersistInfo &cfg) { return cfg.userId == userId; });
     if (it != imeConfigs_.end()) {
         return *it;
     }
@@ -146,28 +129,19 @@ ImePersistInfo ImeCfgManager::GetImeCfg(int32_t userId)
 
 std::shared_ptr<ImeNativeCfg> ImeCfgManager::GetCurrentImeCfg(int32_t userId)
 {
-    auto cfg = GetImeCfg(userId);
-    ImeNativeCfg info;
-    if (!cfg.tempScreenLockIme.empty()) {
-        info.imeId = cfg.tempScreenLockIme;
-    } else {
-        info.subName = cfg.currentSubName;
-        info.imeId = cfg.currentIme;
+    auto cfg = ImeEnabledInfoManager::GetInstance().GetCurrentImeCfg(userId);
+    if (cfg == nullptr) {
+        return std::make_shared<ImeNativeCfg>();
     }
-    auto pos = info.imeId.find('/');
-    if (pos != std::string::npos && pos + 1 < info.imeId.size()) {
-        info.bundleName = info.imeId.substr(0, pos);
-        info.extName = info.imeId.substr(pos + 1);
-    }
-    return std::make_shared<ImeNativeCfg>(info);
+    return cfg;
 }
 
 bool ImeCfgManager::IsDefaultImeSet(int32_t userId)
 {
     IMSA_HILOGI("ImeCfgManager::IsDefaultImeSet enter.");
-    auto cfg = GetImeCfg(userId);
-    IMSA_HILOGI("isDefaultImeSet: %{public}d", cfg.isDefaultImeSet);
-    return cfg.isDefaultImeSet;
+    auto ret = ImeEnabledInfoManager::GetInstance().IsDefaultImeSet(userId);
+    IMSA_HILOGI("isDefaultImeSet: %{public}d", ret);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

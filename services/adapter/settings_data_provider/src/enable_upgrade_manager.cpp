@@ -14,17 +14,20 @@
  */
 #include "enable_upgrade_manager.h"
 
+#include "file_operator.h"
+#include "ime_info_inquirer.h"
 #include "parameter.h"
 #include "settings_data_utils.h"
 namespace OHOS {
 namespace MiscServices {
+constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg.json";
 EnableUpgradeManager &EnableUpgradeManager::GetInstance()
 {
     static EnableUpgradeManager instance;
     return instance;
 }
 
-int32_t EnableUpgradeManager::Upgrade(int32_t userId)
+int32_t EnableUpgradeManager::Upgrade(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
 {
     std::lock_guard<std::mutex> lock(upgradedLock_);
     if (upgradedUserId_.count(userId)) {
@@ -50,8 +53,16 @@ int32_t EnableUpgradeManager::Upgrade(int32_t userId)
         && ret != ErrorCode::ERROR_EX_PARCELABLE) {
         return ret;
     }
-    std::string newContent;
-    MergeTwoTable(enabledBundleNames, fullModeBundleNames, newContent);
+    ImePersistInfo persisInfo;
+    ret = GetImePersistCfg(userId, persisInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    auto [result, newContent] =
+        GenerateNewUserEnabledTable(userId, enabledBundleNames, fullModeBundleNames, persisInfo, imeInfos);
+    if (result != ErrorCode::NO_ERROR) {
+        return result;
+    }
     if (!SetUserEnabledTable(userId, newContent)) {
         IMSA_HILOGE("%{public}d set enabled table failed.", userId);
         return ErrorCode::ERROR_ENABLE_IME;
@@ -150,8 +161,9 @@ int32_t EnableUpgradeManager::GetFullExperienceTable(int32_t userId, std::set<st
     return ErrorCode::NO_ERROR;
 }
 
-void EnableUpgradeManager::MergeTwoTable(const std::set<std::string> &enabledBundleNames,
-    const std::set<std::string> &fullModeBundleNames, std::string &newContent)
+std::pair<int32_t, std::string> EnableUpgradeManager::GenerateNewUserEnabledTable(int32_t userId,
+    const std::set<std::string> &enabledBundleNames, const std::set<std::string> &fullModeBundleNames,
+    const ImePersistInfo &persistInfo, const std::vector<FullImeInfo> &imeInfos)
 {
     ImeEnabledCfg cfg;
     cfg.version = GetDisplayVersion();
@@ -173,7 +185,33 @@ void EnableUpgradeManager::MergeTwoTable(const std::set<std::string> &enabledBun
         tmpInfo.enabledStatus = EnabledStatus::FULL_EXPERIENCE_MODE;
         cfg.enabledInfos.push_back(tmpInfo);
     }
+    PaddedByBundleMgr(userId, imeInfos, cfg.enabledInfos);
+    PaddedByImePersistCfg(persistInfo, cfg.enabledInfos);
+    std::string newContent;
     cfg.Marshall(newContent);
+    return std::make_pair(ErrorCode::NO_ERROR, newContent);
+}
+
+void EnableUpgradeManager::PaddedByBundleMgr(
+    int32_t userId, const std::vector<FullImeInfo> &imeInfos, std::vector<ImeEnabledInfo> &enabledInfos)
+{
+    IMSA_HILOGI("ime size, enabled:%{public}zu, installed:%{public}zu.", enabledInfos.size(), imeInfos.size());
+    for (const auto &info : imeInfos) {
+        auto iter = std::find_if(enabledInfos.begin(), enabledInfos.end(),
+            [&info](const ImeEnabledInfo &enabledInfoTmp) { return enabledInfoTmp.bundleName == info.prop.name; });
+        if (iter != enabledInfos.end()) {
+            IMSA_HILOGI("%{public}d/%{public}s:%{public}d before upgrade.", userId, info.prop.name.c_str(),
+                static_cast<int32_t>(iter->enabledStatus));
+            iter->extensionName = info.prop.id;
+            continue;
+        }
+        IMSA_HILOGI("%{public}d/%{public}s disabled before upgrade.", userId, info.prop.name.c_str());
+        ImeEnabledInfo infoTmp;
+        infoTmp.bundleName = info.prop.name;
+        infoTmp.extensionName = info.prop.id;
+        infoTmp.enabledStatus = EnabledStatus::DISABLED;
+        enabledInfos.emplace_back(infoTmp);
+    }
 }
 
 void EnableUpgradeManager::UpdateGlobalEnabledTable(int32_t userId, const std::vector<std::string> &bundleNames)
@@ -196,7 +234,13 @@ void EnableUpgradeManager::UpdateGlobalEnabledTable(int32_t userId, const std::v
         SetGlobalEnabledTable(newGlobalContent);
         return;
     }
-    ret = Upgrade(globalTableUserId);
+    std::vector<FullImeInfo> imeInfos;
+    ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(userId, imeInfos, true);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("%{public}d QueryFullImeInfo failed.", userId);
+        return;
+    }
+    ret = Upgrade(globalTableUserId, imeInfos);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("%{public}d Upgrade failed:%{public}d.", userId, ret);
         return;
@@ -253,6 +297,59 @@ bool EnableUpgradeManager::SetUserEnabledTable(int32_t userId, const std::string
 bool EnableUpgradeManager::SetEnabledTable(const std::string &uriProxy, const std::string &content)
 {
     return SettingsDataUtils::GetInstance()->SetStringValue(uriProxy, SettingsDataUtils::ENABLE_IME, content);
+}
+
+int32_t EnableUpgradeManager::GetImePersistCfg(int32_t userId, ImePersistInfo &persisInfo)
+{
+    if (!FileOperator::IsExist(IME_CFG_FILE_PATH)) {
+        IMSA_HILOGD("ime cfg file not found.");
+        return ErrorCode::NO_ERROR;
+    }
+    std::string content;
+    if (!FileOperator::Read(IME_CFG_FILE_PATH, content)) {
+        IMSA_HILOGE("failed to read persist info!");
+        return ErrorCode::ERROR_PERSIST_CONFIG;
+    }
+    IMSA_HILOGI("content: %{public}s", content.c_str());
+    ImePersistCfg cfg;
+    if (!cfg.Unmarshall(content)) {
+        IMSA_HILOGE("Unmarshall failed!");
+        return ErrorCode::NO_ERROR;
+    }
+    auto iter = std::find_if(cfg.imePersistInfo.begin(), cfg.imePersistInfo.end(),
+        [userId](const auto &infoTmp) { return infoTmp.userId == userId; });
+    if (iter != cfg.imePersistInfo.end()) {
+        persisInfo = *iter;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+void EnableUpgradeManager::PaddedByImePersistCfg(
+    const ImePersistInfo &persistInfo, std::vector<ImeEnabledInfo> &enabledInfos)
+{
+    std::string defaultBundleName;
+    auto pos = persistInfo.currentIme.find('/');
+    if (pos != std::string::npos && pos + 1 < persistInfo.currentIme.size()) {
+        defaultBundleName = persistInfo.currentIme.substr(0, pos);
+    }
+    auto iter = std::find_if(enabledInfos.begin(), enabledInfos.end(),
+        [&defaultBundleName](const auto &infoTmp) { return infoTmp.bundleName == defaultBundleName; });
+    if (iter != enabledInfos.end()) {
+        iter->extraInfo.isDefaultIme = true;
+        iter->extraInfo.isDefaultImeSet = persistInfo.isDefaultImeSet;
+        iter->extraInfo.currentSubName = persistInfo.currentSubName;
+    }
+
+    std::string defaultTmpBundleName;
+    pos = persistInfo.tempScreenLockIme.find('/');
+    if (pos != std::string::npos && pos + 1 < persistInfo.tempScreenLockIme.size()) {
+        defaultTmpBundleName = persistInfo.tempScreenLockIme.substr(0, pos);
+    }
+    iter = std::find_if(enabledInfos.begin(), enabledInfos.end(),
+        [&defaultTmpBundleName](const auto &infoTmp) { return infoTmp.bundleName == defaultTmpBundleName; });
+    if (iter != enabledInfos.end()) {
+        iter->extraInfo.isTmpDefaultIme = true;
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

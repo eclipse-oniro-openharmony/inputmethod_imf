@@ -198,7 +198,6 @@ private:
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
 
-    std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;

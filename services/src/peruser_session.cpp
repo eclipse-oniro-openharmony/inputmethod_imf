@@ -22,6 +22,7 @@
 #include "ability_manager_client.h"
 #include "full_ime_info_manager.h"
 #include "identity_checker_impl.h"
+#include "im_common_event_manager.h"
 #include "ime_connection.h"
 #include "ime_enabled_info_manager.h"
 #include "ime_info_inquirer.h"
@@ -696,6 +697,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
     auto imeType = ImeType::IME;
     auto clientInfo = GetCurrentClientInfo();
     if (clientInfo != nullptr && IsImeStartInBind(clientInfo->bindImeType, imeType)) {
+        ClearRequestKeyboardReason(clientInfo);
         BindClientWithIme(clientInfo, imeType);
         SetInputType();
     }
@@ -1100,9 +1102,9 @@ bool PerUserSession::CanStartIme()
 {
     return (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() &&
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
-    IsSaReady(SCREENLOCK_SERVICE_ID) &&
+            IsSaReady(SCREENLOCK_SERVICE_ID) &&
 #endif
-    runningIme_.empty();
+            runningIme_.empty() && ImCommonEventManager::IsBundleScanFinished());
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
@@ -2212,5 +2214,11 @@ bool PerUserSession::IsDefaultDisplayGroup(uint64_t displayId)
 {
     return GetDisplayGroupId(displayId) == DEFAULT_DISPLAY_ID;
 }
+
+void PerUserSession::ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo)
+{
+    clientInfo->requestKeyboardReason = RequestKeyboardReason::NONE;
+}
+
 } // namespace MiscServices
 } // namespace OHOS

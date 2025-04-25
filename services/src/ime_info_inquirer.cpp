@@ -15,7 +15,7 @@
 
 #include "ime_info_inquirer.h"
 #include "app_mgr_client.h"
-#include "bundle_mgr_client_impl.h"
+#include "bundle_mgr_client.h"
 #include "full_ime_info_manager.h"
 #include "ime_enabled_info_manager.h"
 #include "input_type_manager.h"
@@ -24,6 +24,7 @@
 #include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
+#include "singleton.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -358,7 +359,12 @@ int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int3
         IMSA_HILOGE("bundle manager error!");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    uint32_t nextIndex = (cacheCount + static_cast<uint32_t>(std::distance(props.begin(), iter))) % props.size();
+    uint32_t currentIndex = static_cast<uint32_t>(std::distance(props.begin(), iter));
+    uint32_t nextIndex = (cacheCount + currentIndex) % props.size();
+    if (nextIndex == currentIndex) {
+        IMSA_HILOGD("no need to switch!");
+        return ErrorCode::NO_ERROR;
+    }
     switchInfo.bundleName = props[nextIndex].name;
     IMSA_HILOGD("next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
@@ -564,9 +570,9 @@ int32_t ImeInfoInquirer::ParseSubtype(const OHOS::AppExecFwk::ExtensionAbilityIn
         IMSA_HILOGE("find metadata name: SUBTYPE_PROFILE_METADATA_NAME failed!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    OHOS::AppExecFwk::BundleMgrClientImpl clientImpl;
+    OHOS::AppExecFwk::BundleMgrClient client;
     std::vector<std::string> profiles;
-    if (!clientImpl.GetResConfigFile(extInfo, iter->name, profiles)) {
+    if (!client.GetResConfigFile(extInfo, iter->name, profiles)) {
         IMSA_HILOGE("failed to GetProfileFromExtension!");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
@@ -966,7 +972,7 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::ve
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfo, bool needSubProps)
+int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfo, bool needBrief)
 {
     std::vector<ExtensionAbilityInfo> extInfos;
     auto ret = ImeInfoInquirer::GetInstance().QueryImeExtInfos(userId, extInfos);
@@ -989,7 +995,7 @@ int32_t ImeInfoInquirer::QueryFullImeInfo(int32_t userId, std::vector<FullImeInf
 
     for (const auto &extInfo : tempExtInfos) {
         FullImeInfo info;
-        auto errNo = GetFullImeInfo(userId, extInfo.second, info, needSubProps);
+        auto errNo = GetFullImeInfo(userId, extInfo.second, info, needBrief);
         if (errNo != ErrorCode::NO_ERROR) {
             return errNo;
         }
@@ -1018,19 +1024,10 @@ int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId, const std::string &bundl
 }
 
 int32_t ImeInfoInquirer::GetFullImeInfo(
-    int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo, bool needSubProps)
+    int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo, bool needBrief)
 {
     if (extInfos.empty()) {
         return ErrorCode::ERROR_PACKAGE_MANAGER;
-    }
-    if (needSubProps) {
-        imeInfo.isNewIme = IsNewExtInfos(extInfos);
-        auto ret = imeInfo.isNewIme ? ListInputMethodSubtype(userId, extInfos[0], imeInfo.subProps)
-                                    : ListInputMethodSubtype(userId, extInfos, imeInfo.subProps);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("[%{public}d,%{public}s] list Subtype failed!", userId, extInfos[0].bundleName.c_str());
-            return ret;
-        }
     }
     imeInfo.tokenId = extInfos[0].applicationInfo.accessTokenId;
     imeInfo.prop.name = extInfos[0].bundleName;
@@ -1038,14 +1035,21 @@ int32_t ImeInfoInquirer::GetFullImeInfo(
     imeInfo.prop.label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId);
     imeInfo.prop.labelId = extInfos[0].applicationInfo.labelId;
     imeInfo.prop.iconId = extInfos[0].applicationInfo.iconId;
-    BundleInfo bundleInfo;
-    if (!GetBundleInfoByBundleName(userId, imeInfo.prop.name, bundleInfo)) {
-        IMSA_HILOGE("[%{public}d,%{public}s] GetBundleInfoByBundleName failed!", userId, imeInfo.prop.name.c_str());
-        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    if (needBrief) {
+        return ErrorCode::NO_ERROR;
     }
-    imeInfo.appId = bundleInfo.signatureInfo.appIdentifier;
-    imeInfo.versionCode = bundleInfo.versionCode;
-    imeInfo.installTime = std::to_string(bundleInfo.installTime);
+    imeInfo.isNewIme = IsNewExtInfos(extInfos);
+    auto ret = imeInfo.isNewIme ? ListInputMethodSubtype(userId, extInfos[0], imeInfo.subProps)
+                                : ListInputMethodSubtype(userId, extInfos, imeInfo.subProps);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("[%{public}d,%{public}s] list Subtype failed!", userId, extInfos[0].bundleName.c_str());
+        return ret;
+    }
+    BundleInfo bundleInfo;
+    if (GetBundleInfoByBundleName(userId, imeInfo.prop.name, bundleInfo)) {
+        imeInfo.appId = bundleInfo.signatureInfo.appIdentifier;
+        imeInfo.versionCode = bundleInfo.versionCode;
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1081,8 +1085,12 @@ std::vector<std::string> ImeInfoInquirer::GetRunningIme(int32_t userId)
 {
     std::vector<std::string> bundleNames;
     std::vector<RunningProcessInfo> infos;
-    AppMgrClient client;
-    auto ret = client.GetProcessRunningInfosByUserId(infos, userId);
+    auto appMgrClient = DelayedSingleton<AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        IMSA_HILOGE("appMgrClient is nullptr.");
+        return bundleNames;
+    }
+    auto ret = appMgrClient->GetProcessRunningInfosByUserId(infos, userId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("GetAllRunningProcesses failed, ret: %{public}d!", ret);
         return bundleNames;
@@ -1181,8 +1189,12 @@ std::string ImeInfoInquirer::GetTargetString(
 bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
 {
     RunningProcessInfo info;
-    AppMgrClient client;
-    client.GetRunningProcessInfoByPid(pid, info);
+    auto appMgrClient = DelayedSingleton<AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        IMSA_HILOGE("appMgrClient is nullptr.");
+        return false;
+    }
+    appMgrClient->GetRunningProcessInfoByPid(pid, info);
     return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
 }
 } // namespace MiscServices
