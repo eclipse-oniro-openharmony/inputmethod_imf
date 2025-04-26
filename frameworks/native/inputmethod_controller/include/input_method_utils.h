@@ -361,6 +361,7 @@ public:
     double positionY = 0;
     double height = 0;
     Value commandValue;
+    RequestKeyboardReason requestKeyboardReason = RequestKeyboardReason::NONE;
 
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;

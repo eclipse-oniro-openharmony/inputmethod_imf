@@ -98,6 +98,7 @@ bool TextTotalConfigInner::ReadFromParcel(Parcel &in)
             return false;
         }
     commandValue = *commandValueInfo;
+    requestKeyboardReason = static_cast<RequestKeyboardReason>(in.ReadInt32());
     return true;
 }
 
@@ -291,6 +292,11 @@ bool TextTotalConfigInner::Marshalling(Parcel &out) const
     if (!out.WriteParcelable(&commandValue)) {
         return false;
     }
+
+    if (!out.WriteInt32(static_cast<int32_t>(requestKeyboardReason))) {
+        return false;
+    }
+
     return true;
 }
 
