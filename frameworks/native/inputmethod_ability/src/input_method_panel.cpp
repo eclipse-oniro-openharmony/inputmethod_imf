@@ -375,10 +375,6 @@ int32_t InputMethodPanel::StartMoving()
         IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_IME;
     }
-    if (panelType_ != STATUS_BAR) {
-        IMSA_HILOGE("SOFT_KEYBOARD panel can not move!");
-        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
-    }
     if (panelFlag_ != FLG_FLOATING) {
         IMSA_HILOGE("invalid panel flag: %{public}d", panelFlag_);
         return ErrorCode::ERROR_INVALID_PANEL_FLAG;
