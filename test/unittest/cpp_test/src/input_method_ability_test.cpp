@@ -495,6 +495,11 @@ HWTEST_F(InputMethodAbilityTest, testSendFunctionKey, TestSize.Level0)
     auto ret = inputMethodAbility_->SendFunctionKey(funcKey);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendFunctionKey(funcKey));
+
+    TextListener::ResetParam();
+    ret = InputMethodAbilityInterface::GetInstance().SendFunctionKey(funcKey);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitSendFunctionKey(funcKey));
 }
 
 /**
@@ -585,6 +590,11 @@ HWTEST_F(InputMethodAbilityTest, testGetTextConfig, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(textTotalConfig.inputAttribute.inputPattern, textConfig.inputAttribute.inputPattern);
     EXPECT_EQ(textTotalConfig.inputAttribute.enterKeyType, textConfig.inputAttribute.enterKeyType);
+
+    InputAttribute inputAttribute;
+    ret = InputMethodAbilityInterface::GetInstance().GetInputAttribute(inputAttribute);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(inputAttribute, textConfig.inputAttribute);
 }
 
 /**

@@ -782,7 +782,7 @@ int32_t InputMethodAbility::GetTextIndexAtCursorInner(int32_t &index)
 
 int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
 {
-    IMSA_HILOGD("InputMethodAbility start.");
+    IMSA_HILOGI("InputMethodAbility start.");
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
@@ -790,8 +790,8 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
     }
     TextTotalConfigInner textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
     auto ret = channel->GetTextConfig(textConfigInner);
-    textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
     if (ret == ErrorCode::NO_ERROR) {
+        textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
         textConfig.inputAttribute.windowId = textConfig.windowId;
