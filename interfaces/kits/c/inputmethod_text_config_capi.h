@@ -137,7 +137,7 @@ InputMethod_ErrorCode OH_TextConfig_SetWindowId(InputMethod_TextConfig *config, 
  *
  * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
  * @param placeholder The placeholder, which is defined in {@link InputMethod_TextConfig}.
- *     Cannot exceed 256 UTF-16 encoded characters.
+ *     Cannot exceed 255 UTF-16 encoded characters.
  * @param length The size of placeholder. Counting unit char16_t.
  *     The length, which is defined in {@link InputMethod_TextConfig}.
  * @return Returns a specific error code.
@@ -151,11 +151,11 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
     size_t length);
 
 /**
- * @brief Set placeholder into TextConfig.
+ * @brief Set ability name into TextConfig.
  *
  * @param config Represents a pointer to an {@link InputMethod_TextConfig} instance which will be set.
  * @param abilityName The abilityName, which is defined in {@link InputMethod_TextConfig}.
- *     Cannot exceed 256 UTF-16 encoded characters.
+ *     Cannot exceed 127 UTF-16 encoded characters.
  * @param length The size of abilityName. Counting unit char16_t.
  *     The length, which is defined in {@link InputMethod_TextConfig}.
  * @return Returns a specific error code.

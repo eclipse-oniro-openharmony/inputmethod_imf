@@ -16,7 +16,6 @@
 #ifndef SERVICES_INCLUDE_INPUT_ATTRIBUTE_H
 #define SERVICES_INCLUDE_INPUT_ATTRIBUTE_H
 
-#include <codecvt>
 #include <cstdint>
 #include <sstream>
 

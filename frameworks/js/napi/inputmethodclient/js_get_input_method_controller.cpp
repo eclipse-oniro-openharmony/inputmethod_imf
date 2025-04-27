@@ -813,9 +813,11 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, InputAttr
     auto ret = JsUtil::Object::ReadProperty(env, in, "textInputType", out.inputPattern);
     ret = ret && JsUtil::Object::ReadProperty(env, in, "enterKeyType", out.enterKeyType);
     // compatibility with older versions may not exist
-    JsUtil::Object::ReadProperty(env, in, "placeholder", out.placeholder);
+    JsUtil::Object::ReadPropertyU16String(env, in, "placeholder", out.placeholder);
+    IMSA_HILOGD("placeholder:%{public}s", JsUtil::ToHex(out.placeholder).c_str());
     // compatibility with older versions may not exist
-    JsUtil::Object::ReadProperty(env, in, "abilityName", out.abilityName);
+    JsUtil::Object::ReadPropertyU16String(env, in, "abilityName", out.abilityName);
+    IMSA_HILOGD("abilityName:%{public}s", JsUtil::ToHex(out.abilityName).c_str());
     return ret;
 }
 

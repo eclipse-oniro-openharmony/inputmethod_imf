@@ -139,6 +139,7 @@ public:
     template<typename T, typename... Types>
     static bool Unmarshal(MessageParcel &parcel, T &first, Types &...others);
     static int32_t CountUtf16Chars(const std::u16string &in);
+    static void TruncateUtf16String(std::u16string &in, int32_t maxChars);
 };
 
 template<class T>

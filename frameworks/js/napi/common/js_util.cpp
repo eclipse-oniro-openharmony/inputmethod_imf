@@ -15,6 +15,9 @@
 
 #include "js_util.h"
 
+#include <iomanip>
+#include <sstream>
+
 #include "string_ex.h"
 
 namespace OHOS {
@@ -114,6 +117,51 @@ napi_value JsUtil::GetValue(napi_env env, bool in)
     napi_value out = nullptr;
     napi_get_boolean(env, in, &out);
     return out;
+}
+
+napi_value JsUtil::GetValueU16String(napi_env env, const std::u16string &in)
+{
+    napi_value out = nullptr;
+    napi_create_string_utf16(env, in.c_str(), in.length(), &out);
+    return out;
+}
+
+std::string JsUtil::ToHex(const std::string &in)
+{
+    std::stringstream ss;
+    if (in.size() < 1) {
+        return "";
+    }
+    for (size_t i = 0; i < in.size(); i++) {
+        ss << "0x" << std::uppercase << std::hex << std::setw(sizeof(uint8_t))
+        << std::setfill('0') << static_cast<uint8_t>(in.at(i));
+    }
+    return ss.str();
+}
+
+std::string JsUtil::ToHex(const std::u16string &in)
+{
+    std::stringstream ss;
+    if (in.size() < 1) {
+        return "";
+    }
+    for (size_t i = 0; i < in.size(); i++) {
+        ss << "0x" << std::uppercase << std::hex << std::setw(sizeof(char16_t)) << std::setfill('0') << in.at(i);
+    }
+    return ss.str();
+}
+
+bool JsUtil::GetValueU16String(napi_env env, napi_value in, std::u16string &out)
+{
+    size_t size = 0;
+    auto status = napi_get_value_string_utf16(env, in, nullptr, 0, &size);
+    if (status != napi_ok) {
+        return false;
+    }
+    out.resize(size + 1, 0);
+    status = napi_get_value_string_utf16(env, in, out.data(), size + 1, &size);
+    out.resize(size);
+    return status == napi_ok;
 }
 } // namespace MiscServices
 } // namespace OHOS

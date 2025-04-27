@@ -18,6 +18,7 @@
 #include "global.h"
 #include "iremote_object.h"
 #include "unicode/ustring.h"
+#include "unicode/unistr.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -564,6 +565,32 @@ int32_t ITypesUtil::CountUtf16Chars(const std::u16string &in)
     int32_t ret = u_countChar32(in.data(), in.size());
     IMSA_HILOGD("size:%{public}zu,ret:%{public}d", in.size(), ret);
     return ret;
+}
+
+void ITypesUtil::TruncateUtf16String(std::u16string &in, int32_t maxChars)
+{
+    const UChar* src = in.data();
+    size_t srcLen = in.size();
+    size_t offset = 0;
+    int32_t count = 0;
+    if (maxChars < 0  || srcLen <= maxChars) {
+        IMSA_HILOGD("srcLen:%{public}zu,maxChars:%{public}d", srcLen, maxChars);
+        return;
+    }
+    while (offset < srcLen && count < maxChars) {
+        UChar32 c;
+        U16_NEXT(src, offset, srcLen, c);
+        if (c == U_SENTINEL) {
+            break;
+        }
+        count++;
+    }
+    IMSA_HILOGD("srcLen:%{public}zu,maxChars:%{public}d,resultLen:%{public}zu", srcLen, maxChars, offset);
+    if (count >= maxChars && offset < srcLen - 1) {
+        IMSA_HILOGI("chars length exceeds limit,maxChars:%{public}d,offset:%{public}zu", maxChars, offset);
+        in.resize(offset);
+    }
+    return;
 }
 } // namespace MiscServices
 } // namespace OHOS

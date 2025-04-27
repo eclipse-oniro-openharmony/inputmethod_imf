@@ -34,6 +34,9 @@ public:
     static bool GetValue(napi_env env, napi_value in, int64_t &out);
     static bool GetValue(napi_env env, napi_value in, bool &out);
     static bool GetValue(napi_env env, napi_value in, double &out);
+    static bool GetValueU16String(napi_env env, napi_value in, std::u16string &out);
+    static std::string ToHex(const std::string &in);
+    static std::string ToHex(const std::u16string &in);
     template<typename T>
     static bool GetValue(napi_env env, napi_value in, std::vector<T> &items)
     {
@@ -59,6 +62,7 @@ public:
     static napi_value GetValue(napi_env env, uint32_t in);
     static napi_value GetValue(napi_env env, int64_t in);
     static napi_value GetValue(napi_env env, bool in);
+    static napi_value GetValueU16String(napi_env env, const std::u16string &in);
     template<typename T>
     static napi_value GetValue(napi_env env, const std::vector<T> &items)
     {
@@ -93,6 +97,24 @@ public:
             napi_value propValue = nullptr;
             napi_get_named_property(env, object, property.c_str(), &propValue);
             return GetValue(env, propValue, value);
+        }
+
+        static bool ReadPropertyU16String(napi_env env, napi_value object, const std::string &property,
+            std::u16string &value)
+        {
+            napi_value propValue = nullptr;
+            napi_status status = napi_get_named_property(env, object, property.c_str(), &propValue);
+            if (status != napi_ok) {
+                value = u"";
+                return false;
+            }
+            return GetValueU16String(env, propValue, value);
+        }
+
+        static bool WritePropertyU16String(napi_env env, napi_value object, const std::string &property,
+            const std::u16string &value)
+        {
+            return napi_set_named_property(env, object, property.c_str(), GetValueU16String(env, value)) == napi_ok;
         }
     };
     class Const {
