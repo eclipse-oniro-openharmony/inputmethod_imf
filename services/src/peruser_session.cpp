@@ -505,12 +505,12 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
 bool PerUserSession::IsProxyImeEnable()
 {
     auto data = GetReadyImeData(ImeType::PROXY_IME);
-    bool ret;
+    bool ret = false;
     if (data == nullptr || data->core == nullptr) {
         return false;
     }
     data->core->IsEnable(ret);
-    return data != nullptr && data->core != nullptr && ret;
+    return ret;
 }
 
 int32_t PerUserSession::OnStartInput(

@@ -471,7 +471,7 @@ void JsKeyboardDelegateSetting::OnKeyEventConsumeResult(bool isConsumed, sptr<Ke
     IMSA_HILOGI("result: %{public}d.", isConsumed);
     keyEventConsume_ = true;
     keyEventResult_ = isConsumed;
-    if (keyEventConsume_ && keyCodeConsume_) {
+    if (keyCodeConsume_) {
         consumer->OnKeyEventResult(keyCodeResult_ || keyEventResult_);
         keyEventConsume_ = false;
         keyEventResult_ = false;
@@ -483,7 +483,7 @@ void JsKeyboardDelegateSetting::OnKeyCodeConsumeResult(bool isConsumed, sptr<Key
     IMSA_HILOGI("result: %{public}d.", isConsumed);
     keyCodeConsume_ = true;
     keyCodeResult_ = isConsumed;
-    if (keyEventConsume_ && keyCodeConsume_) {
+    if (keyEventConsume_) {
         consumer->OnKeyEventResult(keyCodeResult_ || keyEventResult_);
         keyCodeConsume_ = false;
         keyCodeResult_ = false;
