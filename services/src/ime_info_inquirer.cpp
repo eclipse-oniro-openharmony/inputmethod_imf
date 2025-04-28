@@ -1230,5 +1230,10 @@ bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
     appMgrClient->GetRunningProcessInfoByPid(pid, info);
     return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
 }
+
+bool ImeInfoInquirer::IsDefaultImeScreen(std::string screenName)
+{
+    return systemConfig_.defaultImeScreenList.find(screenName) != systemConfig_.defaultImeScreenList.end();
+}
 } // namespace MiscServices
 } // namespace OHOS

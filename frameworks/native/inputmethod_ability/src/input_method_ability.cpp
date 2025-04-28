@@ -261,7 +261,8 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     IMSA_HILOGI("IMA showKeyboard:%{public}d,bindFromClient:%{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
-    if (clientInfo.needHide && !isProxyIme_.load()) {
+    if ((clientInfo.needHide && !isProxyIme_.load()) ||
+        IsDisplayChanged(inputAttribute_.callingDisplayId, clientInfo.config.inputAttribute.callingDisplayId)) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
         auto panel = GetSoftKeyboardPanel();
         if (panel != nullptr) {
@@ -300,6 +301,25 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     TaskManager::GetInstance().WaitExec(seqId, START_INPUT_CALLBACK_TIMEOUT_MS, showPanel);
     return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodAbility::IsDisplayChanged(uint64_t oldDisplayId, uint64_t newDisplayId)
+{
+    if (oldDisplayId == newDisplayId) {
+        IMSA_HILOGD("screen not changed!");
+        return false;
+    }
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("imsa proxy is nullptr!");
+        return false;
+    }
+    bool ret = false;
+    proxy->IsDefaultImeScreen(oldDisplayId, ret);
+    if (!ret) {
+        proxy->IsDefaultImeScreen(newDisplayId, ret);
+    }
+    return ret;
 }
 
 void InputMethodAbility::OnSetSubtype(SubProperty subProperty)

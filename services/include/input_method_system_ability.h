@@ -91,6 +91,7 @@ public:
     int32_t RegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
     int32_t UnregisterProxyIme(uint64_t displayId) override;
+    ErrCode IsDefaultImeScreen(uint64_t displayId, bool &resultValue) override;
 
 protected:
     void OnStart() override;
@@ -211,6 +212,7 @@ private:
     bool isChangeHandling_ = false;
     bool hasPendingChanges_ = false;
     void ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo);
+    bool IsDefaultImeScreen(uint64_t displayId);
 };
 } // namespace MiscServices
 } // namespace OHOS
