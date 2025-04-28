@@ -585,8 +585,9 @@ void ITypesUtil::TruncateUtf16String(std::u16string &in, int32_t maxChars)
         }
         count++;
     }
-    IMSA_HILOGD("srcLen:%{public}zu,maxChars:%{public}d,resultLen:%{public}zu", srcLen, maxChars, offset);
-    if (count >= maxChars && offset < srcLen - 1) {
+    IMSA_HILOGD("srcLen:%{public}zu,maxChars:%{public}d,resultLen:%{public}zu,count:%{public}d",
+        srcLen, maxChars, offset, count);
+    if (offset < srcLen) {
         IMSA_HILOGI("chars length exceeds limit,maxChars:%{public}d,offset:%{public}zu", maxChars, offset);
         in.resize(offset);
     }
