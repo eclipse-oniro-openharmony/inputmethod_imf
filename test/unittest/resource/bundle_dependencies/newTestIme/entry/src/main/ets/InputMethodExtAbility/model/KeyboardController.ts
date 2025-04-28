@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-import commonEventManager from '@ohos.commonEventManager';
 import inputMethodEngine from '@ohos.inputMethodEngine'
-import { JSON } from '@kit.ArkTS';
 
 globalThis.inputEngine = inputMethodEngine.getInputMethodAbility()
 
@@ -41,8 +39,6 @@ export class KeyboardController {
         globalThis.inputEngine.on('inputStart', (kbController, textInputClient) => {
             globalThis.textInputClient = textInputClient;
             globalThis.keyboardController = kbController;
-            let attr = textInputClient.getEditorAttributeSync();
-            this.publishCommonEvent(attr);
         })
         globalThis.inputEngine.on('inputStop', (imeId) => {
             this.addLog("[inputDemo] inputStop:" + imeId);
@@ -71,22 +67,5 @@ export class KeyboardController {
     private addLog(message): void {
         console.log(this.TAG + message)
     }
-
-    public publishCommonEvent(editorAttrbute: inputMethodEngine.EditorAttribute): void {
-        let event: string = 'EditorAttributeChangedTest'
-        this.addLog(`[EditorAttributeChangedTest] publish event, event= ${event}, editorAttrbute= ${editorAttrbute}`);
-        let options:CommonEventManager.CommonEventPublishData = {
-            code: 0,
-            data: JSON.stringify(editorAttrbute),
-            isOrdered: true
-        };
-        commonEventManager.publish(event, options, (err) => {
-        if (err) {
-            this.addLog(`EditorAttributeChangedTest publish ${event} failed, err = ${JSON.stringify(err)}`);
-        } else {
-            this.addLog(`EditorAttributeChangedTest publish ${event} success`);
-        }
-        })
-  }
 }
 

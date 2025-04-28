@@ -102,23 +102,27 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         config->placeholder[0] = UTF16_ENDING_SYMBOL;
         return IME_ERR_OK;
     }
-    if (length > MAX_PLACEHOLDER_INPUT_SIZE) {
+    if (length > MAX_PLACEHOLDER_INPUT_SIZE + 1) {
         IMSA_HILOGW("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
-            MAX_PLACEHOLDER_INPUT_SIZE);
-        length = MAX_PLACEHOLDER_INPUT_SIZE;
+            MAX_PLACEHOLDER_INPUT_SIZE + 1);
+        length = MAX_PLACEHOLDER_INPUT_SIZE + 1;
     }
     std::u16string u16Placeholder(placeholder, length);
     ITypesUtil::TruncateUtf16String(u16Placeholder, MAX_PLACEHOLDER_SIZE);
-    if (u16Placeholder[u16Placeholder.size() - 1] != UTF16_ENDING_SYMBOL) {
-        u16Placeholder.push_back(UTF16_ENDING_SYMBOL);
-    }
-    errno_t err = memcpy_s(config->placeholder, MAX_PLACEHOLDER_INPUT_SIZE * sizeof(char16_t),
+    IMSA_HILOGD("memcpy_s begin dest len:%{public}zu, src len:%{public}zu",
+        MAX_PLACEHOLDER_INPUT_SIZE + 1, u16Placeholder.size());
+    errno_t err = memcpy_s(config->placeholder, (MAX_PLACEHOLDER_INPUT_SIZE + 1) * sizeof(char16_t),
         u16Placeholder.data(), u16Placeholder.size() * sizeof(char16_t));
     if (err != EOK) {
         IMSA_HILOGE("placeholder content copy error:%{public}d", (int32_t)err);
         return IME_ERR_NULL_POINTER;
     }
     config->placeholderLength = u16Placeholder.size();
+    if (config->placeholder[config->placeholderLength - 1] != UTF16_ENDING_SYMBOL &&
+        config->placeholderLength < MAX_PLACEHOLDER_INPUT_SIZE) {
+        config->placeholder[config->placeholderLength] = UTF16_ENDING_SYMBOL;
+        config->placeholderLength = config->placeholderLength + 1;
+    }
     IMSA_HILOGD("placeholderLength:%{public}zu,length:%{public}zu,lastChar16_t:%{public}u",
         config->placeholderLength, length, static_cast<uint32_t>(placeholder[u16Placeholder.size() - 1]));
     return IME_ERR_OK;
@@ -141,23 +145,27 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
         config->abilityName[0] = UTF16_ENDING_SYMBOL;
         return IME_ERR_OK;
     }
-    if (length > MAX_ABILITY_NAME_INPUT_SIZE) {
+    if (length > MAX_ABILITY_NAME_INPUT_SIZE + 1) {
         IMSA_HILOGW("chars length exceeds limit inputLen:%{public}zu, limit len:%{public}zu", length,
-            MAX_ABILITY_NAME_INPUT_SIZE);
-        length = MAX_ABILITY_NAME_INPUT_SIZE;
+            MAX_ABILITY_NAME_INPUT_SIZE + 1);
+        length = MAX_ABILITY_NAME_INPUT_SIZE + 1;
     }
     std::u16string u16abilityName(abilityName, length);
     ITypesUtil::TruncateUtf16String(u16abilityName, MAX_ABILITY_NAME_SIZE);
-    if (u16abilityName[u16abilityName.size() - 1] != UTF16_ENDING_SYMBOL) {
-        u16abilityName.push_back(UTF16_ENDING_SYMBOL);
-    }
-    errno_t err = memcpy_s(config->abilityName, MAX_ABILITY_NAME_INPUT_SIZE * sizeof(char16_t),
+    IMSA_HILOGD("memcpy_s begin dest len:%{public}zu, src len:%{public}zu",
+        MAX_ABILITY_NAME_INPUT_SIZE + 1, u16abilityName.size());
+    errno_t err = memcpy_s(config->abilityName, (MAX_ABILITY_NAME_INPUT_SIZE + 1) * sizeof(char16_t),
         u16abilityName.data(), u16abilityName.size() * sizeof(char16_t));
     if (err != EOK) {
         IMSA_HILOGE("abilityName content copy error:%{public}d", (int32_t)err);
         return IME_ERR_NULL_POINTER;
     }
     config->abilityNameLength = u16abilityName.size();
+    if (config->abilityName[config->abilityNameLength - 1] != UTF16_ENDING_SYMBOL &&
+        config->abilityNameLength < MAX_ABILITY_NAME_INPUT_SIZE) {
+        config->abilityName[config->abilityNameLength] = UTF16_ENDING_SYMBOL;
+        config->abilityNameLength = config->abilityNameLength + 1;
+    }
     IMSA_HILOGD("abilityNameLength:%{public}zu,length:%{public}zu,lastChar16_t:%{public}u",
         config->abilityNameLength, length, static_cast<uint32_t>(abilityName[u16abilityName.size() - 1]));
     return IME_ERR_OK;

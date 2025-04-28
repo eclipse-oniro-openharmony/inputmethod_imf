@@ -52,9 +52,9 @@ struct InputMethod_TextConfig {
     int32_t selectionStart;
     int32_t selectionEnd;
     int32_t windowId;
-    char16_t placeholder[MAX_PLACEHOLDER_INPUT_SIZE];
+    char16_t placeholder[MAX_PLACEHOLDER_INPUT_SIZE + 1];
     size_t placeholderLength = 1;
-    char16_t abilityName[MAX_ABILITY_NAME_INPUT_SIZE];
+    char16_t abilityName[MAX_ABILITY_NAME_INPUT_SIZE + 1];
     size_t abilityNameLength = 1;
 };
 
