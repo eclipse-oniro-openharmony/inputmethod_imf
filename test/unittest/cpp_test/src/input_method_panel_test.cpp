@@ -1903,7 +1903,7 @@ HWTEST_F(InputMethodPanelTest, testStartMoving01, TestSize.Level0)
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->StartMoving();
-    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_FLAG);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
