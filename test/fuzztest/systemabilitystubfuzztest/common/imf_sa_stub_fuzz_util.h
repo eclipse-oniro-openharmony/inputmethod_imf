@@ -38,6 +38,7 @@ private:
     static void InitKeyboardDelegate();
     static void Initialize();
     static void GrantNativePermission();
+    static bool SwitchIpcCode(IInputMethodSystemAbilityIpcCode code, MessageParcel &datas);
     static bool isInitialize_;
     static std::mutex initMutex_;
 };
