@@ -107,6 +107,7 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
             MAX_PLACEHOLDER_INPUT_SIZE);
         length = MAX_PLACEHOLDER_INPUT_SIZE;
     }
+    std::u16string u16Placeholder(placeholder, length);
     ITypesUtil::TruncateUtf16String(u16Placeholder, MAX_PLACEHOLDER_SIZE);
     if (u16Placeholder[u16Placeholder.size() - 1] != UTF16_ENDING_SYMBOL) {
         u16Placeholder.push_back(UTF16_ENDING_SYMBOL);
