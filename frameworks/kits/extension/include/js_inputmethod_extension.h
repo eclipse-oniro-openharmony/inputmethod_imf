@@ -146,6 +146,8 @@ private:
 
     void ListenWindowManager();
 
+    void InitDisplayCache();
+
     JsRuntime &jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_;
     std::shared_ptr<NativeReference> shellContextRef_ = nullptr;
