@@ -1023,8 +1023,8 @@ int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId, const std::string &bundl
     return GetFullImeInfo(userId, tempExtInfos, imeInfo);
 }
 
-int32_t ImeInfoInquirer::GetFullImeInfo(
-    int32_t userId, const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo, bool needBrief)
+int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId,
+    const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, FullImeInfo &imeInfo, bool needBrief)
 {
     if (extInfos.empty()) {
         return ErrorCode::ERROR_PACKAGE_MANAGER;

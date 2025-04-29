@@ -168,8 +168,6 @@ private:
     int32_t CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId);
     void DealSwitchRequest();
-    void DealSecurityChange(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
-    void OnSecurityModeChange(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
     bool IsCurrentIme(int32_t userId);
     int32_t StartInputType(int32_t userId, InputType type);
     // if switch input type need to switch ime, then no need to hide panel first.
@@ -192,8 +190,8 @@ private:
     std::mutex checkMutex_;
     int32_t EnableIme(int32_t userId, const std::string &bundleName, const std::string &extensionName = "",
         EnabledStatus status = EnabledStatus::BASIC_MODE);
-    void OnImeEnabledStatusChange(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
-    void DatashareCallback(const std::string &key);
+    void OnCurrentImeStatusChanged(int32_t userId, const std::string &bundleName, EnabledStatus newStatus);
+    void DataShareCallback(const std::string &key);
     bool IsValidBundleName(const std::string &bundleName);
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
@@ -203,9 +201,6 @@ private:
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
 
-    std::mutex modeChangeMutex_;
-    bool isChangeHandling_ = false;
-    bool hasPendingChanges_ = false;
     void ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo);
 };
 } // namespace MiscServices

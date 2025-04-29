@@ -36,12 +36,12 @@ ImeEnabledInfoManager::~ImeEnabledInfoManager()
 {
 }
 
-void ImeEnabledInfoManager::SetEnableChangedHandler(EnableChangedHandler handler)
+void ImeEnabledInfoManager::SetCurrentImeStatusChangedHandler(CurrentImeStatusChangedHandler handler)
 {
-    if (enableChangedHandler_ != nullptr) {
+    if (currentImeStatusChangedHandler_ != nullptr) {
         return;
     }
-    enableChangedHandler_ = std::move(handler);
+    currentImeStatusChangedHandler_ = std::move(handler);
 }
 
 void ImeEnabledInfoManager::SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
@@ -52,9 +52,6 @@ void ImeEnabledInfoManager::SetEventHandler(const std::shared_ptr<AppExecFwk::Ev
 int32_t ImeEnabledInfoManager::RegularInit(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos)
 {
     std::lock_guard<std::mutex> lock(operateLock_);
-    if (!HasEnabledSwitch()) {
-        return ErrorCode::NO_ERROR;
-    }
     IMSA_HILOGI("run in, user num:%{public}zu.", fullImeInfos.size());
     for (const auto &fullImeInfo : fullImeInfos) {
         UpdateEnabledCfgCache(fullImeInfo.first, fullImeInfo.second);
@@ -65,18 +62,14 @@ int32_t ImeEnabledInfoManager::RegularInit(const std::map<int32_t, std::vector<F
 int32_t ImeEnabledInfoManager::Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos)
 {
     std::lock_guard<std::mutex> lock(operateLock_);
-    if (!HasEnabledSwitch()) {
-        return ErrorCode::NO_ERROR;
-    }
     if (!SettingsDataUtils::GetInstance()->IsDataShareReady()) {
         IMSA_HILOGE("data share not ready.");
         return ErrorCode::ERROR_ENABLE_IME;
     }
     IMSA_HILOGI("run in, user num:%{public}zu.", fullImeInfos.size());
     for (const auto &fullImeInfo : fullImeInfos) {
-        ImeEnabledCfg cfg;
-        auto ret = GetEnabledCache(fullImeInfo.first, cfg);
-        if (ret == ErrorCode::NO_ERROR) {
+        auto cfg = GetEnabledCache(fullImeInfo.first);
+        if (!cfg.enabledInfos.empty()) {
             continue;
         }
         UpdateEnabledCfgCache(fullImeInfo.first, fullImeInfo.second);
@@ -94,20 +87,16 @@ int32_t ImeEnabledInfoManager::Switch(int32_t userId, const std::vector<FullImeI
         return ErrorCode::ERROR_ENABLE_IME;
     }
     currentUserId_ = userId;
-    ImeEnabledCfg cfg;
-    auto ret = GetEnabledCache(userId, cfg);
-    if (ret == ErrorCode::NO_ERROR) {
+    auto cfg = GetEnabledCache(userId);
+    if (!cfg.enabledInfos.empty()) {
         UpdateGlobalEnabledTable(userId, cfg); // user switch, replace global table by user table
-        return ret;
+        return ErrorCode::NO_ERROR;
     }
     return UpdateEnabledCfgCache(userId, imeInfos);
 }
 
 int32_t ImeEnabledInfoManager::UpdateEnabledCfgCache(int32_t userId, const std::vector<FullImeInfo> &imeInfos)
 {
-    if (!HasEnabledSwitch()) {
-        return ErrorCode::NO_ERROR;
-    }
     IMSA_HILOGI("run in, userId:%{public}d", userId);
     ImeEnabledCfg cfg;
     auto ret = GetEnabledCfg(userId, cfg);
@@ -120,21 +109,13 @@ int32_t ImeEnabledInfoManager::UpdateEnabledCfgCache(int32_t userId, const std::
 
 int32_t ImeEnabledInfoManager::Delete(int32_t userId)
 {
-    std::lock_guard<std::mutex> lock(operateLock_);
-    if (!HasEnabledSwitch()) {
-        return ErrorCode::NO_ERROR;
-    }
-    std::lock_guard<std::mutex> cfgLock(imeEnabledCfgLock_);
-    imeEnabledCfg_.erase(userId);
+    ClearEnabledCache(userId);
     return ErrorCode::NO_ERROR;
 }
 
 int32_t ImeEnabledInfoManager::Add(int32_t userId, const FullImeInfo &imeInfo)
 {
     std::lock_guard<std::mutex> lock(operateLock_);
-    if (!HasEnabledSwitch()) {
-        return ErrorCode::NO_ERROR;
-    }
     IMSA_HILOGI("userId:%{public}d, bundleName:%{public}s", userId, imeInfo.prop.name.c_str());
     if (imeInfo.prop.name == ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName) {
         IMSA_HILOGI("[%{public}d,%{public}s] is sys ime, deal in init or user add.", userId, imeInfo.prop.name.c_str());
@@ -160,16 +141,34 @@ int32_t ImeEnabledInfoManager::Add(int32_t userId, const FullImeInfo &imeInfo)
     return UpdateEnabledCfgCache(userId, enabledCfg);
 }
 
+int32_t ImeEnabledInfoManager::Delete(int32_t userId, const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(operateLock_);
+    IMSA_HILOGI("enable Delete run in, userId:%{public}d, bundleName:%{public}s", userId, bundleName.c_str());
+    ImeEnabledCfg enabledCfg;
+    auto ret = GetEnabledCacheWithCorrect(userId, enabledCfg);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("user:%{public}d get enabledCfg failed:%{public}d.", userId, ret);
+        return ret;
+    }
+    if (!IsCurrentIme(bundleName, enabledCfg.enabledInfos)) {
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGW("current ime %{public}d/%{public}s uninstall", userId, bundleName.c_str());
+    ModCurrentIme(enabledCfg.enabledInfos);
+    ret = UpdateEnabledCfgCache(userId, enabledCfg);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("%{public}d update enable info failed:%{public}d.", userId, ret);
+    }
+    NotifyCurrentImeStatusChanged(userId, bundleName, EnabledStatus::DISABLED);
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t ImeEnabledInfoManager::CheckUpdate(
     int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status)
 {
     IMSA_HILOGI("update info:[%{public}d, %{public}s, %{public}s, %{public}d].", userId, bundleName.c_str(),
         extensionName.c_str(), static_cast<int32_t>(status));
-    if (!HasEnabledSwitch()) {
-        IMSA_HILOGE(
-            "enabled feature not on, [%{public}d, %{public}s] operation not allow.", userId, bundleName.c_str());
-        return ErrorCode::ERROR_ENABLE_IME;
-    }
     if (bundleName.empty()) {
         IMSA_HILOGE("%{public}d bundleName:%{public}s abnormal.", userId, bundleName.c_str());
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
@@ -178,7 +177,7 @@ int32_t ImeEnabledInfoManager::CheckUpdate(
         IMSA_HILOGW("[%{public}d,%{public}s] is sys ime, do not set DISABLED.", userId, bundleName.c_str());
         return ErrorCode::ERROR_DISABLE_SYSTEM_IME;
     }
-    if (IsInCache(userId, bundleName, extensionName)) {
+    if (IsInEnabledCache(userId, bundleName, extensionName)) {
         return ErrorCode::NO_ERROR;
     }
     if (!ImeInfoInquirer::GetInstance().IsInputMethod(userId, bundleName)) {
@@ -216,12 +215,18 @@ int32_t ImeEnabledInfoManager::Update(
     }
     iter->stateUpdateTime =
         std::to_string(duration_cast<std::chrono::milliseconds>(system_clock::now().time_since_epoch()).count());
+    auto isCurrentIme = IsCurrentIme(bundleName, enabledCfg.enabledInfos);
+    if (isCurrentIme && status == EnabledStatus::DISABLED) {
+        ModCurrentIme(enabledCfg.enabledInfos);
+    }
     ret = UpdateEnabledCfgCache(userId, enabledCfg);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("%{public}d update enable info failed:%{public}d.", userId, ret);
         return ErrorCode::ERROR_ENABLE_IME;
     }
-    NotifyEnableChanged(userId, bundleName, oldStatus);
+    if (isCurrentIme) {
+        NotifyCurrentImeStatusChanged(userId, bundleName, iter->enabledStatus);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -242,8 +247,8 @@ int32_t ImeEnabledInfoManager::GetEnabledState(int32_t userId, const std::string
         return ErrorCode::NO_ERROR;
     }
     auto ret = GetEnabledStateInner(userId, bundleName, status);
-    if (bundleName == ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName
-        && (ret != ErrorCode::NO_ERROR || status == EnabledStatus::DISABLED)) {
+    if (bundleName == ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName &&
+        (ret != ErrorCode::NO_ERROR || status == EnabledStatus::DISABLED)) {
         IMSA_HILOGI("mod sys ime enabledStatus.");
         status = EnabledStatus::BASIC_MODE;
     }
@@ -268,8 +273,8 @@ int32_t ImeEnabledInfoManager::GetEnabledStates(int32_t userId, std::vector<Prop
     }
     auto ret = GetEnabledStatesInner(userId, props);
     for (auto &prop : props) {
-        if (prop.name == ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName
-            && prop.status == EnabledStatus::DISABLED) {
+        if (prop.name == ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName &&
+            prop.status == EnabledStatus::DISABLED) {
             IMSA_HILOGI("mod sys ime enabledStatus.");
             prop.status = EnabledStatus::BASIC_MODE;
             break;
@@ -305,15 +310,14 @@ int32_t ImeEnabledInfoManager::GetEnabledStateInner(
 int32_t ImeEnabledInfoManager::GetEnabledStatesInner(int32_t userId, std::vector<Property> &props)
 {
     IMSA_HILOGD("%{public}d/%{public}zu get enabledStatus start.", userId, props.size());
-    ImeEnabledCfg cfg;
-    auto ret = GetEnabledCache(userId, cfg);
-    if (ret != ErrorCode::NO_ERROR) {
-        ret = UpdateEnabledCfgCache(userId);
+    auto cfg = GetEnabledCache(userId);
+    if (cfg.enabledInfos.empty()) {
+        auto ret = UpdateEnabledCfgCache(userId);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("%{public}d update enable info failed:%{public}d.", userId, ret);
             return ret;
         }
-        GetEnabledCache(userId, cfg);
+        cfg = GetEnabledCache(userId);
     }
     for (auto &prop : props) {
         auto iter = std::find_if(cfg.enabledInfos.begin(), cfg.enabledInfos.end(),
@@ -331,22 +335,23 @@ int32_t ImeEnabledInfoManager::GetEnabledStatesInner(int32_t userId, std::vector
 
 int32_t ImeEnabledInfoManager::GetEnabledCacheWithCorrect(int32_t userId, ImeEnabledCfg &enabledCfg)
 {
-    auto ret = GetEnabledCache(userId, enabledCfg);
-    if (ret == ErrorCode::NO_ERROR) {
-        return ret;
+    enabledCfg = GetEnabledCache(userId);
+    if (!enabledCfg.enabledInfos.empty()) {
+        return ErrorCode::NO_ERROR;
     }
-    ret = UpdateEnabledCfgCache(userId);
+    auto ret = UpdateEnabledCfgCache(userId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("%{public}d update enable info failed:%{public}d.", userId, ret);
         return ret;
     }
-    return GetEnabledCache(userId, enabledCfg);
+    enabledCfg = GetEnabledCache(userId);
+    return enabledCfg.enabledInfos.empty() ? ErrorCode::ERROR_ENABLE_IME : ErrorCode::NO_ERROR;
 }
 
 int32_t ImeEnabledInfoManager::GetEnabledCacheWithCorrect(
     int32_t userId, const std::string &bundleName, const std::string &extensionName, ImeEnabledCfg &enabledCfg)
 {
-    GetEnabledCache(userId, enabledCfg);
+    enabledCfg = GetEnabledCache(userId);
     auto iter = std::find_if(enabledCfg.enabledInfos.begin(), enabledCfg.enabledInfos.end(),
         [&bundleName](const ImeEnabledInfo &info) { return bundleName == info.bundleName; });
     if (iter != enabledCfg.enabledInfos.end()) {
@@ -357,32 +362,41 @@ int32_t ImeEnabledInfoManager::GetEnabledCacheWithCorrect(
         IMSA_HILOGE("%{public}d update enable info failed:%{public}d.", userId, ret);
         return ret;
     }
-    return GetEnabledCache(userId, enabledCfg);
+    enabledCfg = GetEnabledCache(userId);
+    return enabledCfg.enabledInfos.empty() ? ErrorCode::ERROR_ENABLE_IME : ErrorCode::NO_ERROR;
 }
 
-bool ImeEnabledInfoManager::IsInCache(int32_t userId, const std::string &bundleName, const std::string &extensionName)
+bool ImeEnabledInfoManager::IsInEnabledCache(
+    int32_t userId, const std::string &bundleName, const std::string &extensionName)
 {
-    ImeEnabledCfg enabledCfg;
-    auto ret = GetEnabledCache(userId, enabledCfg);
-    if (ret != ErrorCode::NO_ERROR) {
-        return false;
-    }
-    auto iter = std::find_if(enabledCfg.enabledInfos.begin(), enabledCfg.enabledInfos.end(),
+    auto cfg = GetEnabledCache(userId);
+    auto iter = std::find_if(cfg.enabledInfos.begin(), cfg.enabledInfos.end(),
         [&bundleName](const ImeEnabledInfo &info) { return bundleName == info.bundleName; });
-    return iter != enabledCfg.enabledInfos.end();
+    return iter != cfg.enabledInfos.end();
 }
 
-int32_t ImeEnabledInfoManager::GetEnabledCache(int32_t userId, ImeEnabledCfg &enabledCfg)
+int32_t ImeEnabledInfoManager::SetEnabledCache(int32_t userId, const ImeEnabledCfg &cfg)
+{
+    std::lock_guard<std::mutex> cgfLock(imeEnabledCfgLock_);
+    imeEnabledCfg_.insert_or_assign(userId, cfg);
+}
+
+ImeEnabledCfg ImeEnabledInfoManager::GetEnabledCache(int32_t userId)
 {
     std::lock_guard<std::mutex> lock(imeEnabledCfgLock_);
     auto it = imeEnabledCfg_.find(userId);
     if (it == imeEnabledCfg_.end()) {
         IMSA_HILOGE("not find %{public}d in cache.", userId);
-        return ErrorCode::ERROR_ENABLE_IME;
+        return {};
     }
-    enabledCfg = it->second;
-    IMSA_HILOGD("num %{public}zu in cache.", enabledCfg.enabledInfos.size());
-    return ErrorCode::NO_ERROR;
+    IMSA_HILOGD("num %{public}zu in cache.", it->second.enabledInfos.size());
+    return it->second;
+}
+
+int32_t ImeEnabledInfoManager::ClearEnabledCache(int32_t userId)
+{
+    std::lock_guard<std::mutex> cfgLock(imeEnabledCfgLock_);
+    imeEnabledCfg_.erase(userId);
 }
 
 int32_t ImeEnabledInfoManager::GetEnabledCfg(
@@ -434,16 +448,29 @@ void ImeEnabledInfoManager::CorrectByBundleMgr(
     int32_t userId, const std::vector<FullImeInfo> &imeInfos, std::vector<ImeEnabledInfo> &enabledInfos)
 {
     IMSA_HILOGI("ime size, enabled:%{public}zu, installed:%{public}zu.", enabledInfos.size(), imeInfos.size());
-    for (const auto &info : imeInfos) {
+    for (const auto &enabledInfo : enabledInfos) {
+        if (!enabledInfo.extraInfo.isDefaultIme) {
+            continue;
+        }
+        auto iter = std::find_if(imeInfos.begin(), imeInfos.end(),
+            [&enabledInfo](const FullImeInfo &imeInfoTmp) { return enabledInfo.bundleName == imeInfoTmp.prop.name; });
+        if (iter == imeInfos.end()) {
+            IMSA_HILOGW("current ime %{public}d/%{public}s uninstall when imsa abnormal", userId,
+                enabledInfo.bundleName.c_str());
+            ModCurrentIme(enabledInfos);
+            break;
+        }
+    }
+    for (const auto &imeInfo : imeInfos) {
         auto iter = std::find_if(enabledInfos.begin(), enabledInfos.end(),
-            [&info](const ImeEnabledInfo &enabledInfoTmp) { return enabledInfoTmp.bundleName == info.prop.name; });
+            [&imeInfo](const auto &enabledInfoTmp) { return enabledInfoTmp.bundleName == imeInfo.prop.name; });
         if (iter != enabledInfos.end()) {
             continue;
         }
-        IMSA_HILOGW("%{public}d/%{public}s install when imsa abnoraml", userId, info.prop.name.c_str());
+        IMSA_HILOGW("%{public}d/%{public}s first install when imsa abnormal", userId, imeInfo.prop.name.c_str());
         ImeEnabledInfo infoTmp;
-        infoTmp.bundleName = info.prop.name;
-        infoTmp.extensionName = info.prop.id;
+        infoTmp.bundleName = imeInfo.prop.name;
+        infoTmp.extensionName = imeInfo.prop.id;
         infoTmp.enabledStatus = ImeInfoInquirer::GetInstance().GetSystemConfig().initEnabledState;
         enabledInfos.emplace_back(infoTmp);
     }
@@ -454,6 +481,9 @@ void ImeEnabledInfoManager::ComputeEnabledStatus(ImeEnabledInfo &info)
     auto hasEnableSwitch = ImeInfoInquirer::GetInstance().GetSystemConfig().enableInputMethodFeature;
     auto hasFullExperienceSwitch = ImeInfoInquirer::GetInstance().GetSystemConfig().enableFullExperienceFeature;
     IMSA_HILOGI("enable cfg:[%{public}d, %{public}d].", hasEnableSwitch, hasFullExperienceSwitch);
+    if (!hasEnableSwitch && !hasFullExperienceSwitch) {
+        info.enabledStatus = EnabledStatus::FULL_EXPERIENCE_MODE;
+    }
     if (hasEnableSwitch && !hasFullExperienceSwitch) {
         if (info.enabledStatus == EnabledStatus::BASIC_MODE) {
             info.enabledStatus = EnabledStatus::FULL_EXPERIENCE_MODE;
@@ -486,41 +516,34 @@ int32_t ImeEnabledInfoManager::UpdateEnabledCfgCache(int32_t userId, const ImeEn
     }
     IMSA_HILOGI("[%{public}d, %{public}s].", userId, content.c_str());
     if (!SettingsDataUtils::GetInstance()->SetStringValue(
-            SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true", SettingsDataUtils::ENABLE_IME, content)) {
+        SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true", SettingsDataUtils::ENABLE_IME, content)) {
+        IMSA_HILOGE("%{public}d SetStringValue:%{public}s failed.", userId, content.c_str());
         return ErrorCode::ERROR_ENABLE_IME;
     }
-    ImeEnabledCfg oldEnabledCfg;
-    {
-        std::lock_guard<std::mutex> cgfLock(imeEnabledCfgLock_);
-        auto iter = imeEnabledCfg_.find(userId);
-        if (iter != imeEnabledCfg_.end()) {
-            oldEnabledCfg = iter->second;
-        }
-        imeEnabledCfg_.insert_or_assign(userId, cfg);
-    }
+    auto oldEnabledCfg = GetEnabledCache(userId);
+    SetEnabledCache(userId, cfg);
     UpdateGlobalEnabledTable(userId, cfg, oldEnabledCfg);
     return ErrorCode::NO_ERROR;
 }
 
-void ImeEnabledInfoManager::NotifyEnableChanged(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)
+void ImeEnabledInfoManager::NotifyCurrentImeStatusChanged(
+    int32_t userId, const std::string &bundleName, EnabledStatus newStatus)
 {
-    IMSA_HILOGI(
-        "notify:[%{public}d,%{public}s,%{public}d].", userId, bundleName.c_str(), static_cast<int32_t>(oldStatus));
     if (serviceHandler_ == nullptr) {
         return;
     }
-    auto notifyTask = [this, userId, bundleName, oldStatus]() {
-        if (enableChangedHandler_ != nullptr) {
-            enableChangedHandler_(userId, bundleName, oldStatus);
+    auto notifyTask = [this, userId, bundleName, newStatus]() {
+        if (currentImeStatusChangedHandler_ != nullptr) {
+            currentImeStatusChangedHandler_(userId, bundleName, newStatus);
         }
     };
-    serviceHandler_->PostTask(notifyTask, "NotifyEnableChangedTask", 0, AppExecFwk::EventQueue::Priority::VIP);
+    serviceHandler_->PostTask(notifyTask, "NotifyCurrentImeStatusChanged", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 bool ImeEnabledInfoManager::HasEnabledSwitch()
 {
-    return ImeInfoInquirer::GetInstance().GetSystemConfig().enableInputMethodFeature
-           || ImeInfoInquirer::GetInstance().GetSystemConfig().enableFullExperienceFeature;
+    return ImeInfoInquirer::GetInstance().GetSystemConfig().enableInputMethodFeature ||
+           ImeInfoInquirer::GetInstance().GetSystemConfig().enableFullExperienceFeature;
 }
 
 bool ImeEnabledInfoManager::IsDefaultFullMode(int32_t userId, const std::string &bundleName)
@@ -531,8 +554,8 @@ bool ImeEnabledInfoManager::IsDefaultFullMode(int32_t userId, const std::string 
     }
     std::string appId;
     uint32_t versionCode;
-    if (!ImeInfoInquirer::GetInstance().GetImeAppId(userId, bundleName, appId)
-        || !ImeInfoInquirer::GetInstance().GetImeVersionCode(userId, bundleName, versionCode)) {
+    if (!ImeInfoInquirer::GetInstance().GetImeAppId(userId, bundleName, appId) ||
+        !ImeInfoInquirer::GetInstance().GetImeVersionCode(userId, bundleName, versionCode)) {
         IMSA_HILOGE("%{public}s failed to get appId and versionCode", bundleName.c_str());
         return false;
     }
@@ -576,6 +599,9 @@ void ImeEnabledInfoManager::UpdateGlobalEnabledTable(
 {
     // todo 抛异步任务？？？？
     IMSA_HILOGD("start.");
+    if (!ImeInfoInquirer::GetInstance().GetSystemConfig().enableInputMethodFeature) {
+        return;
+    }
     if (userId != currentUserId_) {
         IMSA_HILOGW("[%{public}d,%{public}d] not same.", userId, currentUserId_);
         return;
@@ -624,7 +650,7 @@ void ImeEnabledInfoManager::OnFullExperienceTableChanged(int32_t userId)
     if (it != bundleNames.end()) {
         newStatus = EnabledStatus::FULL_EXPERIENCE_MODE;
     }
-    IMSA_HILOGI("%{public}d sys ime full experience changed.", userId);
+    IMSA_HILOGI("%{public}d full experience table changed.", userId);
     ImeEnabledInfoManager::GetInstance().Update(userId, defaultIme.bundleName, defaultIme.extName, newStatus);
 }
 
@@ -646,6 +672,15 @@ int32_t ImeEnabledInfoManager::SetCurrentIme(
         [](const auto &info) { return info.extraInfo.isTmpDefaultIme; });
     if (iter != enabledCfg.enabledInfos.end()) {
         IMSA_HILOGI("%{public}d has tmp ime:%{public}s, not mod.", userId, iter->bundleName.c_str());
+        return ErrorCode::NO_ERROR;
+    }
+    iter = std::find_if(enabledCfg.enabledInfos.begin(), enabledCfg.enabledInfos.end(),
+        [&currentBundleName = bundleName, &subName, &isSetByUser](const auto &info) {
+            return info.extraInfo.isDefaultIme && info.bundleName == currentBundleName &&
+                   info.extraInfo.currentSubName == subName && info.extraInfo.isDefaultImeSet == isSetByUser;
+        });
+    if (iter != enabledCfg.enabledInfos.end()) {
+        IMSA_HILOGI("%{public}d set ime same with current ime:%{public}s, not mod.", userId, iter->bundleName.c_str());
         return ErrorCode::NO_ERROR;
     }
     for (auto &info : enabledCfg.enabledInfos) {
@@ -689,8 +724,15 @@ int32_t ImeEnabledInfoManager::SetTmpIme(int32_t userId, const std::string &imeI
         auto [bundleName, extName] = SplitImeId(imeId);
         auto ret = GetEnabledCacheWithCorrect(userId, bundleName, extName, enabledCfg);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("%{public}d/%{public}s get enable info failed:%{public}d.", userId, bundleName.c_str() ret);
+            IMSA_HILOGE("%{public}d/%{public}s get enable info failed:%{public}d.", userId, bundleName.c_str(), ret);
             return ret;
+        }
+        auto iter = std::find_if(enabledCfg.enabledInfos.begin(), enabledCfg.enabledInfos.end(),
+            [&tmpBundleName = bundleName](
+                const auto &info) { return info.extraInfo.isTmpDefaultIme && info.bundleName == tmpBundleName; });
+        if (iter != enabledCfg.enabledInfos.end()) {
+            IMSA_HILOGI("%{public}d set ime same with tmp ime:%{public}s, not mod.", userId, iter->bundleName.c_str());
+            return ErrorCode::NO_ERROR;
         }
         for (auto &info : enabledCfg.enabledInfos) {
             info.extraInfo.isTmpDefaultIme = false;
@@ -714,7 +756,7 @@ std::shared_ptr<ImeNativeCfg> ImeEnabledInfoManager::GetCurrentImeCfg(int32_t us
     auto ret = GetEnabledCacheWithCorrect(userId, enabledCfg);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("%{public}d get enable info failed:%{public}d.", userId, ret);
-        return nullptr;
+        return std::make_shared<ImeNativeCfg>();
     }
     auto iter = std::find_if(enabledCfg.enabledInfos.begin(), enabledCfg.enabledInfos.end(),
         [](const auto &info) { return info.extraInfo.isTmpDefaultIme; });
@@ -738,7 +780,7 @@ std::shared_ptr<ImeNativeCfg> ImeEnabledInfoManager::GetCurrentImeCfg(int32_t us
         return std::make_shared<ImeNativeCfg>(nativeInfo);
     }
     IMSA_HILOGI("%{public}d not set default ime.", userId);
-    return nullptr;
+    return std::make_shared<ImeNativeCfg>();
 }
 
 bool ImeEnabledInfoManager::IsDefaultImeSet(int32_t userId)
@@ -768,6 +810,38 @@ std::pair<std::string, std::string> ImeEnabledInfoManager::SplitImeId(const std:
         extName = imeId.substr(pos + 1);
     }
     return std::make_pair(bundleName, extName);
+}
+
+void ImeEnabledInfoManager::ModCurrentIme(std::vector<ImeEnabledInfo> &enabledInfos)
+{
+    std::string oldBundleName;
+    auto oldIter = std::find_if(enabledInfos.begin(), enabledInfos.end(),
+        [](const ImeEnabledInfo &enabledInfoTmp) { return enabledInfoTmp.extraInfo.isDefaultIme; });
+    auto newIter = std::find_if(enabledInfos.begin(), enabledInfos.end(), [](const ImeEnabledInfo &enabledInfoTmp) {
+        return enabledInfoTmp.bundleName == ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName;
+    });
+    if (newIter == enabledInfos.end()) {
+        newIter = std::find_if(enabledInfos.begin(), enabledInfos.end(), [](const ImeEnabledInfo &enabledInfoTmp) {
+            return enabledInfoTmp.enabledStatus != EnabledStatus::DISABLED;
+        });
+    }
+    if (newIter == enabledInfos.end()) {
+        return;
+    }
+    newIter->extraInfo.isDefaultIme = true;
+    if (oldIter != enabledInfos.end()) {
+        oldIter->extraInfo.isDefaultIme = false;
+        oldIter->extraInfo.isDefaultImeSet = false;
+        oldIter->extraInfo.isTmpDefaultIme = false;
+        oldIter->extraInfo.currentSubName = "";
+    }
+}
+
+bool ImeEnabledInfoManager::IsCurrentIme(const std::string &bundleName, const std::vector<ImeEnabledInfo> &enabledInfos)
+{
+    auto iter = std::find_if(enabledInfos.begin(), enabledInfos.end(),
+        [&bundleName](const ImeEnabledInfo &info) { return info.extraInfo.isDefaultIme; });
+    return iter != enabledInfos.end() && iter->bundleName == bundleName;
 }
 } // namespace MiscServices
 } // namespace OHOS

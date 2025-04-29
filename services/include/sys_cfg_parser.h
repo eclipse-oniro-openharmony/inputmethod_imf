@@ -16,8 +16,8 @@
 #ifndef SERVICES_INCLUDE_SYS_CFG_PARSE_H
 #define SERVICES_INCLUDE_SYS_CFG_PARSE_H
 
-#include "input_method_utils.h"
 #include "input_method_status.h"
+#include "input_method_utils.h"
 #include "serializable.h"
 namespace OHOS {
 namespace MiscServices {
@@ -43,7 +43,7 @@ struct SystemConfig : public Serializable {
         GetValue(node, GET_NAME(enableAppAgentFeature), enableAppAgentFeature);
         GetValue(node, GET_NAME(proxyImeUidList), proxyImeUidList);
         GetValue(node, GET_NAME(specialSaUidList), specialSaUidList);
-		GetValue(node, GET_NAME(sysSpecialIme), sysSpecialIme);
+        GetValue(node, GET_NAME(sysSpecialIme), sysSpecialIme);
         return true;
     }
 };

@@ -204,15 +204,15 @@ bool ImeEnabledInfoManagerTest::WaitDataShareCallback(const std::map<int32_t, Im
     for (const auto &cfg : enabledCfg) {
         IMSA_HILOGI("enabledCfg base info:[%{public}d, %{public}s].", cfg.first, cfg.second.version.c_str());
         for (const auto &info : cfg.second.enabledInfos) {
-            IMSA_HILOGI("enabledCfg info:[%{public}s,%{public}s,%{public}s,%{public}d].",
-                info.bundleName.c_str(), info.extensionName.c_str(), info.installTime.c_str(), info.enabledStatus);
+            IMSA_HILOGI("enabledCfg info:[%{public}s,%{public}s,%{public}s,%{public}d].", info.bundleName.c_str(),
+                info.extensionName.c_str(), info.installTime.c_str(), info.enabledStatus);
         }
     }
     for (const auto &cfg : enabledCfg_) {
         IMSA_HILOGI("enabledCfg_ base info:[%{public}d, %{public}s].", cfg.first, cfg.second.version.c_str());
         for (const auto &info : cfg.second.enabledInfos) {
-            IMSA_HILOGI("enabledCfg_ info:[%{public}s,%{public}s,%{public}s,%{public}d].",
-                info.bundleName.c_str(), info.extensionName.c_str(), info.installTime.c_str(), info.enabledStatus);
+            IMSA_HILOGI("enabledCfg_ info:[%{public}s,%{public}s,%{public}s,%{public}d].", info.bundleName.c_str(),
+                info.extensionName.c_str(), info.installTime.c_str(), info.enabledStatus);
         }
     }
     for (const auto &cfg : ImeEnabledInfoManager::GetInstance().imeEnabledCfg_) {
@@ -389,11 +389,11 @@ HWTEST_F(ImeEnabledInfoManagerTest, testInit_002, TestSize.Level0)
     enableCfg.Marshall(enabledStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::ENABLE_IME, enabledStr);
 
-    SecurityModeCfgTest SecurityModeCfg;
-    SecurityModeCfg.userImeCfg.cfgs.insert(
+    SecurityModeCfgTest secModeCfg;
+    secModeCfg.userImeCfg.cfgs.insert(
         { std::to_string(ImeEnabledInfoManagerTest::currentUserId_), { ImeEnabledInfoManagerTest::BUNDLE_NAME1 } });
     std::string fullExperienceStr;
-    SecurityModeCfg.Marshall(fullExperienceStr);
+    secModeCfg.Marshall(fullExperienceStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::SECURITY_MODE, fullExperienceStr);
 
     std::map<int32_t, std::vector<std::string>> easyInfos;
@@ -484,10 +484,10 @@ HWTEST_F(ImeEnabledInfoManagerTest, testInit_003, TestSize.Level0)
 HWTEST_F(ImeEnabledInfoManagerTest, testInit_004, TestSize.Level0)
 {
     IMSA_HILOGI("ImeEnabledInfoManagerTest testInit_004 START");
-    SecurityModeCfgTest SecurityModeCfg;
-    SecurityModeCfg.userImeCfg.cfgs.insert({ "", { ImeEnabledInfoManagerTest::BUNDLE_NAME2 } });
+    SecurityModeCfgTest secModeCfg;
+    secModeCfg.userImeCfg.cfgs.insert({ "", { ImeEnabledInfoManagerTest::BUNDLE_NAME2 } });
     std::string fullExperienceStr;
-    SecurityModeCfg.Marshall(fullExperienceStr);
+    secModeCfg.Marshall(fullExperienceStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::SECURITY_MODE, fullExperienceStr);
 
     std::map<int32_t, std::vector<std::string>> easyInfos;
@@ -585,10 +585,10 @@ HWTEST_F(ImeEnabledInfoManagerTest, testInit_006, TestSize.Level0)
     enableCfg.Marshall(enabledStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::ENABLE_IME, enabledStr);
 
-    SecurityModeCfgTest SecurityModeCfg;
-    SecurityModeCfg.userImeCfg.cfgs.insert({ std::to_string(ImeEnabledInfoManagerTest::currentUserId_), {} });
+    SecurityModeCfgTest secModeCfg;
+    secModeCfg.userImeCfg.cfgs.insert({ std::to_string(ImeEnabledInfoManagerTest::currentUserId_), {} });
     std::string fullExperienceStr;
-    SecurityModeCfg.Marshall(fullExperienceStr);
+    secModeCfg.Marshall(fullExperienceStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::SECURITY_MODE, fullExperienceStr);
 
     EnabledImeCfgTest enableCfg1;
@@ -642,10 +642,10 @@ HWTEST_F(ImeEnabledInfoManagerTest, testInit_007, TestSize.Level0)
     enableCfg.Marshall(enabledStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::ENABLE_IME, enabledStr);
 
-    SecurityModeCfgTest SecurityModeCfg;
-    SecurityModeCfg.userImeCfg.cfgs.insert({ std::to_string(ImeEnabledInfoManagerTest::currentUserId_), {} });
+    SecurityModeCfgTest secModeCfg;
+    secModeCfg.userImeCfg.cfgs.insert({ std::to_string(ImeEnabledInfoManagerTest::currentUserId_), {} });
     std::string fullExperienceStr;
-    SecurityModeCfg.Marshall(fullExperienceStr);
+    secModeCfg.Marshall(fullExperienceStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::SECURITY_MODE, fullExperienceStr);
 
     EnabledImeCfgTest enableCfg1;
@@ -735,11 +735,11 @@ HWTEST_F(ImeEnabledInfoManagerTest, testInit_009, TestSize.Level0)
     enableCfg.Marshall(enabledStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::ENABLE_IME, enabledStr);
 
-    SecurityModeCfgTest SecurityModeCfg;
-    SecurityModeCfg.userImeCfg.cfgs.insert(
+    SecurityModeCfgTest secModeCfg;
+    secModeCfg.userImeCfg.cfgs.insert(
         { std::to_string(ImeEnabledInfoManagerTest::currentUserId_), { ImeEnabledInfoManagerTest::BUNDLE_NAME2 } });
     std::string fullExperienceStr;
-    SecurityModeCfg.Marshall(fullExperienceStr);
+    secModeCfg.Marshall(fullExperienceStr);
     TddUtil::GenerateGlobalTable(ImeEnabledInfoManagerTest::SECURITY_MODE, fullExperienceStr);
 
     EnabledImeCfgTest enableCfg1;

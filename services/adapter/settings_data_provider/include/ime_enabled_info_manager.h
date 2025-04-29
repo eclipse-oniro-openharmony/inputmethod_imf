@@ -105,18 +105,19 @@ struct ImeEnabledCfg : public Serializable {
         return version == enabledCfg.version && enabledInfos == enabledCfg.enabledInfos;
     }
 };
-using EnableChangedHandler =
+using CurrentImeStatusChangedHandler =
     std::function<void(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)>;
 class ImeEnabledInfoManager {
 public:
     static ImeEnabledInfoManager &GetInstance();
-    void SetEnableChangedHandler(EnableChangedHandler handler);
+    void SetCurrentImeStatusChangedHandler(CurrentImeStatusChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
     int32_t RegularInit(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Switch(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
     int32_t Delete(int32_t userId);
     int32_t Add(int32_t userId, const FullImeInfo &imeInfo);
+    int32_t Delete(int32_t userId, const std::string &bundleName);
     int32_t Update(
         int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status);
     int32_t GetEnabledState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
@@ -142,23 +143,27 @@ private:
     void ComputeEnabledStatus(std::vector<ImeEnabledInfo> &infos);
     int32_t GetEnabledStateInner(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t GetEnabledStatesInner(int32_t userId, std::vector<Property> &props);
-    int32_t GetEnabledCache(int32_t userId, ImeEnabledCfg &enabledCfg);
+    int32_t SetEnabledCache(int32_t userId, const ImeEnabledCfg &cfg);
+    ImeEnabledCfg GetEnabledCache(int32_t userId);
+    int32_t ClearEnabledCache(int32_t userId);
+    bool IsInEnabledCache(int32_t userId, const std::string &bundleName, const std::string &extensionName);
     int32_t GetEnabledCacheWithCorrect(int32_t userId, ImeEnabledCfg &enabledCfg);
     int32_t GetEnabledCacheWithCorrect(
         int32_t userId, const std::string &bundleName, const std::string &extensionName, ImeEnabledCfg &enabledCfg);
     int32_t CheckUpdate(
         int32_t userId, const std::string &bundleName, const std::string &extensionName, EnabledStatus status);
-    bool IsInCache(int32_t userId, const std::string &bundleName, const std::string &extensionName);
-    void NotifyEnableChanged(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus);
+    void NotifyCurrentImeStatusChanged(int32_t userId, const std::string &bundleName, EnabledStatus newStatus);
     bool HasEnabledSwitch();
     bool IsExpired(const std::string &expirationTime);
     std::pair<std::string, std::string> SplitImeId(const std::string &imeId);
+    void ModCurrentIme(std::vector<ImeEnabledInfo> &enabledInfos);
+    bool IsCurrentIme(const std::string &bundleName, const std::vector<ImeEnabledInfo> &enabledInfos);
     /* add for compatibility that sys ime listen global table change for smart menu in tablet */
     void UpdateGlobalEnabledTable(
         int32_t userId, const ImeEnabledCfg &newEnabledCfg, const ImeEnabledCfg &oldEnabledCfg = {});
     std::mutex imeEnabledCfgLock_;
     std::map<int32_t, ImeEnabledCfg> imeEnabledCfg_;
-    EnableChangedHandler enableChangedHandler_;
+    CurrentImeStatusChangedHandler currentImeStatusChangedHandler_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_{ nullptr };
     int32_t currentUserId_{ -1 };
     std::mutex operateLock_;

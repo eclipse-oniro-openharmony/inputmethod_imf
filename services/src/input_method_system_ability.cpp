@@ -440,9 +440,9 @@ void InputMethodSystemAbility::Initialize()
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     IMSA_HILOGI("start get scene board enable status");
-    ImeEnabledInfoManager::GetInstance().SetEnableChangedHandler(
-        [this](int32_t userId, const std::string &bundleName, EnabledStatus oldStatus) {
-            OnImeEnabledStatusChange(userId, bundleName, oldStatus);
+    ImeEnabledInfoManager::GetInstance().SetCurrentImeStatusChangedHandler(
+        [this](int32_t userId, const std::string &bundleName, EnabledStatus newStatus) {
+            OnCurrentImeStatusChanged(userId, bundleName, newStatus);
         });
     isScbEnable_.store(Rosen::SceneBoardJudgement::IsSceneBoardEnabled());
     IMSA_HILOGI("InputMethodSystemAbility::Initialize end.");
@@ -1626,22 +1626,6 @@ int32_t InputMethodSystemAbility::HandlePackageEvent(const Message *msg)
 int32_t InputMethodSystemAbility::OnPackageRemoved(int32_t userId, const std::string &packageName)
 {
     FullImeInfoManager::GetInstance().Delete(userId, packageName);
-    // if the app that doesn't belong to current user is removed, ignore it
-    if (userId != userId_) {
-        IMSA_HILOGD("userId: %{public}d, currentUserId: %{public}d.", userId, userId_);
-        return ErrorCode::NO_ERROR;
-    }
-    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
-    if (packageName == currentImeBundle) {
-        // Switch to the default ime
-        IMSA_HILOGI("user[%{public}d] ime: %{public}s is uninstalled.", userId, packageName.c_str());
-        auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId);
-        if (info == nullptr) {
-            return ErrorCode::ERROR_PERSIST_CONFIG;
-        }
-        int32_t ret = SwitchExtension(userId, info);
-        IMSA_HILOGI("switch ret: %{public}d", ret);
-    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -1721,37 +1705,6 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     }
     IMSA_HILOGE("keycode is undefined!");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
-}
-
-void InputMethodSystemAbility::DealSecurityChange(
-    int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)
-{
-    {
-        std::lock_guard<std::mutex> lock(modeChangeMutex_);
-        if (isChangeHandling_) {
-            IMSA_HILOGI("already has mode change task.");
-            hasPendingChanges_ = true;
-            return;
-        } else {
-            isChangeHandling_ = true;
-            hasPendingChanges_ = true;
-        }
-    }
-    auto changeTask = [this, userId, bundleName, oldStatus]() {
-        pthread_setname_np(pthread_self(), "SecurityChange");
-        auto checkChangeCount = [this]() {
-            std::lock_guard<std::mutex> lock(modeChangeMutex_);
-            if (hasPendingChanges_) {
-                return true;
-            }
-            isChangeHandling_ = false;
-            return false;
-        };
-        do {
-            OnSecurityModeChange(userId, bundleName, oldStatus);
-        } while (checkChangeCount());
-    };
-    std::thread(changeTask).detach();
 }
 
 void InputMethodSystemAbility::DealSwitchRequest()
@@ -1952,11 +1905,11 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
 void InputMethodSystemAbility::RegisterSecurityModeObserver()
 {
     int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(SETTING_URI_PROXY,
-        SettingsDataUtils::SECURITY_MODE, [this]() { DatashareCallback(SettingsDataUtils::SECURITY_MODE); });
+        SettingsDataUtils::SECURITY_MODE, [this]() { DataShareCallback(SettingsDataUtils::SECURITY_MODE); });
     IMSA_HILOGI("register security mode observer, ret: %{public}d", ret);
 }
 
-void InputMethodSystemAbility::DatashareCallback(const std::string &key)
+void InputMethodSystemAbility::DataShareCallback(const std::string &key)
 {
     if (key != SettingsDataUtils::SECURITY_MODE) {
         return;
@@ -1969,8 +1922,8 @@ void InputMethodSystemAbility::DatashareCallback(const std::string &key)
     serviceHandler_->PostTask(task, "OnFullExperienceTableChanged", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
-void InputMethodSystemAbility::OnImeEnabledStatusChange(
-    int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)
+void InputMethodSystemAbility::OnCurrentImeStatusChanged(
+    int32_t userId, const std::string &bundleName, EnabledStatus newStatus)
 {
     IMSA_HILOGI("start.");
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
@@ -1979,79 +1932,18 @@ void InputMethodSystemAbility::OnImeEnabledStatusChange(
         return;
     }
     auto imeData = session->GetImeData(ImeType::IME);
-    std::string currentBundleName;
-    if (imeData != nullptr) {
-        currentBundleName = imeData->ime.first;
-    } else {
-        IMSA_HILOGE("%{public}d imeData is nullptr!", userId);
-        currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
-    }
-    if (bundleName != currentBundleName) {
-        IMSA_HILOGD("%{public}d,%{public}s not current ime %{public}s!", userId, bundleName.c_str(),
-            currentBundleName.c_str());
-        return;
-    }
-    EnabledStatus newStatus;
-    auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId_, currentBundleName, newStatus);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGW(
-            "[%{public}d,%{public}s] get enabled status failed:%{public}d,!", userId_, currentBundleName.c_str(), ret);
-        return;
-    }
-    if (newStatus == EnabledStatus::DISABLED) {
-        auto ime = ImeInfoInquirer::GetInstance().GetDefaultIme();
-        SwitchInfo switchInfo;
-        switchInfo.bundleName = ime.bundleName;
-        switchInfo.timestamp = std::chrono::system_clock::now();
-        session->GetSwitchQueue().Push(switchInfo);
-        OnSwitchInputMethod(userId, switchInfo, SwitchTrigger::IMSA);
-        return;
-    }
-    if (newStatus != oldStatus) {
-        DealSecurityChange(userId, bundleName, oldStatus);
-    }
-}
-
-void InputMethodSystemAbility::OnSecurityModeChange(
-    int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)
-{
-    {
-        std::lock_guard<std::mutex> lock(modeChangeMutex_);
-        hasPendingChanges_ = false;
-    }
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return;
-    }
-    auto imeData = session->GetImeData(ImeType::IME);
-    if (imeData == nullptr) {
-        IMSA_HILOGE("%{public}d imeData is nullptr!", userId);
-        return;
-    }
-    if (bundleName != imeData->ime.first) {
+    if (imeData != nullptr && bundleName != imeData->ime.first) {
         IMSA_HILOGD("%{public}d,%{public}s not current ime %{public}s!", userId, bundleName.c_str(),
             imeData->ime.first.c_str());
         return;
     }
-    EnabledStatus newStatus = EnabledStatus::DISABLED;
-    auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, imeData->ime.first, newStatus);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGW("[%{public}d, %{public}s] get enabled status failed:%{public}d,!", userId,
-            imeData->ime.first.c_str(), ret);
-        return;
-    }
-    if (newStatus == EnabledStatus::DISABLED || newStatus == oldStatus) {
-        return;
-    }
-    IMSA_HILOGI("ime: %{public}s securityMode change to: %{public}d.", imeData->ime.first.c_str(),
-        static_cast<int32_t>(newStatus));
     if (newStatus == EnabledStatus::BASIC_MODE) {
         session->OnSecurityChange(static_cast<int32_t>(SecurityMode::BASIC));
-    } else {
+    }
+    if (newStatus == EnabledStatus::FULL_EXPERIENCE_MODE) {
         session->OnSecurityChange(static_cast<int32_t>(SecurityMode::FULL));
     }
-    session->AddRestartIme();
+    session->AddRestartIme();  // todo
 }
 
 int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)

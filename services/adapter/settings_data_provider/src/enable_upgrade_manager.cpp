@@ -340,13 +340,13 @@ void EnableUpgradeManager::PaddedByImePersistCfg(
         iter->extraInfo.currentSubName = persistInfo.currentSubName;
     }
 
-    std::string defaultTmpBundleName;
+    std::string tmpDefaultBundleName;
     pos = persistInfo.tempScreenLockIme.find('/');
     if (pos != std::string::npos && pos + 1 < persistInfo.tempScreenLockIme.size()) {
-        defaultTmpBundleName = persistInfo.tempScreenLockIme.substr(0, pos);
+        tmpDefaultBundleName = persistInfo.tempScreenLockIme.substr(0, pos);
     }
     iter = std::find_if(enabledInfos.begin(), enabledInfos.end(),
-        [&defaultTmpBundleName](const auto &infoTmp) { return infoTmp.bundleName == defaultTmpBundleName; });
+        [&tmpDefaultBundleName](const auto &infoTmp) { return infoTmp.bundleName == tmpDefaultBundleName; });
     if (iter != enabledInfos.end()) {
         iter->extraInfo.isTmpDefaultIme = true;
     }

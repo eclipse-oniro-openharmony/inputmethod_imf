@@ -129,11 +129,7 @@ ImePersistInfo ImeCfgManager::GetImeCfg(int32_t userId)
 
 std::shared_ptr<ImeNativeCfg> ImeCfgManager::GetCurrentImeCfg(int32_t userId)
 {
-    auto cfg = ImeEnabledInfoManager::GetInstance().GetCurrentImeCfg(userId);
-    if (cfg == nullptr) {
-        return std::make_shared<ImeNativeCfg>();
-    }
-    return cfg;
+    return ImeEnabledInfoManager::GetInstance().GetCurrentImeCfg(userId);
 }
 
 bool ImeCfgManager::IsDefaultImeSet(int32_t userId)

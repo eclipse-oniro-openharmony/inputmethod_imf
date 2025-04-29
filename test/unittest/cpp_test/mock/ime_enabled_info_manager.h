@@ -41,12 +41,12 @@ struct ImeEnabledInfo {
 };
 struct ImeEnabledCfg {
 };
-using EnableChangedHandler =
+using CurrentImeStatusChangedHandler =
     std::function<void(int32_t userId, const std::string &bundleName, EnabledStatus oldStatus)>;
 class ImeEnabledInfoManager {
 public:
     static ImeEnabledInfoManager &GetInstance();
-    void SetEnableChangedHandler(EnableChangedHandler handler);
+    void SetCurrentImeStatusChangedHandler(CurrentImeStatusChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
     int32_t Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Switch(int32_t userId, const std::vector<FullImeInfo> &imeInfos);

@@ -134,21 +134,10 @@ int32_t FullImeInfoManager::Add(int32_t userId, const std::string &bundleName)
 
 int32_t FullImeInfoManager::Delete(int32_t userId, const std::string &bundleName)
 {
-    std::lock_guard<std::mutex> lock(lock_);
-    auto it = fullImeInfos_.find(userId);
-    if (it == fullImeInfos_.end()) {
-        return ErrorCode::NO_ERROR;
-    }
-    auto iter = std::find_if(it->second.begin(), it->second.end(),
-        [&bundleName](const FullImeInfo &info) { return bundleName == info.prop.name; });
-    if (iter == it->second.end()) {
-        return ErrorCode::NO_ERROR;
-    }
-    it->second.erase(iter);
-    if (it->second.empty()) {
-        fullImeInfos_.erase(it->first);
-    }
-    return ErrorCode::NO_ERROR;
+    auto ret = DeletePackage(userId, bundleName);
+    auto task = [userId, bundleName]() { ImeEnabledInfoManager::GetInstance().Delete(userId, bundleName); };
+    PostEnableTask(task, "enableBundleDelete");
+    return ret;
 }
 
 int32_t FullImeInfoManager::Update(int32_t userId, const std::string &bundleName)
@@ -303,6 +292,25 @@ int32_t FullImeInfoManager::AddPackage(int32_t userId, const std::string &bundle
         it->second.erase(iter);
     }
     it->second.push_back(info);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t FullImeInfoManager::DeletePackage(int32_t userId, const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(lock_);
+    auto it = fullImeInfos_.find(userId);
+    if (it == fullImeInfos_.end()) {
+        return ErrorCode::NO_ERROR;
+    }
+    auto iter = std::find_if(it->second.begin(), it->second.end(),
+        [&bundleName](const FullImeInfo &info) { return bundleName == info.prop.name; });
+    if (iter == it->second.end()) {
+        return ErrorCode::NO_ERROR;
+    }
+    it->second.erase(iter);
+    if (it->second.empty()) {
+        fullImeInfos_.erase(it->first);
+    }
     return ErrorCode::NO_ERROR;
 }
 

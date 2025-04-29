@@ -36,7 +36,7 @@ ImeEnabledInfoManager::~ImeEnabledInfoManager()
 {
 }
 
-void ImeEnabledInfoManager::SetEnableChangedHandler(EnableChangedHandler handler)
+void ImeEnabledInfoManager::SetCurrentImeStatusChangedHandler(CurrentImeStatusChangedHandler handler)
 {
 }
 
