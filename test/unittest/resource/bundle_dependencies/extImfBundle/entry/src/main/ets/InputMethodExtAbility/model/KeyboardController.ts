@@ -23,7 +23,7 @@ const inputMethodAbility: inputMethodEngine.InputMethodAbility = inputMethodEngi
 const DEFAULT_DIRECTION: number = 1;
 const DEFAULT_LENGTH: number = 1;
 const DEFAULT_SELECT_RANGE: number = 10;
-
+const ATTRIBUTE_CHANGE_TEST_CODE_DATA = 1;
 enum TEST_RESULT_CODE {
   SUCCESS,
   FAILED
@@ -201,13 +201,12 @@ export class KeyboardController {
 
   private registerInputListener(): void { // 注册对输入法框架服务的开启及停止事件监听
     let attr :inputMethodEngine.EditorAttribute = {};
-    this.publishCommonEvent(0, attr);
     inputMethodAbility.on('inputStart', (kbController, textInputClient) => {
       globalThis.textInputClient = textInputClient; // 此为输入法客户端实例，由此调用输入法框架提供给输入法应用的功能接口
       globalThis.keyboardController = kbController;
        this.addLog("[inputDemo] inputStart==>");
        attr = textInputClient.getEditorAttributeSync();
-       this.publishCommonEvent(1, attr);
+       this.publishCommonEvent(ATTRIBUTE_CHANGE_TEST_CODE_DATA, attr);
     })
     inputMethodAbility.on('inputStop', () => {
       this.onDestroy();

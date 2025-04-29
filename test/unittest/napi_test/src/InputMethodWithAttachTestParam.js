@@ -19,6 +19,9 @@ import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from '
 
 describe('InputMethodWithAttachTestParam', function () {
   const WAIT_DEAL_OK = 500;
+  const MAX_PLACEHOLDER_CHAR_SIZE = 255;
+  const MAX_ABILITY_NAME_CHAR_SIZE = 127;
+  const REPEAT_SIZE = 10;
 
   function wait(delay) {
     let start = new Date().getTime();
@@ -54,17 +57,41 @@ describe('InputMethodWithAttachTestParam', function () {
 
   afterEach(async function () {
     console.info('afterEach called');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.detach();
   });
 
-   /*
+  function truncateByCodePoints(str, maxCodePoints) {
+    let codePoints = 0;
+    let position = 0;
+
+    while (codePoints < maxCodePoints && position < str.length) {
+      const codeUnit = str.charCodeAt(position);
+      codePoints++;
+      // 判断是否为高位代理（High Surrogate）
+      if (codeUnit >= 0xD800 && codeUnit <= 0xDBFF) {
+        position += 2; // 代理对占用 2 个码元
+      } else {
+        position += 1;
+      }
+    }
+    // 检查末尾是否截断高位代理
+    const lastCodeUnit = str.charCodeAt(position - 1);
+    if (lastCodeUnit >= 0xD800 && lastCodeUnit <= 0xDBFF) {
+      position -= 1; // 移除不完整的高位代理
+    }
+    return str.slice(0, position);
+  }
+
+  /*
    * @tc.number  inputmethod_test_attach_palceholder_and_AbilityName_001
-   * @tc.name    Test whether the current application can be bound with the default input method.
+   * @tc.name    test interface attach config parameters palceholder and ableName
    * @tc.desc    Function test
    * @tc.level   2
    */
-   it('inputmethod_test_attach_palceholder_and_ability_name_001', 0, async function (done) {
-    console.info('************* inputmethod_test_attach_palceholder_and_ability_name_001 Test start*************');
-
+  it('inputmethod_test_attach_palceholder_and_ability_name_001', 0, async function (done) {
+    let testName = 'inputmethod_test_attach_palceholder_and_ability_name_001';
+    console.info(`************* ${testName} Test start*************`);
     let inputMethodCtrl = inputMethod.getController();
     var palceholder = 'palceholder';
     var abilityName = 'ability name 👨';
@@ -81,48 +108,415 @@ describe('InputMethodWithAttachTestParam', function () {
       let subscribeInfo = {
         events: ['EditorAttributeChangedTest']
       };
-      console.info(`EditorAttributeChangedTest subscribe begin`);
+      console.info(`${testName} subscribe begin`);
       commonEventManager.createSubscriber(subscribeInfo).then((data) => {
           let subscriber = data;
-          console.info(`EditorAttributeChangedTest subscribe end`);
+          console.info(`${testName} subscribe end`);
           commonEventManager.subscribe(subscriber, (err, eventData) => {
-            console.info(`EditorAttributeChangedTest subscribe recv`);
+            console.info(`${testName} subscribe recv`);
             if (err) {
-              console.info(`EditorAttributeChangedTest fail:${JSON.stringify(err)}`);
+              console.info(`${testName} fail:${JSON.stringify(err)}`);
               expect().assertFail();
+              commonEventManager.unsubscribe(subscriber);
+              console.info(`${testName} unsubscribe`);
               done();
               return;
             }
-            console.info(`EditorAttributeChangedTest:${eventData},code:${eventData.code}`);
+            console.info(`${testName}:${eventData},code:${eventData.code}`);
             if (eventData.code == 0) {
               return;
             }
-            console.info(`EditorAttributeChangedTest eventData.data:${eventData.data}`);
+            console.info(`${testName} eventData.data:${eventData.data}`);
             let recv = JSON.parse(`${eventData.data}`);
-            console.info(`EditorAttributeChangedTest recv:${recv}, palceholder:${recv.placeholder}`);
+            console.info(`${testName} recv:${recv}, palceholder:${recv.placeholder}`);
             if (palceholder === recv.placeholder && abilityName === recv.abilityName) {
               expect(true).assertTrue();
-              console.info(`inputmethod_test_attach_palceholder_and_ability_name_001 true`);
+              console.info(`${testName} result true`);
             } else {
-              console.info(`inputmethod_test_attach_palceholder_and_ability_name_001 fail`);
+              console.info(`${testName} result fail`);
               expect().assertFail();
             }
             commonEventManager.unsubscribe(subscriber);
-            console.info(`inputmethod_test_attach_palceholder_and_ability_name_001 unsubscribe`);
+            console.info(`${testName} unsubscribe`);
             done();
         })
       });
-      console.info(`inputmethod_test_attach_palceholder_and_ability_name_001 begin attach`);
+      console.info(`${testName} begin attach`);
       inputMethodCtrl.attach(false, cfg);
-      console.info(`inputmethod_test_attach_palceholder_and_ability_name_001 end attach`);
+      console.info(`${testName} end attach`);
     }
     try {
-      setTimeout(timeOutCb1, 1000);
+      setTimeout(timeOutCb1, WAIT_DEAL_OK * 2);
     } catch(error) {
-      console.info(`inputmethod_test_attach_palceholder_and_ability_name_001 result: ${JSON.stringify(error)}`);
+      console.info(`${testName} result: ${JSON.stringify(error)}`);
       expect().assertFail();
       done();
     }
-    console.info(`inputmethod_test_attach_palceholder_and_ability_name_001 end`);
+    console.info(`${testName} end`);
+  });
+
+  /*
+   * @tc.number  inputmethod_test_attach_palceholder_and_AbilityName_002
+   * @tc.name    test interface attach config parameters palceholder and ableName
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_attach_palceholder_and_ability_name_002', 0, async function (done) {
+    let testName = 'inputmethod_test_attach_palceholder_and_ability_name_002';
+    console.info(`************* ${testName} Test start*************`);
+    let inputMethodCtrl = inputMethod.getController();
+    var palceholder = truncateByCodePoints("palceholder𪛊TestSizeNeedGT255".repeat(REPEAT_SIZE),
+      MAX_PLACEHOLDER_CHAR_SIZE)
+    var abilityName = truncateByCodePoints('abilityName\0𪛊TestSizeNeedGT127'.repeat(REPEAT_SIZE),
+      MAX_ABILITY_NAME_CHAR_SIZE)
+    let cfg = {
+      inputAttribute:
+        {
+          textInputType: inputMethod.TextInputType.TEXT,
+          enterKeyType: inputMethod.EnterKeyType.NONE,
+          placeholder: palceholder + "a",
+          abilityName: abilityName + "b",
+        }
+    };
+    let timeOutCb1 = async () => {
+      let subscribeInfo = {
+        events: ['EditorAttributeChangedTest']
+      };
+      console.info(` ${testName} subscribe begin`);
+      commonEventManager.createSubscriber(subscribeInfo).then((data) => {
+          let subscriber = data;
+          console.info(`${testName} subscribe end`);
+          commonEventManager.subscribe(subscriber, (err, eventData) => {
+            console.info(`${testName} subscribe recv`);
+            if (err) {
+              console.info(`${testName} fail:${JSON.stringify(err)}`);
+              expect().assertFail();
+              commonEventManager.unsubscribe(subscriber);
+              console.info(`${testName} unsubscribe`);
+              done();
+              return;
+            }
+            console.info(`${testName}:${eventData},code:${eventData.code}`);
+            if (eventData.code == 0) {
+              return;
+            }
+            console.info(`${testName} eventData.data:${eventData.data}`);
+            let recv = JSON.parse(`${eventData.data}`);
+            console.info(`${testName} recv:${recv}, palceholder:${recv.placeholder}`);
+            if (palceholder === recv.placeholder && abilityName === recv.abilityName) {
+              expect(true).assertTrue();
+              console.info(`${testName} result true`);
+            } else {
+              console.info(`${testName} result fail`);
+              expect().assertFail();
+            }
+            commonEventManager.unsubscribe(subscriber);
+            console.info(`${testName} unsubscribe`);
+            done();
+        })
+      });
+      console.info(`${testName} begin attach`);
+      inputMethodCtrl.attach(false, cfg, (err) => {
+        if (err) {
+          console.error(`${testName} Failed to attach: ${JSON.stringify(err)}`);
+          expect().assertFail();
+          done();
+          return;
+        }
+        console.log(`${testName} Succeeded in attaching the inputMethod.`);
+      });
+      console.info(`${testName} end attach`);
+    }
+    try {
+      setTimeout(timeOutCb1, WAIT_DEAL_OK * 2);
+    } catch(error) {
+      console.info(`${testName} result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+    console.info(`${testName} end`);
+  });
+
+  /*
+   * @tc.number  inputmethod_test_attach_palceholder_and_AbilityName_003
+   * @tc.name    test interface attach config parameters palceholder and ableName
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_attach_palceholder_and_ability_name_003', 0, async function (done) {
+    let testName = 'inputmethod_test_attach_palceholder_and_ability_name_003';
+    console.info(`************* ${testName} Test start*************`);
+    let inputMethodCtrl = inputMethod.getController();
+    var palceholder = truncateByCodePoints("palceholder𪛊TestSize255aaaa".repeat(REPEAT_SIZE),
+      MAX_PLACEHOLDER_CHAR_SIZE);
+    var abilityName = truncateByCodePoints('ability𪛊Name\0Need127'.repeat(REPEAT_SIZE),
+      MAX_ABILITY_NAME_CHAR_SIZE);
+    let cfg = {
+      inputAttribute:
+        {
+          textInputType: inputMethod.TextInputType.TEXT,
+          enterKeyType: inputMethod.EnterKeyType.NONE,
+          placeholder: palceholder,
+          abilityName: abilityName,
+        }
+    };
+    let timeOutCb1 = async () => {
+      let subscribeInfo = {
+        events: ['EditorAttributeChangedTest']
+      };
+      console.info(`${testName} subscribe begin`);
+      commonEventManager.createSubscriber(subscribeInfo).then((data) => {
+          let subscriber = data;
+          console.info(` ${testName} subscribe end`);
+          commonEventManager.subscribe(subscriber, (err, eventData) => {
+            console.info(`${testName} subscribe recv`);
+            if (err) {
+              console.info(`${testName} fail:${JSON.stringify(err)}`);
+              expect().assertFail();
+              commonEventManager.unsubscribe(subscriber);
+              console.info(`${testName} unsubscribe`);
+              done();
+              return;
+            }
+            console.info(`${testName}:${eventData},code:${eventData.code}`);
+            if (eventData.code == 0) {
+              return;
+            }
+            console.info(`${testName} eventData.data:${eventData.data}`);
+            let recv = JSON.parse(`${eventData.data}`);
+            console.info(`${testName} recv:${recv}, palceholder:${recv.placeholder}`);
+            if (palceholder === recv.placeholder && abilityName === recv.abilityName) {
+              expect(true).assertTrue();
+              console.info(`${testName} result true`);
+            } else {
+              console.info(`${testName} result fail`);
+              expect().assertFail();
+            }
+            commonEventManager.unsubscribe(subscriber);
+            console.info(`${testName} unsubscribe`);
+            done();
+        })
+      });
+      console.info(`${testName} begin attach`);
+      inputMethodCtrl.attach(false, cfg);
+      console.info(`${testName} end attach`);
+    }
+    try {
+      setTimeout(timeOutCb1, WAIT_DEAL_OK * 2);
+    } catch(error) {
+      console.info(` ${testName} result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+    console.info(` ${testName} end`);
+  });
+
+  /*
+   * @tc.number  inputmethod_test_attach_palceholder_and_AbilityName_004
+   * @tc.name    test interface attach config parameters palceholder and ableName
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_attach_palceholder_and_ability_name_004', 0, async function (done) {
+    let testName = 'inputmethod_test_attach_palceholder_and_ability_name_004' ;
+    console.info(`************* ${testName} Test start*************`);
+    let inputMethodCtrl = inputMethod.getController();
+    let cfg = {
+      inputAttribute:
+        {
+          textInputType: inputMethod.TextInputType.TEXT,
+          enterKeyType: inputMethod.EnterKeyType.NONE,
+          placeholder: null,
+          abilityName: null,
+        }
+    };
+    let timeOutCb1 = async () => {
+      let subscribeInfo = {
+        events: ['EditorAttributeChangedTest']
+      };
+      console.info(`${testName} subscribe begin`);
+      commonEventManager.createSubscriber(subscribeInfo).then((data) => {
+          let subscriber = data;
+          console.info(` ${testName} subscribe end`);
+          commonEventManager.subscribe(subscriber, (err, eventData) => {
+            console.info(`${testName} subscribe recv`);
+            if (err) {
+              console.info(`${testName} fail:${JSON.stringify(err)}`);
+              expect().assertFail();
+              commonEventManager.unsubscribe(subscriber);
+              console.info(` ${testName} unsubscribe`);
+              done();
+              return;
+            }
+            console.info(`${testName}:${eventData},code:${eventData.code}`);
+            if (eventData.code == 0) {
+              return;
+            }
+            console.info(`${testName} eventData.data:${eventData.data}`);
+            let recv = JSON.parse(`${eventData.data}`);
+            console.info(`${testName} recv:${recv}, palceholder:${recv.placeholder}`);
+            if ( recv.placeholder === '' && recv.abilityName === '') {
+              expect(true).assertTrue();
+              console.info(` ${testName} true`);
+            } else {
+              console.info(` ${testName} fail`);
+              expect().assertFail();
+            }
+            commonEventManager.unsubscribe(subscriber);
+            console.info(` ${testName} unsubscribe`);
+            done();
+        })
+      });
+      console.info(`${testName} begin attach`);
+      inputMethodCtrl.attach(false, cfg);
+      console.info(`${testName} end attach`);
+    }
+    try {
+      setTimeout(timeOutCb1, WAIT_DEAL_OK * 2);
+    } catch(error) {
+      console.info(`${testName} result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+    console.info(` ${testName} end`);
+  });
+
+  /*
+   * @tc.number  inputmethod_test_attach_palceholder_and_AbilityName_005
+   * @tc.name    test interface attach config parameters palceholder and ableName
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_attach_palceholder_and_ability_name_005', 0, async function (done) {
+    let testName = 'inputmethod_test_attach_palceholder_and_ability_name_005' ;
+    console.info(`************* ${testName} Test start*************`);
+    let inputMethodCtrl = inputMethod.getController();
+    let cfg = {
+      inputAttribute:
+        {
+          textInputType: inputMethod.TextInputType.TEXT,
+          enterKeyType: inputMethod.EnterKeyType.NONE,
+          placeholder: undefined,
+          abilityName: undefined,
+        }
+    };
+    let timeOutCb1 = async () => {
+      let subscribeInfo = {
+        events: ['EditorAttributeChangedTest']
+      };
+      console.info(`${testName} subscribe begin`);
+      commonEventManager.createSubscriber(subscribeInfo).then((data) => {
+          let subscriber = data;
+          console.info(` ${testName} subscribe end`);
+          commonEventManager.subscribe(subscriber, (err, eventData) => {
+            console.info(`${testName} subscribe recv`);
+            if (err) {
+              console.info(`${testName} fail:${JSON.stringify(err)}`);
+              expect().assertFail();
+              commonEventManager.unsubscribe(subscriber);
+              console.info(` ${testName} unsubscribe`);
+              done();
+              return;
+            }
+            console.info(`${testName}:${eventData},code:${eventData.code}`);
+            if (eventData.code == 0) {
+              return;
+            }
+            console.info(`${testName} eventData.data:${eventData.data}`);
+            let recv = JSON.parse(`${eventData.data}`);
+            console.info(`${testName} recv:${recv}, palceholder:${recv.placeholder}`);
+            if (recv.placeholder === '' && recv.abilityName === '') {
+              expect(true).assertTrue();
+              console.info(` ${testName} true`);
+            } else {
+              console.info(` ${testName} fail`);
+              expect().assertFail();
+            }
+            commonEventManager.unsubscribe(subscriber);
+            console.info(` ${testName} unsubscribe`);
+            done();
+        })
+      });
+      console.info(`${testName} begin attach`);
+      inputMethodCtrl.attach(false, cfg);
+      console.info(`${testName} end attach`);
+    }
+    try {
+      setTimeout(timeOutCb1, WAIT_DEAL_OK * 2);
+    } catch(error) {
+      console.info(` ${testName} result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+    console.info(` ${testName} end`);
+  });
+
+  /*
+   * @tc.number  inputmethod_test_attach_palceholder_and_AbilityName_006
+   * @tc.name    test interface attach config parameters palceholder and ableName
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_attach_palceholder_and_ability_name_006', 0, async function (done) {
+    let testName = 'inputmethod_test_attach_palceholder_and_ability_name_006' ;
+    console.info(`************* ${testName} Test start*************`);
+    let inputMethodCtrl = inputMethod.getController();
+    let cfg = {
+      inputAttribute:
+        {
+          textInputType: inputMethod.TextInputType.TEXT,
+          enterKeyType: inputMethod.EnterKeyType.NONE,
+        }
+    };
+    let timeOutCb1 = async () => {
+      let subscribeInfo = {
+        events: ['EditorAttributeChangedTest']
+      };
+      console.info(`${testName} subscribe begin`);
+      commonEventManager.createSubscriber(subscribeInfo).then((data) => {
+          let subscriber = data;
+          console.info(` ${testName} subscribe end`);
+          commonEventManager.subscribe(subscriber, (err, eventData) => {
+            console.info(`${testName} subscribe recv`);
+            if (err) {
+              console.info(`${testName} fail:${JSON.stringify(err)}`);
+              expect().assertFail();
+              commonEventManager.unsubscribe(subscriber);
+              console.info(` ${testName} unsubscribe`);
+              done();
+              return;
+            }
+            console.info(`${testName}:${eventData},code:${eventData.code}`);
+            if (eventData.code == 0) {
+              return;
+            }
+            console.info(`${testName} eventData.data:${eventData.data}`);
+            let recv = JSON.parse(`${eventData.data}`);
+            console.info(`${testName} recv:${recv}, palceholder:${recv.placeholder}`);
+            if ( recv.placeholder === '' && recv.abilityName === '') {
+              expect(true).assertTrue();
+              console.info(` ${testName} true`);
+            } else {
+              console.info(` ${testName} fail`);
+              expect().assertFail();
+            }
+            commonEventManager.unsubscribe(subscriber);
+            console.info(` ${testName} unsubscribe`);
+            done();
+        })
+      });
+      console.info(`${testName} begin attach`);
+      inputMethodCtrl.attach(false, cfg);
+      console.info(`${testName} end attach`);
+    }
+    try {
+      setTimeout(timeOutCb1, WAIT_DEAL_OK * 2);
+    } catch(error) {
+      console.info(` ${testName} result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+    console.info(` ${testName} end`);
   });
 });
+

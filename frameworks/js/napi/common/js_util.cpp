@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr int64_t JS_NUMBER_MAX_VALUE = (1LL << 53) - 1;
+constexpr int32_t HEX_BYTE_WIDTH = 2;
 napi_valuetype JsUtil::GetType(napi_env env, napi_value in)
 {
     napi_valuetype valueType = napi_undefined;
@@ -133,7 +134,7 @@ std::string JsUtil::ToHex(const std::string &in)
         return "";
     }
     for (size_t i = 0; i < in.size(); i++) {
-        ss << "0x" << std::uppercase << std::hex << std::setw(sizeof(uint8_t))
+        ss << std::uppercase << std::hex << std::setw(sizeof(uint8_t) * HEX_BYTE_WIDTH)
         << std::setfill('0') << static_cast<uint8_t>(in.at(i));
     }
     return ss.str();
@@ -146,7 +147,8 @@ std::string JsUtil::ToHex(const std::u16string &in)
         return "";
     }
     for (size_t i = 0; i < in.size(); i++) {
-        ss << "0x" << std::uppercase << std::hex << std::setw(sizeof(char16_t)) << std::setfill('0') << in.at(i);
+        ss << std::uppercase << std::hex << std::setw(sizeof(char16_t) * HEX_BYTE_WIDTH)
+        << std::setfill('0') << in.at(i);
     }
     return ss.str();
 }
