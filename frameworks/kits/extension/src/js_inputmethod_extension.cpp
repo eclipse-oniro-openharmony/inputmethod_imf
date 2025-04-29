@@ -136,6 +136,7 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
     }
     BindContext(env, obj);
     handler_ = handler;
+    InitDisplayCache();
     ListenWindowManager();
     IMSA_HILOGI("JsInputMethodExtension end.");
 }
@@ -287,8 +288,19 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaSetCoreAndAgent>());
     IMSA_HILOGI("ime bind imf");
     FinishAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
-
     TaskManager::GetInstance().Complete(task->GetSeqId());
+}
+
+void JsInputMethodExtension::InitDisplayCache()
+{
+    auto foldStatus = Rosen::DisplayManager::GetInstance().GetFoldStatus();
+    auto displayPtr = Rosen::DisplayManager::GetInstance().GetDefaultDisplaySync();
+    if (displayPtr == nullptr) {
+        IMSA_HILOGE("displayPtr is null");
+        return;
+    }
+    cacheDisplay_.SetCacheDisplay(
+        displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation(), foldStatus);
 }
 
 void JsInputMethodExtension::OnStop()
@@ -431,24 +443,22 @@ void JsInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
     if (displayId != Rosen::DisplayManager::GetInstance().GetDefaultDisplayId()) {
         return;
     }
-    auto displayPtr = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    auto foldStatus = Rosen::DisplayManager::GetInstance().GetFoldStatus();
+    auto displayPtr = Rosen::DisplayManager::GetInstance().GetDefaultDisplaySync();
     if (displayPtr == nullptr) {
         return;
     }
-    auto foldStatus = Rosen::DisplayManager::GetInstance().GetFoldStatus();
     IMSA_HILOGD("display width: %{public}d, height: %{public}d, rotation: %{public}d, foldStatus: %{public}d",
         displayPtr->GetWidth(),
         displayPtr->GetHeight(),
         displayPtr->GetRotation(),
         foldStatus);
-    if (cacheDisplay_.IsEmpty()) {
-        TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaAdjustKeyboard>());
-    } else {
+    if (!cacheDisplay_.IsEmpty()) {
         if ((cacheDisplay_.displayWidth != displayPtr->GetWidth() ||
             cacheDisplay_.displayHeight != displayPtr->GetHeight()) &&
             cacheDisplay_.displayFoldStatus == foldStatus &&
             cacheDisplay_.displayRotation == displayPtr->GetRotation()) {
-            TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaAdjustKeyboard>());
+            InputMethodAbility::GetInstance()->AdjustKeyboard();
         }
     }
     cacheDisplay_.SetCacheDisplay(

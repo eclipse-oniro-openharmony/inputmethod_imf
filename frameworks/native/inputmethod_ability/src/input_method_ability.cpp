@@ -936,7 +936,7 @@ int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channe
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
         auto flag = panel->GetPanelFlag();
-        if (panel->IsShowing() && flag != FLG_CANDIDATE_COLUMN) {
+        if (flag != FLG_CANDIDATE_COLUMN) {
             auto keyboardSize = panel->GetKeyboardSize();
             SysPanelStatus sysPanelStatus = { inputType_, flag, keyboardSize.width, keyboardSize.height };
             NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
@@ -1104,11 +1104,6 @@ int32_t InputMethodAbility::HidePanel(
 int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus)
 {
     if (panelType != PanelType::SOFT_KEYBOARD) {
-        return ErrorCode::NO_ERROR;
-    }
-    // If it is not binding, do not need to notify the panel
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
         return ErrorCode::NO_ERROR;
     }
     sysPanelStatus.inputType = inputType_;
