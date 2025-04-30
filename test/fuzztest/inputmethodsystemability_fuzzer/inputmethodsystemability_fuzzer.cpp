@@ -69,6 +69,30 @@ void FuzzOnUser(int32_t userId, const std::string &packageName)
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnPackageRemoved(userId, bundleName);
 }
 
+void FuzzOnScreenUnlock()
+{
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnScreenUnlock(nullptr);
+
+    MessageParcel *parcel = nullptr;
+    auto msg = std::make_shared<Message>(MessageID::MSG_ID_SCREEN_UNLOCK, parcel);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnScreenUnlock(msg.get());
+
+    MessageParcel *parcel1 = new (std::nothrow) MessageParcel();
+    msg = std::make_shared<Message>(MessageID::MSG_ID_SCREEN_UNLOCK, parcel1);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnScreenUnlock(msg.get());
+
+    MessageParcel *parcel2 = new (std::nothrow) MessageParcel();
+    msg = std::make_shared<Message>(MessageID::MSG_ID_SCREEN_UNLOCK, parcel2);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnScreenUnlock(msg.get());
+}
+
+void SystemAbility(const uint8_t *data, size_t size)
+{
+    auto fuzzedUint32 = static_cast<uint32_t>(size);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HideInput(nullptr);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->ReleaseInput(nullptr, fuzzedUint32);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->SetCoreAndAgent(nullptr, nullptr);
+}
 } // namespace OHOS
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
@@ -78,5 +102,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
 
     OHOS::FuzzOnUser(userId, fuzzedString);
+    OHOS::FuzzOnScreenUnlock();
+    OHOS::SystemAbility(data, size);
     return 0;
 }
