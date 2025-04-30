@@ -199,7 +199,6 @@ export class KeyboardController {
   }
 
   private registerInputListener(): void { // 注册对输入法框架服务的开启及停止事件监听
-    let attr :inputMethodEngine.EditorAttribute = {};
     inputMethodAbility.on('inputStart', (kbController, textInputClient) => {
       globalThis.textInputClient = textInputClient; // 此为输入法客户端实例，由此调用输入法框架提供给输入法应用的功能接口
       globalThis.keyboardController = kbController;
