@@ -1,0 +1,245 @@
+@!namespace("@ohos.inputMethod", "inputMethod")
+from ohos.inputMethod.Panel use PanelInfo;
+from ohos.inputMethodSubtype use InputMethodSubtype;
+
+struct InputMethodProperty {
+    @readonly packageName: String;
+    @readonly methodId: String;
+    @readonly name: String;
+    @readonly id: String;
+    @readonly label: Optional<String>;
+    @readonly labelId: Optional<u32>;
+    @readonly icon: Optional<String>;
+    @readonly iconId: Optional<u32>;
+    extra: Optional<Opaque>;
+}
+
+struct InputWindowInfo {
+    name: String;
+    left: i32;
+    top: i32;
+    width: u32;
+    height: u32;
+}
+
+interface InputMethodSetting {
+    @gen_async("getInputMethods")
+    @gen_promise("getInputMethods")
+    GetInputMethodSync(enable: bool): Array<InputMethodProperty>;
+    @gen_async("listCurrentInputMethodSubtype")
+    @gen_promise("listCurrentInputMethodSubtype")
+    ListCurrentInputMethodSubtypeSync(): Array<InputMethodSubtype>;
+    @gen_async("listInputMethodSubtype")
+    @gen_promise("listInputMethodSubtype")
+    ListInputMethodSubtypeSync(inputMethodProperty: InputMethodProperty): Array<InputMethodSubtype>;
+    IsPanelShown(panelInfo: PanelInfo): bool;
+    @gen_async("getAllInputMethods")
+    @gen_promise("getAllInputMethods")
+    GetAllInputMethodsSync(): Array<InputMethodProperty>;
+    @!sts_inject_into_interface("""
+        on(type: string, cb: Object) {
+            switch(type) {
+                case "imeHide": return this.onImeHide(cb as (info: Array<InputWindowInfo>) => void, cb);
+                case "imeShow":  return this.onImeShow(cb as (info: Array<InputWindowInfo>) => void, cb);
+                case "imeChange": return this.onImeChange(cb as (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_inputMethodSubtype.InputMethodSubtype) => void, cb);
+                default: throw new Error(`Unknown type: ${type}`);
+            }
+        }
+        off(type: string, cb?: Object) {
+            switch(type) {
+                case "imeHide": return this.offImeHide(cb);
+                case "imeShow":  return this.offImeShow(cb);
+                case "imeChange": return this.offImeChange(cb);
+                default: throw new Error(`Unknown type: ${type}`);
+            }
+        }
+    """)
+    OnImeHide(f: (info: Array<InputWindowInfo>) => void, opq: Opaque);
+    OffImeHide(opq: Optional<Opaque>);
+    OnImeShow(f: (info: Array<InputWindowInfo>) => void, opq: Opaque);
+    OffImeShow(opq: Optional<Opaque>);
+    OnImeChange(f: (inputMethodProperty: InputMethodProperty, inputMethodSubtype: InputMethodSubtype) => void, opq: Opaque);
+    OffImeChange(opq: Optional<Opaque>);
+}
+
+struct CursorInfo {
+    left: f64;
+    top: f64;
+    width: f64;
+    height: f64;
+}
+
+enum Direction : i32 {
+    CURSOR_UP = 1,
+    CURSOR_DOWN = 2,
+    CURSOR_LEFT = 3,
+    CURSOR_RIGHT = 4
+}
+
+struct Range {
+    start: i32;
+    end: i32;
+}
+
+struct Movement {
+    direction : Direction;
+}
+
+enum ExtendAction : i32 {
+    SELECT_ALL = 0,
+    CUT = 3,
+    COPY = 4,
+    PASTE = 5
+}
+
+enum TextInputType : i32 {
+    NONE = -1,
+    TEXT = 0,
+    MULTILINE = 1,
+    NUMBER = 2,
+    PHONE = 3,
+    DATETIME = 4,
+    EMAIL_ADDRESS = 5,
+    URL = 6,
+    VISIBLE_PASSWORD = 7,
+    NUMBER_PASSWORD = 8
+}
+
+enum EnterKeyType : i32 {
+    UNSPECIFIED = 0,
+    NONE = 1,
+    GO = 2,
+    SEARCH = 3,
+    SEND = 4,
+    NEXT = 5,
+    DONE = 6,
+    PREVIOUS = 7,
+    NEWLINE = 8
+}
+
+struct FunctionKey {
+    enterKeyType : EnterKeyType;
+}
+
+struct InputAttribute {
+    textInputType: TextInputType;
+    enterKeyType: EnterKeyType;
+}
+
+struct TextConfig {
+    inputAttribute: InputAttribute;
+    @readonly cursorInfo: CursorInfo;
+    @readonly selection: Range;
+    @readonly windowId: i32;
+}
+
+
+enum KeyboardStatus : i32 {
+    NONE = 0,
+    HIDE = 1,
+    SHOW = 2
+}
+
+enum RequestKeyboardReason : i32 {
+    NONE = 0,
+    MOUSE = 1,
+    TOUCH = 2,
+    OTHER = 20
+}
+
+interface InputMethodController {
+    @gen_async("hideSoftKeyboard")
+    @gen_promise("hideSoftKeyboard")
+    HideSoftKeyboardSync();
+    @gen_promise("showTextInput")
+    ShowTextInputHasParam(requestKeyboardReason: RequestKeyboardReason);
+    @gen_async("showTextInput")
+    @gen_promise("showTextInput")
+    ShowTextInputSync();
+    @gen_async("hideTextInput")
+    @gen_promise("hideTextInput")
+    HideTextInputSync();
+    @gen_async("attach")
+    @gen_promise("attach")
+    AttachSync(showKeyboard: bool, textConfig: TextConfig);
+    @gen_promise("attach")
+    AttachWithReason(showKeyboard: bool, textConfig: TextConfig, requestKeyboardReason: RequestKeyboardReason);
+    @gen_async("detach")
+    @gen_promise("detach")
+    DetachSync();
+    @!sts_inject_into_interface("""
+        on(type: string, cb: Object) {
+            switch(type) {
+                case "selectByRange": return this.onSelectByRange(cb as (range : Range) => void, cb);
+                case "selectByMovement": return this.onSelectByMovement(cb as (movement : Movement) => void, cb);
+                case "insertText": return this.onInsertText(cb as (text: String) => void, cb);
+                case "deleteLeft": return this.onDeleteLeft(cb as (length: i32) => void, cb);
+                case "deleteRight": return this.onDeleteRight(cb as (length: i32) => void, cb);
+                case "sendKeyboardStatus": return this.onSendKeyboardStatus(cb as (keyboardStatus: KeyboardStatus) => void, cb);
+                case "sendFunctionKey": return this.onSendFunctionKey(cb as (functionKey: FunctionKey) => void, cb);
+                case "moveCursor": return this.onMoveCursor(cb as (direction: Direction) => void, cb);
+                case "handleExtendSelection": return this.onHandleExtendSelection(cb as (extendAction: ExtendAction) => void, cb);
+                case "getLeftTextOfCursor": return this.onGetLeftTextOfCursor(cb as (length: i32) => void, cb);
+                case "getRightTextOfCursor": return this.onGetRightTextOfCursor(cb as (length: i32) => void, cb);
+                case "getTextIndexAtCursor": return this.onGetTextIndexAtCursor(cb as () => i32, cb);
+                default: throw new Error(`Unknown type: ${type}`);
+            }
+        off(type: string, cb?: Object) {
+            switch(type) {
+                case "selectByRange": return this.offSelectByRange(cb);
+                case "selectByMovement": return this.offSelectByMovement(cb);
+                case "insertText": return this.offInsertText(cb);
+                case "deleteLeft": return this.offDeleteLeft(cb);
+                case "deleteRight": return this.offDeleteRight(cb);
+                case "sendKeyboardStatus": return this.offSendKeyboardStatus(cb);
+                case "sendFunctionKey": return this.offSendFunctionKey(cb);
+                case "moveCursor": return this.offMoveCursor(cb);
+                case "handleExtendSelection": return this.offHandleExtendSelection(cb);
+                case "getLeftTextOfCursor": return this.offGetLeftTextOfCursor(cb);
+                case "getRightTextOfCursor": return this.offGetRightTextOfCursor(cb);
+                case "getTextIndexAtCursor": return this.offGetTextIndexAtCursor(cb);
+                default: throw new Error(`Unknown type: ${type}`);
+            }
+        }
+        }
+    """)
+    OnSelectByRange(f: (range : Range) => void, opq: Opaque);
+    OffSelectByRange(opq: Optional<Opaque>);
+    OnSelectByMovement(f: (movement : Movement) => void, opq: Opaque);
+    OffSelectByMovement(opq: Optional<Opaque>);
+    OnInsertText(f: (text: String) => void, opq: Opaque);
+    OffInsertText(opq: Optional<Opaque>);
+    OnDeleteLeft(f: (length: i32) => void, opq: Opaque);
+    OffDeleteLeft(opq: Optional<Opaque>);
+    OnDeleteRight(f: (length: i32) => void, opq: Opaque);
+    OffDeleteRight(opq: Optional<Opaque>);
+    OnSendKeyboardStatus(f: (keyboardStatus: KeyboardStatus) => void, opq: Opaque);
+    OffSendKeyboardStatus(opq: Optional<Opaque>);
+    OnSendFunctionKey(f: (functionKey: FunctionKey) => void, opq: Opaque);
+    OffSendFunctionKey(opq: Optional<Opaque>);
+    OnMoveCursor(f: (direction: Direction) => void, opq: Opaque);
+    OffMoveCursor(opq: Optional<Opaque>);
+    OnHandleExtendAction(f: (action: ExtendAction) => void, opq: Opaque);
+    OffHandleExtendAction(opq: Optional<Opaque>);
+    OnGetLeftTextOfCursor(f: (length: i32) => void, opq: Opaque);
+    OffGetLeftTextOfCursor(opq: Optional<Opaque>);
+    OnGetRightTextOfCursor(f: (length: i32) => void, opq: Opaque);
+    OffGetRightTextOfCursor(opq: Optional<Opaque>);
+    OnGetTextIndexAtCursor(f: () => i32, opq: Opaque);
+    OffGetTextIndexAtCursor(opq: Optional<Opaque>);
+}
+
+function GetSetting(): InputMethodSetting;
+function GetController(): InputMethodController;
+function GetDefaultInputMethod(): InputMethodProperty;
+function GetCurrentInputMethod(): InputMethodProperty;
+function GetCurrentInputMethodSubtype(): InputMethodSubtype;
+function GetSystemInputMethodConfigAbility(): Opaque;
+@gen_async("switchInputMethod")
+@gen_promise("switchInputMethod")
+function SwitchInputMethodWithTarget(target: InputMethodProperty): bool;
+@gen_promise("switchInputMethod")
+function SwitchInputMethodSync(bundleName: String, subtypeId: Optional<String>);
+@gen_async("switchCurrentInputMethodSubtype")
+@gen_promise("switchCurrentInputMethodSubtype")
+function SwitchCurrentInputMethodSubtypeSync(target: InputMethodProperty): bool;

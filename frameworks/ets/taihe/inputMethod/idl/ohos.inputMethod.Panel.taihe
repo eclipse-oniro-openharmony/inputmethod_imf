@@ -1,0 +1,16 @@
+@!namespace("@ohos.inputMethod.Panel")
+enum PanelFlag: i32 {
+    FLAG_FIXED = 0,
+    FLAG_FLOATING = 1,
+    FLAG_CANDIDATE = 2
+}
+
+enum PanelType: i32 {
+    SOFT_KEYBOARD = 0,
+    STATUS_BAR = 1
+}
+
+struct PanelInfo {
+    type : PanelType;
+    flag : Optional<PanelFlag>;
+}
