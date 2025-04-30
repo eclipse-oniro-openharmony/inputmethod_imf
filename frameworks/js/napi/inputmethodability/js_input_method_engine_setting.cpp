@@ -85,6 +85,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("SecurityMode", GetJsSecurityModeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("ImmersiveMode", GetJsImmersiveModeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("RequestKeyboardReason", GetJsRequestKeyboardReasonProperty(env))
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -217,6 +218,24 @@ napi_value JsInputMethodEngineSetting::GetJsImmersiveModeProperty(napi_env env)
         JsUtil::Object::WriteProperty(
             env, immersive, "DARK_IMMERSIVE", static_cast<int32_t>(ImmersiveMode::DARK_IMMERSIVE));
     return ret ? immersive : JsUtil::Const::Null(env);
+}
+
+napi_value JsInputMethodEngineSetting::GetJsRequestKeyboardReasonProperty(napi_env env)
+{
+    napi_value requestKeyboardReason = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &requestKeyboardReason));
+    bool ret = JsUtil::Object::WriteProperty(
+        env, requestKeyboardReason, "NONE", static_cast<int32_t>(RequestKeyboardReason::NONE));
+    ret = ret &&
+        JsUtil::Object::WriteProperty(
+            env, requestKeyboardReason, "MOUSE", static_cast<int32_t>(RequestKeyboardReason::MOUSE));
+    ret = ret &&
+        JsUtil::Object::WriteProperty(
+            env, requestKeyboardReason, "TOUCH", static_cast<int32_t>(RequestKeyboardReason::TOUCH));
+    ret = ret &&
+        JsUtil::Object::WriteProperty(
+            env, requestKeyboardReason, "OTHER", static_cast<int32_t>(RequestKeyboardReason::OTHER));
+    return ret ? requestKeyboardReason : JsUtil::Const::Null(env);
 }
 
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineSetting()
