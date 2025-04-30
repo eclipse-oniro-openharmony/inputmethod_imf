@@ -755,7 +755,7 @@ bool InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId)
 ErrCode InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId, bool &resultValue)
 {
     resultValue = IsDefaultImeScreen(displayId);
-    return ERR_OK;
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason)

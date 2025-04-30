@@ -315,9 +315,17 @@ bool InputMethodAbility::IsDisplayChanged(uint64_t oldDisplayId, uint64_t newDis
         return false;
     }
     bool ret = false;
-    proxy->IsDefaultImeScreen(oldDisplayId, ret);
+    int32_t result = proxy->IsDefaultImeScreen(oldDisplayId, ret);
+    if (result != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to get oldDisplay info , result is %{public}d!", result);
+        return false;
+    }
     if (!ret) {
-        proxy->IsDefaultImeScreen(newDisplayId, ret);
+        result = proxy->IsDefaultImeScreen(newDisplayId, ret);
+        if (result != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to get newDisplay info , result is %{public}d!", result);
+            return false;
+        }
     }
     return ret;
 }
