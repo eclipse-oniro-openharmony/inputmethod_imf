@@ -23,6 +23,7 @@ const inputMethodAbility: inputMethodEngine.InputMethodAbility = inputMethodEngi
 const DEFAULT_DIRECTION: number = 1;
 const DEFAULT_LENGTH: number = 1;
 const DEFAULT_SELECT_RANGE: number = 10;
+
 enum TEST_RESULT_CODE {
   SUCCESS,
   FAILED
