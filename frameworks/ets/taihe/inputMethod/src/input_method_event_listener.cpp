@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "input_method_event_listener.h"
+
 #include "input_method_setting_impl.h"
 namespace OHOS {
 namespace MiscServices {
@@ -42,5 +43,5 @@ void InputMethodEventListener::OnImeHide(const ImeWindowInfo &info)
 {
     InputMethodSettingImpl::GetInstance().OnImeHideCallback(info);
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS

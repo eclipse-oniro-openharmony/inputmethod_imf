@@ -22,6 +22,7 @@ taihe_generated_file_path = "$taihe_file_path/out/$subsystem_name/$part_name"
 
 copy_taihe_idl("copy_taihe") {
   sources = [ 
+    "idl/ohos.elementName.taihe",
     "idl/ohos.inputMethod.Panel.taihe",
     "idl/ohos.inputMethod.taihe",
     "idl/ohos.inputMethodSubtype.taihe"
@@ -80,6 +81,7 @@ taihe_shared_library("inputmethod_taihe_native") {
     "ability_base:want",
     "ability_runtime:abilitykit_native",
     "ability_runtime:extensionkit_native",
+    "bundle_framework:bms_ani_common",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",

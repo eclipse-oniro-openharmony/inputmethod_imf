@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "input_method_text_changed_listener.h"
+
 #include "input_method_controller_impl.h"
 
 namespace OHOS {

@@ -71,7 +71,7 @@
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodlist:inputmethodlist",
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodpanel:panel",
                   "//base/inputmethod/imf/frameworks/ndk:ohinputmethod",
-                  "//base/inputmethod/imf/frameworks/ets/taihe/inputMethod:inputmethod_taihe_native"
+                  "//base/inputmethod/imf/frameworks/ets/taihe/inputMethod:inputmethod_taihe"
               ], 
               "service_group": [
                   "//base/inputmethod/imf/etc/init:inputmethodservice.cfg", 

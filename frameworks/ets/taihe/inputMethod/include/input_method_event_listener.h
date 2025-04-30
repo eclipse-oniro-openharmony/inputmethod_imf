@@ -17,13 +17,13 @@
 #define FRAMEWORKS_ETS_TAIHE_INPUT_METHOD_EVENT_LISTENER_H
 
 #include "ani_common.h"
+#include "ime_event_listener.h"
 #include "input_method_property.h"
 #include "input_window_info.h"
-#include "ime_event_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
-class InputMethodEventListener: public ImeEventListener {
+class InputMethodEventListener : public ImeEventListener {
 public:
     InputMethodEventListener() = default;
     ~InputMethodEventListener() = default;
@@ -31,6 +31,7 @@ public:
     void OnImeChange(const Property &property, const SubProperty &subProperty);
     void OnImeShow(const ImeWindowInfo &info);
     void OnImeHide(const ImeWindowInfo &info);
+
 private:
     static std::mutex listenerMutex_;
     static std::shared_ptr<InputMethodEventListener> inputMethodListener_;
@@ -39,4 +40,3 @@ private:
 } // namespace OHOS
 
 #endif // FRAMEWORKS_ETS_TAIHE_INPUT_METHOD_EVENT_LISTENER_H
- 

@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 @!namespace("@ohos.inputMethod", "inputMethod")
 from ohos.inputMethod.Panel use PanelInfo;
 from ohos.inputMethodSubtype use InputMethodSubtype;
@@ -25,7 +40,7 @@ struct InputWindowInfo {
 interface InputMethodSetting {
     @gen_async("getInputMethods")
     @gen_promise("getInputMethods")
-    GetInputMethodSync(enable: bool): Array<InputMethodProperty>;
+    GetInputMethosdSync(enable: bool): Array<InputMethodProperty>;
     @gen_async("listCurrentInputMethodSubtype")
     @gen_promise("listCurrentInputMethodSubtype")
     ListCurrentInputMethodSubtypeSync(): Array<InputMethodSubtype>;
@@ -40,7 +55,7 @@ interface InputMethodSetting {
         on(type: string, cb: Object) {
             switch(type) {
                 case "imeHide": return this.onImeHide(cb as (info: Array<InputWindowInfo>) => void, cb);
-                case "imeShow":  return this.onImeShow(cb as (info: Array<InputWindowInfo>) => void, cb);
+                case "imeShow": return this.onImeShow(cb as (info: Array<InputWindowInfo>) => void, cb);
                 case "imeChange": return this.onImeChange(cb as (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_inputMethodSubtype.InputMethodSubtype) => void, cb);
                 default: throw new Error(`Unknown type: ${type}`);
             }
@@ -48,7 +63,7 @@ interface InputMethodSetting {
         off(type: string, cb?: Object) {
             switch(type) {
                 case "imeHide": return this.offImeHide(cb);
-                case "imeShow":  return this.offImeShow(cb);
+                case "imeShow": return this.offImeShow(cb);
                 case "imeChange": return this.offImeChange(cb);
                 default: throw new Error(`Unknown type: ${type}`);
             }
@@ -173,17 +188,18 @@ interface InputMethodController {
                 case "selectByRange": return this.onSelectByRange(cb as (range : Range) => void, cb);
                 case "selectByMovement": return this.onSelectByMovement(cb as (movement : Movement) => void, cb);
                 case "insertText": return this.onInsertText(cb as (text: String) => void, cb);
-                case "deleteLeft": return this.onDeleteLeft(cb as (length: i32) => void, cb);
-                case "deleteRight": return this.onDeleteRight(cb as (length: i32) => void, cb);
+                case "deleteLeft": return this.onDeleteLeft(cb as (length: int) => void, cb);
+                case "deleteRight": return this.onDeleteRight(cb as (length: int) => void, cb);
                 case "sendKeyboardStatus": return this.onSendKeyboardStatus(cb as (keyboardStatus: KeyboardStatus) => void, cb);
                 case "sendFunctionKey": return this.onSendFunctionKey(cb as (functionKey: FunctionKey) => void, cb);
                 case "moveCursor": return this.onMoveCursor(cb as (direction: Direction) => void, cb);
-                case "handleExtendSelection": return this.onHandleExtendSelection(cb as (extendAction: ExtendAction) => void, cb);
-                case "getLeftTextOfCursor": return this.onGetLeftTextOfCursor(cb as (length: i32) => void, cb);
-                case "getRightTextOfCursor": return this.onGetRightTextOfCursor(cb as (length: i32) => void, cb);
-                case "getTextIndexAtCursor": return this.onGetTextIndexAtCursor(cb as () => i32, cb);
+                case "handleExtendAction": return this.onHandleExtendAction(cb as (extendAction: ExtendAction) => void, cb);
+                case "getLeftTextOfCursor": return this.onGetLeftTextOfCursor(cb as (length: int) => void, cb);
+                case "getRightTextOfCursor": return this.onGetRightTextOfCursor(cb as (length: int) => void, cb);
+                case "getTextIndexAtCursor": return this.onGetTextIndexAtCursor(cb as () => int, cb);
                 default: throw new Error(`Unknown type: ${type}`);
             }
+        }
         off(type: string, cb?: Object) {
             switch(type) {
                 case "selectByRange": return this.offSelectByRange(cb);
@@ -194,13 +210,12 @@ interface InputMethodController {
                 case "sendKeyboardStatus": return this.offSendKeyboardStatus(cb);
                 case "sendFunctionKey": return this.offSendFunctionKey(cb);
                 case "moveCursor": return this.offMoveCursor(cb);
-                case "handleExtendSelection": return this.offHandleExtendSelection(cb);
+                case "handleExtendAction": return this.offHandleExtendAction(cb);
                 case "getLeftTextOfCursor": return this.offGetLeftTextOfCursor(cb);
                 case "getRightTextOfCursor": return this.offGetRightTextOfCursor(cb);
                 case "getTextIndexAtCursor": return this.offGetTextIndexAtCursor(cb);
                 default: throw new Error(`Unknown type: ${type}`);
             }
-        }
         }
     """)
     OnSelectByRange(f: (range : Range) => void, opq: Opaque);
@@ -234,7 +249,7 @@ function GetController(): InputMethodController;
 function GetDefaultInputMethod(): InputMethodProperty;
 function GetCurrentInputMethod(): InputMethodProperty;
 function GetCurrentInputMethodSubtype(): InputMethodSubtype;
-function GetSystemInputMethodConfigAbility(): Opaque;
+function GetSystemInputMethodConfigAbility(): @sts_type("ElementName") Opaque;
 @gen_async("switchInputMethod")
 @gen_promise("switchInputMethod")
 function SwitchInputMethodWithTarget(target: InputMethodProperty): bool;
