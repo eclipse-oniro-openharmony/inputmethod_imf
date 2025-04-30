@@ -96,13 +96,17 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_PARAMCHECK, "the parameters check fails." },
     { EXCEPTION_UNSUPPORTED, "capability not supported." },
     { EXCEPTION_PACKAGEMANAGER, "bundle manager error." },
-    { EXCEPTION_IMENGINE, "input method engine error." },
-    { EXCEPTION_IMCLIENT, "input method client error." },
-    { EXCEPTION_IME, "not an input method." },
+    { EXCEPTION_IMENGINE, "input method engine error. Possible causes: 1.input method panel not created.\
+        2.the input method application does not subscribe to related events." },
+    { EXCEPTION_IMCLIENT, "input method client error. Possible causes: 1.the edit box is not focused.\
+        2.no edit box is bound to current input method application." },
+    { EXCEPTION_IME, "not an input method application." },
     { EXCEPTION_CONFPERSIST, "configuration persistence error." },
-    { EXCEPTION_CONTROLLER, "input method controller error." },
-    { EXCEPTION_SETTINGS, "input method setter error." },
-    { EXCEPTION_IMMS, "input method manager service error." },
+    { EXCEPTION_CONTROLLER, "input method controller error.\
+        Possible cause: create InputmethodController object failed." },
+    { EXCEPTION_SETTINGS, "input method setter error. Possible cause: create InputmethodSetting object failed." },
+    { EXCEPTION_IMMS, "input method manager service error. Possible cause: a system error, such as null pointer,\
+        IPC exception." },
     { EXCEPTION_DETACHED, "input method client detached." },
     { EXCEPTION_DEFAULTIME, "not the preconfigured default input method." },
     { EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED, "text preview not supported." },
