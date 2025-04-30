@@ -138,7 +138,6 @@ public:
     static bool Marshal(MessageParcel &parcel, const T &first, const Types &...others);
     template<typename T, typename... Types>
     static bool Unmarshal(MessageParcel &parcel, T &first, Types &...others);
-    static int32_t CountUtf16Chars(const std::u16string &in);
 };
 
 template<class T>

@@ -17,7 +17,7 @@
 #include "string_ex.h"
 
 #include "global.h"
-#include "inputmethod_controller_capi.h"
+#include "native_inputmethod_types.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -1640,23 +1640,31 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetPlaceholder_003, TestSi
     ret = OH_TextConfig_SetPlaceholder(nullptr, nullptr, 1);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     std::u16string input = u"";
-    for (int i = 0; i < 256; ++i) {
+    for (int i = 0; i < MAX_PLACEHOLDER_SIZE; ++i) {
         input.append(u"𪛊");
     }
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
     ret = OH_TextConfig_SetPlaceholder(config, input.data(), input.size());
     EXPECT_EQ(ret, IME_ERR_OK);
-    size_t outLen = 513;
-    char16_t pOut[513] = {};
-    ret = OH_TextConfig_GetPlaceholder(config, pOut, &outLen);
+    std::u16string out(MAX_PLACEHOLDER_INPUT_SIZE, u'\0');
+    size_t outLen = out.size();
+    ret = OH_TextConfig_GetPlaceholder(config, out.data(), &outLen);
     EXPECT_EQ(ret, IME_ERR_OK);
-    std::u16string out(pOut, outLen);
-    EXPECT_GT(out.size(), input.size());
+    EXPECT_EQ(out.size(), outLen);
+    EXPECT_EQ(out[out.size() - 1], 0);
+    out.pop_back();
+    EXPECT_EQ(out.compare(input), 0);
     input.append(u"a");
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
     ret = OH_TextConfig_SetPlaceholder(config, input.data(), input.size());
-    IMSA_HILOGI("inputLen:%{public}d", ret);
-    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
+    EXPECT_EQ(ret, IME_ERR_OK);
+    std::u16string out2(MAX_PLACEHOLDER_INPUT_SIZE, u'\0');
+    outLen = out2.size();
+    ret = OH_TextConfig_GetPlaceholder(config, out2.data(), &outLen);
+    EXPECT_EQ(ret, IME_ERR_OK);
+    EXPECT_EQ(out2[out2.size() - 1], 0);
+    input[input.size() - 1] = u'\0';
+    EXPECT_EQ(out2.compare(input), 0);
     OH_TextConfig_Destroy(config);
 }
 
@@ -1730,7 +1738,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_002, TestSi
 HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_003, TestSize.Level0) {
     auto config = OH_TextConfig_Create();
     ASSERT_NE(nullptr, config);
-    auto ret = OH_TextConfig_SetAbilityName(config, nullptr, 33);
+    auto ret = OH_TextConfig_SetAbilityName(config, nullptr, 128);
     EXPECT_EQ(ret, IME_ERR_OK);
     ret = OH_TextConfig_SetAbilityName(config, nullptr, 1);
     EXPECT_EQ(ret, IME_ERR_OK);
@@ -1753,24 +1761,33 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_004, TestSi
     auto config = OH_TextConfig_Create();
     ASSERT_NE(nullptr, config);
     std::u16string input = u"";
-    for (int i = 0; i < 32; ++i) {
+    for (int i = 0; i < MAX_ABILITY_NAME_SIZE; ++i) {
         input.append(u"𪛊");
     }
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
     auto ret = OH_TextConfig_SetAbilityName(config, input.data(), input.size());
     EXPECT_EQ(ret, IME_ERR_OK);
-    size_t outLen = 65;
-    char16_t pOut[65] = {};
-    ret = OH_TextConfig_GetAbilityName(config, pOut, &outLen);
+    std::u16string out(MAX_ABILITY_NAME_INPUT_SIZE, u'\0');
+    size_t outLen = out.size();
+    ret = OH_TextConfig_GetAbilityName(config, out.data(), &outLen);
     EXPECT_EQ(ret, IME_ERR_OK);
-    std::u16string out(pOut, outLen);
     IMSA_HILOGI("outLen:%{public}zu,input:%{public}s,outSize:%{public}zu,inputSize:%{public}zu", outLen,
         Str16ToStr8(input).c_str(), out.size(), input.size());
     EXPECT_GT(out.size(), input.size());
+    EXPECT_EQ(out[out.size() - 1], 0);
+    out.pop_back();
+    EXPECT_EQ(out.compare(input), 0);
     input.append(u"a");
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", input.size(), Str16ToStr8(input).c_str());
     ret = OH_TextConfig_SetAbilityName(config, input.data(), input.size());
-    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
+    EXPECT_EQ(ret, IME_ERR_OK);
+    std::u16string out2(MAX_ABILITY_NAME_INPUT_SIZE, u'\0');
+    outLen = out2.size();
+    ret = OH_TextConfig_GetAbilityName(config, out2.data(), &outLen);
+    EXPECT_EQ(ret, IME_ERR_OK);
+    EXPECT_EQ(out2[out2.size() - 1], 0);
+    input[input.size() -1] = u'\0';
+    EXPECT_EQ(out2.compare(input), 0);
     char16_t charInput[65] = u"123456789\0123456789\0012345678901\023456789";
     size_t charInputLen = 32;
     IMSA_HILOGI("inputLen:%{public}zu,input:%{public}s", charInputLen, Str16ToStr8(input).c_str());

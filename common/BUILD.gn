@@ -48,6 +48,7 @@ ohos_shared_library("inputmethod_common") {
     "src/message.cpp",
     "src/message_handler.cpp",
     "src/on_demand_start_stop_sa.cpp",
+    "src/string_utils.cpp",
   ]
 
   if (imf_on_demand_start_stop_sa_enable) {
