@@ -63,7 +63,7 @@ HWTEST_F(StringUtilsTest, testToHex_001, TestSize.Level0)
 HWTEST_F(StringUtilsTest, testCountUtf16Chars_001, TestSize.Level0)
 {
     char16_t inputChar[] = u"abcdefg\0𪛊";
-    size_t inputLen = sizeof(inputChar)/sizeof(char16_t);
+    size_t inputLen = sizeof(inputChar) / sizeof(char16_t);
     IMSA_HILOGI("out:%{public}zu", inputLen);
     std::u16string out(inputChar, inputLen);
     IMSA_HILOGI("out:%{public}s", StringUtils::ToHex(out).c_str());
