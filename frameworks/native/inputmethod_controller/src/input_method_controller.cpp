@@ -32,10 +32,10 @@
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
-#include "itypes_util.h"
 #include "keyevent_consumer_stub.h"
 #include "on_demand_start_stop_sa.h"
 #include "string_ex.h"
+#include "string_utils.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
@@ -204,8 +204,8 @@ void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_ = textConfig;
-        ITypesUtil::TruncateUtf16String(textConfig_.inputAttribute.placeholder, MAX_PLACEHOLDER_SIZE);
-        ITypesUtil::TruncateUtf16String(textConfig_.inputAttribute.abilityName, MAX_ABILITY_NAME_SIZE);
+        StringUtils::TruncateUtf16String(textConfig_.inputAttribute.placeholder, MAX_PLACEHOLDER_SIZE);
+        StringUtils::TruncateUtf16String(textConfig_.inputAttribute.abilityName, MAX_ABILITY_NAME_SIZE);
     }
     if (textConfig.range.start != INVALID_VALUE) {
         std::lock_guard<std::mutex> lock(editorContentLock_);

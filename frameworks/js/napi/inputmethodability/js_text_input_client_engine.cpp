@@ -22,6 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
+#include "string_utils.h"
 #include "wm_common.h"
 
 namespace OHOS {
@@ -991,9 +992,9 @@ bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &n
     // not care read bundleName fail
     JsUtil::Object::ReadProperty(env, jsObject, "bundleName", nativeObject.bundleName);
     JsUtil::Object::ReadPropertyU16String(env, jsObject, "placeholder", nativeObject.placeholder);
-    IMSA_HILOGD("placeholder:%{public}s", JsUtil::ToHex(nativeObject.placeholder).c_str());
+    IMSA_HILOGD("placeholder:%{public}s", StringUtils::ToHex(nativeObject.placeholder).c_str());
     JsUtil::Object::ReadPropertyU16String(env, jsObject, "abilityName", nativeObject.abilityName);
-    IMSA_HILOGD("abilityName:%{public}s", JsUtil::ToHex(nativeObject.abilityName).c_str());
+    IMSA_HILOGD("abilityName:%{public}s", StringUtils::ToHex(nativeObject.abilityName).c_str());
     int32_t capitalizeMode;
     if (!JsUtil::Object::ReadProperty(env, jsObject, "capitalizeMode", capitalizeMode)) {
         nativeObject.capitalizeMode = CapitalizeMode::NONE;

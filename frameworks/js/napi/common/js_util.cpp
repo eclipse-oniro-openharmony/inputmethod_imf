@@ -15,15 +15,11 @@
 
 #include "js_util.h"
 
-#include <iomanip>
-#include <sstream>
-
 #include "string_ex.h"
 
 namespace OHOS {
 namespace MiscServices {
 constexpr int64_t JS_NUMBER_MAX_VALUE = (1LL << 53) - 1;
-constexpr int32_t HEX_BYTE_WIDTH = 2;
 napi_valuetype JsUtil::GetType(napi_env env, napi_value in)
 {
     napi_valuetype valueType = napi_undefined;
@@ -125,32 +121,6 @@ napi_value JsUtil::GetValueU16String(napi_env env, const std::u16string &in)
     napi_value out = nullptr;
     napi_create_string_utf16(env, in.c_str(), in.length(), &out);
     return out;
-}
-
-std::string JsUtil::ToHex(const std::string &in)
-{
-    std::stringstream ss;
-    if (in.size() < 1) {
-        return "";
-    }
-    for (size_t i = 0; i < in.size(); i++) {
-        ss << std::uppercase << std::hex << std::setw(sizeof(uint8_t) * HEX_BYTE_WIDTH)
-        << std::setfill('0') << static_cast<uint8_t>(in.at(i));
-    }
-    return ss.str();
-}
-
-std::string JsUtil::ToHex(const std::u16string &in)
-{
-    std::stringstream ss;
-    if (in.size() < 1) {
-        return "";
-    }
-    for (size_t i = 0; i < in.size(); i++) {
-        ss << std::uppercase << std::hex << std::setw(sizeof(char16_t) * HEX_BYTE_WIDTH)
-        << std::setfill('0') << in.at(i);
-    }
-    return ss.str();
 }
 
 bool JsUtil::GetValueU16String(napi_env env, napi_value in, std::u16string &out)

@@ -68,17 +68,17 @@ describe('InputMethodWithAttachTestParam', function () {
     while (codePoints < maxCodePoints && position < str.length) {
       const codeUnit = str.charCodeAt(position);
       codePoints++;
-      // 判断是否为高位代理（High Surrogate）
+      // Determine whether it is a High Surrogate
       if (codeUnit >= 0xD800 && codeUnit <= 0xDBFF) {
-        position += 2; // 代理对占用 2 个码元
+        position += 2;
       } else {
         position += 1;
       }
     }
-    // 检查末尾是否截断高位代理
+    // Check if the High Surrogate is truncated at the end
     const lastCodeUnit = str.charCodeAt(position - 1);
     if (lastCodeUnit >= 0xD800 && lastCodeUnit <= 0xDBFF) {
-      position -= 1; // 移除不完整的高位代理
+      position -= 1; // Remove incomplete High Surrogate
     }
     return str.slice(0, position);
   }

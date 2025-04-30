@@ -15,8 +15,9 @@
 #include "securec.h"
 
 #include "global.h"
-#include "itypes_util.h"
 #include "native_inputmethod_types.h"
+#include "string_utils.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -108,7 +109,7 @@ InputMethod_ErrorCode OH_TextConfig_SetPlaceholder(InputMethod_TextConfig *confi
         length = MAX_PLACEHOLDER_INPUT_SIZE;
     }
     std::u16string u16Placeholder(placeholder, length);
-    ITypesUtil::TruncateUtf16String(u16Placeholder, MAX_PLACEHOLDER_SIZE);
+    StringUtils::TruncateUtf16String(u16Placeholder, MAX_PLACEHOLDER_SIZE);
     IMSA_HILOGD("memcpy_s begin dest len:%{public}zu, src len:%{public}zu",
         MAX_PLACEHOLDER_INPUT_SIZE, u16Placeholder.size());
     if (u16Placeholder.size() > MAX_PLACEHOLDER_INPUT_SIZE) {
@@ -155,7 +156,7 @@ InputMethod_ErrorCode OH_TextConfig_SetAbilityName(InputMethod_TextConfig *confi
         length = MAX_ABILITY_NAME_INPUT_SIZE;
     }
     std::u16string u16abilityName(abilityName, length);
-    ITypesUtil::TruncateUtf16String(u16abilityName, MAX_ABILITY_NAME_SIZE);
+    StringUtils::TruncateUtf16String(u16abilityName, MAX_ABILITY_NAME_SIZE);
     IMSA_HILOGD("memcpy_s begin dest len:%{public}zu, src len:%{public}zu",
         MAX_ABILITY_NAME_INPUT_SIZE, u16abilityName.size());
     if (u16abilityName.size() > MAX_ABILITY_NAME_INPUT_SIZE) {

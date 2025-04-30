@@ -26,6 +26,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
+#include "string_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -814,10 +815,10 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, InputAttr
     ret = ret && JsUtil::Object::ReadProperty(env, in, "enterKeyType", out.enterKeyType);
     // compatibility with older versions may not exist
     JsUtil::Object::ReadPropertyU16String(env, in, "placeholder", out.placeholder);
-    IMSA_HILOGD("placeholder:%{public}s", JsUtil::ToHex(out.placeholder).c_str());
+    IMSA_HILOGD("placeholder:%{public}s", StringUtils::ToHex(out.placeholder).c_str());
     // compatibility with older versions may not exist
     JsUtil::Object::ReadPropertyU16String(env, in, "abilityName", out.abilityName);
-    IMSA_HILOGD("abilityName:%{public}s", JsUtil::ToHex(out.abilityName).c_str());
+    IMSA_HILOGD("abilityName:%{public}s", StringUtils::ToHex(out.abilityName).c_str());
     return ret;
 }
 

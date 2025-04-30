@@ -35,8 +35,6 @@ public:
     static bool GetValue(napi_env env, napi_value in, bool &out);
     static bool GetValue(napi_env env, napi_value in, double &out);
     static bool GetValueU16String(napi_env env, napi_value in, std::u16string &out);
-    static std::string ToHex(const std::string &in);
-    static std::string ToHex(const std::u16string &in);
     template<typename T>
     static bool GetValue(napi_env env, napi_value in, std::vector<T> &items)
     {
