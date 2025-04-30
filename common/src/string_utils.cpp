@@ -35,7 +35,7 @@ std::string StringUtils::ToHex(const std::string &in)
     }
     for (size_t i = 0; i < in.size(); i++) {
         ss << std::uppercase << std::hex << std::setw(sizeof(uint8_t) * HEX_BYTE_WIDTH)
-        << std::setfill('0') << static_cast<uint8_t>(in.at(i));
+        << std::setfill('0') << static_cast<char16_t>(in.at(i));
     }
     return ss.str();
 }

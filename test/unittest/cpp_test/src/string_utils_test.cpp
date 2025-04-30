@@ -46,8 +46,10 @@ HWTEST_F(StringUtilsTest, testToHex_001, TestSize.Level0)
 {
     std::string out = StringUtils::ToHex(std::string("a"));
     std::string result = "61";
+    IMSA_HILOGI("out:%{public}s,result:%{public}s", out.c_str(), result.c_str());
     EXPECT_TRUE(out.compare(result) == 0);
     out = StringUtils::ToHex(std::u16string(u"a"));
+    IMSA_HILOGI("out:%{public}s,result:%{public}s", out.c_str(), result.c_str());
     result = "0061";
     EXPECT_TRUE(out.compare(result) == 0);
 }
@@ -60,10 +62,15 @@ HWTEST_F(StringUtilsTest, testToHex_001, TestSize.Level0)
  */
 HWTEST_F(StringUtilsTest, testCountUtf16Chars_001, TestSize.Level0)
 {
-    std::u16string out = u"abcdefg\0𪛊";
+    char16_t inputChar[] = u"abcdefg\0𪛊";
+    size_t inputLen = sizeof(inputChar)/sizeof(char16_t);
+    IMSA_HILOGI("out:%{public}zu", inputLen);
+    std::u16string out(inputChar, inputLen);
+    IMSA_HILOGI("out:%{public}s", StringUtils::ToHex(out).c_str());
     auto charNum = StringUtils::CountUtf16Chars(out);
     StringUtils::TruncateUtf16String(out, charNum -1);
-    std::u16string checkOut = u"abcdefg\0";
+    std::u16string checkOut(inputChar, inputLen - 1);
+    IMSA_HILOGI("out:%{public}s", StringUtils::ToHex(checkOut).c_str());
     EXPECT_TRUE(out.compare(checkOut) == 0);
 }
 
