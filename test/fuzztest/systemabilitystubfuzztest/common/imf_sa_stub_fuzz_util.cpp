@@ -115,12 +115,9 @@ bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, siz
 
     MessageParcel datas;
     datas.WriteInterfaceToken(SYSTEMABILITY_INTERFACE_TOKEN);
+    SwitchIpcCode(code, datas);
     datas.WriteBuffer(rawData, size);
     datas.RewindRead(0);
-    auto ret = SwitchIpcCode(code, datas);
-    if (ret == false) {
-        return ret;
-    }
     MessageParcel reply;
     MessageOption option;
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnRemoteRequest(

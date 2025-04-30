@@ -26,7 +26,8 @@ namespace OHOS {
 constexpr size_t THRESHOLD = 10;
 constexpr int32_t OFFSET = 4;
 const std::u16string CORESTUB_INTERFACE_TOKEN = u"OHOS.MiscServices.IInputMethodCore";
-
+constexpr uint32_t CODE_MIN = 0;
+constexpr uint32_t CODE_MAX = static_cast<uint32_t>(IInputMethodCoreIpcCode::COMMAND_ON_SEND_PRIVATE_DATA) + 1;
 uint32_t ConvertToUint32(const uint8_t *ptr)
 {
     if (ptr == nullptr) {
@@ -38,7 +39,7 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 
 bool FuzzCoreStub(const uint8_t *rawData, size_t size)
 {
-    uint32_t code = ConvertToUint32(rawData);
+    uint32_t code = static_cast<uint32_t>(*rawData) % (CODE_MAX - CODE_MIN + 1) + CODE_MIN;
     rawData = rawData + OFFSET;
     size = size - OFFSET;
 
