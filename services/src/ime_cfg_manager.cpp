@@ -82,8 +82,8 @@ std::string ImeCfgManager::PackageImeCfg()
     }
     std::string content;
     auto ret = cfg.Marshall(content);
-    IMSA_HILOGD(
-        "ret: %{public}d, content: %{public}s, size: %{public}zu", ret, content.c_str(), cfg.imePersistInfo.size());
+    IMSA_HILOGD("ret: %{public}d, content: %{public}s, size: %{public}zu", ret, content.c_str(),
+        cfg.imePersistInfo.size());
     return content;
 }
 
@@ -119,8 +119,8 @@ void ImeCfgManager::DeleteImeCfg(int32_t userId)
 ImePersistInfo ImeCfgManager::GetImeCfg(int32_t userId)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    auto it = std::find_if(
-        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImePersistInfo &cfg) { return cfg.userId == userId; });
+    auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
+        [userId](const ImePersistInfo &cfg) { return cfg.userId == userId; });
     if (it != imeConfigs_.end()) {
         return *it;
     }

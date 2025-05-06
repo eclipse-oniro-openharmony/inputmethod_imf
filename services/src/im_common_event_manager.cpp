@@ -27,7 +27,6 @@ namespace MiscServices {
 using namespace MessageID;
 sptr<ImCommonEventManager> ImCommonEventManager::instance_;
 std::mutex ImCommonEventManager::instanceLock_;
-std::atomic<bool> ImCommonEventManager::isBundleScanFinished_ = false;
 using namespace OHOS::EventFwk;
 constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf.input_panel_status_changed";
 constexpr const char *COMMON_EVENT_PARAM_USER_ID = "userId";
@@ -228,7 +227,6 @@ void ImCommonEventManager::EventSubscriber::HandleUserEvent(int32_t messageId, c
 void ImCommonEventManager::EventSubscriber::OnBundleScanFinished(const EventFwk::CommonEventData &data)
 {
     IMSA_HILOGI("ImCommonEventManager start.");
-    isBundleScanFinished_.store(true);
     auto parcel = new (std::nothrow) MessageParcel();
     if (parcel == nullptr) {
         IMSA_HILOGE("failed to create MessageParcel!");
@@ -409,11 +407,6 @@ bool ImCommonEventManager::SubscribeManagerServiceCommon(const Handler &handler,
         return false;
     }
     return true;
-}
-
-bool ImCommonEventManager::IsBundleScanFinished()
-{
-    return isBundleScanFinished_.load();
 }
 } // namespace MiscServices
 } // namespace OHOS

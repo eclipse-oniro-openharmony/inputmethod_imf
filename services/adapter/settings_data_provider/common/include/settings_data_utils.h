@@ -34,7 +34,7 @@ class SettingsDataUtils : public RefBase {
 public:
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
     static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
-    static sptr<SettingsDataUtils> GetInstance();
+    static SettingsDataUtils &GetInstance();
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper(const std::string &uriProxy);
     int32_t CreateAndRegisterObserver(
         const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc func);
@@ -53,8 +53,6 @@ private:
     sptr<IRemoteObject> GetToken();
 
 private:
-    static std::mutex instanceMutex_;
-    static sptr<SettingsDataUtils> instance_;
     std::mutex remoteObjMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
     std::mutex observerListMutex_;

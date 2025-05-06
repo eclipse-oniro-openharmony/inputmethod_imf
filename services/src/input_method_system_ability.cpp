@@ -222,12 +222,9 @@ bool InputMethodSystemAbility::IsValidBundleName(const std::string &bundleName)
         return false;
     }
 
-    for (auto &prop : props) {
-        if (prop.name == bundleName) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(props.begin(), props.end(), [&bundleName](const auto &prop) {
+        return prop.name == bundleName;
+    });
 }
 
 std::string InputMethodSystemAbility::GetRestoreBundleName(MessageParcel &data)
@@ -268,11 +265,7 @@ int32_t InputMethodSystemAbility::RestoreInputmethod(std::string &bundleName)
 {
     Property propertyData;
     GetCurrentInputMethod(propertyData);
-    std::shared_ptr<Property> prop = std::make_shared<Property>(propertyData);
-    if (prop == nullptr) {
-        IMSA_HILOGE("GetCurrentInputMethod failed");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
+    auto prop = std::make_shared<Property>(propertyData);
     std::string currentInputMethod = prop->name;
     if (currentInputMethod == bundleName) {
         IMSA_HILOGW("currentInputMethod=%{public}s, has been set", currentInputMethod.c_str());
@@ -372,7 +365,6 @@ int32_t InputMethodSystemAbility::Init()
     }
     IMSA_HILOGI("publish success");
     state_ = ServiceRunningState::STATE_RUNNING;
-    // ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitSystemConfig();
 #endif
     InitMonitors();
@@ -405,7 +397,7 @@ void InputMethodSystemAbility::OnStop()
     IMSA_HILOGI("OnStop start.");
     FreezeManager::SetEventHandler(nullptr);
     UserSessionManager::GetInstance().SetEventHandler(nullptr);
-    FullImeInfoManager::GetInstance().SetEventHandler(nullptr);
+    ImeEnabledInfoManager::GetInstance().SetEventHandler(nullptr);
     serviceHandler_ = nullptr;
     state_ = ServiceRunningState::STATE_NOT_START;
     Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 0, INPUT_METHOD_SYSTEM_ABILITY_ID);
@@ -421,7 +413,7 @@ void InputMethodSystemAbility::InitServiceHandler()
     std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_InputMethodSystemAbility");
     serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
     FreezeManager::SetEventHandler(serviceHandler_);
-    FullImeInfoManager::GetInstance().SetEventHandler(serviceHandler_);
+    ImeEnabledInfoManager::GetInstance().SetEventHandler(serviceHandler_);
     IMSA_HILOGI("InitServiceHandler succeeded.");
 }
 
@@ -597,8 +589,7 @@ ErrCode InputMethodSystemAbility::ReleaseInput(const sptr<IInputClient>& client,
 ErrCode InputMethodSystemAbility::StartInput(
     const InputClientInfoInner &inputClientInfoInner, sptr<IRemoteObject> &agent, int64_t &pid, std::string &bundleName)
 {
-    InputClientInfo inputClientInfo = {};
-    inputClientInfo =
+    InputClientInfo inputClientInfo =
         InputMethodTools::GetInstance().InnerToInputClientInfo(inputClientInfoInner);
     agent = nullptr;
     pid = 0;
@@ -724,20 +715,7 @@ void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputC
         return;
     }
     auto callingWindowInfo = session->GetCallingWindowInfo(inputClientInfo);
-    sptr<Rosen::DisplayLite> display = nullptr;
-    display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(callingWindowInfo.displayId);
-    if (display == nullptr) {
-        IMSA_HILOGE("display is null!");
-        return;
-    }
-    sptr<Rosen::DisplayInfo> displayInfo = nullptr;
-    displayInfo = display->GetDisplayInfo();
-    if (displayInfo == nullptr) {
-        IMSA_HILOGE("displayInfo is null!");
-        return;
-    }
-    std::string displayName = displayInfo->GetName();
-    if (displayName == "HiCar" || displayName == "SuperLauncher") {
+    if (IsDefaultImeScreen(callingWindowInfo.displayId)) {
         auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
         auto imeToStart = std::make_shared<ImeNativeCfg>();
         auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
@@ -756,6 +734,28 @@ void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputC
     }
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
     return;
+}
+
+bool InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId)
+{
+    sptr<Rosen::DisplayLite> display =
+        Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
+    if (display == nullptr) {
+        IMSA_HILOGE("display is null!");
+        return false;
+    }
+    sptr<Rosen::DisplayInfo> displayInfo = display->GetDisplayInfo();
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("displayInfo is null!");
+        return false;
+    }
+    return identityChecker_->IsDefaultImeScreen(displayInfo->GetName());
+}
+
+ErrCode InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId, bool &resultValue)
+{
+    resultValue = IsDefaultImeScreen(displayId);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason)
@@ -967,8 +967,7 @@ ErrCode InputMethodSystemAbility::PanelStatusChange(uint32_t status, const ImeWi
 
 ErrCode InputMethodSystemAbility::UpdateListenEventFlag(const InputClientInfoInner &clientInfoInner, uint32_t eventFlag)
 {
-    InputClientInfo clientInfo = {};
-    clientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(clientInfoInner);
+    InputClientInfo clientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(clientInfoInner);
     IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u.", clientInfo.eventFlag, eventFlag);
     if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag) ||
         EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
@@ -1565,7 +1564,6 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
         session->StopCurrentIme();
         UserSessionManager::GetInstance().RemoveUserSession(userId);
     }
-    // ImeCfgManager::GetInstance().DeleteImeCfg(userId);
     FullImeInfoManager::GetInstance().Delete(userId);
     return ErrorCode::NO_ERROR;
 }
@@ -1825,10 +1823,10 @@ void InputMethodSystemAbility::HandleDataShareReady()
         IMSA_HILOGW("Enter security mode.");
         RegisterSecurityModeObserver();
     }
-    if (SettingsDataUtils::GetInstance()->IsDataShareReady()) {
+    if (SettingsDataUtils::GetInstance().IsDataShareReady()) {
         return;
     }
-    SettingsDataUtils::GetInstance()->NotifyDataShareReady();
+    SettingsDataUtils::GetInstance().NotifyDataShareReady();
     FullImeInfoManager::GetInstance().Init();
 }
 
@@ -1904,7 +1902,7 @@ void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
 
 void InputMethodSystemAbility::RegisterSecurityModeObserver()
 {
-    int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(SETTING_URI_PROXY,
+    int32_t ret = SettingsDataUtils::GetInstance().CreateAndRegisterObserver(SETTING_URI_PROXY,
         SettingsDataUtils::SECURITY_MODE, [this]() { DataShareCallback(SettingsDataUtils::SECURITY_MODE); });
     IMSA_HILOGI("register security mode observer, ret: %{public}d", ret);
 }
@@ -1943,7 +1941,7 @@ void InputMethodSystemAbility::OnCurrentImeStatusChanged(
     if (newStatus == EnabledStatus::FULL_EXPERIENCE_MODE) {
         session->OnSecurityChange(static_cast<int32_t>(SecurityMode::FULL));
     }
-    session->AddRestartIme();  // todo
+    session->AddRestartIme();
 }
 
 int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
@@ -2308,19 +2306,8 @@ void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, bool 
 
 void InputMethodSystemAbility::HandleBundleScanFinished()
 {
+    isBundleScanFinished_.store(true);
     HandleImeCfgCapsState();
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
-        return;
-    }
-    auto imeData = session->GetImeData(ImeType::IME);
-    if (imeData != nullptr) {
-        return;
-    }
-#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
-    session->AddRestartIme();
-#endif
 }
 
 bool InputMethodSystemAbility::ModifyImeCfgWithWrongCaps()
@@ -2376,7 +2363,7 @@ bool InputMethodSystemAbility::GetDeviceFunctionKeyState(int32_t functionKey, bo
 
 void InputMethodSystemAbility::HandleImeCfgCapsState()
 {
-    if (ImCommonEventManager::IsBundleScanFinished()) {
+    if (!isBundleScanFinished_.load()) {
         IMSA_HILOGE("Bundle scan is not ready.");
         return;
     }

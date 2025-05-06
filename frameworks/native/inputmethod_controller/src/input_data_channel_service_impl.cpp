@@ -78,8 +78,7 @@ ErrCode InputDataChannelServiceImpl::GetInputPattern(int32_t &inputPattern)
 
 ErrCode InputDataChannelServiceImpl::GetTextConfig(TextTotalConfigInner &textConfigInner)
 {
-    TextTotalConfig textConfig = {};
-    textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
+    TextTotalConfig textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
     
     auto ret =  InputMethodController::GetInstance()->GetTextConfig(textConfig);
     textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
@@ -121,8 +120,7 @@ ErrCode InputDataChannelServiceImpl::HandleExtendAction(int32_t action)
 
 ErrCode InputDataChannelServiceImpl::NotifyPanelStatusInfo(const PanelStatusInfoInner &info)
 {
-    PanelStatusInfo panelStatusInfo = {};
-    panelStatusInfo = InputMethodTools::GetInstance().InnerToPanelStatusInfo(info);
+    PanelStatusInfo panelStatusInfo = InputMethodTools::GetInstance().InnerToPanelStatusInfo(info);
     InputMethodController::GetInstance()->NotifyPanelStatusInfo(panelStatusInfo);
     return ERR_OK;
 }

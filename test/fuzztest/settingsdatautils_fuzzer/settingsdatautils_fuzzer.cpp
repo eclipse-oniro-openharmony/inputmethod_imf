@@ -23,37 +23,37 @@ using namespace OHOS::MiscServices;
 namespace OHOS {
 void FuzzGetToken()
 {
-    SettingsDataUtils::GetInstance()->GetToken();
+    SettingsDataUtils::GetInstance().GetToken();
 }
 
 void FuzzDataShareHelper()
 {
-    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper(SETTING_URI_PROXY);
-    SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    auto helper = SettingsDataUtils::GetInstance().CreateDataShareHelper(SETTING_URI_PROXY);
+    SettingsDataUtils::GetInstance().ReleaseDataShareHelper(helper);
 }
 
 void FuzzCreateAndRegisterObserver(
     const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc func)
 {
-    SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(uriProxy, key, func);
+    SettingsDataUtils::GetInstance().CreateAndRegisterObserver(uriProxy, key, func);
 }
 
 void FuzzRegisterObserver(const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc &func)
 {
     sptr<SettingsDataObserver> observer = new SettingsDataObserver(key, func);
-    SettingsDataUtils::GetInstance()->RegisterObserver(uriProxy, observer);
+    SettingsDataUtils::GetInstance().RegisterObserver(uriProxy, observer);
 }
 
 void FuzzUnregisterObserver(
     const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc &func)
 {
     sptr<SettingsDataObserver> observer = new SettingsDataObserver(key, func);
-    SettingsDataUtils::GetInstance()->UnregisterObserver(uriProxy, observer);
+    SettingsDataUtils::GetInstance().UnregisterObserver(uriProxy, observer);
 }
 
 void FuzzGenerateTargetUri(const std::string &key)
 {
-    SettingsDataUtils::GetInstance()->GenerateTargetUri(SETTING_URI_PROXY, key);
+    SettingsDataUtils::GetInstance().GenerateTargetUri(SETTING_URI_PROXY, key);
 }
 } // namespace OHOS
 

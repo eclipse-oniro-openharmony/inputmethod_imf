@@ -44,6 +44,11 @@ void ImeEnabledInfoManager::SetEventHandler(const std::shared_ptr<AppExecFwk::Ev
 {
 }
 
+int32_t ImeEnabledInfoManager::RegularInit(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos)
+{
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t ImeEnabledInfoManager::Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos)
 {
     return ErrorCode::NO_ERROR;

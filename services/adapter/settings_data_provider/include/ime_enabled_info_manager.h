@@ -38,25 +38,34 @@ struct ImeNativeCfg {
 struct ExtraInfo : public Serializable {
     bool isDefaultIme{ false };
     bool isDefaultImeSet{ false };
-    bool isTmpDefaultIme{ false };
+    bool isTmpIme{ false };
     std::string currentSubName;
     bool Unmarshal(cJSON *node) override
     {
         auto ret = GetValue(node, GET_NAME(isDefaultIme), isDefaultIme);
         ret = GetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
-        ret = GetValue(node, GET_NAME(isTmpDefaultIme), isTmpDefaultIme) && ret;
+        ret = GetValue(node, GET_NAME(isTmpIme), isTmpIme) && ret;
         return GetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
     }
     bool Marshal(cJSON *node) const override
     {
         auto ret = SetValue(node, GET_NAME(isDefaultIme), isDefaultIme);
         ret = SetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
-        ret = SetValue(node, GET_NAME(isTmpDefaultIme), isTmpDefaultIme) && ret;
+        ret = SetValue(node, GET_NAME(isTmpIme), isTmpIme) && ret;
         return SetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
+    }
+
+    bool operator==(const ExtraInfo &extraInfo) const // for tdd
+    {
+        return isDefaultIme == extraInfo.isDefaultIme && isDefaultImeSet == extraInfo.isDefaultImeSet &&
+               isTmpIme == extraInfo.isTmpIme && currentSubName == extraInfo.currentSubName;
     }
 };
 
 struct ImeEnabledInfo : public Serializable {
+    ImeEnabledInfo() = default;
+    ImeEnabledInfo(const std::string &bundleName, const std::string &extensionName, EnabledStatus enabledStatus)
+        : bundleName(bundleName), extensionName(extensionName), enabledStatus(enabledStatus){};
     std::string bundleName;
     std::string extensionName;
     EnabledStatus enabledStatus{ EnabledStatus::DISABLED };
@@ -81,15 +90,15 @@ struct ImeEnabledInfo : public Serializable {
         ret = SetValue(node, GET_NAME(stateUpdateTime), stateUpdateTime) && ret;
         return SetValue(node, GET_NAME(extraInfo), extraInfo) && ret;
     }
-    bool operator==(const ImeEnabledInfo &enabledInfo) const
+    bool operator==(const ImeEnabledInfo &enabledInfo) const // for tdd
     {
-        return bundleName == enabledInfo.bundleName && extensionName == enabledInfo.extensionName
-               && enabledStatus == enabledInfo.enabledStatus;
+        return bundleName == enabledInfo.bundleName && extensionName == enabledInfo.extensionName &&
+               enabledStatus == enabledInfo.enabledStatus && extraInfo == enabledInfo.extraInfo;
     }
 };
 struct ImeEnabledCfg : public Serializable {
     std::string version{ "empty" };
-    std::vector<ImeEnabledInfo> enabledInfos; // todo 改成set
+    std::vector<ImeEnabledInfo> enabledInfos;
     bool Unmarshal(cJSON *node) override
     {
         auto ret = GetValue(node, GET_NAME(version), version);
@@ -112,7 +121,6 @@ public:
     static ImeEnabledInfoManager &GetInstance();
     void SetCurrentImeStatusChangedHandler(CurrentImeStatusChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
-    int32_t RegularInit(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Switch(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
     int32_t Delete(int32_t userId);
@@ -135,17 +143,15 @@ private:
     ~ImeEnabledInfoManager();
     int32_t UpdateEnabledCfgCache(int32_t userId, const std::vector<FullImeInfo> &imeInfos = {});
     int32_t UpdateEnabledCfgCache(int32_t userId, const ImeEnabledCfg &cfg);
-    int32_t GetEnabledCfg(int32_t userId, ImeEnabledCfg &cfg, const std::vector<FullImeInfo> &imeInfos = {});
-    int32_t GetEnabledTableCfg(int32_t userId, ImeEnabledCfg &cfg);
-    void CorrectByBundleMgr(
+    int32_t GetEnabledCfg(int32_t userId, const std::vector<FullImeInfo> &imeInfos, ImeEnabledCfg &cfg);
+    int32_t CorrectByBundleMgr(
         int32_t userId, const std::vector<FullImeInfo> &imeInfos, std::vector<ImeEnabledInfo> &enabledInfos);
-    void ComputeEnabledStatus(ImeEnabledInfo &info);
-    void ComputeEnabledStatus(std::vector<ImeEnabledInfo> &infos);
+    EnabledStatus ComputeEnabledStatus(const std::string &bundleName, EnabledStatus initStatus);
     int32_t GetEnabledStateInner(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t GetEnabledStatesInner(int32_t userId, std::vector<Property> &props);
-    int32_t SetEnabledCache(int32_t userId, const ImeEnabledCfg &cfg);
+    void SetEnabledCache(int32_t userId, const ImeEnabledCfg &cfg);
     ImeEnabledCfg GetEnabledCache(int32_t userId);
-    int32_t ClearEnabledCache(int32_t userId);
+    void ClearEnabledCache(int32_t userId);
     bool IsInEnabledCache(int32_t userId, const std::string &bundleName, const std::string &extensionName);
     int32_t GetEnabledCacheWithCorrect(int32_t userId, ImeEnabledCfg &enabledCfg);
     int32_t GetEnabledCacheWithCorrect(
@@ -159,13 +165,11 @@ private:
     void ModCurrentIme(std::vector<ImeEnabledInfo> &enabledInfos);
     bool IsCurrentIme(const std::string &bundleName, const std::vector<ImeEnabledInfo> &enabledInfos);
     /* add for compatibility that sys ime listen global table change for smart menu in tablet */
-    void UpdateGlobalEnabledTable(
-        int32_t userId, const ImeEnabledCfg &newEnabledCfg, const ImeEnabledCfg &oldEnabledCfg = {});
+    void UpdateGlobalEnabledTable(int32_t userId, const ImeEnabledCfg &newEnabledCfg);
     std::mutex imeEnabledCfgLock_;
     std::map<int32_t, ImeEnabledCfg> imeEnabledCfg_;
     CurrentImeStatusChangedHandler currentImeStatusChangedHandler_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_{ nullptr };
-    int32_t currentUserId_{ -1 };
     std::mutex operateLock_;
 };
 } // namespace MiscServices

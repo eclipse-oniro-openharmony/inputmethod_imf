@@ -25,8 +25,9 @@ namespace MiscServices {
 class FullImeInfoManager {
 public:
     static FullImeInfoManager &GetInstance();
+    int32_t RegularInit();
     int32_t Init();                                                // regular Init/boot complete/data share ready
-    int32_t Switch(int32_t userId);                                   // user switched
+    int32_t Switch(int32_t userId);                                // user switched
     int32_t Update();                                              // language change
     int32_t Delete(int32_t userId);                                // user removed
     int32_t Add(int32_t userId, const std::string &bundleName);    // package added
@@ -36,15 +37,14 @@ public:
     bool Get(int32_t userId, const std::string &bundleName, FullImeInfo &fullImeInfo);
     bool Has(int32_t userId, const std::string &bundleName);
     int32_t Get(int32_t userId, std::vector<Property> &props);
-    void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
 
 private:
     FullImeInfoManager();
     ~FullImeInfoManager();
-    int32_t AddIfNoCache(int32_t userId, std::vector<FullImeInfo> &infos);
+    int32_t Init(std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
+    int32_t AddUser(int32_t userId, std::vector<FullImeInfo> &infos);
     int32_t AddPackage(int32_t userId, const std::string &bundleName, FullImeInfo &info);
     int32_t DeletePackage(int32_t userId, const std::string &bundleName);
-    void PostEnableTask(const std::function<void()> &task, const std::string &taskName);
     std::mutex lock_;
     std::map<int32_t, std::vector<FullImeInfo>> fullImeInfos_;
     Utils::Timer timer_{ "imeInfoCacheInitTimer" };

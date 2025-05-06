@@ -1766,17 +1766,9 @@ HWTEST_F(InputMethodControllerTest, testGetInputMethodState_004, TestSize.Level0
 HWTEST_F(InputMethodControllerTest, testGetInputMethodState_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodControllerTest testGetInputMethodState_005 Test START");
-    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
-    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = true;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = true;
-    ImeInfoInquirer::GetInstance().systemConfig_.sysSpecialIme = TddUtil::currentBundleNameMock_;
-    ImeEnabledInfo info;
-    info.bundleName = TddUtil::currentBundleNameMock_;
-    info.enabledStatus = EnabledStatus::BASIC_MODE;
-    ImeEnabledCfg cfg;
-    cfg.enabledInfos.push_back(info);
-    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ imsa_->userId_, cfg });
     EnabledStatus status = EnabledStatus::DISABLED;
+    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = false;
+    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = false;
     auto ret = inputMethodController_->GetInputMethodState(status);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(status == EnabledStatus::FULL_EXPERIENCE_MODE);

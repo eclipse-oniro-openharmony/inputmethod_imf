@@ -48,6 +48,7 @@ public:
     static ImeEnabledInfoManager &GetInstance();
     void SetCurrentImeStatusChangedHandler(CurrentImeStatusChangedHandler handler);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
+    int32_t RegularInit(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Init(const std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
     int32_t Switch(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
     int32_t Delete(int32_t userId);

@@ -106,12 +106,11 @@ public:
     int32_t Upgrade(int32_t userId, const std::vector<FullImeInfo> &imeInfos);
     int32_t GetFullExperienceTable(int32_t userId, std::set<std::string> &bundleNames);
     /* add for compatibility that sys ime listen global table change for smart menu in tablet */
-    void UpdateGlobalEnabledTable(int32_t userId, const std::vector<std::string> &bundleNames);
+    void UpdateGlobalEnabledTable(int32_t userId, const ImeEnabledCfg &newEnabledCfg);
 
 private:
     EnableUpgradeManager() = default;
     ~EnableUpgradeManager() = default;
-    std::pair<int32_t, bool> GetUpgradeFlag(int32_t userId);
     int32_t GetEnabledTable(int32_t userId, std::set<std::string> &bundleNames);
     int32_t GetUserEnabledTable(int32_t userId, std::string &content);
     int32_t GetUserEnabledTable(int32_t userId, std::set<std::string> &bundleNames);
@@ -120,17 +119,16 @@ private:
     int32_t GetEnabledTable(int32_t userId, const std::string &uriProxy, std::set<std::string> &bundleNames);
     int32_t GetEnabledTable(int32_t userId, const std::string &uriProxy, std::string &content);
     int32_t ParseEnabledTable(int32_t userId, std::string &content, std::set<std::string> &bundleNames);
-    std::pair<int32_t, std::string> GenerateNewUserEnabledTable(int32_t userId,
-        const std::set<std::string> &enabledBundleNames, const std::set<std::string> &fullModeBundleNames,
-        const ImePersistInfo &persistInfo, const std::vector<FullImeInfo> &imeInfos);
     int32_t GetGlobalTableUserId(const std::string &valueStr);
     std::string GenerateGlobalContent(int32_t userId, const std::vector<std::string> &bundleNames);
     bool SetGlobalEnabledTable(const std::string &content);
     bool SetUserEnabledTable(int32_t userId, const std::string &content);
     bool SetEnabledTable(const std::string &uriProxy, const std::string &content);
-    void PaddedByBundleMgr(
+    int32_t MergeTwoTable(int32_t userId, std::vector<ImeEnabledInfo> &enabledInfos);
+    int32_t PaddedByBundleMgr(
         int32_t userId, const std::vector<FullImeInfo> &imeInfos, std::vector<ImeEnabledInfo> &enabledInfos);
-    void PaddedByImePersistCfg(const ImePersistInfo &persistInfo, std::vector<ImeEnabledInfo> &enabledInfos);
+    int32_t PaddedByImePersistCfg(int32_t userId, std::vector<ImeEnabledInfo> &enabledInfos);
+    EnabledStatus ComputeEnabledStatus(const std::string &bundleName, EnabledStatus initStatus);
     int32_t GetImePersistCfg(int32_t userId, ImePersistInfo &persisInfo);
     std::mutex upgradedLock_;
     std::set<int32_t> upgradedUserId_;

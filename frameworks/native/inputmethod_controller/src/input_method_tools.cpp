@@ -116,6 +116,7 @@ TextTotalConfigInner InputMethodTools::TextTotalConfigToInner(const TextTotalCon
     inner.positionY = textTotalConfig.positionY;
     inner.height = textTotalConfig.height;
     inner.commandValue.valueMap = textTotalConfig.privateCommand;
+    inner.requestKeyboardReason = textTotalConfig.requestKeyboardReason;
     return inner;
 }
 
@@ -129,6 +130,7 @@ TextTotalConfig InputMethodTools::InnerToTextTotalConfig(const TextTotalConfigIn
     textTotalConfig.positionY = inner.positionY;
     textTotalConfig.height = inner.height;
     textTotalConfig.privateCommand = inner.commandValue.valueMap;
+    textTotalConfig.requestKeyboardReason = inner.requestKeyboardReason;
     return textTotalConfig;
 }
 

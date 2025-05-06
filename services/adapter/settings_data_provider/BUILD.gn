@@ -19,6 +19,7 @@ config("settings_data_config") {
     "include",
     "${inputmethod_path}/common/include",
     "${inputmethod_path}/services/include",
+    "${inputmethod_path}/services/adapter/os_account_adapter/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
     "${inputmethod_path}/services/json/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
@@ -60,6 +61,7 @@ ohos_static_library("settings_data_static") {
     "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
   ]

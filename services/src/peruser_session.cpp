@@ -507,12 +507,12 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
 bool PerUserSession::IsProxyImeEnable()
 {
     auto data = GetReadyImeData(ImeType::PROXY_IME);
-    bool ret;
+    bool ret = false;
     if (data == nullptr || data->core == nullptr) {
         return false;
     }
     data->core->IsEnable(ret);
-    return data != nullptr && data->core != nullptr && ret;
+    return ret;
 }
 
 int32_t PerUserSession::OnStartInput(
@@ -1102,9 +1102,9 @@ bool PerUserSession::CanStartIme()
 {
     return (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() &&
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
-            IsSaReady(SCREENLOCK_SERVICE_ID) &&
+    IsSaReady(SCREENLOCK_SERVICE_ID) &&
 #endif
-            runningIme_.empty() && ImCommonEventManager::IsBundleScanFinished());
+    runningIme_.empty());
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
@@ -1145,7 +1145,7 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
     } else {
         auto ret = ImeEnabledInfoManager::GetInstance().GetEnabledState(userId_, ime->bundleName, status);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("[%{public}d,%{public}s] GetEnabledState failed.", userId_, ime->imeId.c_str());
+            IMSA_HILOGE("%{public}d/%{public}s GetEnabledState failed.", userId_, ime->imeId.c_str());
         }
     }
     AAFwk::Want want;
@@ -1159,10 +1159,10 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 
 int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
 {
-    IMSA_HILOGI("run in %{public}s", ime->imeId.c_str());
     if (ime == nullptr) {
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
     }
+    IMSA_HILOGI("run in %{public}s", ime->imeId.c_str());
     auto imeToStart = std::make_shared<ImeNativeCfg>();
     auto ret = ChangeToDefaultImeIfNeed(ime, imeToStart);
     if (ret != ErrorCode::NO_ERROR) {

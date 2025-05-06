@@ -52,6 +52,17 @@ group("system_ability_stub_fuzztest") {
     ":SwitchInputMethodFuzzTest",
     ":UnRegisteredProxyImeFuzzTest",
     ":UpdateListenEventFlagFuzzTest",
+    ":CommandIsCurrentImeByPidFuzzTest",
+    ":CommandIsDefaultImeSetFuzzTest",
+    ":CommandIsSystemAppSetFuzzTest",
+    ":CommandGetInputMethodStateFuzzTest",
+    ":CommandHideCurrentInputDeprecatedFuzzTest",
+    ":CommandInitConnectFuzzTest",
+    ":CommandSetCallingWindowFuzzTest",
+    ":CommandGetInputStartInfoFuzzTest",
+    ":CommandRegisterProxyImeFuzzTest",
+    ":CommandUnregisterProxyImeFuzzTest",
+    ":CommandEnableImeFuzzTest",
   ]
 }
 
@@ -68,6 +79,7 @@ common_external_deps = [
 ]
 
 common_deps = [
+  "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
   "${inputmethod_path}/services:inputmethod_service_static",
   "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
   "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static",
@@ -636,6 +648,193 @@ ohos_fuzztest("ConnectSystemCmdFuzzTest") {
   ]
 
   sources = [ "connectsystemcmd_fuzzer/connectsystemcmd_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandIsCurrentImeByPidFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandiscurrentimebypid_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandiscurrentimebypid_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandiscurrentimebypid_fuzzer/commandiscurrentimebypid_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandIsDefaultImeSetFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandisdefaultimeset_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandisdefaultimeset_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandisdefaultimeset_fuzzer/commandisdefaultimeset_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandIsSystemAppSetFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandissystemappset_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandissystemappset_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandissystemappset_fuzzer/commandissystemappset_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandGetInputMethodStateFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandgetinputmethodstate_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandgetinputmethodstate_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandgetinputmethodstate_fuzzer/commandgetinputmethodstate_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandHideCurrentInputDeprecatedFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandhidecurrentinputdeprecated_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandhidecurrentinputdeprecated_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandhidecurrentinputdeprecated_fuzzer/commandhidecurrentinputdeprecated_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandInitConnectFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandinitconnect_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandinitconnect_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandinitconnect_fuzzer/commandinitconnect_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandSetCallingWindowFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandsetcallingwindow_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandsetcallingwindow_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandsetcallingwindow_fuzzer/commandsetcallingwindow_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandGetInputStartInfoFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandgetinputstartinfo_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandgetinputstartinfo_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandgetinputstartinfo_fuzzer/commandgetinputstartinfo_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandRegisterProxyImeFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandregisterproxyime_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandregisterproxyime_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandregisterproxyime_fuzzer/commandregisterproxyime_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandUnregisterProxyImeFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandunregisterproxyime_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandunregisterproxyime_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandunregisterproxyime_fuzzer/commandunregisterproxyime_fuzzer.cpp" ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+}
+
+ohos_fuzztest("CommandEnableImeFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandenableime_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/commandenableime_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "commandenableime_fuzzer/commandenableime_fuzzer.cpp" ]
 
   deps = common_deps
 

@@ -29,12 +29,7 @@ std::shared_ptr<CJGetInputMethodSetting> CJGetInputMethodSetting::GetIMSInstance
     if (inputMethod_ == nullptr) {
         std::lock_guard<std::mutex> lock(msMutex_);
         if (inputMethod_ == nullptr) {
-            auto engine = std::make_shared<CJGetInputMethodSetting>();
-            if (engine == nullptr) {
-                IMSA_HILOGE("engine is nullptr!");
-                return nullptr;
-            }
-            inputMethod_ = engine;
+            inputMethod_ = std::make_shared<CJGetInputMethodSetting>();
         }
     }
     return inputMethod_;
@@ -67,7 +62,6 @@ int32_t CJGetInputMethodSetting::UnSubscribe(uint32_t type)
 
 void CJGetInputMethodSetting::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
-    std::string type = "imeChange";
     IMSA_HILOGD("start");
     CInputMethodProperty prop;
     CInputMethodSubtype subProp;

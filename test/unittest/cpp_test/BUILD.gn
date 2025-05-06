@@ -1223,6 +1223,7 @@ ohos_unittest("FullImeInfoManagerTest") {
     "${inputmethod_path}/services/src/full_ime_info_manager.cpp",
     "mock/ime_enabled_info_manager.cpp",
     "mock/ime_info_inquirer.cpp",
+    "mock/os_account_adapter.cpp",
     "src/full_ime_info_manager_test.cpp",
   ]
   include_dirs = [
@@ -1420,6 +1421,7 @@ ohos_unittest("ImeEnabledInfoManagerTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
   ]
@@ -1428,6 +1430,7 @@ ohos_unittest("ImeEnabledInfoManagerTest") {
     "ability_base:want",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "googletest:gtest_main",

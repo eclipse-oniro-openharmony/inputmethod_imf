@@ -89,8 +89,7 @@ int32_t InputMethodController::RestoreListenEventFlag()
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     // 0 represent no need to check permission
-    InputClientInfoInner infoInner = {};
-    infoInner = InputMethodTools::GetInstance().InputClientInfoToInner(clientInfo_);
+    InputClientInfoInner infoInner = InputMethodTools::GetInstance().InputClientInfoToInner(clientInfo_);
     return proxy->UpdateListenEventFlag(infoInner, 0);
 }
 
@@ -106,8 +105,7 @@ int32_t InputMethodController::UpdateListenEventFlag(uint32_t finalEventFlag, ui
         }
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    InputClientInfoInner infoInner = {};
-    infoInner = InputMethodTools::GetInstance().InputClientInfoToInner(clientInfo_);
+    InputClientInfoInner infoInner = InputMethodTools::GetInstance().InputClientInfoToInner(clientInfo_);
     auto ret = proxy->UpdateListenEventFlag(infoInner, eventFlag);
     if (ret != ErrorCode::NO_ERROR && isOn) {
         clientInfo_.eventFlag = oldEventFlag;
@@ -530,10 +528,6 @@ std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
     Property propertyData;
     proxy->GetCurrentInputMethod(propertyData);
     auto property = std::make_shared<Property>(propertyData);
-    if (property == nullptr) {
-        IMSA_HILOGE("property is nullptr!");
-        return nullptr;
-    }
     return property;
 }
 
@@ -549,10 +543,6 @@ std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype
     SubProperty subPropertyData;
     proxy->GetCurrentInputMethodSubtype(subPropertyData);
     auto subProperty = std::make_shared<SubProperty>(subPropertyData);
-    if (subProperty == nullptr) {
-        IMSA_HILOGE("property is nullptr!");
-        return nullptr;
-    }
     return subProperty;
 }
 
@@ -590,8 +580,7 @@ int32_t InputMethodController::StartInput(
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    InputClientInfoInner inner = {};
-    inner = InputMethodTools::GetInstance().InputClientInfoToInner(inputClientInfo);
+    InputClientInfoInner inner = InputMethodTools::GetInstance().InputClientInfoToInner(inputClientInfo);
     int32_t ret = proxy->StartInput(inner, agent, imeInfo.first, imeInfo.second);
     return ret;
 }
@@ -825,8 +814,7 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         IMSA_HILOGE("agent is nullptr!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    InputAttributeInner inner = {};
-    inner = InputMethodTools::GetInstance().AttributeToInner(attribute);
+    InputAttributeInner inner = InputMethodTools::GetInstance().AttributeToInner(attribute);
     agent->OnAttributeChange(inner);
     return ErrorCode::NO_ERROR;
 }
@@ -1695,8 +1683,7 @@ void InputMethodController::UpdateTextPreviewState(bool isSupport)
         IMSA_HILOGE("agent is nullptr!");
         return;
     }
-    InputAttributeInner inner = {};
-    inner = InputMethodTools::GetInstance().AttributeToInner(textConfig_.inputAttribute);
+    InputAttributeInner inner = InputMethodTools::GetInstance().AttributeToInner(textConfig_.inputAttribute);
     agent->OnAttributeChange(inner);
 }
 

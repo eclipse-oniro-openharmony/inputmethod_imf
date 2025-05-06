@@ -227,6 +227,8 @@ private:
     
     std::mutex bindClientInfoLock_;
     HiSysEventClientInfo bindClientInfo_;
+
+    bool IsDisplayChanged(uint64_t oldDisplayId, uint64_t newDisplayId);
 };
 } // namespace MiscServices
 } // namespace OHOS

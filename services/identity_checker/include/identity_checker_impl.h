@@ -34,6 +34,7 @@ public:
     uint64_t GetDisplayIdByPid(int64_t callingPid) override;
     bool IsValidVirtualIme(int32_t callingUid) override;
     bool IsSpecialSaUid() override;
+    bool IsDefaultImeScreen(const std::string &screenName) override;
 };
 } // namespace MiscServices
 } // namespace OHOS

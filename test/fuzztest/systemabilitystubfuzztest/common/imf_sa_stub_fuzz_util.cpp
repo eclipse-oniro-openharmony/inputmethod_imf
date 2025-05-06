@@ -24,6 +24,9 @@
 #include "system_ability_definition.h"
 #include "text_listener.h"
 #include "token_setproc.h"
+#include "input_client_service_impl.h"
+#include "input_method_agent_service_impl.h"
+#include "input_method_core_service_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -56,6 +59,52 @@ void ImfSaStubFuzzUtil::GrantNativePermission()
     delete[] perms;
 }
 
+bool ImfSaStubFuzzUtil::SwitchIpcCode(IInputMethodSystemAbilityIpcCode code, MessageParcel &datas)
+{
+    switch (code) {
+        case IInputMethodSystemAbilityIpcCode::COMMAND_START_INPUT: {
+            InputClientInfoInner clientInfoInner = {};
+            if (!datas.WriteParcelable(&clientInfoInner)) {
+                return false;
+            }
+        }
+        case IInputMethodSystemAbilityIpcCode::COMMAND_SHOW_INPUT: {
+            sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+            if (client == nullptr || !datas.WriteRemoteObject(client->AsObject())) {
+                return false;
+            }
+        }
+        case IInputMethodSystemAbilityIpcCode::COMMAND_SET_CORE_AND_AGENT: {
+            sptr<IInputMethodCore> core = new InputMethodCoreServiceImpl();
+            sptr<IInputMethodAgent> agent = new (std::nothrow) InputMethodAgentServiceImpl();
+            if (core == nullptr || agent == nullptr || !datas.WriteRemoteObject(core->AsObject())
+                || !datas.WriteRemoteObject(agent->AsObject())) {
+                return false;
+            }
+        }
+        case IInputMethodSystemAbilityIpcCode::COMMAND_UN_REGISTERED_PROXY_IME: {
+            sptr<IInputMethodCore> core = new InputMethodCoreServiceImpl();
+            if (core == nullptr || !datas.WriteRemoteObject(core->AsObject())) {
+                return false;
+            }
+        }
+        case IInputMethodSystemAbilityIpcCode::COMMAND_RELEASE_INPUT: {
+            sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+            if (client == nullptr || !datas.WriteRemoteObject(client->AsObject())) {
+                return false;
+            }
+        }
+        case IInputMethodSystemAbilityIpcCode::COMMAND_HIDE_INPUT: {
+            sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+            if (client == nullptr || !datas.WriteRemoteObject(client->AsObject())) {
+                return false;
+            }
+        }
+        default:
+            return true;
+    }
+}
+
 bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size,
     IInputMethodSystemAbilityIpcCode code)
 {
@@ -66,6 +115,7 @@ bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, siz
 
     MessageParcel datas;
     datas.WriteInterfaceToken(SYSTEMABILITY_INTERFACE_TOKEN);
+    SwitchIpcCode(code, datas);
     datas.WriteBuffer(rawData, size);
     datas.RewindRead(0);
     MessageParcel reply;

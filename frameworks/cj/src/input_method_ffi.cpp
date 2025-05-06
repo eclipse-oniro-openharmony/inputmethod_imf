@@ -159,9 +159,9 @@ RetInputMethodSubtype FfiInputMethodSettingListInputMethodSubtype(CInputMethodPr
         return ret;
     }
     for (unsigned int i = 0; i < ret.size; i++) {
-        CInputMethodSubtype props;
-        Utils::InputMethodSubProperty2C(&props, subProps[i]);
-        ret.head[i] = props;
+        CInputMethodSubtype subtype;
+        Utils::InputMethodSubProperty2C(&subtype, subProps[i]);
+        ret.head[i] = subtype;
     }
     return ret;
 }

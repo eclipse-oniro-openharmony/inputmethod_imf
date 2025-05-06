@@ -954,7 +954,7 @@ std::shared_ptr<ResourceManager> ImeInfoInquirer::GetResMgr(const std::string &r
 
 int32_t ImeInfoInquirer::QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &fullImeInfos)
 {
-    auto userIds = OsAccountAdapter::QueryActiveOsAccountIds();  // todo 全部用户
+    auto userIds = OsAccountAdapter::QueryActiveOsAccountIds();
     if (userIds.empty()) {
         return ErrorCode::ERROR_OS_ACCOUNT;
     }
@@ -1029,15 +1029,15 @@ int32_t ImeInfoInquirer::GetFullImeInfo(int32_t userId,
     if (extInfos.empty()) {
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    imeInfo.tokenId = extInfos[0].applicationInfo.accessTokenId;
     imeInfo.prop.name = extInfos[0].bundleName;
     imeInfo.prop.id = extInfos[0].name;
-    imeInfo.prop.label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId);
-    imeInfo.prop.labelId = extInfos[0].applicationInfo.labelId;
-    imeInfo.prop.iconId = extInfos[0].applicationInfo.iconId;
     if (needBrief) {
         return ErrorCode::NO_ERROR;
     }
+    imeInfo.tokenId = extInfos[0].applicationInfo.accessTokenId;
+    imeInfo.prop.label = GetTargetString(extInfos[0], ImeTargetString::LABEL, userId);
+    imeInfo.prop.labelId = extInfos[0].applicationInfo.labelId;
+    imeInfo.prop.iconId = extInfos[0].applicationInfo.iconId;
     imeInfo.isNewIme = IsNewExtInfos(extInfos);
     auto ret = imeInfo.isNewIme ? ListInputMethodSubtype(userId, extInfos[0], imeInfo.subProps)
                                 : ListInputMethodSubtype(userId, extInfos, imeInfo.subProps);
@@ -1196,6 +1196,11 @@ bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
     }
     appMgrClient->GetRunningProcessInfoByPid(pid, info);
     return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
+}
+
+bool ImeInfoInquirer::IsDefaultImeScreen(const std::string &screenName)
+{
+    return systemConfig_.defaultImeScreenList.find(screenName) != systemConfig_.defaultImeScreenList.end();
 }
 } // namespace MiscServices
 } // namespace OHOS

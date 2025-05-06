@@ -90,6 +90,7 @@ public:
     int32_t RegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
     int32_t UnregisterProxyIme(uint64_t displayId) override;
+    ErrCode IsDefaultImeScreen(uint64_t displayId, bool &resultValue) override;
 
 protected:
     void OnStart() override;
@@ -196,12 +197,14 @@ private:
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
 
+    std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
 
     void ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo);
+    bool IsDefaultImeScreen(uint64_t displayId);
 };
 } // namespace MiscServices
 } // namespace OHOS

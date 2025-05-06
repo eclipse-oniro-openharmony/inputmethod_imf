@@ -261,7 +261,8 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     IMSA_HILOGI("IMA showKeyboard:%{public}d,bindFromClient:%{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
-    if (clientInfo.needHide && !isProxyIme_.load()) {
+    if ((clientInfo.needHide && !isProxyIme_.load()) ||
+        IsDisplayChanged(inputAttribute_.callingDisplayId, clientInfo.config.inputAttribute.callingDisplayId)) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
         auto panel = GetSoftKeyboardPanel();
         if (panel != nullptr) {
@@ -300,6 +301,33 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     TaskManager::GetInstance().WaitExec(seqId, START_INPUT_CALLBACK_TIMEOUT_MS, showPanel);
     return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodAbility::IsDisplayChanged(uint64_t oldDisplayId, uint64_t newDisplayId)
+{
+    if (oldDisplayId == newDisplayId) {
+        IMSA_HILOGD("screen not changed!");
+        return false;
+    }
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("imsa proxy is nullptr!");
+        return false;
+    }
+    bool ret = false;
+    int32_t result = proxy->IsDefaultImeScreen(oldDisplayId, ret);
+    if (result != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to get oldDisplay info , result is %{public}d!", result);
+        return false;
+    }
+    if (!ret) {
+        result = proxy->IsDefaultImeScreen(newDisplayId, ret);
+        if (result != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to get newDisplay info , result is %{public}d!", result);
+            return false;
+        }
+    }
+    return ret;
 }
 
 void InputMethodAbility::OnSetSubtype(SubProperty subProperty)
@@ -782,17 +810,16 @@ int32_t InputMethodAbility::GetTextIndexAtCursorInner(int32_t &index)
 
 int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
 {
-    IMSA_HILOGD("InputMethodAbility start.");
+    IMSA_HILOGI("InputMethodAbility start.");
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    TextTotalConfigInner textConfigInner = {};
-    textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
+    TextTotalConfigInner textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
     auto ret = channel->GetTextConfig(textConfigInner);
-    textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
     if (ret == ErrorCode::NO_ERROR) {
+        textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
         textConfig.inputAttribute.windowId = textConfig.windowId;
@@ -917,7 +944,7 @@ int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channe
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
         auto flag = panel->GetPanelFlag();
-        if (panel->IsShowing() && flag != FLG_CANDIDATE_COLUMN) {
+        if (flag != FLG_CANDIDATE_COLUMN) {
             auto keyboardSize = panel->GetKeyboardSize();
             SysPanelStatus sysPanelStatus = { inputType_, flag, keyboardSize.width, keyboardSize.height };
             NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
@@ -1085,11 +1112,6 @@ int32_t InputMethodAbility::HidePanel(
 int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus)
 {
     if (panelType != PanelType::SOFT_KEYBOARD) {
-        return ErrorCode::NO_ERROR;
-    }
-    // If it is not binding, do not need to notify the panel
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
         return ErrorCode::NO_ERROR;
     }
     sysPanelStatus.inputType = inputType_;
@@ -1419,8 +1441,7 @@ int32_t InputMethodAbility::SetPreviewTextInner(const std::string &text, const R
         IMSA_HILOGE("dataChannel is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    RangeInner rangeInner = {};
-    rangeInner = InputMethodTools::GetInstance().RangeToInner(range);
+    RangeInner rangeInner = InputMethodTools::GetInstance().RangeToInner(range);
     return dataChannel->SetPreviewText(text, rangeInner);
 }
 
@@ -1480,8 +1501,7 @@ void InputMethodAbility::NotifyPanelStatusInfo(
         return;
     }
     if (channelProxy != nullptr) {
-        PanelStatusInfoInner inner = {};
-        inner = InputMethodTools::GetInstance().PanelStatusInfoToInner(info);
+        PanelStatusInfoInner inner = InputMethodTools::GetInstance().PanelStatusInfoToInner(info);
         channelProxy->NotifyPanelStatusInfo(inner);
     }
 

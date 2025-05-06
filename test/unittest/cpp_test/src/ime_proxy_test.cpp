@@ -131,12 +131,9 @@ public:
     static void SwitchToTestIme()
     {
         ImeSettingListenerTestImpl::ResetParam();
-        // ohos.permission.MANAGE_SECURE_SETTINGS ohos.permission.CONNECT_IME_ABILITY
-        TddUtil::GrantNativePermission();
-        std::string beforeValue;
-        TddUtil::GetEnableData(beforeValue);
-        std::string allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.testIme\"]}}";
-        TddUtil::PushEnableImeValue("settings.inputmethod.enable_ime", allEnableIme);
+        TddUtil::SetTestTokenID(
+            TddUtil::AllocTestTokenID(true, "ImeProxyTest", { "ohos.permission.CONNECT_IME_ABILITY" }));
+        TddUtil::EnabledAllIme();
         SubProperty subProp;
         subProp.name = "com.example.testIme";
         subProp.id = "InputMethodExtAbility";
@@ -144,7 +141,6 @@ public:
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange(subProp));
         TddUtil::RestoreSelfTokenID();
-        TddUtil::PushEnableImeValue("settings.inputmethod.enable_ime", beforeValue);
     }
 
 private:

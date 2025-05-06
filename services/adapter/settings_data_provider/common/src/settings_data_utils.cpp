@@ -20,8 +20,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-std::mutex SettingsDataUtils::instanceMutex_;
-sptr<SettingsDataUtils> SettingsDataUtils::instance_ = nullptr;
 SettingsDataUtils::~SettingsDataUtils()
 {
     {
@@ -37,20 +35,10 @@ SettingsDataUtils::~SettingsDataUtils()
     }
 }
 
-sptr<SettingsDataUtils> SettingsDataUtils::GetInstance()
+SettingsDataUtils &SettingsDataUtils::GetInstance()
 {
-    if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> autoLock(instanceMutex_);
-        if (instance_ == nullptr) {
-            IMSA_HILOGI("GetInstance need new SettingsDataUtils.");
-            instance_ = new (std::nothrow) SettingsDataUtils();
-            if (instance_ == nullptr) {
-                IMSA_HILOGE("instance is nullptr!");
-                return instance_;
-            }
-        }
-    }
-    return instance_;
+    static SettingsDataUtils instance;
+    return instance;
 }
 
 int32_t SettingsDataUtils::CreateAndRegisterObserver(
@@ -71,8 +59,8 @@ int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const s
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto uri = GenerateTargetUri(std::string(uriProxy), observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(uriProxy));
+    auto uri = GenerateTargetUri(uriProxy, observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(uriProxy);
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -92,8 +80,8 @@ int32_t SettingsDataUtils::UnregisterObserver(const std::string &uriProxy, const
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto uri = GenerateTargetUri(std::string(uriProxy), observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(uriProxy));
+    auto uri = GenerateTargetUri(uriProxy, observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(uriProxy);
     if (helper == nullptr) {
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -134,7 +122,7 @@ bool SettingsDataUtils::ReleaseDataShareHelper(std::shared_ptr<DataShare::DataSh
 
 Uri SettingsDataUtils::GenerateTargetUri(const std::string &uriProxy, const std::string &key)
 {
-    Uri uri(std::string(uriProxy) + "&key=" + key);
+    Uri uri(uriProxy + "&key=" + key);
     return uri;
 }
 

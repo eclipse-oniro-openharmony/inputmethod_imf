@@ -38,7 +38,6 @@ public:
     bool UnsubscribeEvent();
     // only public the status change of softKeyboard in FLG_FIXED or FLG_FLOATING
     int32_t PublishPanelStatusChangeEvent(int32_t userId, const InputWindowStatus &status, const ImeWindowInfo &info);
-    static bool IsBundleScanFinished();
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
     public:
         EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo);
@@ -77,7 +76,6 @@ private:
 private:
     static std::mutex instanceLock_;
     static sptr<ImCommonEventManager> instance_;
-    static std::atomic<bool> isBundleScanFinished_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -89,9 +89,8 @@ HWTEST_F(FullImeInfoManagerTest, test_Init_002, TestSize.Level0)
     uint32_t tokenId = 2;
     std::string appId = "appId";
     uint32_t versionCode = 11;
-    std::string installTime = "12345";
     std::vector<FullImeInfo> imeInfos;
-    imeInfos.push_back({ isNewIme, tokenId, appId, versionCode, installTime, prop });
+    imeInfos.push_back({ isNewIme, tokenId, appId, versionCode, prop });
     std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
     fullImeInfos.emplace_back(std::make_pair(userId, imeInfos));
     ImeInfoInquirer::GetInstance().SetFullImeInfo(true, fullImeInfos);
@@ -157,14 +156,13 @@ HWTEST_F(FullImeInfoManagerTest, test_Switch_003, TestSize.Level0)
     uint32_t tokenId = 2;
     std::string appId = "appId";
     uint32_t versionCode = 11;
-    std::string installTime = "12345";
     prop.name = "bundleName";
 
-    FullImeInfo imeInfo { isNewIme, tokenId, appId, versionCode, installTime, prop };
+    FullImeInfo imeInfo { isNewIme, tokenId, appId, versionCode, prop };
     uint32_t tokenId1 = 2;
     std::string appId1 = "appId1";
     prop1.name = "bundleName1";
-    FullImeInfo imeInfo1 { isNewIme, tokenId1, appId1, versionCode, installTime, prop1 };
+    FullImeInfo imeInfo1 { isNewIme, tokenId1, appId1, versionCode, prop1 };
     imeInfos.push_back(imeInfo);
     imeInfos.push_back(imeInfo1);
     ImeInfoInquirer::GetInstance().SetFullImeInfo(true, imeInfos);

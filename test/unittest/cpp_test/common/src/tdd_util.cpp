@@ -49,11 +49,13 @@ using namespace Rosen;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr int32_t PERMISSION_NUM = 4;
+constexpr int32_t PERMISSION_NUM = 6;
 constexpr int32_t FIRST_PARAM_INDEX = 0;
 constexpr int32_t SECOND_PARAM_INDEX = 1;
 constexpr int32_t THIRD_PARAM_INDEX = 2;
 constexpr int32_t FOURTH_PARAM_INDEX = 3;
+constexpr int32_t FIFTH_PARAM_INDEX = 4;
+constexpr int32_t SIXTH_PARAM_INDEX = 5;
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
 uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
@@ -275,6 +277,8 @@ void TddUtil::GrantNativePermission()
     perms[SECOND_PARAM_INDEX] = "ohos.permission.CONNECT_IME_ABILITY";
     perms[THIRD_PARAM_INDEX] = "ohos.permission.MANAGE_SETTINGS";
     perms[FOURTH_PARAM_INDEX] = "ohos.permission.INJECT_INPUT_EVENT";
+    perms[FIFTH_PARAM_INDEX] = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
+    perms[SIXTH_PARAM_INDEX] = "ohos.permission.GET_RUNNING_INFO";
     TokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = PERMISSION_NUM,
@@ -299,7 +303,7 @@ void TddUtil::GrantNativePermission()
 void TddUtil::PushEnableImeValue(const std::string &key, const std::string &value)
 {
     IMSA_HILOGI("key: %{public}s, value: %{public}s", key.c_str(), value.c_str());
-    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper(SETTING_URI_PROXY);
+    auto helper = SettingsDataUtils::GetInstance().CreateDataShareHelper(SETTING_URI_PROXY);
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr.");
         return;
@@ -311,14 +315,14 @@ void TddUtil::PushEnableImeValue(const std::string &key, const std::string &valu
     bucket.Put(SETTING_COLUMN_VALUE, valueObj);
     DataShare::DataSharePredicates predicates;
     predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
-    Uri uri(SettingsDataUtils::GetInstance()->GenerateTargetUri(SETTING_URI_PROXY, key));
+    Uri uri(SettingsDataUtils::GetInstance().GenerateTargetUri(SETTING_URI_PROXY, key));
     if (helper->Update(uri, predicates, bucket) <= 0) {
         int index = helper->Insert(uri, bucket);
         IMSA_HILOGI("no data exists, insert ret index: %{public}d", index);
     } else {
         IMSA_HILOGI("data exits");
     }
-    bool ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    bool ret = SettingsDataUtils::GetInstance().ReleaseDataShareHelper(helper);
     IMSA_HILOGI("ReleaseDataShareHelper isSuccess: %{public}d", ret);
 }
 
@@ -338,39 +342,59 @@ void TddUtil::DeleteUserTable(int32_t userId, const std::string &key)
 
 void TddUtil::DeleteTable(const std::string &key, const std::string &uriProxy)
 {
-    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper(uriProxy);
+    auto helper = SettingsDataUtils::GetInstance().CreateDataShareHelper(uriProxy);
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr.");
         return;
     }
     DataShare::DataSharePredicates predicates;
     predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
-    Uri uri(SettingsDataUtils::GetInstance()->GenerateTargetUri(uriProxy, key));
+    Uri uri(SettingsDataUtils::GetInstance().GenerateTargetUri(uriProxy, key));
     auto result = helper->DeleteEx(uri, predicates);
     IMSA_HILOGI("Delete ret: [%{public}d, %{public}d]", result.first, result.second);
-    bool ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    bool ret = SettingsDataUtils::GetInstance().ReleaseDataShareHelper(helper);
     IMSA_HILOGI("ReleaseDataShareHelper isSuccess: %{public}d", ret);
 }
 
-void TddUtil::GenerateGlobalTable(const std::string &key, const std::string &content)
+void TddUtil::SetGlobalTable(const std::string &key, const std::string &content)
 {
     std::string uriProxy = SETTING_URI_PROXY;
-    GenerateTable(key, uriProxy, content);
+    SetTable(key, uriProxy, content);
 }
-void TddUtil::GenerateUserTable(int32_t userId, const std::string &key, const std::string &content)
+void TddUtil::SetUserTable(int32_t userId, const std::string &key, const std::string &content)
 {
     std::string uriProxy = SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true";
-    GenerateTable(key, uriProxy, content);
+    SetTable(key, uriProxy, content);
 }
 
-void TddUtil::GenerateTable(const std::string &key, const std::string &uriProxy, const std::string &content)
+void TddUtil::SetTable(const std::string &key, const std::string &uriProxy, const std::string &content)
 {
-    SettingsDataUtils::GetInstance()->SetStringValue(uriProxy, key, content);
+    SettingsDataUtils::GetInstance().SetStringValue(uriProxy, key, content);
+}
+
+std::string TddUtil::GetTable(const std::string &key, const std::string &uriProxy)
+{
+    std::string content;
+    auto ret = SettingsDataUtils::GetInstance().GetStringValue(uriProxy, key, content);
+    IMSA_HILOGI("%{public}s/%{public}s ret:%{public}d.", key.c_str(), uriProxy.c_str(), ret);
+    return content;
+}
+
+std::string TddUtil::GetGlobalTable(const std::string &key)
+{
+    std::string uriProxy = SETTING_URI_PROXY;
+    return GetTable(key, uriProxy);
+}
+
+std::string TddUtil::GetUserTable(int32_t userId, const std::string &key)
+{
+    std::string uriProxy = SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true";
+    return GetTable(key, uriProxy);
 }
 
 int32_t TddUtil::GetEnableData(std::string &value)
 {
-    auto ret = SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, ENABLE_IME, value);
+    auto ret = SettingsDataUtils::GetInstance().GetStringValue(SETTING_URI_PROXY, ENABLE_IME, value);
     if (ret == ErrorCode::NO_ERROR) {
         IMSA_HILOGI("success, value: %{public}s", value.c_str());
     }
@@ -435,6 +459,32 @@ void TddUtil::InitCurrentImePermissionInfo()
     ImeCfgManager::GetInstance().imeConfigs_ = {
         { userId, property->name + "/" + property->id, "", false }
     };
+}
+
+void TddUtil::EnabledAllIme()
+{
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        return;
+    }
+    std::vector<Property> props;
+    imc->ListInputMethod(false, props);
+    for (const auto &prop : props) {
+        imc->EnableIme(prop.name, prop.id, EnabledStatus::BASIC_MODE);
+    }
+}
+
+void TddUtil::DisabledAllIme()
+{
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        return;
+    }
+    std::vector<Property> props;
+    imc->ListInputMethod(true, props);
+    for (const auto &prop : props) {
+        imc->EnableIme(prop.name, prop.id, EnabledStatus::DISABLED);
+    }
 }
 
 void TddUtil::WindowManager::CreateWindow()
