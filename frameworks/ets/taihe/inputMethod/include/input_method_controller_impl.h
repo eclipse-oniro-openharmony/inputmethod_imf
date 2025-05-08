@@ -57,7 +57,7 @@ public:
 
 private:
     std::mutex mutex_;
-    std::map<std::string, std::vector<std::shared_ptr<CallbackObject>>> jsCbMap_;
+    std::map<std::string, std::vector<std::unique_ptr<CallbackObject>>> jsCbMap_;
     static std::mutex controllerMutex_;
     static std::shared_ptr<InputMethodControllerImpl> controller_;
 };
@@ -165,7 +165,7 @@ public:
     {
         InputMethodControllerImpl::GetInstance()->UnRegisterListener("handleExtendAction", opq);
     }
-    void OnGetLeftTextOfCursor(taihe::callback_view<void(int32_t)> f, uintptr_t opq)
+    void OnGetLeftTextOfCursor(taihe::callback_view<taihe::string(int32_t)> f, uintptr_t opq)
     {
         InputMethodControllerImpl::GetInstance()->RegisterListener("getLeftTextOfCursor", f, opq);
     }
@@ -173,7 +173,7 @@ public:
     {
         InputMethodControllerImpl::GetInstance()->UnRegisterListener("getLeftTextOfCursor", opq);
     }
-    void OnGetRightTextOfCursor(taihe::callback_view<void(int32_t)> f, uintptr_t opq)
+    void OnGetRightTextOfCursor(taihe::callback_view<taihe::string(int32_t)> f, uintptr_t opq)
     {
         InputMethodControllerImpl::GetInstance()->RegisterListener("getRightTextOfCursor", f, opq);
     }

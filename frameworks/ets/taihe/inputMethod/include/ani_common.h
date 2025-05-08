@@ -22,7 +22,7 @@
 #include "ohos.inputMethod.proj.hpp"
 #include "taihe/runtime.hpp"
 using InputMethodProperty_t = ohos::inputMethod::InputMethodProperty;
-using InputMethodSubtype_t = ohos::inputMethodSubtype::InputMethodSubtype;
+using InputMethodSubtype_t = ohos::InputMethodSubtype::InputMethodSubtype;
 using PanelInfo_t = ohos::inputMethod::Panel::PanelInfo;
 using InputWindowInfo_t = ohos::inputMethod::InputWindowInfo;
 using RequestKeyboardReason_t = ohos::inputMethod::RequestKeyboardReason;
@@ -99,7 +99,7 @@ private:
     }
 };
 
-using callbackType = std::variant<taihe::callback<int32_t()>, taihe::callback<taihe::string_view(int32_t)>,
+using callbackType = std::variant<taihe::callback<int32_t()>, taihe::callback<taihe::string(int32_t)>,
     taihe::callback<void()>, taihe::callback<void(int32_t)>, taihe::callback<void(taihe::string_view)>,
     taihe::callback<void(Range_t const &)>, taihe::callback<void(Movement_t const &)>,
     taihe::callback<void(KeyboardStatus_t const)>, taihe::callback<void(Direction_t const)>,
@@ -111,7 +111,7 @@ struct CallbackObject {
     CallbackObject(callbackType cb, ani_ref ref) : callback(cb), ref(ref)
     {
     }
-    ~CallbackObject()
+    void Release()
     {
         if (auto *env = taihe::get_env()) {
             env->GlobalReference_Delete(ref);

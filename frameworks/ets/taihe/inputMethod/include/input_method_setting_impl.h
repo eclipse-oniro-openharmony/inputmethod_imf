@@ -48,7 +48,7 @@ private:
     void UnregisterListener(std::string const &type, taihe::optional_view<uintptr_t> opq, bool &isUpdateFlag);
     void HandleRegistrationError(std::string const &eventName, int32_t errorCode);
     std::mutex mutex_;
-    std::map<std::string, std::vector<std::shared_ptr<CallbackObject>>> jsCbMap_;
+    std::map<std::string, std::vector<std::unique_ptr<CallbackObject>>> jsCbMap_;
 };
 
 class IMFSettingImpl {

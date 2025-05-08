@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 
+
+@!sts_inject_into_module("import {ElementName} from 'bundleManager.ElementName';")
 @!namespace("@ohos.inputMethod", "inputMethod")
 from ohos.inputMethod.Panel use PanelInfo;
-from ohos.inputMethodSubtype use InputMethodSubtype;
+from ohos.InputMethodSubtype use InputMethodSubtype;
 
 struct InputMethodProperty {
     @readonly packageName: String;
@@ -52,11 +54,17 @@ interface InputMethodSetting {
     @gen_promise("getAllInputMethods")
     GetAllInputMethodsSync(): Array<InputMethodProperty>;
     @!sts_inject_into_interface("""
+        on(type: string, callback: (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_InputMethodSubtype.InputMethodSubtype) => void): void;
+        off(type: string, callback?: (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_InputMethodSubtype.InputMethodSubtype) => void): void;
+        on(type: string, callback: (info: Array<InputWindowInfo>) => void): void;
+        off(type: string, callback?: (info: Array<InputWindowInfo>) => void): void;
+    """)
+    @!sts_inject_into_class("""
         on(type: string, cb: Object) {
             switch(type) {
                 case "imeHide": return this.onImeHide(cb as (info: Array<InputWindowInfo>) => void, cb);
                 case "imeShow": return this.onImeShow(cb as (info: Array<InputWindowInfo>) => void, cb);
-                case "imeChange": return this.onImeChange(cb as (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_inputMethodSubtype.InputMethodSubtype) => void, cb);
+                case "imeChange": return this.onImeChange(cb as (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_InputMethodSubtype.InputMethodSubtype) => void, cb);
                 default: throw new Error(`Unknown type: ${type}`);
             }
         }
@@ -183,6 +191,12 @@ interface InputMethodController {
     @gen_promise("detach")
     DetachSync();
     @!sts_inject_into_interface("""
+        on(type: string, callback: (arg0 : Object) => Object): void;
+        off(type: string, callback?: (arg0 : Object) => Object): void;
+        on(type: string, callback: () => int): void;
+        off(type: string, callback?: () => int): void;
+    """)
+    @!sts_inject_into_class("""
         on(type: string, cb: Object) {
             switch(type) {
                 case "selectByRange": return this.onSelectByRange(cb as (range : Range) => void, cb);
@@ -194,8 +208,8 @@ interface InputMethodController {
                 case "sendFunctionKey": return this.onSendFunctionKey(cb as (functionKey: FunctionKey) => void, cb);
                 case "moveCursor": return this.onMoveCursor(cb as (direction: Direction) => void, cb);
                 case "handleExtendAction": return this.onHandleExtendAction(cb as (extendAction: ExtendAction) => void, cb);
-                case "getLeftTextOfCursor": return this.onGetLeftTextOfCursor(cb as (length: int) => void, cb);
-                case "getRightTextOfCursor": return this.onGetRightTextOfCursor(cb as (length: int) => void, cb);
+                case "getLeftTextOfCursor": return this.onGetLeftTextOfCursor(cb as (length: int) => String, cb);
+                case "getRightTextOfCursor": return this.onGetRightTextOfCursor(cb as (length: int) => String, cb);
                 case "getTextIndexAtCursor": return this.onGetTextIndexAtCursor(cb as () => int, cb);
                 default: throw new Error(`Unknown type: ${type}`);
             }
@@ -236,9 +250,9 @@ interface InputMethodController {
     OffMoveCursor(opq: Optional<Opaque>);
     OnHandleExtendAction(f: (action: ExtendAction) => void, opq: Opaque);
     OffHandleExtendAction(opq: Optional<Opaque>);
-    OnGetLeftTextOfCursor(f: (length: i32) => void, opq: Opaque);
+    OnGetLeftTextOfCursor(f: (length: i32) => String, opq: Opaque);
     OffGetLeftTextOfCursor(opq: Optional<Opaque>);
-    OnGetRightTextOfCursor(f: (length: i32) => void, opq: Opaque);
+    OnGetRightTextOfCursor(f: (length: i32) => String, opq: Opaque);
     OffGetRightTextOfCursor(opq: Optional<Opaque>);
     OnGetTextIndexAtCursor(f: () => i32, opq: Opaque);
     OffGetTextIndexAtCursor(opq: Optional<Opaque>);
@@ -257,4 +271,4 @@ function SwitchInputMethodWithTarget(target: InputMethodProperty): bool;
 function SwitchInputMethodSync(bundleName: String, subtypeId: Optional<String>);
 @gen_async("switchCurrentInputMethodSubtype")
 @gen_promise("switchCurrentInputMethodSubtype")
-function SwitchCurrentInputMethodSubtypeSync(target: InputMethodProperty): bool;
+function SwitchCurrentInputMethodSubtypeSync(target: InputMethodSubtype): bool;

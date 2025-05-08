@@ -15,7 +15,7 @@
 
 #include "ohos.inputMethod.Panel.ani.hpp"
 #include "ohos.inputMethod.ani.hpp"
-#include "ohos.inputMethodSubtype.ani.hpp"
+#include "ohos.InputMethodSubtype.ani.hpp"
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
     ani_env *env;
@@ -26,8 +26,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         std::cerr << "Error from ohos::inputMethod::ANIRegister" << std::endl;
         return ANI_ERROR;
     }
-    if (ANI_OK != ohos::inputMethodSubtype::ANIRegister(env)) {
-        std::cerr << "Error from ohos::inputMethodSubtype::ANIRegister" << std::endl;
+    if (ANI_OK != ohos::InputMethodSubtype::ANIRegister(env)) {
+        std::cerr << "Error from ohos::InputMethodSubtype::ANIRegister" << std::endl;
         return ANI_ERROR;
     }
     if (ANI_OK != ohos::inputMethod::Panel::ANIRegister(env)) {

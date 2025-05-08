@@ -27,7 +27,7 @@
 
 using namespace taihe;
 using namespace ohos::inputMethod;
-using namespace ohos::inputMethodSubtype;
+using namespace ohos::InputMethodSubtype;
 using namespace OHOS::MiscServices;
 namespace {
 InputMethodSetting GetSetting()
@@ -105,9 +105,14 @@ bool SwitchInputMethodWithTarget(InputMethodProperty const &target)
         packageName = target.packageName;
         id = target.methodId;
     }
+    if (packageName.empty() || id.empty()) {
+        taihe::set_business_error(IMFErrorCode::EXCEPTION_PARAMCHECK, "packageName and methodId is empty");
+        IMSA_HILOGE("failed to switch input method, packageName or id is empty!");
+        return false;
+    }
     int32_t errCode =
         OHOS::MiscServices::InputMethodController::GetInstance()->SwitchInputMethod(SwitchTrigger::CURRENT_IME,
-            packageName, id);
+            packageName, "");
     if (errCode != ErrorCode::NO_ERROR) {
         int32_t code = JsUtils::Convert(errCode);
         std::string message = JsUtils::ToMessage(code);
@@ -135,7 +140,7 @@ void SwitchInputMethodSync(string_view bundleName, optional_view<string> subtype
     }
 }
 
-bool SwitchCurrentInputMethodSubtypeSync(InputMethodProperty const &target)
+bool SwitchCurrentInputMethodSubtypeSync(InputMethodSubtype const &target)
 {
     std::string name(target.name);
     std::string id(target.id);

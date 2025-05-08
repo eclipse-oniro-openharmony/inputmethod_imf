@@ -22,10 +22,9 @@ taihe_generated_file_path = "$taihe_file_path/out/$subsystem_name/$part_name"
 
 copy_taihe_idl("copy_taihe") {
   sources = [ 
-    "idl/ohos.elementName.taihe",
     "idl/ohos.inputMethod.Panel.taihe",
     "idl/ohos.inputMethod.taihe",
-    "idl/ohos.inputMethodSubtype.taihe"
+    "idl/ohos.InputMethodSubtype.taihe"
   ]
 
   external_deps = []
@@ -39,8 +38,8 @@ ohos_taihe("run_taihe") {
     "$taihe_generated_file_path/src/ohos.inputMethod.abi.c",
     "$taihe_generated_file_path/src/ohos.inputMethod.Panel.ani.cpp",
     "$taihe_generated_file_path/src/ohos.inputMethod.Panel.abi.c",
-    "$taihe_generated_file_path/src/ohos.inputMethodSubtype.ani.cpp",
-    "$taihe_generated_file_path/src/ohos.inputMethodSubtype.abi.c",
+    "$taihe_generated_file_path/src/ohos.InputMethodSubtype.ani.cpp",
+    "$taihe_generated_file_path/src/ohos.InputMethodSubtype.abi.c",
   ]
 }
 
@@ -94,7 +93,7 @@ generate_static_abc("inputmethod_abc") {
   files = [ 
     "$taihe_generated_file_path/@ohos.inputMethod.ets",
     "$taihe_generated_file_path/@ohos.inputMethod.Panel.ets",
-    "$taihe_generated_file_path/@ohos.inputMethodSubtype.ets",
+    "$taihe_generated_file_path/@ohos.InputMethodSubtype.ets",
   ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/inputmethod_abc.abc"

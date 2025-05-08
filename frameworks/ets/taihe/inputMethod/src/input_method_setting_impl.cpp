@@ -167,7 +167,7 @@ void InputMethodSettingImpl::RegisterListener(std::string const &type, callbackT
         return;
     }
     auto &cbVec = jsCbMap_[type];
-    bool isDuplicate = std::any_of(cbVec.begin(), cbVec.end(), [env, callbackRef](std::shared_ptr<CallbackObject> &obj) {
+    bool isDuplicate = std::any_of(cbVec.begin(), cbVec.end(), [env, callbackRef](std::unique_ptr<CallbackObject> &obj) {
         ani_boolean isEqual = false;
         return (ANI_OK == env->Reference_StrictEquals(callbackRef, obj->ref, &isEqual)) && isEqual;
     });
@@ -176,7 +176,7 @@ void InputMethodSettingImpl::RegisterListener(std::string const &type, callbackT
         IMSA_HILOGD("%{public}s is already registered", type.c_str());
         return;
     }
-    cbVec.emplace_back(std::make_shared<CallbackObject>(cb, callbackRef));
+    cbVec.emplace_back(std::make_unique<CallbackObject>(cb, callbackRef));
     IMSA_HILOGI("Registered success type: %{public}s", type.c_str());
 }
 void InputMethodSettingImpl::UnregisterListener(std::string const &type, optional_view<uintptr_t> opq,
@@ -207,7 +207,7 @@ void InputMethodSettingImpl::UnregisterListener(std::string const &type, optiona
         return;
     }
 
-    const auto pred = [env, targetRef = guard.get()](std::shared_ptr<CallbackObject> &obj) {
+    const auto pred = [env, targetRef = guard.get()](std::unique_ptr<CallbackObject> &obj) {
         ani_boolean is_equal = false;
         return (ANI_OK == env->Reference_StrictEquals(targetRef, obj->ref, &is_equal)) && is_equal;
     };

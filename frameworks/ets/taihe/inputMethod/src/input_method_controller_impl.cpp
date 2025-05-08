@@ -126,7 +126,7 @@ void InputMethodControllerImpl::RegisterListener(std::string const &type, callba
         return;
     }
     auto &cbVec = jsCbMap_[type];
-    bool isDuplicate = std::any_of(cbVec.begin(), cbVec.end(), [env, callbackRef](std::shared_ptr<CallbackObject> &obj) {
+    bool isDuplicate = std::any_of(cbVec.begin(), cbVec.end(), [env, callbackRef](std::unique_ptr<CallbackObject> &obj) {
         ani_boolean isEqual = false;
         return (ANI_OK == env->Reference_StrictEquals(callbackRef, obj->ref, &isEqual)) && isEqual;
     });
@@ -135,7 +135,7 @@ void InputMethodControllerImpl::RegisterListener(std::string const &type, callba
         IMSA_HILOGD("callback already registered, type: %{public}s!", type.c_str());
         return;
     }
-    cbVec.emplace_back(std::make_shared<CallbackObject>(cb, callbackRef));
+    cbVec.emplace_back(std::make_unique<CallbackObject>(cb, callbackRef));
     IMSA_HILOGI("register callback success, type: %{public}s!", type.c_str());
 }
 void InputMethodControllerImpl::UnRegisterListener(std::string const &type, taihe::optional_view<uintptr_t> opq)
@@ -148,6 +148,9 @@ void InputMethodControllerImpl::UnRegisterListener(std::string const &type, taih
     }
 
     if (!opq.has_value()) {
+        for (auto & uniquePtr: iter->second) {
+            uniquePtr->Release();
+        }
         jsCbMap_.erase(iter);
         IMSA_HILOGE("callback is nullptr!");
         return;
@@ -165,13 +168,14 @@ void InputMethodControllerImpl::UnRegisterListener(std::string const &type, taih
         return;
     }
 
-    const auto pred = [env, targetRef = guard.get()](std::shared_ptr<CallbackObject> &obj) {
+    const auto pred = [env, targetRef = guard.get()](std::unique_ptr<CallbackObject> &obj) {
         ani_boolean is_equal = false;
         return (ANI_OK == env->Reference_StrictEquals(targetRef, obj->ref, &is_equal)) && is_equal;
     };
     auto &callbacks = iter->second;
     const auto it = std::find_if(callbacks.begin(), callbacks.end(), pred);
     if (it != callbacks.end()) {
+        it->get()->Release();
         callbacks.erase(it);
     }
     if (callbacks.empty()) {
@@ -252,7 +256,7 @@ std::u16string InputMethodControllerImpl::GetLeftTextOfCursorCallback(int32_t nu
     std::lock_guard<std::mutex> lock(mutex_);
     auto &cbVec = jsCbMap_["getLeftTextOfCursor"];
     for (auto &cb : cbVec) {
-        auto &func = std::get<taihe::callback<taihe::string_view(int32_t)>>(cb->callback);
+        auto &func = std::get<taihe::callback<taihe::string(int32_t)>>(cb->callback);
         taihe::string s = func(number);
         return Str8ToStr16(std::string(s));
     }
@@ -263,7 +267,7 @@ std::u16string InputMethodControllerImpl::GetRightTextOfCursorCallback(int32_t n
     std::lock_guard<std::mutex> lock(mutex_);
     auto &cbVec = jsCbMap_["getRightTextOfCursor"];
     for (auto &cb : cbVec) {
-        auto &func = std::get<taihe::callback<taihe::string_view(int32_t)>>(cb->callback);
+        auto &func = std::get<taihe::callback<taihe::string(int32_t)>>(cb->callback);
         taihe::string s = func(number);
         return Str8ToStr16(std::string(s));
     }
