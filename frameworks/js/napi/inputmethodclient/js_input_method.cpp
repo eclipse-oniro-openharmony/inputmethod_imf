@@ -260,8 +260,11 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode =
-            InputMethodController::GetInstance()->SwitchInputMethod(ctxt->trigger, ctxt->packageName, ctxt->id);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->SwitchInputMethod(ctxt->trigger, ctxt->packageName, ctxt->id);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -279,37 +282,46 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
 
 napi_value JsInputMethod::GetCurrentInputMethod(napi_env env, napi_callback_info info)
 {
-    std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("input method controller is nullptr!");
+        return JsUtil::Const::Null(env);
+    }
+    std::shared_ptr<Property> property = instance->GetCurrentInputMethod();
     if (property == nullptr) {
         IMSA_HILOGE("current input method is nullptr!");
-        napi_value result = nullptr;
-        napi_get_null(env, &result);
-        return result;
+        return JsUtil::Const::Null(env);
     }
     return GetJsInputMethodProperty(env, *property);
 }
 
 napi_value JsInputMethod::GetCurrentInputMethodSubtype(napi_env env, napi_callback_info info)
 {
-    std::shared_ptr<SubProperty> subProperty = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("input method controller is nullptr!");
+        return JsUtil::Const::Null(env);
+    }
+    std::shared_ptr<SubProperty> subProperty = instance->GetCurrentInputMethodSubtype();
     if (subProperty == nullptr) {
         IMSA_HILOGE("current input method subtype is nullptr!");
-        napi_value result = nullptr;
-        napi_get_null(env, &result);
-        return result;
+        return JsUtil::Const::Null(env);
     }
     return GetJsInputMethodSubProperty(env, *subProperty);
 }
 
 napi_value JsInputMethod::GetDefaultInputMethod(napi_env env, napi_callback_info info)
 {
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("input method controller is nullptr!");
+        return JsUtil::Const::Null(env);
+    }
     std::shared_ptr<Property> property;
-    int32_t ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
+    int32_t ret = instance->GetDefaultInputMethod(property);
     if (property == nullptr) {
         IMSA_HILOGE("default input method is nullptr!");
-        napi_value result = nullptr;
-        napi_get_null(env, &result);
-        return result;
+        return JsUtil::Const::Null(env);
     }
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get default input method!", TYPE_NONE);
@@ -320,8 +332,13 @@ napi_value JsInputMethod::GetDefaultInputMethod(napi_env env, napi_callback_info
 
 napi_value JsInputMethod::GetSystemInputMethodConfigAbility(napi_env env, napi_callback_info info)
 {
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("input method controller is nullptr!");
+        return JsUtil::Const::Null(env);
+    }
     OHOS::AppExecFwk::ElementName inputMethodConfig;
-    int32_t ret = InputMethodController::GetInstance()->GetInputMethodConfig(inputMethodConfig);
+    int32_t ret = instance->GetInputMethodConfig(inputMethodConfig);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get input method config", TYPE_NONE);
         return JsUtil::Const::Null(env);
@@ -348,8 +365,11 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode =
-            InputMethodController::GetInstance()->SwitchInputMethod(SwitchTrigger::CURRENT_IME, ctxt->name, ctxt->id);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->SwitchInputMethod(SwitchTrigger::CURRENT_IME, ctxt->name, ctxt->id);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success.");
             ctxt->status = napi_ok;
@@ -387,8 +407,11 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode =
-            InputMethodController::GetInstance()->SwitchInputMethod(SwitchTrigger::CURRENT_IME, ctxt->name, ctxt->id);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->SwitchInputMethod(SwitchTrigger::CURRENT_IME, ctxt->name, ctxt->id);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success.");
             ctxt->status = napi_ok;

@@ -66,7 +66,7 @@ ErrCode InputMethodCoreServiceImpl::StopInputService(bool isTerminateIme)
 ErrCode InputMethodCoreServiceImpl::OnConnectSystemCmd(
     const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
-    return InputMethodAbility::GetInstance()->OnConnectSystemCmd(channel, agent);
+    return InputMethodAbility::GetInstance().OnConnectSystemCmd(channel, agent);
 }
 
 ErrCode InputMethodCoreServiceImpl::StartInput(const InputClientInfoInner &clientInfoInner, bool isBindFromClient)
@@ -87,12 +87,12 @@ ErrCode InputMethodCoreServiceImpl::SetSubtype(const SubProperty &property)
 
 ErrCode InputMethodCoreServiceImpl::OnSecurityChange(int32_t security)
 {
-    return InputMethodAbility::GetInstance()->OnSecurityChange(security);
+    return InputMethodAbility::GetInstance().OnSecurityChange(security);
 }
 
 ErrCode InputMethodCoreServiceImpl::OnSetInputType(int32_t inputType)
 {
-    InputMethodAbility::GetInstance()->OnSetInputType(static_cast<InputType>(inputType));
+    InputMethodAbility::GetInstance().OnSetInputType(static_cast<InputType>(inputType));
     return ERR_OK;
 }
 
@@ -105,13 +105,13 @@ ErrCode InputMethodCoreServiceImpl::StopInput(const sptr<IRemoteObject> &channel
 
 ErrCode InputMethodCoreServiceImpl::IsEnable(bool &resultValue)
 {
-    resultValue = InputMethodAbility::GetInstance()->IsEnable();
+    resultValue = InputMethodAbility::GetInstance().IsEnable();
     return ERR_OK;
 }
 
 ErrCode InputMethodCoreServiceImpl::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
-    return InputMethodAbility::GetInstance()->IsPanelShown(panelInfo, isShown);
+    return InputMethodAbility::GetInstance().IsPanelShown(panelInfo, isShown);
 }
 
 ErrCode InputMethodCoreServiceImpl::OnClientInactive(const sptr<IRemoteObject> &channel)
@@ -123,14 +123,14 @@ ErrCode InputMethodCoreServiceImpl::OnClientInactive(const sptr<IRemoteObject> &
 
 ErrCode InputMethodCoreServiceImpl::OnCallingDisplayIdChanged(uint64_t displayId)
 {
-    return InputMethodAbility::GetInstance()->OnCallingDisplayIdChanged(displayId);
+    return InputMethodAbility::GetInstance().OnCallingDisplayIdChanged(displayId);
 }
 
 ErrCode InputMethodCoreServiceImpl::OnSendPrivateData(const Value &Value)
 {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     privateCommand = Value.valueMap;
-    return InputMethodAbility::GetInstance()->OnSendPrivateData(privateCommand);
+    return InputMethodAbility::GetInstance().OnSendPrivateData(privateCommand);
 }
 
 } // namespace MiscServices

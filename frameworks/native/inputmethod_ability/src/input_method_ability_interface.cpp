@@ -27,65 +27,65 @@ InputMethodAbilityInterface &InputMethodAbilityInterface::GetInstance()
 
 int32_t InputMethodAbilityInterface::RegisteredProxy()
 {
-    return InputMethodAbility::GetInstance()->RegisterProxyIme();
+    return InputMethodAbility::GetInstance().RegisterProxyIme();
 }
 
 int32_t InputMethodAbilityInterface::UnRegisteredProxy(UnRegisteredType type)
 {
-    return InputMethodAbility::GetInstance()->UnRegisteredProxyIme(type);
+    return InputMethodAbility::GetInstance().UnRegisteredProxyIme(type);
 }
 
 int32_t InputMethodAbilityInterface::RegisterProxyIme(uint64_t displayId)
 {
-    return InputMethodAbility::GetInstance()->RegisterProxyIme(displayId);
+    return InputMethodAbility::GetInstance().RegisterProxyIme(displayId);
 }
 
 int32_t InputMethodAbilityInterface::UnregisterProxyIme(uint64_t displayId)
 {
-    return InputMethodAbility::GetInstance()->UnregisterProxyIme(displayId);
+    return InputMethodAbility::GetInstance().UnregisterProxyIme(displayId);
 }
 
 int32_t InputMethodAbilityInterface::InsertText(const std::string &text)
 {
-    return InputMethodAbility::GetInstance()->InsertText(text);
+    return InputMethodAbility::GetInstance().InsertText(text);
 }
 
 int32_t InputMethodAbilityInterface::DeleteForward(int32_t length)
 {
-    return InputMethodAbility::GetInstance()->DeleteForward(length);
+    return InputMethodAbility::GetInstance().DeleteForward(length);
 }
 
 int32_t InputMethodAbilityInterface::DeleteBackward(int32_t length)
 {
-    return InputMethodAbility::GetInstance()->DeleteBackward(length);
+    return InputMethodAbility::GetInstance().DeleteBackward(length);
 }
 
 int32_t InputMethodAbilityInterface::MoveCursor(int32_t keyCode)
 {
-    return InputMethodAbility::GetInstance()->MoveCursor(keyCode);
+    return InputMethodAbility::GetInstance().MoveCursor(keyCode);
 }
 
 int32_t InputMethodAbilityInterface::GetInputAttribute(InputAttribute &attribute)
 {
     TextTotalConfig config;
-    auto ret = InputMethodAbility::GetInstance()->GetTextConfig(config);
+    auto ret = InputMethodAbility::GetInstance().GetTextConfig(config);
     attribute = config.inputAttribute;
     return ret;
 }
 
 int32_t InputMethodAbilityInterface::SendFunctionKey(int32_t funcKey)
 {
-    return InputMethodAbility::GetInstance()->SendFunctionKey(funcKey);
+    return InputMethodAbility::GetInstance().SendFunctionKey(funcKey);
 }
 
 void InputMethodAbilityInterface::SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)
 {
-    InputMethodAbility::GetInstance()->SetImeListener(imeListener);
+    InputMethodAbility::GetInstance().SetImeListener(imeListener);
 }
 
 void InputMethodAbilityInterface::SetKdListener(std::shared_ptr<KeyboardListener> kdListener)
 {
-    InputMethodAbility::GetInstance()->SetKdListener(kdListener);
+    InputMethodAbility::GetInstance().SetKdListener(kdListener);
 }
 } // namespace MiscServices
 } // namespace OHOS

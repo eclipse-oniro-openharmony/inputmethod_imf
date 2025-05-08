@@ -133,7 +133,7 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->MoveCursor(ctxt->num);
+        int32_t code = InputMethodAbility::GetInstance().MoveCursor(ctxt->num);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -162,7 +162,7 @@ napi_value JsTextInputClientEngine::MoveCursorSync(napi_env env, napi_callback_i
     PARAM_CHECK_RETURN(env, direction >= 0, "direction should be no less than 0!", TYPE_NONE,
         HandleParamCheckFailure(env));
     IMSA_HILOGD("moveCursor , direction: %{public}d", direction);
-    int32_t ret = InputMethodAbility::GetInstance()->MoveCursor(direction);
+    int32_t ret = InputMethodAbility::GetInstance().MoveCursor(direction);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to move cursor!", TYPE_NONE);
     }
@@ -203,14 +203,14 @@ std::shared_ptr<JsTextInputClientEngine> JsTextInputClientEngine::GetTextInputCl
 
 bool JsTextInputClientEngine::InitTextInputClientEngine()
 {
-    if (!InputMethodAbility::GetInstance()->IsCurrentIme()) {
+    if (!InputMethodAbility::GetInstance().IsCurrentIme()) {
         return false;
     }
     auto engine = GetTextInputClientEngine();
     if (engine == nullptr) {
         return false;
     }
-    InputMethodAbility::GetInstance()->SetTextInputClientListener(engine);
+    InputMethodAbility::GetInstance().SetTextInputClientListener(engine);
     {
         std::lock_guard<std::mutex> lock(eventHandlerMutex_);
         handler_ = AppExecFwk::EventHandler::Current();
@@ -287,7 +287,7 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->SendFunctionKey(ctxt->action);
+        int32_t code = InputMethodAbility::GetInstance().SendFunctionKey(ctxt->action);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -319,7 +319,7 @@ napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callba
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         privateCommandQueue_.Wait(ctxt->info);
-        int32_t code = InputMethodAbility::GetInstance()->SendPrivateCommand(ctxt->privateCommand);
+        int32_t code = InputMethodAbility::GetInstance().SendPrivateCommand(ctxt->privateCommand);
         privateCommandQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
@@ -349,7 +349,7 @@ napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callbac
         HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, length >= 0, "length should not less than 0!", TYPE_NONE, HandleParamCheckFailure(env));
     IMSA_HILOGD("delete forward, length: %{public}d.", length);
-    int32_t ret = InputMethodAbility::GetInstance()->DeleteForward(length);
+    int32_t ret = InputMethodAbility::GetInstance().DeleteForward(length);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to delete forward", TYPE_NONE);
     }
@@ -376,7 +376,7 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
         InputMethodSyncTrace tracer("JS_DeleteForward_Exec", traceId);
-        int32_t code = InputMethodAbility::GetInstance()->DeleteForward(ctxt->length);
+        int32_t code = InputMethodAbility::GetInstance().DeleteForward(ctxt->length);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -405,7 +405,7 @@ napi_value JsTextInputClientEngine::DeleteBackwardSync(napi_env env, napi_callba
         HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, length >= 0, "length should no less than 0!", TYPE_NONE, HandleParamCheckFailure(env));
     IMSA_HILOGD("delete backward, length: %{public}d.", length);
-    int32_t ret = InputMethodAbility::GetInstance()->DeleteBackward(length);
+    int32_t ret = InputMethodAbility::GetInstance().DeleteBackward(length);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to delete backward", TYPE_NONE);
     }
@@ -427,7 +427,7 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->DeleteBackward(ctxt->length);
+        int32_t code = InputMethodAbility::GetInstance().DeleteBackward(ctxt->length);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -461,7 +461,7 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
         InputMethodSyncTrace tracer("JS_InsertText_Exec", traceId);
-        int32_t code = InputMethodAbility::GetInstance()->InsertText(ctxt->text);
+        int32_t code = InputMethodAbility::GetInstance().InsertText(ctxt->text);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -489,7 +489,7 @@ napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_i
         HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], text), "text covert failed!", TYPE_NONE,
         HandleParamCheckFailure(env));
-    int32_t ret = InputMethodAbility::GetInstance()->InsertText(text);
+    int32_t ret = InputMethodAbility::GetInstance().InsertText(text);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to insert text!", TYPE_NONE);
     }
@@ -512,7 +512,7 @@ napi_value JsTextInputClientEngine::GetForwardSync(napi_env env, napi_callback_i
     PARAM_CHECK_RETURN(env, length >= 0, "length should no less than 0!", TYPE_NONE, HandleParamCheckFailure(env));
     IMSA_HILOGD("get forward, length: %{public}d.", length);
     std::u16string text;
-    int32_t ret = InputMethodAbility::GetInstance()->GetTextBeforeCursor(length, text);
+    int32_t ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(length, text);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get forward!", TYPE_NONE);
         return JsUtil::Const::Null(env);
@@ -544,7 +544,7 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
         InputMethodSyncTrace tracer("JS_GetForward_Exec", traceId);
         std::u16string temp;
-        int32_t code = InputMethodAbility::GetInstance()->GetTextBeforeCursor(ctxt->length, temp);
+        int32_t code = InputMethodAbility::GetInstance().GetTextBeforeCursor(ctxt->length, temp);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -574,7 +574,7 @@ napi_value JsTextInputClientEngine::GetBackwardSync(napi_env env, napi_callback_
     PARAM_CHECK_RETURN(env, length >= 0, "length should not less than 0!", TYPE_NONE, HandleParamCheckFailure(env));
     IMSA_HILOGD("get backward, length: %{public}d.", length);
     std::u16string text;
-    int32_t ret = InputMethodAbility::GetInstance()->GetTextAfterCursor(length, text);
+    int32_t ret = InputMethodAbility::GetInstance().GetTextAfterCursor(length, text);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get backward!", TYPE_NONE);
         return JsUtil::Const::Null(env);
@@ -602,7 +602,7 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         std::u16string temp;
-        int32_t code = InputMethodAbility::GetInstance()->GetTextAfterCursor(ctxt->length, temp);
+        int32_t code = InputMethodAbility::GetInstance().GetTextAfterCursor(ctxt->length, temp);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -620,7 +620,7 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
 napi_value JsTextInputClientEngine::GetEditorAttributeSync(napi_env env, napi_callback_info info)
 {
     TextTotalConfig config;
-    int32_t ret = InputMethodAbility::GetInstance()->GetTextConfig(config);
+    int32_t ret = InputMethodAbility::GetInstance().GetTextConfig(config);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to get text config: %{public}d!", ret);
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_IMCLIENT, "failed to get text config!", TYPE_NONE);
@@ -640,7 +640,7 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         TextTotalConfig config;
-        int32_t ret = InputMethodAbility::GetInstance()->GetTextConfig(config);
+        int32_t ret = InputMethodAbility::GetInstance().GetTextConfig(config);
         ctxt->inputAttribute = config.inputAttribute;
         if (ret == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
@@ -674,7 +674,7 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->SelectByRange(ctxt->start, ctxt->end);
+        int32_t code = InputMethodAbility::GetInstance().SelectByRange(ctxt->start, ctxt->end);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -705,7 +705,7 @@ napi_value JsTextInputClientEngine::SelectByRangeSync(napi_env env, napi_callbac
         return JsUtil::Const::Null(env);
     }
     IMSA_HILOGD("start: %{public}d, end: %{public}d.", ctxt->start, ctxt->end);
-    int32_t ret = InputMethodAbility::GetInstance()->SelectByRange(ctxt->start, ctxt->end);
+    int32_t ret = InputMethodAbility::GetInstance().SelectByRange(ctxt->start, ctxt->end);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to select by range!", TYPE_NONE);
     }
@@ -728,7 +728,7 @@ napi_value JsTextInputClientEngine::SelectByMovementSync(napi_env env, napi_call
         return JsUtil::Const::Null(env);
     }
     IMSA_HILOGD("direction: %{public}d.", ctxt->direction);
-    int32_t ret = InputMethodAbility::GetInstance()->SelectByMovement(ctxt->direction);
+    int32_t ret = InputMethodAbility::GetInstance().SelectByMovement(ctxt->direction);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to select by movement!", TYPE_NONE);
     }
@@ -750,7 +750,7 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->SelectByMovement(ctxt->direction);
+        int32_t code = InputMethodAbility::GetInstance().SelectByMovement(ctxt->direction);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -775,7 +775,7 @@ napi_value JsTextInputClientEngine::SendExtendAction(napi_env env, napi_callback
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->SendExtendAction(ctxt->action);
+        int32_t code = InputMethodAbility::GetInstance().SendExtendAction(ctxt->action);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;
@@ -799,7 +799,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
         return napi_create_int32(env, ctxt->index, result);
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->GetTextIndexAtCursor(ctxt->index);
+        int32_t code = InputMethodAbility::GetInstance().GetTextIndexAtCursor(ctxt->index);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -831,7 +831,7 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
         InputMethodSyncTrace tracer("JS_SetPreviewText_Exec", traceId);
-        int32_t code = InputMethodAbility::GetInstance()->SetPreviewText(ctxt->text, ctxt->range);
+        int32_t code = InputMethodAbility::GetInstance().SetPreviewText(ctxt->text, ctxt->range);
         if (code == ErrorCode::NO_ERROR) {
             IMSA_HILOGD("exec setPreviewText success");
             ctxt->SetState(napi_ok);
@@ -862,7 +862,7 @@ napi_value JsTextInputClientEngine::SetPreviewTextSync(napi_env env, napi_callba
     if (GetPreviewTextParam(env, argc, argv, text, range) != napi_ok) {
         return JsUtil::Const::Null(env);
     }
-    int32_t ret = InputMethodAbility::GetInstance()->SetPreviewText(text, range);
+    int32_t ret = InputMethodAbility::GetInstance().SetPreviewText(text, range);
     if (ret == ErrorCode::ERROR_INVALID_RANGE) {
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
             "range should be included in preview text range, otherwise should be included in total text range",
@@ -888,7 +888,7 @@ napi_value JsTextInputClientEngine::FinishTextPreview(napi_env env, napi_callbac
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
         InputMethodSyncTrace tracer("JS_FinishTextPreview_Exec", traceId);
-        int32_t code = InputMethodAbility::GetInstance()->FinishTextPreview(false);
+        int32_t code = InputMethodAbility::GetInstance().FinishTextPreview(false);
         if (code == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec finishTextPreview success.");
             ctxt->SetState(napi_ok);
@@ -906,7 +906,7 @@ napi_value JsTextInputClientEngine::FinishTextPreviewSync(napi_env env, napi_cal
 {
     InputMethodSyncTrace tracer("JS_FinishTextPreviewSync", GenerateTraceId());
     IMSA_HILOGD("JsTextInputClientEngine in");
-    int32_t ret = InputMethodAbility::GetInstance()->FinishTextPreview(false);
+    int32_t ret = InputMethodAbility::GetInstance().FinishTextPreview(false);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to finish text preview!", TYPE_NONE);
     }
@@ -917,7 +917,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_
 {
     IMSA_HILOGD("start.");
     int32_t index = 0;
-    int32_t ret = InputMethodAbility::GetInstance()->GetTextIndexAtCursor(index);
+    int32_t ret = InputMethodAbility::GetInstance().GetTextIndexAtCursor(index);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get text index at cursor!", TYPE_NONE);
     }
@@ -933,7 +933,7 @@ napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_call
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t ret = InputMethodAbility::GetInstance()->GetCallingWindowInfo(ctxt->windowInfo);
+        int32_t ret = InputMethodAbility::GetInstance().GetCallingWindowInfo(ctxt->windowInfo);
         if (ret == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec GetCallingWindowInfo success.");
             ctxt->SetState(napi_ok);
@@ -1144,7 +1144,7 @@ napi_value JsTextInputClientEngine::SendMessage(napi_env env, napi_callback_info
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         messageHandlerQueue_.Wait(ctxt->info);
-        int32_t code = InputMethodAbility::GetInstance()->SendMessage(ctxt->arrayBuffer);
+        int32_t code = InputMethodAbility::GetInstance().SendMessage(ctxt->arrayBuffer);
         messageHandlerQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
@@ -1180,7 +1180,7 @@ napi_value JsTextInputClientEngine::RecvMessage(napi_env env, napi_callback_info
     }
     if (argc == 0) {
         IMSA_HILOGI("RecvMessage off.");
-        InputMethodAbility::GetInstance()->RegisterMsgHandler();
+        InputMethodAbility::GetInstance().RegisterMsgHandler();
         return nullptr;
     }
     IMSA_HILOGI("RecvMessage on.");
@@ -1198,7 +1198,7 @@ napi_value JsTextInputClientEngine::RecvMessage(napi_env env, napi_callback_info
 
     std::shared_ptr<MsgHandlerCallbackInterface> callback =
         std::make_shared<JsTextInputClientEngine::JsMessageHandler>(env, onTerminated, onMessage);
-    InputMethodAbility::GetInstance()->RegisterMsgHandler(callback);
+    InputMethodAbility::GetInstance().RegisterMsgHandler(callback);
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
@@ -1238,7 +1238,7 @@ void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attach
 napi_value JsTextInputClientEngine::GetAttachOptions(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("GetAttachOptions requestKeyboardReason:%{public}d.",
-        InputMethodAbility::GetInstance()->GetRequestKeyboardReason());
+        InputMethodAbility::GetInstance().GetRequestKeyboardReason());
     bool flag = IsTargetDeviceType(DEVICE_TYPE_2IN1);
     if (!flag) {
         JsUtils::ThrowException(
@@ -1246,7 +1246,7 @@ napi_value JsTextInputClientEngine::GetAttachOptions(napi_env env, napi_callback
         return JsUtil::Const::Null(env);
     }
     AttachOptions attachOptions;
-    attachOptions.requestKeyboardReason = InputMethodAbility::GetInstance()->GetRequestKeyboardReason();
+    attachOptions.requestKeyboardReason = InputMethodAbility::GetInstance().GetRequestKeyboardReason();
     return JsAttachOptions::Write(env, attachOptions);
 }
 

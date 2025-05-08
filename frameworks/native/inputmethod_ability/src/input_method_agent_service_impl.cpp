@@ -34,12 +34,12 @@ ErrCode InputMethodAgentServiceImpl::DispatchKeyEvent(
     const MiscServices::KeyEventValue &keyEvent, const sptr<IKeyEventConsumer> &consumer)
 {
     sptr<KeyEventConsumerProxy> proxyConsumer = new (std::nothrow) KeyEventConsumerProxy(consumer->AsObject());
-    return InputMethodAbility::GetInstance()->DispatchKeyEvent(keyEvent.event, proxyConsumer);
+    return InputMethodAbility::GetInstance().DispatchKeyEvent(keyEvent.event, proxyConsumer);
 }
 
 ErrCode InputMethodAgentServiceImpl::SetCallingWindow(uint32_t windowId)
 {
-    InputMethodAbility::GetInstance()->SetCallingWindow(windowId);
+    InputMethodAbility::GetInstance().SetCallingWindow(windowId);
     return ERR_OK;
 }
 
@@ -62,7 +62,7 @@ ErrCode InputMethodAgentServiceImpl::OnSelectionChange(
 ErrCode InputMethodAgentServiceImpl::SendPrivateCommand(
     const Value &value)
 {
-    if (!InputMethodAbility::GetInstance()->IsDefaultIme()) {
+    if (!InputMethodAbility::GetInstance().IsDefaultIme()) {
         IMSA_HILOGE("current is not default ime!");
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
@@ -83,7 +83,7 @@ ErrCode InputMethodAgentServiceImpl::OnAttributeChange(const InputAttributeInner
 
 ErrCode InputMethodAgentServiceImpl::SendMessage(const ArrayBuffer &arraybuffer)
 {
-    return InputMethodAbility::GetInstance()->RecvMessage(arraybuffer);
+    return InputMethodAbility::GetInstance().RecvMessage(arraybuffer);
 }
 } // namespace MiscServices
 } // namespace OHOS

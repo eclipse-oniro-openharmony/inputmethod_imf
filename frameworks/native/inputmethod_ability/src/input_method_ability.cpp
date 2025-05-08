@@ -42,8 +42,6 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 using namespace std::chrono;
-sptr<InputMethodAbility> InputMethodAbility::instance_;
-std::mutex InputMethodAbility::instanceLock_;
 constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
 constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
@@ -52,28 +50,20 @@ constexpr uint32_t START_INPUT_CALLBACK_TIMEOUT_MS = 1000;
 constexpr uint32_t INVALID_SECURITY_MODE = -1;
 constexpr uint32_t BASE_TEXT_OPERATION_TIMEOUT = 200;
 
-InputMethodAbility::InputMethodAbility() { }
+InputMethodAbility::InputMethodAbility()
+{
+    Initialize();
+}
 
 InputMethodAbility::~InputMethodAbility()
 {
     IMSA_HILOGI("InputMethodAbility::~InputMethodAbility.");
 }
 
-sptr<InputMethodAbility> InputMethodAbility::GetInstance()
+InputMethodAbility &InputMethodAbility::GetInstance()
 {
-    if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> autoLock(instanceLock_);
-        if (instance_ == nullptr) {
-            IMSA_HILOGI("InputMethodAbility need new IMA.");
-            instance_ = new (std::nothrow) InputMethodAbility();
-            if (instance_ == nullptr) {
-                IMSA_HILOGE("instance is nullptr!");
-                return instance_;
-            }
-            instance_->Initialize();
-        }
-    }
-    return instance_;
+    static InputMethodAbility instance;
+    return instance;
 }
 
 sptr<IInputMethodSystemAbility> InputMethodAbility::GetImsaProxy()

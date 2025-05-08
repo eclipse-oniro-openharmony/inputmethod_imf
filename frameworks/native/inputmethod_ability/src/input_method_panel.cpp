@@ -412,11 +412,8 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
 }
 
 void InputMethodPanel::NotifyPanelStatus(PanelFlag panelFlag) {
-    auto instance = InputMethodAbility::GetInstance();
-    if (instance != nullptr) {
-        SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag, keyboardSize_.width, keyboardSize_.height };
-        instance->NotifyPanelStatus(panelType_, sysPanelStatus);
-    }
+    SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag, keyboardSize_.width, keyboardSize_.height };
+    InputMethodAbility::GetInstance().NotifyPanelStatus(panelType_, sysPanelStatus);
 }
 
 int32_t InputMethodPanel::AdjustKeyboard()
@@ -1076,7 +1073,6 @@ int32_t InputMethodPanel::GetSysPanelAdjust(const PanelFlag panelFlag,
 int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdjustInfo &lanIterValue,
     PanelAdjustInfo &porIterValue, const LayoutParams &layoutParams)
 {
-    auto instance = InputMethodAbility::GetInstance();
     if (!IsNeedConfig()) {
         IMSA_HILOGI("The security keyboard is handled according to no configuration file");
         return CalculateNoConfigRect(panelFlag, layoutParams);
@@ -1337,7 +1333,7 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId, bool needWait)
                 IMSA_HILOGE("GetDisplayId ret:%{public}d", ret);
                 return true;
             }
-            auto callingDisplayId = InputMethodAbility::GetInstance()->GetInputAttribute().callingDisplayId;
+            auto callingDisplayId = InputMethodAbility::GetInstance().GetInputAttribute().callingDisplayId;
             if (displayId == callingDisplayId) {
                 return true;
             }
@@ -1967,24 +1963,21 @@ bool InputMethodPanel::IsNeedConfig()
 {
     bool needConfig = true;
     bool isSpecialInputType = false;
-    auto instance = InputMethodAbility::GetInstance();
-    if (instance != nullptr) {
-        auto inputType = instance->GetInputType();
-        if (!isIgnorePanelAdjustInitialized_.load()) {
-            IgnoreSysPanelAdjust ignoreSysPanelAdjust;
-            auto isSuccess = SysCfgParser::ParseIgnoreSysPanelAdjust(ignoreSysPanelAdjust);
-            if (isSuccess) {
-                SetIgnoreAdjustInputTypes(ignoreSysPanelAdjust.inputType);
-            }
-            isIgnorePanelAdjustInitialized_.store(true);
+    auto inputType = InputMethodAbility::GetInstance().GetInputType();
+    if (!isIgnorePanelAdjustInitialized_.load()) {
+        IgnoreSysPanelAdjust ignoreSysPanelAdjust;
+        auto isSuccess = SysCfgParser::ParseIgnoreSysPanelAdjust(ignoreSysPanelAdjust);
+        if (isSuccess) {
+            SetIgnoreAdjustInputTypes(ignoreSysPanelAdjust.inputType);
         }
-        std::vector<int32_t> ignoreAdjustInputTypes = GetIgnoreAdjustInputTypes();
-        auto it = std::find_if(
-            ignoreAdjustInputTypes.begin(), ignoreAdjustInputTypes.end(), [inputType](const int32_t &mInputType) {
-                return static_cast<int32_t>(inputType) == mInputType;
-            });
-        isSpecialInputType = (it != ignoreAdjustInputTypes.end());
+        isIgnorePanelAdjustInitialized_.store(true);
     }
+    std::vector<int32_t> ignoreAdjustInputTypes = GetIgnoreAdjustInputTypes();
+    auto it = std::find_if(
+        ignoreAdjustInputTypes.begin(), ignoreAdjustInputTypes.end(), [inputType](const int32_t &mInputType) {
+            return static_cast<int32_t>(inputType) == mInputType;
+        });
+    isSpecialInputType = (it != ignoreAdjustInputTypes.end());
     if (isSpecialInputType || !IsInMainDisplay()) {
         needConfig = false;
     }

@@ -104,14 +104,14 @@ std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::GetKeyboar
 
 bool JsKeyboardDelegateSetting::InitKeyboardDelegate()
 {
-    if (!InputMethodAbility::GetInstance()->IsCurrentIme()) {
+    if (!InputMethodAbility::GetInstance().IsCurrentIme()) {
         return false;
     }
     auto delegate = GetKeyboardDelegateSetting();
     if (delegate == nullptr) {
         return false;
     }
-    InputMethodAbility::GetInstance()->SetKdListener(delegate);
+    InputMethodAbility::GetInstance().SetKdListener(delegate);
     {
         std::lock_guard<std::mutex> lock(eventHandlerMutex_);
         handler_ = AppExecFwk::EventHandler::Current();

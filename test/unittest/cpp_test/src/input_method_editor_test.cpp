@@ -107,7 +107,7 @@ public:
     void SetUp();
     void TearDown();
     static sptr<InputMethodController> inputMethodController_;
-    static sptr<InputMethodAbility> inputMethodAbility_;
+    static InputMethodAbility &inputMethodAbility_;
     static std::shared_ptr<MMI::KeyEvent> keyEvent_;
     static std::shared_ptr<KeyboardListenerImpl> kbListener_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
@@ -126,7 +126,7 @@ public:
     }
 };
 sptr<InputMethodController> InputMethodEditorTest::inputMethodController_;
-sptr<InputMethodAbility> InputMethodEditorTest::inputMethodAbility_;
+InputMethodAbility &InputMethodEditorTest::inputMethodAbility_ = InputMethodAbility::GetInstance();
 std::shared_ptr<MMI::KeyEvent> InputMethodEditorTest::keyEvent_;
 std::shared_ptr<KeyboardListenerImpl> InputMethodEditorTest::kbListener_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodEditorTest::imeListener_;
@@ -146,15 +146,14 @@ void InputMethodEditorTest::SetUpTestCase(void)
     imsa_->userId_ = TddUtil::GetCurrentUserId();
     imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
 
-    inputMethodAbility_ = InputMethodAbility::GetInstance();
-    inputMethodAbility_->abilityManager_ = imsa_;
+    inputMethodAbility_.abilityManager_ = imsa_;
     TddUtil::InitCurrentImePermissionInfo();
     IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
-    inputMethodAbility_->SetCoreAndAgent();
+    inputMethodAbility_.SetCoreAndAgent();
     kbListener_ = std::make_shared<KeyboardListenerImpl>();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
-    inputMethodAbility_->SetKdListener(kbListener_);
-    inputMethodAbility_->SetImeListener(imeListener_);
+    inputMethodAbility_.SetKdListener(kbListener_);
+    inputMethodAbility_.SetImeListener(imeListener_);
 
     textListener_ = new TextListener();
     inputMethodController_ = InputMethodController::GetInstance();
