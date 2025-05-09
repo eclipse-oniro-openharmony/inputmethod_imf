@@ -59,7 +59,7 @@ void ImfSaStubFuzzUtil::GrantNativePermission()
     delete[] perms;
 }
 
-bool ImfSaStubFuzzUtil::SwitchIpcCode(IInputMethodSystemAbilityIpcCode code, MessageParcel &datas)
+bool ImfSaStubFuzzUtil::SwitchIpcCode(IInputMethodSystemAbilityIpcCode code, MessageParcel &datas, int32_t fuzzedInt32)
 {
     switch (code) {
         case IInputMethodSystemAbilityIpcCode::COMMAND_START_INPUT: {
@@ -84,7 +84,7 @@ bool ImfSaStubFuzzUtil::SwitchIpcCode(IInputMethodSystemAbilityIpcCode code, Mes
         }
         case IInputMethodSystemAbilityIpcCode::COMMAND_UN_REGISTERED_PROXY_IME: {
             sptr<IInputMethodCore> core = new InputMethodCoreServiceImpl();
-            if (core == nullptr || !datas.WriteRemoteObject(core->AsObject())) {
+            if (core == nullptr || !datas.WriteInt32(fuzzedInt32) || !datas.WriteRemoteObject(core->AsObject())) {
                 return false;
             }
         }
@@ -111,11 +111,12 @@ bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, siz
     if (!isInitialize_) {
         Initialize();
     }
+    auto fuzzedInt32 = static_cast<int32_t>(size);
     GrantNativePermission();
 
     MessageParcel datas;
     datas.WriteInterfaceToken(SYSTEMABILITY_INTERFACE_TOKEN);
-    SwitchIpcCode(code, datas);
+    SwitchIpcCode(code, datas, fuzzedInt32);
     datas.WriteBuffer(rawData, size);
     datas.RewindRead(0);
     MessageParcel reply;
