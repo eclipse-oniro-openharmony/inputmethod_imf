@@ -1307,7 +1307,6 @@ napi_value JsGetInputMethodController::RecvMessage(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    std::string type;
     if (argc < 0) {
         IMSA_HILOGE("RecvMessage failed! argc abnormal.");
         return nullptr;
