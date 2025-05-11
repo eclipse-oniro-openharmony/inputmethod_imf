@@ -29,7 +29,7 @@ namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
 using namespace OHOS::AAFwk;
-bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
+bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid, bool isAttach)
 {
     if (focusedPid != INVALID_PID && callingPid == focusedPid) {
         IMSA_HILOGD("focused app, pid: %{public}" PRId64 "", callingPid);
@@ -44,6 +44,9 @@ bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId,
             IMSA_HILOGD("focused app, pid: %{public}" PRId64 ", display: %{public}" PRIu64 "", callingPid, displayId);
             return true;
         }
+    }
+    if (isAttach && ImeInfoInquirer::GetInstance().IsInputMethodExtension(callingPid)) {
+        return false;
     }
     bool isFocused = IsFocusedUIExtension(callingTokenId, displayId);
     if (!isFocused) {

@@ -22,7 +22,8 @@ namespace OHOS {
 namespace MiscServices {
 class IdentityCheckerImpl : public IdentityChecker {
 public:
-    bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) override;
+    bool IsFocused(
+        int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID, bool isAttach = false) override;
     bool IsSystemApp(uint64_t fullTokenId) override;
     bool IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName) override;
     bool HasPermission(uint32_t tokenId, const std::string &permission) override;
