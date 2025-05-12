@@ -290,7 +290,7 @@ private:
         return connectResult;
     }
 
-    void CheckSerialNumber(int64_t serialNumber)
+    void CheckSerialNumber(int64_t &serialNumber)
     {
         if (serialNumber < INT64_MAX) {
             serialNumber++;

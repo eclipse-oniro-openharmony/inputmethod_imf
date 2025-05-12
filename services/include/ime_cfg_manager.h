@@ -20,6 +20,7 @@
 
 #include "input_method_utils.h"
 #include "serializable.h"
+#include "event_handler.h"
 namespace OHOS {
 namespace MiscServices {
 struct ImePersistInfo : public Serializable {
@@ -88,6 +89,7 @@ public:
     void DeleteImeCfg(int32_t userId);
     std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId);
     bool IsDefaultImeSet(int32_t userId);
+    void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
 
 private:
     ImeCfgManager() = default;
@@ -99,6 +101,7 @@ private:
     std::string PackageImeCfg();
     std::recursive_mutex imeCfgLock_;
     std::vector<ImePersistInfo> imeConfigs_;
+    static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS
