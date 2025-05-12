@@ -21,6 +21,7 @@
 #include "setting_listeners.h"
 #include "global.h"
 #include "utils.h"
+#include "input_method_utils.h"
 
 namespace OHOS::MiscServices {
 extern "C" {
@@ -305,7 +306,18 @@ int32_t FfiInputMethodControllerOff(int8_t type)
 
 int32_t FfiInputMethodControllerAttach(bool showKeyboard, CTextConfig txtCfg)
 {
-    return CjInputMethodController::Attach(txtCfg, showKeyboard);
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = showKeyboard;
+    attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
+    return CjInputMethodController::Attach(txtCfg, attachOptions);
+}
+
+int32_t FfiInputMethodControllerAttachWithReason(bool showKeyboard, CTextConfig txtCfg, int32_t reason)
+{
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = showKeyboard;
+    attachOptions.requestKeyboardReason = static_cast<RequestKeyboardReason>(reason);
+    return CjInputMethodController::Attach(txtCfg, attachOptions);
 }
 
 int32_t FfiInputMethodControllerDetach()
@@ -315,7 +327,18 @@ int32_t FfiInputMethodControllerDetach()
 
 int32_t FfiInputMethodControllerShowTextInput()
 {
-    return CjInputMethodController::ShowTextInput();
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = false;
+    attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
+    return CjInputMethodController::ShowTextInput(attachOptions);
+}
+
+int32_t FfiInputMethodControllerShowTextInputWithReason(int32_t reason)
+{
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = false;
+    attachOptions.requestKeyboardReason = static_cast<RequestKeyboardReason>(reason);
+    return CjInputMethodController::ShowTextInput(attachOptions);
 }
 
 int32_t FfiInputMethodControllerHideTextInput()
