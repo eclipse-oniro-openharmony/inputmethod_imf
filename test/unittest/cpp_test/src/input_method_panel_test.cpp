@@ -121,7 +121,7 @@ public:
     static uint32_t imeHideCallbackNum_;
 
     static sptr<InputMethodController> imc_;
-    static sptr<InputMethodAbility> ima_;
+    static InputMethodAbility &ima_;
     static sptr<InputMethodSystemAbility> imsa_;
     static uint32_t windowWidth_;
     static uint32_t windowHeight_;
@@ -194,7 +194,7 @@ InputWindowInfo InputMethodPanelTest::windowInfo_;
 uint32_t InputMethodPanelTest::imeShowCallbackNum_ { 0 };
 uint32_t InputMethodPanelTest::imeHideCallbackNum_ { 0 };
 sptr<InputMethodController> InputMethodPanelTest::imc_ { nullptr };
-sptr<InputMethodAbility> InputMethodPanelTest::ima_ { nullptr };
+InputMethodAbility &InputMethodPanelTest::ima_ = InputMethodAbility::GetInstance();
 sptr<InputMethodSystemAbility> InputMethodPanelTest::imsa_ { nullptr };
 uint32_t InputMethodPanelTest::windowWidth_ = 0;
 uint32_t InputMethodPanelTest::windowHeight_ = 0;
@@ -228,19 +228,16 @@ void InputMethodPanelTest::SetUpTestCase(void)
     imsa_->OnStart();
     imsa_->userId_ = TddUtil::GetCurrentUserId();
     imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
-
     imc_->abilityManager_ = imsa_;
-
-    ima_ = InputMethodAbility::GetInstance();
     {
         TokenScope scope(currentImeTokenId_);
-        ima_->InitConnect();
+        ima_.InitConnect();
     }
-    ima_->abilityManager_ = imsa_;
+    ima_.abilityManager_ = imsa_;
     TddUtil::InitCurrentImePermissionInfo();
     IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
-    ima_->SetCoreAndAgent();
-    InputMethodPanelTest::ima_->SetImeListener(imeListener_);
+    ima_.SetCoreAndAgent();
+    InputMethodPanelTest::ima_.SetImeListener(imeListener_);
 
     ImaUtils::abilityManager_ = imsa_;
 }
@@ -291,14 +288,14 @@ void InputMethodPanelTest::DestroyPanel(const std::shared_ptr<InputMethodPanel> 
 void InputMethodPanelTest::ImaCreatePanel(const PanelInfo &info, std::shared_ptr<InputMethodPanel> &panel)
 {
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    auto ret = ima_->CreatePanel(nullptr, info, panel);
+    auto ret = ima_.CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 void InputMethodPanelTest::ImaDestroyPanel(const std::shared_ptr<InputMethodPanel> &panel)
 {
     AccessScope scope(currentImeTokenId_, currentImeUid_);
-    auto ret = ima_->DestroyPanel(panel);
+    auto ret = ima_.DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 

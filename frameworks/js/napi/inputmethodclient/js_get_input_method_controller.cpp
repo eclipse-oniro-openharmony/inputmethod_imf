@@ -328,7 +328,12 @@ std::shared_ptr<JsGetInputMethodController> JsGetInputMethodController::GetInsta
         if (controller_ == nullptr) {
             auto controller = std::make_shared<JsGetInputMethodController>();
             controller_ = controller;
-            InputMethodController::GetInstance()->SetControllerListener(controller_);
+            auto instance = InputMethodController::GetInstance();
+            if (instance != nullptr) {
+                instance->SetControllerListener(controller_);
+            } else {
+                IMSA_HILOGE("instance is nullptr!");
+            }
         }
     }
     return controller_;
@@ -399,7 +404,8 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_function, "callback", TYPE_FUNCTION, nullptr);
     IMSA_HILOGD("subscribe type: %{public}s.", type.c_str());
     if (TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end()) {
-        if (!InputMethodController::GetInstance()->WasAttached()) {
+        auto instance = InputMethodController::GetInstance();
+        if (instance == nullptr || !instance->WasAttached()) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_DETACHED, "need to be attached first", TYPE_NONE);
             return nullptr;
         }
@@ -604,8 +610,11 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
         attachOptions.isShowKeyboard = ctxt->showKeyboard;
         attachOptions.requestKeyboardReason =
               static_cast<OHOS::MiscServices::RequestKeyboardReason>(ctxt->requestKeyboardReason);
-        auto status = InputMethodController::GetInstance()->Attach(
-            ctxt->textListener, attachOptions, ctxt->textConfig, ClientType::JS);
+        int32_t status = ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            status = instance->Attach(ctxt->textListener, attachOptions, ctxt->textConfig, ClientType::JS);
+        }
         ctxt->SetErrorCode(status);
         CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "attach return error!");
         ctxt->SetState(napi_ok);
@@ -619,7 +628,14 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
 napi_value JsGetInputMethodController::Detach(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->Close(); }, false, true);
+        env, info, [] () -> int32_t {
+            auto instance = InputMethodController::GetInstance();
+            if (instance == nullptr) {
+                IMSA_HILOGE("GetInstance return nullptr!");
+                return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            }
+            return instance->Close();
+        }, false, true);
 }
 
 napi_value JsGetInputMethodController::ShowTextInput(napi_env env, napi_callback_info info)
@@ -630,8 +646,13 @@ napi_value JsGetInputMethodController::ShowTextInput(napi_env env, napi_callback
     InputMethodSyncTrace tracer("JsGetInputMethodController_ShowTextInput");
     return HandleSoftKeyboard(
         env, info,
-        [attachOptions] {
-            return InputMethodController::GetInstance()->ShowTextInput(attachOptions, ClientType::JS);
+        [attachOptions] () -> int32_t {
+            auto instance = InputMethodController::GetInstance();
+            if (instance == nullptr) {
+                IMSA_HILOGE("GetInstance return nullptr!");
+                return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            }
+            return instance->ShowTextInput(attachOptions, ClientType::JS);
         },
         false, true);
 }
@@ -664,7 +685,16 @@ napi_value JsGetInputMethodController::HideTextInput(napi_env env, napi_callback
 {
     InputMethodSyncTrace tracer("JsGetInputMethodController_HideTextInput");
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->HideTextInput(); }, false, true);
+        env, info,
+        [] () -> int32_t {
+            auto instance = InputMethodController::GetInstance();
+            if (instance == nullptr) {
+                IMSA_HILOGE("GetInstance return nullptr!");
+                return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            }
+            return instance->HideTextInput();
+        },
+        false, true);
 }
 
 napi_value JsGetInputMethodController::SetCallingWindow(napi_env env, napi_callback_info info)
@@ -678,7 +708,11 @@ napi_value JsGetInputMethodController::SetCallingWindow(napi_env env, napi_callb
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        auto errcode = InputMethodController::GetInstance()->SetCallingWindow(ctxt->windID);
+        int32_t errcode = ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errcode = instance->SetCallingWindow(ctxt->windID);
+        }
         ctxt->SetErrorCode(errcode);
         CHECK_RETURN_VOID(errcode == ErrorCode::NO_ERROR, "setCallingWindow return error!");
         ctxt->SetState(napi_ok);
@@ -711,7 +745,11 @@ napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        auto errcode = InputMethodController::GetInstance()->OnCursorUpdate(ctxt->cursorInfo);
+        int32_t errcode = ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errcode = instance->OnCursorUpdate(ctxt->cursorInfo);
+        }
         ctxt->SetErrorCode(errcode);
         CHECK_RETURN_VOID(errcode == ErrorCode::NO_ERROR, "updateCursor return error!");
         ctxt->SetState(napi_ok);
@@ -736,7 +774,11 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        auto errcode = InputMethodController::GetInstance()->OnSelectionChange(ctxt->text, ctxt->start, ctxt->end);
+        int32_t errcode = ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errcode = instance->OnSelectionChange(ctxt->text, ctxt->start, ctxt->end);
+        }
         ctxt->SetErrorCode(errcode);
         CHECK_RETURN_VOID(errcode == ErrorCode::NO_ERROR, "changeSelection return error!");
         ctxt->SetState(napi_ok);
@@ -765,7 +807,11 @@ napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callba
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        auto errcode = InputMethodController::GetInstance()->OnConfigurationChange(ctxt->configuration);
+        int32_t errcode = ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errcode = instance->OnConfigurationChange(ctxt->configuration);
+        }
         ctxt->SetErrorCode(errcode);
         CHECK_RETURN_VOID(errcode == ErrorCode::NO_ERROR, "updateAttribute return error!");
         ctxt->SetState(napi_ok);
@@ -780,26 +826,62 @@ napi_value JsGetInputMethodController::ShowSoftKeyboard(napi_env env, napi_callb
 {
     InputMethodSyncTrace tracer("JsGetInputMethodController_ShowSoftKeyboard");
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->ShowSoftKeyboard(ClientType::JS); }, false, true);
+        env, info,
+        [] () -> int32_t {
+            auto instance = InputMethodController::GetInstance();
+            if (instance == nullptr) {
+                IMSA_HILOGE("GetInstance return nullptr!");
+                return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            }
+            return instance->ShowSoftKeyboard(ClientType::JS);
+        },
+        false, true);
 }
 
 napi_value JsGetInputMethodController::HideSoftKeyboard(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JsGetInputMethodController_HideSoftKeyboard");
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->HideSoftKeyboard(); }, false, true);
+        env, info,
+        [] () -> int32_t {
+            auto instance = InputMethodController::GetInstance();
+            if (instance == nullptr) {
+                IMSA_HILOGE("GetInstance return nullptr!");
+                return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            }
+            return instance->HideSoftKeyboard();
+        },
+        false, true);
 }
 
 napi_value JsGetInputMethodController::StopInputSession(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->StopInputSession(); }, true, true);
+        env, info,
+        [] () -> int32_t {
+            auto instance = InputMethodController::GetInstance();
+            if (instance == nullptr) {
+                IMSA_HILOGE("GetInstance return nullptr!");
+                return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            }
+            return instance->StopInputSession();
+        },
+        true, true);
 }
 
 napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); }, true, false);
+        env, info,
+        []() -> int32_t {
+            auto instance = InputMethodController::GetInstance();
+            if (instance == nullptr) {
+                IMSA_HILOGE("GetInstance return nullptr!");
+                return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            }
+            return instance->HideCurrentInput();
+        },
+        true, false);
 }
 
 void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
@@ -879,7 +961,12 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
     auto entry = GetEntry(type, [&insertText](UvEntry &entry) { entry.text = insertText; });
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
-        InputMethodController::GetInstance()->ReportBaseTextOperation(
+        auto instance = InputMethodController::GetInstance();
+        if (instance == nullptr) {
+            IMSA_HILOGE("GetInstance return nullptr!");
+            return;
+        }
+        instance->ReportBaseTextOperation(
             static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_INSERT_TEXT), ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
@@ -911,8 +998,12 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
     auto entry = GetEntry(type, [&length](UvEntry &entry) { entry.length = length; });
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
-        InputMethodController::GetInstance()->ReportBaseTextOperation(
-            static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_FORWARD),
+        auto instance = InputMethodController::GetInstance();
+        if (instance == nullptr) {
+            IMSA_HILOGE("GetInstance return nullptr!");
+            return;
+        }
+        instance->ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_FORWARD),
             ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
@@ -945,8 +1036,12 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
     auto entry = GetEntry(type, [&length](UvEntry &entry) { entry.length = length; });
     if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
-        InputMethodController::GetInstance()->ReportBaseTextOperation(
-            static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_BACKWARD),
+        auto instance = InputMethodController::GetInstance();
+        if (instance == nullptr) {
+            IMSA_HILOGE("GetInstance return nullptr!");
+            return;
+        }
+        instance->ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_BACKWARD),
             ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
@@ -1285,7 +1380,11 @@ napi_value JsGetInputMethodController::SendMessage(napi_env env, napi_callback_i
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         messageHandlerQueue_.Wait(ctxt->info);
-        int32_t code = InputMethodController::GetInstance()->SendMessage(ctxt->arrayBuffer);
+        int32_t code = ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            code = instance->SendMessage(ctxt->arrayBuffer);
+        }
         messageHandlerQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
@@ -1312,9 +1411,15 @@ napi_value JsGetInputMethodController::RecvMessage(napi_env env, napi_callback_i
         IMSA_HILOGE("RecvMessage failed! argc abnormal.");
         return nullptr;
     }
+
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("RecvMessage failed! GetInstance() is nullptr.");
+        return nullptr;
+    }
     if (argc == 0) {
         IMSA_HILOGI("RecvMessage off.");
-        InputMethodController::GetInstance()->RegisterMsgHandler();
+        instance->RegisterMsgHandler();
         return nullptr;
     }
     IMSA_HILOGI("RecvMessage on.");
@@ -1332,7 +1437,7 @@ napi_value JsGetInputMethodController::RecvMessage(napi_env env, napi_callback_i
 
     std::shared_ptr<MsgHandlerCallbackInterface> callback =
         std::make_shared<JsGetInputMethodController::JsMessageHandler>(env, onTerminated, onMessage);
-    InputMethodController::GetInstance()->RegisterMsgHandler(callback);
+    instance->RegisterMsgHandler(callback);
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
@@ -1442,7 +1547,12 @@ bool JsGetInputMethodController::IsTextPreviewSupported()
 void JsGetInputMethodController::UpdateTextPreviewState(const std::string &type)
 {
     if (type == "setPreviewText" || type == "finishTextPreview") {
-        InputMethodController::GetInstance()->UpdateTextPreviewState(false);
+        auto instance = InputMethodController::GetInstance();
+        if (instance == nullptr) {
+            IMSA_HILOGE("GetInstance() is nullptr!");
+            return;
+        }
+        instance->UpdateTextPreviewState(false);
     }
 }
 } // namespace MiscServices

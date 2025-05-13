@@ -46,9 +46,7 @@ namespace OHOS {
 namespace MiscServices {
 class InputMethodAbility : public RefBase, public PrivateCommandInterface {
 public:
-    InputMethodAbility();
-    ~InputMethodAbility();
-    static sptr<InputMethodAbility> GetInstance();
+    static InputMethodAbility &GetInstance();
     int32_t SetCoreAndAgent();
     int32_t InitConnect();
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
@@ -139,11 +137,13 @@ private:
     std::shared_ptr<KeyboardListener> kdListener_;
     std::shared_ptr<TextInputClientListener> textInputClientListener_;
 
-    static std::mutex instanceLock_;
-    static sptr<InputMethodAbility> instance_;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ { nullptr };
     sptr<InputDeathRecipient> deathRecipient_ { nullptr };
+    InputMethodAbility();
+    ~InputMethodAbility();
+    InputMethodAbility(const InputMethodAbility &) = delete;
+    InputMethodAbility &operator=(const InputMethodAbility &) = delete;
     sptr<IInputMethodSystemAbility> GetImsaProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 

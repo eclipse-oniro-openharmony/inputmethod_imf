@@ -243,7 +243,7 @@ public:
     static void TestGetMessageHandlerProxyMember(InputMethod_MessageHandlerProxy *messageHandlerProxy);
     static void ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProxy);
     static sptr<InputMethodController> inputMethodController_;
-    static sptr<InputMethodAbility> inputMethodAbility_;
+    static InputMethodAbility &inputMethodAbility_;
     static sptr<InputMethodSystemAbility> imsa_;
     static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
@@ -254,7 +254,7 @@ public:
     static InputMethod_MessageHandlerProxy *messageHanlderProxy_;
 };
 sptr<InputMethodController> InputMethodMessageHandlerTest::inputMethodController_;
-sptr<InputMethodAbility> InputMethodMessageHandlerTest::inputMethodAbility_;
+InputMethodAbility &InputMethodMessageHandlerTest::inputMethodAbility_ = InputMethodAbility::GetInstance();
 sptr<InputMethodSystemAbility> InputMethodMessageHandlerTest::imsa_;
 sptr<InputMethodSystemAbilityProxy> InputMethodMessageHandlerTest::imsaProxy_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodMessageHandlerTest::imeListener_;
@@ -282,14 +282,13 @@ void InputMethodMessageHandlerTest::SetUpTestCase(void)
     }
     IdentityCheckerMock::SetFocused(true);
 
-    inputMethodAbility_ = InputMethodAbility::GetInstance();
-    inputMethodAbility_->abilityManager_ = imsaProxy_;
+    inputMethodAbility_.abilityManager_ = imsaProxy_;
     textListener_ = new TextListener();
     TddUtil::InitCurrentImePermissionInfo();
     IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
-    inputMethodAbility_->SetCoreAndAgent();
+    inputMethodAbility_.SetCoreAndAgent();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>(textConfigHandler_);
-    inputMethodAbility_->SetImeListener(imeListener_);
+    inputMethodAbility_.SetImeListener(imeListener_);
 
     inputMethodController_ = InputMethodController::GetInstance();
     inputMethodController_->abilityManager_ = imsaProxy_;
@@ -328,22 +327,16 @@ void InputMethodMessageHandlerTest::TearDown(void)
 
 void InputMethodMessageHandlerTest::SetSecurityModeEnable(int32_t securityMode)
 {
-    if (inputMethodAbility_ != nullptr) {
-        inputMethodAbility_->securityMode_.store(securityMode);
-    }
+    inputMethodAbility_.securityMode_.store(securityMode);
 }
 
 void InputMethodMessageHandlerTest::ResetParam()
 {
     inputMethodController_->Close();
-    if (inputMethodAbility_ != nullptr) {
-        inputMethodAbility_->securityMode_.store(-1);
-    }
+    inputMethodAbility_.securityMode_.store(-1);
     InputMethodEngineListenerImpl::ResetParam();
     MessageHandlerCallback::ClearArrayBuffer();
-    if (inputMethodAbility_ != nullptr) {
-        inputMethodAbility_->RegisterMsgHandler();
-    }
+    inputMethodAbility_.RegisterMsgHandler();
     inputMethodController_->RegisterMsgHandler();
     g_onTerminated = false;
     g_onMessage = false;
@@ -401,7 +394,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_001, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -429,7 +422,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_002, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -453,7 +446,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_003, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -478,7 +471,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_004, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -504,7 +497,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_005, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -531,7 +524,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_006, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -557,7 +550,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_007, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -582,7 +575,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_008, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -608,7 +601,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_009, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -652,7 +645,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_011, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     inputMethodController_->isEditable_.store(false);
 
@@ -679,7 +672,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCSendMessage_012, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -728,16 +721,16 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_001, TestSize.
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_001 Test START");
     auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    auto ret = inputMethodAbility_->RegisterMsgHandler(exMessageHandler);
+    auto ret = inputMethodAbility_.RegisterMsgHandler(exMessageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
 
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, false));
     EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
 
-    ret = inputMethodAbility_->RegisterMsgHandler(nullptr);
+    ret = inputMethodAbility_.RegisterMsgHandler(nullptr);
     EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -753,10 +746,10 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_002 Test START");
     auto exMessageHandler = std::make_shared<MessageHandlerCallback>();
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    auto ret = inputMethodAbility_->RegisterMsgHandler(exMessageHandler);
+    auto ret = inputMethodAbility_.RegisterMsgHandler(exMessageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, false));
     EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
@@ -777,7 +770,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_002, TestSize.
     EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(false, false));
     messageHandler->ClearParam();
 
-    ret = inputMethodAbility_->RegisterMsgHandler();
+    ret = inputMethodAbility_.RegisterMsgHandler();
     EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
     InputMethodMessageHandlerTest::ResetParam();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -793,8 +786,8 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_003, TestSize.
 {
     IMSA_HILOGI("IMC testIMCRegisterMsgHandler_003 Test START");
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    auto ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
-    ret = inputMethodAbility_->RegisterMsgHandler(nullptr);
+    auto ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(nullptr);
     EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(true, false));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -851,7 +844,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMCRegisterMsgHandler_005, TestSize.
     arrayBuffer.msgId = "testMsgId";
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(messageHandler->CheckOnTerminatedAndOnMessage(false, true));
     EXPECT_TRUE(exMessageHandler->CheckOnTerminatedAndOnMessage(true, false));
@@ -899,7 +892,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_001, TestSize.Level1)
     arrayBuffer.msgId = "testMsgId";
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
 
@@ -926,7 +919,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_002, TestSize.Level1)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
 
@@ -954,7 +947,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_003, TestSize.Level1)
 
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
 
@@ -983,7 +976,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_004, TestSize.Level1)
     ArrayBuffer arrayBuffer;
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
 
@@ -1013,7 +1006,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_005, TestSize.Level1)
     arrayBuffer.msgId = string(MAX_ARRAY_BUFFER_MSG_ID_SIZE, 'a');
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
 
@@ -1042,7 +1035,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_006, TestSize.Level1)
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
     arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE, 'a');
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(MessageHandlerCallback::WaitSendMessage(arrayBuffer));
 
@@ -1071,7 +1064,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_007, TestSize.Level1)
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = "testMsgId";
     arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
 
     InputMethodMessageHandlerTest::ResetParam();
@@ -1100,7 +1093,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_008, TestSize.Level1)
     arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
 
     InputMethodMessageHandlerTest::ResetParam();
@@ -1128,7 +1121,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_009, TestSize.Level1)
     ArrayBuffer arrayBuffer;
     arrayBuffer.msgId = std::string(MAX_ARRAY_BUFFER_MSG_ID_SIZE + 1, 'a');
     arrayBuffer.msgParam.assign(MAX_ARRAY_BUFFER_MSG_PARAM_SIZE + 1, 'a');
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_ARRAY_BUFFER_SIZE);
     InputMethodMessageHandlerTest::ResetParam();
     ret = inputMethodController_->RegisterMsgHandler(nullptr);
@@ -1153,7 +1146,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_010, TestSize.Level1)
     arrayBuffer.msgId = "testMsgId";
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
     InputMethodMessageHandlerTest::ResetParam();
@@ -1183,7 +1176,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_011, TestSize.Level1)
     arrayBuffer.msgId = "testMsgId";
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
 
     InputMethodMessageHandlerTest::ResetParam();
@@ -1209,7 +1202,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_012, TestSize.Level1)
     arrayBuffer.msgId = "testMsgId";
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST);
 
     InputMethodMessageHandlerTest::ResetParam();
@@ -1236,7 +1229,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testIMASendMessage_013, TestSize.Level1)
     arrayBuffer.msgId = "testMsgId";
     string msgParam = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParam.begin(), msgParam.end());
-    ret = inputMethodAbility_->SendMessage(arrayBuffer);
+    ret = inputMethodAbility_.SendMessage(arrayBuffer);
     EXPECT_EQ(ret, ErrorCode::ERROR_SECURITY_MODE_OFF);
 
     InputMethodMessageHandlerTest::ResetParam();
@@ -1276,7 +1269,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testCallbackTiming_001, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    ret = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    ret = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = inputMethodController_->SendMessage(arrayBufferA);
@@ -1368,7 +1361,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_002, TestSize.Level1
     std::this_thread::sleep_for(std::chrono::seconds(1));
     InputMethodMessageHandlerTest::SetSecurityModeEnable(static_cast<int32_t>(SecurityMode::FULL));
     auto messageHandler = std::make_shared<MessageHandlerCallback>();
-    auto res = inputMethodAbility_->RegisterMsgHandler(messageHandler);
+    auto res = inputMethodAbility_.RegisterMsgHandler(messageHandler);
     EXPECT_EQ(res, ErrorCode::NO_ERROR);
 
     ArrayBuffer arrayBuffer;
@@ -1385,7 +1378,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testSendMessageCapi_002, TestSize.Level1
     ret = OH_InputMethodController_Detach(imeProxy);
     EXPECT_EQ(ret, IME_ERR_OK);
     InputMethodMessageHandlerTest::ResetParam();
-    res = inputMethodAbility_->RegisterMsgHandler();
+    res = inputMethodAbility_.RegisterMsgHandler();
     EXPECT_EQ(res, ErrorCode::NO_ERROR);
 }
 
@@ -1498,7 +1491,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testMessageHandelrCallbackCapi_001, Test
     std::u16string msgIdStr = Str8ToStr16(arrayBuffer.msgId);
     string msgParamStr = "testParamtestParamtestParamtestParamtestParamtestParam";
     arrayBuffer.msgParam.assign(msgParamStr.begin(), msgParamStr.end());
-    EXPECT_EQ(inputMethodAbility_->SendMessage(arrayBuffer), ErrorCode::NO_ERROR);
+    EXPECT_EQ(inputMethodAbility_.SendMessage(arrayBuffer), ErrorCode::NO_ERROR);
     EXPECT_TRUE(WaitOnMessageFunc(arrayBuffer));
 
     ret = OH_InputMethodProxy_RecvMessage(imeProxy, nullptr);

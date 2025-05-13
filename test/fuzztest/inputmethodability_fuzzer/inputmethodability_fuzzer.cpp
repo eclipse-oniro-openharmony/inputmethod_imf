@@ -43,107 +43,91 @@ class KeyboardListenerImpl : public KeyboardListener {
 
 void TestInsertText(const std::string &fuzzedString)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->InsertText(std::move(fuzzedString));
+    InputMethodAbility::GetInstance().InsertText(std::move(fuzzedString));
 }
 
 void TestSetImeListener()
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     auto engineListener = std::make_shared<InputMethodEngineListenerImpl>();
-    ability->SetImeListener(engineListener);
+    InputMethodAbility::GetInstance().SetImeListener(engineListener);
 }
 
 void TestSetKdListener()
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->SetKdListener(nullptr);
+    InputMethodAbility::GetInstance().SetKdListener(nullptr);
 }
 
 void TestDeleteForward(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->DeleteForward(fuzzedInt32);
+    InputMethodAbility::GetInstance().DeleteForward(fuzzedInt32);
 }
 
 void TestDeleteBackward(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->DeleteBackward(fuzzedInt32);
+    InputMethodAbility::GetInstance().DeleteBackward(fuzzedInt32);
 }
 
 void TestSendExtendAction(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->SendExtendAction(fuzzedInt32);
+    InputMethodAbility::GetInstance().SendExtendAction(fuzzedInt32);
 }
 
 void TestHideKeyboardSelf()
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->HideKeyboardSelf();
+    InputMethodAbility::GetInstance().HideKeyboardSelf();
 }
 
 void TestGetTextBeforeCursor(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     std::u16string text;
-    ability->GetTextBeforeCursor(fuzzedInt32, text);
+    InputMethodAbility::GetInstance().GetTextBeforeCursor(fuzzedInt32, text);
 }
 
 void TestGetTextAfterCursor(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     std::u16string text;
-    ability->GetTextAfterCursor(fuzzedInt32, text);
+    InputMethodAbility::GetInstance().GetTextAfterCursor(fuzzedInt32, text);
 }
 
 void TestSendFunctionKey(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->SendFunctionKey(fuzzedInt32);
+    InputMethodAbility::GetInstance().SendFunctionKey(fuzzedInt32);
 }
 
 void TestMoveCursor(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->MoveCursor(fuzzedInt32);
+    InputMethodAbility::GetInstance().MoveCursor(fuzzedInt32);
 }
 
 void TestDispatchKeyEvent(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     keyEvent->SetKeyCode(fuzzedInt32);
     keyEvent->SetKeyAction(fuzzedInt32);
     sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(nullptr);
-    ability->DispatchKeyEvent(keyEvent, consumer);
+    InputMethodAbility::GetInstance().DispatchKeyEvent(keyEvent, consumer);
 }
 
 void TestSetCallingWindow(int32_t fuzzedInt32)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->SetCallingWindow(fuzzedInt32);
+    InputMethodAbility::GetInstance().SetCallingWindow(fuzzedInt32);
 }
 
 void TestGetEnterKeyType()
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     int32_t keyType;
-    ability->GetEnterKeyType(keyType);
+    InputMethodAbility::GetInstance().GetEnterKeyType(keyType);
 }
 
 void TestGetInputPattern()
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     int32_t inputPattern;
-    ability->GetInputPattern(inputPattern);
+    InputMethodAbility::GetInstance().GetInputPattern(inputPattern);
 }
 
 void TestCallingDisplayIdChanged(uint64_t fuzzedUint64)
 {
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->OnCallingDisplayIdChanged(fuzzedUint64);
+    InputMethodAbility::GetInstance().OnCallingDisplayIdChanged(fuzzedUint64);
 }
 } // namespace OHOS
 

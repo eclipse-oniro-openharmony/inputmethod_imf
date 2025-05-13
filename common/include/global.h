@@ -25,29 +25,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-
-#define LOG_INFO(fmt, args...) \
-    LogTimeStamp();            \
-    printf("I %s:%d  %s - " fmt, basename(__FILE__), __LINE__, __FUNCTION__, ##args)
-
-#define LOG_ERROR(fmt, args...) \
-    LogTimeStamp();             \
-    printf("E %s:%d  %s - " fmt, basename(__FILE__), __LINE__, __FUNCTION__, ##args)
-
-#define LOG_WARNING(fmt, args...) \
-    LogTimeStamp();               \
-    printf("W %s:%d  %s - " fmt, basename(__FILE__), __LINE__, __FUNCTION__, ##args)
-
-#if DEBUG
-#define LOG_DEBUG(fmt, args...) \
-    LogTimeStamp();             \
-    printf("D %s:%d  %s - " fmt, basename(__FILE__), __LINE__, __FUNCTION__, ##args)
-#else
-#define LOG_DEBUG(fmt, args...)
-#endif
-
-void LogTimeStamp();
-
 // Error Code
 namespace ErrorCode {
 // Error Code definition in the input method management system

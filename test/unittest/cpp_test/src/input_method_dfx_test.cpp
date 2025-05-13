@@ -143,7 +143,7 @@ public:
     void TearDown();
     static sptr<InputMethodController> inputMethodController_;
     static sptr<OnTextChangedListener> textListener_;
-    static sptr<InputMethodAbility> inputMethodAbility_;
+    static InputMethodAbility &inputMethodAbility_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static sptr<InputMethodSystemAbility> imsa_;
 private:
@@ -151,7 +151,7 @@ private:
 };
 sptr<InputMethodController> InputMethodDfxTest::inputMethodController_;
 sptr<OnTextChangedListener> InputMethodDfxTest::textListener_;
-sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
+InputMethodAbility &InputMethodDfxTest::inputMethodAbility_ = InputMethodAbility::GetInstance();
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
 sptr<InputMethodSystemAbility> InputMethodDfxTest::imsa_;
 uint32_t InputMethodDfxTest::reportIntervalTime = 10; //10minutes
@@ -232,14 +232,13 @@ void InputMethodDfxTest::SetUpTestCase(void)
     imsa_->userId_ = TddUtil::GetCurrentUserId();
     imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
     IdentityCheckerMock::SetFocused(true);
-
-    inputMethodAbility_ = InputMethodAbility::GetInstance();
+ 
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
-    inputMethodAbility_->abilityManager_ = imsa_;
+    inputMethodAbility_.abilityManager_ = imsa_;
     TddUtil::InitCurrentImePermissionInfo();
     IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
-    inputMethodAbility_->SetCoreAndAgent();
-    inputMethodAbility_->SetImeListener(imeListener_);
+    inputMethodAbility_.SetCoreAndAgent();
+    inputMethodAbility_.SetImeListener(imeListener_);
 
     inputMethodController_ = InputMethodController::GetInstance();
     inputMethodController_->abilityManager_ = imsa_;
@@ -443,7 +442,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, Tes
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF)));
     auto hideKeyboardSelf = []() {
-        inputMethodAbility_->HideKeyboardSelf();
+        inputMethodAbility_.HideKeyboardSelf();
     };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideKeyboardSelf));
 }

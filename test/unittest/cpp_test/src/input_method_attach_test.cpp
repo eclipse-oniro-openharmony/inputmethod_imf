@@ -44,7 +44,7 @@ using namespace testing::mt;
 class InputMethodAttachTest : public testing::Test {
 public:
     static sptr<InputMethodController> inputMethodController_;
-    static sptr<InputMethodAbility> inputMethodAbility_;
+    static InputMethodAbility &inputMethodAbility_;
     static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
     static sptr<InputMethodSystemAbility> imsa_;
     static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 100;
@@ -71,14 +71,13 @@ public:
         }
         IdentityCheckerMock::SetFocused(true);
 
-        inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->abilityManager_ = imsaProxy_;
+        inputMethodAbility_.abilityManager_ = imsaProxy_;
         TddUtil::InitCurrentImePermissionInfo();
         IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
-        inputMethodAbility_->SetCoreAndAgent();
+        inputMethodAbility_.SetCoreAndAgent();
         std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("InputMethodAttachTest");
         textConfigHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-        inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>(textConfigHandler_));
+        inputMethodAbility_.SetImeListener(std::make_shared<InputMethodEngineListenerImpl>(textConfigHandler_));
 
         inputMethodController_ = InputMethodController::GetInstance();
         inputMethodController_->abilityManager_ = imsaProxy_;
@@ -119,7 +118,7 @@ public:
     }
 };
 sptr<InputMethodController> InputMethodAttachTest::inputMethodController_;
-sptr<InputMethodAbility> InputMethodAttachTest::inputMethodAbility_;
+InputMethodAbility &InputMethodAttachTest::inputMethodAbility_ = InputMethodAbility::GetInstance();
 sptr<InputMethodSystemAbilityProxy> InputMethodAttachTest::imsaProxy_;
 sptr<InputMethodSystemAbility> InputMethodAttachTest::imsa_;
 bool InputMethodAttachTest::timeout_ { false };
@@ -139,11 +138,11 @@ HWTEST_F(InputMethodAttachTest, testAttach001, TestSize.Level0)
     BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
-    ret = inputMethodAbility_->GetEnterKeyType(keyType);
+    ret = inputMethodAbility_.GetEnterKeyType(keyType);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(keyType, 0);
     int32_t inputPattern = -1;
-    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    ret = inputMethodAbility_.GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto pattern = InputAttribute::PATTERN_TEXT;
     EXPECT_EQ(inputPattern, pattern);
@@ -163,11 +162,11 @@ HWTEST_F(InputMethodAttachTest, testAttach002, TestSize.Level0)
     BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
-    ret = inputMethodAbility_->GetEnterKeyType(keyType);
+    ret = inputMethodAbility_.GetEnterKeyType(keyType);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(keyType, 0);
     int32_t inputPattern = -1;
-    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    ret = inputMethodAbility_.GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto pattern = InputAttribute::PATTERN_TEXT;
     EXPECT_EQ(inputPattern, pattern);
@@ -190,11 +189,11 @@ HWTEST_F(InputMethodAttachTest, testAttach003, TestSize.Level0)
     BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
-    ret = inputMethodAbility_->GetEnterKeyType(keyType);
+    ret = inputMethodAbility_.GetEnterKeyType(keyType);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(keyType, attribute.enterKeyType);
     int32_t inputPattern = -1;
-    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    ret = inputMethodAbility_.GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, attribute.inputPattern);
 }
@@ -218,11 +217,11 @@ HWTEST_F(InputMethodAttachTest, testAttach004, TestSize.Level0)
     BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
-    ret = inputMethodAbility_->GetEnterKeyType(keyType);
+    ret = inputMethodAbility_.GetEnterKeyType(keyType);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(keyType, config.inputAttribute.enterKeyType);
     int32_t inputPattern = -1;
-    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    ret = inputMethodAbility_.GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, config.inputAttribute.inputPattern);
 }
@@ -258,16 +257,16 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
 
     int32_t keyType = -1;
-    ret = inputMethodAbility_->GetEnterKeyType(keyType);
+    ret = inputMethodAbility_.GetEnterKeyType(keyType);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(keyType, config.inputAttribute.enterKeyType);
     int32_t inputPattern = -1;
-    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    ret = inputMethodAbility_.GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, config.inputAttribute.inputPattern);
 
     TextTotalConfig textConfig;
-    ret = inputMethodAbility_->GetTextConfig(textConfig);
+    ret = inputMethodAbility_.GetTextConfig(textConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(textConfig.inputAttribute, config.inputAttribute);
     EXPECT_EQ(textConfig.windowId, config.windowId);
@@ -339,11 +338,11 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange, TestSize.Level0)
     ret = inputMethodController_->OnConfigurationChange(config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     int32_t keyType2;
-    ret = inputMethodAbility_->GetEnterKeyType(keyType2);
+    ret = inputMethodAbility_.GetEnterKeyType(keyType2);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(keyType2, (int)keyType);
     int32_t inputPattern;
-    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    ret = inputMethodAbility_.GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, (int)textInputType);
 }
@@ -378,7 +377,7 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     EXPECT_EQ(totalConfig.inputAttribute, attribute);
@@ -405,7 +404,7 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach001, TestSize.Level
     ret = inputMethodController_->OnCursorUpdate(cursorInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.cursorInfo, cursorInfo);
 }
@@ -431,7 +430,7 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach002, TestSize.Level
     ret = inputMethodController_->OnCursorUpdate(cursorInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.cursorInfo, cursorInfo);
 }
@@ -477,7 +476,7 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChangeAfterAttach002, TestSize.Le
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.textSelection.newBegin, start);
     EXPECT_EQ(totalConfig.textSelection.newEnd, end);
@@ -504,7 +503,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach001, TestSiz
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.inputAttribute.inputPattern, static_cast<int32_t>(TextInputType::DATETIME));
     EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, static_cast<int32_t>(EnterKeyType::NEXT));
@@ -535,7 +534,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach002, TestSiz
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.inputAttribute.inputPattern, static_cast<int32_t>(configuration.GetTextInputType()));
     EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, static_cast<int32_t>(configuration.GetEnterKeyType()));
@@ -565,7 +564,7 @@ HWTEST_F(InputMethodAttachTest, testSetCallingWindowAfterAttach002, TestSize.Lev
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.windowId, windowId);
 }
@@ -596,7 +595,7 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdate001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.cursorInfo, cursorInfo2);
 }
@@ -628,7 +627,7 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChange, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.textSelection.newBegin, config.range.start);
     EXPECT_EQ(totalConfig.textSelection.newEnd, config.range.end);
@@ -666,7 +665,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange002, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     EXPECT_EQ(totalConfig.inputAttribute, config.inputAttribute);
@@ -697,7 +696,7 @@ HWTEST_F(InputMethodAttachTest, testSetCallingWindow, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
-    ret = inputMethodAbility_->GetTextConfig(totalConfig);
+    ret = inputMethodAbility_.GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     EXPECT_EQ(totalConfig.windowId, config.windowId);
@@ -710,8 +709,8 @@ HWTEST_F(InputMethodAttachTest, testSetCallingWindow, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testImeCallbackInAttach, TestSize.Level0)
 {
     IMSA_HILOGI("test testImeCallbackInAttach.");
-    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
-    inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerTestImpl>());
+    inputMethodAbility_.SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    inputMethodAbility_.SetKdListener(std::make_shared<KeyboardListenerTestImpl>());
     sptr<OnTextChangedListener> textListener = new TextListener();
     InputMethodEngineListenerImpl::ResetParam();
     KeyboardListenerTestImpl::ResetParam();
@@ -775,11 +774,11 @@ HWTEST_F(InputMethodAttachTest, testAttach007, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     int32_t keyType = -1;
-    ret = inputMethodAbility_->GetEnterKeyType(keyType);
+    ret = inputMethodAbility_.GetEnterKeyType(keyType);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(keyType, config.inputAttribute.enterKeyType);
     int32_t inputPattern = -1;
-    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    ret = inputMethodAbility_.GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, config.inputAttribute.inputPattern);
 }

@@ -33,19 +33,34 @@ ErrCode InputClientServiceImpl::OnInputReady(
     std::pair<int64_t, std::string> imeInfo{ 0, "" };
     imeInfo.first = pid;
     imeInfo.second = bundleName;
-    InputMethodController::GetInstance()->OnInputReady(agent, imeInfo);
+    auto instance = InputMethodController::GetInstance();
+    if (instance != nullptr) {
+        instance->OnInputReady(agent, imeInfo);
+    } else {
+        IMSA_HILOGW("failed to get InputMethodController instance!");
+    }
     return ERR_OK;
 }
 
 ErrCode InputClientServiceImpl::OnInputStop(bool isStopInactiveClient)
 {
-    InputMethodController::GetInstance()->OnInputStop(isStopInactiveClient);
+    auto instance = InputMethodController::GetInstance();
+    if (instance != nullptr) {
+        instance->OnInputStop(isStopInactiveClient);
+    } else {
+        IMSA_HILOGW("failed to get InputMethodController instance!");
+    }
     return ERR_OK;
 }
 
 ErrCode InputClientServiceImpl::OnInputStopAsync(bool isStopInactiveClient)
 {
-    InputMethodController::GetInstance()->OnInputStop(isStopInactiveClient);
+    auto instance = InputMethodController::GetInstance();
+    if (instance != nullptr) {
+        instance->OnInputStop(isStopInactiveClient);
+    } else {
+        IMSA_HILOGW("failed to get InputMethodController instance!");
+    }
     return ERR_OK;
 }
 
@@ -71,7 +86,12 @@ ErrCode InputClientServiceImpl::NotifyInputStop()
 
 ErrCode InputClientServiceImpl::DeactivateClient()
 {
-    InputMethodController::GetInstance()->DeactivateClient();
+    auto instance = InputMethodController::GetInstance();
+    if (instance != nullptr) {
+        instance->DeactivateClient();
+    } else {
+        IMSA_HILOGW("failed to get InputMethodController instance!");
+    }
     return ERR_OK;
 }
 }  // namespace MiscServices

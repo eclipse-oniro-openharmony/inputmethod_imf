@@ -41,7 +41,13 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(
         currentEventFlag |= listenerTemp.first;
     }
     auto finalEventFlag = currentEventFlag | eventFlag;
-    auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(finalEventFlag, eventFlag, true);
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+
+    auto ret = instance->UpdateListenEventFlag(finalEventFlag, eventFlag, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to UpdateListenEventFlag: %{public}d!", ret);
         return ret;
@@ -63,8 +69,7 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(
         bool isInputStart = false;
         uint32_t callingWindowId = 0;
         int32_t requestKeyboardReason = 0;
-        auto ret = InputMethodController::GetInstance()->GetInputStartInfo(isInputStart,
-                                                                           callingWindowId, requestKeyboardReason);
+        auto ret = instance->GetInputStartInfo(isInputStart, callingWindowId, requestKeyboardReason);
         if (ret == ErrorCode::NO_ERROR && isInputStart && listener != nullptr) {
             listener->OnInputStart(callingWindowId, requestKeyboardReason);
         }
@@ -101,7 +106,12 @@ int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(
     for (const auto &listenerTemp : listeners_) {
         finalEventFlag |= listenerTemp.first;
     }
-    auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(finalEventFlag, eventFlag, false);
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret = instance->UpdateListenEventFlag(finalEventFlag, eventFlag, false);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to UpdateListenEventFlag: %{public}d!", ret);
         return ret;

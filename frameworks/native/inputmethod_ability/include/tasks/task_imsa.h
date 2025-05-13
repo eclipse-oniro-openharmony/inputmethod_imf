@@ -32,7 +32,7 @@ public:
     TaskImsaStartInput(const InputClientInfo &client, bool fromClient) : Task(TASK_TYPE_IMSA_START_INPUT)
     {
         auto func = [client, fromClient]() {
-            InputMethodAbility::GetInstance()->StartInput(client, fromClient);
+            InputMethodAbility::GetInstance().StartInput(client, fromClient);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -44,7 +44,7 @@ public:
     explicit TaskImsaStopInput(sptr<IRemoteObject> channel, uint32_t sessionId) : Task(TASK_TYPE_IMSA_STOP_INPUT)
     {
         auto func = [channel, sessionId]() {
-            InputMethodAbility::GetInstance()->StopInput(channel, sessionId);
+            InputMethodAbility::GetInstance().StopInput(channel, sessionId);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -56,7 +56,7 @@ public:
     TaskImsaShowKeyboard(int32_t requestKeyboardReason = 0) : Task(TASK_TYPE_IMSA_SHOW_KEYBOARD)
     {
         auto func = [requestKeyboardReason]() {
-            InputMethodAbility::GetInstance()->ShowKeyboard(requestKeyboardReason);
+            InputMethodAbility::GetInstance().ShowKeyboard(requestKeyboardReason);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -68,7 +68,7 @@ public:
     explicit TaskImsaHideKeyboard() : Task(TASK_TYPE_IMSA_HIDE_KEYBOARD)
     {
         auto func = []() {
-            InputMethodAbility::GetInstance()->HideKeyboard();
+            InputMethodAbility::GetInstance().HideKeyboard();
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -80,7 +80,7 @@ public:
     explicit TaskImsaOnClientInactive(sptr<IRemoteObject> channel) : Task(TASK_TYPE_IMSA_CLIENT_INACTIVE)
     {
         auto func = [channel]() {
-            InputMethodAbility::GetInstance()->OnClientInactive(channel);
+            InputMethodAbility::GetInstance().OnClientInactive(channel);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -92,7 +92,7 @@ public:
     explicit TaskImsaInitInputCtrlChannel(sptr<IRemoteObject> channel) : Task(TASK_TYPE_IMSA_INIT_INPUT_CTRL_CHANNEL)
     {
         auto func = [channel]() {
-            InputMethodAbility::GetInstance()->OnInitInputControlChannel(channel);
+            InputMethodAbility::GetInstance().OnInitInputControlChannel(channel);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -104,7 +104,7 @@ public:
     TaskImsaOnCursorUpdate(int32_t x, int32_t y, int32_t h) : Task(TASK_TYPE_IMSA_CURSOR_UPDATE)
     {
         auto func = [x, y, h]() {
-            InputMethodAbility::GetInstance()->OnCursorUpdate(x, y, h);
+            InputMethodAbility::GetInstance().OnCursorUpdate(x, y, h);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -117,7 +117,7 @@ public:
         : Task(TASK_TYPE_IMSA_SEND_PRIVATE_COMMAND)
     {
         auto func = [privateCommand]() {
-            InputMethodAbility::GetInstance()->ReceivePrivateCommand(privateCommand);
+            InputMethodAbility::GetInstance().ReceivePrivateCommand(privateCommand);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -130,7 +130,7 @@ public:
         : Task(TASK_TYPE_IMSA_SELECTION_CHANGE)
     {
         auto func = [text, oldBegin, oldEnd, newBegin, newEnd]() {
-            InputMethodAbility::GetInstance()->OnSelectionChange(text, oldBegin, oldEnd, newBegin, newEnd);
+            InputMethodAbility::GetInstance().OnSelectionChange(text, oldBegin, oldEnd, newBegin, newEnd);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -142,7 +142,7 @@ public:
     explicit TaskImsaAttributeChange(InputAttribute attr) : Task(TASK_TYPE_IMSA_ATTRIBUTE_CHANGE)
     {
         auto func = [attr]() {
-            InputMethodAbility::GetInstance()->OnAttributeChange(attr);
+            InputMethodAbility::GetInstance().OnAttributeChange(attr);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -154,7 +154,7 @@ public:
     explicit TaskImsaStopInputService(bool isTerminateIme) : Task(TASK_TYPE_IMSA_STOP_INPUT_SERVICE)
     {
         auto func = [isTerminateIme]() {
-            InputMethodAbility::GetInstance()->OnStopInputService(isTerminateIme);
+            InputMethodAbility::GetInstance().OnStopInputService(isTerminateIme);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -166,7 +166,7 @@ public:
     explicit TaskImsaOnSetSubProperty(SubProperty prop) : Task(TASK_TYPE_IMSA_SET_SUBPROPERTY)
     {
         auto func = [prop]() {
-            InputMethodAbility::GetInstance()->OnSetSubtype(prop);
+            InputMethodAbility::GetInstance().OnSetSubtype(prop);
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
@@ -178,7 +178,7 @@ public:
     TaskImsaSetCoreAndAgent() : Task(TASK_TYPE_IMSA_SET_CORE_AND_AGENT)
     {
         auto func = []() {
-            InputMethodAbility::GetInstance()->SetCoreAndAgent();
+            InputMethodAbility::GetInstance().SetCoreAndAgent();
         };
         actions_.emplace_back(std::make_unique<Action>(func));
     }
