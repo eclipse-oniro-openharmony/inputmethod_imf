@@ -25,9 +25,9 @@ struct InputMethodProperty {
     @readonly name: String;
     @readonly id: String;
     @readonly label: Optional<String>;
-    @readonly labelId: Optional<u32>;
+    @readonly labelId: Optional<i64>;
     @readonly icon: Optional<String>;
-    @readonly iconId: Optional<u32>;
+    @readonly iconId: Optional<i64>;
     extra: Optional<Opaque>;
 }
 
@@ -35,8 +35,8 @@ struct InputWindowInfo {
     name: String;
     left: i32;
     top: i32;
-    width: u32;
-    height: u32;
+    width: i64;
+    height: i64;
 }
 
 interface InputMethodSetting {

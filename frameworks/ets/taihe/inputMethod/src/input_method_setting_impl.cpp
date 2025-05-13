@@ -167,10 +167,11 @@ void InputMethodSettingImpl::RegisterListener(std::string const &type, callbackT
         return;
     }
     auto &cbVec = jsCbMap_[type];
-    bool isDuplicate = std::any_of(cbVec.begin(), cbVec.end(), [env, callbackRef](std::unique_ptr<CallbackObject> &obj) {
-        ani_boolean isEqual = false;
-        return (ANI_OK == env->Reference_StrictEquals(callbackRef, obj->ref, &isEqual)) && isEqual;
-    });
+    bool isDuplicate =
+        std::any_of(cbVec.begin(), cbVec.end(), [env, callbackRef](std::unique_ptr<CallbackObject> &obj) {
+            ani_boolean isEqual = false;
+            return (ANI_OK == env->Reference_StrictEquals(callbackRef, obj->ref, &isEqual)) && isEqual;
+        });
     if (isDuplicate) {
         env->GlobalReference_Delete(callbackRef);
         IMSA_HILOGD("%{public}s is already registered", type.c_str());
@@ -279,8 +280,8 @@ void InputMethodSettingImpl::OnPanelStatusChange(std::string const &type, const 
         InputWindowInfo_t inputWindowInfo{ .name = info.name,
             .left = info.left,
             .top = info.top,
-            .width = info.width,
-            .height = info.height };
+            .width = static_cast<int64_t>(info.width),
+            .height = static_cast<int64_t>(info.height) };
         taihe::array<InputWindowInfo_t> arrInfo{ inputWindowInfo };
         auto &func = std::get<taihe::callback<void(taihe::array_view<InputWindowInfo_t>)>>(cb->callback);
         func(arrInfo);

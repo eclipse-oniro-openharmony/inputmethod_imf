@@ -126,10 +126,11 @@ void InputMethodControllerImpl::RegisterListener(std::string const &type, callba
         return;
     }
     auto &cbVec = jsCbMap_[type];
-    bool isDuplicate = std::any_of(cbVec.begin(), cbVec.end(), [env, callbackRef](std::unique_ptr<CallbackObject> &obj) {
-        ani_boolean isEqual = false;
-        return (ANI_OK == env->Reference_StrictEquals(callbackRef, obj->ref, &isEqual)) && isEqual;
-    });
+    bool isDuplicate =
+        std::any_of(cbVec.begin(), cbVec.end(), [env, callbackRef](std::unique_ptr<CallbackObject> &obj) {
+            ani_boolean isEqual = false;
+            return (ANI_OK == env->Reference_StrictEquals(callbackRef, obj->ref, &isEqual)) && isEqual;
+        });
     if (isDuplicate) {
         env->GlobalReference_Delete(callbackRef);
         IMSA_HILOGD("callback already registered, type: %{public}s!", type.c_str());
@@ -148,7 +149,7 @@ void InputMethodControllerImpl::UnRegisterListener(std::string const &type, taih
     }
 
     if (!opq.has_value()) {
-        for (auto & uniquePtr: iter->second) {
+        for (auto &uniquePtr : iter->second) {
             uniquePtr->Release();
         }
         jsCbMap_.erase(iter);
