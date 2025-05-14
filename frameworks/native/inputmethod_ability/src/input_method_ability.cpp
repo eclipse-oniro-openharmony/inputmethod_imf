@@ -1739,5 +1739,46 @@ int32_t InputMethodAbility::OnSendPrivateData(const std::unordered_map<std::stri
     IMSA_HILOGD("InputMethodAbility ReceivePrivateCommand success.");
     return ret;
 }
+
+bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+{
+    if (keyEvent == nullptr) {
+        IMSA_HILOGE("keyEvent nullptr");
+        return false;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGD("channel is nullptr!");
+        return false;
+    }
+    if (!GetInputAttribute().needAutoInputNumkey) {
+        IMSA_HILOGD("no need");
+        return false;
+    }
+    if (keyEvent->GetKeyAction() != MMI::KeyEvent::KEY_ACTION_DOWN) {
+        IMSA_HILOGD("not down key");
+        return false;
+    }
+    if (keyEvent->GetPressedKeys().size() > 1) {
+        IMSA_HILOGD("only handle single key");
+        return false;
+    }
+    int32_t keyCode = keyEvent->GetKeyCode();
+    std::string inputNumber;
+    if (MMI::KeyEvent::KEYCODE_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_9) {
+        IMSA_HILOGD("auto input a number");
+        channel->InsertTextAsync(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_0));
+        return true;
+    }
+    if (!keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY)) {
+        return false;
+    }
+    if (MMI::KeyEvent::KEYCODE_NUMPAD_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_NUMPAD_9) {
+        IMSA_HILOGD("auto input a number");
+        channel->InsertTextAsync(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_NUMPAD_0));
+        return true;
+    }
+    return false;
+}
 } // namespace MiscServices
 } // namespace OHOS

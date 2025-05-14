@@ -45,6 +45,24 @@ public:
     static bool GetValue(cJSON *node, const std::string &name, Serializable &value);
     static bool GetValue(cJSON *node, const std::string &name, std::vector<std::vector<std::string>> &values);
     template<typename T>
+    static bool GetValues(cJSON *nodes, std::vector<T> &values, const std::function<bool(T)> &func = nullptr)
+    {
+        cJSON *child = nodes->child;
+        bool result = true;
+        while (child != nullptr) {
+            std::string nodeKey = child->string;
+            cJSON *node = GetSubNode(nodes, nodeKey);
+            T value;
+            bool ret = GetValue(node, "", value);
+            if (ret && (func == nullptr || func(value))) {
+                values.push_back(value);
+            }
+            result = result && ret;
+            child = child->next;
+        }
+        return result;
+    }
+    template<typename T>
     static bool GetValue(cJSON *node, const std::string &name, std::vector<T> &values, int32_t maxNum = 0)
     {
         auto subNode = GetSubNode(node, name);

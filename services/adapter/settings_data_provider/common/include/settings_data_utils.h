@@ -16,6 +16,8 @@
 #ifndef SETTINGS_DATA_UTILS_H
 #define SETTINGS_DATA_UTILS_H
 
+#include <list>
+
 #include "datashare_helper.h"
 #include "input_method_property.h"
 #include "serializable.h"
@@ -50,6 +52,9 @@ public:
     static sptr<SettingsDataUtils> GetInstance();
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper(const std::string &uriProxy);
     int32_t CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func);
+    int32_t RegisterObserver(const std::string &uriProxy, const std::string &key,
+        const SettingsDataObserver::CallbackFunc &func, sptr<SettingsDataObserver> &observer);
+    int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
     int32_t GetStringValue(const std::string &uriProxy, const std::string &key, std::string &value);
     bool SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value);
     bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
@@ -60,7 +65,6 @@ private:
     SettingsDataUtils() = default;
     ~SettingsDataUtils();
     int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
-    int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
     sptr<IRemoteObject> GetToken();
     std::vector<std::string> Split(const std::string &text, char separator);
     std::string SetSettingValues(const std::string &settingValue, const std::string &bundleName);
@@ -71,7 +75,7 @@ private:
     std::mutex remoteObjMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
     std::mutex observerListMutex_;
-    std::vector<sptr<SettingsDataObserver>> observerList_;
+    std::list<sptr<SettingsDataObserver>> observerList_;
 };
 } // namespace MiscServices
 } // namespace OHOS

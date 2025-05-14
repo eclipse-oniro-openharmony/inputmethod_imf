@@ -38,6 +38,7 @@ struct InputAttribute {
     int32_t immersiveMode = 0;
     uint32_t windowId = 0; // for transfer
     uint64_t callingDisplayId = 0;
+    bool needAutoInputNumkey { false }; // number keys need to be automatically handled by imf
 
     bool GetSecurityFlag() const
     {
@@ -58,7 +59,7 @@ struct InputAttribute {
         << "enterKeyType:" << enterKeyType << "inputOption:" << inputOption
         << "isTextPreviewSupported:" << isTextPreviewSupported << "bundleName:" << bundleName
         << "immersiveMode:" << immersiveMode << "windowId:" << windowId
-        << "callingDisplayId:" << callingDisplayId << "]";
+        << "callingDisplayId:" << callingDisplayId << "needNumInput: " << needAutoInputNumkey << "]";
         return ss.str();
     }
 };
@@ -77,6 +78,7 @@ struct InputAttributeInner : public Parcelable {
     int32_t immersiveMode = 0;
     uint32_t windowId = 0; // for transfer
     uint64_t callingDisplayId = 0;
+    bool needAutoInputNumkey { false }; // number keys need to be automatically handled by imf
 
     bool ReadFromParcel(Parcel &in)
     {
@@ -88,6 +90,7 @@ struct InputAttributeInner : public Parcelable {
         immersiveMode = in.ReadInt32();
         windowId = in.ReadUint32();
         callingDisplayId = in.ReadUint64();
+        needAutoInputNumkey = in.ReadBool();
         return true;
     }
 
@@ -115,6 +118,9 @@ struct InputAttributeInner : public Parcelable {
             return false;
         }
         if (!out.WriteUint64(callingDisplayId)) {
+            return false;
+        }
+        if (!out.WriteBool(needAutoInputNumkey)) {
             return false;
         }
         return true;

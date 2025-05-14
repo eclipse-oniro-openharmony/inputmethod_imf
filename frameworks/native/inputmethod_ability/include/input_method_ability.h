@@ -106,6 +106,7 @@ public:
     int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
     int32_t OnCallingDisplayIdChanged(uint64_t displayId);
     int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+    bool HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent> &keyEvent);
 
 public:
     /* called from TaskManager worker thread */

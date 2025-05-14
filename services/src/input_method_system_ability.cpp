@@ -30,6 +30,7 @@
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "mem_mgr_client.h"
+#include "numkey_apps_manager.h"
 #include "inputmethod_message_handler.h"
 #include "os_account_adapter.h"
 #include "scene_board_judgement.h"
@@ -383,6 +384,7 @@ void InputMethodSystemAbility::UpdateUserInfo(int32_t userId)
     if (enableSecurityMode_.load()) {
         SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
+    NumkeyAppsManager::GetInstance().OnUserSwitched(userId_);
 }
 
 int32_t InputMethodSystemAbility::OnIdle(const SystemAbilityOnDemandReason &idleReason)
@@ -565,6 +567,8 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
         clientInfo.config.windowId = callingWindowInfo.windowId;
         clientInfo.config.inputAttribute.windowId = callingWindowInfo.windowId;
         clientInfo.config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
+        clientInfo.config.inputAttribute.needAutoInputNumkey =
+            session->IsNumkeyAutoInputApp(clientInfo.config.inputAttribute.bundleName);
         IMSA_HILOGD("result:%{public}s,wid:%{public}d", clientInfo.config.inputAttribute.ToString().c_str(),
             clientInfo.config.windowId);
     }
@@ -1552,6 +1556,7 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
     }
     ImeCfgManager::GetInstance().DeleteImeCfg(userId);
     FullImeInfoManager::GetInstance().Delete(userId);
+    NumkeyAppsManager::GetInstance().OnUserRemoved(userId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1868,6 +1873,7 @@ void InputMethodSystemAbility::HandleDataShareReady()
         enableSecurityMode_.store(true);
     }
     FullImeInfoManager::GetInstance().Init();
+    NumkeyAppsManager::GetInstance().Init(userId_);
 }
 
 int32_t InputMethodSystemAbility::InitAccountMonitor()

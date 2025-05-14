@@ -84,7 +84,7 @@ private:
         CursorPara curPara;
         SelectionPara selPara;
         KeyEventPara keyEventPara;
-        std::shared_ptr<MMI::KeyEvent> pullKeyEventPara;
+        std::shared_ptr<MMI::KeyEvent> fullKeyEventPara;
         std::string text;
         sptr<KeyEventConsumerProxy> keyEvenetConsumer = nullptr;
         InputAttribute inputAttribute;

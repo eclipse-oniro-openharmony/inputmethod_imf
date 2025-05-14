@@ -34,6 +34,7 @@ public:
     ~InputDataChannelServiceImpl();
 
     ErrCode InsertText(const std::string &text) override;
+    ErrCode InsertTextAsync(const std::string &text) override;
     ErrCode DeleteForward(int32_t length) override;
     ErrCode DeleteBackward(int32_t length) override;
     ErrCode GetTextBeforeCursor(int32_t number, std::string &text) override;

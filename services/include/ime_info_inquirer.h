@@ -88,6 +88,7 @@ public:
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
     bool IsEnableAppAgent();
+    bool IsEnableNumKey();
     bool IsVirtualProxyIme(int32_t callingUid);
     bool IsSpecialSaUid(int32_t callingUid);
     EnabledStatus GetSystemInitEnabledState();

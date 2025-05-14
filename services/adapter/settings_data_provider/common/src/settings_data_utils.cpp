@@ -57,12 +57,45 @@ sptr<SettingsDataUtils> SettingsDataUtils::GetInstance()
 int32_t SettingsDataUtils::CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func)
 {
     IMSA_HILOGD("key: %{public}s.", key.c_str());
-    sptr<SettingsDataObserver> observer = new (std::nothrow) SettingsDataObserver(key, func);
+    sptr<SettingsDataObserver> observer = new (std::nothrow)
+        SettingsDataObserver(std::string(SETTING_URI_PROXY), key, func);
     if (observer == nullptr) {
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return RegisterObserver(observer);
+}
+
+int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const std::string &key,
+    const SettingsDataObserver::CallbackFunc &func, sptr<SettingsDataObserver> &observer)
+{
+    observer = new (std::nothrow) SettingsDataObserver(uriProxy, key, func);
+    if (observer == nullptr) {
+        IMSA_HILOGE("observer is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return RegisterObserver(observer);
+}
+
+int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &observer)
+{
+    if (observer == nullptr) {
+        IMSA_HILOGE("observer is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto uri = GenerateTargetUri(observer->GetUriProxy(), observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(observer->GetUriProxy());
+    if (helper == nullptr) {
+        IMSA_HILOGE("helper is nullptr!");
+        return ErrorCode::ERROR_IMSA_NULLPTR;
+    }
+    helper->UnregisterObserver(uri, observer);
+    ReleaseDataShareHelper(helper);
+    IMSA_HILOGD("succeed to unregister observer of uri: %{public}s.", uri.ToString().c_str());
+
+    std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
+    observerList_.remove(observer);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &observer)
@@ -72,8 +105,8 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    auto uri = GenerateTargetUri(std::string(SETTING_URI_PROXY), observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(SETTING_URI_PROXY));
+    auto uri = GenerateTargetUri(observer->GetUriProxy(), observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(observer->GetUriProxy());
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -84,19 +117,6 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
 
     std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
     observerList_.push_back(observer);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &observer)
-{
-    auto uri = GenerateTargetUri(std::string(SETTING_URI_PROXY), observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(SETTING_URI_PROXY));
-    if (helper == nullptr) {
-        return ErrorCode::ERROR_ENABLE_IME;
-    }
-    helper->UnregisterObserver(uri, observer);
-    ReleaseDataShareHelper(helper);
-    IMSA_HILOGD("succeed to unregister observer of uri: %{public}s.", uri.ToString().c_str());
     return ErrorCode::NO_ERROR;
 }
 

@@ -187,7 +187,7 @@ bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 {
     if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption, input.isTextPreviewSupported,
-        input.bundleName, input.immersiveMode, input.windowId, input.callingDisplayId)) {
+        input.bundleName, input.immersiveMode, input.windowId, input.callingDisplayId, input.needAutoInputNumkey)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed.");
         return false;
     }
@@ -197,7 +197,8 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption, output.isTextPreviewSupported,
-        output.bundleName, output.immersiveMode, output.windowId, output.callingDisplayId)) {
+            output.bundleName, output.immersiveMode, output.windowId, output.callingDisplayId,
+            output.needAutoInputNumkey)) {
         IMSA_HILOGE("read InputAttribute from message parcel failed.");
         return false;
     }

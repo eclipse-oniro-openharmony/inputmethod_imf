@@ -24,6 +24,11 @@ void SettingsDataObserver::OnChange()
     }
 }
 
+const std::string &SettingsDataObserver::GetUriProxy()
+{
+    return key_;
+}
+
 const std::string &SettingsDataObserver::GetKey()
 {
     return key_;

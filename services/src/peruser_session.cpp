@@ -27,6 +27,7 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "mem_mgr_client.h"
+#include "numkey_apps_manager.h"
 #include "on_demand_start_stop_sa.h"
 #include "os_account_adapter.h"
 #include "scene_board_judgement.h"
@@ -2216,5 +2217,9 @@ void PerUserSession::ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo>
     clientInfo->requestKeyboardReason = RequestKeyboardReason::NONE;
 }
 
+bool PerUserSession::IsNumkeyAutoInputApp(const std::string &bundleName)
+{
+    return NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(userId_, bundleName);
+}
 } // namespace MiscServices
 } // namespace OHOS

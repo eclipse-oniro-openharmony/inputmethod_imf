@@ -25,12 +25,15 @@ namespace MiscServices {
 class SettingsDataObserver : public AAFwk::DataAbilityObserverStub {
 public:
     using CallbackFunc = std::function<void()>;
-    SettingsDataObserver(const std::string &key, CallbackFunc &func) : key_(key), func_(func){};
+    SettingsDataObserver(const std::string &uriProxy, const std::string &key, const CallbackFunc &func)
+        : uriProxy_(uriProxy), key_(key), func_(func){};
     ~SettingsDataObserver() = default;
     void OnChange() override;
+    const std::string &GetUriProxy();
     const std::string &GetKey();
 
 private:
+    std::string uriProxy_;
     std::string key_;
     CallbackFunc func_ = nullptr;
 };
