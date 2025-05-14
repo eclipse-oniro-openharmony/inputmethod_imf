@@ -32,7 +32,7 @@ InputMethodSettingImpl &InputMethodSettingImpl::GetInstance()
     return instance;
 }
 
-array<InputMethodProperty_t> InputMethodSettingImpl::GetInputMethosdSync(bool enable)
+array<InputMethodProperty_t> InputMethodSettingImpl::GetInputMethodsSync(bool enable)
 {
     std::vector<Property> properties;
     int32_t errCode = InputMethodController::GetInstance()->ListInputMethod(enable, properties);
@@ -280,8 +280,8 @@ void InputMethodSettingImpl::OnPanelStatusChange(std::string const &type, const 
         InputWindowInfo_t inputWindowInfo{ .name = info.name,
             .left = info.left,
             .top = info.top,
-            .width = static_cast<int64_t>(info.width),
-            .height = static_cast<int64_t>(info.height) };
+            .width = static_cast<double>(info.width),
+            .height = static_cast<double>(info.height) };
         taihe::array<InputWindowInfo_t> arrInfo{ inputWindowInfo };
         auto &func = std::get<taihe::callback<void(taihe::array_view<InputWindowInfo_t>)>>(cb->callback);
         func(arrInfo);

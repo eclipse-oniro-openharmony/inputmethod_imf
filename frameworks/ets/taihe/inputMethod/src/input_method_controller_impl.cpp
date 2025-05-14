@@ -90,14 +90,20 @@ void InputMethodControllerImpl::AttachWithReason(bool showKeyboard, TextConfig_t
     TextConfig config;
     config.inputAttribute.inputPattern = textConfig.inputAttribute.textInputType.get_value();
     config.inputAttribute.enterKeyType = textConfig.inputAttribute.enterKeyType.get_value();
-    config.cursorInfo.left = textConfig.cursorInfo.left;
-    config.cursorInfo.top = textConfig.cursorInfo.top;
-    config.cursorInfo.width = textConfig.cursorInfo.width;
-    config.cursorInfo.height = textConfig.cursorInfo.height;
-    config.range.start = textConfig.selection.start;
-    config.range.end = textConfig.selection.end;
-    config.windowId = textConfig.windowId;
-
+    if (textConfig.cursorInfo.has_value()) {
+        config.cursorInfo.left = textConfig.cursorInfo.value().left;
+        config.cursorInfo.top = textConfig.cursorInfo.value().top;
+        config.cursorInfo.width = textConfig.cursorInfo.value().width;
+        config.cursorInfo.height = textConfig.cursorInfo.value().height;
+    }
+    if (textConfig.selection.has_value()) {
+        config.range.start = textConfig.selection.value().start;
+        config.range.end = textConfig.selection.value().end;
+    }
+    if (textConfig.windowId.has_value()) {
+        config.windowId = textConfig.windowId.value();
+    }
+    
     int32_t errCode = InputMethodController::GetInstance()->Attach(InputMethodTextChangedListener::GetInstance(),
         attachOptions, config, ClientType::JS);
     if (errCode != ErrorCode::NO_ERROR) {

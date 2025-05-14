@@ -28,7 +28,7 @@ namespace MiscServices {
 class InputMethodSettingImpl {
 public:
     static InputMethodSettingImpl &GetInstance();
-    taihe::array<InputMethodProperty_t> GetInputMethosdSync(bool enable);
+    taihe::array<InputMethodProperty_t> GetInputMethodsSync(bool enable);
     taihe::array<InputMethodSubtype_t> ListCurrentInputMethodSubtypeSync();
     taihe::array<InputMethodSubtype_t> ListInputMethodSubtypeSync(InputMethodProperty_t const &inputMethodProperty);
     bool IsPanelShown(PanelInfo_t const &panelInfo);
@@ -56,9 +56,9 @@ public:
     IMFSettingImpl()
     {
     }
-    taihe::array<InputMethodProperty_t> GetInputMethosdSync(bool enable)
+    taihe::array<InputMethodProperty_t> GetInputMethodsSync(bool enable)
     {
-        return InputMethodSettingImpl::GetInstance().GetInputMethosdSync(enable);
+        return InputMethodSettingImpl::GetInstance().GetInputMethodsSync(enable);
     }
     taihe::array<InputMethodSubtype_t> ListCurrentInputMethodSubtypeSync()
     {

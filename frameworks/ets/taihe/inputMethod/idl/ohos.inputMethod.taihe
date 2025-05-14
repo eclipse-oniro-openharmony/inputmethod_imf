@@ -25,9 +25,9 @@ struct InputMethodProperty {
     @readonly name: String;
     @readonly id: String;
     @readonly label: Optional<String>;
-    @readonly labelId: Optional<i64>;
+    @readonly labelId: Optional<f64>;
     @readonly icon: Optional<String>;
-    @readonly iconId: Optional<i64>;
+    @readonly iconId: Optional<f64>;
     extra: Optional<Opaque>;
 }
 
@@ -35,14 +35,14 @@ struct InputWindowInfo {
     name: String;
     left: i32;
     top: i32;
-    width: i64;
-    height: i64;
+    width: f64;
+    height: f64;
 }
 
 interface InputMethodSetting {
     @gen_async("getInputMethods")
     @gen_promise("getInputMethods")
-    GetInputMethosdSync(enable: bool): Array<InputMethodProperty>;
+    GetInputMethodsSync(enable: bool): Array<InputMethodProperty>;
     @gen_async("listCurrentInputMethodSubtype")
     @gen_promise("listCurrentInputMethodSubtype")
     ListCurrentInputMethodSubtypeSync(): Array<InputMethodSubtype>;
@@ -151,9 +151,9 @@ struct InputAttribute {
 
 struct TextConfig {
     inputAttribute: InputAttribute;
-    @readonly cursorInfo: CursorInfo;
-    @readonly selection: Range;
-    @readonly windowId: i32;
+    @readonly cursorInfo: Optional<CursorInfo>;
+    @readonly selection: Optional<Range>;
+    @readonly windowId: Optional<i32>;
 }
 
 

@@ -21,8 +21,8 @@ struct InputMethodSubtype {
     @readonly language: String;
     @readonly mode: Optional<String>;
     @readonly icon: Optional<String>;
-    @readonly iconId: Optional<i64>;
+    @readonly iconId: Optional<f64>;
     @readonly label: Optional<String>;
-    @readonly labelId: Optional<i64>;
+    @readonly labelId: Optional<f64>;
     extra: Optional<Opaque>;
 }

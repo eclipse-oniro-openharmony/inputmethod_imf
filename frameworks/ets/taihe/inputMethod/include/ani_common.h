@@ -75,9 +75,9 @@ private:
         result.methodId = obj.id;
         result.id = obj.id;
         result.label = taihe::optional<taihe::string>(std::in_place_t{}, obj.label);
-        result.labelId = taihe::optional<int64_t>(std::in_place_t{}, obj.labelId);
+        result.labelId = taihe::optional<double>(std::in_place_t{}, obj.labelId);
         result.icon = taihe::optional<taihe::string>(std::in_place_t{}, obj.icon);
-        result.iconId = taihe::optional<int64_t>(std::in_place_t{}, obj.iconId);
+        result.iconId = taihe::optional<double>(std::in_place_t{}, obj.iconId);
         return result;
     }
 
@@ -92,9 +92,9 @@ private:
         result.locale = obj.locale;
         result.language = obj.language;
         result.label = taihe::optional<taihe::string>(std::in_place_t{}, obj.label);
-        result.labelId = taihe::optional<int64_t>(std::in_place_t{}, obj.labelId);
+        result.labelId = taihe::optional<double>(std::in_place_t{}, obj.labelId);
         result.icon = taihe::optional<taihe::string>(std::in_place_t{}, obj.icon);
-        result.iconId = taihe::optional<int64_t>(std::in_place_t{}, obj.iconId);
+        result.iconId = taihe::optional<double>(std::in_place_t{}, obj.iconId);
         return result;
     }
 };
