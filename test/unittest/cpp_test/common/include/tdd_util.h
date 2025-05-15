@@ -55,12 +55,20 @@ public:
     static bool KillImsaProcess();
     static void PushEnableImeValue(const std::string &key, const std::string &value);
     static void GrantNativePermission();
+    static void DeleteGlobalTable(const std::string &key);
+    static void DeleteUserTable(int32_t userId, const std::string &key);
+    static void SetGlobalTable(const std::string &key, const std::string &content);
+    static void SetUserTable(int32_t userId, const std::string &key, const std::string &content);
+    static std::string GetGlobalTable(const std::string &key);
+    static std::string GetUserTable(int32_t userId, const std::string &key);
     static int32_t GetEnableData(std::string &value);
     static void InitWindow(bool isShow);
     static void DestroyWindow();
     static bool GetFocused();
     static bool GetUnfocused();
     static void InitCurrentImePermissionInfo();
+    static void EnabledAllIme();
+    static void DisabledAllIme();
     static std::string currentBundleNameMock_;
     class WindowManager {
     public:
@@ -79,6 +87,9 @@ public:
 private:
     static sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
     static int GetUserIdByBundleName(const std::string &bundleName, const int currentUserId);
+    static void DeleteTable(const std::string &key, const std::string &uriProxy);
+    static void SetTable(const std::string &key, const std::string &uriProxy, const std::string &content);
+    static std::string GetTable(const std::string &key, const std::string &uriProxy);
     static uint64_t selfTokenID_;
     static uint64_t testTokenID_;
     static int32_t userID_;

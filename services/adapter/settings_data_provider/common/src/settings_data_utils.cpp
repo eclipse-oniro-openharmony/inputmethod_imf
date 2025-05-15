@@ -15,14 +15,11 @@
 #include <sstream>
 #include "settings_data_utils.h"
 
-#include "ime_info_inquirer.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
-std::mutex SettingsDataUtils::instanceMutex_;
-sptr<SettingsDataUtils> SettingsDataUtils::instance_ = nullptr;
 SettingsDataUtils::~SettingsDataUtils()
 {
     {
@@ -32,48 +29,38 @@ SettingsDataUtils::~SettingsDataUtils()
     std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
     if (!observerList_.empty()) {
         for (auto &iter : observerList_) {
-            UnregisterObserver(iter);
+            UnregisterObserver(iter.first, iter.second);
         }
         observerList_.clear();
     }
 }
 
-sptr<SettingsDataUtils> SettingsDataUtils::GetInstance()
+SettingsDataUtils &SettingsDataUtils::GetInstance()
 {
-    if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> autoLock(instanceMutex_);
-        if (instance_ == nullptr) {
-            IMSA_HILOGI("GetInstance need new SettingsDataUtils.");
-            instance_ = new (std::nothrow) SettingsDataUtils();
-            if (instance_ == nullptr) {
-                IMSA_HILOGE("instance is nullptr!");
-                return instance_;
-            }
-        }
-    }
-    return instance_;
+    static SettingsDataUtils instance;
+    return instance;
 }
 
-int32_t SettingsDataUtils::CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func)
+int32_t SettingsDataUtils::CreateAndRegisterObserver(
+    const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc func)
 {
-    IMSA_HILOGD("key: %{public}s.", key.c_str());
+    IMSA_HILOGD("uriProxy:%{public}s, key: %{public}s.", uriProxy.c_str(), key.c_str());
     sptr<SettingsDataObserver> observer = new (std::nothrow) SettingsDataObserver(key, func);
     if (observer == nullptr) {
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return RegisterObserver(observer);
+    return RegisterObserver(uriProxy, observer);
 }
 
-int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &observer)
+int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer)
 {
     if (observer == nullptr) {
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-
-    auto uri = GenerateTargetUri(std::string(SETTING_URI_PROXY), observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(SETTING_URI_PROXY));
+    auto uri = GenerateTargetUri(uriProxy, observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(uriProxy);
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -83,14 +70,18 @@ int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &ob
     IMSA_HILOGD("succeed to register observer of uri: %{public}s.", uri.ToString().c_str());
 
     std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
-    observerList_.push_back(observer);
+    observerList_.push_back(std::make_pair(uriProxy, observer));
     return ErrorCode::NO_ERROR;
 }
 
-int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &observer)
+int32_t SettingsDataUtils::UnregisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer)
 {
-    auto uri = GenerateTargetUri(std::string(SETTING_URI_PROXY), observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(std::string(SETTING_URI_PROXY));
+    if (observer == nullptr) {
+        IMSA_HILOGE("observer is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto uri = GenerateTargetUri(uriProxy, observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(uriProxy);
     if (helper == nullptr) {
         return ErrorCode::ERROR_ENABLE_IME;
     }
@@ -131,7 +122,7 @@ bool SettingsDataUtils::ReleaseDataShareHelper(std::shared_ptr<DataShare::DataSh
 
 Uri SettingsDataUtils::GenerateTargetUri(const std::string &uriProxy, const std::string &key)
 {
-    Uri uri(std::string(uriProxy) + "&key=" + key);
+    Uri uri(uriProxy + "&key=" + key);
     return uri;
 }
 
@@ -220,56 +211,14 @@ sptr<IRemoteObject> SettingsDataUtils::GetToken()
     return remoteObj_;
 }
 
-bool SettingsDataUtils::EnableIme(int32_t userId, const std::string &bundleName)
+void SettingsDataUtils::NotifyDataShareReady()
 {
-    const int32_t mainUserId = 100;
-    if (userId != mainUserId) {
-        IMSA_HILOGE("user is not main.");
-        return false;
-    }
-    const char *settingKey = "settings.inputmethod.enable_ime";
-    std::string settingValue = "";
-    GetStringValue(std::string(SETTING_URI_PROXY), settingKey, settingValue);
-    IMSA_HILOGI("settingValue: %{public}s", settingValue.c_str());
-    std::string value = "";
-    if (settingValue == "") {
-        value = "{\"enableImeList\" : {\"100\" : [\"" + bundleName + "\"]}}";
-    } else {
-        value = SetSettingValues(settingValue, bundleName);
-    }
-    IMSA_HILOGI("value: %{public}s", value.c_str());
-    return SetStringValue(std::string(SETTING_URI_PROXY), settingKey, value);
+    isDataShareReady_.store(true);
 }
- 
-std::vector<std::string> SettingsDataUtils::Split(const std::string &text, char delim)
+
+bool SettingsDataUtils::IsDataShareReady()
 {
-    std::vector<std::string> tokens;
-    std::stringstream ss(text);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        if (!item.empty()) {
-            tokens.push_back(item);
-        }
-    }
-    return tokens;
-}
- 
-std::string SettingsDataUtils::SetSettingValues(const std::string &settingValue, const std::string &bundleName)
-{
-    std::string value = "";
-    std::vector<std::string> settingValues = Split(settingValue, ']');
-    for (uint32_t i = 0; i < settingValues.size(); ++i) {
-        if (i == 0) {
-            if (settingValues[0].back() == '[') {
-                value += settingValues[i] + "\"" + bundleName + "\"" + "]";
-            } else {
-                value += settingValues[i] + ",\"" + bundleName + "\"" + "]";
-            }
-        } else {
-            value += settingValues[i];
-        }
-    }
-    return value;
+    return isDataShareReady_.load();
 }
 } // namespace MiscServices
 } // namespace OHOS

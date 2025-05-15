@@ -42,38 +42,32 @@ public:
     static sptr<InputMethodController> imc_;
     static std::string newImeBundleName;
     static std::vector<std::string> newImeSubName;
+    static std::string newExtName;
     static std::string bundleName;
     static std::vector<std::string> extName;
     static std::vector<std::string> language;
     static std::vector<std::string> locale;
-    static std::string beforeValue;
-    static std::string allEnableIme;
 };
 sptr<InputMethodController> InputMethodSwitchTest::imc_;
 std::string InputMethodSwitchTest::newImeBundleName = "com.example.newTestIme";
+std::string InputMethodSwitchTest::newExtName = "InputMethodExtAbility";
 std::vector<std::string> InputMethodSwitchTest::newImeSubName { "lowerInput", "upperInput", "chineseInput" };
 std::string InputMethodSwitchTest::bundleName = "com.example.testIme";
 std::vector<std::string> InputMethodSwitchTest::extName { "InputMethodExtAbility", "InputMethodExtAbility2" };
 std::vector<std::string> InputMethodSwitchTest::language { "chinese", "english" };
 std::vector<std::string> InputMethodSwitchTest::locale { "zh-CN", "en-US" };
-std::string InputMethodSwitchTest::beforeValue;
-std::string InputMethodSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\", "
-                                                  "\"com.example.testIme\"]}}";
 constexpr uint32_t IME_EXT_NUM = 2;
 constexpr uint32_t NEW_IME_SUBTYPE_NUM = 3;
 constexpr uint32_t TOTAL_IME_MIN_NUM = 2;
 constexpr uint32_t ENABLE_IME_NUM = 1;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
-constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
 void InputMethodSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
-    TddUtil::GrantNativePermission();
-    TddUtil::GetEnableData(beforeValue);
-    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test",
         { "ohos.permission.CONNECT_IME_ABILITY", "ohos.permission.INJECT_INPUT_EVENT" }));
+    TddUtil::EnabledAllIme();
     imc_ = InputMethodController::GetInstance();
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
@@ -82,8 +76,6 @@ void InputMethodSwitchTest::SetUpTestCase(void)
 void InputMethodSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::TearDownTestCase");
-    TddUtil::GrantNativePermission();
-    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
 }

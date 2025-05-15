@@ -16,13 +16,12 @@
 #define protected public
 #include "input_method_controller.h"
 
-#include "enable_ime_data_parser.h"
+#include "ime_enabled_info_manager.h"
+#include "ime_info_inquirer.h"
 #include "input_data_channel_stub.h"
 #include "input_method_ability.h"
 #include "input_method_system_ability.h"
-#include "ime_info_inquirer.h"
 #include "task_manager.h"
-#include "security_mode_parser.h"
 #undef private
 
 #include <event_handler.h>
@@ -1661,7 +1660,6 @@ HWTEST_F(InputMethodControllerTest, testIMCReset, TestSize.Level0)
     EXPECT_EQ(inputMethodController_->abilityManager_, nullptr);
     inputMethodController_->abilityManager_ = imsaProxy_;
 }
-
 /**
  * @tc.name: testGetInputMethodState_001
  * @tc.desc: IMA
@@ -1671,14 +1669,19 @@ HWTEST_F(InputMethodControllerTest, testIMCReset, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testGetInputMethodState_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodControllerTest GetInputMethodState_001 Test START");
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
+    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = true;
+    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = true;
+    ImeEnabledInfo info;
+    info.bundleName = TddUtil::currentBundleNameMock_;
+    info.enabledStatus = EnabledStatus::FULL_EXPERIENCE_MODE;
+    ImeEnabledCfg cfg;
+    cfg.enabledInfos.push_back(info);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ imsa_->userId_, cfg });
     EnabledStatus status = EnabledStatus::DISABLED;
-    SecurityModeParser::GetInstance()->fullModeList_.push_back(TddUtil::currentBundleNameMock_);
-    EnableImeDataParser::GetInstance()->enableList_[IME_KEY].push_back(TddUtil::currentBundleNameMock_);
     auto ret = inputMethodController_->GetInputMethodState(status);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(status == EnabledStatus::FULL_EXPERIENCE_MODE);
-    SecurityModeParser::GetInstance()->fullModeList_.clear();
-    EnableImeDataParser::GetInstance()->enableList_.clear();
 }
 
 /**
@@ -1690,16 +1693,19 @@ HWTEST_F(InputMethodControllerTest, testGetInputMethodState_001, TestSize.Level0
 HWTEST_F(InputMethodControllerTest, testGetInputMethodState_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodControllerTest GetInputMethodState_002 Test START");
-    EnabledStatus status = EnabledStatus::DISABLED;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = true;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = true;
-    EnableImeDataParser::GetInstance()->enableList_.clear();
-    SecurityModeParser::GetInstance()->fullModeList_.clear();
-    auto ret = inputMethodController_->GetInputMethodState(status);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(status != EnabledStatus::FULL_EXPERIENCE_MODE);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
     ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = false;
     ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = false;
+    ImeEnabledInfo info;
+    info.bundleName = TddUtil::currentBundleNameMock_;
+    info.enabledStatus = EnabledStatus::BASIC_MODE;
+    ImeEnabledCfg cfg;
+    cfg.enabledInfos.push_back(info);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ imsa_->userId_, cfg });
+    EnabledStatus status = EnabledStatus::DISABLED;
+    auto ret = inputMethodController_->GetInputMethodState(status);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(status == EnabledStatus::FULL_EXPERIENCE_MODE);
 }
 
 /**
@@ -1711,16 +1717,19 @@ HWTEST_F(InputMethodControllerTest, testGetInputMethodState_002, TestSize.Level0
 HWTEST_F(InputMethodControllerTest, testGetInputMethodState_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodControllerTest GetInputMethodState_003 Test START");
-    EnabledStatus status = EnabledStatus::DISABLED;
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
     ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = true;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = true;
-    EnableImeDataParser::GetInstance()->enableList_[IME_KEY].push_back(TddUtil::currentBundleNameMock_);
+    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = false;
+    ImeEnabledInfo info;
+    info.bundleName = TddUtil::currentBundleNameMock_;
+    info.enabledStatus = EnabledStatus::BASIC_MODE;
+    ImeEnabledCfg cfg;
+    cfg.enabledInfos.push_back(info);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ imsa_->userId_, cfg });
+    EnabledStatus status = EnabledStatus::DISABLED;
     auto ret = inputMethodController_->GetInputMethodState(status);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(status == EnabledStatus::BASIC_MODE);
-    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = false;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = false;
-    EnableImeDataParser::GetInstance()->enableList_.clear();
 }
 
 /**
@@ -1732,13 +1741,19 @@ HWTEST_F(InputMethodControllerTest, testGetInputMethodState_003, TestSize.Level0
 HWTEST_F(InputMethodControllerTest, testGetInputMethodState_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodControllerTest GetInputMethodState_004 Test START");
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
+    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = false;
+    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = true;
+    ImeEnabledInfo info;
+    info.bundleName = TddUtil::currentBundleNameMock_;
+    info.enabledStatus = EnabledStatus::BASIC_MODE;
+    ImeEnabledCfg cfg;
+    cfg.enabledInfos.push_back(info);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ imsa_->userId_, cfg });
     EnabledStatus status = EnabledStatus::DISABLED;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = true;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = false;
     auto ret = inputMethodController_->GetInputMethodState(status);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(status == EnabledStatus::BASIC_MODE);
-    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = false;
 }
 
 /**
@@ -1749,7 +1764,7 @@ HWTEST_F(InputMethodControllerTest, testGetInputMethodState_004, TestSize.Level0
  */
 HWTEST_F(InputMethodControllerTest, testGetInputMethodState_005, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodControllerTest GetInputMethodState_005 Test START");
+    IMSA_HILOGI("InputMethodControllerTest testGetInputMethodState_005 Test START");
     EnabledStatus status = EnabledStatus::DISABLED;
     ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = false;
     ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = false;
@@ -1769,9 +1784,9 @@ HWTEST_F(InputMethodControllerTest, testIsDefaultImeSetAndEnableIme, TestSize.Le
     IMSA_HILOGI("IMC testIsDefaultImeSetAndEnableIme Test START");
     auto ret = inputMethodController_->IsDefaultImeSet();
     EXPECT_FALSE(ret);
-    const std::string bundleName = "";
-    ret = inputMethodController_->EnableIme(bundleName);
-    EXPECT_FALSE(ret);
+    const std::string bundleName;
+    auto enableRet = inputMethodController_->EnableIme(bundleName);
+    EXPECT_NE(enableRet, ErrorCode::NO_ERROR);
 }
 
 /**

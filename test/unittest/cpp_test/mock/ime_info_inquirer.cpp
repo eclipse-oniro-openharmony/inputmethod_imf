@@ -106,10 +106,5 @@ ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
     ImeNativeCfg imeCfg;
     return imeCfg;
 }
-
-EnabledStatus ImeInfoInquirer::GetSystemInitEnabledState()
-{
-    return EnabledStatus::DISABLED;
-}
 } // namespace MiscServices
 } // namespace OHOS

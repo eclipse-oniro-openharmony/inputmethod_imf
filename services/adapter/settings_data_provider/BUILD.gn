@@ -19,6 +19,7 @@ config("settings_data_config") {
     "include",
     "${inputmethod_path}/common/include",
     "${inputmethod_path}/services/include",
+    "${inputmethod_path}/services/adapter/os_account_adapter/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
     "${inputmethod_path}/services/json/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
@@ -36,24 +37,31 @@ ohos_static_library("settings_data_static") {
   sources = [
     "common/src/settings_data_observer.cpp",
     "common/src/settings_data_utils.cpp",
-    "src/enable_ime_data_parser.cpp",
-    "src/security_mode_parser.cpp",
+    "src/ime_enabled_info_manager.cpp",
+    "src/enable_upgrade_manager.cpp",
   ]
 
   public_configs = [ ":settings_data_config" ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
-  deps = [ "${inputmethod_path}/services/json:imf_json_static" ]
+  deps = [
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+  ]
   external_deps = [
     "ability_base:zuri",
     "ability_runtime:dataobs_manager",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
   ]

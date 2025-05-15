@@ -15,10 +15,8 @@
 
 #define private public
 #define protected public
-#include "enable_ime_data_parser.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
-#include "security_mode_parser.h"
 #include "sys_cfg_parser.h"
 #undef private
 
@@ -79,103 +77,6 @@ public:
     void SetUp() { }
     void TearDown() { }
 };
-
-/**
- * @tc.name: testParseEnableIme001
- * @tc.desc: parse enableIme
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: chenyu
- */
-HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level1)
-{
-    IMSA_HILOGI("JsonOperateTest testParseEnableIme001 START");
-    std::vector<std::string> enableVec;
-    auto ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_IME, 100, enableVec);
-    ASSERT_TRUE(ret);
-    ASSERT_EQ(enableVec.size(), 3);
-    EXPECT_EQ(enableVec[0], "testIme");
-    EXPECT_EQ(enableVec[1], "testIme1");
-    EXPECT_EQ(enableVec[2], "testIme2");
-
-    std::vector<std::string> enableVec1;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_IME, 101, enableVec1);
-    ASSERT_TRUE(ret);
-    ASSERT_EQ(enableVec1.size(), 1);
-    EXPECT_EQ(enableVec1[0], "testIme3");
-
-    std::vector<std::string> enableVec2;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_IME, 102, enableVec2);
-    EXPECT_TRUE(ret);
-    EXPECT_TRUE(enableVec2.empty());
-
-    std::vector<std::string> enableVec3;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_IME, 104, enableVec3);
-    EXPECT_TRUE(ret);
-    EXPECT_TRUE(enableVec3.empty());
-}
-/**
- * @tc.name: testParseEnableKeyboard001
- * @tc.desc: parse enableKeyboard
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: chenyu
- */
-HWTEST_F(JsonOperateTest, testParseEnableKeyboard001, TestSize.Level1)
-{
-    IMSA_HILOGI("JsonOperateTest testParseEnableKeyboard001 START");
-    std::vector<std::string> enableVec;
-    auto ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 100, enableVec);
-    ASSERT_TRUE(ret);
-    ASSERT_EQ(enableVec.size(), 2);
-    EXPECT_EQ(enableVec[0], "testKeyboard");
-    EXPECT_EQ(enableVec[1], "testKeyboard1");
-
-    std::vector<std::string> enableVec1;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 101, enableVec1);
-    ASSERT_TRUE(ret);
-    ASSERT_EQ(enableVec1.size(), 1);
-    EXPECT_EQ(enableVec1[0], "testKeyboard2");
-
-    std::vector<std::string> enableVec2;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 105, enableVec2);
-    EXPECT_TRUE(ret);
-    EXPECT_TRUE(enableVec2.empty());
-
-    std::vector<std::string> enableVec3;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 104, enableVec3);
-    EXPECT_TRUE(ret);
-    EXPECT_TRUE(enableVec3.empty());
-}
-
-/**
- * @tc.name: testParseSecurityMode001
- * @tc.desc: parse securityMode
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: chenyu
- */
-HWTEST_F(JsonOperateTest, testParseSecurityMode001, TestSize.Level1)
-{
-    IMSA_HILOGI("JsonOperateTest testParseSecurityMode001 START");
-    SecurityModeParser::GetInstance()->fullModeList_.clear();
-    auto ret = SecurityModeParser::GetInstance()->ParseSecurityMode(JsonOperateTest::SECURITY_MODE, 100);
-    ASSERT_TRUE(ret);
-    auto secMode = SecurityModeParser::GetInstance()->fullModeList_;
-    ASSERT_EQ(secMode.size(), 2);
-    EXPECT_EQ(secMode[0], "testIme");
-    EXPECT_EQ(secMode[1], "testIme3");
-
-    SecurityModeParser::GetInstance()->fullModeList_.clear();
-    ret = SecurityModeParser::GetInstance()->ParseSecurityMode(JsonOperateTest::SECURITY_MODE, 102);
-    EXPECT_TRUE(ret);
-    EXPECT_TRUE(SecurityModeParser::GetInstance()->fullModeList_.empty());
-
-    SecurityModeParser::GetInstance()->fullModeList_.clear();
-    ret = SecurityModeParser::GetInstance()->ParseSecurityMode(JsonOperateTest::SECURITY_MODE, 105);
-    EXPECT_TRUE(ret);
-    EXPECT_TRUE(SecurityModeParser::GetInstance()->fullModeList_.empty());
-}
 
 /**
  * @tc.name: testParseImePersistCfg001
@@ -396,11 +297,9 @@ HWTEST_F(JsonOperateTest, testListDisabledInputMethod, TestSize.Level1)
     IMSA_HILOGI("JsonOperateTest testListDisabledInputMethod START");
     int32_t userId = 1234567890;
     std::vector<Property> props;
-    bool enableOn = false;
-    auto ret = ImeInfoInquirer::GetInstance().ListDisabledInputMethod(userId, props, enableOn);
-    ASSERT_EQ(ret, ErrorCode::NO_ERROR);
-    enableOn = true;
-    ret = ImeInfoInquirer::GetInstance().ListDisabledInputMethod(userId, props, enableOn);
+    auto ret = ImeInfoInquirer::GetInstance().ListDisabledInputMethod(userId, props);
+    ASSERT_NE(ret, ErrorCode::NO_ERROR);
+    ret = ImeInfoInquirer::GetInstance().ListDisabledInputMethod(userId, props);
     ASSERT_NE(ret, ErrorCode::NO_ERROR);
 }
 
@@ -416,8 +315,7 @@ HWTEST_F(JsonOperateTest, testGetSwitchInfoBySwitchCount, TestSize.Level1)
     SwitchInfo switchInfo;
     uint32_t cacheCount = 987654321;
     int32_t userId = 1234567890;
-    bool enableOn = false;
-    auto ret = ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId, enableOn, cacheCount);
+    auto ret = ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId, cacheCount);
     ASSERT_NE(ret, ErrorCode::NO_ERROR);
 }
 
