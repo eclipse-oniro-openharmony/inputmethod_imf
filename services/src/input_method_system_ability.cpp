@@ -398,6 +398,7 @@ void InputMethodSystemAbility::OnStop()
     FreezeManager::SetEventHandler(nullptr);
     UserSessionManager::GetInstance().SetEventHandler(nullptr);
     ImeEnabledInfoManager::GetInstance().SetEventHandler(nullptr);
+    ImeCfgManager::GetInstance().SetEventHandler(nullptr);
     serviceHandler_ = nullptr;
     state_ = ServiceRunningState::STATE_NOT_START;
     Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 0, INPUT_METHOD_SYSTEM_ABILITY_ID);
@@ -429,6 +430,7 @@ void InputMethodSystemAbility::Initialize()
     identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = OsAccountAdapter::MAIN_USER_ID;
     UserSessionManager::GetInstance().SetEventHandler(serviceHandler_);
+    ImeCfgManager::GetInstance().SetEventHandler(serviceHandler_);
     UserSessionManager::GetInstance().AddUserSession(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     IMSA_HILOGI("start get scene board enable status");
@@ -618,9 +620,8 @@ int32_t InputMethodSystemAbility::StartInputInner(
     auto userId = GetCallingUserId();
     imeInfo = GetCurrentImeInfoForHiSysEvent(userId);
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (ImeInfoInquirer::GetInstance().IsInputMethodExtension(IPCSkeleton::GetCallingPid()) ||
-        (!identityChecker_->IsBroker(tokenId) &&
-         !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId))) {
+    if (!identityChecker_->IsBroker(tokenId) &&
+        !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, IdentityChecker::INVALID_PID, true)) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);

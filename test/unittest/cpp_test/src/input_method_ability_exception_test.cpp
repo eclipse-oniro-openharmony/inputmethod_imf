@@ -36,7 +36,6 @@ public:
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityExceptionTest::SetUpTestCase");
-        inputMethodAbility_ = InputMethodAbility::GetInstance();
     }
     static void TearDownTestCase(void)
     {
@@ -46,14 +45,14 @@ public:
     void TearDown() { }
     static void ResetMemberVar()
     {
-        inputMethodAbility_->dataChannelProxy_ = nullptr;
-        inputMethodAbility_->dataChannelObject_ = nullptr;
-        inputMethodAbility_->imeListener_ = nullptr;
-        inputMethodAbility_->panels_.Clear();
+        inputMethodAbility_.dataChannelProxy_ = nullptr;
+        inputMethodAbility_.dataChannelObject_ = nullptr;
+        inputMethodAbility_.imeListener_ = nullptr;
+        inputMethodAbility_.panels_.Clear();
     }
-    static sptr<InputMethodAbility> inputMethodAbility_;
+    static InputMethodAbility &inputMethodAbility_;
 };
-sptr<InputMethodAbility> InputMethodAbilityExceptionTest::inputMethodAbility_;
+InputMethodAbility &InputMethodAbilityExceptionTest::inputMethodAbility_ = InputMethodAbility::GetInstance();
 
 /**
  * @tc.name: testMoveCursorException
@@ -65,7 +64,7 @@ sptr<InputMethodAbility> InputMethodAbilityExceptionTest::inputMethodAbility_;
 HWTEST_F(InputMethodAbilityExceptionTest, testMoveCursorException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest MoveCursor Test START");
-    auto ret = inputMethodAbility_->MoveCursor(4); // move cursor right
+    auto ret = inputMethodAbility_.MoveCursor(4); // move cursor right
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -79,7 +78,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testMoveCursorException, TestSize.Leve
 HWTEST_F(InputMethodAbilityExceptionTest, testInsertTextException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest InsertText Test START");
-    auto ret = inputMethodAbility_->InsertText("text");
+    auto ret = inputMethodAbility_.InsertText("text");
     EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
 }
 
@@ -93,7 +92,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testInsertTextException, TestSize.Leve
 HWTEST_F(InputMethodAbilityExceptionTest, testSendFunctionKeyException, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest SendFunctionKey Test START");
-    auto ret = inputMethodAbility_->SendFunctionKey(0);
+    auto ret = inputMethodAbility_.SendFunctionKey(0);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -108,7 +107,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSendExtendActionException, TestSiz
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest SendExtendAction Test START");
     constexpr int32_t action = 1;
-    auto ret = inputMethodAbility_->SendExtendAction(action);
+    auto ret = inputMethodAbility_.SendExtendAction(action);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -125,22 +124,22 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.L
     // start < 0, end < 0
     int32_t start = -1;
     int32_t end = -2;
-    auto ret = inputMethodAbility_->SelectByRange(start, end);
+    auto ret = inputMethodAbility_.SelectByRange(start, end);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     // start < 0, end >0
     start = -1;
     end = 2;
-    ret = inputMethodAbility_->SelectByRange(start, end);
+    ret = inputMethodAbility_.SelectByRange(start, end);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     // end < 0, start > 0
     start = 1;
     end = -2;
-    ret = inputMethodAbility_->SelectByRange(start, end);
+    ret = inputMethodAbility_.SelectByRange(start, end);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     // dataChannel == nullptr
     start = 1;
     end = 2;
-    ret = inputMethodAbility_->SelectByRange(start, end);
+    ret = inputMethodAbility_.SelectByRange(start, end);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -155,7 +154,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSelectByMovementException, TestSiz
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testSelectByMovement START");
     constexpr int32_t direction = 1;
-    auto ret = inputMethodAbility_->SelectByMovement(direction);
+    auto ret = inputMethodAbility_.SelectByMovement(direction);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -170,10 +169,10 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDeleteExceptionText, TestSize.Leve
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testDelete Test START");
     int32_t deleteForwardLenth = 1;
-    auto ret = inputMethodAbility_->DeleteForward(deleteForwardLenth);
+    auto ret = inputMethodAbility_.DeleteForward(deleteForwardLenth);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
     int32_t deleteBackwardLenth = 2;
-    ret = inputMethodAbility_->DeleteBackward(deleteBackwardLenth);
+    ret = inputMethodAbility_.DeleteBackward(deleteBackwardLenth);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
 }
 
@@ -188,12 +187,12 @@ HWTEST_F(InputMethodAbilityExceptionTest, testGetTextException001, TestSize.Leve
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testGetText001 START");
     std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(8, text);
+    auto ret = inputMethodAbility_.GetTextAfterCursor(8, text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-    ret = inputMethodAbility_->GetTextBeforeCursor(3, text);
+    ret = inputMethodAbility_.GetTextBeforeCursor(3, text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     int32_t index;
-    ret = inputMethodAbility_->GetTextIndexAtCursor(index);
+    ret = inputMethodAbility_.GetTextIndexAtCursor(index);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -208,10 +207,10 @@ HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testGetEnterKeyType START");
     int32_t keyType2;
-    auto ret = inputMethodAbility_->GetEnterKeyType(keyType2);
+    auto ret = inputMethodAbility_.GetEnterKeyType(keyType2);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     int32_t inputPattern;
-    ret = inputMethodAbility_->GetInputPattern(inputPattern);
+    ret = inputMethodAbility_.GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -228,12 +227,12 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSiz
     // keyEvent == nullptr;
     std::shared_ptr<MMI::KeyEvent> keyEvent = nullptr;
     sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(nullptr);
-    auto ret = inputMethodAbility_->DispatchKeyEvent(keyEvent, consumer);
+    auto ret = inputMethodAbility_.DispatchKeyEvent(keyEvent, consumer);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
     // kdListener_ == nullptr
     keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
-    ret = inputMethodAbility_->DispatchKeyEvent(keyEvent, consumer);
+    ret = inputMethodAbility_.DispatchKeyEvent(keyEvent, consumer);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -248,7 +247,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_001 START");
     // channelObject == nullptr
-    auto ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
+    auto ret = inputMethodAbility_.ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     ResetMemberVar();
@@ -265,23 +264,23 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_002 START");
     // imeListener_ == nullptr
-    auto ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
+    auto ret = inputMethodAbility_.ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
-    inputMethodAbility_->SetImeListener(imeListener);
+    inputMethodAbility_.SetImeListener(imeListener);
     sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
-    inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
+    inputMethodAbility_.SetInputDataChannel(channelObject->AsObject());
     // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
     panel->windowId_ = 2;
-    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
-    ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
+    inputMethodAbility_.panels_.Insert(SOFT_KEYBOARD, panel);
+    ret = inputMethodAbility_.ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     // panel not exist
-    inputMethodAbility_->panels_.Clear();
-    ret = inputMethodAbility_->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
+    inputMethodAbility_.panels_.Clear();
+    ret = inputMethodAbility_.ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ResetMemberVar();
@@ -298,26 +297,26 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testHideKeyboard_001 START");
     // imeListener_ == nullptr
-    auto ret = inputMethodAbility_->HideKeyboard();
+    auto ret = inputMethodAbility_.HideKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
-    inputMethodAbility_->SetImeListener(imeListener);
+    inputMethodAbility_.SetImeListener(imeListener);
     sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
-    inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
+    inputMethodAbility_.SetInputDataChannel(channelObject->AsObject());
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
     panel->windowId_ = 2;
-    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
-    ret = inputMethodAbility_->HideKeyboard();
+    inputMethodAbility_.panels_.Insert(SOFT_KEYBOARD, panel);
+    ret = inputMethodAbility_.HideKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // ShowPanel failed
-    inputMethodAbility_->panels_.Clear();
+    inputMethodAbility_.panels_.Clear();
     panel->panelFlag_ = FLG_FIXED;
-    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
-    ret = inputMethodAbility_->HideKeyboard();
+    inputMethodAbility_.panels_.Insert(SOFT_KEYBOARD, panel);
+    ret = inputMethodAbility_.HideKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
     ResetMemberVar();

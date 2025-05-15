@@ -48,7 +48,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_ShowKeyboard(InputMethod_InputMethodPr
         IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
         return errCode;
     }
-    return ErrorCodeConvert(InputMethodController::GetInstance()->ShowCurrentInput());
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->ShowCurrentInput());
 }
 
 InputMethod_ErrorCode OH_InputMethodProxy_ShowTextInput(
@@ -63,7 +68,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_ShowTextInput(
     attachOptions.isShowKeyboard = options->showKeyboard;
     attachOptions.requestKeyboardReason =
         static_cast<RequestKeyboardReason>(static_cast<int32_t>(options->requestKeyboardReason));
-    return ErrorCodeConvert(InputMethodController::GetInstance()->ShowTextInput(attachOptions));
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->ShowTextInput(attachOptions));
 }
 
 InputMethod_ErrorCode OH_InputMethodProxy_HideKeyboard(InputMethod_InputMethodProxy *inputMethodProxy)
@@ -73,7 +83,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_HideKeyboard(InputMethod_InputMethodPr
         IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
         return errCode;
     }
-    return ErrorCodeConvert(InputMethodController::GetInstance()->HideCurrentInput());
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->HideCurrentInput());
 }
 InputMethod_ErrorCode OH_InputMethodProxy_NotifySelectionChange(
     InputMethod_InputMethodProxy *inputMethodProxy, char16_t text[], size_t length, int start, int end)
@@ -92,8 +107,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifySelectionChange(
         IMSA_HILOGE("text length is too long length=%{public}zu", length);
         return IME_ERR_PARAMCHECK;
     }
-    return ErrorCodeConvert(
-        InputMethodController::GetInstance()->OnSelectionChange(std::u16string(text, length), start, end));
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->OnSelectionChange(std::u16string(text, length), start, end));
 }
 InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_InputMethodProxy *inputMethodProxy,
     InputMethod_EnterKeyType enterKey, InputMethod_TextInputType textType)
@@ -106,7 +125,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyConfigurationChange(InputMethod_
     Configuration info;
     info.SetEnterKeyType(static_cast<EnterKeyType>(enterKey));
     info.SetTextInputType(static_cast<TextInputType>(textType));
-    return ErrorCodeConvert(InputMethodController::GetInstance()->OnConfigurationChange(info));
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->OnConfigurationChange(info));
 }
 
 InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
@@ -126,7 +150,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_NotifyCursorUpdate(
     info.top = cursorInfo->top;
     info.width = cursorInfo->width;
     info.height = cursorInfo->height;
-    return ErrorCodeConvert(InputMethodController::GetInstance()->OnCursorUpdate(info));
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->OnCursorUpdate(info));
 }
 
 InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
@@ -151,7 +180,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
         }
         command.emplace(privateCommand[i]->key, privateCommand[i]->value);
     }
-    return ErrorCodeConvert(InputMethodController::GetInstance()->SendPrivateCommand(command));
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->SendPrivateCommand(command));
 }
 
 InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodProxy *inputMethodProxy,
@@ -175,7 +209,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendMessage(InputMethod_InputMethodPro
     std::u16string msgIdStr(msgId, msgIdLength);
     arrayBuffer.msgId = Str16ToStr8(msgIdStr);
     arrayBuffer.msgParam.assign(msgParam, msgParam + msgParamLength);
-    return ErrorCodeConvert(InputMethodController::GetInstance()->SendMessage(arrayBuffer));
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->SendMessage(arrayBuffer));
 }
 
 InputMethod_ErrorCode OH_InputMethodProxy_RecvMessage(
@@ -190,14 +229,19 @@ InputMethod_ErrorCode OH_InputMethodProxy_RecvMessage(
         IMSA_HILOGE("invalid messageHandler");
         return IME_ERR_NULL_POINTER;
     }
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("InputMethodController is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     if (messageHandler == nullptr) {
         IMSA_HILOGI("UnRegister message handler.");
-        return ErrorCodeConvert(InputMethodController::GetInstance()->RegisterMsgHandler(nullptr));
+        return ErrorCodeConvert(instance->RegisterMsgHandler(nullptr));
     }
     IMSA_HILOGI("Register message handler.");
     std::shared_ptr<MsgHandlerCallbackInterface> msgHandler =
         std::make_shared<NativeMessageHandlerCallback>(messageHandler);
-    return ErrorCodeConvert(InputMethodController::GetInstance()->RegisterMsgHandler(msgHandler));
+    return ErrorCodeConvert(instance->RegisterMsgHandler(msgHandler));
 }
 #ifdef __cplusplus
 }

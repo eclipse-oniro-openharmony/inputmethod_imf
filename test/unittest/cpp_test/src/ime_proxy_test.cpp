@@ -532,10 +532,10 @@ HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::KeyboardListenerTest_015");
     // 1:positionX, 2: positionY, 5: height
-    InputMethodAbility::GetInstance()->OnCursorUpdate(1, 2, 5);
+    InputMethodAbility::GetInstance().OnCursorUpdate(1, 2, 5);
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
 
-    InputMethodAbility::GetInstance()->OnSelectionChange(std::u16string(u"text"), 1, 2, 4, 6);
+    InputMethodAbility::GetInstance().OnSelectionChange(std::u16string(u"text"), 1, 2, 4, 6);
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(4));
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange("text"));
 }
@@ -628,7 +628,7 @@ HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level1)
 HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::onInputFinishTest_StopInput");
-    InputMethodAbility::GetInstance()->StopInput(nullptr, 0);
+    InputMethodAbility::GetInstance().StopInput(nullptr, 0);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
 }
 /**
@@ -639,7 +639,7 @@ HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level1)
 HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level1)
 {
     IMSA_HILOGI("ImeProxyTest::onInputFinishTest_OnClientInactive");
-    InputMethodAbility::GetInstance()->OnClientInactive(nullptr);
+    InputMethodAbility::GetInstance().OnClientInactive(nullptr);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
 }
 

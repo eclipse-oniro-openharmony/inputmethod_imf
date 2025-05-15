@@ -344,7 +344,7 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
             jsQueue_.Pop();
             return;
         }
-        auto code = InputMethodAbility::GetInstance()->ShowPanel(ctxt->inputMethodPanel);
+        auto code = InputMethodAbility::GetInstance().ShowPanel(ctxt->inputMethodPanel);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             jsQueue_.Pop();
@@ -376,7 +376,7 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
             jsQueue_.Pop();
             return;
         }
-        auto code = InputMethodAbility::GetInstance()->HidePanel(ctxt->inputMethodPanel);
+        auto code = InputMethodAbility::GetInstance().HidePanel(ctxt->inputMethodPanel);
         jsQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
@@ -458,7 +458,7 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     }
     IMSA_HILOGD("subscribe type: %{public}s.", type.c_str());
     if (type == "sizeUpdate") {
-        RESULT_CHECK_RETURN(env, InputMethodAbility::GetInstance()->IsSystemApp(), EXCEPTION_SYSTEM_PERMISSION, "",
+        RESULT_CHECK_RETURN(env, InputMethodAbility::GetInstance().IsSystemApp(), EXCEPTION_SYSTEM_PERMISSION, "",
             TYPE_NONE, nullptr);
     }
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
@@ -583,7 +583,7 @@ napi_status JsPanel::CheckEnhancedParam(
 bool JsPanel::IsPanelFlagValid(napi_env env, PanelFlag panelFlag, bool isEnhancedCalled)
 {
     bool isValid = false;
-    if (InputMethodAbility::GetInstance()->IsDefaultIme()) {
+    if (InputMethodAbility::GetInstance().IsDefaultIme()) {
         isValid = panelFlag == FLG_FIXED || panelFlag == FLG_FLOATING || panelFlag == FLG_CANDIDATE_COLUMN;
     } else {
         isValid = panelFlag == FLG_FIXED || panelFlag == FLG_FLOATING;

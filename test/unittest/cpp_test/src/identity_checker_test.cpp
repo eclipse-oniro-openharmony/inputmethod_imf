@@ -38,7 +38,8 @@ public:
     public:
         IdentityCheckerMock() = default;
         virtual ~IdentityCheckerMock() = default;
-        bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) override
+        bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID,
+            bool isAttach = false) override
         {
             return isFocused_;
         }

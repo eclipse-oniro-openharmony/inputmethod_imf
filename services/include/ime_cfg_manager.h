@@ -22,6 +22,7 @@
 #include "serializable.h"
 #include "ime_enabled_info_manager.h"
 #include "enable_upgrade_manager.h"
+#include "event_handler.h"
 namespace OHOS {
 namespace MiscServices {
 
@@ -35,6 +36,7 @@ public:
     void DeleteImeCfg(int32_t userId);
     std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId);
     bool IsDefaultImeSet(int32_t userId);
+    void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
 
 private:
     ImeCfgManager() = default;
@@ -46,6 +48,7 @@ private:
     std::string PackageImeCfg();
     std::recursive_mutex imeCfgLock_;
     std::vector<ImePersistInfo> imeConfigs_;
+    static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

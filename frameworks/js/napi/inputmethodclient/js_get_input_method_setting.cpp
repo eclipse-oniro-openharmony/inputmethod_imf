@@ -205,7 +205,11 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->ListInputMethod(ctxt->properties);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->ListInputMethod(ctxt->properties);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec ListInputMethod success");
             ctxt->status = napi_ok;
@@ -238,8 +242,11 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode =
-            InputMethodController::GetInstance()->ListInputMethod(ctxt->inputMethodStatus == ENABLE, ctxt->properties);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->ListInputMethod(ctxt->inputMethodStatus == ENABLE, ctxt->properties);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec GetInputMethods success.");
             ctxt->status = napi_ok;
@@ -268,7 +275,11 @@ napi_value JsGetInputMethodSetting::GetInputMethodsSync(napi_env env, napi_callb
         TYPE_NONE, JsUtil::Const::Null(env));
 
     std::vector<Property> properties;
-    int32_t ret = InputMethodController::GetInstance()->ListInputMethod(enable, properties);
+    int32_t ret = ErrorCode::ERROR_EX_NULL_POINTER;
+    auto instance = InputMethodController::GetInstance();
+    if (instance != nullptr) {
+        ret = instance->ListInputMethod(enable, properties);
+    }
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get input methods!", TYPE_NONE);
         return JsUtil::Const::Null(env);
@@ -288,7 +299,11 @@ napi_value JsGetInputMethodSetting::GetAllInputMethods(napi_env env, napi_callba
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->ListInputMethod(ctxt->properties);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->ListInputMethod(ctxt->properties);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec GetInputMethods success.");
             ctxt->status = napi_ok;
@@ -307,7 +322,11 @@ napi_value JsGetInputMethodSetting::GetAllInputMethodsSync(napi_env env, napi_ca
 {
     IMSA_HILOGD("run in");
     std::vector<Property> properties;
-    int32_t ret = InputMethodController::GetInstance()->ListInputMethod(properties);
+    int32_t ret = ErrorCode::ERROR_EX_NULL_POINTER;
+    auto instance = InputMethodController::GetInstance();
+    if (instance != nullptr) {
+        ret = instance->ListInputMethod(properties);
+    }
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get input methods", TYPE_NONE);
         return JsUtil::Const::Null(env);
@@ -324,7 +343,11 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->DisplayOptionalInputMethod();
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->DisplayOptionalInputMethod();
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec DisplayOptionalInputMethod success.");
             ctxt->status = napi_ok;
@@ -350,7 +373,11 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->DisplayOptionalInputMethod();
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->DisplayOptionalInputMethod();
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec DisplayOptionalInputMethod success");
             ctxt->status = napi_ok;
@@ -385,8 +412,11 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode =
-            InputMethodController::GetInstance()->ListInputMethodSubtype(ctxt->property, ctxt->subProperties);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->ListInputMethodSubtype(ctxt->property, ctxt->subProperties);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec ListInputMethodSubtype success");
             ctxt->status = napi_ok;
@@ -413,7 +443,11 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype(ctxt->subProperties);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->ListCurrentInputMethodSubtype(ctxt->subProperties);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec ListCurrentInputMethodSubtype success.");
             ctxt->status = napi_ok;
@@ -448,9 +482,13 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
     PARAM_CHECK_RETURN(env, status == napi_ok, "panelInfo covert failed!", TYPE_NONE, JsUtil::Const::Null(env));
 
     bool isShown = false;
-    int32_t errorCode = InputMethodController::GetInstance()->IsPanelShown(panelInfo, isShown);
-    if (errorCode != ErrorCode::NO_ERROR) {
-        JsUtils::ThrowException(env, JsUtils::Convert(errorCode), "failed to query is panel shown!", TYPE_NONE);
+    int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+    auto instance = InputMethodController::GetInstance();
+    if (instance != nullptr) {
+        errCode = instance->IsPanelShown(panelInfo, isShown);
+    }
+    if (errCode != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(errCode), "failed to query is panel shown!", TYPE_NONE);
         return JsUtil::Const::Null(env);
     }
     return JsUtil::GetValue(env, isShown);
@@ -506,7 +544,11 @@ napi_value JsGetInputMethodSetting::GetInputMethodState(napi_env env, napi_callb
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->GetInputMethodState(ctxt->enableStatus);
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->GetInputMethodState(ctxt->enableStatus);
+        }
         if (errCode == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);

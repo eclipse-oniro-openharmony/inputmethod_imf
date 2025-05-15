@@ -156,6 +156,10 @@ InputMethod_ErrorCode OH_InputMethodController_Attach(InputMethod_TextEditorProx
     auto textConfig = ConstructTextConfig(config);
 
     auto controller = InputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
     OHOS::sptr<NativeTextChangedListener> listener = nullptr;
     {
         std::lock_guard<std::mutex> guard(g_textEditorProxyMapMutex);
@@ -214,7 +218,12 @@ InputMethod_ErrorCode OH_InputMethodController_Detach(InputMethod_InputMethodPro
         delete g_inputMethodProxy;
         g_inputMethodProxy = nullptr;
     }
-    return ErrorCodeConvert(InputMethodController::GetInstance()->Close());
+    auto instance  = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("instance is nullptr");
+        return IME_ERR_NULL_POINTER;
+    }
+    return ErrorCodeConvert(instance->Close());
 }
 #ifdef __cplusplus
 }

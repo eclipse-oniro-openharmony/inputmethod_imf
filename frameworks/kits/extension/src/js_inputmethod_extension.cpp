@@ -269,10 +269,7 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
 {
     auto task = std::make_shared<TaskAmsInit>();
     TaskManager::GetInstance().PostTask(task);
-    auto inputMethodAbility = InputMethodAbility::GetInstance();
-    if (inputMethodAbility != nullptr) {
-        inputMethodAbility->InitConnect();
-    }
+    InputMethodAbility::GetInstance().InitConnect();
     StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
     StartAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
     Extension::OnStart(want);
@@ -458,7 +455,7 @@ void JsInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
             cacheDisplay_.displayHeight != displayPtr->GetHeight()) &&
             cacheDisplay_.displayFoldStatus == foldStatus &&
             cacheDisplay_.displayRotation == displayPtr->GetRotation()) {
-            InputMethodAbility::GetInstance()->AdjustKeyboard();
+            InputMethodAbility::GetInstance().AdjustKeyboard();
         }
     }
     cacheDisplay_.SetCacheDisplay(

@@ -256,14 +256,14 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
 
 bool JsInputMethodEngineSetting::InitInputMethodSetting()
 {
-    if (!InputMethodAbility::GetInstance()->IsCurrentIme()) {
+    if (!InputMethodAbility::GetInstance().IsCurrentIme()) {
         return false;
     }
     auto engine = GetInputMethodEngineSetting();
     if (engine == nullptr) {
         return false;
     }
-    InputMethodAbility::GetInstance()->SetImeListener(engine);
+    InputMethodAbility::GetInstance().SetImeListener(engine);
     {
         std::lock_guard<std::mutex> lock(eventHandlerMutex_);
         handler_ = AppExecFwk::EventHandler::Current();
@@ -382,7 +382,7 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
         IMSA_HILOGE("subscribe failed, type: %{public}s.", type.c_str());
         return nullptr;
     }
-    if (type == "privateCommand" && !InputMethodAbility::GetInstance()->IsDefaultIme()) {
+    if (type == "privateCommand" && !InputMethodAbility::GetInstance().IsDefaultIme()) {
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed",
             TYPE_NONE);
     }
@@ -447,7 +447,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        auto ret = InputMethodAbility::GetInstance()->CreatePanel(ctxt->context, ctxt->panelInfo, ctxt->panel);
+        auto ret = InputMethodAbility::GetInstance().CreatePanel(ctxt->context, ctxt->panelInfo, ctxt->panel);
         ctxt->SetErrorCode(ret);
         CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "JsInputMethodEngineSetting CreatePanel failed!");
         ctxt->SetState(napi_ok);
@@ -500,7 +500,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
 
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         CHECK_RETURN((ctxt->panel != nullptr), "panel is nullptr!", napi_generic_failure);
-        auto errCode = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->panel);
+        auto errCode = InputMethodAbility::GetInstance().DestroyPanel(ctxt->panel);
         if (errCode != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("DestroyPanel failed, errCode: %{public}d!", errCode);
             return napi_generic_failure;
@@ -522,7 +522,7 @@ napi_value JsInputMethodEngineSetting::GetSecurityMode(napi_env env, napi_callba
     napi_value argv[1] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     int32_t security;
-    int32_t ret = InputMethodAbility::GetInstance()->GetSecurityMode(security);
+    int32_t ret = InputMethodAbility::GetInstance().GetSecurityMode(security);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get security mode", TYPE_NONE);
     }
@@ -545,7 +545,7 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
         IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
         return nullptr;
     }
-    if (type == "privateCommand" && !InputMethodAbility::GetInstance()->IsDefaultIme()) {
+    if (type == "privateCommand" && !InputMethodAbility::GetInstance().IsDefaultIme()) {
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed",
             TYPE_NONE);
     }

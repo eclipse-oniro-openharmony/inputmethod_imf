@@ -130,7 +130,7 @@ public:
     static void CheckTextConfig(const TextConfig &config);
     static void ResetKeyboardListenerTextConfig();
     static sptr<InputMethodController> inputMethodController_;
-    static sptr<InputMethodAbility> inputMethodAbility_;
+    static InputMethodAbility &inputMethodAbility_;
     static sptr<InputMethodSystemAbility> imsa_;
     static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
     static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -238,7 +238,7 @@ public:
     };
 };
 sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
-sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
+InputMethodAbility &InputMethodControllerTest::inputMethodAbility_ = InputMethodAbility::GetInstance();
 sptr<InputMethodSystemAbility> InputMethodControllerTest::imsa_;
 sptr<InputMethodSystemAbilityProxy> InputMethodControllerTest::imsaProxy_;
 std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
@@ -288,16 +288,15 @@ void InputMethodControllerTest::SetUpTestCase(void)
     }
     IdentityCheckerMock::SetFocused(true);
 
-    inputMethodAbility_ = InputMethodAbility::GetInstance();
-    inputMethodAbility_->abilityManager_ = imsaProxy_;
+    inputMethodAbility_.abilityManager_ = imsaProxy_;
     TddUtil::InitCurrentImePermissionInfo();
     IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
-    inputMethodAbility_->SetCoreAndAgent();
+    inputMethodAbility_.SetCoreAndAgent();
     controllerListener_ = std::make_shared<SelectListenerMock>();
     textListener_ = new TextListener();
-    inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
+    inputMethodAbility_.SetKdListener(std::make_shared<KeyboardListenerImpl>());
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>(textConfigHandler_);
-    inputMethodAbility_->SetImeListener(imeListener_);
+    inputMethodAbility_.SetImeListener(imeListener_);
 
     inputMethodController_ = InputMethodController::GetInstance();
     inputMethodController_->abilityManager_ = imsaProxy_;
@@ -1201,28 +1200,28 @@ HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     SelectListenerMock::start_ = 0;
     SelectListenerMock::end_ = 0;
-    inputMethodAbility_->SelectByRange(1, 2);
+    inputMethodAbility_.SelectByRange(1, 2);
     SelectListenerMock::WaitSelectListenerCallback();
     EXPECT_EQ(SelectListenerMock::start_, 1);
     EXPECT_EQ(SelectListenerMock::end_, 2);
 
     SelectListenerMock::direction_ = 0;
-    inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
+    inputMethodAbility_.SelectByMovement(static_cast<int32_t>(Direction::UP));
     SelectListenerMock::WaitSelectListenerCallback();
     EXPECT_EQ(SelectListenerMock::direction_, static_cast<int32_t>(Direction::UP));
 
     SelectListenerMock::direction_ = 0;
-    inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
+    inputMethodAbility_.SelectByMovement(static_cast<int32_t>(Direction::DOWN));
     SelectListenerMock::WaitSelectListenerCallback();
     EXPECT_EQ(SelectListenerMock::direction_, static_cast<int32_t>(Direction::DOWN));
 
     SelectListenerMock::direction_ = 0;
-    inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
+    inputMethodAbility_.SelectByMovement(static_cast<int32_t>(Direction::LEFT));
     SelectListenerMock::WaitSelectListenerCallback();
     EXPECT_EQ(SelectListenerMock::direction_, static_cast<int32_t>(Direction::LEFT));
 
     SelectListenerMock::direction_ = 0;
-    inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
+    inputMethodAbility_.SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
     SelectListenerMock::WaitSelectListenerCallback();
     EXPECT_EQ(SelectListenerMock::direction_, static_cast<int32_t>(Direction::RIGHT));
 }
@@ -1290,27 +1289,27 @@ HWTEST_F(InputMethodControllerTest, testWithoutEditableState, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     int32_t deleteForwardLength = 1;
-    ret = inputMethodAbility_->DeleteForward(deleteForwardLength);
+    ret = inputMethodAbility_.DeleteForward(deleteForwardLength);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::deleteForwardLength_, deleteForwardLength);
 
     int32_t deleteBackwardLength = 2;
-    ret = inputMethodAbility_->DeleteBackward(deleteBackwardLength);
+    ret = inputMethodAbility_.DeleteBackward(deleteBackwardLength);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::deleteBackwardLength_, deleteBackwardLength);
 
     std::string insertText = "t";
-    ret = inputMethodAbility_->InsertText(insertText);
+    ret = inputMethodAbility_.InsertText(insertText);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::insertText_, Str8ToStr16(insertText));
 
     constexpr int32_t funcKey = 1;
-    ret = inputMethodAbility_->SendFunctionKey(funcKey);
+    ret = inputMethodAbility_.SendFunctionKey(funcKey);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::key_, funcKey);
 
     constexpr int32_t keyCode = 4;
-    ret = inputMethodAbility_->MoveCursor(keyCode);
+    ret = inputMethodAbility_.MoveCursor(keyCode);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::direction_, keyCode);
 }

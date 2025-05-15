@@ -91,7 +91,7 @@ napi_value JsKeyboardControllerEngine::Hide(napi_env env, napi_callback_info inf
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->HideKeyboardSelf();
+        int32_t code = InputMethodAbility::GetInstance().HideKeyboardSelf();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -112,7 +112,7 @@ napi_value JsKeyboardControllerEngine::HideKeyboard(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodAbility::GetInstance()->HideKeyboardSelf();
+        InputMethodAbility::GetInstance().HideKeyboardSelf();
         ctxt->status = napi_ok;
     };
     ctxt->SetAction(std::move(input));
@@ -129,7 +129,7 @@ napi_value JsKeyboardControllerEngine::ExitCurrentInputType(napi_env env, napi_c
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errorCode = InputMethodAbility::GetInstance()->ExitCurrentInputType();
+        int32_t errorCode = InputMethodAbility::GetInstance().ExitCurrentInputType();
         if (errorCode == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(napi_ok);
