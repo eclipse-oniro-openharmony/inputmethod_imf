@@ -20,6 +20,7 @@ namespace MiscServices {
 namespace {
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg.json";
 } // namespace
+std::shared_ptr<AppExecFwk::EventHandler> ImeCfgManager::serviceHandler_ = nullptr;
 ImeCfgManager &ImeCfgManager::GetInstance()
 {
     static ImeCfgManager instance;
@@ -53,9 +54,17 @@ void ImeCfgManager::WriteImeCfg()
         IMSA_HILOGE("failed to Package imeCfg!");
         return;
     }
-    if (!FileOperator::Write(IME_CFG_FILE_PATH, content, O_CREAT | O_WRONLY | O_SYNC | O_TRUNC)) {
-        IMSA_HILOGE("failed to WriteJsonFile!");
+    if (serviceHandler_ == nullptr) {
+        IMSA_HILOGE("serviceHandler_ is nullptr!");
+        return;
     }
+    auto task = [content]() {
+        IMSA_HILOGD("start WriteJsonFile!");
+        if (!FileOperator::Write(IME_CFG_FILE_PATH, content, O_CREAT | O_WRONLY | O_SYNC | O_TRUNC)) {
+            IMSA_HILOGE("failed to WriteJsonFile!");
+        }
+    };
+    serviceHandler_->PostTask(task, "WriteImeCfg", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 bool ImeCfgManager::ParseImeCfg(const std::string &content)
@@ -168,6 +177,11 @@ bool ImeCfgManager::IsDefaultImeSet(int32_t userId)
     auto cfg = GetImeCfg(userId);
     IMSA_HILOGI("isDefaultImeSet: %{public}d", cfg.isDefaultImeSet);
     return cfg.isDefaultImeSet;
+}
+
+void ImeCfgManager::SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
+{
+    serviceHandler_ = eventHandler;
 }
 } // namespace MiscServices
 } // namespace OHOS
