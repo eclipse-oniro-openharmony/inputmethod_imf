@@ -115,5 +115,25 @@ napi_value JsUtil::GetValue(napi_env env, bool in)
     napi_get_boolean(env, in, &out);
     return out;
 }
+
+napi_value JsUtil::GetValueU16String(napi_env env, const std::u16string &in)
+{
+    napi_value out = nullptr;
+    napi_create_string_utf16(env, in.c_str(), in.length(), &out);
+    return out;
+}
+
+bool JsUtil::GetValueU16String(napi_env env, napi_value in, std::u16string &out)
+{
+    size_t size = 0;
+    auto status = napi_get_value_string_utf16(env, in, nullptr, 0, &size);
+    if (status != napi_ok) {
+        return false;
+    }
+    out.resize(size + 1, 0);
+    status = napi_get_value_string_utf16(env, in, out.data(), size + 1, &size);
+    out.resize(size);
+    return status == napi_ok;
+}
 } // namespace MiscServices
 } // namespace OHOS

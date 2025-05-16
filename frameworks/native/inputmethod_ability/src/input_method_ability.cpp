@@ -469,6 +469,16 @@ int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodAbility::OnDiscardTypingText()
+{
+    auto imeListener = GetImeListener();
+    if (imeListener == nullptr) {
+        IMSA_HILOGE("imeListener is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    return imeListener_->OnDiscardTypingText();
+}
+
 int32_t InputMethodAbility::HideKeyboard()
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
@@ -1258,6 +1268,14 @@ bool InputMethodAbility::IsEnable()
         return false;
     }
     return imeListener_->IsEnable();
+}
+
+bool InputMethodAbility::IsCallbackRegistered(const std::string &type)
+{
+    if (imeListener_ == nullptr) {
+        return false;
+    }
+    return imeListener_->IsCallbackRegistered(type);
 }
 
 bool InputMethodAbility::IsSystemApp()

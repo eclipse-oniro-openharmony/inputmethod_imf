@@ -82,6 +82,7 @@ public:
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
     bool IsEnable();
+    bool IsCallbackRegistered(const std::string &type);
     bool IsSystemApp();
     InputType GetInputType();
     int32_t ExitCurrentInputType();
@@ -113,6 +114,7 @@ public:
     int32_t StopInput(sptr<IRemoteObject> channelObj, uint32_t sessionId);
     int32_t ShowKeyboard(int32_t requestKeyboardReason);
     int32_t HideKeyboard();
+    int32_t OnDiscardTypingText();
 
     void OnInitInputControlChannel(sptr<IRemoteObject> channelObj);
     void OnSetSubtype(SubProperty subProperty);

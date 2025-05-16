@@ -1342,8 +1342,9 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage002, TestSize.Level0)
     EXPECT_EQ(ret2, ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND);
 
     bool needHide = false;
+    InputType type = InputType::NONE;
     auto ret3 = service_->IsCurrentIme(INVALID_USER_ID);
-    service_->NeedHideWhenSwitchInputType(INVALID_USER_ID, needHide);
+    service_->NeedHideWhenSwitchInputType(INVALID_USER_ID, type, needHide);
     EXPECT_FALSE(ret3);
 }
 

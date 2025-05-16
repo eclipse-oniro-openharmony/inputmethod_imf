@@ -288,6 +288,28 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testSerializedInputAttribute001
+ * @tc.desc: Checkout the serialization of InputAttribute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute001, TestSize.Level0)
+{
+    InputAttributeInner inAttribute;
+    inAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
+    Parcel data;
+    EXPECT_TRUE(inAttribute.Marshalling(data));
+    InputAttributeInner* outInnerAttribute = InputAttributeInner::Unmarshalling(data);
+    if (outInnerAttribute == nullptr) {
+        return;
+    }
+    InputAttribute outAttribute;
+    outAttribute.inputPattern = outInnerAttribute->inputPattern;
+    EXPECT_TRUE(outAttribute.IsSecurityImeFlag());
+    EXPECT_TRUE(outAttribute.IsOneTimeCodeFlag());
+    delete outInnerAttribute;
+}
+
+/**
  * @tc.name: testSerializedInputAttribute
  * @tc.desc: Checkout the serialization of InputAttribute.
  * @tc.type: FUNC
@@ -358,6 +380,19 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Le
 {
     IMSA_HILOGI("InputMethodAbilityTest testHideKeyboardWithoutImeListener start.");
     auto ret = inputMethodAbility_.HideKeyboard();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testDiscardTypingTextWithoutImeListener
+ * @tc.desc: InputMethodAbility DiscardTypingText without imeListener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testDiscardTypingTextWithoutImeListener, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testDiscardTypingTextWithoutImeListener start.");
+    auto ret = inputMethodAbility_.OnDiscardTypingText();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -1617,6 +1652,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     std::string vailidString = "";
     std::shared_ptr<ImeInfo> info;
     bool needHide = false;
+    InputType type = InputType::NONE;
     auto ret = imsa_->OnStartInputType(vailidUserId, switchInfo, true);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 
@@ -1625,7 +1661,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     ret = imsa_->SwitchExtension(vailidUserId, info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchSubType(vailidUserId, info);
-    imsa_->NeedHideWhenSwitchInputType(vailidUserId, needHide);
+    imsa_->NeedHideWhenSwitchInputType(vailidUserId, type, needHide);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchInputType(vailidUserId, switchInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND);

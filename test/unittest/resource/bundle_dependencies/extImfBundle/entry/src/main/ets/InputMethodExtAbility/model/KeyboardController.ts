@@ -207,11 +207,16 @@ export class KeyboardController {
     inputMethodAbility.on('inputStop', () => {
       this.onDestroy();
     });
+    inputMethodAbility.on('discardTypingText', () => {
+      console.log('[registerInputListener] discardTypingText start:' )
+  });
   }
 
   private unRegisterListener(): void {
     inputMethodAbility.off('inputStart');
     inputMethodAbility.off('inputStop', () => {
+    });
+    inputMethodAbility.off('discardTypingText', () => {
     });
   }
 

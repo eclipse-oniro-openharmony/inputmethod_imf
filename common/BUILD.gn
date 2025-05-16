@@ -48,6 +48,7 @@ ohos_shared_library("inputmethod_common") {
     "src/message.cpp",
     "src/message_handler.cpp",
     "src/on_demand_start_stop_sa.cpp",
+    "src/string_utils.cpp",
   ]
 
   if (imf_on_demand_start_stop_sa_enable) {
@@ -75,6 +76,7 @@ ohos_shared_library("inputmethod_common") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "hitrace:libhitracechain",
+    "icu:shared_icuuc",
     "input:libmmi-client",
     "ipc:ipc_single",
     "samgr:samgr_proxy",

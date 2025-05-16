@@ -59,6 +59,7 @@
               "resource_management",
               "screenlock_mgr",
               "cJSON",
+              "icu",
               "selinux_adapter"
           ]
       }, 

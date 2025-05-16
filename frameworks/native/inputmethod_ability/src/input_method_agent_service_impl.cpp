@@ -85,5 +85,20 @@ ErrCode InputMethodAgentServiceImpl::SendMessage(const ArrayBuffer &arraybuffer)
 {
     return InputMethodAbility::GetInstance().RecvMessage(arraybuffer);
 }
+
+
+ErrCode InputMethodAgentServiceImpl::DiscardTypingText()
+{
+    IMSA_HILOGD("DiscardTypingText run");
+    std::string type = "discardTypingText";
+    auto ret = InputMethodAbility::GetInstance().IsCallbackRegistered(type);
+    if (!ret) {
+        IMSA_HILOGE("callback not registered");
+        return ErrorCode::ERROR_MSG_HANDLER_NOT_REGIST;
+    }
+    auto task = std::make_shared<TaskImsaDiscardTypingText>();
+    TaskManager::GetInstance().PostTask(task);
+    return ErrorCode::NO_ERROR;
+}
 } // namespace MiscServices
 } // namespace OHOS
