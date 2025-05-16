@@ -48,6 +48,7 @@ ohos_fuzztest("InputClientStubFuzzTest") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",

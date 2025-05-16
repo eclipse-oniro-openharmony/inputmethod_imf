@@ -64,20 +64,23 @@ ohos_unittest("InputMethodControllerTest") {
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -91,6 +94,11 @@ ohos_unittest("InputMethodControllerTest") {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
+  }
+
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags = [ "-DWITH_SELINUX" ]
   }
 }
 
@@ -125,19 +133,21 @@ ohos_unittest("InputMethodAttachTest") {
     "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",
@@ -189,19 +199,21 @@ ohos_unittest("InputMethodAbilityTest") {
     "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "googletest:gtest_main",
     "graphic_2d:librender_service_client",
     "graphic_2d:window_animation",
     "hilog:libhilog",
@@ -241,7 +253,6 @@ ohos_unittest("InputMethodServiceTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -249,7 +260,9 @@ ohos_unittest("InputMethodServiceTest") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -297,19 +310,22 @@ ohos_unittest("InputMethodDfxTest") {
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hisysevent:libhisyseventmanager",
@@ -357,20 +373,23 @@ ohos_unittest("InputMethodPanelTest") {
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "graphic_2d:librender_service_base",
     "graphic_2d:librender_service_client",
     "graphic_2d:window_animation",
     "hilog:libhilog",
@@ -426,11 +445,14 @@ ohos_unittest("InputMethodPanelAdjustTest") {
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "googletest:gtest_main",
+    "graphic_2d:librender_service_base",
     "graphic_2d:librender_service_client",
     "graphic_2d:window_animation",
     "hilog:libhilog",
@@ -477,15 +499,17 @@ ohos_unittest("InputMethodSwitchTest") {
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "safwk:system_ability_fwk",
@@ -495,6 +519,11 @@ ohos_unittest("InputMethodSwitchTest") {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
+  }
+
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags = [ "-DWITH_SELINUX" ]
   }
 }
 
@@ -534,16 +563,18 @@ ohos_unittest("ITypesUtilTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
+    "image_framework:image_native",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
@@ -592,17 +623,19 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_core",
@@ -651,19 +684,21 @@ ohos_unittest("InputMethodEditorTest") {
     "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -708,15 +743,17 @@ ohos_unittest("NewImeSwitchTest") {
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "safwk:system_ability_fwk",
@@ -726,6 +763,11 @@ ohos_unittest("NewImeSwitchTest") {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
+  }
+
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags = [ "-DWITH_SELINUX" ]
   }
 }
 
@@ -753,7 +795,6 @@ ohos_unittest("IdentityCheckerTest") {
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -762,9 +803,11 @@ ohos_unittest("IdentityCheckerTest") {
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -806,8 +849,6 @@ ohos_unittest("TextListenerInnerApiTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -818,6 +859,8 @@ ohos_unittest("TextListenerInnerApiTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -886,6 +929,7 @@ ohos_unittest("ImeProxyAgentImeTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "samgr:samgr_proxy",
     "window_manager:libdm",
   ]
 
@@ -893,6 +937,11 @@ ohos_unittest("ImeProxyAgentImeTest") {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
+  }
+
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags = [ "-DWITH_SELINUX" ]
   }
 }
 
@@ -929,16 +978,17 @@ ohos_unittest("ImeProxyTest") {
     "${inputmethod_path}/test/unittest/resource/bundle_dependencies/editorBox:editorBox",
     "${inputmethod_path}/test/unittest/resource/bundle_dependencies/extImfBundle:extImf",
     "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gtest_main",
     "graphic_2d:librender_service_client",
     "graphic_2d:window_animation",
     "hilog:libhilog",
@@ -953,6 +1003,10 @@ ohos_unittest("ImeProxyTest") {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
+  }
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags = [ "-DWITH_SELINUX" ]
   }
 }
 
@@ -977,13 +1031,13 @@ ohos_unittest("TaskManagerTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -1009,7 +1063,6 @@ ohos_unittest("ImeFreezeManagerTest") {
   deps = [
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -1017,10 +1070,12 @@ ohos_unittest("ImeFreezeManagerTest") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_core",
@@ -1052,14 +1107,15 @@ ohos_unittest("JsonOperateTest") {
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/services/json:imf_json_static",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -1085,8 +1141,6 @@ ohos_unittest("VirtualListenerTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -1097,6 +1151,8 @@ ohos_unittest("VirtualListenerTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -1135,7 +1191,6 @@ ohos_unittest("ImeSystemChannelTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -1146,6 +1201,7 @@ ohos_unittest("ImeSystemChannelTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -1206,6 +1262,7 @@ ohos_unittest("ImeControllerCpaiTest") {
 
   external_deps = [
     "googletest:gtest_main",
+    "hilog:libhilog",
     "input:libmmi-client",
   ]
 }
@@ -1288,14 +1345,17 @@ ohos_unittest("InputMethodMessageHandlerTest") {
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -1368,6 +1428,7 @@ ohos_unittest("ImfHisysEventReporterTest") {
     "hisysevent:libhisysevent",
     "hisysevent:libhisyseventmanager",
     "input:libmmi-client",
+    "ipc:ipc_core",
   ]
 }
 
@@ -1444,5 +1505,10 @@ ohos_unittest("ImeEnabledInfoManagerTest") {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
     external_deps += [ "window_manager:libwm" ]
+  }
+
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags = [ "-DWITH_SELINUX" ]
   }
 }

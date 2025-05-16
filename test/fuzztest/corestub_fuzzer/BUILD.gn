@@ -44,6 +44,7 @@ ohos_fuzztest("CoreStubFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",

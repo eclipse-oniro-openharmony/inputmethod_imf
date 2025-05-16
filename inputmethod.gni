@@ -19,14 +19,6 @@ innerkits_path = "${inputmethod_path}/interfaces/innerkits"
 
 adapter_path = "${inputmethod_path}/adapter"
 
-windowmanager_path = "//foundation/window/window_manager"
-
-bundllemanager_path = "//foundation/bundlemanager/bundle_framework"
-
-multimodalinput_path = "//foundation/multimodalinput/input"
-
-startup_init_path = "//base/startup/init"
-
 declare_args() {
   imf_screenlock_mgr_enable = false
   if (defined(global_parts_info) &&
