@@ -45,6 +45,7 @@ group("unittest") {
       "cpp_test:JsonOperateTest",
       "cpp_test:NewImeSwitchTest",
       "cpp_test:OnDemandStartStopSaTest",
+      "cpp_test:StringUtilsTest",
       "cpp_test:TaskManagerTest",
       "cpp_test:TextListenerInnerApiTest",
       "cpp_test:VirtualListenerTest",

@@ -77,6 +77,14 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
             "PATTERN_PASSWORD_NUMBER", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
         DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_SCREEN_LOCK",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::SCREEN_LOCK_PASSWORD))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_USER_NAME", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::USER_NAME))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_NEW_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NEW_PASSWORD))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_NUMBER_DECIMAL", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_DECIMAL))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_ONE_TIME_CODE", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::ONE_TIME_CODE))),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
         DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
         DECLARE_NAPI_STATIC_PROPERTY("PanelType", GetJsPanelTypeProperty(env)),
@@ -90,7 +98,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
     return InitProperty(env, exports);
-};
+}
 
 napi_value JsInputMethodEngineSetting::InitProperty(napi_env env, napi_value exports)
 {
@@ -659,6 +667,25 @@ void JsInputMethodEngineSetting::OnInputStart()
     }
 }
 
+int32_t JsInputMethodEngineSetting::OnDiscardTypingText()
+{
+    IMSA_HILOGI("DiscardTypingText start.");
+    std::string type = "discardTypingText";
+    auto entry = GetEntry(type);
+    if (entry == nullptr) {
+        IMSA_HILOGE("entry is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto task = [entry]() { JsCallbackHandler::Traverse(entry->vecCopy); };
+    return eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP)
+        ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME;
+}
+
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 {
     std::string type = isShow ? "keyboardShow" : "keyboardHide";
@@ -870,6 +897,17 @@ std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting:
         entrySetter(*entry);
     }
     return entry;
+}
+
+bool JsInputMethodEngineSetting::IsCallbackRegistered(const std::string &type)
+{
+    IMSA_HILOGD("type: %{public}s.", type.c_str());
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (jsCbMap_[type].empty()) {
+        IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+        return false;
+    }
+    return true;
 }
 
 void JsInputMethodEngineSetting::FreeWorkIfFail(int ret, uv_work_t *work)

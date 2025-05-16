@@ -38,6 +38,7 @@ public:
     ErrCode OnAttributeChange(const InputAttributeInner &attributeInner) override;
     ErrCode SendPrivateCommand(const Value &value) override;
     ErrCode SendMessage(const ArrayBuffer &arraybuffer) override;
+    ErrCode DiscardTypingText() override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS

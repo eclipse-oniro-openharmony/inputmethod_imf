@@ -658,28 +658,12 @@ int32_t InputMethodSystemAbility::StartInputInner(
 
 int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo)
 {
-    IMSA_HILOGI("SecurityFlag: %{public}d, IsSameTextInput: %{public}d, IsStarted: %{public}d, "
-                "IsSecurityImeStarted: %{public}d.",
-        inputClientInfo.config.inputAttribute.GetSecurityFlag(), !inputClientInfo.isNotifyInputStart,
-        InputTypeManager::GetInstance().IsStarted(), InputTypeManager::GetInstance().IsSecurityImeStarted());
-    if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
-        if (!InputTypeManager::GetInstance().IsStarted()) {
-            IMSA_HILOGD("SecurityFlag, input type is not started, start.");
-            // if need to switch ime, no need to hide panel first.
-            NeedHideWhenSwitchInputType(userId, inputClientInfo.needHide);
-            return StartInputType(userId, InputType::SECURITY_INPUT);
-        }
-        if (!inputClientInfo.isNotifyInputStart) {
-            IMSA_HILOGD("SecurityFlag, same textField, input type is started, not deal.");
-            return ErrorCode::NO_ERROR;
-        }
-        if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
-            IMSA_HILOGD("SecurityFlag, new textField, input type is started, but it is not security, switch.");
-            NeedHideWhenSwitchInputType(userId, inputClientInfo.needHide);
-            return StartInputType(userId, InputType::SECURITY_INPUT);
-        }
-        IMSA_HILOGD("SecurityFlag, other condition, not deal.");
-        return ErrorCode::NO_ERROR;
+    IMSA_HILOGI("SecurityImeFlag: %{public}d, IsSameTextInput: %{public}d, IsStarted: %{public}d.",
+        inputClientInfo.config.inputAttribute.IsSecurityImeFlag(),
+        !inputClientInfo.isNotifyInputStart,
+        InputTypeManager::GetInstance().IsStarted());
+    if (inputClientInfo.config.inputAttribute.IsSecurityImeFlag()) {
+        return StartSecurityIme(userId, inputClientInfo);
     }
     if (!inputClientInfo.isNotifyInputStart) {
         IMSA_HILOGD("NormalFlag, same textField, not deal.");
@@ -2281,7 +2265,7 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("not find input type: %{public}d.", type);
         // add for not adapter for SECURITY_INPUT
-        if (type == InputType::SECURITY_INPUT) {
+        if (type == InputType::SECURITY_INPUT || type == InputType::ONE_TIME_CODE) {
             return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
         }
         return ret;
@@ -2289,20 +2273,30 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), ime.bundleName, ime.subName };
     session->GetSwitchQueue().Push(switchInfo);
     IMSA_HILOGI("start input type: %{public}d.", type);
-    return type == InputType::SECURITY_INPUT ? OnStartInputType(userId, switchInfo, false)
-                                             : OnStartInputType(userId, switchInfo, true);
+    return (type == InputType::SECURITY_INPUT || type == InputType::ONE_TIME_CODE) ?
+        OnStartInputType(userId, switchInfo, false) : OnStartInputType(userId, switchInfo, true);
 }
 
-void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, bool &needHide)
+void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, InputType type, bool &needHide)
 {
-    ImeIdentification ime;
-    InputTypeManager::GetInstance().GetImeByInputType(InputType::SECURITY_INPUT, ime);
-    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    if (currentImeCfg == nullptr) {
-        IMSA_HILOGI("currentImeCfg is nullptr");
+    if (!needHide) {
         return;
     }
-    needHide = currentImeCfg->bundleName == ime.bundleName;
+    ImeIdentification ime;
+    InputTypeManager::GetInstance().GetImeByInputType(type, ime);
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("UserId: %{public}d session is nullptr!", userId_);
+        needHide = false;
+        return;
+    }
+    auto imeData = session->GetReadyImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        IMSA_HILOGI("Readyime is nullptr");
+        needHide = false;
+        return;
+    }
+    needHide = imeData->ime.first == ime.bundleName;
 }
 
 void InputMethodSystemAbility::HandleBundleScanFinished()
@@ -2536,6 +2530,39 @@ int32_t InputMethodSystemAbility::SendPrivateData(
         IMSA_HILOGE("Special send private data failed, ret: %{public}d!", ret);
     }
     return ret;
+}
+
+InputType InputMethodSystemAbility::GetSecurityInputType(const InputClientInfo &inputClientInfo)
+{
+    if (inputClientInfo.config.inputAttribute.IsOneTimeCodeFlag()) {
+        return InputType::ONE_TIME_CODE;
+    } else if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
+        return InputType::SECURITY_INPUT;
+    } else {
+        return InputType::NONE;
+    }
+}
+
+int32_t InputMethodSystemAbility::StartSecurityIme(int32_t &userId, InputClientInfo &inputClientInfo)
+{
+    InputType type = GetSecurityInputType(inputClientInfo);
+    IMSA_HILOGI("InputType:[%{public}d.", type);
+    if (!InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGD("SecurityImeFlag, input type is not started, start.");
+        // if need to switch ime, no need to hide panel first.
+        NeedHideWhenSwitchInputType(userId, type, inputClientInfo.needHide);
+        return StartInputType(userId, type);
+    }
+    if (!inputClientInfo.isNotifyInputStart) {
+        IMSA_HILOGD("SecurityImeFlag, same textField, input type is started, not deal.");
+        return ErrorCode::NO_ERROR;
+    }
+    if (!InputTypeManager::GetInstance().IsInputTypeImeStarted(type)) {
+        IMSA_HILOGD("SecurityImeFlag, new textField, input type is started, but it is not target, switch.");
+        NeedHideWhenSwitchInputType(userId, type, inputClientInfo.needHide);
+        return StartInputType(userId, type);
+    }
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

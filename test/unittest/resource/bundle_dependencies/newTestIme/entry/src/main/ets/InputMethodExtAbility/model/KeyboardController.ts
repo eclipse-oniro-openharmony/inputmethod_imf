@@ -46,12 +46,16 @@ export class KeyboardController {
                 this.onDestroy();
             }
         });
+        globalThis.inputEngine.on('discardTypingText', () => {
+            console.log('[registerInputListener] discardTypingText start:' )
+        });
     }
 
     private unRegisterListener(): void {
         this.addLog("unRegisterListener");
         globalThis.inputEngine.off('inputStart');
         globalThis.inputEngine.off('inputStop');
+        globalThis.inputEngine.off('discardTypingText');
     }
 
     public onDestroy(): void {

@@ -35,6 +35,8 @@ InputAttributeInner InputMethodTools::AttributeToInner(const InputAttribute &att
     inner.immersiveMode = attribute.immersiveMode;
     inner.windowId = attribute.windowId;
     inner.callingDisplayId = attribute.callingDisplayId;
+    inner.placeholder = attribute.placeholder;
+    inner.abilityName = attribute.abilityName;
     return inner;
 }
 
@@ -49,6 +51,8 @@ InputAttribute InputMethodTools::InnerToAttribute(const InputAttributeInner &inn
     inputAttribute.immersiveMode = inner.immersiveMode;
     inputAttribute.windowId = inner.windowId;
     inputAttribute.callingDisplayId = inner.callingDisplayId;
+    inputAttribute.placeholder = inner.placeholder;
+    inputAttribute.abilityName = inner.abilityName;
     return inputAttribute;
 }
 

@@ -26,7 +26,7 @@ const std::unordered_set<std::string> EVENT_TYPES[static_cast<uint32_t>(EventSub
     [static_cast<uint32_t>(EventSubscribeModule::INPUT_METHOD_SETTING)] = { "imeChange", "imeShow", "imeHide" },
     [static_cast<uint32_t>(EventSubscribeModule::INPUT_METHOD_ABILITY)] = { "inputStart", "inputStop", "keyboardShow",
         "keyboardHide", "setCallingWindow", "setSubtype", "securityModeChange", "privateCommand",
-        "callingDisplayDidChange" },
+        "callingDisplayDidChange", "discardTypingText" },
     [static_cast<uint32_t>(EventSubscribeModule::KEYBOARD_DELEGATE)] = { "editorAttributeChanged", "keyDown", "keyUp",
         "keyEvent", "cursorContextChange", "selectionChange", "textChange" },
     [static_cast<uint32_t>(EventSubscribeModule::KEYBOARD_PANEL_MANAGER)] = { "panelPrivateCommand", "isPanelShow" },
