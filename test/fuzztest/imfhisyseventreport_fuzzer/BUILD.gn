@@ -58,6 +58,7 @@ ohos_fuzztest("ImfHisyseventReportFuzzTest") {
     "hisysevent:libhisysevent",
     "hisysevent:libhisyseventmanager",
     "input:libmmi-client",
+    "ipc:ipc_core",
   ]
 }
 

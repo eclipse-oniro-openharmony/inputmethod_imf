@@ -57,6 +57,7 @@ ohos_static_library("imf_sa_stub_fuzztest_common_static") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",

@@ -54,7 +54,9 @@ ohos_fuzztest("SettingsDataUtilsFuzzTest") {
   external_deps = [
     "ability_base:zuri",
     "ability_runtime:dataobs_manager",
+    "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
