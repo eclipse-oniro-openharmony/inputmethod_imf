@@ -20,7 +20,6 @@
 
 #include "block_queue.h"
 #include "client_group.h"
-#include "enable_ime_data_parser.h"
 #include "event_status_manager.h"
 #include "freeze_manager.h"
 #include "iinput_method_core.h"

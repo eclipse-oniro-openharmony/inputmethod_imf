@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2002 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,11 +19,11 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("SecurityModeParserFuzzTest") {
+ohos_fuzztest("ImeEnabledInfoManagerFuzzTest") {
   module_out_path = "imf/imf"
 
   fuzz_config_file =
-      "${inputmethod_path}/test/fuzztest/securitymodeparser_fuzzer"
+      "${inputmethod_path}/test/fuzztest/imeenabledinfomanager_fuzzer"
 
   include_dirs = [
     "${inputmethod_path}/services/adapter/settings_data_provider/include",
@@ -40,26 +40,38 @@ ohos_fuzztest("SecurityModeParserFuzzTest") {
   ]
 
   sources = [
-    "${inputmethod_path}/services/adapter/settings_data_provider/src/security_mode_parser.cpp",
-    "securitymodeparser_fuzzer.cpp",
+    "${inputmethod_path}/services/adapter/settings_data_provider/src/ime_enabled_info_manager.cpp",
+    "imeenabledinfomanager_fuzzer.cpp",
   ]
 
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
-    "${inputmethod_path}/test/common:inputmethod_test_common",
+    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
   ]
 
   external_deps = [
-    "ability_runtime:ability_manager",
+    "ability_base:want",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
     "input:libmmi-client",
-    "ipc:ipc_single",
+    "resource_management:global_resmgr",
   ]
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ###############################################################################
@@ -68,7 +80,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":SecurityModeParserFuzzTest",
+    ":ImeEnabledInfoManagerFuzzTest",
   ]
 }
 ###############################################################################

@@ -20,11 +20,11 @@ group("unittest") {
 
   if (!use_libfuzzer) {
     deps += [
-      "cpp_test:EnableImeDataParseTest",
       "cpp_test:FullImeInfoManagerTest",
       "cpp_test:ITypesUtilTest",
       "cpp_test:IdentityCheckerTest",
       "cpp_test:ImeControllerCpaiTest",
+      "cpp_test:ImeEnabledInfoManagerTest",
       "cpp_test:ImeFreezeManagerTest",
       "cpp_test:ImeProxyAgentImeTest",
       "cpp_test:ImeProxyTest",
@@ -45,7 +45,6 @@ group("unittest") {
       "cpp_test:JsonOperateTest",
       "cpp_test:NewImeSwitchTest",
       "cpp_test:OnDemandStartStopSaTest",
-      "cpp_test:SecurityModeParseTest",
       "cpp_test:TaskManagerTest",
       "cpp_test:TextListenerInnerApiTest",
       "cpp_test:VirtualListenerTest",

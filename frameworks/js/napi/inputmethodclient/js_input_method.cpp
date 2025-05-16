@@ -130,6 +130,8 @@ napi_value JsInputMethod::GetJsInputMethodProperty(napi_env env, const Property 
     napi_value labelId = nullptr;
     napi_create_uint32(env, property.labelId, &labelId);
     napi_set_named_property(env, prop, "labelId", labelId);
+
+    JsUtil::Object::WriteProperty(env, prop, "enabledState", static_cast<int32_t>(property.status));
     return prop;
 }
 

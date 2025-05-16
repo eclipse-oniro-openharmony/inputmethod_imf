@@ -109,45 +109,45 @@ HWTEST_F(FullImeInfoManagerTest, test_Init_002, TestSize.Level0)
 }
 
 /**
- * @tc.name: test_Add_001
- * @tc.desc: test Add in user added that the userId exists
+ * @tc.name: test_Switch_001
+ * @tc.desc: test user switched that the userId exists
  * @tc.type: FUNC
  */
-HWTEST_F(FullImeInfoManagerTest, test_Add_001, TestSize.Level0)
+HWTEST_F(FullImeInfoManagerTest, test_Switch_001, TestSize.Level0)
 {
-    IMSA_HILOGI("test_Add_001 start");
+    IMSA_HILOGI("test_Switch_001 start");
     int32_t userId = 100;
     std::vector<FullImeInfo> imeInfos;
     FullImeInfoManager::GetInstance().fullImeInfos_.insert_or_assign(userId, imeInfos);
-    auto ret = FullImeInfoManager::GetInstance().Add(userId);
+    auto ret = FullImeInfoManager::GetInstance().Switch(userId);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
- * @tc.name: test_Add_002
- * @tc.desc: test Add in user added that QueryFullImeInfo failed
+ * @tc.name: test_Switch_002
+ * @tc.desc: test user Switched that QueryFullImeInfo failed
  * @tc.type: FUNC
  */
-HWTEST_F(FullImeInfoManagerTest, test_Add_002, TestSize.Level0)
+HWTEST_F(FullImeInfoManagerTest, test_Switch_002, TestSize.Level0)
 {
-    IMSA_HILOGI("test_Add_002 start");
+    IMSA_HILOGI("test_Switch_002 start");
     int32_t userId = 100;
     std::vector<FullImeInfo> imeInfos;
     ImeInfoInquirer::GetInstance().SetFullImeInfo(false, imeInfos);
-    auto ret = FullImeInfoManager::GetInstance().Add(userId);
+    auto ret = FullImeInfoManager::GetInstance().Switch(userId);
     EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
 }
 
 /**
- * @tc.name: test_Add_003
- * @tc.desc: test Add in user added succeed
+ * @tc.name: test_Switch_003
+ * @tc.desc: test user Switched succeed
  * @tc.type: FUNC
  */
-HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
+HWTEST_F(FullImeInfoManagerTest, test_Switch_003, TestSize.Level0)
 {
     Property prop;
     Property prop1;
-    IMSA_HILOGI("test_Add_003 start");
+    IMSA_HILOGI("test_Switch_003 start");
     int32_t userId = 100;
     std::vector<FullImeInfo> imeInfos;
     FullImeInfoManager::GetInstance().fullImeInfos_.insert_or_assign(userId, imeInfos);
@@ -157,6 +157,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
     std::string appId = "appId";
     uint32_t versionCode = 11;
     prop.name = "bundleName";
+
     FullImeInfo imeInfo { isNewIme, tokenId, appId, versionCode, prop };
     uint32_t tokenId1 = 2;
     std::string appId1 = "appId1";
@@ -167,7 +168,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
     ImeInfoInquirer::GetInstance().SetFullImeInfo(true, imeInfos);
 
     int32_t userId1 = 101;
-    auto ret = FullImeInfoManager::GetInstance().Add(userId1);
+    auto ret = FullImeInfoManager::GetInstance().Switch(userId1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(FullImeInfoManager::GetInstance().fullImeInfos_.size(), 2);
     auto it = FullImeInfoManager::GetInstance().fullImeInfos_.find(userId1);
@@ -186,13 +187,13 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
 }
 
 /**
- * @tc.name: test_Add_004
- * @tc.desc: test Add in package added that GetFullImeInfo failed
+ * @tc.name: test_Add_001
+ * @tc.desc: test package added that GetFullImeInfo failed
  * @tc.type: FUNC
  */
-HWTEST_F(FullImeInfoManagerTest, test_Add_004, TestSize.Level0)
+HWTEST_F(FullImeInfoManagerTest, test_Add_001, TestSize.Level0)
 {
-    IMSA_HILOGI("test_Add_004 start");
+    IMSA_HILOGI("test_Add_001 start");
     FullImeInfo imeInfo;
     ImeInfoInquirer::GetInstance().SetFullImeInfo(false, imeInfo);
     int32_t userId = 100;
@@ -202,13 +203,13 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_004, TestSize.Level0)
 }
 
 /**
- * @tc.name: test_Add_005
- * @tc.desc: test Add in package added that userId does not exist;
+ * @tc.name: test_Add_002
+ * @tc.desc: test package added that userId does not exist;
  * @tc.type: FUNC
  */
-HWTEST_F(FullImeInfoManagerTest, test_Add_005, TestSize.Level0)
+HWTEST_F(FullImeInfoManagerTest, test_Add_002, TestSize.Level0)
 {
-    IMSA_HILOGI("test_Add_005 start");
+    IMSA_HILOGI("test_Add_002 start");
     FullImeInfo imeInfo;
     ImeInfoInquirer::GetInstance().SetFullImeInfo(true, imeInfo);
     int32_t userId = 100;
@@ -222,13 +223,13 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_005, TestSize.Level0)
 }
 
 /**
- * @tc.name: test_Add_006
- * @tc.desc: test Add in package added that bundleName does not exist;
+ * @tc.name: test_Add_003
+ * @tc.desc: test package added that bundleName does not exist;
  * @tc.type: FUNC
  */
-HWTEST_F(FullImeInfoManagerTest, test_Add_006, TestSize.Level0)
+HWTEST_F(FullImeInfoManagerTest, test_Add_003, TestSize.Level0)
 {
-    IMSA_HILOGI("test_Add_006 start");
+    IMSA_HILOGI("test_Add_003 start");
     int32_t userId = 100;
     std::vector<FullImeInfo> imeInfos;
     FullImeInfo imeInfo;
@@ -252,13 +253,13 @@ HWTEST_F(FullImeInfoManagerTest, test_Add_006, TestSize.Level0)
 }
 
 /**
- * @tc.name: test_Add_007
- * @tc.desc: test Add in package added that bundleName exists;
+ * @tc.name: test_Add_004
+ * @tc.desc: test package added that bundleName exists;
  * @tc.type: FUNC
  */
-HWTEST_F(FullImeInfoManagerTest, test_Add_007, TestSize.Level0)
+HWTEST_F(FullImeInfoManagerTest, test_Add_004, TestSize.Level0)
 {
-    IMSA_HILOGI("test_Add_007 start");
+    IMSA_HILOGI("test_Add_004 start");
     int32_t userId = 100;
     std::vector<FullImeInfo> imeInfos;
     FullImeInfo imeInfo;
@@ -297,7 +298,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Update_001, TestSize.Level0)
     std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
     ImeInfoInquirer::GetInstance().SetFullImeInfo(false, fullImeInfos);
     auto ret = FullImeInfoManager::GetInstance().Update();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
     EXPECT_TRUE(FullImeInfoManager::GetInstance().fullImeInfos_.empty());
 }
 
@@ -476,8 +477,10 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_001, TestSize.Level0)
     FullImeInfoManager::GetInstance().fullImeInfos_.insert_or_assign(userId, imeInfos);
 
     int32_t userId1 = 101;
-    auto ret = FullImeInfoManager::GetInstance().Get(userId1);
-    EXPECT_TRUE(ret.empty());
+    std::vector<Property> props;
+    auto ret = FullImeInfoManager::GetInstance().Get(userId1, props);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(props.empty());
 }
 
 /**
@@ -493,9 +496,10 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_002, TestSize.Level0)
     FullImeInfo info;
     imeInfos.push_back(info);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert_or_assign(userId, imeInfos);
-
-    auto ret = FullImeInfoManager::GetInstance().Get(userId);
-    EXPECT_EQ(ret.size(), 1);
+    std::vector<Property> props;
+    auto ret = FullImeInfoManager::GetInstance().Get(userId, props);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(props.size(), 1);
 }
 
 /**
@@ -513,7 +517,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_003, TestSize.Level0)
     int32_t userId1 = 101;
     std::string bundleName = "bundleName";
     FullImeInfo info;
-    auto ret = FullImeInfoManager::GetInstance().Get(bundleName, userId1, info);
+    auto ret = FullImeInfoManager::GetInstance().Get(userId1, bundleName, info);
     EXPECT_FALSE(ret);
 }
 
@@ -535,7 +539,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_004, TestSize.Level0)
     int32_t userId1 = 100;
     std::string bundleName = "bundleName";
     FullImeInfo infoRet;
-    auto ret = FullImeInfoManager::GetInstance().Get(bundleName, userId1, infoRet);
+    auto ret = FullImeInfoManager::GetInstance().Get(userId1, bundleName, infoRet);
     EXPECT_FALSE(ret);
 }
 
@@ -557,7 +561,7 @@ HWTEST_F(FullImeInfoManagerTest, test_Get_005, TestSize.Level0)
     int32_t userId1 = 100;
     std::string bundleName = "bundleName1";
     FullImeInfo infoRet;
-    auto ret = FullImeInfoManager::GetInstance().Get(bundleName, userId1, infoRet);
+    auto ret = FullImeInfoManager::GetInstance().Get(userId1, bundleName, infoRet);
     EXPECT_TRUE(ret);
     EXPECT_EQ(infoRet.prop.name, info.prop.name);
 }

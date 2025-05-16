@@ -45,9 +45,6 @@ public:
     static std::vector<std::string> subName;
     static std::vector<std::string> locale;
     static std::vector<std::string> language;
-    static std::string beforeValue;
-    static std::string allEnableIme;
-    static std::string noEnableIme;
 };
 sptr<InputMethodController> NewImeSwitchTest::imc_;
 std::string NewImeSwitchTest::bundleName = "com.example.newTestIme";
@@ -55,21 +52,15 @@ std::string NewImeSwitchTest::extName = "InputMethodExtAbility";
 std::vector<std::string> NewImeSwitchTest::subName { "lowerInput", "upperInput", "chineseInput" };
 std::vector<std::string> NewImeSwitchTest::locale { "en-US", "en-US", "zh-CN" };
 std::vector<std::string> NewImeSwitchTest::language { "english", "english", "chinese" };
-std::string NewImeSwitchTest::beforeValue;
-std::string NewImeSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\"]}}";
-std::string NewImeSwitchTest::noEnableIme = "{\"enableImeList\" : {\"100\" : []}}";
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
-constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
 void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
-    TddUtil::GrantNativePermission();
-    TddUtil::GetEnableData(beforeValue);
-    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
+    TddUtil::EnabledAllIme();
     imc_ = InputMethodController::GetInstance();
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
@@ -79,7 +70,6 @@ void NewImeSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::TearDownTestCase");
     TddUtil::GrantNativePermission();
-    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
 }
@@ -134,13 +124,13 @@ void NewImeSwitchTest::CheckCurrentSubProps()
 HWTEST_F(NewImeSwitchTest, testSwitchType, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSwitchType Test START");
-    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, noEnableIme);
+    TddUtil::DisabledAllIme();
     ImeSettingListenerTestImpl::ResetParam();
     bool result =
         KeyEventUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT });
     EXPECT_TRUE(result);
     EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
-    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
+    TddUtil::EnabledAllIme();
 }
 
 /**

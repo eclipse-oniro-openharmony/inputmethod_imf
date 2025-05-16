@@ -16,6 +16,7 @@
 #ifndef SERVICES_INCLUDE_FULL_IME_INFO_MANAGER_H
 #define SERVICES_INCLUDE_FULL_IME_INFO_MANAGER_H
 
+#include "event_handler.h"
 #include "input_method_property.h"
 #include "timer.h"
 namespace OHOS {
@@ -24,25 +25,31 @@ namespace MiscServices {
 class FullImeInfoManager {
 public:
     static FullImeInfoManager &GetInstance();
-    int32_t Init();                                             // osAccount start/bundle scan finished/regular update
-    int32_t Add(int32_t userId);                                // user switched
-    int32_t Update();                                           // language change
-    int32_t Delete(int32_t userId);                             // user removed
-    int32_t Add(int32_t userId, const std::string &bundleName); // package added
+    int32_t RegularInit();
+    int32_t Init();                                                // regular Init/boot complete/data share ready
+    int32_t Switch(int32_t userId);                                // user switched
+    int32_t Update();                                              // language change
+    int32_t Delete(int32_t userId);                                // user removed
+    int32_t Add(int32_t userId, const std::string &bundleName);    // package added
     int32_t Delete(int32_t userId, const std::string &bundleName); // package removed
     int32_t Update(int32_t userId, const std::string &bundleName); // package changed
-    std::vector<FullImeInfo> Get(int32_t userId);
     std::string Get(int32_t userId, uint32_t tokenId);
-    bool Get(const std::string &bundleName, int32_t userId, FullImeInfo &fullImeInfo);
+    bool Get(int32_t userId, const std::string &bundleName, FullImeInfo &fullImeInfo);
     bool Has(int32_t userId, const std::string &bundleName);
+    int32_t Get(int32_t userId, std::vector<Property> &props);
 
 private:
     FullImeInfoManager();
     ~FullImeInfoManager();
+    int32_t Init(std::map<int32_t, std::vector<FullImeInfo>> &fullImeInfos);
+    int32_t AddUser(int32_t userId, std::vector<FullImeInfo> &infos);
+    int32_t AddPackage(int32_t userId, const std::string &bundleName, FullImeInfo &info);
+    int32_t DeletePackage(int32_t userId, const std::string &bundleName);
     std::mutex lock_;
     std::map<int32_t, std::vector<FullImeInfo>> fullImeInfos_;
     Utils::Timer timer_{ "imeInfoCacheInitTimer" };
     uint32_t timerId_{ 0 };
+    std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_{ nullptr };
 };
 } // namespace MiscServices
 } // namespace OHOS

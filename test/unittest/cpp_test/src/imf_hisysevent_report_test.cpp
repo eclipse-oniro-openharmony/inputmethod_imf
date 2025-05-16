@@ -507,6 +507,7 @@ void ImfHiSysEventReporterTest::TestStartInput(const uint8_t *data, size_t size)
                     .SetIsShowKeyboard(paramIsShowkeyboard)
                     .SetEventCode(paramIEventCode)
                     .SetErrCode(errCode)
+                    .SetImeCbTime(rand())
                     .Build();
     ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::IME_START_INPUT, *info);
 }
@@ -527,6 +528,7 @@ void ImfHiSysEventReporterTest::TestBaseTextOperation(const uint8_t *data, size_
                     .SetClientType(PARAM_CLIENT_TYPE)
                     .SetEventCode(paramIEventCode)
                     .SetErrCode(errCode)
+                    .SetBaseTextOperatorTime(rand())
                     .Build();
     ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *info);
 }

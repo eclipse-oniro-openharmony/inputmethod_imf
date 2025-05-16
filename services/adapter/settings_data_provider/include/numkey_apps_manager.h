@@ -36,29 +36,18 @@ struct NumkeyAppListCfg : public Serializable {
     std::vector<NumkeyAPP> numkeyApps;
     bool Unmarshal(cJSON *node) override
     {
-        std::function<bool(NumkeyAPP)> func = [](const NumkeyAPP &app) { return app.numKey; };
-        GetValues(node, numkeyApps, func);
-        return true;
-    }
-};
-
-struct UserBlockApp : public Serializable {
-    std::string name;
-    int32_t mode;
-    bool Unmarshal(cJSON *node) override
-    {
-        GetValue(node, GET_NAME(name), name);
-        GetValue(node, GET_NAME(mode), mode);
+        std::function<bool(NumkeyAPP)> filter = [](const NumkeyAPP &app) { return app.numKey; };
+        GetValues(node, numkeyApps, filter);
         return true;
     }
 };
 
 struct UserBlockListCfg : public Serializable {
-    std::vector<UserBlockApp> blockApps;
+    std::vector<std::string> blockApps;
     bool Unmarshal(cJSON *node) override
     {
-        std::function<bool(UserBlockApp)> func = [](const UserBlockApp &app) { return app.mode == BLOCK_MODE; };
-        GetValues(node, blockApps, func);
+        std::function<bool(int32_t)> filter = [](const int32_t &mode) { return mode == BLOCK_MODE; };
+        GetKeys(node, blockApps, filter);
         return true;
     }
 };

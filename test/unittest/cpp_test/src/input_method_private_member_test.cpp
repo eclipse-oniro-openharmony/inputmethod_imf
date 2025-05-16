@@ -86,6 +86,7 @@ void InputMethodPrivateMemberTest::SetUp(void)
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUp");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
     FullImeInfoManager::GetInstance().fullImeInfos_.clear();
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
     service_->userId_ = MAIN_USER_ID;
 }
 
@@ -94,6 +95,7 @@ void InputMethodPrivateMemberTest::TearDown(void)
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDown");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
     FullImeInfoManager::GetInstance().fullImeInfos_.clear();
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
 }
 sptr<InputMethodSystemAbility> InputMethodPrivateMemberTest::service_;
 
@@ -387,7 +389,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_001, TestSize.L
 HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_002 TEST START");
-    ImeCfgManager cfgManager;
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    imeInfo.bundleName = "bundleName";
+    imeInfo.extensionName = "extName";
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = "subName";
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ MAIN_USER_ID, cfg });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -412,8 +421,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_003, TestSize.L
     sub.id = "testSubName";
     info.subProps.push_back(sub);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    imeInfo.bundleName = "testBundleName";
+    imeInfo.extensionName = "testExtName";
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = "testSubName";
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ MAIN_USER_ID, cfg });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -439,8 +454,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.L
     sub.language = "French";
     info.subProps.push_back(sub);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    imeInfo.bundleName = "testBundleName";
+    imeInfo.extensionName = "testExtName";
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = "testSubName";
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ MAIN_USER_ID, cfg });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -465,8 +486,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_005, TestSize.L
     sub.language = "english";
     info.subProps.push_back(sub);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
-    ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    imeInfo.bundleName = "testBundleName";
+    imeInfo.extensionName = "testExtName";
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = "testSubName";
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ MAIN_USER_ID, cfg });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
@@ -500,8 +527,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.L
     info.subProps.push_back(sub1);
     FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
 
-    ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { MAIN_USER_ID, "testBundleName/testExtName", "testSubName", false });
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    imeInfo.bundleName = "testBundleName";
+    imeInfo.extensionName = "testExtName";
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = "testSubName";
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ MAIN_USER_ID, cfg });
     // english->chinese
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
@@ -544,7 +577,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_008, TestSize.L
     service_->userId_ = userId;
     auto prop = InputMethodController::GetInstance()->GetCurrentInputMethod();
     auto subProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ userId, prop->name + "/" + prop->id, subProp->id, false });
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    imeInfo.bundleName = prop->name;
+    imeInfo.extensionName = prop->id;
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = subProp->id;
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ userId, cfg });
     std::vector<Property> props;
     InputMethodController::GetInstance()->ListInputMethod(props);
     if (props.size() == 1) {
@@ -579,22 +619,35 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.L
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestGetCurrentInputMethodSubtype_001 TEST START");
     // currentIme is empty
     auto currentUserId = TddUtil::GetCurrentUserId();
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    cfg.enabledInfos.push_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg });
     auto subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     EXPECT_TRUE(subProp == nullptr);
 
     // subName is not find
     auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { currentUserId, currentProp->name + "/" + currentProp->id, "tt", false });
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
+    imeInfo.bundleName = currentProp->name;
+    imeInfo.extensionName = currentProp->id;
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = "tt";
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg });
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->name == currentProp->name);
 
     // get correct subProp
     auto currentSubProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
-    ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { currentUserId, currentProp->name + "/" + currentProp->id, currentSubProp->id, false });
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
+    imeInfo.bundleName = currentProp->name;
+    imeInfo.extensionName = currentProp->id;
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = currentSubProp->id;
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg });
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->id == currentSubProp->id);
@@ -612,13 +665,22 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentIme_001, TestSize.Level
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestGetCurrentInputMethod_001 TEST START");
     // currentIme is empty
     auto currentUserId = TddUtil::GetCurrentUserId();
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    cfg.enabledInfos.push_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg });
     auto prop = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(currentUserId);
     EXPECT_TRUE(prop == nullptr);
 
     // get correct prop
     auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    ImeCfgManager::GetInstance().imeConfigs_.push_back(
-        { currentUserId, currentProp->name + "/" + currentProp->id, currentProp->id, false });
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
+    imeInfo.bundleName = currentProp->name;
+    imeInfo.extensionName = currentProp->id;
+    imeInfo.extraInfo.isDefaultIme = true;
+    imeInfo.extraInfo.currentSubName = currentProp->id;
+    cfg.enabledInfos.emplace_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg });
     prop = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(currentUserId);
     ASSERT_TRUE(prop != nullptr);
     EXPECT_TRUE(prop->id == currentProp->id);
@@ -637,7 +699,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestListEnabledInputMethod_001, TestS
     // currentIme is empty
     std::vector<Property> props;
     auto currentUserId = TddUtil::GetCurrentUserId();
-    auto ret = ImeInfoInquirer::GetInstance().ListEnabledInputMethod(currentUserId, props, false);
+    auto ret = ImeInfoInquirer::GetInstance().ListEnabledInputMethod(currentUserId, props);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -654,6 +716,10 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestListCurrentInputMethodSubtype_001
     // currentIme is empty
     std::vector<SubProperty> subProps;
     auto currentUserId = TddUtil::GetCurrentUserId();
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo imeInfo;
+    cfg.enabledInfos.push_back(imeInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg });
     auto ret = ImeInfoInquirer::GetInstance().ListCurrentInputMethodSubtype(currentUserId, subProps);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
@@ -669,7 +735,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestListInputMethod_001, TestSize.Lev
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestListInputMethod_001 TEST START");
     std::vector<Property> props;
-    auto ret = ImeInfoInquirer::GetInstance().ListInputMethod(60, InputMethodStatus(10), props, false);
+    auto ret = ImeInfoInquirer::GetInstance().ListInputMethod(60, InputMethodStatus(10), props);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
@@ -1303,15 +1369,15 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage003, TestSize.Level0)
     EXPECT_TRUE(ret3 == "");
 
     std::vector<Property> props = {};
-    ret = inquirer.ListEnabledInputMethod(INVALID_USER_ID, props, false);
+    ret = inquirer.ListEnabledInputMethod(INVALID_USER_ID, props);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 
-    ret = inquirer.ListDisabledInputMethod(INVALID_USER_ID, props, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inquirer.ListDisabledInputMethod(INVALID_USER_ID, props);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 
     SwitchInfo switchInfo;
     uint32_t cacheCount = -1;
-    ret = inquirer.GetSwitchInfoBySwitchCount(switchInfo, INVALID_USER_ID, false, cacheCount);
+    ret = inquirer.GetSwitchInfoBySwitchCount(switchInfo, INVALID_USER_ID, cacheCount);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 
@@ -1326,11 +1392,11 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     sptr<SettingsDataObserver> observer;
     std::shared_ptr<DataShare::DataShareHelper> helper;
-    std::string invaildString = "";
+    std::string invaildString;
     pid_t pid { -1 };
-    auto ret = SettingsDataUtils::GetInstance()->RegisterObserver(observer);
+    auto ret = SettingsDataUtils::GetInstance().RegisterObserver(invaildString, observer);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-    ret = SettingsDataUtils::GetInstance()->GetStringValue(invaildString, invaildString, invaildString);
+    ret = SettingsDataUtils::GetInstance().GetStringValue(invaildString, invaildString, invaildString);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = userSession->OnHideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
@@ -1351,11 +1417,9 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     ret = userSession->OnSetCallingWindow(0, 0, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 
-    auto ret2 = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    auto ret2 = SettingsDataUtils::GetInstance().ReleaseDataShareHelper(helper);
     EXPECT_TRUE(ret2);
-    ret2 = SettingsDataUtils::GetInstance()->SetStringValue(invaildString, invaildString, invaildString);
-    EXPECT_FALSE(ret2);
-    ret2 = SettingsDataUtils::GetInstance()->EnableIme(INVALID_USER_ID, invaildString);
+    ret2 = SettingsDataUtils::GetInstance().SetStringValue(invaildString, invaildString, invaildString);
     EXPECT_FALSE(ret2);
     ret2 = clientGroup->IsCurClientFocused(-1, -1);
     EXPECT_FALSE(ret2);
@@ -1440,15 +1504,16 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetScreenLockIme, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestGetScreenLockIme start.");
     std::string ime;
-    auto ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(ime);
+    int32_t userId = MAIN_USER_ID;
+    auto ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(userId, ime);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    ret = InputMethodPrivateMemberTest::service_->GetAlternativeIme(ime);
+    ret = InputMethodPrivateMemberTest::service_->GetAlternativeIme(userId, ime);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     SystemConfig systemConfig_0 = ImeInfoInquirer::GetInstance().systemConfig_;
     ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = "abc";
-    ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(ime);
+    ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(userId, ime);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ImeInfoInquirer::GetInstance().systemConfig_ = systemConfig_0;
     std::this_thread::sleep_for(std::chrono::seconds(1));

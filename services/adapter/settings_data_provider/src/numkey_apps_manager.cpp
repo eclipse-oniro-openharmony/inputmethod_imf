@@ -20,11 +20,11 @@
 
 namespace OHOS {
 namespace MiscServices {
-#define CHECK_FEATURE_ENABLE()                  \
+#define CHECK_FEATURE_DISABLED_RETURN(retVal)                  \
     do {                                        \
         if (!isFeatureEnabled_) {               \
             IMSA_HILOGD("feature not enabled"); \
-            return ErrorCode::NO_ERROR;         \
+            return retVal;         \
         }                                       \
     } while (0)
 
@@ -38,10 +38,10 @@ int32_t NumkeyAppsManager::Init(int32_t userId)
 {
     IMSA_HILOGI("start, userId: %{public}d", userId);
     isFeatureEnabled_ = ImeInfoInquirer::GetInstance().IsEnableNumKey();
-    CHECK_FEATURE_ENABLE();
+    CHECK_FEATURE_DISABLED_RETURN(ErrorCode::NO_ERROR);
 
     int32_t ret = InitWhiteList(userId);
-    IMSA_HILOGE("InitWhiteList ret: %{public}d", ret);
+    IMSA_HILOGI("InitWhiteList ret: %{public}d", ret);
 
     ret = RegisterUserBlockListData(userId);
     IMSA_HILOGI("RegisterUserBlockListData ret: %{public}d", ret);
@@ -53,10 +53,7 @@ int32_t NumkeyAppsManager::Init(int32_t userId)
 
 bool NumkeyAppsManager::NeedAutoNumKeyInput(int32_t userId, const std::string &bundleName)
 {
-    if (!isFeatureEnabled_) {
-        IMSA_HILOGD("feature not enabled");
-        return false;
-    }
+    CHECK_FEATURE_DISABLED_RETURN(false);
     {
         std::lock_guard<std::mutex> lock(appListLock_);
         if (numKeyAppList_.find(bundleName) == numKeyAppList_.end()) {
@@ -65,11 +62,12 @@ bool NumkeyAppsManager::NeedAutoNumKeyInput(int32_t userId, const std::string &b
         }
     }
     std::lock_guard<std::mutex> lock(blockListLock_);
-    if (usersBlockList_.find(userId) == usersBlockList_.end()) {
+    auto iter = usersBlockList_.find(userId);
+    if (iter == usersBlockList_.end()) {
         IMSA_HILOGD("user %{public}d block list is empty", userId);
         return true;
     }
-    auto blockList = usersBlockList_[userId];
+    auto blockList = iter->second;
     bool needAutoInput = blockList.find(bundleName) == blockList.end();
     IMSA_HILOGD("bundleName: %{public}s, needAutoInput: %{public}d", bundleName.c_str(), needAutoInput);
     return needAutoInput;
@@ -77,7 +75,7 @@ bool NumkeyAppsManager::NeedAutoNumKeyInput(int32_t userId, const std::string &b
 
 int32_t NumkeyAppsManager::OnUserSwitched(int32_t userId)
 {
-    CHECK_FEATURE_ENABLE();
+    CHECK_FEATURE_DISABLED_RETURN(ErrorCode::NO_ERROR);
     IMSA_HILOGI("userId %{public}d", userId);
     {
         std::lock_guard<std::mutex> lock(blockListLock_);
@@ -89,7 +87,7 @@ int32_t NumkeyAppsManager::OnUserSwitched(int32_t userId)
     RegisterUserBlockListData(userId);
     int32_t ret = UpdateUserBlockList(userId);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("UpdateUserBlockList failed, ret: {public}d", ret);
+        IMSA_HILOGE("UpdateUserBlockList failed, ret: %{public}d", ret);
         return ret;
     }
     return ErrorCode::NO_ERROR;
@@ -97,7 +95,7 @@ int32_t NumkeyAppsManager::OnUserSwitched(int32_t userId)
 
 int32_t NumkeyAppsManager::OnUserRemoved(int32_t userId)
 {
-    CHECK_FEATURE_ENABLE();
+    CHECK_FEATURE_DISABLED_RETURN(ErrorCode::NO_ERROR);
     IMSA_HILOGI("userId %{public}d", userId);
     sptr<SettingsDataObserver> observer = nullptr;
     {
@@ -109,7 +107,7 @@ int32_t NumkeyAppsManager::OnUserRemoved(int32_t userId)
         }
         observer = iter->second;
     }
-    int32_t ret = SettingsDataUtils::GetInstance()->UnregisterObserver(observer);
+    int32_t ret = SettingsDataUtils::GetInstance().UnregisterObserver(observer);
     {
         std::lock_guard<std::mutex> lock(observersLock_);
         observers_.erase(userId);
@@ -130,7 +128,7 @@ int32_t NumkeyAppsManager::InitWhiteList(int32_t userId)
     }
     std::lock_guard<std::mutex> lock(appListLock_);
     numKeyAppList_ = whiteList;
-    IMSA_HILOGI("success, list size: %{public}lu", numKeyAppList_.size());
+    IMSA_HILOGI("success, list size: %{public}zu", numKeyAppList_.size());
     return ErrorCode::NO_ERROR;
 }
 
@@ -144,14 +142,14 @@ int32_t NumkeyAppsManager::UpdateUserBlockList(int32_t userId)
     }
     std::lock_guard<std::mutex> lock(blockListLock_);
     usersBlockList_[userId] = blockList;
+    IMSA_HILOGI("success, list size: %{public}zu", blockList.size());
     return ErrorCode::NO_ERROR;
 }
 
 int32_t NumkeyAppsManager::ParseWhiteList(int32_t userId, std::unordered_set<std::string> &list)
 {
     std::string valueStr;
-    int32_t ret =
-        SettingsDataUtils::GetInstance()->GetStringValue(SETTING_URI_PROXY, COMPATIBLE_APP_STRATEGY, valueStr);
+    int32_t ret = SettingsDataUtils::GetInstance().GetStringValue(SETTING_URI_PROXY, COMPATIBLE_APP_STRATEGY, valueStr);
     if (ret != ErrorCode::NO_ERROR && ret != ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
         IMSA_HILOGE("failed to get white list from settings data, ret: %{public}d", ret);
         return ret;
@@ -174,7 +172,7 @@ int32_t NumkeyAppsManager::ParseWhiteList(int32_t userId, std::unordered_set<std
 int32_t NumkeyAppsManager::ParseBlockList(int32_t userId, std::unordered_set<std::string> &list)
 {
     std::string valueStr;
-    int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(
+    int32_t ret = SettingsDataUtils::GetInstance().GetStringValue(
         SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true", COMPATIBLE_SETTING_STRATEGY, valueStr);
     if (ret != ErrorCode::NO_ERROR && ret != ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
         IMSA_HILOGE("failed to get white list from settings data, ret: %{public}d", ret);
@@ -190,7 +188,7 @@ int32_t NumkeyAppsManager::ParseBlockList(int32_t userId, std::unordered_set<std
         return ErrorCode::ERROR_PARSE_CONFIG_FILE;
     }
     for (const auto &app : blockListCfg.blockApps) {
-        list.insert(app.name);
+        list.insert(app);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -204,7 +202,7 @@ int32_t NumkeyAppsManager::RegisterUserBlockListData(int32_t userId)
     std::string uriProxy = SETTINGS_USER_DATA_URI + std::to_string(userId) + "?Proxy=true";
     sptr<SettingsDataObserver> observer = nullptr;
     int32_t ret =
-        SettingsDataUtils::GetInstance()->RegisterObserver(uriProxy, COMPATIBLE_SETTING_STRATEGY, func, observer);
+        SettingsDataUtils::GetInstance().RegisterObserver(uriProxy, COMPATIBLE_SETTING_STRATEGY, func, observer);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("RegisterObserver failed, ret: %{public}d", ret);
         return ret;

@@ -21,7 +21,6 @@
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
-#include "security_mode_parser.h"
 #include "system_ability.h"
 #include "input_method_types.h"
 #include "user_session_manager.h"
@@ -85,7 +84,7 @@ public:
     void DumpAllMethod(int fd);
     ErrCode IsDefaultIme() override;
     ErrCode IsDefaultImeSet(bool& resultValue) override;
-    ErrCode EnableIme(const std::string &bundleName, bool& resultValue) override;
+    ErrCode EnableIme(const std::string &bundleName, const std::string &extensionName, int32_t status) override;
     ErrCode GetInputMethodState(int32_t &status) override;
     ErrCode IsSystemApp(bool& resultValue) override;
     int32_t RegisterProxyIme(
@@ -121,7 +120,6 @@ private:
     int32_t OnHideKeyboardSelf(const Message *msg);
     bool IsNeedSwitch(int32_t userId, const std::string &bundleName, const std::string &subName);
     int32_t CheckEnableAndSwitchPermission();
-    std::string SetSettingValues(const std::string &settingValue, const std::string &bundleName);
     int32_t CheckSwitchPermission(int32_t userId, const SwitchInfo &switchInfo, SwitchTrigger trigger);
     bool IsStartInputTypePermitted(int32_t userId);
     int32_t OnSwitchInputMethod(int32_t userId, const SwitchInfo &switchInfo, SwitchTrigger trigger);
@@ -167,13 +165,10 @@ private:
     int32_t SwitchLanguage();
     int32_t SwitchType();
     int32_t GenerateClientInfo(int32_t userId, InputClientInfo &clientInfo);
-    void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
     int32_t CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId);
     void DealSwitchRequest();
-    void DealSecurityChange();
-    void OnSecurityModeChange();
     bool IsCurrentIme(int32_t userId);
     int32_t StartInputType(int32_t userId, InputType type);
     // if switch input type need to switch ime, then no need to hide panel first.
@@ -181,36 +176,33 @@ private:
     bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
-    int32_t GetInputMethodState(int32_t userId, const std::string &bundleName, EnabledStatus &status);
     int32_t StartInputInner(
         InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
     int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t ShowCurrentInputInner();
     std::pair<int64_t, std::string> GetCurrentImeInfoForHiSysEvent(int32_t userId);
-    int32_t GetScreenLockIme(std::string &ime);
-    int32_t GetAlternativeIme(std::string &ime);
+    int32_t GetScreenLockIme(int32_t userId, std::string &ime);
+    int32_t GetAlternativeIme(int32_t userId, std::string &ime);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
     void ResetDelayUnloadTask(uint32_t code = 0);
     bool IsImeInUse();
 #endif
     std::mutex checkMutex_;
-    void DatashareCallback(const std::string &key);
+    int32_t EnableIme(int32_t userId, const std::string &bundleName, const std::string &extensionName = "",
+        EnabledStatus status = EnabledStatus::BASIC_MODE);
+    void OnCurrentImeStatusChanged(int32_t userId, const std::string &bundleName, EnabledStatus newStatus);
+    void DataShareCallback(const std::string &key);
     bool IsValidBundleName(const std::string &bundleName);
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
 
-    std::atomic<bool> enableImeOn_ = false;
-    std::atomic<bool> enableSecurityMode_ = false;
     std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
 
-    std::mutex modeChangeMutex_;
-    bool isChangeHandling_ = false;
-    bool hasPendingChanges_ = false;
     void ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo);
     bool IsDefaultImeScreen(uint64_t displayId);
 };

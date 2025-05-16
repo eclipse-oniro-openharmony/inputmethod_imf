@@ -20,63 +20,11 @@
 
 #include "input_method_utils.h"
 #include "serializable.h"
+#include "ime_enabled_info_manager.h"
+#include "enable_upgrade_manager.h"
+#include "event_handler.h"
 namespace OHOS {
 namespace MiscServices {
-struct ImePersistInfo : public Serializable {
-    ImePersistInfo() = default;
-    ImePersistInfo(int32_t userId, std::string currentIme, std::string currentSubName, bool isDefaultImeSet)
-        : userId(userId), currentIme(std::move(currentIme)), currentSubName(std::move(currentSubName)),
-        isDefaultImeSet(isDefaultImeSet){};
-    static constexpr int32_t INVALID_USERID = -1;
-    int32_t userId{ INVALID_USERID };
-    std::string currentIme;
-    std::string currentSubName;
-    std::string tempScreenLockIme;
-    bool isDefaultImeSet{ false };
-
-    bool Marshal(cJSON *node) const override
-    {
-        auto ret = SetValue(node, GET_NAME(userId), userId);
-        ret = SetValue(node, GET_NAME(currentIme), currentIme) && ret;
-        ret = SetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
-        SetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme);
-        ret = SetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
-        return ret;
-    }
-    bool Unmarshal(cJSON *node) override
-    {
-        auto ret = GetValue(node, GET_NAME(userId), userId);
-        ret = GetValue(node, GET_NAME(currentIme), currentIme) && ret;
-        ret = GetValue(node, GET_NAME(currentSubName), currentSubName) && ret;
-        GetValue(node, GET_NAME(tempScreenLockIme), tempScreenLockIme);
-        ret = GetValue(node, GET_NAME(isDefaultImeSet), isDefaultImeSet) && ret;
-        return ret;
-    }
-};
-
-struct ImePersistCfg : public Serializable {
-    std::vector<ImePersistInfo> imePersistInfo;
-    bool Marshal(cJSON *node) const override
-    {
-        return SetValue(node, GET_NAME(imeCfgList), imePersistInfo);
-    }
-    bool Unmarshal(cJSON *node) override
-    {
-        return GetValue(node, GET_NAME(imeCfgList), imePersistInfo);
-    }
-};
-
-struct ImeExtendInfo {
-    std::unordered_map<std::string, PrivateDataValue> privateCommand;
-};
-
-struct ImeNativeCfg {
-    std::string imeId;
-    std::string bundleName;
-    std::string subName;
-    std::string extName;
-    ImeExtendInfo imeExtendInfo;
-};
 
 class ImeCfgManager {
 public:
@@ -88,6 +36,7 @@ public:
     void DeleteImeCfg(int32_t userId);
     std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId);
     bool IsDefaultImeSet(int32_t userId);
+    void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
 
 private:
     ImeCfgManager() = default;
@@ -99,6 +48,7 @@ private:
     std::string PackageImeCfg();
     std::recursive_mutex imeCfgLock_;
     std::vector<ImePersistInfo> imeConfigs_;
+    static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

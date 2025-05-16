@@ -32,26 +32,14 @@ constexpr const char *SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/en
 constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
 constexpr const char *SETTINGS_USER_DATA_URI = "datashare:///com.ohos.settingsdata/"
                                                "entry/settingsdata/USER_SETTINGSDATA_";
-struct UserImeConfig : public Serializable {
-    std::string userId;
-    std::vector<std::string> identities;
-    bool Unmarshal(cJSON *node) override
-    {
-        GetValue(node, userId, identities);
-        return true;
-    }
-    bool Marshal(cJSON *node) const override
-    {
-        SetValue(node, userId, identities);
-        return true;
-    }
-};
-
 class SettingsDataUtils : public RefBase {
 public:
-    static sptr<SettingsDataUtils> GetInstance();
+    static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
+    static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
+    static SettingsDataUtils &GetInstance();
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper(const std::string &uriProxy);
-    int32_t CreateAndRegisterObserver(const std::string &key, SettingsDataObserver::CallbackFunc func);
+    int32_t CreateAndRegisterObserver(
+        const std::string &uriProxy, const std::string &key, const SettingsDataObserver::CallbackFunc &func);
     int32_t RegisterObserver(const std::string &uriProxy, const std::string &key,
         const SettingsDataObserver::CallbackFunc &func, sptr<SettingsDataObserver> &observer);
     int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
@@ -59,23 +47,21 @@ public:
     bool SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value);
     bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
     Uri GenerateTargetUri(const std::string &uriProxy, const std::string &key);
-    bool EnableIme(int32_t userId, const std::string &bundleName);
+    void NotifyDataShareReady();
+    bool IsDataShareReady();
 
 private:
     SettingsDataUtils() = default;
     ~SettingsDataUtils();
     int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
     sptr<IRemoteObject> GetToken();
-    std::vector<std::string> Split(const std::string &text, char separator);
-    std::string SetSettingValues(const std::string &settingValue, const std::string &bundleName);
 
 private:
-    static std::mutex instanceMutex_;
-    static sptr<SettingsDataUtils> instance_;
     std::mutex remoteObjMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
     std::mutex observerListMutex_;
     std::list<sptr<SettingsDataObserver>> observerList_;
+    std::atomic<bool> isDataShareReady_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

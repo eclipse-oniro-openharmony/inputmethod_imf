@@ -59,3 +59,28 @@ ohos_static_library("inputmethod_test_common") {
   subsystem_name = "inputmethod"
   part_name = "imf"
 }
+
+ohos_static_library("inputmethod_fuzztest_common") {
+  testonly = true
+  branch_protector_ret = "pac_ret"
+  sources = [
+    "src/ime_setting_listener_test_impl.cpp",
+    "src/input_method_engine_listener_impl.cpp",
+    "src/keyboard_listener_test_impl.cpp",
+    "src/text_listener.cpp",
+  ]
+  configs = [ ":test_common_config" ]
+  public_configs = [ ":test_common_public_config" ]
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_fuzz_static",
+  ]
+  external_deps = [
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+  ]
+
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
