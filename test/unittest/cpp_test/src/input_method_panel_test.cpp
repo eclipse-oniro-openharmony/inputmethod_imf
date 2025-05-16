@@ -1987,11 +1987,51 @@ HWTEST_F(InputMethodPanelTest, testStartMoving01, TestSize.Level0)
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->StartMoving();
-    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_TYPE);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     panelInfo.panelType = STATUS_BAR;
+    panelInfo.panelFlag = FLG_FIXED;
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testStartMoving02
+ * @tc.desc: Test StartMoving
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testStartMoving02, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testStartMoving start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    PanelInfo panelInfo;
+    panelInfo.panelType = STATUS_BAR;
+    panelInfo.panelFlag = FLG_CANDIDATE_COLUMN;
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_GE(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    panelInfo.panelType = SOFT_KEYBOARD;
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->StartMoving();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     panelInfo.panelFlag = FLG_FIXED;
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
