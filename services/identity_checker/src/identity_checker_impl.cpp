@@ -102,6 +102,11 @@ bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
     return AccessTokenKit::GetTokenTypeFlag(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE;
 }
 
+bool IdentityCheckerImpl::IsFormShell(AccessTokenID tokenId)
+{
+    return AccessTokenKit::GetTokenTypeFlag(tokenId) == TypeATokenTypeEnum::TOKEN_SHELL;
+}
+
 bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId)
 {
     bool isFocused = false;

@@ -63,6 +63,10 @@ public:
         {
             return isNativeSa_;
         }
+        bool IsFormShell(Security::AccessToken::AccessTokenID tokenId) override
+        {
+            return isFromShell_;
+        }
         std::string GetBundleNameByToken(uint32_t tokenId) override
         {
             return "";
@@ -77,6 +81,7 @@ public:
         static bool hasPermission_;
         static bool isBroker_;
         static bool isNativeSa_;
+        static bool isFromShell_;
     };
     static constexpr uint32_t MAIN_USER_ID = 100;
     static const constexpr char *CURRENT_IME = "testBundleName/testExtname";
@@ -96,6 +101,7 @@ bool IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
 bool IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
 bool IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
 bool IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
+bool IdentityCheckerTest::IdentityCheckerMock::isFromShell_ = false;
 
 void IdentityCheckerTest::SetUpTestCase(void)
 {
@@ -712,6 +718,24 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level1)
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
         CURRENT_BUNDLENAME, CURRENT_SUBNAME, static_cast<uint32_t>(SwitchTrigger::CURRENT_IME));
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED);
+}
+
+/**
+ * @tc.name: testSwitchInputMethod_004
+ * @tc.desc: has PERMISSION_CONNECT_IME_ABILITY, not currentIme switch subtype
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_004, TestSize.Level1)
+{
+    IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_004 start");
+    service_->identityChecker_ = identityCheckerImpl_;
+    IdentityCheckerTest::IdentityCheckerMock::isFromShell_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
+    int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
+        CURRENT_BUNDLENAME, CURRENT_SUBNAME, static_cast<uint32_t>(SwitchTrigger::NATIVE_SA));
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED);
 }
 

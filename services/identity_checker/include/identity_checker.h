@@ -31,6 +31,7 @@ public:
     virtual bool HasPermission(uint32_t tokenId, const std::string &permission) = 0;
     virtual bool IsBroker(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) = 0;
+    virtual bool IsFormShell(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual std::string GetBundleNameByToken(uint32_t tokenId);
     virtual bool IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId = DEFAULT_DISPLAY_ID)
     {

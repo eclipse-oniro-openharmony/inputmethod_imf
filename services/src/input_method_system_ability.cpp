@@ -1981,6 +1981,10 @@ ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<
 
 int32_t InputMethodSystemAbility::CheckEnableAndSwitchPermission()
 {
+    if (identityChecker_->IsFormShell(IPCSkeleton::GetCallingFullTokenID())) {
+        IMSA_HILOGD("is form shell!");
+        return ErrorCode::NO_ERROR;
+    }
     if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingFullTokenID()) &&
         !identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
         IMSA_HILOGE("not native sa or system app!");
