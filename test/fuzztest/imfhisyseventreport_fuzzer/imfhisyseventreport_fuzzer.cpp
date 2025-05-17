@@ -133,6 +133,16 @@ void TestBaseTextOperation(const uint8_t *data, size_t size)
                     .Build();
     ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *info);
 }
+
+void TestRecordBaseTextOperationStatistics(const uint8_t *data, size_t size)
+{
+    auto code = static_cast<int32_t>(size);
+    auto info = HiSysOriginalInfo::Builder()
+                    .SetErrCode(code)
+                    .Build();
+    ImaHiSysEventReporter::GetInstance().RecordBaseTextOperationStatistics(*info);
+    ImaHiSysEventReporter::GetInstance().RecordImeStartInputStatistics(*info);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -147,5 +157,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestClientShow(data, size);
     OHOS::TestStartInput(data, size);
     OHOS::TestBaseTextOperation(data, size);
+    OHOS::TestRecordBaseTextOperationStatistics(data, size);
     return 0;
 }
