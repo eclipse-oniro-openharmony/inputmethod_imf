@@ -1947,5 +1947,52 @@ HWTEST_F(InputMethodControllerTest, testUpdateTextPreviewState, TestSize.Level0)
     inputMethodController_->UpdateTextPreviewState(true);
     EXPECT_TRUE(inputMethodController_->textConfig_.inputAttribute.isTextPreviewSupported);
 }
+
+/**
+ * @tc.name: RegisterWindowScaleCallbackHandler
+ * @tc.desc: test IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, RegisterWindowScaleCallbackHandler, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC RegisterWindowScaleCallbackHandler Test START");
+    ASSERT_NE(inputMethodController_, nullptr);
+    EXPECT_EQ(inputMethodController_->windowScaleCallback_, nullptr);
+    auto callback = [] (int32_t& x, int32_t& y, uint32_t windowId) {
+        return 0;
+    };
+    auto res = inputMethodController_->RegisterWindowScaleCallbackHandler(std::move(callback));
+    EXPECT_EQ(res, 0);
+    EXPECT_NE(inputMethodController_->windowScaleCallback_, nullptr);
+}
+
+/**
+ * @tc.name: GetWindowScaleCoordinate
+ * @tc.desc: test IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, GetWindowScaleCoordinate, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC GetWindowScaleCoordinate Test START");
+    ASSERT_NE(inputMethodController_, nullptr);
+    int32_t x = 100;
+    int32_t y = 100;
+    uint32_t windowId = 100;
+    inputMethodController_->GetWindowScaleCoordinate(x, y, windowId);
+    EXPECT_EQ(x, 100);
+    EXPECT_EQ(y, 100);
+    auto callback = [] (int32_t& x, int32_t& y, uint32_t windowId) {
+        x++;
+        y++;
+        return 0;
+    };
+    auto res = inputMethodController_->RegisterWindowScaleCallbackHandler(std::move(callback));
+    EXPECT_EQ(res, 0);
+    inputMethodController_->GetWindowScaleCoordinate(x, y, windowId);
+    EXPECT_EQ(x, 101);
+    EXPECT_EQ(y, 101);
+}
 } // namespace MiscServices
 } // namespace OHOS

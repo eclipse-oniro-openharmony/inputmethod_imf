@@ -207,9 +207,15 @@ void InputMethodController::DeactivateClient()
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
 {
     IMSA_HILOGD("textConfig: %{public}s.", textConfig.ToString().c_str());
+    int32_t x = textConfig.cursorInfo.left;
+    int32_t y = textConfig.cursorInfo.top;
+    uint32_t windowId = textConfig.windowId;
+    GetWindowScaleCoordinate(x, y, windowId);
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_ = textConfig;
+        textConfig_.cursorInfo.left = x;
+        textConfig_.cursorInfo.top = y;
         StringUtils::TruncateUtf16String(textConfig_.inputAttribute.placeholder, MAX_PLACEHOLDER_SIZE);
         StringUtils::TruncateUtf16String(textConfig_.inputAttribute.abilityName, MAX_ABILITY_NAME_SIZE);
     }
@@ -739,6 +745,16 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         IMSA_HILOGD("not editable.");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
+    int32_t x = cursorInfo.left;
+    int32_t y = cursorInfo.top;
+    uint32_t windowId = 0;
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        windowId = textConfig_.windowId;
+    }
+    GetWindowScaleCoordinate(x, y, windowId);
+    cursorInfo.left = x;
+    cursorInfo.top = y;
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_.cursorInfo = cursorInfo;
@@ -1715,6 +1731,28 @@ int32_t InputMethodController::SendPrivateData(const std::unordered_map<std::str
     }
     Value value(privateCommand);
     return proxy->SendPrivateData(value);
+}
+
+int32_t InputMethodController::RegisterWindowScaleCallbackHandler(WindowScaleCallback&& callback)
+{
+    IMSA_HILOGD("isRegister: %{public}d", callback != nullptr);
+    std::lock_guard<std::mutex> lock(windowScaleCallbackMutex_);
+    windowScaleCallback_ = std::move(callback);
+    return static_cast<int32_t>(ErrorCode::NO_ERROR);
+}
+
+void InputMethodController::GetWindowScaleCoordinate(int32_t& x, int32_t& y, uint32_t windowId)
+{
+    WindowScaleCallback handler = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(windowScaleCallbackMutex_);
+        handler = windowScaleCallback_;
+    }
+    if (handler == nullptr) {
+        IMSA_HILOGD("handler is nullptr");
+        return;
+    }
+    handler(x, y, windowId);
 }
 } // namespace MiscServices
 } // namespace OHOS
