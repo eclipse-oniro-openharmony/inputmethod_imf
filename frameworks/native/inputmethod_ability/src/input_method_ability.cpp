@@ -469,6 +469,16 @@ int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodAbility::OnDiscardTypingText()
+{
+    auto imeListener = GetImeListener();
+    if (imeListener == nullptr) {
+        IMSA_HILOGE("imeListener is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    return imeListener_->OnDiscardTypingText();
+}
+
 int32_t InputMethodAbility::HideKeyboard()
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
@@ -1260,6 +1270,14 @@ bool InputMethodAbility::IsEnable()
     return imeListener_->IsEnable();
 }
 
+bool InputMethodAbility::IsCallbackRegistered(const std::string &type)
+{
+    if (imeListener_ == nullptr) {
+        return false;
+    }
+    return imeListener_->IsCallbackRegistered(type);
+}
+
 bool InputMethodAbility::IsSystemApp()
 {
     IMSA_HILOGD("InputMethodAbility start");
@@ -1771,6 +1789,7 @@ bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent
         return true;
     }
     if (!keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY)) {
+        IMSA_HILOGD("num lock off");
         return false;
     }
     if (MMI::KeyEvent::KEYCODE_NUMPAD_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_NUMPAD_9) {

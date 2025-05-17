@@ -17,11 +17,17 @@
 
 #include <utility>
 
+#define private public
+#define protected public
 #include "input_method_ability.h"
+#undef private
+
+#include "input_client_service_impl.h"
 #include "input_method_engine_listener_impl.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
+constexpr int32_t MAIN_USER_ID = 100;
 class KeyboardListenerImpl : public KeyboardListener {
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
     {
@@ -40,6 +46,22 @@ class KeyboardListenerImpl : public KeyboardListener {
     void OnTextChange(const std::string &text) { }
     void OnEditorAttributeChange(const InputAttribute &inputAttribute) { }
 };
+
+bool InitializeClientInfo(InputClientInfo &clientInfo)
+{
+    sptr<IInputClient> clientStub = new (std::nothrow) InputClientServiceImpl();
+    if (clientStub == nullptr) {
+        IMSA_HILOGE("failed to create client");
+        return false;
+    }
+    sptr<InputDeathRecipient> deathRecipient = new (std::nothrow) InputDeathRecipient();
+    if (deathRecipient == nullptr) {
+        IMSA_HILOGE("failed to new deathRecipient");
+        return false;
+    }
+    clientInfo = { .userID = MAIN_USER_ID, .client = clientStub, .deathRecipient = deathRecipient };
+    return true;
+}
 
 void TestInsertText(const std::string &fuzzedString)
 {
@@ -129,6 +151,47 @@ void TestCallingDisplayIdChanged(uint64_t fuzzedUint64)
 {
     InputMethodAbility::GetInstance().OnCallingDisplayIdChanged(fuzzedUint64);
 }
+
+void TestRegisterProxyIme(uint64_t fuzzedUint64)
+{
+    InputMethodAbility::GetInstance().RegisterProxyIme(fuzzedUint64);
+}
+
+void TestUnregisterProxyIme(uint64_t fuzzedUint64)
+{
+    InputMethodAbility::GetInstance().UnregisterProxyIme(fuzzedUint64);
+}
+
+void TestStartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
+{
+    InputMethodAbility::GetInstance().StartInput(clientInfo, isBindFromClient);
+}
+
+void TestIsDisplayChanged(uint64_t oldDisplayId, uint64_t newDisplayId)
+{
+    InputMethodAbility::GetInstance().IsDisplayChanged(oldDisplayId, newDisplayId);
+}
+
+void TestOnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd,
+    int32_t newBegin, int32_t newEnd)
+{
+    InputMethodAbility::GetInstance().OnSelectionChange(text, oldBegin, oldEnd, newBegin, newEnd);
+}
+
+void TestOperationKeyboard(int32_t cmdId, uint32_t sessionId)
+{
+    InputMethodAbility::GetInstance().HideKeyboardImplWithoutLock(cmdId, sessionId);
+    InputMethodAbility::GetInstance().ShowKeyboardImplWithLock(cmdId);
+}
+void TestInterfaceCoverage(int32_t dataInt32, bool dataBool, std::u16string &text, int64_t consumeTime)
+{
+    InputMethodAbility::GetInstance().SelectByMovement(dataInt32);
+    InputMethodAbility::GetInstance().GetEnterKeyType(dataInt32);
+    InputMethodAbility::GetInstance().GetSecurityMode(dataInt32);
+    InputMethodAbility::GetInstance().FinishTextPreview(dataBool);
+    InputMethodAbility::GetInstance().GetTextBeforeCursor(dataInt32, text);
+    InputMethodAbility::GetInstance().ReportBaseTextOperation(dataInt32, dataInt32, consumeTime);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -138,6 +201,21 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     auto fuzzedInt32 = static_cast<int32_t>(size);
     auto fuzzedUint64 = static_cast<uint64_t>(size);
+    auto fuzzedInt64 = static_cast<int64_t>(size);
+    InputClientInfo clientInfo;
+    if (!OHOS::InitializeClientInfo(clientInfo)) {
+        return false;
+    }
+    auto fuzzedBool = static_cast<bool>(data[0] % 2);
+
+    uint64_t dataValue;
+    memcpy(&dataValue, data, sizeof(uint64_t));
+
+    int32_t int32Value;
+    memcpy(&int32Value, data, sizeof(int32_t));
+
+    std::u16string fuzzedU16String = u"insert text";
+
     OHOS::TestInsertText(fuzzedString);
 
     OHOS::TestSetImeListener();
@@ -163,5 +241,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestGetEnterKeyType();
     OHOS::TestGetInputPattern();
     OHOS::TestCallingDisplayIdChanged(fuzzedUint64);
+    OHOS::TestRegisterProxyIme(fuzzedUint64);
+    OHOS::TestUnregisterProxyIme(fuzzedUint64);
+    OHOS::TestStartInput(clientInfo, fuzzedBool);
+    OHOS::TestIsDisplayChanged(dataValue, fuzzedUint64);
+    OHOS::TestOnSelectionChange(fuzzedU16String, fuzzedInt32, fuzzedInt32, int32Value, int32Value);
+    OHOS::TestOperationKeyboard(fuzzedInt32, int32Value);
+    OHOS::TestInterfaceCoverage(fuzzedInt32, fuzzedBool, fuzzedU16String, fuzzedInt64);
     return 0;
 }

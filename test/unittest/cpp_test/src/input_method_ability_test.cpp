@@ -18,6 +18,7 @@
 
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
+#include "key_event_util.h"
 #include "task_manager.h"
 #undef private
 
@@ -288,6 +289,28 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testSerializedInputAttribute001
+ * @tc.desc: Checkout the serialization of InputAttribute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute001, TestSize.Level0)
+{
+    InputAttributeInner inAttribute;
+    inAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
+    Parcel data;
+    EXPECT_TRUE(inAttribute.Marshalling(data));
+    InputAttributeInner* outInnerAttribute = InputAttributeInner::Unmarshalling(data);
+    if (outInnerAttribute == nullptr) {
+        return;
+    }
+    InputAttribute outAttribute;
+    outAttribute.inputPattern = outInnerAttribute->inputPattern;
+    EXPECT_TRUE(outAttribute.IsSecurityImeFlag());
+    EXPECT_TRUE(outAttribute.IsOneTimeCodeFlag());
+    delete outInnerAttribute;
+}
+
+/**
  * @tc.name: testSerializedInputAttribute
  * @tc.desc: Checkout the serialization of InputAttribute.
  * @tc.type: FUNC
@@ -358,6 +381,19 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Le
 {
     IMSA_HILOGI("InputMethodAbilityTest testHideKeyboardWithoutImeListener start.");
     auto ret = inputMethodAbility_.HideKeyboard();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testDiscardTypingTextWithoutImeListener
+ * @tc.desc: InputMethodAbility DiscardTypingText without imeListener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testDiscardTypingTextWithoutImeListener, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testDiscardTypingTextWithoutImeListener start.");
+    auto ret = inputMethodAbility_.OnDiscardTypingText();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -1617,6 +1653,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     std::string vailidString = "";
     std::shared_ptr<ImeInfo> info;
     bool needHide = false;
+    InputType type = InputType::NONE;
     auto ret = imsa_->OnStartInputType(vailidUserId, switchInfo, true);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 
@@ -1625,7 +1662,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     ret = imsa_->SwitchExtension(vailidUserId, info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchSubType(vailidUserId, info);
-    imsa_->NeedHideWhenSwitchInputType(vailidUserId, needHide);
+    imsa_->NeedHideWhenSwitchInputType(vailidUserId, type, needHide);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchInputType(vailidUserId, switchInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND);
@@ -1695,6 +1732,193 @@ HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_002, TestSize.Level0)
     InputMethodAbilityTest::inputMethodAbility_.imeListener_ = nullptr;
     auto ret = InputMethodAbilityTest::inputMethodAbility_.OnSendPrivateData(privateCommand);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_001
+ * @tc.desc: Checkout keyEvent is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_001 START");
+    EXPECT_FALSE(InputMethodAbilityTest::inputMethodAbility_.HandleUnconsumedKey(nullptr));
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_002
+ * @tc.desc: Checkout GetInputDataChannelProxy is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_002 START");
+
+    InputMethodAbilityTest::inputMethodAbility_.ClearDataChannel(
+        InputMethodAbilityTest::inputMethodAbility_.dataChannelObject_);
+    std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+    EXPECT_FALSE(inputMethodAbility_.HandleUnconsumedKey(keyEvent));
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_003
+ * @tc.desc: Checkout InputMethodAbility.needAutoInputNumkey is false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_003 START");
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    inputMethodAbility_.inputAttribute_.needAutoInputNumkey = false;
+    std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+    EXPECT_FALSE(inputMethodAbility_.HandleUnconsumedKey(keyEvent));
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_004
+ * @tc.desc: Checkout the keyEvent is not down key.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_004 START");
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    inputMethodAbility_.inputAttribute_.needAutoInputNumkey = true;
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_UP);
+    EXPECT_FALSE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_005
+ * @tc.desc: Checkout only handle single key.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_005 START");
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    inputMethodAbility_.inputAttribute_.needAutoInputNumkey = true;
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_0, MMI::KeyEvent::KEY_ACTION_DOWN);
+    ASSERT_TRUE(keyEvent != nullptr);
+    MMI::KeyEvent::KeyItem keyItem;
+    keyItem.SetKeyCode(MMI::KeyEvent::KEYCODE_A);
+    keyItem.SetPressed(true);
+    keyEvent->AddPressedKeyItems(keyItem);
+    EXPECT_FALSE(inputMethodAbility_.HandleUnconsumedKey(keyEvent));
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_006
+ * @tc.desc: Checkout KEYCODE_0 to KEYCODE_9.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_006, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_006 START");
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    inputMethodAbility_.inputAttribute_.needAutoInputNumkey = true;
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_6, MMI::KeyEvent::KEY_ACTION_DOWN);
+    EXPECT_TRUE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_007
+ * @tc.desc: Checkout the GetFunctionKey.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_007, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_007 START");
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    inputMethodAbility_.inputAttribute_.needAutoInputNumkey = true;
+
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_NUMPAD_0, MMI::KeyEvent::KEY_ACTION_DOWN);
+    ASSERT_TRUE(keyEvent != nullptr);
+    keyEvent->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
+    EXPECT_FALSE(inputMethodAbility_.HandleUnconsumedKey(keyEvent));
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_008
+ * @tc.desc: Checkout KEYCODE_NUMPAD_0 to KEYCODE_NUMPAD_9.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_008, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_008 START");
+
+    sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
+    auto channelProxy = std::make_shared<InputDataChannelProxy>(channelObject->AsObject());
+    InputMethodAbility::GetInstance().dataChannelProxy_ = channelProxy;
+    InputMethodAbility::GetInstance().inputAttribute_.needAutoInputNumkey = true;
+
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_NUMPAD_0, MMI::KeyEvent::KEY_ACTION_DOWN);
+    keyEvent->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, true);
+    auto ret = InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_009
+ * @tc.desc: Checkout the serialization of InputAttribute.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_009, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_009 START");
+    sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
+    auto channelProxy = std::make_shared<InputDataChannelProxy>(channelObject->AsObject());
+    InputMethodAbility::GetInstance().dataChannelProxy_ = channelProxy;
+    InputMethodAbility::GetInstance().inputAttribute_.needAutoInputNumkey = true;
+
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
+    EXPECT_FALSE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_010
+ * @tc.desc: Checkout < KEYCODE_0 or > KEYCODE_9.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_010, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_010 START");
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    inputMethodAbility_.inputAttribute_.needAutoInputNumkey = true;
+
+    int32_t keyCode = MMI::KeyEvent::KEYCODE_0 - 1;
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_DOWN);
+    EXPECT_FALSE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
+
+    keyCode = MMI::KeyEvent::KEYCODE_9 + 1;
+    keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_DOWN);
+    EXPECT_FALSE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testHandleUnconsumedKey_011
+ * @tc.desc: Checkout < KEYCODE_NUMPAD_0 or > KEYCODE_NUMPAD_9.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_011, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_011 START");
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    inputMethodAbility_.inputAttribute_.needAutoInputNumkey = true;
+
+    int32_t keyCode = MMI::KeyEvent::KEYCODE_NUMPAD_0 - 1;
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_DOWN);
+    EXPECT_FALSE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
+
+    keyCode = MMI::KeyEvent::KEYCODE_NUMPAD_9 + 1;
+    keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_DOWN);
+    EXPECT_FALSE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 } // namespace MiscServices
 } // namespace OHOS

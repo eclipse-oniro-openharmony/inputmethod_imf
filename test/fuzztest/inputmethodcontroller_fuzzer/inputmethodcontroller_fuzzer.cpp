@@ -57,6 +57,7 @@ void TestDispatchKeyEvent(sptr<InputMethodController> imc, int32_t fuzzedInt32)
 {
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc->Attach(textListener);
+    imc->isBound_.store(true);
 
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     keyEvent->SetKeyAction(fuzzedInt32);
@@ -69,6 +70,7 @@ void TestOnSelectionChange(sptr<InputMethodController> imc, std::u16string fuzze
 {
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc->Attach(textListener);
+    imc->isBound_.store(true);
 
     CursorInfo cursorInfo;
     cursorInfo.height = fuzzedDouble;
@@ -84,6 +86,7 @@ void TestOnConfigurationChange(sptr<InputMethodController> imc)
 {
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc->Attach(textListener);
+    imc->isBound_.store(true);
 
     Configuration info;
     EnterKeyType keyType = EnterKeyType::DONE;
@@ -108,6 +111,7 @@ void TestSetCallingWindow(sptr<InputMethodController> imc, uint32_t fuzzedUInt32
 {
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc->Attach(textListener);
+    imc->isBound_.store(true);
 
     imc->SetCallingWindow(fuzzedUInt32);
     imc->ShowSoftKeyboard();
@@ -118,6 +122,7 @@ void TestShowSomething(sptr<InputMethodController> imc)
 {
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc->Attach(textListener);
+    imc->isBound_.store(true);
     imc->ShowCurrentInput();
     imc->HideCurrentInput();
 
@@ -198,6 +203,15 @@ void FUZZSendPrivateData(sptr<InputMethodController> imc, const std::string &fuz
     fuzzedPrivateCommand.emplace("value", privateDataValue);
     imc->SendPrivateData(fuzzedPrivateCommand);
 }
+
+void FUZZGetInputStartInfo(sptr<InputMethodController> imc, bool &dataBool,
+    uint32_t &callingWndId, int32_t &int32Value, const std::string &fuzzedString)
+{
+    imc->GetInputStartInfo(dataBool, callingWndId, int32Value);
+    imc->EnableIme(fuzzedString);
+    imc->IsCurrentImeByPid(int32Value);
+    imc->UpdateTextPreviewState(dataBool);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -213,6 +227,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     auto fuzzedint64 = static_cast<int64_t>(size);
     auto fuzzedDouble = static_cast<double>(size);
     auto fuzzedTrigger = static_cast<SwitchTrigger>(size);
+    auto fuzzedBool = static_cast<bool>(data[0] % 2);
 
     OHOS::sptr<InputMethodController> imc = InputMethodController::GetInstance();
 
@@ -232,5 +247,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::FUZZPrintLogIfAceTimeout(imc, fuzzedint64);
     OHOS::TestUpdateListenEventFlag(imc, fuzzedUint32);
     OHOS::FUZZSendPrivateData(imc, fuzzedString);
+    OHOS::FUZZGetInputStartInfo(imc, fuzzedBool, fuzzedUint32, fuzzedInt32, fuzzedString);
     return 0;
 }

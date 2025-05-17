@@ -26,4 +26,5 @@ interface OHOS.MiscServices.IInputMethodAgent {
     void OnAttributeChange([in] InputAttributeInner attributeInner);
     void SendPrivateCommand([in] Value value);
     void SendMessage([in] ArrayBuffer arraybuffer);
+    void DiscardTypingText();
 }

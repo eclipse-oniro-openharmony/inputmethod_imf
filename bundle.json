@@ -59,7 +59,8 @@
               "resource_management",
               "screenlock_mgr",
               "cJSON",
-              "idl_tool"
+              "icu",
+              "selinux_adapter"
           ]
       }, 
       "build": {

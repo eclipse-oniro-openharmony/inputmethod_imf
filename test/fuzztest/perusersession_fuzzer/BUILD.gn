@@ -52,9 +52,12 @@ ohos_fuzztest("PerUserSessionFuzzTest") {
 
   external_deps = [
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",

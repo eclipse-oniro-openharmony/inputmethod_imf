@@ -1380,4 +1380,34 @@ describe('InputMethodWithAttachTest', function () {
       done();
     }
   });
+
+  /*
+   * @tc.number  inputmethod_with_attach_test_discardTypingText
+   * @tc.name    discard Typing Text
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_with_attach_test_discardTypingText', 0, async function (done) {
+    console.info('************* inputmethod_with_attach_test_discardTypingText Test start*************');
+    let cfg = {
+      inputAttribute:
+      {
+        textInputType: inputMethod.TextInputType.TEXT,
+        enterKeyType: inputMethod.EnterKeyType.SEARCH
+      }
+    };
+    await inputMethod.getController().attach(true, cfg);
+    let inputMethodCtrl = inputMethod.getController();
+    inputMethodCtrl.discardTypingText((err) => {
+      if (err) {
+        console.info(`inputmethod_with_attach_test_discardTypingText result: ${JSON.stringify(err)}`);
+        expect().assertFail();
+        done();
+      }
+      console.info('inputmethod_with_attach_test_discardTypingText callback success');
+      expect(true).assertTrue();
+      done();
+    });
+    console.info('************* inputmethod_with_attach_test_discardTypingText Test end*************');
+  });
 });

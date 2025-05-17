@@ -55,6 +55,7 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
@@ -64,6 +65,11 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
     "safwk:system_ability_fwk",
     "window_manager:libdm_lite",
   ]
+
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags += [ "-DWITH_SELINUX" ]
+  }
 }
 
 ###############################################################################

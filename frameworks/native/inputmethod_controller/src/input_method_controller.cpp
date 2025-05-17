@@ -35,6 +35,7 @@
 #include "keyevent_consumer_service_impl.h"
 #include "on_demand_start_stop_sa.h"
 #include "string_ex.h"
+#include "string_utils.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
@@ -54,6 +55,8 @@ constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t LOG_MAX_TIME = 20;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
+constexpr int32_t MAX_PLACEHOLDER_SIZE = 255; // 256 utf16 char
+constexpr int32_t MAX_ABILITY_NAME_SIZE = 127; // 127 utf16 char
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure.");
@@ -207,6 +210,8 @@ void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_ = textConfig;
+        StringUtils::TruncateUtf16String(textConfig_.inputAttribute.placeholder, MAX_PLACEHOLDER_SIZE);
+        StringUtils::TruncateUtf16String(textConfig_.inputAttribute.abilityName, MAX_ABILITY_NAME_SIZE);
     }
     if (textConfig.range.start != INVALID_VALUE) {
         std::lock_guard<std::mutex> lock(editorContentLock_);
@@ -708,6 +713,20 @@ void InputMethodController::RestoreClientInfoInSaDied()
     for (int i = 0; i < LOOP_COUNT; i++) {
         handler_->PostTask(attachTask, "OnRemoteSaDied", DELAY_TIME * (i + 1), AppExecFwk::EventQueue::Priority::VIP);
     }
+}
+
+int32_t InputMethodController::DiscardTypingText()
+{
+    if (!IsBound()) {
+        IMSA_HILOGE("not bound.");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return agent->DiscardTypingText();
 }
 
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)

@@ -46,6 +46,7 @@ ohos_fuzztest("InputMethodAbilityFuzzTest") {
 
   external_deps = [
     "ability_runtime:ability_manager",
+    "ability_runtime:runtime",
     "c_utils:utils",
     "hilog:libhilog",
     "input:libmmi-client",

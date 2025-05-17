@@ -16,8 +16,6 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_DATA_CHANNEL_IMPL_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_DATA_CHANNEL_IMPL_H
 
-#include "system_ability.h"
-
 #include "iinput_data_channel.h"
 #include "input_data_channel_stub.h"
 #include "iremote_object.h"

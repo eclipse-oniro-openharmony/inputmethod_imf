@@ -12,7 +12,7 @@
 # limitations under the License.
 import("//base/inputmethod/imf/inputmethod.gni")
 import(
-    "${startup_init_path}/services/modules/seccomp/scripts/seccomp_policy_fixer.gni")
+    "//build/config/components/init/seccomp/scripts/seccomp_policy_fixer.gni")
 
 ohos_prebuilt_seccomp("imf_ext_secure_filter") {
   sources = [ "imf_ext_secure_mode.seccomp.policy" ]

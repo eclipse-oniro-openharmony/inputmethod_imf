@@ -76,46 +76,43 @@ bool InputTypeManager::IsStarted()
 
 bool InputTypeManager::IsSecurityImeStarted()
 {
-    if (!IsStarted()) {
-        return false;
-    }
-
+    InputType type = InputType::SECURITY_INPUT;
+    return IsInputTypeImeStarted(type);
     std::lock_guard<std::mutex> lock(typesLock_);
-    return inputTypes_.find(InputType::SECURITY_INPUT) != inputTypes_.end() &&
-           inputTypes_[InputType::SECURITY_INPUT] == GetCurrentIme();
 }
 
 bool InputTypeManager::IsCameraImeStarted()
 {
-    if (!IsStarted()) {
-        return false;
-    }
-
-    std::lock_guard<std::mutex> lock(typesLock_);
-    return inputTypes_.find(InputType::CAMERA_INPUT) != inputTypes_.end() &&
-           inputTypes_[InputType::CAMERA_INPUT] == GetCurrentIme();
+    InputType type = InputType::CAMERA_INPUT;
+    return IsInputTypeImeStarted(type);
 }
 
 bool InputTypeManager::IsVoiceImeStarted()
 {
-    if (!IsStarted()) {
-        return false;
-    }
-
-    std::lock_guard<std::mutex> lock(typesLock_);
-    return inputTypes_.find(InputType::VOICE_INPUT) != inputTypes_.end() &&
-           inputTypes_[InputType::VOICE_INPUT] == GetCurrentIme();
+    InputType type = InputType::VOICE_INPUT;
+    return IsInputTypeImeStarted(type);
 }
 
 bool InputTypeManager::IsVoiceKbImeStarted()
 {
+    InputType type = InputType::VOICEKB_INPUT;
+    return IsInputTypeImeStarted(type);
+}
+
+bool InputTypeManager::IsOneTimeCodeImeStarted()
+{
+    InputType type = InputType::ONE_TIME_CODE;
+    return IsInputTypeImeStarted(type);
+}
+
+bool InputTypeManager::IsInputTypeImeStarted(InputType type)
+{
     if (!IsStarted()) {
         return false;
     }
-
     std::lock_guard<std::mutex> lock(typesLock_);
-    return inputTypes_.find(InputType::VOICEKB_INPUT) != inputTypes_.end() &&
-           inputTypes_[InputType::VOICEKB_INPUT] == GetCurrentIme();
+    return inputTypes_.find(type) != inputTypes_.end() &&
+           inputTypes_[type] == GetCurrentIme();
 }
 
 InputType InputTypeManager::GetCurrentInputType()
@@ -131,6 +128,9 @@ InputType InputTypeManager::GetCurrentInputType()
     }
     if (IsVoiceKbImeStarted()) {
         return InputType::VOICEKB_INPUT;
+    }
+    if (IsOneTimeCodeImeStarted()) {
+        return InputType::ONE_TIME_CODE;
     }
     return InputType::NONE;
 }

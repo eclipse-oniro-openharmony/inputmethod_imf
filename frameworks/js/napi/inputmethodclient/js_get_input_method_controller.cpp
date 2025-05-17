@@ -26,6 +26,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
+#include "string_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -33,6 +34,7 @@ constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr int32_t MAX_WAIT_TIME_MESSAGE_HANDLER = 2000;
+constexpr int32_t MAX_WAIT_TIME_ATTACH = 2000;
 const std::set<std::string> EVENT_TYPE{
     "selectByRange",
     "selectByMovement",
@@ -56,6 +58,7 @@ std::shared_ptr<JsGetInputMethodController> JsGetInputMethodController::controll
 std::mutex JsGetInputMethodController::eventHandlerMutex_;
 std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodController::handler_{ nullptr };
 BlockQueue<MessageHandlerInfo> JsGetInputMethodController::messageHandlerQueue_{ MAX_WAIT_TIME_MESSAGE_HANDLER };
+BlockQueue<AttachInfo> JsGetInputMethodController::attachQueue_{ MAX_WAIT_TIME_ATTACH };
 napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
 {
     napi_property_descriptor descriptor[] = {
@@ -89,6 +92,7 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
         DECLARE_NAPI_FUNCTION("sendMessage", SendMessage),
         DECLARE_NAPI_FUNCTION("recvMessage", RecvMessage),
+        DECLARE_NAPI_FUNCTION("discardTypingText", DiscardTypingText),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, IMC_CLASS_NAME.c_str(), IMC_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -162,6 +166,10 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     napi_value typeUrl = nullptr;
     napi_value typeVisiblePassword = nullptr;
     napi_value typeNumberPassword = nullptr;
+    napi_value typeScreenLockPassword = nullptr;
+    napi_value typeUserName = nullptr;
+    napi_value typeNewPassword = nullptr;
+    napi_value typeNumberDecimal = nullptr;
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NONE), &typeNone));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::TEXT), &typeText));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::MULTILINE), &typeMultiline));
@@ -172,6 +180,11 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::URL), &typeUrl));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD), &typeVisiblePassword));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NUMBER_PASSWORD), &typeNumberPassword));
+    NAPI_CALL(env, napi_create_int32(env,
+        static_cast<int32_t>(TextInputType::SCREEN_LOCK_PASSWORD), &typeScreenLockPassword));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::USER_NAME), &typeUserName));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NEW_PASSWORD), &typeNewPassword));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NUMBER_DECIMAL), &typeNumberDecimal));
     NAPI_CALL(env, napi_create_object(env, &textInputType));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "NONE", typeNone));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "TEXT", typeText));
@@ -183,7 +196,13 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "URL", typeUrl));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "VISIBLE_PASSWORD", typeVisiblePassword));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "NUMBER_PASSWORD", typeNumberPassword));
-    return textInputType;
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "SCREEN_LOCK_PASSWORD", typeScreenLockPassword));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "USER_NAME", typeUserName));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "NEW_PASSWORD", typeNewPassword));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "NUMBER_DECIMAL", typeNumberDecimal));
+    bool ret = JsUtil::Object::WriteProperty(env, textInputType, "ONE_TIME_CODE",
+        static_cast<int32_t>(TextInputType::ONE_TIME_CODE));
+    return ret ? textInputType : JsUtil::Const::Null(env);
 }
 
 napi_value JsGetInputMethodController::GetJsDirectionProperty(napi_env env)
@@ -544,6 +563,7 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, Range &ou
  *     end: number
  *   },
  *   windowId?: number
+ *   newEditBox?: boolean
  * }
  */
 bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfig &out)
@@ -553,7 +573,6 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
     CHECK_RETURN(status == napi_ok, "inputAttribute must be InputAttribute!", false);
     bool ret = JsGetInputMethodController::GetValue(env, attributeResult, out.inputAttribute);
     CHECK_RETURN(ret, "inputAttribute of TextConfig must be valid!", ret);
-
     napi_value cursorInfoResult = nullptr;
     status = JsUtils::GetValue(env, in, "cursorInfo", cursorInfoResult);
     bool result = false;
@@ -576,6 +595,10 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
     result = JsUtil::Object::ReadProperty(env, in, "windowId", out.windowId);
     if (!result) {
         IMSA_HILOGE("get windowId failed.");
+    }
+    result = JsUtil::Object::ReadProperty(env, in, "newEditBox", out.newEditBox);
+    if (!result) {
+        IMSA_HILOGE("get newEditBox failed.");
     }
     return ret;
 }
@@ -602,10 +625,13 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
                 JsUtil::GetValue(env, argv[2], ctxt->requestKeyboardReason);
             }
         }
+        ctxt->info = { std::chrono::system_clock::now(), ctxt->attribute};
+        attachQueue_.Push(ctxt->info);
         return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
-        ctxt->textListener = JsGetInputMethodTextChangedListener::GetInstance();
+        attachQueue_.Wait(ctxt->info);
+        ctxt->textListener = JsGetInputMethodTextChangedListener::GetTextListener(ctxt->textConfig.newEditBox);
         OHOS::MiscServices::AttachOptions attachOptions;
         attachOptions.isShowKeyboard = ctxt->showKeyboard;
         attachOptions.requestKeyboardReason =
@@ -615,6 +641,7 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
         if (instance != nullptr) {
             status = instance->Attach(ctxt->textListener, attachOptions, ctxt->textConfig, ClientType::JS);
         }
+        attachQueue_.Pop();
         ctxt->SetErrorCode(status);
         CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "attach return error!");
         ctxt->SetState(napi_ok);
@@ -693,6 +720,22 @@ napi_value JsGetInputMethodController::HideTextInput(napi_env env, napi_callback
                 return ErrorCode::ERROR_CLIENT_NULL_POINTER;
             }
             return instance->HideTextInput();
+        },
+        false, true);
+}
+
+napi_value JsGetInputMethodController::DiscardTypingText(napi_env env, napi_callback_info info)
+{
+    InputMethodSyncTrace tracer("JsGetInputMethodController_DiscardTypingText");
+    return HandleSoftKeyboard(
+        env, info
+        , [] {
+            auto instance = InputMethodController::GetInstance();
+            if (instance == nullptr) {
+                IMSA_HILOGE("GetInstance return nullptr!");
+                return static_cast<int32_t>(ErrorCode::ERROR_CLIENT_NULL_POINTER);
+            }
+            return instance->DiscardTypingText();
         },
         false, true);
 }
@@ -792,7 +835,14 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
 bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, InputAttribute &out)
 {
     auto ret = JsUtil::Object::ReadProperty(env, in, "textInputType", out.inputPattern);
-    return ret && JsUtil::Object::ReadProperty(env, in, "enterKeyType", out.enterKeyType);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "enterKeyType", out.enterKeyType);
+    // compatibility with older versions may not exist
+    JsUtil::Object::ReadPropertyU16String(env, in, "placeholder", out.placeholder);
+    IMSA_HILOGD("placeholder:%{public}s", StringUtils::ToHex(out.placeholder).c_str());
+    // compatibility with older versions may not exist
+    JsUtil::Object::ReadPropertyU16String(env, in, "abilityName", out.abilityName);
+    IMSA_HILOGD("abilityName:%{public}s", StringUtils::ToHex(out.abilityName).c_str());
+    return ret;
 }
 
 napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callback_info info)

@@ -62,6 +62,7 @@ enum class TextInputType {
     USER_NAME,
     NEW_PASSWORD,
     NUMBER_DECIMAL,
+    ONE_TIME_CODE,
 };
 
 enum class Direction {
@@ -391,6 +392,7 @@ struct TextConfig {
     uint32_t windowId = INVALID_WINDOW_ID;
     double positionY = 0;
     double height = 0;
+    bool newEditBox = false;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
 
     std::string ToString() const
@@ -471,6 +473,7 @@ enum class InputType : int32_t {
     SECURITY_INPUT,
     VOICE_INPUT,
     VOICEKB_INPUT,
+    ONE_TIME_CODE = 13,
     END
 };
 

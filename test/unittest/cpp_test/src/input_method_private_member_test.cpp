@@ -1342,8 +1342,9 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage002, TestSize.Level0)
     EXPECT_EQ(ret2, ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND);
 
     bool needHide = false;
+    InputType type = InputType::NONE;
     auto ret3 = service_->IsCurrentIme(INVALID_USER_ID);
-    service_->NeedHideWhenSwitchInputType(INVALID_USER_ID, needHide);
+    service_->NeedHideWhenSwitchInputType(INVALID_USER_ID, type, needHide);
     EXPECT_FALSE(ret3);
 }
 
@@ -1394,7 +1395,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     std::shared_ptr<DataShare::DataShareHelper> helper;
     std::string invaildString;
     pid_t pid { -1 };
-    auto ret = SettingsDataUtils::GetInstance().RegisterObserver(invaildString, observer);
+    auto ret = SettingsDataUtils::GetInstance().RegisterObserver(observer);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = SettingsDataUtils::GetInstance().GetStringValue(invaildString, invaildString, invaildString);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);

@@ -65,15 +65,15 @@ public:
 
 private:
     NumkeyAppsManager() = default;
-    ~NumkeyAppsManager() = default;
+    ~NumkeyAppsManager();
     NumkeyAppsManager(const NumkeyAppsManager &) = delete;
     NumkeyAppsManager(NumkeyAppsManager &&) = delete;
     NumkeyAppsManager &operator=(const NumkeyAppsManager &) = delete;
     NumkeyAppsManager &operator=(NumkeyAppsManager &&) = delete;
 
-    int32_t InitWhiteList(int32_t userId);
+    int32_t InitWhiteList();
     int32_t UpdateUserBlockList(int32_t userId);
-    static int32_t ParseWhiteList(int32_t userId, std::unordered_set<std::string> &list);
+    static int32_t ParseWhiteList(std::unordered_set<std::string> &list);
     static int32_t ParseBlockList(int32_t userId, std::unordered_set<std::string> &list);
 
     bool isFeatureEnabled_{ false };

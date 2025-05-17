@@ -55,9 +55,8 @@ public:
         bool result = true;
         while (child != nullptr) {
             std::string nodeKey = child->string;
-            cJSON *node = GetSubNode(nodes, nodeKey);
             T value;
-            bool ret = GetValue(node, "", value);
+            bool ret = GetValue(child, "", value);
             if (ret && (filter == nullptr || filter(value))) {
                 keys.push_back(nodeKey);
             }
@@ -77,9 +76,8 @@ public:
         bool result = true;
         while (child != nullptr) {
             std::string nodeKey = child->string;
-            cJSON *node = GetSubNode(nodes, nodeKey);
             T value;
-            bool ret = GetValue(node, "", value);
+            bool ret = GetValue(child, "", value);
             if (ret && (filter == nullptr || filter(value))) {
                 values.push_back(value);
             }

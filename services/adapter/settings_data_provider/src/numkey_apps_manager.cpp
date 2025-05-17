@@ -20,11 +20,11 @@
 
 namespace OHOS {
 namespace MiscServices {
-#define CHECK_FEATURE_DISABLED_RETURN(retVal)                  \
+#define CHECK_FEATURE_DISABLED_RETURN(retVal)   \
     do {                                        \
         if (!isFeatureEnabled_) {               \
             IMSA_HILOGD("feature not enabled"); \
-            return retVal;         \
+            return retVal;                      \
         }                                       \
     } while (0)
 
@@ -34,13 +34,29 @@ NumkeyAppsManager &NumkeyAppsManager::GetInstance()
     return numkeyAppsManager;
 }
 
+NumkeyAppsManager::~NumkeyAppsManager()
+{
+    if (observers_.empty()) {
+        return;
+    }
+    std::map<int32_t, sptr<SettingsDataObserver>> observers;
+    {
+        std::lock_guard<std::mutex> lock(observersLock_);
+        observers = observers_;
+        observers_.clear();
+    }
+    for (auto &observer : observers) {
+        SettingsDataUtils::GetInstance().UnregisterObserver(observer.second);
+    }
+}
+
 int32_t NumkeyAppsManager::Init(int32_t userId)
 {
     IMSA_HILOGI("start, userId: %{public}d", userId);
     isFeatureEnabled_ = ImeInfoInquirer::GetInstance().IsEnableNumKey();
     CHECK_FEATURE_DISABLED_RETURN(ErrorCode::NO_ERROR);
 
-    int32_t ret = InitWhiteList(userId);
+    int32_t ret = InitWhiteList();
     IMSA_HILOGI("InitWhiteList ret: %{public}d", ret);
 
     ret = RegisterUserBlockListData(userId);
@@ -115,13 +131,13 @@ int32_t NumkeyAppsManager::OnUserRemoved(int32_t userId)
     return ret;
 }
 
-int32_t NumkeyAppsManager::InitWhiteList(int32_t userId)
+int32_t NumkeyAppsManager::InitWhiteList()
 {
     if (isListInited_.load()) {
         return ErrorCode::NO_ERROR;
     }
     std::unordered_set<std::string> whiteList;
-    int32_t ret = ParseWhiteList(userId, whiteList);
+    int32_t ret = ParseWhiteList(whiteList);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGI("ParseWhiteList failed, ret: %{public}d", ret);
         return ret;
@@ -146,7 +162,7 @@ int32_t NumkeyAppsManager::UpdateUserBlockList(int32_t userId)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t NumkeyAppsManager::ParseWhiteList(int32_t userId, std::unordered_set<std::string> &list)
+int32_t NumkeyAppsManager::ParseWhiteList(std::unordered_set<std::string> &list)
 {
     std::string valueStr;
     int32_t ret = SettingsDataUtils::GetInstance().GetStringValue(SETTING_URI_PROXY, COMPATIBLE_APP_STRATEGY, valueStr);

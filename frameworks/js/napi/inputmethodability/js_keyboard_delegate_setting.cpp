@@ -364,8 +364,9 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &key
     if (consumer != nullptr) {
         if (!consumeResult) {
             IMSA_HILOGW("ime is not consumed, result: %{public}d.", consumeResult);
-            InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEventEntry->fullKeyEventPara);
+            consumeResult = InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEventEntry->fullKeyEventPara);
         }
+        IMSA_HILOGD("final consumed result: %{public}d.", consumeResult);
         consumer->OnKeyEventResult(consumeResult);
     }
 }
