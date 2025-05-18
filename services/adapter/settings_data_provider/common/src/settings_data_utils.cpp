@@ -29,7 +29,7 @@ SettingsDataUtils::~SettingsDataUtils()
     std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
     if (!observerList_.empty()) {
         for (auto &iter : observerList_) {
-            UnregisterObserver(iter.first, iter.second);
+            UnregisterObserver(iter);
         }
         observerList_.clear();
     }
@@ -42,25 +42,36 @@ SettingsDataUtils &SettingsDataUtils::GetInstance()
 }
 
 int32_t SettingsDataUtils::CreateAndRegisterObserver(
-    const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc func)
+    const std::string &uriProxy, const std::string &key, const SettingsDataObserver::CallbackFunc &func)
 {
     IMSA_HILOGD("uriProxy:%{public}s, key: %{public}s.", uriProxy.c_str(), key.c_str());
-    sptr<SettingsDataObserver> observer = new (std::nothrow) SettingsDataObserver(key, func);
+    sptr<SettingsDataObserver> observer = new (std::nothrow) SettingsDataObserver(uriProxy, key, func);
     if (observer == nullptr) {
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return RegisterObserver(uriProxy, observer);
+    return RegisterObserver(observer);
 }
 
-int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer)
+int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const std::string &key,
+    const SettingsDataObserver::CallbackFunc &func, sptr<SettingsDataObserver> &observer)
+{
+    observer = new (std::nothrow) SettingsDataObserver(uriProxy, key, func);
+    if (observer == nullptr) {
+        IMSA_HILOGE("observer is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return RegisterObserver(observer);
+}
+
+int32_t SettingsDataUtils::RegisterObserver(const sptr<SettingsDataObserver> &observer)
 {
     if (observer == nullptr) {
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto uri = GenerateTargetUri(uriProxy, observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(uriProxy);
+    auto uri = GenerateTargetUri(observer->GetUriProxy(), observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(observer->GetUriProxy());
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -70,24 +81,28 @@ int32_t SettingsDataUtils::RegisterObserver(const std::string &uriProxy, const s
     IMSA_HILOGD("succeed to register observer of uri: %{public}s.", uri.ToString().c_str());
 
     std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
-    observerList_.push_back(std::make_pair(uriProxy, observer));
+    observerList_.push_back(observer);
     return ErrorCode::NO_ERROR;
 }
 
-int32_t SettingsDataUtils::UnregisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer)
+int32_t SettingsDataUtils::UnregisterObserver(const sptr<SettingsDataObserver> &observer)
 {
     if (observer == nullptr) {
         IMSA_HILOGE("observer is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto uri = GenerateTargetUri(uriProxy, observer->GetKey());
-    auto helper = SettingsDataUtils::CreateDataShareHelper(uriProxy);
+    auto uri = GenerateTargetUri(observer->GetUriProxy(), observer->GetKey());
+    auto helper = SettingsDataUtils::CreateDataShareHelper(observer->GetUriProxy());
     if (helper == nullptr) {
-        return ErrorCode::ERROR_ENABLE_IME;
+        IMSA_HILOGE("helper is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     helper->UnregisterObserver(uri, observer);
     ReleaseDataShareHelper(helper);
     IMSA_HILOGD("succeed to unregister observer of uri: %{public}s.", uri.ToString().c_str());
+
+    std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
+    observerList_.remove(observer);
     return ErrorCode::NO_ERROR;
 }
 

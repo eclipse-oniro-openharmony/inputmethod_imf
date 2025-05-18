@@ -148,6 +148,7 @@ public:
     int32_t SpecialSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     uint64_t GetDisplayGroupId(uint64_t displayId);
     bool IsDefaultDisplayGroup(uint64_t displayId);
+    bool IsNumkeyAutoInputApp(const std::string &bundleName);
 
 private:
     struct ResetManager {

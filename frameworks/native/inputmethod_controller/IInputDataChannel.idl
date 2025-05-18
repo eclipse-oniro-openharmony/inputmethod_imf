@@ -22,6 +22,7 @@ sequenceable input_method_utils..OHOS.MiscServices.RangeInner;
 sequenceable input_method_utils..OHOS.MiscServices.ArrayBuffer;
 interface OHOS.MiscServices.IInputDataChannel {
     [ipccode 0] void InsertText([in] String text);
+    [oneway] void InsertTextAsync([in] String text);
     void DeleteForward([in] int length);
     void DeleteBackward([in] int length);
     void GetTextBeforeCursor([in] int number, [out] String text);

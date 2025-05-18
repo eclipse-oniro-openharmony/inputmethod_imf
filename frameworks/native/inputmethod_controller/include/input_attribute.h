@@ -41,6 +41,7 @@ struct InputAttribute {
     uint64_t callingDisplayId = 0;
     std::u16string placeholder { u"" };
     std::u16string abilityName { u"" };
+    bool needAutoInputNumkey { false }; // number keys need to be automatically handled by imf
 
     bool GetSecurityFlag() const
     {
@@ -72,6 +73,7 @@ struct InputAttribute {
         << "isTextPreviewSupported:" << isTextPreviewSupported << "bundleName:" << bundleName
         << "immersiveMode:" << immersiveMode << "windowId:" << windowId
         << "callingDisplayId:" << callingDisplayId
+        << "needNumInput: " << needAutoInputNumkey
         << "]";
         return ss.str();
     }
@@ -93,6 +95,7 @@ struct InputAttributeInner : public Parcelable {
     uint64_t callingDisplayId = 0;
     std::u16string placeholder { u"" };
     std::u16string abilityName { u"" };
+    bool needAutoInputNumkey { false }; // number keys need to be automatically handled by imf
 
     bool ReadFromParcel(Parcel &in)
     {
@@ -106,6 +109,7 @@ struct InputAttributeInner : public Parcelable {
         callingDisplayId = in.ReadUint64();
         placeholder = in.ReadString16();
         abilityName = in.ReadString16();
+        needAutoInputNumkey = in.ReadBool();
         return true;
     }
 
@@ -136,6 +140,7 @@ struct InputAttributeInner : public Parcelable {
             return false;
         }
         auto ret = out.WriteString16(placeholder) && out.WriteString16(abilityName);
+        ret = ret && out.WriteBool(needAutoInputNumkey);
         return ret;
     }
 

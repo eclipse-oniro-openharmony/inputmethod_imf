@@ -39,6 +39,16 @@ ErrCode InputDataChannelServiceImpl::InsertText(const std::string &text)
     return instance->InsertText(Str8ToStr16(text));
 }
 
+ErrCode InputDataChannelServiceImpl::InsertTextAsync(const std::string &text)
+{
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    return instance->InsertText(Str8ToStr16(text));
+}
+
 ErrCode InputDataChannelServiceImpl::DeleteForward(int32_t length)
 {
     auto instance = InputMethodController::GetInstance();

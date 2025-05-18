@@ -1395,7 +1395,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage004, TestSize.Level0)
     std::shared_ptr<DataShare::DataShareHelper> helper;
     std::string invaildString;
     pid_t pid { -1 };
-    auto ret = SettingsDataUtils::GetInstance().RegisterObserver(invaildString, observer);
+    auto ret = SettingsDataUtils::GetInstance().RegisterObserver(observer);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = SettingsDataUtils::GetInstance().GetStringValue(invaildString, invaildString, invaildString);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);

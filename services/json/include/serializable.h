@@ -45,6 +45,48 @@ public:
     static bool GetValue(cJSON *node, const std::string &name, Serializable &value);
     static bool GetValue(cJSON *node, const std::string &name, std::vector<std::vector<std::string>> &values);
     template<typename T>
+    static bool GetKeys(cJSON *nodes, std::vector<std::string> &keys, const std::function<bool(T)> &filter = nullptr)
+    {
+        if (nodes == nullptr) {
+            IMSA_HILOGE("nodes nullptr");
+            return false;
+        }
+        cJSON *child = nodes->child;
+        bool result = true;
+        while (child != nullptr) {
+            std::string nodeKey = child->string;
+            T value;
+            bool ret = GetValue(child, "", value);
+            if (ret && (filter == nullptr || filter(value))) {
+                keys.push_back(nodeKey);
+            }
+            result = result && ret;
+            child = child->next;
+        }
+        return result;
+    }
+    template<typename T>
+    static bool GetValues(cJSON *nodes, std::vector<T> &values, const std::function<bool(T)> &filter = nullptr)
+    {
+        if (nodes == nullptr) {
+            IMSA_HILOGE("nodes nullptr");
+            return false;
+        }
+        cJSON *child = nodes->child;
+        bool result = true;
+        while (child != nullptr) {
+            std::string nodeKey = child->string;
+            T value;
+            bool ret = GetValue(child, "", value);
+            if (ret && (filter == nullptr || filter(value))) {
+                values.push_back(value);
+            }
+            result = result && ret;
+            child = child->next;
+        }
+        return result;
+    }
+    template<typename T>
     static bool GetValue(cJSON *node, const std::string &name, std::vector<T> &values, int32_t maxNum = 0)
     {
         auto subNode = GetSubNode(node, name);

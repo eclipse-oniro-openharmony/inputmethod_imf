@@ -206,7 +206,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     if (!OHOS::InitializeClientInfo(clientInfo)) {
         return false;
     }
-    // auto client = iface_cast<IInputClient>(clientInfo.client->AsObject());
     auto fuzzedBool = static_cast<bool>(data[0] % 2);
 
     uint64_t dataValue;

@@ -16,6 +16,8 @@
 #ifndef SETTINGS_DATA_UTILS_H
 #define SETTINGS_DATA_UTILS_H
 
+#include <list>
+
 #include "datashare_helper.h"
 #include "input_method_property.h"
 #include "serializable.h"
@@ -37,7 +39,10 @@ public:
     static SettingsDataUtils &GetInstance();
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper(const std::string &uriProxy);
     int32_t CreateAndRegisterObserver(
-        const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc func);
+        const std::string &uriProxy, const std::string &key, const SettingsDataObserver::CallbackFunc &func);
+    int32_t RegisterObserver(const std::string &uriProxy, const std::string &key,
+        const SettingsDataObserver::CallbackFunc &func, sptr<SettingsDataObserver> &observer);
+    int32_t UnregisterObserver(const sptr<SettingsDataObserver> &observer);
     int32_t GetStringValue(const std::string &uriProxy, const std::string &key, std::string &value);
     bool SetStringValue(const std::string &uriProxy, const std::string &key, const std::string &value);
     bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
@@ -48,15 +53,14 @@ public:
 private:
     SettingsDataUtils() = default;
     ~SettingsDataUtils();
-    int32_t RegisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer);
-    int32_t UnregisterObserver(const std::string &uriProxy, const sptr<SettingsDataObserver> &observer);
+    int32_t RegisterObserver(const sptr<SettingsDataObserver> &observer);
     sptr<IRemoteObject> GetToken();
 
 private:
     std::mutex remoteObjMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
     std::mutex observerListMutex_;
-    std::vector<std::pair<std::string, sptr<SettingsDataObserver>>> observerList_;
+    std::list<sptr<SettingsDataObserver>> observerList_;
     std::atomic<bool> isDataShareReady_{ false };
 };
 } // namespace MiscServices

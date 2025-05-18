@@ -40,15 +40,15 @@ void FuzzCreateAndRegisterObserver(
 
 void FuzzRegisterObserver(const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc &func)
 {
-    sptr<SettingsDataObserver> observer = new SettingsDataObserver(key, func);
-    SettingsDataUtils::GetInstance().RegisterObserver(uriProxy, observer);
+    sptr<SettingsDataObserver> observer = new SettingsDataObserver(uriProxy, key, func);
+    SettingsDataUtils::GetInstance().RegisterObserver(observer);
 }
 
 void FuzzUnregisterObserver(
     const std::string &uriProxy, const std::string &key, SettingsDataObserver::CallbackFunc &func)
 {
-    sptr<SettingsDataObserver> observer = new SettingsDataObserver(key, func);
-    SettingsDataUtils::GetInstance().UnregisterObserver(uriProxy, observer);
+    sptr<SettingsDataObserver> observer = new SettingsDataObserver(uriProxy, key, func);
+    SettingsDataUtils::GetInstance().UnregisterObserver(observer);
 }
 
 void FuzzGenerateTargetUri(const std::string &key)

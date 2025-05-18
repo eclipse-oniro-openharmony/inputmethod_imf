@@ -60,6 +60,11 @@ bool ImeInfoInquirer::IsEnableAppAgent()
     return systemConfig_.enableAppAgentFeature;
 }
 
+bool ImeInfoInquirer::IsEnableNumKey()
+{
+    return systemConfig_.enableNumKeyFeature;
+}
+
 bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)
 {
     return systemConfig_.proxyImeUidList.find(callingUid) != systemConfig_.proxyImeUidList.end();
