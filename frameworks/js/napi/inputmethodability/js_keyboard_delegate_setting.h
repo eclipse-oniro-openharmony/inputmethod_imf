@@ -97,8 +97,9 @@ private:
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
-    static void DealKeyEvent(const std::shared_ptr<UvEntry> &keyEventEntry,
-        const std::shared_ptr<UvEntry> &keyCodeEntry, const sptr<KeyEventConsumerProxy> &consumer);
+    static void DealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
+        const std::shared_ptr<UvEntry> &keyEventEntry, const std::shared_ptr<UvEntry> &keyCodeEntry,
+        const sptr<KeyEventConsumerProxy> &consumer);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;

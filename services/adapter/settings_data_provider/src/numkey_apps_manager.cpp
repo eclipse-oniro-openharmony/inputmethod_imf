@@ -93,13 +93,6 @@ int32_t NumkeyAppsManager::OnUserSwitched(int32_t userId)
 {
     CHECK_FEATURE_DISABLED_RETURN(ErrorCode::NO_ERROR);
     IMSA_HILOGI("userId %{public}d", userId);
-    {
-        std::lock_guard<std::mutex> lock(blockListLock_);
-        if (usersBlockList_.find(userId) != usersBlockList_.end()) {
-            IMSA_HILOGI("block list already set");
-            return ErrorCode::NO_ERROR;
-        }
-    }
     RegisterUserBlockListData(userId);
     int32_t ret = UpdateUserBlockList(userId);
     if (ret != ErrorCode::NO_ERROR) {
@@ -211,6 +204,14 @@ int32_t NumkeyAppsManager::ParseBlockList(int32_t userId, std::unordered_set<std
 
 int32_t NumkeyAppsManager::RegisterUserBlockListData(int32_t userId)
 {
+    {
+        std::lock_guard<std::mutex> lock(observersLock_);
+        auto iter = observers_.find(userId);
+        if (iter != observers_.end() && iter->second != nullptr) {
+            IMSA_HILOGI("already registered, userId: %{public}d", userId);
+            return ErrorCode::NO_ERROR;
+        }
+    }
     auto func = [this, userId]() {
         IMSA_HILOGI("on block list change, userId: %{public}d", userId);
         UpdateUserBlockList(userId);
@@ -219,8 +220,8 @@ int32_t NumkeyAppsManager::RegisterUserBlockListData(int32_t userId)
     sptr<SettingsDataObserver> observer = nullptr;
     int32_t ret =
         SettingsDataUtils::GetInstance().RegisterObserver(uriProxy, COMPATIBLE_SETTING_STRATEGY, func, observer);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("RegisterObserver failed, ret: %{public}d", ret);
+    if (ret != ErrorCode::NO_ERROR || observer == nullptr) {
+        IMSA_HILOGE("RegisterObserver failed or observer nullptr, ret: %{public}d", ret);
         return ret;
     }
     IMSA_HILOGI("end, userId: %{public}d ", userId);

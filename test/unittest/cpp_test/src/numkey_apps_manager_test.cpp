@@ -155,11 +155,11 @@ HWTEST_F(NumKeyAppsManagerTest, testOnUserSwitched_001, TestSize.Level1)
 {
     IMSA_HILOGI("NumKeyAppsManagerTest testOnUserSwitched_001 START");
     NumkeyAppsManager::GetInstance().isFeatureEnabled_ = true;
-    NumkeyAppsManager::GetInstance().usersBlockList_[MAIN_USER_ID] = { BLOCK_LIST_APP_NAME };
-    auto ret = NumkeyAppsManager::GetInstance().OnUserSwitched(MAIN_USER_ID);
+    NumkeyAppsManager::GetInstance().usersBlockList_[INVALID_USER_ID] = { BLOCK_LIST_APP_NAME };
+    auto ret = NumkeyAppsManager::GetInstance().OnUserSwitched(INVALID_USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(NumkeyAppsManager::GetInstance().usersBlockList_[MAIN_USER_ID].size(), 1);
-    EXPECT_TRUE(NumkeyAppsManager::GetInstance().usersBlockList_[MAIN_USER_ID].count(BLOCK_LIST_APP_NAME) > 0);
+    EXPECT_EQ(NumkeyAppsManager::GetInstance().usersBlockList_[INVALID_USER_ID].size(), 0);
+    EXPECT_EQ(NumkeyAppsManager::GetInstance().usersBlockList_[INVALID_USER_ID].count(BLOCK_LIST_APP_NAME), 0);
 }
 
 /**
@@ -326,8 +326,26 @@ HWTEST_F(NumKeyAppsManagerTest, testParseBlockList_001, TestSize.Level1)
 HWTEST_F(NumKeyAppsManagerTest, testRegisterUserBlockListData_001, TestSize.Level1)
 {
     IMSA_HILOGI("NumKeyAppsManagerTest testRegisterUserBlockListData_001 START");
+    NumkeyAppsManager::GetInstance().observers_.clear();
     auto ret = NumkeyAppsManager::GetInstance().RegisterUserBlockListData(MAIN_USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testRegisterUserBlockListData_002
+ * @tc.desc: test RegisterUserBlockListData
+ * @tc.type: FUNC
+ */
+HWTEST_F(NumKeyAppsManagerTest, testRegisterUserBlockListData_002, TestSize.Level1)
+{
+    IMSA_HILOGI("NumKeyAppsManagerTest testRegisterUserBlockListData_002 START");
+    NumkeyAppsManager::GetInstance().observers_.clear();
+    sptr<SettingsDataObserver> observer = new (std::nothrow) SettingsDataObserver("", "", nullptr);
+    ASSERT_TRUE(observer != nullptr);
+    NumkeyAppsManager::GetInstance().observers_[MAIN_USER_ID] = observer;
+    auto ret = NumkeyAppsManager::GetInstance().RegisterUserBlockListData(MAIN_USER_ID);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    NumkeyAppsManager::GetInstance().observers_.clear();
 }
 } // namespace MiscServices
 } // namespace OHOS
