@@ -1,0 +1,11 @@
+{
+    "string":[
+        {
+            "name":"dialogTitle",
+            "value":"Seleccionar teclado",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

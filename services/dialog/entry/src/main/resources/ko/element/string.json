@@ -1,0 +1,11 @@
+{
+    "string":[
+        {
+            "name":"dialogTitle",
+            "value":"키보드 선택",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
