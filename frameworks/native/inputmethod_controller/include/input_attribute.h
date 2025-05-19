@@ -23,6 +23,12 @@
 
 namespace OHOS {
 namespace MiscServices {
+enum class CapitalizeMode : int32_t {
+    NONE = 0,
+    SENTENCES,
+    WORDS,
+    CHARACTERS
+};
 
 struct InputAttribute {
     static const int32_t PATTERN_TEXT = 0x00000001;
@@ -41,6 +47,7 @@ struct InputAttribute {
     uint64_t callingDisplayId = 0;
     std::u16string placeholder { u"" };
     std::u16string abilityName { u"" };
+    CapitalizeMode capitalizeMode = CapitalizeMode::NONE;
     bool needAutoInputNumkey { false }; // number keys need to be automatically handled by imf
 
     bool GetSecurityFlag() const
@@ -95,6 +102,7 @@ struct InputAttributeInner : public Parcelable {
     uint64_t callingDisplayId = 0;
     std::u16string placeholder { u"" };
     std::u16string abilityName { u"" };
+    CapitalizeMode capitalizeMode = CapitalizeMode::NONE;
     bool needAutoInputNumkey { false }; // number keys need to be automatically handled by imf
 
     bool ReadFromParcel(Parcel &in)
@@ -109,6 +117,12 @@ struct InputAttributeInner : public Parcelable {
         callingDisplayId = in.ReadUint64();
         placeholder = in.ReadString16();
         abilityName = in.ReadString16();
+        int32_t readCapitalizeMode = in.ReadInt32();
+        if (readCapitalizeMode < static_cast<int32_t>(CapitalizeMode::NONE) ||
+            readCapitalizeMode > static_cast<int32_t>(CapitalizeMode::CHARACTERS)) {
+            readCapitalizeMode = 0;
+        }
+        capitalizeMode = static_cast<CapitalizeMode>(readCapitalizeMode);
         needAutoInputNumkey = in.ReadBool();
         return true;
     }
@@ -140,6 +154,7 @@ struct InputAttributeInner : public Parcelable {
             return false;
         }
         auto ret = out.WriteString16(placeholder) && out.WriteString16(abilityName);
+        ret = ret && out.WriteInt32(static_cast<int32_t>(capitalizeMode));
         ret = ret && out.WriteBool(needAutoInputNumkey);
         return ret;
     }

@@ -37,6 +37,7 @@ InputAttributeInner InputMethodTools::AttributeToInner(const InputAttribute &att
     inner.callingDisplayId = attribute.callingDisplayId;
     inner.placeholder = attribute.placeholder;
     inner.abilityName = attribute.abilityName;
+    inner.capitalizeMode = attribute.capitalizeMode;
     inner.needAutoInputNumkey = attribute.needAutoInputNumkey;
     return inner;
 }
@@ -54,6 +55,7 @@ InputAttribute InputMethodTools::InnerToAttribute(const InputAttributeInner &inn
     inputAttribute.callingDisplayId = inner.callingDisplayId;
     inputAttribute.placeholder = inner.placeholder;
     inputAttribute.abilityName = inner.abilityName;
+    inputAttribute.capitalizeMode = inner.capitalizeMode;
     inputAttribute.needAutoInputNumkey = inner.needAutoInputNumkey;
     return inputAttribute;
 }
