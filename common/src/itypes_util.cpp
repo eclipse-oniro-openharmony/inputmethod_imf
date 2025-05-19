@@ -188,7 +188,8 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 {
     if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption, input.isTextPreviewSupported,
         input.bundleName, input.immersiveMode, input.windowId, input.callingDisplayId,
-        input.placeholder, input.abilityName, input.needAutoInputNumkey)) {
+        input.placeholder, input.abilityName, static_cast<int32_t>(input.capitalizeMode),
+        input.needAutoInputNumkey)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed.");
         return false;
     }
@@ -197,12 +198,14 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 {
+    int32_t capitalizeMode = 0;
     if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption, output.isTextPreviewSupported,
         output.bundleName, output.immersiveMode, output.windowId, output.callingDisplayId,
-        output.placeholder, output.abilityName, output.needAutoInputNumkey)) {
+        output.placeholder, output.abilityName, capitalizeMode, output.needAutoInputNumkey)) {
         IMSA_HILOGE("read InputAttribute from message parcel failed.");
         return false;
     }
+    output.capitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
     return true;
 }
 

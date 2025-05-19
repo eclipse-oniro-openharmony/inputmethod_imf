@@ -93,7 +93,8 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("SecurityMode", GetJsSecurityModeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("ImmersiveMode", GetJsImmersiveModeProperty(env)),
-        DECLARE_NAPI_STATIC_PROPERTY("RequestKeyboardReason", GetJsRequestKeyboardReasonProperty(env))
+        DECLARE_NAPI_STATIC_PROPERTY("RequestKeyboardReason", GetJsRequestKeyboardReasonProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("CapitalizeMode", GetJsCapitalizeModeProperty(env))
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -196,6 +197,19 @@ napi_value JsInputMethodEngineSetting::GetJsExtendActionProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, action, "COPY", actionCopy));
     NAPI_CALL(env, napi_set_named_property(env, action, "PASTE", actionPaste));
     return action;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsCapitalizeModeProperty(napi_env env)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "NONE", static_cast<int32_t>(CapitalizeMode::NONE));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "SENTENCES",
+        static_cast<int32_t>(CapitalizeMode::SENTENCES));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "WORDS", static_cast<int32_t>(CapitalizeMode::WORDS));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "CHARACTERS",
+        static_cast<int32_t>(CapitalizeMode::CHARACTERS));
+    return ret ? jsObject : JsUtil::Const::Null(env);
 }
 
 napi_value JsInputMethodEngineSetting::GetJsSecurityModeProperty(napi_env env)

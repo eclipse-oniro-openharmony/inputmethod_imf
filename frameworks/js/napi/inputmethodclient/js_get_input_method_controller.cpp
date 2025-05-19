@@ -70,7 +70,8 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("EnabledState", GetJsEnabledStateProperty(env)),
-        DECLARE_NAPI_STATIC_PROPERTY("RequestKeyboardReason", GetJsRequestKeyboardReasonProperty(env))
+        DECLARE_NAPI_STATIC_PROPERTY("RequestKeyboardReason", GetJsRequestKeyboardReasonProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("CapitalizeMode", GetJsCapitalizeModeProperty(env))
     };
     NAPI_CALL(env,
         napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -241,6 +242,19 @@ napi_value JsGetInputMethodController::GetJsExtendActionProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, action, "COPY", actionCopy));
     NAPI_CALL(env, napi_set_named_property(env, action, "PASTE", actionPaste));
     return action;
+}
+
+napi_value JsGetInputMethodController::GetJsCapitalizeModeProperty(napi_env env)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "NONE", static_cast<int32_t>(CapitalizeMode::NONE));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "SENTENCES",
+        static_cast<int32_t>(CapitalizeMode::SENTENCES));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "WORDS", static_cast<int32_t>(CapitalizeMode::WORDS));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "CHARACTERS",
+        static_cast<int32_t>(CapitalizeMode::CHARACTERS));
+    return ret ? jsObject : JsUtil::Const::Null(env);
 }
 
 napi_value JsGetInputMethodController::GetJsEnabledStateProperty(napi_env env)
@@ -600,6 +614,19 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
     if (!result) {
         IMSA_HILOGE("get newEditBox failed.");
     }
+    int32_t capitalizeMode = 0;
+    CapitalizeMode tempCapitalizeMode = CapitalizeMode::NONE;
+    result = JsUtil::Object::ReadProperty(env, in, "capitalizeMode", capitalizeMode);
+    if (!result) {
+        IMSA_HILOGE("not found capitalizeMode.");
+    }
+    if (capitalizeMode < static_cast<int32_t>(CapitalizeMode::NONE) ||
+        capitalizeMode > static_cast<int32_t>(CapitalizeMode::CHARACTERS)) {
+        capitalizeMode = 0; // 0 Default value
+        IMSA_HILOGE("capitalizeMode value invalid.");
+    }
+    tempCapitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
+    out.inputAttribute.capitalizeMode = tempCapitalizeMode;
     return ret;
 }
 
