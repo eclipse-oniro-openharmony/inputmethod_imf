@@ -1,0 +1,11 @@
+{
+    "string":[
+        {
+            "name":"dialogTitle",
+            "value":"Chọn bàn phím",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
