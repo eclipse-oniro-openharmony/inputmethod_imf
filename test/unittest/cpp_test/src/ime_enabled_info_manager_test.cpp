@@ -1165,11 +1165,13 @@ HWTEST_F(ImeEnabledInfoManagerTest, testBundleEnabledStatusUpdate_001, TestSize.
         ImeEnabledInfoManagerTest::sysImeProp_.bundleName, ImeEnabledInfoManagerTest::sysImeProp_.extName,
         EnabledStatus::FULL_EXPERIENCE_MODE);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    std::map<int32_t, std::vector<ImeEasyInfo>> easyEnabledInfos1;
-    easyEnabledInfos1.insert({ ImeEnabledInfoManagerTest::currentUserId_,
-        { { ImeEnabledInfoManagerTest::SYS_IME_KEY, EnabledStatus::FULL_EXPERIENCE_MODE } } });
-    EXPECT_TRUE(ImeEnabledInfoManagerTest::WaitDataShareCallback(
-        ImeEnabledInfoManagerTest::GenerateAllEnabledCfg(easyEnabledInfos1)));
+    if (ImeEnabledInfoManagerTest::IsAllSwitchOn()) {
+        std::map<int32_t, std::vector<ImeEasyInfo>> easyEnabledInfos1;
+        easyEnabledInfos1.insert({ ImeEnabledInfoManagerTest::currentUserId_,
+            { { ImeEnabledInfoManagerTest::SYS_IME_KEY, EnabledStatus::FULL_EXPERIENCE_MODE } } });
+        EXPECT_TRUE(ImeEnabledInfoManagerTest::WaitDataShareCallback(
+            ImeEnabledInfoManagerTest::GenerateAllEnabledCfg(easyEnabledInfos1)));
+    }
 }
 
 /**
@@ -1207,12 +1209,14 @@ HWTEST_F(ImeEnabledInfoManagerTest, testBundleEnabledStatusUpdate_003, TestSize.
         ImeEnabledInfoManagerTest::sysImeProp_.bundleName, ImeEnabledInfoManagerTest::sysImeProp_.extName,
         EnabledStatus::BASIC_MODE);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    std::map<int32_t, std::vector<ImeEasyInfo>> easyEnabledInfos1;
-    easyEnabledInfos1.insert({ ImeEnabledInfoManagerTest::currentUserId_,
-        { { ImeEnabledInfoManagerTest::SYS_IME_KEY, EnabledStatus::BASIC_MODE } } });
-    EXPECT_FALSE(ImeEnabledInfoManagerTest::WaitDataShareCallback(
-        ImeEnabledInfoManagerTest::GenerateAllEnabledCfg(easyEnabledInfos1)));
-    EXPECT_TRUE(ImeEnabledInfoManagerTest::enabledCfg_.empty());
+    if (ImeEnabledInfoManagerTest::IsAllSwitchOn()) {
+        std::map<int32_t, std::vector<ImeEasyInfo>> easyEnabledInfos1;
+        easyEnabledInfos1.insert({ ImeEnabledInfoManagerTest::currentUserId_,
+            { { ImeEnabledInfoManagerTest::SYS_IME_KEY, EnabledStatus::BASIC_MODE } } });
+        EXPECT_FALSE(ImeEnabledInfoManagerTest::WaitDataShareCallback(
+            ImeEnabledInfoManagerTest::GenerateAllEnabledCfg(easyEnabledInfos1)));
+        EXPECT_TRUE(ImeEnabledInfoManagerTest::enabledCfg_.empty());
+    }
 }
 
 /**

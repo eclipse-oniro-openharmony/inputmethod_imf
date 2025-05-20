@@ -503,23 +503,23 @@ napi_value JsGetInputMethodSetting::EnableInputMethod(napi_env env, napi_callbac
         PARAM_CHECK_RETURN(env,
             JsUtil::GetType(env, argv[0]) == napi_string && JsUtil::GetValue(env, argv[0], ctxt->bundleName),
             "bundleName type must be string!", TYPE_NONE, napi_invalid_arg);
-        PARAM_CHECK_RETURN(env, !ctxt->bundleName.empty(), "bundleName can not be empty!", TYPE_NONE, napi_invalid_arg);
         PARAM_CHECK_RETURN(env,
             JsUtil::GetType(env, argv[1]) == napi_string && JsUtil::GetValue(env, argv[1], ctxt->extName),
             "extensionName type must be string!", TYPE_NONE, napi_invalid_arg);
-        PARAM_CHECK_RETURN(env, !ctxt->extName.empty(), "extensionName can not be empty!", TYPE_NONE, napi_invalid_arg);
         int32_t status = 0;
-        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[2]) == napi_number && JsUtil::GetValue(env, argv[2], status),
-            "enabledState type must be EnabledState!", TYPE_NONE, napi_invalid_arg);
         PARAM_CHECK_RETURN(env,
-            status >= static_cast<int32_t>(EnabledStatus::DISABLED) &&
-                status <= static_cast<int32_t>(EnabledStatus::FULL_EXPERIENCE_MODE),
-            "The value range of enabledState is wrong!", TYPE_NONE, napi_invalid_arg);
-        ctxt->enabledStatus = static_cast<EnabledStatus>(status);
+            JsUtil::GetType(env, argv[2]) == napi_number && JsUtil::GetValue(env, argv[2], status)
+                && (status >= static_cast<int32_t>(EnabledStatus::DISABLED)
+                    && status <= static_cast<int32_t>(EnabledStatus::FULL_EXPERIENCE_MODE)),
+            "enabledState type must be EnabledState!", TYPE_NONE, napi_invalid_arg);
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        if (ctxt->bundleName.empty() || ctxt->extName.empty()) {
+            ctxt->SetErrorCode(ErrorCode::ERROR_IME_NOT_FOUND);
+            return;
+        }
         int32_t errCode =
             InputMethodController::GetInstance()->EnableIme(ctxt->bundleName, ctxt->extName, ctxt->enabledStatus);
         if (errCode == ErrorCode::NO_ERROR) {

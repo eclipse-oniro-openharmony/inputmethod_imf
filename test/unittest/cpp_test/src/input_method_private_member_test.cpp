@@ -629,12 +629,14 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.L
     // subName is not find
     auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
     ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
-    imeInfo.bundleName = currentProp->name;
-    imeInfo.extensionName = currentProp->id;
-    imeInfo.extraInfo.isDefaultIme = true;
-    imeInfo.extraInfo.currentSubName = "tt";
-    cfg.enabledInfos.emplace_back(imeInfo);
-    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg });
+    ImeEnabledInfo imeInfo1;
+    imeInfo1.bundleName = currentProp->name;
+    imeInfo1.extensionName = currentProp->id;
+    imeInfo1.extraInfo.isDefaultIme = true;
+    imeInfo1.extraInfo.currentSubName = "tt";
+    ImeEnabledCfg cfg1;
+    cfg1.enabledInfos.emplace_back(imeInfo1);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg1 });
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->name == currentProp->name);
@@ -642,12 +644,14 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.L
     // get correct subProp
     auto currentSubProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
     ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.clear();
-    imeInfo.bundleName = currentProp->name;
-    imeInfo.extensionName = currentProp->id;
-    imeInfo.extraInfo.isDefaultIme = true;
-    imeInfo.extraInfo.currentSubName = currentSubProp->id;
-    cfg.enabledInfos.emplace_back(imeInfo);
-    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg });
+    ImeEnabledInfo imeInfo2;
+    imeInfo2.bundleName = currentProp->name;
+    imeInfo2.extensionName = currentProp->id;
+    imeInfo2.extraInfo.isDefaultIme = true;
+    imeInfo2.extraInfo.currentSubName = currentSubProp->id;
+    ImeEnabledCfg cfg2;
+    cfg2.enabledInfos.emplace_back(imeInfo2);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert({ currentUserId, cfg2 });
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->id == currentSubProp->id);

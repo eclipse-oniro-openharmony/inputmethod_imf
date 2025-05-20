@@ -16,8 +16,6 @@
 #include "imeenabledinfomanager_fuzzer.h"
 
 #include "ime_enabled_info_manager.h"
-#include "global.h"
-#include <map>
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -28,6 +26,7 @@ std::string GetString(const uint8_t *data, size_t size)
     }
     return std::string(reinterpret_cast<const char *>(data), size);
 }
+
 void FuzzInit(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
@@ -43,6 +42,7 @@ void FuzzInit(const uint8_t *data, size_t size)
     fullImeInfos.insert({ userId, imeInfos });
     ImeEnabledInfoManager::GetInstance().Init(fullImeInfos);
 }
+
 void FuzzSwitch(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
@@ -56,11 +56,13 @@ void FuzzSwitch(const uint8_t *data, size_t size)
     }
     ImeEnabledInfoManager::GetInstance().Switch(userId, imeInfos);
 }
+
 void FuzzDelete(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
     ImeEnabledInfoManager::GetInstance().Delete(userId);
 }
+
 void FuzzAddPackage(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
@@ -70,12 +72,14 @@ void FuzzAddPackage(const uint8_t *data, size_t size)
     imeInfo.prop.id = fuzzedString + "ext";
     ImeEnabledInfoManager::GetInstance().Add(userId, imeInfo);
 }
+
 void FuzzDeletePackage(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
     auto fuzzedString = GetString(data, size);
     ImeEnabledInfoManager::GetInstance().Delete(userId, fuzzedString);
 }
+
 void FuzzUpdateEnabledStatus(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
@@ -83,6 +87,7 @@ void FuzzUpdateEnabledStatus(const uint8_t *data, size_t size)
     auto fuzzedString = GetString(data, size);
     ImeEnabledInfoManager::GetInstance().Update(userId, fuzzedString, fuzzedString + "ext", enabledStatus);
 }
+
 void FuzzGetEnabledState(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
@@ -90,6 +95,7 @@ void FuzzGetEnabledState(const uint8_t *data, size_t size)
     auto enabledStatus = EnabledStatus::DISABLED;
     ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, fuzzedString, enabledStatus);
 }
+
 void FuzzGetEnabledStates(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
@@ -103,12 +109,14 @@ void FuzzGetEnabledStates(const uint8_t *data, size_t size)
     }
     ImeEnabledInfoManager::GetInstance().GetEnabledStates(userId, props);
 }
+
 void FuzzIsDefaultFullMode(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
     auto fuzzedString = GetString(data, size);
     ImeEnabledInfoManager::GetInstance().IsDefaultFullMode(userId, fuzzedString);
 }
+
 void FuzzSetCurrentIme(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
@@ -123,6 +131,7 @@ void FuzzSetCurrentIme(const uint8_t *data, size_t size)
     }
     ImeEnabledInfoManager::GetInstance().SetCurrentIme(userId, imeId, fuzzedString, isSetByUser);
 }
+
 void FuzzSetTmpIme(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
@@ -133,26 +142,29 @@ void FuzzSetTmpIme(const uint8_t *data, size_t size)
     }
     ImeEnabledInfoManager::GetInstance().SetTmpIme(userId, imeId);
 }
+
 void FuzzGetCurrentImeCfg(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
     ImeEnabledInfoManager::GetInstance().GetCurrentImeCfg(userId);
 }
+
 void FuzzIsDefaultImeSet(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
     ImeEnabledInfoManager::GetInstance().IsDefaultImeSet(userId);
 }
+
 void FuzzOnFullExperienceTableChanged(const uint8_t *data, size_t size)
 {
     auto userId = static_cast<int32_t>(size);
     ImeEnabledInfoManager::GetInstance().OnFullExperienceTableChanged(userId);
 }
 } // namespace OHOS
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
-    IMSA_HILOGI("run in.");
     OHOS::FuzzInit(data, size);
     OHOS::FuzzSwitch(data, size);
     OHOS::FuzzDelete(data, size);
