@@ -1784,7 +1784,7 @@ bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent
     int32_t keyCode = keyEvent->GetKeyCode();
     std::string inputNumber;
     if (MMI::KeyEvent::KEYCODE_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_9) {
-        IMSA_HILOGD("auto input a number");
+        IMSA_HILOGI("auto input a number");
         channel->InsertTextAsync(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_0));
         return true;
     }
@@ -1793,7 +1793,7 @@ bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent
         return false;
     }
     if (MMI::KeyEvent::KEYCODE_NUMPAD_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_NUMPAD_9) {
-        IMSA_HILOGD("auto input a number");
+        IMSA_HILOGI("auto input a number");
         channel->InsertTextAsync(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_NUMPAD_0));
         return true;
     }
