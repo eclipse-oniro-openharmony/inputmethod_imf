@@ -298,6 +298,10 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 bool JsKeyboardDelegateSetting::OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
     sptr<KeyEventConsumerProxy> &consumer)
 {
+    if (keyEvent == nullptr) {
+        IMSA_HILOGE("keyEvent is nullptr");
+        return false;
+    }
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr!");
@@ -314,13 +318,16 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(const std::shared_ptr<MMI::KeyEve
         return false;
     }
     IMSA_HILOGD("run in.");
-    auto task = [keyEventEntry, keyCodeEntry, consumer]() { DealKeyEvent(keyEventEntry, keyCodeEntry, consumer); };
+    auto task = [keyEvent, keyEventEntry, keyCodeEntry, consumer]() {
+        DealKeyEvent(keyEvent, keyEventEntry, keyCodeEntry, consumer);
+    };
     eventHandler->PostTask(task, "OnDealKeyEvent", 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
 }
 
-void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &keyEventEntry,
-    const std::shared_ptr<UvEntry> &keyCodeEntry, const sptr<KeyEventConsumerProxy> &consumer)
+void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
+    const std::shared_ptr<UvEntry> &keyEventEntry, const std::shared_ptr<UvEntry> &keyCodeEntry,
+    const sptr<KeyEventConsumerProxy> &consumer)
 {
     bool isKeyEventConsumed = false;
     bool isKeyCodeConsumed = false;
@@ -363,8 +370,8 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &key
     bool consumeResult = isKeyEventConsumed || isKeyCodeConsumed;
     if (consumer != nullptr) {
         if (!consumeResult) {
-            IMSA_HILOGW("ime is not consumed, result: %{public}d.", consumeResult);
-            consumeResult = InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEventEntry->fullKeyEventPara);
+            IMSA_HILOGW("keyEvent is not consumed by ime");
+            consumeResult = InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent);
         }
         IMSA_HILOGD("final consumed result: %{public}d.", consumeResult);
         consumer->OnKeyEventResult(consumeResult);
