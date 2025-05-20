@@ -1742,7 +1742,11 @@ HWTEST_F(InputMethodAbilityTest, testOnSendPrivateData_002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_001 START");
-    EXPECT_FALSE(InputMethodAbilityTest::inputMethodAbility_.HandleUnconsumedKey(nullptr));
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    inputMethodAbility_.inputAttribute_.needAutoInputNumkey = true;
+    bool ret = InputMethodAbilityTest::inputMethodAbility_.HandleUnconsumedKey(nullptr);
+    EXPECT_FALSE(ret);
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 
 /**

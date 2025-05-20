@@ -26,12 +26,16 @@ SettingsDataUtils::~SettingsDataUtils()
         std::lock_guard<std::mutex> autoLock(remoteObjMutex_);
         remoteObj_ = nullptr;
     }
-    std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
-    if (!observerList_.empty()) {
-        for (auto &iter : observerList_) {
-            UnregisterObserver(iter);
-        }
+    std::list<sptr<SettingsDataObserver>> observerList;
+    {
+        std::lock_guard<decltype(observerListMutex_)> lock(observerListMutex_);
+        observerList = observerList_;
         observerList_.clear();
+    }
+    if (!observerList.empty()) {
+        for (auto &observer : observerList) {
+            UnregisterObserver(observer);
+        }
     }
 }
 
