@@ -19,6 +19,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <set>
 
 #include "ani_common.h"
 #include "controller_listener.h"
@@ -60,6 +61,7 @@ private:
     std::map<std::string, std::vector<std::unique_ptr<CallbackObject>>> jsCbMap_;
     static std::mutex controllerMutex_;
     static std::shared_ptr<InputMethodControllerImpl> controller_;
+    static const std::set<std::string> TEXT_EVENT_TYPE;
 };
 
 class IMFControllerImpl {

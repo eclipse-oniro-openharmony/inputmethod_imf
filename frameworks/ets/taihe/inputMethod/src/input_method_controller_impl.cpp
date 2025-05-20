@@ -29,6 +29,18 @@ namespace MiscServices {
 using namespace taihe;
 std::mutex InputMethodControllerImpl::controllerMutex_;
 std::shared_ptr<InputMethodControllerImpl> InputMethodControllerImpl::controller_{ nullptr };
+const std::set<std::string> InputMethodControllerImpl::TEXT_EVENT_TYPE{
+    "insertText",
+    "deleteLeft",
+    "deleteRight",
+    "sendKeyboardStatus",
+    "sendFunctionKey",
+    "moveCursor",
+    "handleExtendAction",
+    "getLeftTextOfCursor",
+    "getRightTextOfCursor",
+    "getTextIndexAtCursor",
+};
 std::shared_ptr<InputMethodControllerImpl> InputMethodControllerImpl::GetInstance()
 {
     if (controller_ == nullptr) {
@@ -123,6 +135,14 @@ void InputMethodControllerImpl::DetachSync()
 
 void InputMethodControllerImpl::RegisterListener(std::string const &type, callbackType &&cb, uintptr_t opq)
 {
+    if (TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end()) {
+        if (!InputMethodController::GetInstance()->WasAttached()) {
+            std::string message = JsUtils::ToMessage(IMFErrorCode::EXCEPTION_DETACHED) + "need to be attached first";
+            set_business_error(IMFErrorCode::EXCEPTION_DETACHED, message);
+            IMSA_HILOGE("RegisterListener failed, need to be attached first type: %{public}s!", type.c_str());
+            return;
+        }
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     ani_object callbackObj = reinterpret_cast<ani_object>(opq);
     ani_ref callbackRef;
@@ -139,7 +159,7 @@ void InputMethodControllerImpl::RegisterListener(std::string const &type, callba
         });
     if (isDuplicate) {
         env->GlobalReference_Delete(callbackRef);
-        IMSA_HILOGD("callback already registered, type: %{public}s!", type.c_str());
+        IMSA_HILOGI("callback already registered, type: %{public}s!", type.c_str());
         return;
     }
     cbVec.emplace_back(std::make_unique<CallbackObject>(cb, callbackRef));
@@ -184,9 +204,11 @@ void InputMethodControllerImpl::UnRegisterListener(std::string const &type, taih
     if (it != callbacks.end()) {
         it->get()->Release();
         callbacks.erase(it);
+        IMSA_HILOGI("UnRegisterListener one type:%{public}s", type.c_str());
     }
     if (callbacks.empty()) {
         jsCbMap_.erase(iter);
+        IMSA_HILOGI("UnRegisterListener callbacks is empty type:%{public}s", type.c_str());
     }
 }
 
