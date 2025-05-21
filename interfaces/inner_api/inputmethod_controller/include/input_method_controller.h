@@ -118,6 +118,7 @@ public:
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
+using WindowScaleCallback = std::function<int32_t(int32_t& x, int32_t& y, uint32_t windowId)>;
 class InputMethodController : public RefBase, public PrivateCommandInterface {
 public:
     /**
@@ -929,6 +930,17 @@ public:
      */
     IMF_API int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
 
+    /**
+     * @brief Registration callbacks are used for coordinate transformation processing in window zooming scenarios.
+     *
+     * This function only available special service apply.
+     *
+     * @param callback Indicates the window zooming handle callback
+     * @return Returns 0 for success, others for failure.
+     * @since 18
+     */
+    IMF_API int32_t RegisterWindowScaleCallbackHandler(WindowScaleCallback&& callback);
+
 private:
     InputMethodController();
     ~InputMethodController();
@@ -966,6 +978,7 @@ private:
     int32_t ShowTextInputInner(const AttachOptions &attachOptions, ClientType type);
     int32_t ShowSoftKeyboardInner(ClientType type);
     void ReportClientShow(int32_t eventCode, int32_t errCode, ClientType type);
+    void GetWindowScaleCoordinate(int32_t& x, int32_t& y, uint32_t windowId);
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
@@ -1026,6 +1039,9 @@ private:
     std::mutex bindImeInfoLock_;
     std::pair<int64_t, std::string> bindImeInfo_{ 0, "" }; // for hiSysEvent
     std::atomic_uint32_t sessionId_ { 0 };
+
+    std::mutex windowScaleCallbackMutex_;
+    WindowScaleCallback windowScaleCallback_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS
