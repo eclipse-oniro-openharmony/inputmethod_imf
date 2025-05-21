@@ -2036,7 +2036,7 @@ HWTEST_F(InputMethodPanelTest, testStartMoving02, TestSize.Level0)
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->StartMoving();
-    EXPECT_TRUE(ret == ErrorCode::NO_ERROR || ret == ErrorCode::ERROR_DEVICE_UNSUPPORTED);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_FLAG);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
