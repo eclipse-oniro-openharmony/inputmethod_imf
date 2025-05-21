@@ -18,6 +18,9 @@
 @!namespace("@ohos.inputMethod", "inputMethod")
 from ohos.inputMethod.Panel use PanelInfo;
 from ohos.InputMethodSubtype use InputMethodSubtype;
+@!sts_inject("""
+static { loadLibrary("inputmethod_taihe_native.z") }
+""")
 
 struct InputMethodProperty {
     @readonly packageName: String;
