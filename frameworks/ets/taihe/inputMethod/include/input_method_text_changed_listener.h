@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#ifndef FRAMEWORKS_ETS_TAIHE_INPUT_METHOD_TEXT_CHANGED_LISTENER_H
+#define FRAMEWORKS_ETS_TAIHE_INPUT_METHOD_TEXT_CHANGED_LISTENER_H
+
+#include "input_method_controller.h"
+namespace OHOS {
+namespace MiscServices {
+class InputMethodTextChangedListener : public OnTextChangedListener {
+public:
+    InputMethodTextChangedListener() = default;
+    ~InputMethodTextChangedListener() = default;
+    static sptr<InputMethodTextChangedListener> GetInstance();
+
+    void InsertText(const std::u16string &text) override;
+    void DeleteForward(int32_t length) override;
+    void DeleteBackward(int32_t length) override;
+    void SendKeyEventFromInputMethod(const KeyEvent &event) override
+    {
+    }
+    void SendKeyboardStatus(const KeyboardStatus &status) override;
+    void SendFunctionKey(const FunctionKey &functionKey) override;
+    void SetKeyboardStatus(bool status) override
+    {
+    }
+    void MoveCursor(const Direction direction) override;
+    void HandleSetSelection(int32_t start, int32_t end) override
+    {
+    }
+    void HandleExtendAction(int32_t action) override;
+    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override
+    {
+    }
+    std::u16string GetLeftTextOfCursor(int32_t number) override;
+    std::u16string GetRightTextOfCursor(int32_t number) override;
+    int32_t GetTextIndexAtCursor() override;
+    int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override
+    {
+        return 0;
+    }
+    bool IsFromTs() override
+    {
+        return false;
+    }
+    int32_t SetPreviewText(const std::u16string &text, const Range &range) override
+    {
+        return 0;
+    }
+    void FinishTextPreview() override
+    {
+    }
+
+private:
+    static std::mutex listenerMutex_;
+    static sptr<InputMethodTextChangedListener> inputMethodListener_;
+};
+} // namespace MiscServices
+} // namespace OHOS
+#endif // FRAMEWORKS_ETS_TAIHE_INPUT_METHOD_TEXT_CHANGE_LISTENER_H
