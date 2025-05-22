@@ -70,9 +70,7 @@ private:
         static_assert(std::is_same_v<std::decay_t<T>, Property>, "Invalid type for Property conversion");
 
         InputMethodProperty_t result{};
-        result.packageName = std::forward<T>(obj).name;
         result.name = std::forward<T>(obj).name;
-        result.methodId = obj.id;
         result.id = obj.id;
         result.label = taihe::optional<taihe::string>(std::in_place_t{}, obj.label);
         result.labelId = taihe::optional<double>(std::in_place_t{}, obj.labelId);
@@ -113,7 +111,8 @@ struct CallbackObject {
     }
     void Release()
     {
-        if (auto *env = taihe::get_env()) {
+        taihe::env_guard guard;
+        if (auto *env = guard.get_env()) {
             env->GlobalReference_Delete(ref);
         }
     }

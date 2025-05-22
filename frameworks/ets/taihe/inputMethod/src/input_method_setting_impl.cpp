@@ -69,10 +69,6 @@ array<InputMethodSubtype_t> InputMethodSettingImpl::ListInputMethodSubtypeSync(
 {
     Property property{ .name = std::string(inputMethodProperty.name), .id = std::string(inputMethodProperty.id) };
     if (property.name.empty() || property.id.empty()) {
-        property.name = inputMethodProperty.packageName;
-        property.id = inputMethodProperty.methodId;
-    }
-    if (property.name.empty() || property.id.empty()) {
         set_business_error(IMFErrorCode::EXCEPTION_PARAMCHECK, "name and id must be string and cannot empty");
         IMSA_HILOGE("Property name and id must be string and cannot empty");
         return array<InputMethodSubtype_t>(nullptr, 0);

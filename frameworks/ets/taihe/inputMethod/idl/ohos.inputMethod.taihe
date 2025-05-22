@@ -23,8 +23,6 @@ static { loadLibrary("inputmethod_taihe_native.z") }
 """)
 
 struct InputMethodProperty {
-    @readonly packageName: String;
-    @readonly methodId: String;
     @readonly name: String;
     @readonly id: String;
     @readonly label: Optional<String>;

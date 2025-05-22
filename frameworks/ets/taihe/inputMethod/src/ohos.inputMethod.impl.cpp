@@ -102,10 +102,6 @@ bool SwitchInputMethodWithTarget(InputMethodProperty const &target)
     std::string packageName(target.name);
     std::string id(target.id);
     if (packageName.empty() || id.empty()) {
-        packageName = target.packageName;
-        id = target.methodId;
-    }
-    if (packageName.empty() || id.empty()) {
         taihe::set_business_error(IMFErrorCode::EXCEPTION_PARAMCHECK, "packageName and methodId is empty");
         IMSA_HILOGE("failed to switch input method, packageName or id is empty!");
         return false;
