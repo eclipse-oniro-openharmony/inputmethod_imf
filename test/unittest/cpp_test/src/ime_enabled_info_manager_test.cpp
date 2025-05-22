@@ -1185,7 +1185,8 @@ HWTEST_F(ImeEnabledInfoManagerTest, testBundleEnabledStatusUpdate_002, TestSize.
 {
     IMSA_HILOGI("ImeEnabledInfoManagerTest testBundleEnabledStatusUpdate_002 START");
     auto ret = ImeEnabledInfoManager::GetInstance().Update(ImeEnabledInfoManagerTest::currentUserId_,
-        ImeEnabledInfoManagerTest::sysImeProp_.bundleName, "", EnabledStatus::DISABLED);
+        ImeEnabledInfoManagerTest::sysImeProp_.bundleName, ImeEnabledInfoManagerTest::sysImeProp_.extName,
+        EnabledStatus::DISABLED);
     EXPECT_EQ(ret, ErrorCode::ERROR_DISABLE_SYSTEM_IME);
 }
 
