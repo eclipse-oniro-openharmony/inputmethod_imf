@@ -37,7 +37,7 @@ void InputMethodManagerCommandTest::SetUpTestCase(void)
 
 /**
  * @tc.name: InputMethodManagerCommand_ExeCmd_001
- * @tc.desc: Test handling missing argument for -e option
+ * @tc.desc: Test handling argument for -e option
  * @tc.type: FUNC
  * @tc.require: 
  */
@@ -45,14 +45,14 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_001 START");
     std::string result;
-    auto ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme:InputMethodExtAbility", result);
+    auto ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("Succeeded in enabling IME. IME:com.example.newTestIme:InputMethodExtAbility\n", result);
+    EXPECT_EQ("Succeeded in enabling IME. status:BASIC_MODE\n", result);
 }
 
 /**
  * @tc.name: InputMethodManagerCommand_ExeCmd_002
- * @tc.desc: Test handling missing argument for -e option
+ * @tc.desc: Test handling argument for -e option
  * @tc.type: FUNC
  * @tc.require: 
  */
@@ -60,14 +60,14 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_002, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_002 START");
     std::string result;
-    auto ret = TddUtil::ExecuteCmd("ime -e com.example.test:InputMethodExtAbility", result);
+    auto ret = TddUtil::ExecuteCmd("ime -e com.example.test", result);
     EXPECT_TRUE(ret);
     EXPECT_EQ("Error: The input method does not exist.\n", result);
 }
 
 /**
  * @tc.name: InputMethodManagerCommand_ExeCmd_003
- * @tc.desc: Test handling missing argument for -e option
+ * @tc.desc: Test handling argument for -d option
  * @tc.type: FUNC
  * @tc.require: 
  */
@@ -75,14 +75,14 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_003, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_003 START");
     std::string result;
-    auto ret = TddUtil::ExecuteCmd("ime -d com.example.newTestIme:InputMethodExtAbility", result);
+    auto ret = TddUtil::ExecuteCmd("ime -d com.example.newTestIme", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("Succeeded in disabling IME. IME:com.example.newTestIme:InputMethodExtAbility\n", result);
+    EXPECT_EQ("Succeeded in disabling IME. status:DISABLED\n", result);
 }
 
 /**
  * @tc.name: InputMethodManagerCommand_ExeCmd_004
- * @tc.desc: Test handling missing argument for -e option
+ * @tc.desc: Test handling argument for -e -f option
  * @tc.type: FUNC
  * @tc.require: 
  */
@@ -90,14 +90,14 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_004, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_004 START");
     std::string result;
-    auto ret = TddUtil::ExecuteCmd("ime -f com.example.newTestIme:InputMethodExtAbility", result);
+    auto ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme -f", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("Succeeded in setting IME to basic mode. IME:com.example.newTestIme:InputMethodExtAbility\n", result);
+    EXPECT_EQ("Succeeded in enabling IME. status:FULL_EXPERIENCE_MODE\n", result);
 }
 
 /**
  * @tc.name: InputMethodManagerCommand_ExeCmd_005
- * @tc.desc: Test handling missing argument for -e option
+ * @tc.desc: Test handling argument for -e -b option
  * @tc.type: FUNC
  * @tc.require: 
  */
@@ -105,14 +105,14 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_005, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_005 START");
     std::string result;
-    auto ret = TddUtil::ExecuteCmd("ime -b com.example.newTestIme:InputMethodExtAbility", result);
+    auto ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme -b", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("Succeeded in setting IME to full mode. IME:com.example.newTestIme:InputMethodExtAbility\n", result);
+    EXPECT_EQ("Succeeded in enabling IME. status:BASIC_MODE\n", result);
 }
 
 /**
  * @tc.name: InputMethodManagerCommand_ExeCmd_006
- * @tc.desc: Test handling missing argument for -e option
+ * @tc.desc: Test handling invalid mode arguments after -e option
  * @tc.type: FUNC
  * @tc.require: 
  */
@@ -120,14 +120,26 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_006, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_006 START");
     std::string result;
-    auto ret = TddUtil::ExecuteCmd("ime -s com.example.newTestIme:InputMethodExtAbility", result);
+    auto ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme -a", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("Could not switch the input method. IME:com.example.newTestIme:InputMethodExtAbility\n", result);
+    EXPECT_EQ("Error: Invalid mode after -e. Use -b or -f\n", result);
+
+    ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme -fa", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: Invalid mode after -e. Use -b or -f\n", result);
+
+    ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme ime -e com.example.newTestIme", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: Invalid mode after -e. Use -b or -f\n", result);
+
+    ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme ime -e -d", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: Invalid mode after -e. Use -b or -f\n", result);
 }
 
 /**
  * @tc.name: InputMethodManagerCommand_ExeCmd_007
- * @tc.desc: Test handling missing argument for -e option
+ * @tc.desc: Test handling argument for -s option
  * @tc.type: FUNC
  * @tc.require: 
  */
@@ -135,31 +147,89 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_007, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_007 START");
     std::string result;
-    auto ret = TddUtil::ExecuteCmd("ime -d com.example.newTestIme:InputMethodExtAbility", result);
+    auto ret = TddUtil::ExecuteCmd("ime -s com.example.TestIme", result);
     EXPECT_TRUE(ret);
-    sleep(1);
-    ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme:InputMethodExtAbility", result);
-    EXPECT_TRUE(ret);
-    sleep(1);
-    ret = TddUtil::ExecuteCmd("ime -s com.example.newTestIme:lowerInput", result);
-    EXPECT_TRUE(ret);
-    EXPECT_EQ("Succeeded in switching the input method. IME:com.example.newTestIme:lowerInput\n", result);
+    EXPECT_EQ("Error: The input method does not exist.\n", result);
 }
 
 /**
  * @tc.name: InputMethodManagerCommand_ExeCmd_008
- * @tc.desc: Test handling missing argument for -e option
+ * @tc.desc: Test handling argument for -s option
  * @tc.type: FUNC
  * @tc.require: 
  */
 HWTEST_F(InputMethodManagerCommandTest, ExeCmd_008, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_008 START");
+    std::string result;
+    auto ret = TddUtil::ExecuteCmd("ime -d com.example.newTestIme", result);
+    EXPECT_TRUE(ret);
+    sleep(1);
+    ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme", result);
+    EXPECT_TRUE(ret);
+    sleep(1);
+    ret = TddUtil::ExecuteCmd("ime -s com.example.newTestIme", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Succeeded in switching the input method. IME:com.example.newTestIme\n", result);
+}
+
+/**
+ * @tc.name: InputMethodManagerCommand_ExeCmd_009
+ * @tc.desc: Test handling argument for -g option
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(InputMethodManagerCommandTest, ExeCmd_009, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_009 START");
     sleep(2);
     std::string result;
     auto ret = TddUtil::ExecuteCmd("ime -g", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("The current input method is: com.example.newTestIme\n", result);
+    EXPECT_EQ("The current input method is: com.example.newTestIme, status: FULL_EXPERIENCE_MODE\n", result);
+}
+
+/**
+ * @tc.name: InputMethodManagerCommand_ExeCmd_0010
+ * @tc.desc: Test handling situation when the parameters are empty
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(InputMethodManagerCommandTest, ExeCmd_0010, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_0010 START");
+    sleep(2);
+    std::string result;
+    auto ret = TddUtil::ExecuteCmd("ime -e", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: Invalid command!\n", result);
+}
+
+/**
+ * @tc.name: InputMethodManagerCommand_ExeCmd_011
+ * @tc.desc: Test handling invalid mode arguments after -d option
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(InputMethodManagerCommandTest, ExeCmd_011, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_011 START");
+    std::string result;
+    auto ret = TddUtil::ExecuteCmd("ime -d com.example.k", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: The input method does not exist.\n", result);
+
+    ret = TddUtil::ExecuteCmd("ime -d com.example.newTestIme a", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: Invalid command!\n", result);
+
+    ret = TddUtil::ExecuteCmd("ime -d com.example.newTestIme -d", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: Invalid command!\n", result);
+
+    ret = TddUtil::ExecuteCmd("ime -d com.example.newTestIme ime -d com.example.newTestIme", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: Invalid command!\n", result);
 }
 } // namespace MiscServices
 } // namespace OHOS
