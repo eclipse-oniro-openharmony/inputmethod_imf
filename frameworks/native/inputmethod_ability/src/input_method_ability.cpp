@@ -262,7 +262,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     {
         std::lock_guard<std::mutex> lock(inputAttrLock_);
         inputAttribute_.bundleName = clientInfo.config.inputAttribute.bundleName;
-        inputAttribute_.windowId = clientInfo.config.windowId;
+        inputAttribute_.windowId = clientInfo.config.inputAttribute.windowId;
         inputAttribute_.callingDisplayId = clientInfo.config.inputAttribute.callingDisplayId;
     }
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart) :
@@ -822,7 +822,7 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
         textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
-        textConfig.inputAttribute.windowId = textConfig.windowId;
+        textConfig.inputAttribute.windowId = GetInputAttribute().windowId;
     }
     return ret;
 }
