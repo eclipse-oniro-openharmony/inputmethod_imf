@@ -160,9 +160,10 @@ int32_t ImeEnabledInfoManager::CheckUpdate(
 {
     IMSA_HILOGI("update info:[%{public}d, %{public}s, %{public}s, %{public}d].", userId, bundleName.c_str(),
         extensionName.c_str(), static_cast<int32_t>(status));
-    if (bundleName.empty()) {
-        IMSA_HILOGE("%{public}d bundleName:%{public}s abnormal.", userId, bundleName.c_str());
-        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    if (bundleName.empty() || status < EnabledStatus::DISABLED || status > EnabledStatus::FULL_EXPERIENCE_MODE) {
+        IMSA_HILOGE(
+            "%{public}d/%{public}s/%{public}d abnormal.", userId, bundleName.c_str(), static_cast<int32_t>(status));
+        return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     if (ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName == bundleName && status == EnabledStatus::DISABLED) {
         IMSA_HILOGW("[%{public}d,%{public}s] is sys ime, do not set DISABLED.", userId, bundleName.c_str());
@@ -191,6 +192,10 @@ int32_t ImeEnabledInfoManager::Update(
     auto ret = CheckUpdate(userId, bundleName, extensionName, status);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
+    }
+    if (!HasEnabledSwitch()) {
+        IMSA_HILOGD("has no enabled switch.");
+        return ErrorCode::NO_ERROR;
     }
     ImeEnabledCfg enabledCfg;
     ret = GetEnabledCacheWithCorrect(userId, bundleName, extensionName, enabledCfg);

@@ -19,11 +19,6 @@
 
 #include "input_method_controller.h"
 
-class InputMethodManagerCommand {
-public:
-    int32_t ParseCommand(int32_t argc, char *argv[]);
-    void ShowUsage(int32_t argc);
-};
 namespace OHOS {
 namespace MiscServices {
 
