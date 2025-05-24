@@ -24,7 +24,7 @@ class InputMethodManagerCommand {
 public:
     InputMethodManagerCommand() = default;
     int32_t ParseCommand(int32_t argc, char *argv[]);
-    void ShowUsage();
+    void ShowUsage(int32_t argc);
 };
 } // namespace MiscServices
 } // namespace OHOS
