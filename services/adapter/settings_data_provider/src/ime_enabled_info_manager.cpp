@@ -165,8 +165,11 @@ int32_t ImeEnabledInfoManager::CheckUpdate(
             "%{public}d/%{public}s/%{public}d abnormal.", userId, bundleName.c_str(), static_cast<int32_t>(status));
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    if (ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName == bundleName && status == EnabledStatus::DISABLED) {
-        IMSA_HILOGW("[%{public}d,%{public}s] is sys ime, do not set DISABLED.", userId, bundleName.c_str());
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
+    if (defaultIme.bundleName == bundleName && defaultIme.extName == extensionName
+        && status == EnabledStatus::DISABLED) {
+        IMSA_HILOGW("%{public}d/%{public}s/%{public}s is sys ime, do not set DISABLED.", userId, bundleName.c_str(),
+            extensionName.c_str());
         return ErrorCode::ERROR_DISABLE_SYSTEM_IME;
     }
     if (extensionName.empty()) {

@@ -512,6 +512,7 @@ napi_value JsGetInputMethodSetting::EnableInputMethod(napi_env env, napi_callbac
                 && (status >= static_cast<int32_t>(EnabledStatus::DISABLED)
                     && status <= static_cast<int32_t>(EnabledStatus::FULL_EXPERIENCE_MODE)),
             "enabledState type must be EnabledState!", TYPE_NONE, napi_invalid_arg);
+        ctxt->enabledStatus = static_cast<EnabledStatus>(status);
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };

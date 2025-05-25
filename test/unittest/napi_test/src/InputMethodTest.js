@@ -1219,4 +1219,288 @@ describe('InputMethodTest', function () {
       done();
     }
   });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_001
+   * @tc.name    Test param num abnormal
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_001', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_001 Test start*************');
+    try {
+      inputMethod.getSetting().enableInputMethod("bundleName", "extName").then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect().assertFail();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect(err.code === 401).assertTrue();
+      expect(err.message === "the parameters check fails. at least three parameters is required!").assertTrue();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_002
+   * @tc.name    Test first param type abnormal
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_002', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_002 Test start*************');
+    try {
+      inputMethod.getSetting().enableInputMethod(undefined, "extName", inputMethod.EnabledState.BASIC_MODE).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect().assertFail();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect(err.code === 401).assertTrue();
+      expect(err.message === "the parameters check fails. bundleName type must be string!").assertTrue();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_003
+   * @tc.name    Test second param type abnormal
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_003', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_003 Test start*************');
+    try {
+      inputMethod.getSetting().enableInputMethod("bundleName", undefined, inputMethod.EnabledState.BASIC_MODE).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect().assertFail();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect(err.code === 401).assertTrue();
+      expect(err.message === "the parameters check fails. extensionName type must be string!").assertTrue();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_004
+   * @tc.name    Test third param type abnormal
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_004', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_004 Test start*************');
+    try {
+      inputMethod.getSetting().enableInputMethod("bundleName", "extName", 5).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect().assertFail();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect(err.code === 401).assertTrue();
+      expect(err.message === "the parameters check fails. enabledState type must be EnabledState!").assertTrue();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_005
+   * @tc.name    Test the ime not found
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_005', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_005 Test start*************');
+    try {
+      inputMethod.getSetting().enableInputMethod("", "", inputMethod.EnabledState.BASIC_MODE).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect(err.code === 12800018).assertTrue();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_006
+   * @tc.name    Test the ime not found
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_006', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_006 Test start*************');
+    try {
+      inputMethod.getSetting().enableInputMethod("bundleName", "", inputMethod.EnabledState.BASIC_MODE).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect(err.code === 12800018).assertTrue();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_007
+   * @tc.name    Test the ime not found
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_007', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_007 Test start*************');
+    try {
+      inputMethod.getSetting().enableInputMethod("", "extName", inputMethod.EnabledState.BASIC_MODE).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect(err.code === 12800018).assertTrue();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_008
+   * @tc.name    Test the ime not found
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_008', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_008 Test start*************');
+    try {
+      let currentIme = inputMethod.getCurrentInputMethod();
+      inputMethod.getSetting().enableInputMethod("bundleName", currentIme.id, inputMethod.EnabledState.BASIC_MODE).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect(err.code === 12800018).assertTrue();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_009
+   * @tc.name    Test the ime not found
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_enableInputMethod_009', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_009 Test start*************');
+    try {
+      let currentIme = inputMethod.getCurrentInputMethod();
+      inputMethod.getSetting().enableInputMethod(currentIme.name, "extName", inputMethod.EnabledState.BASIC_MODE).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect(err.code === 12800018).assertTrue();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_010
+   * @tc.name    enable success
+   * @tc.desc    Function test
+   * @tc.level   1
+   */
+  it('inputmethod_test_enableInputMethod_010', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_010 Test start*************');
+    try {
+      let currentIme = inputMethod.getCurrentInputMethod();
+      console.info(`currentIme: ${JSON.stringify(currentIme)}`);
+      inputMethod.getSetting().enableInputMethod(currentIme.name, currentIme.id, currentIme.enabledState).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect(true).assertTrue();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect().assertFail();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_enableInputMethod_011
+   * @tc.name    preconfigured default input method cannot be disabled
+   * @tc.desc    Function test
+   * @tc.level   1
+   */
+  it('inputmethod_test_enableInputMethod_011', 0, async function (done) {
+    console.info('************* inputmethod_test_enableInputMethod_011 Test start*************');
+    try {
+      let defaultIme = inputMethod.getDefaultInputMethod();
+      inputMethod.getSetting().enableInputMethod(defaultIme.name, defaultIme.id, inputMethod.EnabledState.DISABLED).then(() => {
+        console.info('Succeeded in enable inputmethod.');
+        expect().assertFail();
+        done();
+      }).catch((err) => {
+        console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+        expect(err.code === 12800019).assertTrue();
+        done();
+      })
+    } catch (err) {
+      console.error(`Failed to enableInputMethod. Code: ${err.code}, message: ${err.message}`);
+      expect().assertFail();
+      done();
+    }
+  });
 });
