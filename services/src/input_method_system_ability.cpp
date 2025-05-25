@@ -566,7 +566,6 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session != nullptr) {
         auto callingWindowInfo = session->GetCallingWindowInfo(clientInfo);
-        clientInfo.config.windowId = callingWindowInfo.windowId;
         clientInfo.config.inputAttribute.windowId = callingWindowInfo.windowId;
         clientInfo.config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
         clientInfo.config.inputAttribute.needAutoInputNumkey =

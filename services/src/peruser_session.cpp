@@ -1271,24 +1271,22 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId,
     if (clientInfo->config.windowId == callingWindowId) {
         return ErrorCode::NO_ERROR;
     }
-    InputClientInfo clientInfoTmp = *clientInfo;
-    clientInfoTmp.config.windowId = callingWindowId;
-    auto callingWindowInfo = GetCallingWindowInfo(clientInfoTmp);
-    if (callingWindowInfo.windowId == clientInfo->config.windowId) {
-        return ErrorCode::NO_ERROR;
-    }
-    clientInfo->config.windowId = callingWindowInfo.windowId;
-    clientInfo->config.inputAttribute.windowId = callingWindowInfo.windowId;
-    bool isNotifyDisplayChanged = clientInfo->config.inputAttribute.callingDisplayId != callingWindowInfo.displayId
-                                  && SceneBoardJudgement::IsSceneBoardEnabled();
-    clientInfo->config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
-    clientInfo->config.privateCommand.insert_or_assign("displayId",
-        PrivateDataValue(static_cast<int32_t>(callingDisplayId)));
     IMSA_HILOGD("windowId changed, refresh windowId info and notify clients input start.");
-    clientGroup->NotifyInputStartToClients(
-        callingWindowInfo.windowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
-    if (isNotifyDisplayChanged) {
-        NotifyCallingDisplayChanged(callingWindowInfo.displayId);
+    clientInfo->config.windowId = callingWindowId;
+    clientInfo->config.privateCommand.insert_or_assign(
+        "displayId", PrivateDataValue(static_cast<int32_t>(callingDisplayId)));
+    clientGroup->NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
+
+    if (callingWindowId != INVALID_WINDOW_ID) {
+        auto callingWindowInfo = GetCallingWindowInfo(*clientInfo);
+        clientInfo->config.inputAttribute.windowId = callingWindowInfo.windowId;
+        bool isNotifyDisplayChanged =
+            clientInfo->config.inputAttribute.callingDisplayId != callingWindowInfo.displayId &&
+            SceneBoardJudgement::IsSceneBoardEnabled();
+        clientInfo->config.inputAttribute.callingDisplayId = callingWindowInfo.displayId;
+        if (isNotifyDisplayChanged) {
+            NotifyCallingDisplayChanged(callingWindowInfo.displayId);
+        }
     }
     return ErrorCode::NO_ERROR;
 }
@@ -2104,7 +2102,8 @@ int32_t PerUserSession::NotifyCallingDisplayChanged(uint64_t displayId)
 
 ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo)
 {
-    ImfCallingWindowInfo finalWindowInfo{ clientInfo.config.windowId, 0 };
+    auto finalWindowId = clientInfo.config.windowId;
+    ImfCallingWindowInfo finalWindowInfo{ finalWindowId, 0 };
     if (!SceneBoardJudgement::IsSceneBoardEnabled()) {
         return finalWindowInfo;
     }
@@ -2119,8 +2118,10 @@ ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo 
         IMSA_HILOGE("GetCallingWindowInfo error!");
         return finalWindowInfo;
     }
-    // The value set from the IMC is used and does not need to be modified on the service side
-    return { clientInfo.config.windowId, callingWindowInfo.displayId_ };
+    if (finalWindowId == INVALID_WINDOW_ID) {
+        finalWindowId = focusInfo.windowId_;
+    }
+    return { finalWindowId, callingWindowInfo.displayId_ };
 }
 
 bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, CallingWindowInfo &callingWindowInfo)
@@ -2129,10 +2130,7 @@ bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, Cal
     if (windowId == INVALID_WINDOW_ID) {
         return false;
     }
-    if (!WindowAdapter::GetCallingWindowInfo(windowId, userId_, callingWindowInfo)) {
-        return false;
-    }
-    return !(callingWindowInfo.callingPid_ != clientInfo.pid && clientInfo.uiExtensionTokenId == IMF_INVALID_TOKENID);
+    return WindowAdapter::GetCallingWindowInfo(windowId, userId_, callingWindowInfo);
 }
 
 bool PerUserSession::SpecialScenarioCheck()
