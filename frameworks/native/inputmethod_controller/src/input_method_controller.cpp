@@ -984,6 +984,7 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
     config.positionY = textConfig_.positionY;
     config.height = textConfig_.height;
     config.privateCommand = textConfig_.privateCommand;
+    config.abilityToken = textConfig_.abilityToken;
     if (textConfig_.range.start == INVALID_VALUE) {
         IMSA_HILOGD("SelectionRange is invalid.");
     } else {

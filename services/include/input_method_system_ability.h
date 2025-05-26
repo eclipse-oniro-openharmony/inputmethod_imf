@@ -110,7 +110,7 @@ private:
         const std::shared_ptr<ImeInfo> &info);
     int32_t GetUserId(int32_t uid);
     int32_t GetCallingUserId();
-    uint64_t GetCallingDisplayId();
+    uint64_t GetCallingDisplayId(sptr<IRemoteObject> abilityToken = nullptr);
     std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;
     int32_t PrepareInput(int32_t userId, InputClientInfo &clientInfo);
     void WorkThread();

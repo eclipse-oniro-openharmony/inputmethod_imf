@@ -552,7 +552,7 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(int32_t userId, InputClient
     }
     clientInfo.pid = IPCSkeleton::GetCallingPid();
     clientInfo.uid = IPCSkeleton::GetCallingUid();
-    clientInfo.displayId = GetCallingDisplayId();
+    clientInfo.displayId = GetCallingDisplayId(clientInfo.config.abilityToken);
     clientInfo.userID = userId;
     clientInfo.deathRecipient = deathRecipient;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
@@ -623,8 +623,8 @@ int32_t InputMethodSystemAbility::StartInputInner(
     auto userId = GetCallingUserId();
     imeInfo = GetCurrentImeInfoForHiSysEvent(userId);
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsBroker(tokenId) &&
-        !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, IdentityChecker::INVALID_PID, true)) {
+    if (!identityChecker_->IsBroker(tokenId) && !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId,
+            IdentityChecker::INVALID_PID, true, inputClientInfo.config.abilityToken)) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
@@ -2237,9 +2237,9 @@ int32_t InputMethodSystemAbility::GetCallingUserId()
     return GetUserId(uid);
 }
 
-uint64_t InputMethodSystemAbility::GetCallingDisplayId()
+uint64_t InputMethodSystemAbility::GetCallingDisplayId(sptr<IRemoteObject> abilityToken)
 {
-    return identityChecker_->GetDisplayIdByPid(IPCSkeleton::GetCallingPid());
+    return identityChecker_->GetDisplayIdByPid(IPCSkeleton::GetCallingPid(), abilityToken);
 }
 
 bool InputMethodSystemAbility::IsCurrentIme(int32_t userId)
