@@ -1007,7 +1007,11 @@ void PerUserSession::OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid)
 void PerUserSession::OnScreenUnlock()
 {
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    std::shared_ptr<ImeNativeCfg> currentIme = nullptr;
+    if (!GetInputTypeToStart(currentIme)) {
+        IMSA_HILOGI("GetInputTypeToStart failed");
+        currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    }
     if (currentIme == nullptr) {
         IMSA_HILOGE("currentIme nullptr");
         return;
