@@ -17,6 +17,7 @@
 #define SERVICES_INCLUDE_IDENTITY_CHECKER_H
 
 #include "access_token.h"
+#include "iremote_object.h"
 namespace OHOS {
 namespace MiscServices {
 class IdentityChecker {
@@ -24,8 +25,8 @@ public:
     static constexpr uint64_t DEFAULT_DISPLAY_ID = 0;
     static constexpr int64_t INVALID_PID = -1;
     virtual ~IdentityChecker() = default;
-    virtual bool IsFocused(
-        int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID, bool isAttach = false) = 0;
+    virtual bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID,
+        bool isAttach = false, sptr<IRemoteObject> abilityToken = nullptr) = 0;
     virtual bool IsSystemApp(uint64_t fullTokenId) = 0;
     virtual bool IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName) = 0;
     virtual bool HasPermission(uint32_t tokenId, const std::string &permission) = 0;
@@ -33,7 +34,7 @@ public:
     virtual bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual bool IsFormShell(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual std::string GetBundleNameByToken(uint32_t tokenId);
-    virtual bool IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId = DEFAULT_DISPLAY_ID)
+    virtual bool IsFocusedUIExtension(uint32_t callingTokenId, sptr<IRemoteObject> abilityToken = nullptr)
     {
         return false;
     };
@@ -41,7 +42,7 @@ public:
     {
         return DEFAULT_DISPLAY_ID;
     };
-    virtual uint64_t GetDisplayIdByPid(int64_t callingPid)
+    virtual uint64_t GetDisplayIdByPid(int64_t callingPid, sptr<IRemoteObject> abilityToken = nullptr)
     {
         return DEFAULT_DISPLAY_ID;
     };

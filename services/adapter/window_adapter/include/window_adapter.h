@@ -34,6 +34,7 @@ public:
     static void GetFocusInfo(OHOS::Rosen::FocusChangeInfo &focusInfo, uint64_t displayId = DEFAULT_DISPLAY_ID);
     static uint64_t GetDisplayIdByPid(int64_t callingPid);
     static uint64_t GetDisplayIdByWindowId(int32_t callingWindowId);
+    static bool GetDisplayId(int64_t callingWindowId, uint64_t &displayId);
     static bool ListWindowInfo(std::vector<sptr<OHOS::Rosen::WindowInfo>> &windowInfos);
     void RegisterCallingWindowInfoChangedListener(const WindowDisplayChangeHandler &handle);
 private:

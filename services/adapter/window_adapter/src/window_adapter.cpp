@@ -151,5 +151,33 @@ uint64_t WindowAdapter::GetDisplayIdByPid(int64_t callingPid)
     return DEFAULT_DISPLAY_ID;
 #endif
 }
+
+bool WindowAdapter::GetDisplayId(int64_t callingPid, uint64_t &displayId)
+{
+    displayId = DEFAULT_DISPLAY_ID;
+#ifdef SCENE_BOARD_ENABLE
+    std::vector<sptr<WindowInfo>> windowInfos;
+    if (!ListWindowInfo(windowInfos)) {
+        return false;
+    }
+    auto iter = std::find_if(windowInfos.begin(), windowInfos.end(), [&callingPid](const auto &windowInfo) {
+        if (windowInfo == nullptr) {
+            return false;
+        }
+        return windowInfo->windowMetaInfo.pid == callingPid;
+    });
+    if (iter == windowInfos.end()) {
+        IMSA_HILOGE("not found window info with pid: %{public}" PRId64 "", callingPid);
+        return false;
+    }
+    auto callingDisplayId = (*iter)->windowDisplayInfo.displayId;
+    IMSA_HILOGD("window pid: %{public}" PRId64 ", displayId: %{public}" PRIu64 "", callingPid, callingDisplayId);
+    displayId = callingDisplayId;
+    return true;
+#else
+    IMSA_HILOGI("capability not supported");
+    return true;
+#endif
+}
 } // namespace MiscServices
 } // namespace OHOS

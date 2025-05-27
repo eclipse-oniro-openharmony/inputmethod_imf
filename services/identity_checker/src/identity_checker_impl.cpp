@@ -29,7 +29,8 @@ namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
 using namespace OHOS::AAFwk;
-bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid, bool isAttach)
+bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid, bool isAttach,
+    sptr<IRemoteObject> abilityToken)
 {
     if (focusedPid != INVALID_PID && callingPid == focusedPid) {
         IMSA_HILOGD("focused app, pid: %{public}" PRId64 "", callingPid);
@@ -48,7 +49,7 @@ bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId,
     if (isAttach && ImeInfoInquirer::GetInstance().IsInputMethodExtension(callingPid)) {
         return false;
     }
-    bool isFocused = IsFocusedUIExtension(callingTokenId, displayId);
+    bool isFocused = IsFocusedUIExtension(callingTokenId, abilityToken);
     if (!isFocused) {
         IMSA_HILOGE("not focused, focusedPid: %{public}" PRId64 ", callerPid: %{public}" PRId64 ", callerToken: "
                     "%{public}d",
@@ -107,16 +108,25 @@ bool IdentityCheckerImpl::IsFormShell(AccessTokenID tokenId)
     return AccessTokenKit::GetTokenTypeFlag(tokenId) == TypeATokenTypeEnum::TOKEN_SHELL;
 }
 
-bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId, uint64_t displayId)
+bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId, sptr<IRemoteObject> abilityToken)
 {
+    AAFwk::UIExtensionSessionInfo info;
+    AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionSessionInfo(abilityToken, info);
+    auto windowId = info.hostWindowId;
+    auto displayIdByWindow = WindowAdapter::GetDisplayIdByWindowId(windowId);
+    if (displayIdByWindow != DEFAULT_DISPLAY_ID) {
+        FocusChangeInfo focusInfo;
+        WindowAdapter::GetFocusInfo(focusInfo, displayIdByWindow);
+        return windowId == focusInfo.windowId_;
+    }
+
     bool isFocused = false;
     auto ret = AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to CheckUIExtensionIsFocused, ret: %{public}d", ret);
         return false;
     }
-    IMSA_HILOGD("tokenId: %{public}d, displayId: %{public}" PRIu64 ", isFocused: %{public}d", callingTokenId,
-        displayId, isFocused);
+    IMSA_HILOGD("tokenId: %{public}d, isFocused: %{public}d", callingTokenId, isFocused);
     return isFocused;
 }
 
@@ -141,9 +151,19 @@ uint64_t IdentityCheckerImpl::GetDisplayIdByWindowId(int32_t callingWindowId)
     return WindowAdapter::GetDisplayIdByWindowId(callingWindowId);
 }
 
-uint64_t IdentityCheckerImpl::GetDisplayIdByPid(int64_t callingPid)
+uint64_t IdentityCheckerImpl::GetDisplayIdByPid(int64_t callingPid, sptr<IRemoteObject> abilityToken)
 {
-    return WindowAdapter::GetDisplayIdByPid(callingPid);
+    uint64_t displayId = 0;
+    bool ret = WindowAdapter::GetDisplayId(callingPid, displayId);
+    if (ret || abilityToken == nullptr) {
+        return displayId;
+    }
+    AAFwk::UIExtensionSessionInfo info;
+    AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionSessionInfo(abilityToken, info);
+    auto windowId = info.hostWindowId;
+    displayId = WindowAdapter::GetDisplayIdByWindowId(windowId);
+    IMSA_HILOGD("GetDisplayIdByPid displayId: %{public}" PRIu64 "", displayId);
+    return displayId;
 }
 
 bool IdentityCheckerImpl::IsValidVirtualIme(int32_t callingUid)

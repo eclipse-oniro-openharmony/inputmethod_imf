@@ -105,6 +105,7 @@ bool TextTotalConfigInner::ReadFromParcel(Parcel &in)
         }
     commandValue = *commandValueInfo;
     requestKeyboardReason = static_cast<RequestKeyboardReason>(in.ReadInt32());
+    abilityToken = (static_cast<MessageParcel*>(&in))->ReadRemoteObject();
     return true;
 }
 
@@ -310,6 +311,9 @@ bool TextTotalConfigInner::Marshalling(Parcel &out) const
         return false;
     }
 
+    if (abilityToken != nullptr && !out.WriteRemoteObject(abilityToken)) {
+        return false;
+    }
     return true;
 }
 

@@ -21,6 +21,7 @@
 
 #include "global.h"
 #include "input_attribute.h"
+#include "iremote_object.h"
 #include "panel_info.h"
 #include "key_event.h"
 
@@ -336,6 +337,7 @@ public:
     double height = 0;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
     RequestKeyboardReason requestKeyboardReason = RequestKeyboardReason::NONE;
+    sptr<IRemoteObject> abilityToken { nullptr };
 
     std::string ToString() const
     {
@@ -364,6 +366,7 @@ public:
     double height = 0;
     Value commandValue;
     RequestKeyboardReason requestKeyboardReason = RequestKeyboardReason::NONE;
+    sptr<IRemoteObject> abilityToken { nullptr };
 
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
@@ -394,6 +397,7 @@ struct TextConfig {
     double height = 0;
     bool newEditBox = false;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
+    sptr<IRemoteObject> abilityToken { nullptr };
 
     std::string ToString() const
     {
