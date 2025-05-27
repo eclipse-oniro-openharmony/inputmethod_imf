@@ -145,6 +145,7 @@ public:
     void OnCallingDisplayIdChanged(const int32_t windowId, const int32_t callingPid, const uint64_t displayId);
     ImfCallingWindowInfo GetCallingWindowInfo(const InputClientInfo &clientInfo);
     bool SpecialScenarioCheck();
+    bool IsScreenLockOrSecurityFlag();
     int32_t SpecialSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     uint64_t GetDisplayGroupId(uint64_t displayId);
     bool IsDefaultDisplayGroup(uint64_t displayId);

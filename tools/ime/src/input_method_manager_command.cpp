@@ -226,11 +226,13 @@ void InputMethodManagerCommand::ShowUsage(int32_t argc)
               << "Options:\n"
               << "  -e <bundle> [-b | -f] Enable the specified input method to specified mode.\n"
               << "                        If the -b/-f option is not set, the default value is -b.\n"
-              << "  -d <bundle>           Disable the specified input method\n"
-              << "  -s <bundle>           Switch to the specified input method\n"
-              << "  -g                    Get current input method\n"
-              << "  -l                    List all input methods\n"
-              << "  -h                    Show this help message\n";
+              << "  -d <bundle>           Disable the specified input method.\n"
+              << "  -s <bundle>           Switch to the specified input method.\n"
+              << "                        In the lock screen or password input box scenario,"
+              <<" switching to other input methods is not allowed.\n"
+              << "  -g                    Get current input method.\n"
+              << "  -l                    List all input methods.\n"
+              << "  -h                    Show this help message.\n";
 }
 } // namespace MiscServices
 } // namespace OHOS
