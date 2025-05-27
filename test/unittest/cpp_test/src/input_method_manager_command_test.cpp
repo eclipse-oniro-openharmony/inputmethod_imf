@@ -202,7 +202,18 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_0010, TestSize.Level1)
     std::string result;
     auto ret = TddUtil::ExecuteCmd("ime -e", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("Error: Invalid command!\n", result);
+    EXPECT_EQ("\nInput Method Manager Command Line Tool\n"
+              "Usage: ime [OPTION] [ARGUMENT]\n\n"
+              "Options:\n"
+              "  -e <bundle> [-b | -f] Enable the specified input method to specified mode.\n"
+              "                        If the -b/-f option is not set, the default value is -b.\n"
+              "  -d <bundle>           Disable the specified input method.\n"
+              "  -s <bundle>           Switch to the specified input method.\n"
+              "                        In the lock screen or password input box scenario,"
+              " switching to other input methods is not allowed.\n"
+              "  -g                    Get current input method.\n"
+              "  -l                    List all input methods.\n"
+              "  -h                    Show this help message.\n", result);
 }
 
 /**

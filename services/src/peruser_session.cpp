@@ -2155,6 +2155,19 @@ bool PerUserSession::SpecialScenarioCheck()
     return true;
 }
 
+bool PerUserSession::IsScreenLockOrSecurityFlag()
+{
+    auto screenLockManager = ScreenLock::ScreenLockManager::GetInstance();
+    if (screenLockManager != nullptr && screenLockManager->IsScreenLocked()) {
+        return true;
+    }
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo != nullptr && clientInfo->config.inputAttribute.IsSecurityImeFlag()) {
+        return true;
+    }
+    return false;
+}
+
 int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string,
     PrivateDataValue> &privateCommand)
 {
