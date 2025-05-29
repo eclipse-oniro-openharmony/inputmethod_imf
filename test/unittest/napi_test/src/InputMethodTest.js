@@ -1459,10 +1459,14 @@ describe('InputMethodTest', function () {
    */
   it('inputmethod_test_enableInputMethod_010', 0, async function (done) {
     console.info('************* inputmethod_test_enableInputMethod_010 Test start*************');
-    try {
+    try {           
+      let inputMethodProperty = {
+          name: bundleName1,
+          id: extName1[0]
+      };                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
       let currentIme = inputMethod.getCurrentInputMethod();
       console.info(`currentIme: ${JSON.stringify(currentIme)}`);
-      inputMethod.getSetting().enableInputMethod(currentIme.name, currentIme.id, currentIme.enabledState).then(() => {
+      inputMethod.getSetting().enableInputMethod(inputMethodProperty.name, inputMethodProperty.id, currentIme.enabledState).then(() => {
         console.info('Succeeded in enable inputmethod.');
         expect(true).assertTrue();
         done();

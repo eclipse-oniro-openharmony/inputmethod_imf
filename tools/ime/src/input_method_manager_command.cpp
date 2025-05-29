@@ -175,10 +175,20 @@ void HandleListIme(int32_t argc)
     std::vector<Property> methods;
     auto ret = controller->ListInputMethod(true, methods);
     if (ret != ErrorCode::NO_ERROR) {
-        std::cout << "Error: ListInputMethod failed. Error code:" << ret << std::endl;
+        std::cout << "Error: list input method failed. Error code:" << ret << std::endl;
+        return;
+    }
+    std::shared_ptr<Property> property;
+    ret = controller->GetDefaultInputMethod(property);
+    if (property == nullptr) {
+        std::cout << "Error: list input method failed. Error code:" << ret << std::endl;
         return;
     }
     for (const auto& m : methods) {
+        if (m.name == property->name) {
+            std::cout << "bundle: " << m.name << std::endl;
+            continue;
+        }
         std::cout << "bundle: " << m.name << ", status: " << EnabledStatusToString(m.status) << std::endl;
     }
 }
@@ -226,10 +236,12 @@ void InputMethodManagerCommand::ShowUsage(int32_t argc)
               << "Options:\n"
               << "  -e <bundle> [-b | -f] Enable the specified input method to specified mode.\n"
               << "                        If the -b/-f option is not set, the default value is -b.\n"
+              << "                        Current operation cannot be applied to the preconfigured"
+              << " default input method.\n"
               << "  -d <bundle>           Disable the specified input method.\n"
               << "  -s <bundle>           Switch to the specified input method.\n"
               << "                        In the lock screen or password input box scenario,"
-              <<" switching to other input methods is not allowed.\n"
+              << " switching to other input methods is not allowed.\n"
               << "  -g                    Get current input method.\n"
               << "  -l                    List all input methods.\n"
               << "  -h                    Show this help message.\n";

@@ -207,6 +207,8 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_0010, TestSize.Level1)
               "Options:\n"
               "  -e <bundle> [-b | -f] Enable the specified input method to specified mode.\n"
               "                        If the -b/-f option is not set, the default value is -b.\n"
+              "                        Current operation cannot be applied to the preconfigured"
+              " default input method.\n"
               "  -d <bundle>           Disable the specified input method.\n"
               "  -s <bundle>           Switch to the specified input method.\n"
               "                        In the lock screen or password input box scenario,"
@@ -242,5 +244,6 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_011, TestSize.Level1)
     EXPECT_TRUE(ret);
     EXPECT_EQ("Error: Invalid command!\n", result);
 }
+
 } // namespace MiscServices
 } // namespace OHOS

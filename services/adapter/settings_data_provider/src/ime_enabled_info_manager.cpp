@@ -179,10 +179,10 @@ int32_t ImeEnabledInfoManager::CheckUpdate(
         }
     }
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
-    if (defaultIme.bundleName == bundleName && status == EnabledStatus::DISABLED) {
-        IMSA_HILOGW("%{public}d/%{public}s/%{public}s is sys ime, do not set DISABLED.", userId, bundleName.c_str(),
+    if (defaultIme.bundleName == bundleName) {
+        IMSA_HILOGW("%{public}d/%{public}s/%{public}s is sys ime, do not set this mode.", userId, bundleName.c_str(),
             extensionName.c_str());
-        return ErrorCode::ERROR_DISABLE_SYSTEM_IME;
+        return ErrorCode::ERROR_OPERATE_SYSTEM_IME;
     }
     return ErrorCode::NO_ERROR;
 }
