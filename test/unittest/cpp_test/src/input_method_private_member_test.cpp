@@ -1500,6 +1500,21 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestPerUserSessionOnScreenUnlocked, Te
 }
 
 /**
+ * @tc.name: SA_TestPerUserSessionOnScreenUnlocked
+ * @tc.desc: SA_TestPerUserSessionOnScreenUnlocked.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestPerUserSessionOnScreenUnlocked001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestPerUserSessionOnScreenUnlocked001 start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    ImeIdentification currentIme;
+    InputTypeManager::GetInstance().Set(false, currentIme);
+    userSession->OnScreenUnlock();
+}
+
+/**
  * @tc.name: SA_TestGetScreenLockIme
  * @tc.desc: SA_TestGetScreenLockIme
  * @tc.type: FUNC
