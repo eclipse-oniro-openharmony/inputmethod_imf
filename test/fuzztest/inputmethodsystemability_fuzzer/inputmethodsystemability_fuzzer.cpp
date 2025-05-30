@@ -141,7 +141,8 @@ void FuzzHandleOperation(const uint8_t *data, size_t size)
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleWmsConnected(fuzzedInt32, fuzzedInt32);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleScbStarted(fuzzedInt32, fuzzedInt32);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleWmsDisconnected(fuzzedInt32, fuzzedInt32);
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->NeedHideWhenSwitchInputType(fuzzedInt32, inputType, fuzzedBool);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->NeedHideWhenSwitchInputType(fuzzedInt32, inputType,
+        fuzzedBool);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->GetAlternativeIme(fuzzedInt32, fuzzedString);
 }
 } // namespace OHOS

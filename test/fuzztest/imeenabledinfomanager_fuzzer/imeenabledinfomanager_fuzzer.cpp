@@ -19,6 +19,7 @@
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
+const int8_t EVEN_CHECK_NUMBER = 2;
 std::string GetString(const uint8_t *data, size_t size)
 {
     if (data == nullptr || size == 0) {
@@ -122,7 +123,7 @@ void FuzzSetCurrentIme(const uint8_t *data, size_t size)
     auto userId = static_cast<int32_t>(size);
     auto fuzzedString = GetString(data, size);
     std::string imeId = fuzzedString;
-    if (size % 2 == 0) {
+    if (size % EVEN_CHECK_NUMBER == 0) {
         imeId = fuzzedString + "/" + "ext";
     }
     bool isSetByUser = false;
@@ -137,7 +138,7 @@ void FuzzSetTmpIme(const uint8_t *data, size_t size)
     auto userId = static_cast<int32_t>(size);
     auto fuzzedString = GetString(data, size);
     std::string imeId = fuzzedString;
-    if (size % 2 == 0) {
+    if (size % EVEN_CHECK_NUMBER == 0) {
         imeId = fuzzedString + "/" + "ext";
     }
     ImeEnabledInfoManager::GetInstance().SetTmpIme(userId, imeId);
