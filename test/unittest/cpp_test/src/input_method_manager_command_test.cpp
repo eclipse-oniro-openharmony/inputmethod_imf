@@ -245,5 +245,35 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_011, TestSize.Level1)
     EXPECT_EQ("Error: Invalid command!\n", result);
 }
 
+/**
+ * @tc.name: InputMethodManagerCommand_ExeCmd_012
+ * @tc.desc: Test -s option when screen locked
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodManagerCommandTest, ExeCmd_012, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodManagerCommandTest ExeCmd_012 START");
+    std::string result;
+    auto ret = TddUtil::ExecuteCmd("ime -e com.example.newTestIme", result);
+    EXPECT_TRUE(ret);
+    ret = TddUtil::ExecuteCmd("power-shell suspend", result);
+    EXPECT_TRUE(ret);
+    sleep(1);
+    ret = TddUtil::ExecuteCmd("ime -s com.example.newTestIme", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Error: Operation failed. Error code:82\n", result);
+
+    ret = TddUtil::ExecuteCmd("power-shell wakeup", result);
+    EXPECT_TRUE(ret);
+    ret = TddUtil::ExecuteCmd("power-shell setmode 602", result);
+    EXPECT_TRUE(ret);
+    ret = TddUtil::ExecuteCmd("uinput -T -m 300 720 300 360 200", result);
+    EXPECT_TRUE(ret);
+    sleep(1);
+    ret = TddUtil::ExecuteCmd("ime -s com.example.newTestIme", result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ("Succeeded in switching the input method. IME:com.example.newTestIme\n", result);
+}
 } // namespace MiscServices
 } // namespace OHOS
