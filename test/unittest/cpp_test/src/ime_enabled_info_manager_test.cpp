@@ -85,10 +85,13 @@ public:
     static constexpr const char *SYS_IME_CUR_SUBNAME = "sysSubName";
     static constexpr const char *IME_KEY1 = "key1";
     static constexpr const char *IME_KEY2 = "key2";
+    static constexpr const char *IME_KEY3 = "key3";
     static constexpr const char *BUNDLE_NAME1 = "bundleName1";
     static constexpr const char *BUNDLE_NAME2 = "bundleName2";
+    static constexpr const char *BUNDLE_NAME3 = "com.example.newTestIme";
     static constexpr const char *EXT_NAME1 = "extName1";
     static constexpr const char *EXT_NAME2 = "extName2";
+    static constexpr const char *EXT_NAME3 = "InputMethodExtAbility";
     static constexpr const char *CUR_SUBNAME1 = "subName1";
     static constexpr const char *CUR_SUBNAME2 = "subName2";
     static constexpr int32_t USER_ID1 = 1;
@@ -157,6 +160,7 @@ void ImeEnabledInfoManagerTest::SetUpTestCase()
     imeBasicInfoMapping_ = {
         { IME_KEY1, { BUNDLE_NAME1, EXT_NAME1 } },
         { IME_KEY2, { BUNDLE_NAME2, EXT_NAME2 } },
+        { IME_KEY3, { BUNDLE_NAME3, EXT_NAME3 } },
         { SYS_IME_KEY,
             {
                 sysImeProp_.bundleName,
@@ -1157,18 +1161,17 @@ HWTEST_F(ImeEnabledInfoManagerTest, testBundleEnabledStatusUpdate_001, TestSize.
     IMSA_HILOGI("ImeEnabledInfoManagerTest testBundleEnabledStatusUpdate_001 START");
     std::map<int32_t, std::vector<ImeEasyInfo>> easyEnabledInfos;
     easyEnabledInfos.insert({ ImeEnabledInfoManagerTest::currentUserId_,
-        { { ImeEnabledInfoManagerTest::SYS_IME_KEY, EnabledStatus::BASIC_MODE } } });
+        { { ImeEnabledInfoManagerTest::IME_KEY3, EnabledStatus::BASIC_MODE } } });
     ImeEnabledInfoManager::GetInstance().imeEnabledCfg_ =
         ImeEnabledInfoManagerTest::GenerateAllEnabledCfg(easyEnabledInfos);
 
     auto ret = ImeEnabledInfoManager::GetInstance().Update(ImeEnabledInfoManagerTest::currentUserId_,
-        ImeEnabledInfoManagerTest::sysImeProp_.bundleName, ImeEnabledInfoManagerTest::sysImeProp_.extName,
-        EnabledStatus::FULL_EXPERIENCE_MODE);
+        BUNDLE_NAME3, EXT_NAME3, EnabledStatus::FULL_EXPERIENCE_MODE);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     if (ImeEnabledInfoManagerTest::IsAllSwitchOn()) {
         std::map<int32_t, std::vector<ImeEasyInfo>> easyEnabledInfos1;
         easyEnabledInfos1.insert({ ImeEnabledInfoManagerTest::currentUserId_,
-            { { ImeEnabledInfoManagerTest::SYS_IME_KEY, EnabledStatus::FULL_EXPERIENCE_MODE } } });
+            { { ImeEnabledInfoManagerTest::IME_KEY3, EnabledStatus::FULL_EXPERIENCE_MODE } } });
         EXPECT_TRUE(ImeEnabledInfoManagerTest::WaitDataShareCallback(
             ImeEnabledInfoManagerTest::GenerateAllEnabledCfg(easyEnabledInfos1)));
     }
@@ -1187,7 +1190,7 @@ HWTEST_F(ImeEnabledInfoManagerTest, testBundleEnabledStatusUpdate_002, TestSize.
     auto ret = ImeEnabledInfoManager::GetInstance().Update(ImeEnabledInfoManagerTest::currentUserId_,
         ImeEnabledInfoManagerTest::sysImeProp_.bundleName, ImeEnabledInfoManagerTest::sysImeProp_.extName,
         EnabledStatus::DISABLED);
-    EXPECT_EQ(ret, ErrorCode::ERROR_DISABLE_SYSTEM_IME);
+    EXPECT_EQ(ret, ErrorCode::ERROR_OPERATE_SYSTEM_IME);
 }
 
 /**
@@ -1202,18 +1205,17 @@ HWTEST_F(ImeEnabledInfoManagerTest, testBundleEnabledStatusUpdate_003, TestSize.
     IMSA_HILOGI("ImeEnabledInfoManagerTest testBundleEnabledStatusUpdate_003 START");
     std::map<int32_t, std::vector<ImeEasyInfo>> easyEnabledInfos;
     easyEnabledInfos.insert({ ImeEnabledInfoManagerTest::currentUserId_,
-        { { ImeEnabledInfoManagerTest::SYS_IME_KEY, EnabledStatus::BASIC_MODE } } });
+        { { ImeEnabledInfoManagerTest::IME_KEY3, EnabledStatus::BASIC_MODE } } });
     ImeEnabledInfoManager::GetInstance().imeEnabledCfg_ =
         ImeEnabledInfoManagerTest::GenerateAllEnabledCfg(easyEnabledInfos);
 
     auto ret = ImeEnabledInfoManager::GetInstance().Update(ImeEnabledInfoManagerTest::currentUserId_,
-        ImeEnabledInfoManagerTest::sysImeProp_.bundleName, ImeEnabledInfoManagerTest::sysImeProp_.extName,
-        EnabledStatus::BASIC_MODE);
+        BUNDLE_NAME3, EXT_NAME3, EnabledStatus::BASIC_MODE);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     if (ImeEnabledInfoManagerTest::IsAllSwitchOn()) {
         std::map<int32_t, std::vector<ImeEasyInfo>> easyEnabledInfos1;
         easyEnabledInfos1.insert({ ImeEnabledInfoManagerTest::currentUserId_,
-            { { ImeEnabledInfoManagerTest::SYS_IME_KEY, EnabledStatus::BASIC_MODE } } });
+            { { ImeEnabledInfoManagerTest::IME_KEY3, EnabledStatus::BASIC_MODE } } });
         EXPECT_FALSE(ImeEnabledInfoManagerTest::WaitDataShareCallback(
             ImeEnabledInfoManagerTest::GenerateAllEnabledCfg(easyEnabledInfos1)));
         EXPECT_TRUE(ImeEnabledInfoManagerTest::enabledCfg_.empty());

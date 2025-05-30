@@ -1143,11 +1143,8 @@ ErrCode InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         return ErrorCode::ERROR_ENABLE_IME;
     }
     if (identityChecker_->IsFormShell(IPCSkeleton::GetCallingFullTokenID()) && session->IsScreenLockOrSecurityFlag()) {
-        auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
-        if (defaultIme != nullptr && defaultIme->bundleName != bundleName) {
-            IMSA_HILOGE("Screen is locked or current input is securityFlag, can not need switch input method!");
-            return ErrorCode::ERROR_NOT_DEFAULT_IME;
-        }
+        IMSA_HILOGE("Screen is locked or current input is securityFlag, can not need switch input method!");
+        return ErrorCode::ERROR_SWITCH_IME;
     }
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     if (switchInfo.subName.empty() && switchInfo.bundleName == currentImeCfg->bundleName) {
