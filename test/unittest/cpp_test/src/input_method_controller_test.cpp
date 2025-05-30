@@ -1628,6 +1628,37 @@ HWTEST_F(InputMethodControllerTest, testOnInputReady, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testOnInputStop
+ * @tc.desc: IMC testOnInputStop
+ * @tc.type: IMC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testOnInputStop, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC OnInputStop Test START");
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    inputMethodController_->Attach(textListener_, false, inputAttribute);
+    int32_t invalidValue = -1;
+    inputMethodController_->isBound_.store(true);
+    inputMethodController_->isEditable_.store(true);
+    inputMethodController_->isTextNotified_.store(true);
+    inputMethodController_->selectOldBegin_ = 0;
+    inputMethodController_->selectOldEnd_ = 0;
+    inputMethodController_->selectNewBegin_ = 1;
+    inputMethodController_->selectNewEnd_ = 1;
+    inputMethodController_->OnInputStop();
+    EXPECT_EQ(inputMethodController_->isBound_, false);
+    EXPECT_EQ(inputMethodController_->isEditable_, false);
+    EXPECT_EQ(inputMethodController_->isTextNotified_, false);
+    EXPECT_EQ(inputMethodController_->textString_, Str8ToStr16(""));
+    EXPECT_EQ(inputMethodController_->selectOldBegin_, invalidValue);
+    EXPECT_EQ(inputMethodController_->selectOldEnd_, invalidValue);
+    EXPECT_EQ(inputMethodController_->selectNewBegin_, invalidValue);
+    EXPECT_EQ(inputMethodController_->selectNewEnd_, invalidValue);
+    inputMethodController_->DeactivateClient();
+}
+
+/**
  * @tc.name: testIsPanelShown
  * @tc.desc: IMC testIsPanelShown
  * @tc.type: IMC

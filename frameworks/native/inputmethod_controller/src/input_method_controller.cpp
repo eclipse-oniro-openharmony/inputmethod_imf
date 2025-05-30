@@ -1153,6 +1153,12 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient)
     }
     isBound_.store(false);
     isEditable_.store(false);
+    isTextNotified_.store(false);
+    textString_ = Str8ToStr16("");
+    selectOldBegin_ = INVALID_VALUE;
+    selectOldEnd_ = INVALID_VALUE;
+    selectNewBegin_ = INVALID_VALUE;
+    selectNewEnd_ = INVALID_VALUE;
 }
 
 void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChangedListener> lastListener)
