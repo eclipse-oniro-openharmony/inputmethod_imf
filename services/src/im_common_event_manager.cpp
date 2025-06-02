@@ -46,7 +46,7 @@ sptr<ImCommonEventManager> ImCommonEventManager::GetInstance()
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
             IMSA_HILOGI("instance_ is nullptr.");
-            instance_ = new ImCommonEventManager();
+            instance_ = new (std::nothrow) ImCommonEventManager();
         }
     }
     return instance_;

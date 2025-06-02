@@ -20,7 +20,7 @@ extern "C" {
 
 InputMethod_PrivateCommand *OH_PrivateCommand_Create(char key[], size_t keyLength)
 {
-    return new InputMethod_PrivateCommand({ std::string(key, keyLength), false });
+    return new (std::nothrow) InputMethod_PrivateCommand({ std::string(key, keyLength), false });
 }
 void OH_PrivateCommand_Destroy(InputMethod_PrivateCommand *command)
 {

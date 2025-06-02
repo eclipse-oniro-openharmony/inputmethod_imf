@@ -21,13 +21,13 @@ extern "C" {
 
 InputMethod_AttachOptions *OH_AttachOptions_Create(bool showKeyboard)
 {
-    return new InputMethod_AttachOptions({ showKeyboard });
+    return new (std::nothrow) InputMethod_AttachOptions({ showKeyboard });
 }
 
 InputMethod_AttachOptions *OH_AttachOptions_CreateWithRequestKeyboardReason(
     bool showKeyboard, InputMethod_RequestKeyboardReason requestKeyboardReason)
 {
-    return new InputMethod_AttachOptions({ showKeyboard, requestKeyboardReason });
+    return new (std::nothrow) InputMethod_AttachOptions({ showKeyboard, requestKeyboardReason });
 }
 
 void OH_AttachOptions_Destroy(InputMethod_AttachOptions *options)

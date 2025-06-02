@@ -67,7 +67,7 @@ MessageHandler *MessageHandler::Instance()
     if (handler == nullptr) {
         std::unique_lock<std::mutex> lock(handlerMutex_);
         if (handler == nullptr) {
-            handler = new MessageHandler();
+            handler = new (std::nothrow) MessageHandler();
             return handler;
         }
     }

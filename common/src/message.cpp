@@ -15,6 +15,8 @@
 
 #include "message.h"
 
+#include "global.h"
+
 namespace OHOS {
 namespace MiscServices {
 /*! Constructor
@@ -42,7 +44,11 @@ Message::Message(const Message &msg)
     }
     MessageParcel *src = msg.msgContent_;
     if (src != nullptr) {
-        msgContent_ = new MessageParcel();
+        msgContent_ = new (std::nothrow) MessageParcel();
+        if (msgContent_ == nullptr) {
+            IMSA_HILOGE("new MessageParcel failed");
+            return;
+        }
         msgContent_->ParseFrom(src->GetData(), src->GetDataSize());
     }
 }
@@ -58,7 +64,11 @@ Message &Message::operator=(const Message &msg)
         msgContent_ = nullptr;
     }
     if (msg.msgContent_ != nullptr) {
-        msgContent_ = new MessageParcel();
+        msgContent_ = new (std::nothrow) MessageParcel();
+        if (msgContent_ == nullptr) {
+            IMSA_HILOGE("new MessageParcel failed");
+            return *this;
+        }
         msgContent_->ParseFrom(msg.msgContent_->GetData(), msg.msgContent_->GetDataSize());
         msgContent_->RewindRead(0);
     }

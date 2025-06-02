@@ -798,7 +798,11 @@ int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr
 int32_t PerUserSession::InitInputControlChannel()
 {
     IMSA_HILOGD("PerUserSession::InitInputControlChannel start.");
-    sptr<IInputControlChannel> inputControlChannel = new InputControlChannelServiceImpl(userId_);
+    sptr<IInputControlChannel> inputControlChannel = new (std::nothrow) InputControlChannelServiceImpl(userId_);
+    if (inputControlChannel == nullptr) {
+        IMSA_HILOGE("new inputControlChannel failed!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto data = GetReadyImeData(ImeType::IME);
     if (data == nullptr) {
         IMSA_HILOGE("ime: %{public}d is not exist!", ImeType::IME);
