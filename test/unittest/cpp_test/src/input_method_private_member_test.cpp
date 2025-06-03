@@ -1511,6 +1511,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestPerUserSessionOnScreenUnlocked001,
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     ImeIdentification currentIme;
     InputTypeManager::GetInstance().Set(false, currentIme);
+    EXPECT_FALSE(InputTypeManager::GetInstance().IsStarted());
     userSession->OnScreenUnlock();
 }
 
