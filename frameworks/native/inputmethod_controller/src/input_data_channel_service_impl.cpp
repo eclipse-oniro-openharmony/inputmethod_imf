@@ -29,104 +29,119 @@ InputDataChannelServiceImpl::InputDataChannelServiceImpl() {}
 
 InputDataChannelServiceImpl::~InputDataChannelServiceImpl() {}
 
-ErrCode InputDataChannelServiceImpl::InsertText(const std::string &text)
+ErrCode InputDataChannelServiceImpl::InsertText(const std::string &text, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
+    } else {
     }
-    return instance->InsertText(Str8ToStr16(text));
-}
-
-ErrCode InputDataChannelServiceImpl::InsertTextAsync(const std::string &text)
-{
-    auto instance = InputMethodController::GetInstance();
-    if (instance == nullptr) {
-        IMSA_HILOGE("failed to get InputMethodController instance!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    return instance->InsertText(Str8ToStr16(text));
-}
-
-ErrCode InputDataChannelServiceImpl::DeleteForward(int32_t length)
-{
-    auto instance = InputMethodController::GetInstance();
-    if (instance == nullptr) {
-        IMSA_HILOGE("failed to get InputMethodController instance!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    return instance->DeleteForward(length);
-}
-
-ErrCode InputDataChannelServiceImpl::DeleteBackward(int32_t length)
-{
-    auto instance = InputMethodController::GetInstance();
-    if (instance == nullptr) {
-        IMSA_HILOGE("failed to get InputMethodController instance!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    return instance->DeleteBackward(length);
-}
-
-ErrCode InputDataChannelServiceImpl::GetTextBeforeCursor(int32_t number, std::string &text)
-{
-    std::u16string textu16 = Str8ToStr16(text);
-    auto instance = InputMethodController::GetInstance();
-    if (instance == nullptr) {
-        IMSA_HILOGE("failed to get InputMethodController instance!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    auto ret = instance->GetLeft(number, textu16);
-    text = Str16ToStr8(textu16);
+    int32_t ret = instance->InsertText(Str8ToStr16(text));
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::GetTextAfterCursor(int32_t number, std::string &text)
+ErrCode InputDataChannelServiceImpl::DeleteForward(int32_t length, uint64_t msgId)
 {
-    std::u16string textu16 = Str8ToStr16(text);
-
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    auto ret = instance->GetRight(number, textu16);
-    text = Str16ToStr8(textu16);
+    int32_t ret = instance->DeleteForward(length);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::GetTextIndexAtCursor(int32_t &index)
+ErrCode InputDataChannelServiceImpl::DeleteBackward(int32_t length, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->GetTextIndexAtCursor(index);
+    int32_t ret = instance->DeleteBackward(length);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::GetEnterKeyType(int32_t &keyType)
+ErrCode InputDataChannelServiceImpl::GetTextBeforeCursor(int32_t number, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->GetEnterKeyType(keyType);
+    std::string text;
+    std::u16string textu16 = Str8ToStr16(text);
+    int32_t ret = instance->GetLeft(number, textu16);
+    ResponseData data = Str16ToStr8(textu16);
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::GetInputPattern(int32_t &inputPattern)
+ErrCode InputDataChannelServiceImpl::GetTextAfterCursor(int32_t number, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->GetInputPattern(inputPattern);
+    std::string text;
+    std::u16string textu16 = Str8ToStr16(text);
+    auto ret =  instance->GetRight(number, textu16);
+    ResponseData data = Str16ToStr8(textu16);
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::GetTextConfig(TextTotalConfigInner &textConfigInner)
+ErrCode InputDataChannelServiceImpl::GetTextIndexAtCursor(uint64_t msgId)
+{
+    int32_t index = 0;
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret = instance->GetTextIndexAtCursor(index);
+    ResponseData data = index;
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
+}
+
+ErrCode InputDataChannelServiceImpl::GetEnterKeyType(uint64_t msgId)
+{
+    int32_t keyType = 0;
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret = instance->GetEnterKeyType(keyType);
+    ResponseData data = keyType;
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
+}
+
+ErrCode InputDataChannelServiceImpl::GetInputPattern(uint64_t msgId)
+{
+    int32_t inputPattern = 0;
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret = instance->GetInputPattern(inputPattern);
+    ResponseData data = inputPattern;
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
+}
+
+ErrCode InputDataChannelServiceImpl::GetTextConfig(const TextTotalConfigInner &textConfigInner, uint64_t msgId)
 {
     TextTotalConfig textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
 
@@ -135,99 +150,132 @@ ErrCode InputDataChannelServiceImpl::GetTextConfig(TextTotalConfigInner &textCon
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    auto ret = instance->GetTextConfig(textConfig);
+    auto ret =  instance->GetTextConfig(textConfig);
+    ResponseData data = textConfig;
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
+}
+
+ErrCode InputDataChannelServiceImpl::GetTextConfigSync(TextTotalConfigInner &textConfigInner)
+{
+    TextTotalConfig textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret =  instance->GetTextConfig(textConfig);
     textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::SendKeyboardStatus(int32_t status)
+ErrCode InputDataChannelServiceImpl::SendKeyboardStatus(int32_t status, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
-    if (instance != nullptr) {
-        instance->SendKeyboardStatus(static_cast<KeyboardStatus>(status));
-    } else {
+    if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ERR_OK;
     }
+    instance->SendKeyboardStatus(static_cast<KeyboardStatus>(status));
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ERR_OK, data);
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::SendFunctionKey(int32_t funcKey)
+ErrCode InputDataChannelServiceImpl::SendFunctionKey(int32_t funcKey, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->SendFunctionKey(funcKey);
+    auto ret = instance->SendFunctionKey(funcKey);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::MoveCursor(int32_t keyCode)
+ErrCode InputDataChannelServiceImpl::MoveCursor(int32_t keyCode, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->MoveCursor(static_cast<Direction>(keyCode));
+    auto ret = instance->MoveCursor(static_cast<Direction>(keyCode));
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::SelectByRange(int32_t start, int32_t end)
+ErrCode InputDataChannelServiceImpl::SelectByRange(int32_t start, int32_t end, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
-    if (instance != nullptr) {
-        instance->SelectByRange(start, end);
-    } else {
+    if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ERR_OK;
     }
+
+    instance->SelectByRange(start, end);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ERR_OK, data);
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
+ErrCode InputDataChannelServiceImpl::SelectByMovement(int32_t direction, int32_t cursorMoveSkip, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
-    if (instance != nullptr) {
-        instance->SelectByMovement(direction, cursorMoveSkip);
-    } else {
+    if (instance == nullptr) {
         IMSA_HILOGW("failed to get InputMethodController instance!");
+        return ERR_OK;
     }
+    instance->SelectByMovement(direction, cursorMoveSkip);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ERR_OK, data);
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::HandleExtendAction(int32_t action)
+ErrCode InputDataChannelServiceImpl::HandleExtendAction(int32_t action, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->HandleExtendAction(action);
+    auto ret = instance->HandleExtendAction(action);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::NotifyPanelStatusInfo(const PanelStatusInfoInner &info)
+ErrCode InputDataChannelServiceImpl::NotifyPanelStatusInfo(const PanelStatusInfoInner &info, uint64_t msgId)
 {
     PanelStatusInfo panelStatusInfo = InputMethodTools::GetInstance().InnerToPanelStatusInfo(info);
     auto instance = InputMethodController::GetInstance();
-    if (instance != nullptr) {
-        instance->NotifyPanelStatusInfo(panelStatusInfo);
-    } else {
+    if (instance == nullptr) {
         IMSA_HILOGW("failed to get InputMethodController instance!");
+        return ERR_OK;
     }
+    instance->NotifyPanelStatusInfo(panelStatusInfo);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ERR_OK, data);
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::NotifyKeyboardHeight(uint32_t height)
+ErrCode InputDataChannelServiceImpl::NotifyKeyboardHeight(uint32_t height, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
-    if (instance != nullptr) {
-        instance->NotifyKeyboardHeight(height);
-    } else {
+    if (instance == nullptr) {
         IMSA_HILOGW("failed to get InputMethodController instance!");
+        return ERR_OK;
     }
+    instance->NotifyKeyboardHeight(height);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ERR_OK, data);
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::SendPrivateCommand(
-    const Value &value)
+ErrCode InputDataChannelServiceImpl::SendPrivateCommand(const Value &value, uint64_t msgId)
 {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     privateCommand = value.valueMap;
@@ -236,10 +284,14 @@ ErrCode InputDataChannelServiceImpl::SendPrivateCommand(
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->ReceivePrivateCommand(privateCommand);
+    auto ret = instance->ReceivePrivateCommand(privateCommand);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::SetPreviewText(const std::string &text, const RangeInner &rangeInner)
+ErrCode InputDataChannelServiceImpl::SetPreviewText(
+    const std::string &text, const RangeInner &rangeInner, uint64_t msgId)
 {
     Range range = InputMethodTools::GetInstance().InnerToRange(rangeInner);
     auto instance = InputMethodController::GetInstance();
@@ -247,37 +299,36 @@ ErrCode InputDataChannelServiceImpl::SetPreviewText(const std::string &text, con
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->SetPreviewText(text, range);
+    auto ret = instance->SetPreviewText(text, range);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::FinishTextPreview()
+ErrCode InputDataChannelServiceImpl::FinishTextPreview(uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->FinishTextPreview();
+    auto ret = instance->FinishTextPreview();
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::FinishTextPreviewAsync()
+ErrCode InputDataChannelServiceImpl::SendMessage(const ArrayBuffer &arraybuffer, uint64_t msgId)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return instance->FinishTextPreview();
-}
-
-ErrCode InputDataChannelServiceImpl::SendMessage(const ArrayBuffer &arraybuffer)
-{
-    auto instance = InputMethodController::GetInstance();
-    if (instance == nullptr) {
-        IMSA_HILOGE("failed to get InputMethodController instance!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    return instance->RecvMessage(arraybuffer);
+    auto ret = instance->RecvMessage(arraybuffer);
+    ResponseData data = std::monostate{};
+    instance->ResponseDataChannel(msgId, ret, data);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

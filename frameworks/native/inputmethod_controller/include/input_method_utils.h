@@ -529,6 +529,30 @@ struct DetachOptions {
     bool isInactiveClient{ false };
     bool isNotifyClientAsync{ false };
 };
+
+enum class ResponseDataType : uint64_t {
+    NALL_TYPE = 0,
+    STRING_TYPE,
+    INT32_TYPE,
+    CONFIG_TYPE
+};
+
+using ResponseData = std::variant<std::monostate, std::string, int32_t, TextTotalConfig>;
+
+struct ResponseDataInner : public Parcelable {
+    bool ReadFromParcel(Parcel &in);
+    bool Marshalling(Parcel &out) const override;
+    static ResponseDataInner *Unmarshalling(Parcel &in)
+    {
+        ResponseDataInner *data = new (std::nothrow) ResponseDataInner();
+        if (data && !data->ReadFromParcel(in)) {
+            delete data;
+            data = nullptr;
+        }
+        return data;
+    }
+    ResponseData rspData = std::monostate{};
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

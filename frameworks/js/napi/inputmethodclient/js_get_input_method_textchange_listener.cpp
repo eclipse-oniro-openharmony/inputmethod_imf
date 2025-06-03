@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 #include "js_get_input_method_textchange_listener.h"
-
+#include "event_handler.h"
 #include "js_get_input_method_controller.h"
+#include "event_handler.h"
 namespace OHOS {
 namespace MiscServices {
 std::mutex JsGetInputMethodTextChangedListener::listenerMutex_;
@@ -33,6 +34,7 @@ sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::G
             }
         }
     }
+    inputMethodListener_->handler_ = AppExecFwk::EventHandler::Current();
     return inputMethodListener_;
 }
 
@@ -105,6 +107,11 @@ int32_t JsGetInputMethodTextChangedListener::SetPreviewText(const std::u16string
 void JsGetInputMethodTextChangedListener::FinishTextPreview()
 {
     return JsGetInputMethodController::GetInstance()->FinishTextPreview();
+}
+
+std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodTextChangedListener::GetEventHandler() const
+{
+    return handler_;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -115,6 +115,32 @@ public:
     {
         return false;
     }
+    virtual std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler() const
+    {
+        return nullptr;
+    }
+
+    void InsertTextV2(const std::u16string &text);
+    void DeleteForwardV2(int32_t length);
+    void DeleteBackwardV2(int32_t length);
+    void SendKeyboardStatusV2(const KeyboardStatus &keyboardStatus);
+    void SendFunctionKeyV2(const FunctionKey &functionKey);
+    void MoveCursorV2(const Direction direction);
+    void HandleExtendActionV2(int32_t action);
+    std::u16string GetLeftTextOfCursorV2(int32_t number);
+    std::u16string GetRightTextOfCursorV2(int32_t number);
+    int32_t GetTextIndexAtCursorV2();
+    
+    void SendKeyEventFromInputMethodV2(const KeyEvent &event);
+    void NotifyPanelStatusInfoV2(const PanelStatusInfo &info);
+    void NotifyKeyboardHeightV2(uint32_t height);
+    void SetKeyboardStatusV2(bool status);
+    void HandleSetSelectionV2(int32_t start, int32_t end);
+    void HandleSelectV2(int32_t keyCode, int32_t cursorMoveSkip);
+    int32_t ReceivePrivateCommandV2(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+    int32_t SetPreviewTextV2(const std::u16string &text, const Range &range);
+    void FinishTextPreviewV2();
+    void OnDetachV2();
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
@@ -979,7 +1005,9 @@ private:
     int32_t ShowSoftKeyboardInner(ClientType type);
     void ReportClientShow(int32_t eventCode, int32_t errCode, ClientType type);
     void GetWindowScaleCoordinate(int32_t& x, int32_t& y, uint32_t windowId);
+    int32_t ResponseDataChannel(uint64_t msgId, int32_t code, ResponseData &data);
 
+    friend class InputDataChannelServiceImpl;
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;

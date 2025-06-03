@@ -654,11 +654,11 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
         }
         ctxt->info = { std::chrono::system_clock::now(), ctxt->attribute};
         attachQueue_.Push(ctxt->info);
+        ctxt->textListener = JsGetInputMethodTextChangedListener::GetTextListener(ctxt->textConfig.newEditBox);
         return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
         attachQueue_.Wait(ctxt->info);
-        ctxt->textListener = JsGetInputMethodTextChangedListener::GetTextListener(ctxt->textConfig.newEditBox);
         OHOS::MiscServices::AttachOptions attachOptions;
         attachOptions.isShowKeyboard = ctxt->showKeyboard;
         attachOptions.requestKeyboardReason =
@@ -1047,26 +1047,18 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
             static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_INSERT_TEXT), ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
     IMSA_HILOGI("start.");
-    auto task = [entry]() {
-        auto getInsertTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc == ARGC_ZERO) {
-                IMSA_HILOGE("getInsertTextProperty the number of argc is invalid.");
-                return false;
-            }
-            // 0 means the first param of callback.
-            napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[0]);
-            return true;
-        };
-        // 1 means the callback has one param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
+    auto getInsertTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        if (argc == ARGC_ZERO) {
+            IMSA_HILOGE("getInsertTextProperty the number of argc is invalid.");
+            return false;
+        }
+        // 0 means the first param of callback.
+        napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[0]);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    // 1 means the callback has one param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
 }
 
 void JsGetInputMethodController::DeleteRight(int32_t length)
@@ -1084,27 +1076,18 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
             ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
     IMSA_HILOGI("length: %{public}d", length);
-
-    auto task = [entry]() {
-        auto getDeleteForwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc == ARGC_ZERO) {
-                IMSA_HILOGE("getDeleteForwardProperty the number of argc is invalid.");
-                return false;
-            }
-            // 0 means the first param of callback.
-            napi_create_int32(env, entry->length, &args[0]);
-            return true;
-        };
-        // 1 means the callback has one param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
+    auto getDeleteForwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        if (argc == ARGC_ZERO) {
+            IMSA_HILOGE("getDeleteForwardProperty the number of argc is invalid.");
+            return false;
+        }
+        // 0 means the first param of callback.
+        napi_create_int32(env, entry->length, &args[0]);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    // 1 means the callback has one param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
 }
 
 void JsGetInputMethodController::DeleteLeft(int32_t length)
@@ -1122,26 +1105,18 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
             ErrorCode::ERROR_JS_CB_NOT_REGISTER);
         return;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
     IMSA_HILOGI("length: %{public}d", length);
-    auto task = [entry]() {
-        auto getDeleteBackwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc == ARGC_ZERO) {
-                IMSA_HILOGE("getDeleteBackwardProperty the number of argc is invalid.");
-                return false;
-            }
-            // 0 means the first param of callback.
-            napi_create_int32(env, entry->length, &args[0]);
-            return true;
-        };
-        // 1 means the callback has one param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
+    auto getDeleteBackwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        if (argc == ARGC_ZERO) {
+            IMSA_HILOGE("getDeleteBackwardProperty the number of argc is invalid.");
+            return false;
+        }
+        // 0 means the first param of callback.
+        napi_create_int32(env, entry->length, &args[0]);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    // 1 means the callback has one param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
 }
 
 void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
@@ -1152,26 +1127,18 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
     IMSA_HILOGI("status: %{public}d", static_cast<int32_t>(status));
-    auto task = [entry]() {
-        auto getSendKeyboardStatusProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc == ARGC_ZERO) {
-                IMSA_HILOGE("getSendKeyboardStatusProperty the number of argc is invalid.");
-                return false;
-            }
-            // 0 means the first param of callback.
-            napi_create_int32(env, entry->keyboardStatus, &args[0]);
-            return true;
-        };
-        // 1 means the callback has one param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
+    auto getSendKeyboardStatusProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        if (argc == ARGC_ZERO) {
+            IMSA_HILOGE("getSendKeyboardStatusProperty the number of argc is invalid.");
+            return false;
+        }
+        // 0 means the first param of callback.
+        napi_create_int32(env, entry->keyboardStatus, &args[0]);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    // 1 means the callback has one param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
 }
 
 napi_value JsGetInputMethodController::CreateSendFunctionKey(napi_env env, int32_t functionKey)
@@ -1195,31 +1162,23 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
     IMSA_HILOGI("functionKey: %{public}d", static_cast<int32_t>(functionKey.GetEnterKeyType()));
-    auto task = [entry]() {
-        auto getSendFunctionKeyProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc == ARGC_ZERO) {
-                IMSA_HILOGE("getSendFunctionKeyProperty the number of argc is invalid.");
-                return false;
-            }
-            napi_value functionKey = CreateSendFunctionKey(env, entry->enterKeyType);
-            if (functionKey == nullptr) {
-                IMSA_HILOGE("set select movement failed");
-                return false;
-            }
-            // 0 means the first param of callback.
-            args[0] = functionKey;
-            return true;
-        };
-        // 1 means the callback has one param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
+    auto getSendFunctionKeyProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        if (argc == ARGC_ZERO) {
+            IMSA_HILOGE("getSendFunctionKeyProperty the number of argc is invalid.");
+            return false;
+        }
+        napi_value functionKey = CreateSendFunctionKey(env, entry->enterKeyType);
+        if (functionKey == nullptr) {
+            IMSA_HILOGE("set select movement failed");
+            return false;
+        }
+        // 0 means the first param of callback.
+        args[0] = functionKey;
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    // 1 means the callback has one param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
 }
 
 void JsGetInputMethodController::MoveCursor(const Direction direction)
@@ -1230,26 +1189,18 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
     IMSA_HILOGI("direction: %{public}d", static_cast<int32_t>(direction));
-    auto task = [entry]() {
-        auto getMoveCursorProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc == ARGC_ZERO) {
-                IMSA_HILOGE("getMoveCursorProperty the number of argc is invalid.");
-                return false;
-            }
-            // 0 means the first param of callback.
-            napi_create_int32(env, static_cast<int32_t>(entry->direction), &args[0]);
-            return true;
-        };
-        // 1 means the callback has one param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
+    auto getMoveCursorProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        if (argc == ARGC_ZERO) {
+            IMSA_HILOGE("getMoveCursorProperty the number of argc is invalid.");
+            return false;
+        }
+        // 0 means the first param of callback.
+        napi_create_int32(env, static_cast<int32_t>(entry->direction), &args[0]);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    // 1 means the callback has one param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
 }
 
 void JsGetInputMethodController::HandleExtendAction(int32_t action)
@@ -1260,88 +1211,58 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
     IMSA_HILOGI("action: %{public}d", action);
-    auto task = [entry]() {
-        auto getHandleExtendActionProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc == ARGC_ZERO) {
-                IMSA_HILOGE("getHandleExtendActionProperty the number of argc is invalid.");
-                return false;
-            }
-            // 0 means the first param of callback.
-            napi_create_int32(env, entry->action, &args[0]);
-            return true;
-        };
-        // 1 means the callback has one param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
+    auto getHandleExtendActionProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        if (argc == ARGC_ZERO) {
+            IMSA_HILOGE("getHandleExtendActionProperty the number of argc is invalid.");
+            return false;
+        }
+        // 0 means the first param of callback.
+        napi_create_int32(env, entry->action, &args[0]);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    // 1 means the callback has one param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
 }
 
 std::u16string JsGetInputMethodController::GetText(const std::string &type, int32_t number)
 {
-    auto textResultHandler = std::make_shared<BlockData<std::string>>(MAX_TIMEOUT, "");
-    auto entry = GetEntry(type, [&number, textResultHandler](UvEntry &entry) {
+    auto entry = GetEntry(type, [&number](UvEntry &entry) {
         entry.number = number;
-        entry.textResultHandler = textResultHandler;
     });
     if (entry == nullptr) {
         IMSA_HILOGE("failed to get uv entry.");
         return u"";
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return u"";
-    }
     IMSA_HILOGI("type: %{public}s, number: %{public}d.", type.c_str(), number);
-    auto task = [entry]() {
-        auto fillArguments = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc < 1) {
-                IMSA_HILOGE("argc is err.");
-                return false;
-            }
-            // 0 means the first param of callback.
-            napi_create_int32(env, entry->number, &args[0]);
-            return true;
-        };
-        std::string text;
-        // 1 means callback has one param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
-        entry->textResultHandler->SetValue(text);
+    auto fillArguments = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        if (argc < 1) {
+            IMSA_HILOGE("argc is err.");
+            return false;
+        }
+        // 0 means the first param of callback.
+        napi_create_int32(env, entry->number, &args[0]);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
-    return Str8ToStr16(textResultHandler->GetValue());
+    std::string text;
+    // 1 means callback has one param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
+    return Str8ToStr16(text);
 }
 
 int32_t JsGetInputMethodController::GetTextIndexAtCursor()
 {
     std::string type = "getTextIndexAtCursor";
-    auto indexResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
-    auto entry =
-        GetEntry(type, [indexResultHandler](UvEntry &entry) { entry.indexResultHandler = indexResultHandler; });
+    auto entry = GetEntry(type, nullptr);
     if (entry == nullptr) {
         IMSA_HILOGE("failed to get uv entry!");
         return -1;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return -1;
-    }
     IMSA_HILOGI("run in");
-    auto task = [entry]() {
-        int32_t index = -1;
-        // 0 means callback has no params.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr }, index);
-        entry->indexResultHandler->SetValue(index);
-    };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
-    return indexResultHandler->GetValue();
+    int32_t index = -1;
+    // 0 means callback has no params.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr }, index);
+    return index;
 }
 
 int32_t JsGetInputMethodController::SetPreviewText(const std::u16string &text, const Range &range)
@@ -1357,29 +1278,21 @@ int32_t JsGetInputMethodController::SetPreviewText(const std::u16string &text, c
         IMSA_HILOGD("failed to get uv entry!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
     IMSA_HILOGI("previewText start.");
-    auto task = [entry]() {
-        auto getPreviewTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            // 2 means the callback has two params.
-            if (argc < 2) {
-                return false;
-            }
-            // 0 means the first param of callback.
-            args[0] = JsUtil::GetValue(env, entry->text);
-            // 1 means the second param of callback.
-            args[1] = CreateSelectRange(env, entry->start, entry->end);
-            return true;
-        };
-
-        // 2 means the callback has two param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 2, getPreviewTextProperty });
+    auto getPreviewTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        // 2 means the callback has two params.
+        if (argc < 2) {
+            return false;
+        }
+        // 0 means the first param of callback.
+        args[0] = JsUtil::GetValue(env, entry->text);
+        // 1 means the second param of callback.
+        args[1] = CreateSelectRange(env, entry->start, entry->end);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+
+    // 2 means the callback has two param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 2, getPreviewTextProperty });
     return ErrorCode::NO_ERROR;
 }
 
@@ -1391,17 +1304,9 @@ void JsGetInputMethodController::FinishTextPreview()
         IMSA_HILOGE("failed to get uv entry!");
         return;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return;
-    }
     IMSA_HILOGI("run in");
-    auto task = [entry]() {
-        // 0 means callback has no params.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr });
-    };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+    // 0 means callback has no params.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr });
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodController::GetEventHandler()

@@ -41,6 +41,7 @@
 #include "private_command_interface.h"
 #include "system_cmd_channel_proxy.h"
 #include "inputmethod_message_handler.h"
+#include "input_data_channel_proxy_wrap.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -52,28 +53,28 @@ public:
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t RegisterProxyIme(uint64_t displayId = DEFAULT_DISPLAY_ID);
     int32_t UnregisterProxyIme(uint64_t displayId);
-    int32_t InsertText(const std::string text);
+    int32_t InsertText(const std::string text, AsyncIpcCallBack callback = nullptr);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     std::shared_ptr<InputMethodEngineListener> GetImeListener();
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
     void SetTextInputClientListener(std::shared_ptr<TextInputClientListener> textInputClientListener);
-    int32_t DeleteForward(int32_t length);
-    int32_t DeleteBackward(int32_t length);
+    int32_t DeleteForward(int32_t length, AsyncIpcCallBack callback = nullptr);
+    int32_t DeleteBackward(int32_t length, AsyncIpcCallBack callback = nullptr);
     int32_t HideKeyboardSelf();
 
-    int32_t SendExtendAction(int32_t action);
-    int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
-    int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
-    int32_t SendFunctionKey(int32_t funcKey);
-    int32_t MoveCursor(int32_t keyCode);
-    int32_t SelectByRange(int32_t start, int32_t end);
-    int32_t SelectByMovement(int32_t direction);
+    int32_t SendExtendAction(int32_t action, AsyncIpcCallBack callback = nullptr);
+    int32_t GetTextBeforeCursor(int32_t number, std::u16string &text, AsyncIpcCallBack callback = nullptr);
+    int32_t GetTextAfterCursor(int32_t number, std::u16string &text, AsyncIpcCallBack callback = nullptr);
+    int32_t SendFunctionKey(int32_t funcKey, AsyncIpcCallBack callback = nullptr);
+    int32_t MoveCursor(int32_t keyCode, AsyncIpcCallBack callback = nullptr);
+    int32_t SelectByRange(int32_t start, int32_t end, AsyncIpcCallBack callback = nullptr);
+    int32_t SelectByMovement(int32_t direction, AsyncIpcCallBack callback = nullptr);
     int32_t DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer);
     void SetCallingWindow(uint32_t windowId);
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);
-    int32_t GetTextIndexAtCursor(int32_t &index);
-    int32_t GetTextConfig(TextTotalConfig &textConfig);
+    int32_t GetTextIndexAtCursor(int32_t &index, AsyncIpcCallBack callback = nullptr);
+    int32_t GetTextConfig(TextTotalConfig &textConfig, AsyncIpcCallBack callback = nullptr, bool syncIpc = false);
     int32_t AdjustKeyboard();
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
@@ -93,21 +94,24 @@ public:
     void OnClientInactive(const sptr<IRemoteObject> &channel);
     void NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag);
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t SendPrivateCommandEx(const std::unordered_map<std::string, PrivateDataValue> &privateCommand,
+        AsyncIpcCallBack callback = nullptr);
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
-    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
-    int32_t SetPreviewText(const std::string &text, const Range &range);
-    int32_t FinishTextPreview(bool isAsync);
+    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo, AsyncIpcCallBack callback = nullptr);
+    int32_t SetPreviewText(const std::string &text, const Range &range, AsyncIpcCallBack callback = nullptr);
+    int32_t FinishTextPreview(bool isAsync, AsyncIpcCallBack callback = nullptr);
     int32_t NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     RequestKeyboardReason GetRequestKeyboardReason();
     void OnSetInputType(InputType inputType);
-    int32_t SendMessage(const ArrayBuffer &arrayBuffer);
+    int32_t SendMessage(const ArrayBuffer &arrayBuffer, AsyncIpcCallBack callback = nullptr);
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
     int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
     int32_t OnCallingDisplayIdChanged(uint64_t displayId);
     int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     bool HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent> &keyEvent);
+    int32_t OnResponse(uint64_t msgId, int32_t code, const ResponseData &data);
 
 public:
     /* called from TaskManager worker thread */
@@ -131,7 +135,7 @@ private:
 
     std::mutex dataChannelLock_;
     sptr<IRemoteObject> dataChannelObject_ = nullptr;
-    std::shared_ptr<InputDataChannelProxy> dataChannelProxy_ = nullptr;
+    std::shared_ptr<InputDataChannelProxyWrap> dataChannelProxyWrap_ = nullptr;
 
     std::mutex systemCmdChannelLock_;
     sptr<SystemCmdChannelProxy> systemCmdChannelProxy_ = nullptr;
@@ -154,7 +158,7 @@ private:
     void ClearSystemCmdChannel();
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
-    std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
+    std::shared_ptr<InputDataChannelProxyWrap> GetInputDataChannelProxyWrap();
     void ClearDataChannel(const sptr<IRemoteObject> &channel);
     void SetInputControlChannel(sptr<IRemoteObject> &object);
     void ClearInputControlChannel();
@@ -179,18 +183,18 @@ private:
     int32_t HideKeyboardImplWithoutLock(int32_t cmdId, uint32_t sessionId);
     int32_t ShowKeyboardImplWithLock(int32_t cmdId);
     int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
-    void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy);
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxyWrap> &channelProxy);
     void ClearInputType();
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
     int32_t StartInputInner(const InputClientInfo &clientInfo, bool isBindFromClient);
-    int32_t InsertTextInner(const std::string &text);
-    int32_t SetPreviewTextInner(const std::string &text, const Range &range);
-    int32_t DeleteForwardInner(int32_t length);
-    int32_t DeleteBackwardInner(int32_t length);
-    int32_t FinishTextPreviewInner(bool isAsync);
-    int32_t GetTextBeforeCursorInner(int32_t number, std::u16string &text);
-    int32_t GetTextAfterCursorInner(int32_t number, std::u16string &text);
-    int32_t GetTextIndexAtCursorInner(int32_t &index);
+    int32_t InsertTextInner(const std::string &text, AsyncIpcCallBack callback = nullptr);
+    int32_t SetPreviewTextInner(const std::string &text, const Range &range, AsyncIpcCallBack callback = nullptr);
+    int32_t DeleteForwardInner(int32_t length, AsyncIpcCallBack callback = nullptr);
+    int32_t DeleteBackwardInner(int32_t length, AsyncIpcCallBack callback = nullptr);
+    int32_t FinishTextPreviewInner(bool isAsync, AsyncIpcCallBack callback = nullptr);
+    int32_t GetTextBeforeCursorInner(int32_t number, std::u16string &text, AsyncIpcCallBack callback = nullptr);
+    int32_t GetTextAfterCursorInner(int32_t number, std::u16string &text, AsyncIpcCallBack callback = nullptr);
+    int32_t GetTextIndexAtCursorInner(int32_t &index, AsyncIpcCallBack callback = nullptr);
     void SetBindClientInfo(const InputClientInfo &clientInfo);
     HiSysEventClientInfo GetBindClientInfo();
     void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);

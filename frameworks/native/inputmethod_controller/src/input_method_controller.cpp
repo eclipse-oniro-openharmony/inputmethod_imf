@@ -57,6 +57,7 @@ constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
 constexpr int32_t MAX_PLACEHOLDER_SIZE = 255; // 256 utf16 char
 constexpr int32_t MAX_ABILITY_NAME_SIZE = 127; // 127 utf16 char
+static constexpr int32_t MAX_TIMEOUT = 2500;
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure.");
@@ -284,7 +285,7 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, cons
     }
     IMSA_HILOGI("sessionId_ %{public}u", sessionId_.load());
     if (clientInfo_.isNotifyInputStart && lastListener != nullptr) {
-        lastListener->OnDetach();
+        lastListener->OnDetachV2();
     }
     ClearEditorCache(clientInfo_.isNotifyInputStart, lastListener);
     SetTextListener(listener);
@@ -405,7 +406,7 @@ int32_t InputMethodController::Close()
 
     auto listener = GetTextListener();
     if (listener != nullptr) {
-        listener->OnDetach();
+        listener->OnDetachV2();
     }
     OperateIMEInfoCode infoCode = OperateIMEInfoCode::IME_UNBIND;
     {
@@ -642,7 +643,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     auto textListener = GetTextListener();
     if (textListener != nullptr && textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGD("finish text preview.");
-        textListener->FinishTextPreview();
+        textListener->FinishTextPreviewV2();
     }
     {
         std::lock_guard<std::mutex> lock(abilityLock_);
@@ -868,7 +869,7 @@ int32_t InputMethodController::GetLeft(int32_t length, std::u16string &text)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     {
         InputMethodSyncTrace aceTracer("ACE_GetForward");
-        text = listener->GetLeftTextOfCursor(length);
+        text = listener->GetLeftTextOfCursorV2(length);
     }
     PrintLogIfAceTimeout(start);
     return ErrorCode::NO_ERROR;
@@ -884,7 +885,7 @@ int32_t InputMethodController::GetRight(int32_t length, std::u16string &text)
             ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    text = listener->GetRightTextOfCursor(length);
+    text = listener->GetRightTextOfCursorV2(length);
     return ErrorCode::NO_ERROR;
 }
 
@@ -898,7 +899,7 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
             ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    index = listener->GetTextIndexAtCursor();
+    index = listener->GetTextIndexAtCursorV2();
     return ErrorCode::NO_ERROR;
 }
 
@@ -1145,10 +1146,10 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient)
         IMSA_HILOGD("listener is not nullptr!");
         if (textConfig_.inputAttribute.isTextPreviewSupported) {
             IMSA_HILOGD("finish text preview.");
-            listener->FinishTextPreview();
+            listener->FinishTextPreviewV2();
         }
         if (!isStopInactiveClient || !listener->IsFromTs()) {
-            listener->SendKeyboardStatus(KeyboardStatus::HIDE);
+            listener->SendKeyboardStatusV2(KeyboardStatus::HIDE);
         }
     }
     isBound_.store(false);
@@ -1197,7 +1198,7 @@ void InputMethodController::SelectByRange(int32_t start, int32_t end)
     IMSA_HILOGD("InputMethodController start: %{public}d, end: %{public}d.", start, end);
     auto listener = GetTextListener();
     if (IsEditable() && listener != nullptr) {
-        listener->HandleSetSelection(start, end);
+        listener->HandleSetSelectionV2(start, end);
     } else {
         IMSA_HILOGE("not editable or textListener_ is nullptr!");
     }
@@ -1215,7 +1216,7 @@ void InputMethodController::SelectByMovement(int32_t direction, int32_t cursorMo
         "InputMethodController start, direction: %{public}d, cursorMoveSkip: %{public}d", direction, cursorMoveSkip);
     auto listener = GetTextListener();
     if (IsEditable() && listener != nullptr) {
-        listener->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
+        listener->HandleSelectV2(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
     } else {
         IMSA_HILOGE("not editable or textListener_ is nullptr!");
     }
@@ -1235,7 +1236,7 @@ int32_t InputMethodController::HandleExtendAction(int32_t action)
         IMSA_HILOGE("not editable or textListener is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    listener->HandleExtendAction(action);
+    listener->HandleExtendActionV2(action);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1294,7 +1295,7 @@ int32_t InputMethodController::InsertText(const std::u16string &text)
     {
         InputMethodSyncTrace aceTracer("ACE_InsertText");
         IMSA_HILOGD("ACE InsertText.");
-        listener->InsertText(text);
+        listener->InsertTextV2(text);
     }
 
     PrintLogIfAceTimeout(start);
@@ -1316,7 +1317,7 @@ int32_t InputMethodController::DeleteForward(int32_t length)
     {
         InputMethodSyncTrace aceTracer("ACE_DeleteForward");
         // reverse for compatibility
-        listener->DeleteBackward(length);
+        listener->DeleteBackwardV2(length);
     }
     PrintLogIfAceTimeout(start);
     return ErrorCode::NO_ERROR;
@@ -1333,7 +1334,7 @@ int32_t InputMethodController::DeleteBackward(int32_t length)
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     // reverse for compatibility
-    listener->DeleteForward(length);
+    listener->DeleteForwardV2(length);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1345,7 +1346,7 @@ int32_t InputMethodController::MoveCursor(Direction direction)
         IMSA_HILOGE("not editable or textListener_ is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    listener->MoveCursor(direction);
+    listener->MoveCursorV2(direction);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1357,7 +1358,7 @@ void InputMethodController::SendKeyboardStatus(KeyboardStatus status)
         IMSA_HILOGE("listener is nullptr!");
         return;
     }
-    listener->SendKeyboardStatus(status);
+    listener->SendKeyboardStatusV2(status);
     if (status == KeyboardStatus::HIDE) {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
         clientInfo_.isShowKeyboard = false;
@@ -1380,7 +1381,7 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     }
 
     if (info.visible || info.sessionId == 0 || info.sessionId == sessionId_) {
-        listener->NotifyPanelStatusInfo(info);
+        listener->NotifyPanelStatusInfoV2(info);
     }
     if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD &&
         info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
@@ -1397,7 +1398,7 @@ void InputMethodController::NotifyKeyboardHeight(uint32_t height)
         IMSA_HILOGE("listener is nullptr!");
         return;
     }
-    listener->NotifyKeyboardHeight(height);
+    listener->NotifyKeyboardHeightV2(height);
 }
 
 int32_t InputMethodController::SendFunctionKey(int32_t functionKey)
@@ -1496,7 +1497,7 @@ int32_t InputMethodController::ReceivePrivateCommand(
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     IMSA_HILOGD("IMC in.");
-    auto ret = listener->ReceivePrivateCommand(privateCommand);
+    auto ret = listener->ReceivePrivateCommandV2(privateCommand);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("ReceivePrivateCommand err, ret: %{public}d!", ret);
         return ErrorCode::ERROR_TEXT_LISTENER_ERROR;
@@ -1558,7 +1559,7 @@ int32_t InputMethodController::SetPreviewTextInner(const std::string &text, cons
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     {
         InputMethodSyncTrace aceTracer("ACE_SetPreviewText");
-        ret = listener->SetPreviewText(Str8ToStr16(text), range);
+        ret = listener->SetPreviewTextV2(Str8ToStr16(text), range);
     }
     PrintLogIfAceTimeout(start);
     if (ret != ErrorCode::NO_ERROR) {
@@ -1587,7 +1588,7 @@ int32_t InputMethodController::FinishTextPreview()
     }
     {
         InputMethodSyncTrace aceTracer("ACE_FinishTextPreview");
-        listener->FinishTextPreview();
+        listener->FinishTextPreviewV2();
     }
     return ErrorCode::NO_ERROR;
 }
@@ -1760,6 +1761,338 @@ void InputMethodController::GetWindowScaleCoordinate(int32_t& x, int32_t& y, uin
         return;
     }
     handler(x, y, windowId);
+}
+
+int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code, ResponseData &data)
+{
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    ResponseDataInner inner = {};
+    inner.rspData = data;
+    return agent->ResponseDataChannel(msgId, code, inner);
+}
+
+void OnTextChangedListener::InsertTextV2(const std::u16string &text)
+{
+    auto task = [this, text]() {
+        InsertText(text);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "InsertTextV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+void OnTextChangedListener::DeleteForwardV2(int32_t length)
+{
+    auto task = [this, length]() {
+        DeleteForward(length);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "DeleteForwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::DeleteBackwardV2(int32_t length)
+{
+    auto task = [this, length]() {
+        DeleteBackward(length);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "DeleteBackwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::SendKeyboardStatusV2(const KeyboardStatus &keyboardStatus)
+{
+    auto task = [this, keyboardStatus]() {
+        SendKeyboardStatus(keyboardStatus);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "SendKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::SendFunctionKeyV2(const FunctionKey &functionKey)
+{
+    auto task = [this, functionKey]() {
+        SendFunctionKey(functionKey);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "SendFunctionKeyV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::MoveCursorV2(const Direction direction)
+{
+    auto task = [this, direction]() {
+        MoveCursor(direction);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "MoveCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::HandleExtendActionV2(int32_t action)
+{
+    auto task = [this, action]() {
+        HandleExtendAction(action);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "HandleExtendActionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+std::u16string OnTextChangedListener::GetLeftTextOfCursorV2(int32_t number)
+{
+    std::u16string text;
+    auto eventHandler = GetEventHandler();
+    std::shared_ptr<BlockData<int32_t>> textResultHandler = nullptr;
+    if (eventHandler != nullptr) {
+        textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    }
+    auto task = [this, textResultHandler, number, &text]() {
+        text = GetLeftTextOfCursor(number);
+        if (textResultHandler != nullptr) {
+            textResultHandler->SetValue(number);
+        }
+    };
+    if (eventHandler != nullptr) {
+        eventHandler->PostTask(task, "GetLeftTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+        if (!textResultHandler->GetValue()) {
+            IMSA_HILOGW("GetValue timeout");
+        }
+    } else {
+        task();
+    }
+    return text;
+}
+
+std::u16string OnTextChangedListener::GetRightTextOfCursorV2(int32_t number)
+{
+    std::u16string text;
+    auto eventHandler = GetEventHandler();
+    std::shared_ptr<BlockData<int32_t>> textResultHandler = nullptr;
+    if (eventHandler != nullptr) {
+        textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    }
+    auto task = [this, textResultHandler, number, &text]() {
+        text = GetRightTextOfCursor(number);
+        if (textResultHandler != nullptr) {
+            textResultHandler->SetValue(number);
+        }
+    };
+    if (eventHandler != nullptr) {
+        eventHandler->PostTask(task, "GetRightTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+        if (!textResultHandler->GetValue()) {
+            IMSA_HILOGW("GetValue timeout");
+        }
+    } else {
+        task();
+    }
+    return text;
+}
+
+int32_t OnTextChangedListener::GetTextIndexAtCursorV2()
+{
+    int32_t index = -1;
+    auto eventHandler = GetEventHandler();
+    std::shared_ptr<BlockData<int32_t>> textResultHandler = nullptr;
+    if (eventHandler != nullptr) {
+        textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    }
+    auto task = [this, textResultHandler, &index]() {
+        index = GetTextIndexAtCursor();
+        if (textResultHandler != nullptr) {
+            textResultHandler->SetValue(index);
+        }
+    };
+    if (eventHandler != nullptr) {
+        eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+        if (!textResultHandler->GetValue()) {
+            IMSA_HILOGW("GetValue timeout");
+        }
+    } else {
+        task();
+    }
+    return index;
+}
+
+void OnTextChangedListener::SendKeyEventFromInputMethodV2(const KeyEvent &event)
+{
+    auto task = [this, event]() {
+        SendKeyEventFromInputMethod(event);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "SendKeyEventFromInputMethodV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::NotifyPanelStatusInfoV2(const PanelStatusInfo &info)
+{
+    auto task = [this, info]() {
+        NotifyPanelStatusInfo(info);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "NotifyPanelStatusInfoV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::NotifyKeyboardHeightV2(uint32_t height)
+{
+    auto task = [this, height]() {
+        NotifyKeyboardHeight(height);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "NotifyKeyboardHeightV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::SetKeyboardStatusV2(bool status)
+{
+    auto task = [this, status]() {
+        SetKeyboardStatus(status);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "SetKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::HandleSetSelectionV2(int32_t start, int32_t end)
+{
+    auto task = [this, start, end]() {
+        HandleSetSelection(start, end);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "HandleSetSelectionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::HandleSelectV2(int32_t keyCode, int32_t cursorMoveSkip)
+{
+    auto task = [this, keyCode, cursorMoveSkip]() {
+        HandleSelect(keyCode, cursorMoveSkip);
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "HandleSelectV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+int32_t OnTextChangedListener::ReceivePrivateCommandV2(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    int32_t ret = -1;
+    auto eventHandler = GetEventHandler();
+    std::shared_ptr<BlockData<int32_t>> textResultHandler = nullptr;
+    if (eventHandler != nullptr) {
+        textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    }
+    auto task = [this, textResultHandler, privateCommand, &ret]() {
+        ret = ReceivePrivateCommand(privateCommand);
+        if (textResultHandler != nullptr) {
+            textResultHandler->SetValue(ret);
+        }
+    };
+    if (eventHandler != nullptr) {
+        eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+        if (!textResultHandler->GetValue()) {
+            IMSA_HILOGW("GetValue timeout");
+        }
+    } else {
+        task();
+    }
+    return ret;
+}
+
+int32_t OnTextChangedListener::SetPreviewTextV2(const std::u16string &text, const Range &range)
+{
+    int32_t ret = -1;
+    auto eventHandler = GetEventHandler();
+    std::shared_ptr<BlockData<int32_t>> textResultHandler = nullptr;
+    if (eventHandler != nullptr) {
+        textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    }
+    auto task = [this, textResultHandler, text, range, &ret]() {
+        ret = SetPreviewText(text, range);
+        if (textResultHandler != nullptr) {
+            textResultHandler->SetValue(ret);
+        }
+    };
+    if (eventHandler != nullptr) {
+        eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+        if (!textResultHandler->GetValue()) {
+            IMSA_HILOGW("GetValue timeout");
+        }
+    } else {
+        task();
+    }
+    return ret;
+}
+
+void OnTextChangedListener::FinishTextPreviewV2()
+{
+    auto task = [this]() {
+        FinishTextPreview();
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "FinishTextPreviewV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
+}
+
+void OnTextChangedListener::OnDetachV2()
+{
+    auto task = [this]() {
+        OnDetach();
+    };
+    auto eventHandler = GetEventHandler();
+    if (eventHandler) {
+        eventHandler->PostTask(task, "OnDetachV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    } else {
+        task();
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

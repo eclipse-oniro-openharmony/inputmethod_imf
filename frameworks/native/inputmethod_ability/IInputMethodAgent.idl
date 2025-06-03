@@ -17,6 +17,7 @@ sequenceable input_attribute..OHOS.MiscServices.InputAttributeInner;
 sequenceable input_method_utils..OHOS.MiscServices.Value;
 sequenceable input_method_utils..OHOS.MiscServices.KeyEventValue;
 sequenceable input_method_utils..OHOS.MiscServices.ArrayBuffer;
+sequenceable input_method_utils..OHOS.MiscServices.ResponseDataInner;
 interface OHOS.MiscServices.IKeyEventConsumer;
 interface OHOS.MiscServices.IInputMethodAgent {
     [ipccode 0] void DispatchKeyEvent([in] KeyEventValue keyEvent, [in] IKeyEventConsumer consumer);
@@ -27,4 +28,5 @@ interface OHOS.MiscServices.IInputMethodAgent {
     void SendPrivateCommand([in] Value value);
     void SendMessage([in] ArrayBuffer arraybuffer);
     void DiscardTypingText();
+    void ResponseDataChannel([in] unsigned long msgId, [in] int code, [in] ResponseDataInner msg);
 }

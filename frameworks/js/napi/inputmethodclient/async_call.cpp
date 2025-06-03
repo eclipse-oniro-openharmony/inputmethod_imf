@@ -78,14 +78,8 @@ napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec, const std::st
     } else {
         napi_get_undefined(env, &promise);
     }
-    napi_async_work work = context_->work;
-    napi_value resource = nullptr;
-    std::string name = "IMF_" + resourceName;
-    napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
-    napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecute, AsyncCall::OnComplete, context_, &work);
-    context_->work = work;
+    CallImpl(env, context_, resourceName);
     context_ = nullptr;
-    napi_queue_async_work_with_qos(env, work, napi_qos_user_initiated);
     return promise;
 }
 
@@ -238,6 +232,62 @@ AsyncCall::InnerTask::~InnerTask()
                     ", cost:%{public}" PRIu64 "ms",
             name, startTime, endTime, endTime - startTime);
     }
+}
+
+napi_value AsyncCall::Call(napi_env env, Context::AsynExecAction exec, const std::string &resourceName)
+{
+    if ((context_ == nullptr) || (context_->ctx == nullptr)) {
+        IMSA_HILOGE("context_ or context_->ctx is nullptr!");
+        return nullptr;
+    }
+    context_->ctx->asyncExec_ = std::move(exec);
+    napi_value promise = nullptr;
+    if (context_->callback == nullptr) {
+        napi_create_promise(env, &context_->defer, &promise);
+    } else {
+        napi_get_undefined(env, &promise);
+    }
+    CallImpl(env, context_, resourceName);
+    context_ = nullptr;
+    return promise;
+}
+
+void AsyncCall::OnExecuteAsync(napi_env env, void *data, Context::CallBackAction cb)
+{
+    AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
+    if (context == nullptr || context->ctx == nullptr) {
+        IMSA_HILOGE("context or context->ctx is nullptr!");
+        return;
+    }
+
+    context->ctx->AsyncExec(cb);
+}
+
+void AsyncCall::CallImpl(napi_env env, void *data, const std::string &resourceName)
+{
+    AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
+    napi_async_work work = context->work;
+    napi_value resource = nullptr;
+    std::string name = "IMF_" + resourceName;
+    napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
+    napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecute, AsyncCall::OnComplete, context, &work);
+    context->work = work;
+    napi_queue_async_work_with_qos(env, work, napi_qos_user_initiated);
+}
+
+void EditAsyncCall::CallImpl(napi_env env, void *data, const std::string &resourceName)
+{
+    AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
+    auto cb = [env, context, resourceName]() -> void {
+        auto task = [env, context]() -> void {
+            AsyncCall::OnComplete(env, context->ctx->GetState(), context);
+        };
+        auto handler = context->ctx->GetHandler();
+        if (handler) {
+            handler->PostTask(task, "IMA" + resourceName, 0, AppExecFwk::EventQueue::Priority::VIP);
+        }
+    };
+    AsyncCall::OnExecuteAsync(env, data, cb);
 }
 } // namespace MiscServices
 } // namespace OHOS

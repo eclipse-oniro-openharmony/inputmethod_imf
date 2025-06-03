@@ -24,6 +24,8 @@ ohos_shared_library("ohinputmethod") {
   output_extension = "so"
 
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "src/inputmethod_attach_options_capi.cpp",
     "src/inputmethod_controller_capi.cpp",

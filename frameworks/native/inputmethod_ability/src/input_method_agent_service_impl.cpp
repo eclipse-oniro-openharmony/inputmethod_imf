@@ -100,5 +100,10 @@ ErrCode InputMethodAgentServiceImpl::DiscardTypingText()
     TaskManager::GetInstance().PostTask(task);
     return ErrorCode::NO_ERROR;
 }
+
+ErrCode InputMethodAgentServiceImpl::ResponseDataChannel(uint64_t msgId, int code, const ResponseDataInner &msg)
+{
+    return InputMethodAbility::GetInstance().OnResponse(msgId, code, msg.rspData);
+}
 } // namespace MiscServices
 } // namespace OHOS

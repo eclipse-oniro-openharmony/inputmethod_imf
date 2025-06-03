@@ -39,6 +39,7 @@ public:
     ErrCode SendPrivateCommand(const Value &value) override;
     ErrCode SendMessage(const ArrayBuffer &arraybuffer) override;
     ErrCode DiscardTypingText() override;
+    ErrCode ResponseDataChannel(uint64_t msgId, int code, const ResponseDataInner &msg) override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS

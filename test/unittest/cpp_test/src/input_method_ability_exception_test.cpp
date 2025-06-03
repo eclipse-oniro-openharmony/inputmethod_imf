@@ -45,7 +45,7 @@ public:
     void TearDown() { }
     static void ResetMemberVar()
     {
-        inputMethodAbility_.dataChannelProxy_ = nullptr;
+        inputMethodAbility_.dataChannelProxyWrap_ = nullptr;
         inputMethodAbility_.dataChannelObject_ = nullptr;
         inputMethodAbility_.imeListener_ = nullptr;
         inputMethodAbility_.panels_.Clear();
