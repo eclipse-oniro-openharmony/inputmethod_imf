@@ -21,7 +21,6 @@
 #include "cj_input_method_textchanged_listener.h"
 #include "cj_lambda.h"
 #include "utils.h"
-#include "input_method_utils.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -57,7 +56,7 @@ std::shared_ptr<CjInputMethodController> CjInputMethodController::GetInstance()
     return controller_;
 }
 
-int32_t CjInputMethodController::Attach(const CTextConfig &txtCfg, bool showKeyboard)
+int32_t CjInputMethodController::Attach(const CTextConfig &txtCfg, const AttachOptions &attachOptions)
 {
     auto textListener = CjInputMethodTextChangedListener::GetInstance();
     if (textListener == nullptr) {
@@ -79,7 +78,7 @@ int32_t CjInputMethodController::Attach(const CTextConfig &txtCfg, bool showKeyb
     if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
-    return controller->Attach(textListener, showKeyboard, textCfg, ClientType::CJ);
+    return controller->Attach(textListener, attachOptions, textCfg, ClientType::CJ);
 }
 
 int32_t CjInputMethodController::Detach()
@@ -91,13 +90,13 @@ int32_t CjInputMethodController::Detach()
     return controller->Close();
 }
 
-int32_t CjInputMethodController::ShowTextInput()
+int32_t CjInputMethodController::ShowTextInput(const AttachOptions &attachOptions)
 {
     auto controller = InputMethodController::GetInstance();
     if (controller == nullptr) {
         return ERR_NO_MEMORY;
     }
-    return controller->ShowTextInput(ClientType::CJ);
+    return controller->ShowTextInput(attachOptions, ClientType::CJ);
 }
 
 int32_t CjInputMethodController::HideTextInput()
