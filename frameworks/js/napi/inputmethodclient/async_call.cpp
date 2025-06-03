@@ -32,7 +32,7 @@ static inline uint64_t GetTimeStamp()
 AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount)
     : env_(env)
 {
-    context_ = new AsyncContext();
+    context_ = new (std::nothrow) AsyncContext();
     NAPI_ASSERT_RETURN_VOID(env, context_ != nullptr, "context_ != nullptr");
     size_t argc = ARGC_MAX;
     napi_value self = nullptr;

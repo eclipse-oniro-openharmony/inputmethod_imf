@@ -72,13 +72,13 @@ static InputMethod_ErrorCode GetInputMethodProxy(InputMethod_TextEditorProxy *te
         delete g_inputMethodProxy;
         g_inputMethodProxy = nullptr;
     }
-    OHOS::sptr<NativeTextChangedListener> listener = new NativeTextChangedListener(textEditor);
+    OHOS::sptr<NativeTextChangedListener> listener = new (std::nothrow) NativeTextChangedListener(textEditor);
     if (listener == nullptr) {
         IMSA_HILOGE("new NativeTextChangedListener failed");
         return IME_ERR_NULL_POINTER;
     }
 
-    g_inputMethodProxy = new InputMethod_InputMethodProxy({ textEditor, listener });
+    g_inputMethodProxy = new (std::nothrow) InputMethod_InputMethodProxy({ textEditor, listener });
     if (g_inputMethodProxy == nullptr) {
         IMSA_HILOGE("new InputMethod_InputMethodProxy failed");
         listener = nullptr;

@@ -174,7 +174,7 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const Serializ
 
 bool Serializable::SetValue(cJSON *node, const std::string &name, const std::vector<std::string> &values)
 {
-    const char **strArr = new const char *[values.size()];
+    const char **strArr = new (std::nothrow) const char *[values.size()];
     if (strArr == nullptr) {
         return false;
     }
@@ -202,7 +202,7 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const std::vec
         return false;
     }
     for (const auto &value : values) {
-        const char **strArr = new const char *[value.size()];
+        const char **strArr = new (std::nothrow) const char *[value.size()];
         if (strArr == nullptr) {
             continue;
         }

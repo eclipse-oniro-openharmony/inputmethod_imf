@@ -20,7 +20,7 @@ extern "C" {
 
 InputMethod_TextAvoidInfo *OH_TextAvoidInfo_Create(double positionY, double height)
 {
-    return new InputMethod_TextAvoidInfo({ positionY, height });
+    return new (std::nothrow) InputMethod_TextAvoidInfo({ positionY, height });
 }
 void OH_TextAvoidInfo_Destroy(InputMethod_TextAvoidInfo *info)
 {

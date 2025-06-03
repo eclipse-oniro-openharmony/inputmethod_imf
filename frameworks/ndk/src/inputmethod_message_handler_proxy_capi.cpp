@@ -18,7 +18,7 @@
 using namespace OHOS::MiscServices;
 InputMethod_MessageHandlerProxy *OH_MessageHandlerProxy_Create(void)
 {
-    return new InputMethod_MessageHandlerProxy();
+    return new (std::nothrow) InputMethod_MessageHandlerProxy();
 }
 
 void OH_MessageHandlerProxy_Destroy(InputMethod_MessageHandlerProxy *proxy)

@@ -158,7 +158,7 @@ std::u16string NativeTextChangedListener::GetLeftTextOfCursor(int32_t number)
     }
 
     size_t length = static_cast<size_t>(number + 1);
-    char16_t *text = new char16_t[length];
+    char16_t *text = new (std::nothrow) char16_t[length];
     if (text == nullptr) {
         IMSA_HILOGE("text is nullptr");
         return u"";
@@ -189,7 +189,7 @@ std::u16string NativeTextChangedListener::GetRightTextOfCursor(int32_t number)
     }
 
     size_t length = static_cast<size_t>(number + 1);
-    char16_t *text = new char16_t[length];
+    char16_t *text = new (std::nothrow) char16_t[length];
     if (text == nullptr) {
         IMSA_HILOGE("text is nullptr");
         return u"";
@@ -229,7 +229,7 @@ int32_t NativeTextChangedListener::ReceivePrivateCommand(
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    InputMethod_PrivateCommand **command = new InputMethod_PrivateCommand *[privateCommand.size()];
+    InputMethod_PrivateCommand **command = new (std::nothrow) InputMethod_PrivateCommand *[privateCommand.size()];
     if (command == nullptr) {
         IMSA_HILOGE("command is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;

@@ -24,7 +24,7 @@ extern "C" {
 using namespace OHOS::MiscServices;
 InputMethod_TextConfig *OH_TextConfig_Create(void)
 {
-    return new InputMethod_TextConfig();
+    return new (std::nothrow) InputMethod_TextConfig();
 }
 void OH_TextConfig_Destroy(InputMethod_TextConfig *config)
 {

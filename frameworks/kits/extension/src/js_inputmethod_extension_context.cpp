@@ -246,12 +246,11 @@ private:
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("%{public}s bundleName: %{public}s abilityName: %{public}s", __func__, want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
-        sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(env);
+        sptr<JSInputMethodExtensionConnection> connection = new (std::nothrow) JSInputMethodExtensionConnection(env);
+        CHECK_RETURN(connection != nullptr, "connection is nullptr", CreateJsUndefined(env));
         connection->SetJsConnectionObject(argv[1]);
         int64_t connectId = serialNumber_;
-        ConnectionKey key;
-        key.id = serialNumber_;
-        key.want = want;
+        ConnectionKey key = { want, serialNumber_ };
         {
             std::lock_guard<std::mutex> lock(g_connectMapMtx);
             connects_.emplace(key, connection);
@@ -310,12 +309,11 @@ private:
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
             return CreateJsUndefined(env);
         }
-        sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(env);
+        sptr<JSInputMethodExtensionConnection> connection = new (std::nothrow) JSInputMethodExtensionConnection(env);
+        CHECK_RETURN(connection != nullptr, "connection is nullptr", CreateJsUndefined(env));
         connection->SetJsConnectionObject(argv[1]);
         int64_t connectId = serialNumber_;
-        ConnectionKey key;
-        key.id = serialNumber_;
-        key.want = want;
+        ConnectionKey key = { want, serialNumber_ };
         {
             std::lock_guard<std::mutex> lock(g_connectMapMtx);
             connects_.emplace(key, connection);

@@ -18,7 +18,7 @@
 using namespace OHOS::MiscServices;
 InputMethod_TextEditorProxy *OH_TextEditorProxy_Create(void)
 {
-    return new InputMethod_TextEditorProxy();
+    return new (std::nothrow) InputMethod_TextEditorProxy();
 }
 void OH_TextEditorProxy_Destroy(InputMethod_TextEditorProxy *proxy)
 {

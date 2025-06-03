@@ -30,13 +30,13 @@ InputMethodExtension *InputMethodExtension::Create(const std::unique_ptr<Runtime
 {
     IMSA_HILOGI("InputMethodExtension::Create runtime.");
     if (runtime == nullptr) {
-        return new InputMethodExtension();
+        return new (std::nothrow) InputMethodExtension();
     }
     switch (runtime->GetLanguage()) {
         case Runtime::Language::JS:
             return JsInputMethodExtension::Create(runtime);
         default:
-            return new InputMethodExtension();
+            return new (std::nothrow) InputMethodExtension();
     }
 }
 

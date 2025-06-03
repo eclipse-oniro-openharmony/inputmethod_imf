@@ -19,7 +19,7 @@ extern "C" {
 #endif /* __cplusplus */
 InputMethod_CursorInfo *OH_CursorInfo_Create(double left, double top, double width, double height)
 {
-    return new InputMethod_CursorInfo({ left, top, width, height });
+    return new (std::nothrow) InputMethod_CursorInfo({ left, top, width, height });
 }
 void OH_CursorInfo_Destroy(InputMethod_CursorInfo *cursorInfo)
 {
