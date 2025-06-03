@@ -23,7 +23,6 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr std::size_t ASYNC_UNANSWERED_MAX_NUMBER = 50;
-constexpr uint32_t ASYNC_REPLY_TIMEOUT = 100; // unit ms
 
 InputDataChannelProxyWrap::InputDataChannelProxyWrap(std::shared_ptr<InputDataChannelProxy> channel)
 {
@@ -71,11 +70,13 @@ int32_t InputDataChannelProxyWrap::GetTextBeforeCursor(int32_t number, std::stri
     auto work = [number](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
         return channel->GetTextBeforeCursor(number, msgId);
     };
-    ChannelOutPut output = nullptr;
+    SyncOutPut output = nullptr;
     if (callback == nullptr) {
-        output = [&text](const ResponseData &data) -> int32_t {
-            return VariantUtil::GetValue(data, text) ?
-                ErrorCode::NO_ERROR : ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
+        output = [&text](const ResponseInfo &rspInfo) -> int32_t {
+            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
+                VariantUtil::GetValue(rspInfo.data_, text);
+            }
+            return rspInfo.dealRet_;
         };
     }
 
@@ -87,11 +88,13 @@ int32_t InputDataChannelProxyWrap::GetTextAfterCursor(int32_t number, std::strin
     auto work = [number, text](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
         return channel->GetTextAfterCursor(number, msgId);
     };
-    ChannelOutPut output = nullptr;
+    SyncOutPut output = nullptr;
     if (callback == nullptr) {
-        output = [&text](const ResponseData &data) -> int32_t {
-            return VariantUtil::GetValue(data, text) ?
-                ErrorCode::NO_ERROR : ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
+        output = [&text](const ResponseInfo &rspInfo) -> int32_t {
+            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
+                VariantUtil::GetValue(rspInfo.data_, text);
+            }
+            return rspInfo.dealRet_;
         };
     }
 
@@ -126,11 +129,13 @@ int32_t InputDataChannelProxyWrap::GetEnterKeyType(int32_t &keyType, AsyncIpcCal
     auto work = [](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
         return channel->GetEnterKeyType(msgId);
     };
-    ChannelOutPut output = nullptr;
+    SyncOutPut output = nullptr;
     if (callback == nullptr) {
-        output = [&keyType](const ResponseData &data) -> int32_t {
-            return VariantUtil::GetValue(data, keyType) ?
-                ErrorCode::NO_ERROR : ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
+        output = [&keyType](const ResponseInfo &rspInfo) -> int32_t {
+            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
+                VariantUtil::GetValue(rspInfo.data_, keyType);
+            }
+            return rspInfo.dealRet_;
         };
     }
 
@@ -142,11 +147,13 @@ int32_t InputDataChannelProxyWrap::GetInputPattern(int32_t &inputPattern, AsyncI
     auto work = [](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
         return channel->GetInputPattern(msgId);
     };
-    ChannelOutPut output = nullptr;
+    SyncOutPut output = nullptr;
     if (callback == nullptr) {
-        output = [&inputPattern](const ResponseData &data) -> int32_t {
-            return VariantUtil::GetValue(data, inputPattern) ?
-                ErrorCode::NO_ERROR : ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
+        output = [&inputPattern](const ResponseInfo &rspInfo) -> int32_t {
+            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
+                VariantUtil::GetValue(rspInfo.data_, inputPattern);
+            }
+            return rspInfo.dealRet_;
         };
     }
 
@@ -184,11 +191,13 @@ int32_t InputDataChannelProxyWrap::GetTextIndexAtCursor(int32_t &index, AsyncIpc
     auto work = [](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
         return channel->GetTextIndexAtCursor(msgId);
     };
-    ChannelOutPut output = nullptr;
+    SyncOutPut output = nullptr;
     if (callback == nullptr) {
-        output = [&index](const ResponseData &data) -> int32_t {
-            return VariantUtil::GetValue(data, index) ?
-                ErrorCode::NO_ERROR : ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
+        output = [&index](const ResponseInfo &rspInfo) -> int32_t {
+            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
+                VariantUtil::GetValue(rspInfo.data_, index);
+            }
+            return rspInfo.dealRet_;
         };
     }
 
@@ -215,11 +224,13 @@ int32_t InputDataChannelProxyWrap::GetTextConfig(TextTotalConfig &textConfig, As
     auto work = [inner](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
         return channel->GetTextConfig(inner, msgId);
     };
-    ChannelOutPut output = nullptr;
+    SyncOutPut output = nullptr;
     if (callback == nullptr) {
-        output = [&textConfig](const ResponseData &data) -> int32_t {
-            return VariantUtil::GetValue(data, textConfig) ?
-                ErrorCode::NO_ERROR : ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
+        output = [&textConfig](const ResponseInfo &rspInfo) -> int32_t {
+            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
+                VariantUtil::GetValue(rspInfo.data_, textConfig);
+            }
+            return rspInfo.dealRet_;
         };
     }
 
@@ -277,35 +288,27 @@ int32_t InputDataChannelProxyWrap::SendMessage(const ArrayBuffer &arraybuffer, A
 }
 
 int32_t InputDataChannelProxyWrap::Request(
-    AsyncIpcCallBack callback, ChannelWork work, bool isSync, ChannelOutPut output)
+    AsyncIpcCallBack callback, ChannelWork work, bool isSync, SyncOutPut output)
 {
     auto channel = GetDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("data channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    uint64_t msgId = 0;
-    int32_t ret = BeforeRequest(msgId, callback, isSync);
+    std::shared_ptr<ResponseHandler> handler;
+    int32_t ret = AddRspHandler(handler, callback, isSync);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("BeforeRequest error: %{public}d.", ret);
         return ret;
     }
-    ret = work(msgId, channel);
+    ret = work(handler->msgId_, channel);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("work error: %{public}d.", ret);
-        DelMsg(msgId);
+        DeleteRspHandler(handler->msgId_);
         return ret;
     }
-    if (isSync) {
-        int32_t errCode = 0;
-        ResponseData rspData = std::monostate{};
-        ret = WaitResponse(msgId, ASYNC_REPLY_TIMEOUT, errCode, rspData);
-        if (ret == ErrorCode::NO_ERROR) {
-            ret = errCode;
-            if (output != nullptr) {
-                ret = output(rspData);
-            }
-        }
+    if (handler != nullptr && handler->syncBlockData_ != nullptr) {
+        ret = WaitResponse(handler, output);
     }
     return ret;
 }
@@ -321,96 +324,77 @@ uint64_t InputDataChannelProxyWrap::GetMsgId()
     return ++msgId_ ? msgId_ : ++msgId_;
 }
 
-int32_t InputDataChannelProxyWrap::BeforeRequest(uint64_t &msgId, AsyncIpcCallBack callBack, bool isSync)
+int32_t InputDataChannelProxyWrap::AddRspHandler(
+    std::shared_ptr<ResponseHandler> &handler, AsyncIpcCallBack callBack, bool isSync)
 {
     std::lock_guard<std::mutex> lock(dataMutex_);
-    if (msgList_.size() >= ASYNC_UNANSWERED_MAX_NUMBER) {
+    if (rspHandlers_.size() >= ASYNC_UNANSWERED_MAX_NUMBER) {
         IMSA_HILOGW("async data channel, too many unanswered msg!");
         return ErrorCode::ERROR_TOO_MANY_UNANSWERED_MESSAGE;
     }
-    MsgInfo msgInfo(isSync, GetMsgId(), callBack);
-    msgList_.insert({ msgInfo.msgId, msgInfo });
-    msgId = msgInfo.msgId;
+    handler = std::make_shared<ResponseHandler>(isSync, GetMsgId(), callBack);
+    rspHandlers_.insert({ handler->msgId_, handler });
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputDataChannelProxyWrap::HandleMsg(
-    const uint64_t msgId, int32_t code, const ResponseData &data, int32_t defErrCode)
+int32_t InputDataChannelProxyWrap::ClearRspHandlers()
 {
-    for (auto it = msgList_.begin(); it != msgList_.end();) {
-        if (it->first > msgId) {
-            break;
-        }
-        int32_t currentCode = defErrCode;
-        ResponseData currentData = std::monostate{};
-        if (it->first == msgId) {
-            currentCode = code;
-            currentData = data;
-        }
-        if (it->second.isSync) {
-            std::unique_lock<std::mutex> lock(rspMutex_);
-            rspMsgId_ = it->first;
-            rspData_ = currentData;
-            rspErrorCode_ = currentCode;
-            it->second.cv->notify_one();
-        } else {
-            if (it->second.callBack) {
-                it->second.callBack(currentCode, currentData);
-            }
-        }
-        it = msgList_.erase(it);
-    }
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputDataChannelProxyWrap::ClearMsg(bool isNotify)
-{
-    IMSA_HILOGI("start ClearMsg");
     std::lock_guard<std::mutex> lock(dataMutex_);
-    if (msgList_.empty()) {
+    ResponseInfo rspInfo = { ErrorCode::ERROR_CLIENT_NULL_POINTER, std::monostate{} };
+    for (const auto &handler : rspHandlers_) {
+        if (handler.second == nullptr) {
+            continue;
+        }
+        if (handler.second->syncBlockData_ != nullptr) {
+            handler.second->syncBlockData_->SetValue(rspInfo);
+            continue;
+        }
+        if (handler.second->callBack_ != nullptr) {
+            handler.second->callBack_(rspInfo.dealRet_, rspInfo.data_);
+        }
+    }
+    rspHandlers_.clear();
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputDataChannelProxyWrap::HandleResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply)
+{
+    std::lock_guard<std::mutex> lock(dataMutex_);
+    auto it = rspHandlers_.find(msgId);
+    if (it == rspHandlers_.end()) {
         return ErrorCode::NO_ERROR;
     }
-    if (isNotify) {
-        int32_t errCode = ErrorCode::ERROR_CLIENT_NULL_POINTER;
-        ResponseData data = std::monostate{};
-        return HandleMsg(msgList_.rbegin()->first, errCode, data, errCode);
-    }
-    msgList_.clear();
+
+    do {
+        ResponseInfo rspInfo = {errorCode, reply};
+        if (it->second->syncBlockData_ != nullptr) {
+            it->second->syncBlockData_->SetValue(rspInfo);
+            break;
+        }
+        if (it->second->callBack_ == nullptr) {
+            break;
+        }
+        it->second->callBack_(rspInfo.dealRet_, rspInfo.data_);
+    } while(false);
+    rspHandlers_.erase(it);
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputDataChannelProxyWrap::OnResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply)
+int32_t InputDataChannelProxyWrap::WaitResponse(std::shared_ptr<ResponseHandler> handler, SyncOutPut output)
 {
-    std::lock_guard<std::mutex> lock(dataMutex_);
-    return HandleMsg(msgId, errorCode, reply, ErrorCode::ERROR_RESPONSE_TIMEOUT);
-}
-
-int32_t InputDataChannelProxyWrap::WaitResponse(const uint64_t msgId, uint32_t timeout, int32_t &errorCode,
-    ResponseData &data)
-{
-    {
-        std::unique_lock<std::mutex> lock(rspMutex_);
-        auto cv = msgList_.find(msgId);
-        if (cv == msgList_.end() || cv->second.cv == nullptr) {
-            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-        }
-        auto ret = cv->second.cv->wait_for(lock, std::chrono::milliseconds(timeout));
-        if (ret == std::cv_status::no_timeout) {
-            errorCode = rspErrorCode_;
-            data = rspData_;
-            return ErrorCode::NO_ERROR;
-        }
+    ResponseInfo rspInfo;
+    if (!handler->syncBlockData_->GetValue(rspInfo)) {
+        return ErrorCode::ERROR_RESPONSE_TIMEOUT;
     }
-    DelMsg(msgId);
-    return ErrorCode::ERROR_RESPONSE_TIMEOUT;
+    return output(rspInfo);
 }
 
-int32_t InputDataChannelProxyWrap::DelMsg(const uint64_t msgId)
+int32_t InputDataChannelProxyWrap::DeleteRspHandler(const uint64_t msgId)
 {
     std::lock_guard<std::mutex> lock(dataMutex_);
-    auto it = msgList_.find(msgId);
-    if (it != msgList_.end()) {
-        msgList_.erase(it);
+    auto it = rspHandlers_.find(msgId);
+    if (it != rspHandlers_.end()) {
+        rspHandlers_.erase(it);
     }
     return ErrorCode::NO_ERROR;
 }

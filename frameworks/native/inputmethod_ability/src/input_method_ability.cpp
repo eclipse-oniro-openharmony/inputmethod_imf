@@ -355,7 +355,7 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
     if (dataChannelObject_.GetRefPtr() == channel.GetRefPtr()) {
         dataChannelObject_ = nullptr;
         if (dataChannelProxyWrap_ != nullptr) {
-            dataChannelProxyWrap_->ClearMsg(true);
+            dataChannelProxyWrap_->ClearRspHandlers();
         }
         dataChannelProxyWrap_ = nullptr;
         IMSA_HILOGD("end.");
@@ -1866,7 +1866,7 @@ int32_t InputMethodAbility::OnResponse(uint64_t msgId, int32_t code, const Respo
 {
     auto channel = GetInputDataChannelProxyWrap();
     if (channel != nullptr) {
-        channel->OnResponse(msgId, code, data);
+        channel->HandleResponse(msgId, code, data);
     }
     return 0;
 }

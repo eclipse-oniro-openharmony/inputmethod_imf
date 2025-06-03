@@ -22,12 +22,33 @@
 #include <condition_variable>
 #include "input_data_channel_proxy.h"
 #include "input_method_utils.h"
+#include "block_data.h"
 
 namespace OHOS {
 namespace MiscServices {
 using AsyncIpcCallBack = std::function<void(int32_t, ResponseData&)>;
+struct ResponseInfo {
+    int32_t dealRet_{ ErrorCode::NO_ERROR };
+    ResponseData data_{std::monostate{}};
+};
+struct ResponseHandler  {
+    static constexpr uint32_t ASYNC_REPLY_TIMEOUT = 100; // unit ms
+    bool isSync_ = false;
+    uint64_t msgId_ = 0;
+    AsyncIpcCallBack callBack_ = nullptr;
+    std::shared_ptr<BlockData<ResponseInfo>> syncBlockData_ = nullptr;
+    ResponseHandler(bool isSync, uint64_t msgId, AsyncIpcCallBack callBack)
+    {
+        isSync_ = isSync;
+        msgId_ = msgId;
+        callBack_ = callBack;
+        if (isSync) {
+            syncBlockData_ = std::make_shared<BlockData<ResponseInfo>>(ASYNC_REPLY_TIMEOUT);
+        }
+    }
+};
 using ChannelWork = std::function<int32_t(uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel)>;
-using ChannelOutPut = std::function<int32_t(const ResponseData &data)>;
+using SyncOutPut = std::function<int32_t(const ResponseInfo&)>;
 class InputDataChannelProxyWrap {
 public:
 
@@ -58,43 +79,24 @@ public:
     int32_t SendMessage(const ArrayBuffer &arraybuffer, AsyncIpcCallBack callback = nullptr);
 
 public:
-    int32_t ClearMsg(bool isNotify);
-    int32_t OnResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply);
+    int32_t ClearRspHandlers();
+    int32_t HandleResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply);
 
 private:
-    int32_t BeforeRequest(uint64_t &msgId, AsyncIpcCallBack callBack = nullptr, bool isSync = true);
-    int32_t WaitResponse(const uint64_t msgId, uint32_t timeout, int32_t &errorCode, ResponseData &data);
-    int32_t DelMsg(const uint64_t msgId);
+
+    int32_t AddRspHandler(std::shared_ptr<ResponseHandler> &handler, AsyncIpcCallBack callBack, bool isSync);
+    int32_t WaitResponse(std::shared_ptr<ResponseHandler> rspHandler, SyncOutPut output);
+    int32_t DeleteRspHandler(const uint64_t msgId);
     uint64_t GetMsgId();
     int32_t HandleMsg(const uint64_t msgId, int32_t code, const ResponseData &data, int32_t defErrCode);
     std::shared_ptr<InputDataChannelProxy> GetDataChannel();
-    int32_t Request(AsyncIpcCallBack callback, ChannelWork work, bool isSync, ChannelOutPut output = nullptr);
+    int32_t Request(AsyncIpcCallBack callback, ChannelWork work, bool isSync, SyncOutPut output = nullptr);
 
 private:
-    struct MsgInfo {
-        bool isSync = false;
-        uint64_t msgId = 0;
-        AsyncIpcCallBack callBack = nullptr;
-        std::shared_ptr<std::condition_variable> cv = nullptr;
-        MsgInfo(bool isSync, uint64_t msgId, AsyncIpcCallBack callBack)
-        {
-            this->isSync = isSync;
-            this->msgId = msgId;
-            this->callBack = callBack;
-            if (isSync) {
-                cv = std::make_shared<std::condition_variable>();
-            }
-        }
-    };
-
-    int32_t rspErrorCode_ = 0;
     uint64_t msgId_ = 0;
-    uint64_t rspMsgId_ = 0;
     std::mutex dataMutex_;
-    std::mutex rspMutex_;
     std::mutex channelMutex_;
-    ResponseData rspData_;
-    std::map<uint64_t, MsgInfo> msgList_;
+    std::map<uint64_t, std::shared_ptr<ResponseHandler>> rspHandlers_;
     std::shared_ptr<InputDataChannelProxy> channel_ = nullptr;
 };
 } // namespace MiscServices
