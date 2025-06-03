@@ -2127,7 +2127,7 @@ ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo 
         return finalWindowInfo;
     }
     if (finalWindowId == INVALID_WINDOW_ID) {
-        finalWindowId = focusInfo.windowId_;
+        finalWindowId = static_cast<uint32_t>(focusInfo.windowId_);
     }
     return { finalWindowId, callingWindowInfo.displayId_ };
 }

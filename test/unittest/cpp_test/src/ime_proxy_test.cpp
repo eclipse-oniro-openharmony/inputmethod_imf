@@ -668,5 +668,20 @@ HWTEST_F(ImeProxyTest, DiscardTypingTextTest, TestSize.Level0)
     auto ret = InputMethodAbility::GetInstance().OnDiscardTypingText();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: TestRegisterProxyIme
+ * @tc.desc: Test RegisterProxyIme
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeProxyTest, RegisterProxyImeTest, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::TestRegisterProxyImeTest");
+    uint64_t displayId = -1;
+    auto ret = InputMethodAbilityInterface::GetInstance().RegisterProxyIme(displayId);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodAbilityInterface::GetInstance().UnregisterProxyIme(displayId);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS
