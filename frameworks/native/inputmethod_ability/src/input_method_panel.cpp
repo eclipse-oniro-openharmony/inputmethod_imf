@@ -1254,8 +1254,13 @@ int32_t InputMethodPanel::ShowPanel()
     }
     auto ret = WMError::WM_OK;
     {
+        KeyboardEffectOption option;
+        option.blurHeight_ = 0;
+        option.viewMode_ = static_cast<KeyboardViewMode>(immersiveMode_);
+        option.gradientMode_ = KeyboardGradientMode::NONE;
+        option.flowLightMode_ = KeyboardFlowLightMode::NONE;
         InputMethodSyncTrace tracer("InputMethodPanel_ShowPanel");
-        ret = window_->ShowKeyboard(static_cast<KeyboardViewMode>(immersiveMode_));
+        ret = window_->ShowKeyboard(option);
     }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
@@ -1874,8 +1879,14 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         return ErrorCode::ERROR_IME;
     }
 
+    KeyboardEffectOption option;
+    option.blurHeight_ = 0;
+    option.viewMode_ = static_cast<KeyboardViewMode>(mode);
+    option.gradientMode_ = KeyboardGradientMode::NONE;
+    option.flowLightMode_ = KeyboardFlowLightMode::NONE;
+
     // call window manager to set immersive mode
-    auto ret = window_->ChangeKeyboardViewMode(static_cast<KeyboardViewMode>(mode));
+    auto ret = window_->ChangeKeyboardEffectOption(option);
     if (ret == WMError::WM_DO_NOTHING) {
         IMSA_HILOGW("repeat set mode new:%{public}d, old:%{public}d", mode, immersiveMode_);
         return ErrorCode::NO_ERROR;
