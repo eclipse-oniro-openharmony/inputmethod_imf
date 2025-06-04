@@ -773,6 +773,12 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_019, TestSize.L
             static_cast<uint32_t>(landscapeRect.height_ * 0.5) };
     }
     ret = inputMethodPanel->Resize(size.width, size.height);
+
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodPanel->resizePanelFoldParams_.landscapeRect.width_ = 8100;
+    inputMethodPanel->resizePanelUnfoldParams_.landscapeRect.width_ = 8100;
+    ret = inputMethodPanel->Resize(size.width, size.height);
+
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     Rosen::Rect newRect = { 0, 0, size.width, size.height };
     if (isPortrait) {
