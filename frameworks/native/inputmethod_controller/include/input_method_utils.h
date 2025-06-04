@@ -86,6 +86,11 @@ enum class ExtendAction {
     PASTE,
 };
 
+enum class CapacityType: int32_t {
+    IMMERSIVE_EFFECT,
+    END,
+};
+
 class Configuration {
 public:
     EnterKeyType GetEnterKeyType() const

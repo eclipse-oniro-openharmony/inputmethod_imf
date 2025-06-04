@@ -97,6 +97,122 @@ std::string InputMethodPanel::GeneratePanelName()
     return windowName;
 }
 
+std::pair<int32_t, bool> InputMethodPanel::FullScreenPortraitPrepare(const Rosen::KeyboardLayoutParams &param)
+{
+    uint32_t portraitAvoidHeight = param.portraitAvoidHeight_ + immersiveEffect_.blurHeight;
+    if (!CheckSize(panelFlag_, param.PortraitPanelRect_.width_, portraitAvoidHeight, true)) {
+        IMSA_HILOGE("param is invalid, blurHeight:%{public}u, avoidHeight:%{public}u", immersiveEffect_.blurHeight,
+            param.portraitAvoidHeight_);
+        return std::make_pair(ErrorCode::ERROR_PARAMETER_CHECK_FAILED, false);
+    }
+
+    if (param.PortraitPanelRect_.height_ < immersiveEffect_.blurHeight + param.portraitAvoidHeight_) {
+        return std::make_pair(ErrorCode::NO_ERROR, true);
+    }
+    return std::make_pair(ErrorCode::NO_ERROR, false);
+}
+
+std::pair<int32_t, bool> InputMethodPanel::FullScreenLandscapePrepare(const Rosen::KeyboardLayoutParams &param)
+{
+    uint32_t landscapeAvoidHeight = param.landscapeAvoidHeight_ + immersiveEffect_.blurHeight;
+    if (!CheckSize(panelFlag_, param.LandscapePanelRect_.width_, landscapeAvoidHeight, false)) {
+        IMSA_HILOGE("param is invalid, blurHeight:%{public}u, avoidHeight:%{public}u", immersiveEffect_.blurHeight,
+            param.landscapeAvoidHeight_);
+        return std::make_pair(ErrorCode::ERROR_PARAMETER_CHECK_FAILED, false);
+    }
+
+    if (param.LandscapePanelRect_.height_ < immersiveEffect_.blurHeight + param.landscapeAvoidHeight_) {
+        return std::make_pair(ErrorCode::NO_ERROR, true);
+    }
+    return std::make_pair(ErrorCode::NO_ERROR, false);
+}
+
+int32_t InputMethodPanel::FullScreenPrepare(Rosen::KeyboardLayoutParams &param)
+{
+    auto [ret, ifChangePortraitPanelRect] = FullScreenPortraitPrepare(param);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("portrait prepare failed");
+        return ret;
+    }
+    auto [result, ifChangeLandscapePanelRect] = FullScreenLandscapePrepare(param);
+    if (result != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("landscape prepare failed");
+        return result;
+    }
+
+    if (ifChangePortraitPanelRect) {
+        param.PortraitPanelRect_.height_ = param.portraitAvoidHeight_ + immersiveEffect_.blurHeight;
+    }
+    if (ifChangeLandscapePanelRect) {
+        param.LandscapePanelRect_.height_ = param.landscapeAvoidHeight_ + immersiveEffect_.blurHeight;
+    }
+    param.landscapeAvoidHeight_ += immersiveEffect_.blurHeight;
+    param.portraitAvoidHeight_ += immersiveEffect_.blurHeight;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::NormalImePrepare(Rosen::KeyboardLayoutParams &param)
+{
+    uint32_t portraitHeight = param.PortraitPanelRect_.height_ + immersiveEffect_.blurHeight;
+    if (!CheckSize(panelFlag_, param.PortraitPanelRect_.width_, portraitHeight, true)) {
+        IMSA_HILOGE("portrait invalid size, portraitHeight: %{public}u, blurHeight: %{public}u",
+            portraitHeight, immersiveEffect_.blurHeight);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+    uint32_t landscapeHeight = param.LandscapePanelRect_.height_ + immersiveEffect_.blurHeight;
+    if (!CheckSize(panelFlag_, param.LandscapePanelRect_.width_, landscapeHeight, false)) {
+        IMSA_HILOGE("landscape invalid size, landscapeHeight: %{public}u, blurHeight: %{public}u",
+            landscapeHeight, immersiveEffect_.blurHeight);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+
+    param.PortraitPanelRect_.height_ = portraitHeight;
+    param.LandscapePanelRect_.height_ = landscapeHeight;
+    param.LandscapePanelRect_.posY_ -= immersiveEffect_.blurHeight;
+    param.PortraitPanelRect_.posY_ -= immersiveEffect_.blurHeight;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param)
+{
+    int32_t ret = ErrorCode::NO_ERROR;
+    // full screen keyboard
+    if (param.landscapeAvoidHeight_ != DEFAULT_AVOID_HEIGHT && param.portraitAvoidHeight_ != DEFAULT_AVOID_HEIGHT) {
+        ret = FullScreenPrepare(param);
+    } else {
+        ret = NormalImePrepare(param);
+    }
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("prepare failed");
+        return ret;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::AdjustLayout(const Rosen::KeyboardLayoutParams &param)
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+
+    Rosen::KeyboardLayoutParams paramTmp = param;
+    if (immersiveEffect_.blurHeight != 0) {
+        IMSA_HILOGI("blurHeight:%{public}u is not zero, need adjust layout",  immersiveEffect_.blurHeight);
+        auto ret = PrepareAdjustLayout(paramTmp);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
+    }
+    // The actual system panel height includes the blur height, which may not be consistent with the cached value.
+    auto wmRet = window_->AdjustKeyboardLayout(paramTmp);
+    if (wmRet != WMError::WM_OK) {
+        IMSA_HILOGE("AdjustKeyboardLayout failed, wmError is %{public}d!", wmRet);
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodPanel::SetPanelProperties()
 {
     if (window_ == nullptr) {
@@ -133,9 +249,9 @@ int32_t InputMethodPanel::SetPanelProperties()
         return ErrorCode::NO_ERROR;
     }
     keyboardLayoutParams_.gravity_ = gravity;
-    auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
-    if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window!", ret);
+    auto ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("SetWindowGravity failed, ret is %{public}d, start destroy window!", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     return ErrorCode::NO_ERROR;
@@ -466,8 +582,8 @@ int32_t InputMethodPanel::AdjustPanelRect(
         IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
-    if (ret != WMError::WM_OK) {
+    auto ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("AdjustPanelRect error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
@@ -555,20 +671,20 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
     }
     // adjust rect
     auto wmsParams = ConvertToWMSParam(panelFlag, params);
-    WMError result = window_->AdjustKeyboardLayout(wmsParams);
-    if (result != WMError::WM_OK) {
-        IMSA_HILOGE("AdjustKeyboardLayout error, err: %{public}d!", result);
+    ret = AdjustLayout(wmsParams);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("AdjustKeyboardLayout error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     // set hot area
     isInEnhancedAdjust_.store(true);
     CalculateHotAreas(params, wmsParams, adjustInfo, hotAreas);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
-    result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
+    auto result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
     if (result != WMError::WM_OK) {
         IMSA_HILOGE("SetKeyboardTouchHotAreas error, err: %{public}d!", result);
-        result = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
-        IMSA_HILOGE("restore layout param, result: %{public}d", result);
+        ret = AdjustLayout(keyboardLayoutParams_);
+        IMSA_HILOGE("restore layout param, result: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     SetHotAreas(hotAreas);
@@ -1216,13 +1332,13 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
         return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
     }
     keyboardLayoutParams_.gravity_ = gravity;
-    auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
-    if (ret == WMError::WM_OK) {
+    auto ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret == ErrorCode::NO_ERROR) {
         panelFlag_ = panelFlag;
     }
     NotifyPanelStatus(panelFlag);
     IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
-    return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+    return ret == ErrorCode::NO_ERROR ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
 PanelType InputMethodPanel::GetPanelType()
@@ -1254,11 +1370,7 @@ int32_t InputMethodPanel::ShowPanel()
     }
     auto ret = WMError::WM_OK;
     {
-        KeyboardEffectOption option;
-        option.blurHeight_ = 0;
-        option.viewMode_ = static_cast<KeyboardViewMode>(immersiveMode_);
-        option.gradientMode_ = KeyboardGradientMode::NONE;
-        option.flowLightMode_ = KeyboardFlowLightMode::NONE;
+        KeyboardEffectOption option = ConvertToWmEffect(immersiveMode_, immersiveEffect_);
         InputMethodSyncTrace tracer("InputMethodPanel_ShowPanel");
         ret = window_->ShowKeyboard(option);
     }
@@ -1861,6 +1973,31 @@ int32_t InputMethodPanel::GetDisplaySize(DisplaySize &size)
     return ErrorCode::NO_ERROR;
 }
 
+void InputMethodPanel::SetBlurHeightToZero()
+{
+    if (immersiveEffect_.blurHeight == 0) {
+        return;
+    }
+
+    // The SetImmersiveEffect API must be called after the AdjustPanelRect API is called.
+    Rosen::KeyboardLayoutParams emptyParams;
+    if (keyboardLayoutParams_ == emptyParams) {
+        immersiveEffect_.blurHeight = 0;
+        IMSA_HILOGW("set blurHeight to zero");
+        return;
+    }
+
+    auto blurHeightTmp = immersiveEffect_.blurHeight;
+    immersiveEffect_.blurHeight = 0;
+    auto ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("adjust failed, ret: %{public}d", ret);
+        immersiveEffect_.blurHeight = blurHeightTmp;
+        return;
+    }
+    IMSA_HILOGW("set blurHeight to zero and adjust layout success");
+}
+
 int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
 {
     if ((mode != ImmersiveMode::NONE_IMMERSIVE && mode != ImmersiveMode::LIGHT_IMMERSIVE &&
@@ -1869,6 +2006,9 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     if (!IsShowing()) {
+        if (mode != immersiveMode_ && mode == ImmersiveMode::NONE_IMMERSIVE) {
+            SetBlurHeightToZero();
+        }
         immersiveMode_ = mode;
         IMSA_HILOGW("window is not show, mode: %{public}d", mode);
         return ErrorCode::NO_ERROR;
@@ -1879,12 +2019,7 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         return ErrorCode::ERROR_IME;
     }
 
-    KeyboardEffectOption option;
-    option.blurHeight_ = 0;
-    option.viewMode_ = static_cast<KeyboardViewMode>(mode);
-    option.gradientMode_ = KeyboardGradientMode::NONE;
-    option.flowLightMode_ = KeyboardFlowLightMode::NONE;
-
+    KeyboardEffectOption option = ConvertToWmEffect(mode, immersiveEffect_);
     // call window manager to set immersive mode
     auto ret = window_->ChangeKeyboardEffectOption(option);
     if (ret == WMError::WM_DO_NOTHING) {
@@ -1895,8 +2030,146 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         IMSA_HILOGE("ChangeKeyboardViewMode failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+    if (mode != immersiveMode_ && mode == ImmersiveMode::NONE_IMMERSIVE) {
+        SetBlurHeightToZero();
+    }
     immersiveMode_ = mode;
-    IMSA_HILOGD("SetImmersiveMode success, mode: %{public}d", mode);
+    IMSA_HILOGI("SetImmersiveMode success, mode: %{public}d", mode);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::IsValidParam(const ImmersiveEffect &effect)
+{
+    if (effect.gradientMode < GradientMode::NONE || effect.gradientMode >= GradientMode::END ||
+        effect.fluidLightMode < FluidLightMode::NONE || effect.fluidLightMode >= FluidLightMode::END) {
+        IMSA_HILOGE("invalid effect, gradientMpde:%{public}d, fluidLightMode:%{public}d", effect.gradientMode,
+            effect.fluidLightMode);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+
+    // 1.The gradient mode and the fluid light mode can only be used when the immersive mode is enabled.
+    if (immersiveMode_ == ImmersiveMode::NONE_IMMERSIVE) {
+        if (effect.gradientMode != GradientMode::NONE || effect.fluidLightMode != FluidLightMode::NONE) {
+            IMSA_HILOGE("immersiveMode is NONE, but gradientMode=%{public}d, fluidLightMode=%{public}d",
+                effect.gradientMode, effect.fluidLightMode);
+            return ErrorCode::ERROR_IMA_INVALID_IMMERSIVE_EFFECT;
+        }
+        return ErrorCode::NO_ERROR;
+    }
+
+    // 2.The fluid light mode can only be used when the gradient mode is enabled.
+    if (effect.gradientMode == GradientMode::NONE && effect.fluidLightMode != FluidLightMode::NONE) {
+        IMSA_HILOGE("gradientMode is NONE, but fluidLightMode=%{public}d", effect.fluidLightMode);
+        return ErrorCode::ERROR_IMA_INVALID_IMMERSIVE_EFFECT;
+    }
+
+    // 3.Only system applications can set the fluid light mode.
+    if (!InputMethodAbility::GetInstance().IsSystemApp() && effect.fluidLightMode != FluidLightMode::NONE) {
+        IMSA_HILOGE("only system app can set fluidLightMode:%{public}d", effect.fluidLightMode);
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+
+    WindowSize displaySize { 0, 0 };
+    if (!GetDisplaySize(IsDisplayPortrait(), displaySize)) {
+        IMSA_HILOGE("GetDisplaySize failed!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+
+    // 4.The blur height cannot be greater than the screen height
+    if (effect.blurHeight > displaySize.height) {
+        IMSA_HILOGE("invalid blurHeight:%{public}u, displayHeight:%{public}u", effect.blurHeight, displaySize.height);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+
+    // 5.The SetImmersiveEffect API must be called after the AdjustPanelRect API is called.
+    Rosen::KeyboardLayoutParams emptyParams;
+    if (keyboardLayoutParams_ == emptyParams) {
+        IMSA_HILOGE("adjust is not call, %{public}s", effect.ToString().c_str());
+        return ErrorCode::ERROR_IMA_PRECONDITION_REQUIRED;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodPanel::IsImmersiveEffectSupported()
+{
+    static int32_t isSupport = 0;
+    static std::mutex isSupportMutex;
+    if (isSupport != 0) {
+        return isSupport == 1 ? true : false;
+    }
+
+    std::lock_guard<std::mutex> lock(isSupportMutex);
+    bool isSupportTemp = false;
+    int32_t ret = InputMethodAbility::GetInstance().IsCapacitySupport(
+        static_cast<int32_t>(CapacityType::IMMERSIVE_EFFECT), isSupportTemp);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("IsCapacitySupport failed, ret:%{public}d", ret);
+        return false;
+    }
+
+    if (isSupportTemp) {
+        isSupport = 1;
+    } else {
+        isSupport = -1;
+    }
+    IMSA_HILOGI("isSupportTemp:%{public}d", isSupportTemp);
+    return isSupportTemp;
+}
+
+KeyboardEffectOption InputMethodPanel::ConvertToWmEffect(ImmersiveMode mode, const ImmersiveEffect &effect)
+{
+    KeyboardEffectOption option;
+    option.blurHeight_ = effect.blurHeight;
+    option.viewMode_ = static_cast<KeyboardViewMode>(mode);
+    option.gradientMode_ = static_cast<KeyboardGradientMode>(effect.gradientMode);
+    option.flowLightMode_ = static_cast<KeyboardFlowLightMode>(effect.fluidLightMode);
+    return option;
+}
+
+int32_t InputMethodPanel::SetImmersiveEffect(const ImmersiveEffect &effect)
+{
+    if (!IsImmersiveEffectSupported()) {
+        IMSA_HILOGE("immersive effect is not supported");
+        return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
+    }
+
+    auto ret = IsValidParam(effect);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("invalid param, ret:%{public}d", ret);
+        return ret;
+    }
+
+    // adjust again
+    ImmersiveEffect effectTmp = immersiveEffect_;
+    immersiveEffect_ = effect;
+    if (effectTmp.gradientMode != effect.gradientMode && effect.gradientMode == GradientMode::NONE) {
+        SetBlurHeightToZero();
+    }
+    ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret != ErrorCode::NO_ERROR) {
+        immersiveEffect_ = effectTmp;
+        IMSA_HILOGE("AdjustLayout failed, ret:%{public}d", ret);
+        return ret;
+    }
+
+    KeyboardEffectOption option = ConvertToWmEffect(immersiveMode_, immersiveEffect_);
+
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    // call window manager to set immersive mode
+    auto wmRet = window_->ChangeKeyboardEffectOption(option);
+    if (wmRet == WMError::WM_DO_NOTHING) {
+        IMSA_HILOGW("repeat set mode new:, old:%{public}d", immersiveMode_);
+        return ErrorCode::NO_ERROR;
+    }
+    if (wmRet != WMError::WM_OK) {
+        IMSA_HILOGE("ChangeKeyboardViewMode failed, wmRet: %{public}d", wmRet);
+        immersiveEffect_ = effectTmp;
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    IMSA_HILOGI("success, %{public}s", effect.ToString().c_str());
     return ErrorCode::NO_ERROR;
 }
 

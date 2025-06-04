@@ -43,6 +43,7 @@ enum class JsEvent : uint32_t {
     GET_DISPLAYID,
     SET_IMMERSIVE_MODE,
     GET_IMMERSIVE_MODE,
+    SET_IMMERSIVE_EFFECT,
     EVENT_END,
 };
 
@@ -68,6 +69,10 @@ struct JsHotArea {
     static bool Read(napi_env env, napi_value object, std::vector<Rosen::Rect> &hotAreas);
 };
 
+struct JsImmersiveEffect {
+    static bool Read(napi_env env, napi_value object, ImmersiveEffect &effect);
+};
+
 class JsPanel {
 public:
     JsPanel() = default;
@@ -90,6 +95,7 @@ public:
     std::shared_ptr<InputMethodPanel> GetNative();
     static napi_value SetImmersiveMode(napi_env env, napi_callback_info info);
     static napi_value GetImmersiveMode(napi_env env, napi_callback_info info);
+    static napi_value SetImmersiveEffect(napi_env env, napi_callback_info info);
 
 private:
     struct PanelContentContext : public AsyncCall::Context {

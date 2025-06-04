@@ -87,6 +87,7 @@ public:
     int32_t SetImmersiveMode(ImmersiveMode mode);
     ImmersiveMode GetImmersiveMode();
     bool IsInMainDisplay();
+    int32_t SetImmersiveEffect(const ImmersiveEffect &effect);
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -180,6 +181,16 @@ private:
     void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
     std::vector<int32_t> GetIgnoreAdjustInputTypes();
     bool IsNeedConfig();
+    int32_t IsValidParam(const ImmersiveEffect &effect);
+    int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param);
+    std::pair<int32_t, bool> FullScreenPortraitPrepare(const Rosen::KeyboardLayoutParams &param);
+    std::pair<int32_t, bool> FullScreenLandscapePrepare(const Rosen::KeyboardLayoutParams &param);
+    int32_t FullScreenPrepare(Rosen::KeyboardLayoutParams &param);
+    int32_t NormalImePrepare(Rosen::KeyboardLayoutParams &param);
+    int32_t PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param);
+    bool IsImmersiveEffectSupported();
+    Rosen::KeyboardEffectOption ConvertToWmEffect(ImmersiveMode mode, const ImmersiveEffect &effect);
+    void SetBlurHeightToZero();
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
@@ -226,6 +237,7 @@ private:
     std::atomic<bool> isWaitSetUiContent_ { true };
     std::atomic<bool> isInEnhancedAdjust_{ false };
     ImmersiveMode immersiveMode_ { ImmersiveMode::NONE_IMMERSIVE };
+    ImmersiveEffect immersiveEffect_ { 0, GradientMode::NONE, FluidLightMode::NONE };
 };
 } // namespace MiscServices
 } // namespace OHOS
