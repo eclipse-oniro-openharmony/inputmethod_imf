@@ -26,7 +26,6 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace std::chrono;
-constexpr const char *SYSTEM_SPECIAL_IME = "";
 ImeEnabledInfoManager &ImeEnabledInfoManager::GetInstance()
 {
     static ImeEnabledInfoManager instance;
@@ -243,7 +242,7 @@ int32_t ImeEnabledInfoManager::GetEnabledState(int32_t userId, const std::string
         status = EnabledStatus::FULL_EXPERIENCE_MODE;
         return ErrorCode::NO_ERROR;
     }
-    if (bundleName == SYSTEM_SPECIAL_IME) {
+    if (bundleName == ImeInfoInquirer::GetInstance().GetSystemSpecialIme()) {
         status = EnabledStatus::FULL_EXPERIENCE_MODE;
         return ErrorCode::NO_ERROR;
     }
@@ -616,7 +615,7 @@ int32_t ImeEnabledInfoManager::SetCurrentIme(
         return ErrorCode::NO_ERROR;
     }
     ImeEnabledCfg enabledCfg;
-    if (bundleName == SYSTEM_SPECIAL_IME) {
+    if (bundleName == ImeInfoInquirer::GetInstance().GetSystemSpecialIme()) {
         auto ret = GetEnabledCacheWithCorrect(userId, enabledCfg);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("%{public}d get enable info failed:%{public}d.", userId, ret);
