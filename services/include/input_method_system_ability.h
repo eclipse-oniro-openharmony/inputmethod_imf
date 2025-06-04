@@ -123,6 +123,8 @@ private:
     int32_t CheckSwitchPermission(int32_t userId, const SwitchInfo &switchInfo, SwitchTrigger trigger);
     bool IsStartInputTypePermitted(int32_t userId);
     int32_t OnSwitchInputMethod(int32_t userId, const SwitchInfo &switchInfo, SwitchTrigger trigger);
+    int32_t StartSwitch(int32_t userId, const SwitchInfo &switchInfo,
+        const std::shared_ptr<PerUserSession> &session);
     int32_t OnStartInputType(int32_t userId, const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t HandlePackageEvent(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
@@ -198,6 +200,7 @@ private:
     bool IsValidBundleName(const std::string &bundleName);
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
+    bool IsOneTimeCodeSwitchSubtype(std::shared_ptr<PerUserSession> session, const SwitchInfo &switchInfo);
 
     std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;

@@ -1175,6 +1175,73 @@ int32_t InputMethodSystemAbility::EnableIme(
         userId, bundleName, extensionName, static_cast<EnabledStatus>(status));
 }
 
+bool InputMethodSystemAbility::IsOneTimeCodeSwitchSubtype(std::shared_ptr<PerUserSession> session,
+    const SwitchInfo &switchInfo)
+{
+    if (session == nullptr) {
+        IMSA_HILOGE("session is nullptr!");
+        return false;
+    }
+
+    auto [ret, inputPattern] = session->GetCurrentInputPattern();
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("get current input pattern is failed!");
+        return false;
+    }
+    auto data = session->GetReadyImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("get ready ime data is failed!");
+        return false;
+    }
+
+    if (inputPattern == static_cast<int32_t>(InputType::ONE_TIME_CODE) && switchInfo.bundleName == data->ime.first) {
+        IMSA_HILOGI("onetimecode switch subtype");
+        return true;
+    }
+    IMSA_HILOGI("not onetimecode switch subtype");
+    return false;
+}
+
+int32_t InputMethodSystemAbility::StartSwitch(int32_t userId, const SwitchInfo &switchInfo,
+    const std::shared_ptr<PerUserSession> &session)
+{
+    if (session == nullptr) {
+        IMSA_HILOGE("session nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    IMSA_HILOGI("start switch %{public}s|%{public}s.", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
+    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId, switchInfo.bundleName, switchInfo.subName);
+    if (info == nullptr) {
+        return ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED;
+    }
+    if (!IsOneTimeCodeSwitchSubtype(session, switchInfo)) {
+        InputTypeManager::GetInstance().Set(false);
+    }
+    int32_t ret = 0;
+    {
+        InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
+        std::string targetImeName = info->prop.name + "/" + info->prop.id;
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, switchInfo.subName, true });
+        auto targetIme = std::make_shared<ImeNativeCfg>(
+            ImeNativeCfg{ targetImeName, info->prop.name, switchInfo.subName, info->prop.id });
+        ret = session->StartIme(targetIme);
+        if (ret != ErrorCode::NO_ERROR) {
+            InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
+                ret, switchInfo.bundleName, "switch input method failed!");
+            return ret;
+        }
+        GetValidSubtype(switchInfo.subName, info);
+        session->NotifyImeChangeToClients(info->prop, info->subProp);
+        ret = session->SwitchSubtype(info->subProp);
+    }
+    ret = info->isSpecificSubName ? ret : ErrorCode::NO_ERROR;
+    if (ret != ErrorCode::NO_ERROR) {
+        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
+            ret, switchInfo.bundleName, "switch input method subtype failed!");
+    }
+    return ret;
+}
+
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const SwitchInfo &switchInfo,
     SwitchTrigger trigger)
 {
@@ -1188,7 +1255,6 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
         IMSA_HILOGD("start wait.");
         session->GetSwitchQueue().Wait(switchInfo);
     }
-    IMSA_HILOGI("start switch %{public}s|%{public}s.", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     int32_t ret = CheckSwitchPermission(userId, switchInfo, trigger);
     if (ret != ErrorCode::NO_ERROR) {
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_STATUS_PERMISSION_DENIED,
@@ -1196,35 +1262,8 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
         session->GetSwitchQueue().Pop();
         return ret;
     }
-    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId, switchInfo.bundleName, switchInfo.subName);
-    if (info == nullptr) {
-        session->GetSwitchQueue().Pop();
-        return ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED;
-    }
-    InputTypeManager::GetInstance().Set(false);
-    {
-        InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
-        std::string targetImeName = info->prop.name + "/" + info->prop.id;
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, switchInfo.subName, true });
-        auto targetIme = std::make_shared<ImeNativeCfg>(ImeNativeCfg{
-            targetImeName, info->prop.name, switchInfo.subName, info->prop.id });
-        ret = session->StartIme(targetIme);
-        if (ret != ErrorCode::NO_ERROR) {
-            InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
-                ret, switchInfo.bundleName, "switch input method failed!");
-            session->GetSwitchQueue().Pop();
-            return ret;
-        }
-        GetValidSubtype(switchInfo.subName, info);
-        session->NotifyImeChangeToClients(info->prop, info->subProp);
-        ret = session->SwitchSubtype(info->subProp);
-    }
+    ret = StartSwitch(userId, switchInfo, session);
     session->GetSwitchQueue().Pop();
-    ret = info->isSpecificSubName ? ret : ErrorCode::NO_ERROR;
-    if (ret != ErrorCode::NO_ERROR) {
-        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ret, switchInfo.bundleName,
-            "switch input method subtype failed!");
-    }
     return ret;
 }
 

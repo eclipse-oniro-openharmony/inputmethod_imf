@@ -1465,6 +1465,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestIMSAOnScreenUnlocked, TestSize.Lev
     service_->OnScreenUnlock(msg.get());
 
     UserSessionManager::GetInstance().userSessions_.clear();
+    auto handler = UserSessionManager::GetInstance().eventHandler_;
+    UserSessionManager::GetInstance().eventHandler_ = nullptr;
     InputMethodPrivateMemberTest::service_->userId_ = userId;
     MessageParcel *parcel1 = new (std::nothrow) MessageParcel();
     ASSERT_NE(parcel1, nullptr);
@@ -1473,6 +1475,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestIMSAOnScreenUnlocked, TestSize.Lev
     service_->OnScreenUnlock(msg.get());
     UserSessionManager::GetInstance().userSessions_.clear();
     std::this_thread::sleep_for(std::chrono::seconds(1));
+    UserSessionManager::GetInstance().eventHandler_ = handler;
 }
 
 /**
@@ -1590,6 +1593,25 @@ HWTEST_F(InputMethodPrivateMemberTest, Test_ClientGroup_UpdateClientInfo, TestSi
     EXPECT_EQ(it->second->uiExtensionTokenId, uiExtensionTokenId);
     EXPECT_EQ(it->second->state, state);
     EXPECT_EQ(it->second->type, type);
+}
+
+/**
+ * @tc.name: SA_IsOneTimeCodeSwitchSubtype
+ * @tc.desc: SA_IsOneTimeCodeSwitchSubtype
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_IsOneTimeCodeSwitchSubtype, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_IsOneTimeCodeSwitchSubtype start.");
+    std::shared_ptr<PerUserSession> session = nullptr;
+    SwitchInfo switchInfo;
+    bool ret = service_->IsOneTimeCodeSwitchSubtype(session, switchInfo);
+    EXPECT_FALSE(ret);
+
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    bool ret1 = service_->IsOneTimeCodeSwitchSubtype(userSession, switchInfo);
+    EXPECT_FALSE(ret1);
 }
 } // namespace MiscServices
 } // namespace OHOS

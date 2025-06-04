@@ -150,6 +150,7 @@ public:
     uint64_t GetDisplayGroupId(uint64_t displayId);
     bool IsDefaultDisplayGroup(uint64_t displayId);
     bool IsNumkeyAutoInputApp(const std::string &bundleName);
+    std::pair<int32_t, int32_t> GetCurrentInputPattern();
 
 private:
     struct ResetManager {
