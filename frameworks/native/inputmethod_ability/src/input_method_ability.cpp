@@ -354,9 +354,6 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
     }
     if (dataChannelObject_.GetRefPtr() == channel.GetRefPtr()) {
         dataChannelObject_ = nullptr;
-        if (dataChannelProxyWrap_ != nullptr) {
-            dataChannelProxyWrap_->ClearRspHandlers();
-        }
         dataChannelProxyWrap_ = nullptr;
         IMSA_HILOGD("end.");
     }
@@ -541,7 +538,7 @@ int32_t InputMethodAbility::ShowKeyboardImplWithoutLock(int32_t cmdId)
     }
     isShowAfterCreate_.store(true);
     IMSA_HILOGI("panel not create.");
-    auto channel = GetInputDataChannelProxyWrap();
+    auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
         channel->SendKeyboardStatus(static_cast<int32_t>(KeyboardStatus::SHOW));
     }
@@ -552,7 +549,7 @@ int32_t InputMethodAbility::ShowKeyboardImplWithoutLock(int32_t cmdId)
 void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
     // CANDIDATE_COLUMN not notify
-    auto channel = GetInputDataChannelProxyWrap();
+    auto channel = GetInputDataChannelProxy();
     NotifyPanelStatusInfo(info, channel);
 }
 
@@ -783,7 +780,7 @@ int32_t InputMethodAbility::SelectByMovement(int32_t direction, AsyncIpcCallBack
 int32_t InputMethodAbility::GetEnterKeyType(int32_t &keyType)
 {
     IMSA_HILOGD("InputMethodAbility start.");
-    auto channel = GetInputDataChannelProxyWrap();
+    auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -794,7 +791,7 @@ int32_t InputMethodAbility::GetEnterKeyType(int32_t &keyType)
 int32_t InputMethodAbility::GetInputPattern(int32_t &inputPattern)
 {
     IMSA_HILOGD("InputMethodAbility start.");
-    auto channel = GetInputDataChannelProxyWrap();
+    auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -874,6 +871,15 @@ std::shared_ptr<InputDataChannelProxyWrap> InputMethodAbility::GetInputDataChann
 {
     std::lock_guard<std::mutex> lock(dataChannelLock_);
     return dataChannelProxyWrap_;
+}
+
+std::shared_ptr<InputDataChannelProxy> InputMethodAbility::GetInputDataChannelProxy()
+{
+    auto channel = GetInputDataChannelProxyWrap();
+    if (channel == nullptr) {
+        return nullptr;
+    }
+    return channel->GetDataChannel();
 }
 
 void InputMethodAbility::SetInputControlChannel(sptr<IRemoteObject> &object)
@@ -1218,7 +1224,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger, uint32_t sessionId)
     }
     IMSA_HILOGI("panel is not created.");
     imeListener_->OnKeyboardStatus(false);
-    auto channel = GetInputDataChannelProxyWrap();
+    auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
         channel->SendKeyboardStatus(static_cast<int32_t>(KeyboardStatus::HIDE));
     }
@@ -1388,17 +1394,11 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         IMSA_HILOGE("failed to create channel proxy!");
         return;
     }
-    auto channelProxyWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
-    if (channelProxyWrap == nullptr) {
-        IMSA_HILOGE("failed to create channel proxy warp!");
-        return;
-    }
     auto panel = GetSoftKeyboardPanel();
     if (imeListener_ != nullptr && panel != nullptr && panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
         imeListener_->OnKeyboardStatus(false);
     }
-    panels_.ForEach([this, &channelProxyWrap](
-        const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+    panels_.ForEach([this, &channelProxy](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
             auto ret = panel->HidePanel();
             if (ret != ErrorCode::NO_ERROR) {
@@ -1410,7 +1410,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
             info.panelInfo.panelFlag = panel->GetPanelFlag();
             info.visible = false;
             info.trigger = Trigger::IME_APP;
-            NotifyPanelStatusInfo(info, channelProxyWrap);
+            NotifyPanelStatusInfo(info, channelProxy);
             // finish previewing text when soft keyboard hides
             if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
                 FinishTextPreview(true);
@@ -1424,7 +1424,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)
 {
-    auto channel = GetInputDataChannelProxyWrap();
+    auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return;
@@ -1564,7 +1564,7 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo, 
 }
 
 void InputMethodAbility::NotifyPanelStatusInfo(
-    const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxyWrap> &channelProxy)
+    const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy)
 {
     // CANDIDATE_COLUMN not notify
     if (info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
@@ -1581,7 +1581,7 @@ void InputMethodAbility::NotifyPanelStatusInfo(
     }
 }
 
-int32_t InputMethodAbility::SendMessage(const ArrayBuffer &arrayBuffer, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::SendMessage(const ArrayBuffer &arrayBuffer)
 {
     int32_t securityMode = INVALID_SECURITY_MODE;
     auto ret = GetSecurityMode(securityMode);
@@ -1597,12 +1597,12 @@ int32_t InputMethodAbility::SendMessage(const ArrayBuffer &arrayBuffer, AsyncIpc
         IMSA_HILOGE("Security mode must be FULL!.");
         return ErrorCode::ERROR_SECURITY_MODE_OFF;
     }
-    auto dataChannel = GetInputDataChannelProxyWrap();
+    auto dataChannel = GetInputDataChannelProxy();
     if (dataChannel == nullptr) {
         IMSA_HILOGE("datachannel is nullptr.");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return dataChannel->SendMessage(arrayBuffer, callback);
+    return dataChannel->SendMessage(arrayBuffer);
 }
 
 int32_t InputMethodAbility::RecvMessage(const ArrayBuffer &arrayBuffer)

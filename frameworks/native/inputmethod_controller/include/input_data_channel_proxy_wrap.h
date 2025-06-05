@@ -60,41 +60,33 @@ public:
     int32_t DeleteBackward(int32_t length, AsyncIpcCallBack callback = nullptr);
     int32_t GetTextBeforeCursor(int32_t number, std::string &text, AsyncIpcCallBack callback = nullptr);
     int32_t GetTextAfterCursor(int32_t number, std::string &text, AsyncIpcCallBack callback = nullptr);
-    void SendKeyboardStatus(int32_t status, bool isSync = false, AsyncIpcCallBack callback = nullptr);
     int32_t SendFunctionKey(int32_t funcKey, AsyncIpcCallBack callback = nullptr);
     int32_t MoveCursor(int32_t keyCode, AsyncIpcCallBack callback = nullptr);
-    int32_t GetEnterKeyType(int32_t &keyType, AsyncIpcCallBack callback = nullptr);
-    int32_t GetInputPattern(int32_t &inputPattern, AsyncIpcCallBack callback = nullptr);
     int32_t SelectByRange(int32_t start, int32_t end, AsyncIpcCallBack callback = nullptr);
     int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip, AsyncIpcCallBack callback = nullptr);
     int32_t HandleExtendAction(int32_t action, AsyncIpcCallBack callback = nullptr);
     int32_t GetTextIndexAtCursor(int32_t &index, AsyncIpcCallBack callback = nullptr);
     int32_t GetTextConfig(TextTotalConfig &textConfig, AsyncIpcCallBack callback = nullptr, bool ipcSync = false);
-    void NotifyPanelStatusInfo(
-        const PanelStatusInfoInner &info, bool isSync = false, AsyncIpcCallBack callback = nullptr);
-    void NotifyKeyboardHeight(uint32_t height, bool isSync = false, AsyncIpcCallBack callback = nullptr);
     int32_t SendPrivateCommand(const Value &value, AsyncIpcCallBack callback = nullptr);
     int32_t SetPreviewText(const std::string &text, const RangeInner &range, AsyncIpcCallBack callback = nullptr);
     int32_t FinishTextPreview(bool isAsync, AsyncIpcCallBack callback = nullptr);
-    int32_t SendMessage(const ArrayBuffer &arraybuffer, AsyncIpcCallBack callback = nullptr);
 
 public:
-    int32_t ClearRspHandlers();
     int32_t HandleResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply);
+    std::shared_ptr<InputDataChannelProxy> GetDataChannel();
 
 private:
-
     int32_t AddRspHandler(std::shared_ptr<ResponseHandler> &handler, AsyncIpcCallBack callBack, bool isSync);
     int32_t WaitResponse(std::shared_ptr<ResponseHandler> rspHandler, SyncOutPut output);
     int32_t DeleteRspHandler(const uint64_t msgId);
-    uint64_t GetMsgId();
-    std::shared_ptr<InputDataChannelProxy> GetDataChannel();
+    uint64_t GetMsgId();    
     int32_t Request(AsyncIpcCallBack callback, ChannelWork work, bool isSync, SyncOutPut output = nullptr);
     int32_t HandleMsg(const uint64_t msgId, const ResponseInfo &rspInfo);
+    int32_t ClearRspHandlers();
 
 private:
     uint64_t msgId_ = 0;
-    std::mutex dataMutex_;
+    std::mutex rspMutex_;
     std::mutex channelMutex_;
     std::map<uint64_t, std::shared_ptr<ResponseHandler>> rspHandlers_;
     std::shared_ptr<InputDataChannelProxy> channel_ = nullptr;

@@ -105,7 +105,7 @@ public:
     InputAttribute GetInputAttribute();
     RequestKeyboardReason GetRequestKeyboardReason();
     void OnSetInputType(InputType inputType);
-    int32_t SendMessage(const ArrayBuffer &arrayBuffer, AsyncIpcCallBack callback = nullptr);
+    int32_t SendMessage(const ArrayBuffer &arrayBuffer);
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
     int32_t RegisterMsgHandler(const std::shared_ptr<MsgHandlerCallbackInterface> &msgHandler = nullptr);
     int32_t OnCallingDisplayIdChanged(uint64_t displayId);
@@ -159,6 +159,7 @@ private:
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<InputDataChannelProxyWrap> GetInputDataChannelProxyWrap();
+    std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
     void ClearDataChannel(const sptr<IRemoteObject> &channel);
     void SetInputControlChannel(sptr<IRemoteObject> &object);
     void ClearInputControlChannel();
@@ -183,7 +184,7 @@ private:
     int32_t HideKeyboardImplWithoutLock(int32_t cmdId, uint32_t sessionId);
     int32_t ShowKeyboardImplWithLock(int32_t cmdId);
     int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
-    void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxyWrap> &channelProxy);
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info, std::shared_ptr<InputDataChannelProxy> &channelProxy);
     void ClearInputType();
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
     int32_t StartInputInner(const InputClientInfo &clientInfo, bool isBindFromClient);

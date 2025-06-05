@@ -28,19 +28,19 @@ interface OHOS.MiscServices.IInputDataChannel {
     [oneway] void GetTextAfterCursor([in] int number, [in] unsigned long msgId);
     [oneway] void GetTextConfig([in] struct TextTotalConfigInner textConfiginner, [in] unsigned long msgId);
     void GetTextConfigSync([out] struct TextTotalConfigInner textConfiginner);
-    [oneway] void SendKeyboardStatus([in] int status, [in] unsigned long msgId);
+    [oneway] void SendKeyboardStatus([in] int status);
     [oneway] void SendFunctionKey([in] int funcKey, [in] unsigned long msgId);
     [oneway] void MoveCursor([in] int keyCode, [in] unsigned long msgId);
-    [oneway] void GetEnterKeyType([in] unsigned long msgId);
-    [oneway] void GetInputPattern([in] unsigned long msgId);
+    void GetEnterKeyType([out] int keyType);
+    void GetInputPattern([out] int inputPattern);
     [oneway] void SelectByRange([in] int start, [in] int end, [in] unsigned long msgId);
     [oneway] void SelectByMovement([in] int direction, [in] int cursorMoveSkip, [in] unsigned long msgId);
     [oneway] void HandleExtendAction([in] int action, [in] unsigned long msgId);
     [oneway] void GetTextIndexAtCursor([in] unsigned long msgId);
-    [oneway] void NotifyPanelStatusInfo([in] PanelStatusInfoInner info, [in] unsigned long msgId);
-    [oneway] void NotifyKeyboardHeight([in] unsigned int height, [in] unsigned long msgId);
+    [oneway] void NotifyPanelStatusInfo([in] PanelStatusInfoInner info);
+    [oneway] void NotifyKeyboardHeight([in] unsigned int height);
     [oneway] void SendPrivateCommand([in] Value value, [in] unsigned long msgId);
     [oneway] void SetPreviewText([in] String text, [in] RangeInner rangeInner, [in] unsigned long msgId);
     [oneway] void FinishTextPreview([in] unsigned long msgId);
-    [oneway] void SendMessage([in] ArrayBuffer arraybuffer, [in] unsigned long msgId);
+    void SendMessage([in] ArrayBuffer arraybuffer);
 }

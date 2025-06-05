@@ -35,10 +35,11 @@ InputDataChannelProxyWrap::InputDataChannelProxyWrap(std::shared_ptr<InputDataCh
 }
 InputDataChannelProxyWrap::~InputDataChannelProxyWrap()
 {
-    std::lock_guard<std::mutex> lock(channelMutex_);
-    if (channel_ != nullptr) {
+    {
+        std::lock_guard<std::mutex> lock(channelMutex_);
         channel_ = nullptr;
     }
+    ClearRspHandlers();
 }
 
 int32_t InputDataChannelProxyWrap::InsertText(const std::string &text, bool isSync, AsyncIpcCallBack callback)
@@ -100,13 +101,6 @@ int32_t InputDataChannelProxyWrap::GetTextAfterCursor(int32_t number, std::strin
 
     return Request(callback, work, !callback, output);
 }
-void InputDataChannelProxyWrap::SendKeyboardStatus(int32_t status, bool isSync, AsyncIpcCallBack callback)
-{
-    auto work = [status](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
-        return channel->SendKeyboardStatus(status, msgId);
-    };
-    Request(callback, work, isSync);
-}
 
 int32_t InputDataChannelProxyWrap::SendFunctionKey(int32_t funcKey, AsyncIpcCallBack callback)
 {
@@ -122,42 +116,6 @@ int32_t InputDataChannelProxyWrap::MoveCursor(int32_t keyCode, AsyncIpcCallBack 
         return channel->MoveCursor(keyCode, msgId);
     };
     return Request(callback, work, !callback);
-}
-
-int32_t InputDataChannelProxyWrap::GetEnterKeyType(int32_t &keyType, AsyncIpcCallBack callback)
-{
-    auto work = [](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
-        return channel->GetEnterKeyType(msgId);
-    };
-    SyncOutPut output = nullptr;
-    if (callback == nullptr) {
-        output = [&keyType](const ResponseInfo &rspInfo) -> int32_t {
-            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
-                VariantUtil::GetValue(rspInfo.data_, keyType);
-            }
-            return rspInfo.dealRet_;
-        };
-    }
-
-    return Request(callback, work, !callback, output);
-}
-
-int32_t InputDataChannelProxyWrap::GetInputPattern(int32_t &inputPattern, AsyncIpcCallBack callback)
-{
-    auto work = [](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
-        return channel->GetInputPattern(msgId);
-    };
-    SyncOutPut output = nullptr;
-    if (callback == nullptr) {
-        output = [&inputPattern](const ResponseInfo &rspInfo) -> int32_t {
-            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
-                VariantUtil::GetValue(rspInfo.data_, inputPattern);
-            }
-            return rspInfo.dealRet_;
-        };
-    }
-
-    return Request(callback, work, !callback, output);
 }
 
 int32_t InputDataChannelProxyWrap::SelectByRange(int32_t start, int32_t end, AsyncIpcCallBack callback)
@@ -237,23 +195,6 @@ int32_t InputDataChannelProxyWrap::GetTextConfig(TextTotalConfig &textConfig, As
     return Request(callback, work, !callback, output);
 }
 
-void InputDataChannelProxyWrap::NotifyPanelStatusInfo(const PanelStatusInfoInner &info, bool isSync,
-    AsyncIpcCallBack callback)
-{
-    auto work = [info](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
-        return channel->NotifyPanelStatusInfo(info, msgId);
-    };
-    Request(callback, work, isSync);
-}
-
-void InputDataChannelProxyWrap::NotifyKeyboardHeight(uint32_t height, bool isSync, AsyncIpcCallBack callback)
-{
-    auto work = [height](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
-        return channel->NotifyKeyboardHeight(height, msgId);
-    };
-    Request(callback, work, isSync);
-}
-
 int32_t InputDataChannelProxyWrap::SendPrivateCommand(const Value &value, AsyncIpcCallBack callback)
 {
     auto work = [value](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
@@ -277,14 +218,6 @@ int32_t InputDataChannelProxyWrap::FinishTextPreview(bool isAsync, AsyncIpcCallB
         return channel->FinishTextPreview(msgId);
     };
     return Request(callback, work, !isAsync);
-}
-
-int32_t InputDataChannelProxyWrap::SendMessage(const ArrayBuffer &arraybuffer, AsyncIpcCallBack callback)
-{
-    auto work = [arraybuffer](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
-        return channel->SendMessage(arraybuffer, msgId);
-    };
-    return Request(callback, work, !callback);
 }
 
 int32_t InputDataChannelProxyWrap::Request(
@@ -327,7 +260,7 @@ uint64_t InputDataChannelProxyWrap::GetMsgId()
 int32_t InputDataChannelProxyWrap::AddRspHandler(
     std::shared_ptr<ResponseHandler> &handler, AsyncIpcCallBack callBack, bool isSync)
 {
-    std::lock_guard<std::mutex> lock(dataMutex_);
+    std::lock_guard<std::mutex> lock(rspMutex_);
     if (rspHandlers_.size() >= ASYNC_UNANSWERED_MAX_NUMBER) {
         uint64_t msgId = rspHandlers_.begin()->first;
         ResponseInfo rspInfo = { ErrorCode::ERROR_RESPONSE_TIMEOUT, std::monostate{} };
@@ -341,7 +274,7 @@ int32_t InputDataChannelProxyWrap::AddRspHandler(
 
 int32_t InputDataChannelProxyWrap::ClearRspHandlers()
 {
-    std::lock_guard<std::mutex> lock(dataMutex_);
+    std::lock_guard<std::mutex> lock(rspMutex_);
     ResponseInfo rspInfo = { ErrorCode::ERROR_CLIENT_NULL_POINTER, std::monostate{} };
     for (const auto &handler : rspHandlers_) {
         if (handler.second == nullptr) {
@@ -382,7 +315,7 @@ int32_t InputDataChannelProxyWrap::HandleMsg(const uint64_t msgId, const Respons
 int32_t InputDataChannelProxyWrap::HandleResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply)
 {
     ResponseInfo rspInfo = {errorCode, reply};
-    std::lock_guard<std::mutex> lock(dataMutex_);
+    std::lock_guard<std::mutex> lock(rspMutex_);
     return HandleMsg(msgId, rspInfo);
 }
 
@@ -400,7 +333,7 @@ int32_t InputDataChannelProxyWrap::WaitResponse(std::shared_ptr<ResponseHandler>
 
 int32_t InputDataChannelProxyWrap::DeleteRspHandler(const uint64_t msgId)
 {
-    std::lock_guard<std::mutex> lock(dataMutex_);
+    std::lock_guard<std::mutex> lock(rspMutex_);
     auto it = rspHandlers_.find(msgId);
     if (it != rspHandlers_.end()) {
         rspHandlers_.erase(it);

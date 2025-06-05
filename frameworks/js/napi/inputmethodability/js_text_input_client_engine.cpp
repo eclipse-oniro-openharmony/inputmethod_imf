@@ -43,6 +43,7 @@ constexpr int32_t MAX_WAIT_TIME_MESSAGE_HANDLER = 2000;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_ONE = 1;
 std::shared_ptr<AsyncCall::TaskQueue> JsTextInputClientEngine::taskQueue_ = std::make_shared<AsyncCall::TaskQueue>();
+BlockQueue<MessageHandlerInfo> JsTextInputClientEngine::messageHandlerQueue_{ MAX_WAIT_TIME_MESSAGE_HANDLER };
 std::mutex JsTextInputClientEngine::engineMutex_;
 std::shared_ptr<JsTextInputClientEngine> JsTextInputClientEngine::textInputClientEngine_{ nullptr };
 std::mutex JsTextInputClientEngine::eventHandlerMutex_;
@@ -1276,27 +1277,23 @@ napi_value JsTextInputClientEngine::SendMessage(napi_env env, napi_callback_info
         PARAM_CHECK_RETURN(env, ArrayBuffer::IsSizeValid(ctxt->arrayBuffer),
             "msgId limit 256B and msgParam limit 128KB.", TYPE_NONE, napi_generic_failure);
         ctxt->info = { std::chrono::system_clock::now(), ctxt->arrayBuffer };
+        messageHandlerQueue_.Push(ctxt->info);
         return napi_ok;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
-            if (code == ErrorCode::NO_ERROR) {
-                ctxt->status = napi_ok;
-                ctxt->SetState(ctxt->status);
-            } else {
-                ctxt->SetErrorCode(code);
-            }
-            completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
-        };
-        int32_t code = InputMethodAbility::GetInstance().SendMessage(ctxt->arrayBuffer, rspCallBack);
-        if (code != ErrorCode::NO_ERROR) {
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        messageHandlerQueue_.Wait(ctxt->info);
+        int32_t code = InputMethodAbility::GetInstance().SendMessage(ctxt->arrayBuffer);
+        messageHandlerQueue_.Pop();
+        if (code == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
             ctxt->SetErrorCode(code);
-            completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
         }
     };
     ctxt->SetAction(std::move(input), nullptr);
     // 2 means JsAPI:sendMessage has 2 params at most.
-    EditAsyncCall asyncCall(env, info, ctxt, 2);
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec, "imaSendMessage");
 }
 

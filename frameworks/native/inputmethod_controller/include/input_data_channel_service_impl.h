@@ -38,21 +38,21 @@ public:
     ErrCode GetTextAfterCursor(int32_t number, uint64_t msgId) override;
     ErrCode GetTextConfig(const TextTotalConfigInner &textConfigInner, uint64_t msgId) override;
     ErrCode GetTextConfigSync(TextTotalConfigInner &textConfigInner) override;
-    ErrCode SendKeyboardStatus(int32_t status, uint64_t msgId) override;
+    ErrCode SendKeyboardStatus(int32_t status) override;
     ErrCode SendFunctionKey(int32_t funcKey, uint64_t msgId) override;
     ErrCode MoveCursor(int32_t keyCode, uint64_t msgId) override;
-    ErrCode GetEnterKeyType(uint64_t msgId) override;
-    ErrCode GetInputPattern(uint64_t msgId) override;
+    ErrCode GetEnterKeyType(int32_t &keyType) override;
+    ErrCode GetInputPattern(int32_t &inputPattern) override;
     ErrCode SelectByRange(int32_t start, int32_t end, uint64_t msgId) override;
     ErrCode SelectByMovement(int32_t direction, int32_t cursorMoveSkip, uint64_t msgId) override;
     ErrCode HandleExtendAction(int32_t action, uint64_t msgId) override;
     ErrCode GetTextIndexAtCursor(uint64_t msgId) override;
-    ErrCode NotifyPanelStatusInfo(const PanelStatusInfoInner &info, uint64_t msgId) override;
-    ErrCode NotifyKeyboardHeight(uint32_t height, uint64_t msgId) override;
+    ErrCode NotifyPanelStatusInfo(const PanelStatusInfoInner &info) override;
+    ErrCode NotifyKeyboardHeight(uint32_t height) override;
     ErrCode SendPrivateCommand(const Value &value, uint64_t msgId) override;
     ErrCode SetPreviewText(const std::string &text, const RangeInner &rangeInner, uint64_t msgId) override;
     ErrCode FinishTextPreview(uint64_t msgId) override;
-    ErrCode SendMessage(const ArrayBuffer &arraybuffer, uint64_t msgId) override;
+    ErrCode SendMessage(const ArrayBuffer &arraybuffer) override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS
