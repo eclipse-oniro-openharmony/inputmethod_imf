@@ -153,6 +153,7 @@ private:
     int32_t ResizeEnhancedPanel(uint32_t width, uint32_t height);
     void UpdateRectParams(
         Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height, const LayoutParams &currParams);
+    void RectifyResizeParams(LayoutParams &params, const DisplaySize &displaySize);
     int32_t MovePanelRect(int32_t x, int32_t y);
     int32_t MoveEnhancedPanelRect(int32_t x, int32_t y);
 

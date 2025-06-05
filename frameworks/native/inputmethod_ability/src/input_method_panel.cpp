@@ -182,29 +182,35 @@ int32_t InputMethodPanel::GetResizeParams(
     if (IsDisplayUnfolded()) {
         IMSA_HILOGI("foldable device without fold state");
         if (!isInEnhancedAdjust_) {
-            resizePanelUnfoldParams_.portraitRect.height_ =
-                std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
-                    static_cast<float>(resizePanelUnfoldParams_.portraitRect.height_));
-            resizePanelUnfoldParams_.landscapeRect.height_ =
-                std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
-                    static_cast<float>(resizePanelUnfoldParams_.landscapeRect.height_));
+            RectifyResizeParams(resizePanelUnfoldParams_, displaySize);
         }
         currParams = resizePanelUnfoldParams_;
     } else {
         IMSA_HILOGI("foldable device with fold state or non-foldable device");
         if (!isInEnhancedAdjust_) {
-            resizePanelFoldParams_.portraitRect.height_ =
-                std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
-                    static_cast<float>(resizePanelFoldParams_.portraitRect.height_));
-            resizePanelFoldParams_.landscapeRect.height_ =
-                std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
-                    static_cast<float>(resizePanelFoldParams_.landscapeRect.height_));
+            RectifyResizeParams(resizePanelFoldParams_, displaySize);
         }
         currParams = resizePanelFoldParams_;
     }
 
     UpdateRectParams(portrait, landscape, width, height, currParams);
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodPanel::RectifyResizeParams(LayoutParams &params, const DisplaySize &displaySize)
+{
+    params.portraitRect.height_ =
+        std::min(static_cast<float>(displaySize.portrait.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+            static_cast<float>(params.portraitRect.height_));
+    params.landscapeRect.height_ =
+        std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
+            static_cast<float>(params.landscapeRect.height_));
+    params.portraitRect.width_ =
+        std::min(static_cast<float>(displaySize.portrait.width),
+            static_cast<float>(params.portraitRect.width_));
+    params.landscapeRect.width_ =
+        std::min(static_cast<float>(displaySize.landscape.width),
+            static_cast<float>(params.landscapeRect.width_));
 }
 
 void InputMethodPanel::UpdateRectParams(
