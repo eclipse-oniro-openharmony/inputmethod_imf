@@ -265,6 +265,10 @@ void AsyncCall::OnExecuteAsync(napi_env env, void *data, Context::CallBackAction
 
 void AsyncCall::CallImpl(napi_env env, void *data, const std::string &resourceName)
 {
+    if (data == nullptr) {
+        IMSA_HILOGE("context is nullptr!");
+        return;
+    }
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
     napi_async_work work = context->work;
     napi_value resource = nullptr;
@@ -273,21 +277,6 @@ void AsyncCall::CallImpl(napi_env env, void *data, const std::string &resourceNa
     napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecute, AsyncCall::OnComplete, context, &work);
     context->work = work;
     napi_queue_async_work_with_qos(env, work, napi_qos_user_initiated);
-}
-
-void EditAsyncCall::CallImpl(napi_env env, void *data, const std::string &resourceName)
-{
-    AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
-    auto cb = [env, context, resourceName]() -> void {
-        auto task = [env, context]() -> void {
-            AsyncCall::OnComplete(env, context->ctx->GetState(), context);
-        };
-        auto handler = context->ctx->GetHandler();
-        if (handler) {
-            handler->PostTask(task, "IMA" + resourceName, 0, AppExecFwk::EventQueue::Priority::VIP);
-        }
-    };
-    AsyncCall::OnExecuteAsync(env, data, cb);
 }
 } // namespace MiscServices
 } // namespace OHOS

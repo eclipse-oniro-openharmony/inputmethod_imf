@@ -828,7 +828,7 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig, AsyncIpcC
     };
     AsyncIpcCallBack middle = nullptr;
     if (callback != nullptr) {
-        middle = [callback, this, processAfterIpc](int32_t code, ResponseData &data) -> void {
+        middle = [callback, this, processAfterIpc](int32_t code, const ResponseData &data) -> void {
             TextTotalConfig textConfig = {};
             if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, textConfig)) {
                 processAfterIpc(textConfig);
@@ -1526,7 +1526,7 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo, 
         IMSA_HILOGE("panel not found!");
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
-    auto processAfterIpc = [panel, &windowInfo](int32_t code, ResponseData data) -> int32_t {
+    auto processAfterIpc = [panel, &windowInfo](int32_t code, const ResponseData &data) -> int32_t {
         if (code != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to get window id, ret: %{public}d!", code);
             return ErrorCode::ERROR_GET_TEXT_CONFIG;
@@ -1534,7 +1534,7 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo, 
         TextTotalConfig rspTextConfig = {};
         if (!VariantUtil::GetValue(data, rspTextConfig)) {
             IMSA_HILOGE("failed to get TextConfig");
-            return ErrorCode::ERROR_BAD_PARAMETERS;
+            return ErrorCode::ERROR_GET_TEXT_CONFIG;
         }
         int32_t ret = panel->SetCallingWindow(rspTextConfig.windowId);
         if (ret != ErrorCode::NO_ERROR) {
@@ -1549,7 +1549,7 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo, 
     };
     AsyncIpcCallBack middle = nullptr;
     if (callback != nullptr) {
-        middle = [callback, &windowInfo, panel, processAfterIpc](int32_t code, ResponseData &data) -> void {
+        middle = [callback, &windowInfo, panel, processAfterIpc](int32_t code, const ResponseData &data) -> void {
             int32_t ret = processAfterIpc(code, data);
             ResponseData rspData = std::monostate{};
             callback(ret, rspData);

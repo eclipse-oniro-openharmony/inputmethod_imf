@@ -133,7 +133,7 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -294,7 +294,7 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -331,7 +331,7 @@ napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callba
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -394,7 +394,7 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         InputMethodSyncTrace tracer("JS_DeleteForward_Exec", traceId);
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -452,7 +452,7 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -493,7 +493,7 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         InputMethodSyncTrace tracer("JS_InsertText_Exec", traceId);
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -583,7 +583,7 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         InputMethodSyncTrace tracer("JS_GetForward_Exec", traceId);
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, ctxt->text)) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -651,7 +651,7 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, ctxt->text)) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -699,7 +699,7 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             TextTotalConfig config = {};
             if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, config)) {
                 ctxt->inputAttribute = config.inputAttribute;
@@ -744,7 +744,7 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -827,7 +827,7 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -859,7 +859,7 @@ napi_value JsTextInputClientEngine::SendExtendAction(napi_env env, napi_callback
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->SetState(napi_ok);
             } else {
@@ -890,7 +890,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
         return napi_create_int32(env, ctxt->index, result);
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, ctxt->index)) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
@@ -933,7 +933,7 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         InputMethodSyncTrace tracer("JS_SetPreviewText_Exec", traceId);
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 IMSA_HILOGD("exec setPreviewText success");
                 ctxt->SetState(napi_ok);
@@ -997,7 +997,7 @@ napi_value JsTextInputClientEngine::FinishTextPreview(napi_env env, napi_callbac
     };
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         InputMethodSyncTrace tracer("JS_FinishTextPreview_Exec", traceId);
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 IMSA_HILOGI("exec finishTextPreview success.");
                 ctxt->SetState(napi_ok);
@@ -1049,7 +1049,7 @@ napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_call
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 IMSA_HILOGI("exec GetCallingWindowInfo success.");
                 ctxt->SetState(napi_ok);
@@ -1279,7 +1279,7 @@ napi_value JsTextInputClientEngine::SendMessage(napi_env env, napi_callback_info
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, ResponseData &data) -> void {
+        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);

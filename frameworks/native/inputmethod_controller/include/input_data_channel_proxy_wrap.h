@@ -26,13 +26,13 @@
 
 namespace OHOS {
 namespace MiscServices {
-using AsyncIpcCallBack = std::function<void(int32_t, ResponseData&)>;
+using AsyncIpcCallBack = std::function<void(int32_t, const ResponseData&)>;
 struct ResponseInfo {
     int32_t dealRet_{ ErrorCode::NO_ERROR };
     ResponseData data_{std::monostate{}};
 };
 struct ResponseHandler  {
-    static constexpr uint32_t ASYNC_REPLY_TIMEOUT = 100; // unit ms
+    static constexpr uint32_t SYNC_REPLY_TIMEOUT = 3000; // unit ms
     bool isSync_ = false;
     uint64_t msgId_ = 0;
     AsyncIpcCallBack callBack_ = nullptr;
@@ -43,7 +43,7 @@ struct ResponseHandler  {
         msgId_ = msgId;
         callBack_ = callBack;
         if (isSync) {
-            syncBlockData_ = std::make_shared<BlockData<ResponseInfo>>(ASYNC_REPLY_TIMEOUT);
+            syncBlockData_ = std::make_shared<BlockData<ResponseInfo>>(SYNC_REPLY_TIMEOUT);
         }
     }
 };
@@ -88,9 +88,9 @@ private:
     int32_t WaitResponse(std::shared_ptr<ResponseHandler> rspHandler, SyncOutPut output);
     int32_t DeleteRspHandler(const uint64_t msgId);
     uint64_t GetMsgId();
-    int32_t HandleMsg(const uint64_t msgId, int32_t code, const ResponseData &data, int32_t defErrCode);
     std::shared_ptr<InputDataChannelProxy> GetDataChannel();
     int32_t Request(AsyncIpcCallBack callback, ChannelWork work, bool isSync, SyncOutPut output = nullptr);
+    int32_t HandleMsg(const uint64_t msgId, const ResponseInfo &rspInfo);
 
 private:
     uint64_t msgId_ = 0;

@@ -173,15 +173,6 @@ private:
     AsyncContext *context_ = nullptr;
     napi_env env_ = nullptr;
 };
-
-class EditAsyncCall : public AsyncCall {
-public:
-    EditAsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount)
-        :AsyncCall(env, info, context, maxParamCount){};
-    virtual ~EditAsyncCall(){};
-private:
-    void CallImpl(napi_env env, void *data, const std::string &resourceName) override;
-};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // ASYNC_CALL_H

@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr std::size_t ASYNC_UNANSWERED_MAX_NUMBER = 50;
+constexpr std::size_t ASYNC_UNANSWERED_MAX_NUMBER = 1000;
 
 InputDataChannelProxyWrap::InputDataChannelProxyWrap(std::shared_ptr<InputDataChannelProxy> channel)
 {
@@ -329,8 +329,10 @@ int32_t InputDataChannelProxyWrap::AddRspHandler(
 {
     std::lock_guard<std::mutex> lock(dataMutex_);
     if (rspHandlers_.size() >= ASYNC_UNANSWERED_MAX_NUMBER) {
-        IMSA_HILOGW("async data channel, too many unanswered msg!");
-        return ErrorCode::ERROR_TOO_MANY_UNANSWERED_MESSAGE;
+        uint64_t msgId = rspHandlers_.begin()->first;
+        ResponseInfo rspInfo = { ErrorCode::ERROR_RESPONSE_TIMEOUT, std::monostate{} };
+        HandleMsg(msgId, rspInfo);
+        IMSA_HILOGW("data channel, too many unanswered msgid:%{public}" PRIu64 "", msgId);
     }
     handler = std::make_shared<ResponseHandler>(isSync, GetMsgId(), callBack);
     rspHandlers_.insert({ handler->msgId_, handler });
@@ -357,16 +359,13 @@ int32_t InputDataChannelProxyWrap::ClearRspHandlers()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputDataChannelProxyWrap::HandleResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply)
+int32_t InputDataChannelProxyWrap::HandleMsg(const uint64_t msgId, const ResponseInfo &rspInfo)
 {
-    std::lock_guard<std::mutex> lock(dataMutex_);
     auto it = rspHandlers_.find(msgId);
     if (it == rspHandlers_.end()) {
         return ErrorCode::NO_ERROR;
     }
-
     do {
-        ResponseInfo rspInfo = {errorCode, reply};
         if (it->second->syncBlockData_ != nullptr) {
             it->second->syncBlockData_->SetValue(rspInfo);
             break;
@@ -380,8 +379,18 @@ int32_t InputDataChannelProxyWrap::HandleResponse(const uint64_t msgId, int32_t 
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputDataChannelProxyWrap::HandleResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply)
+{
+    ResponseInfo rspInfo = {errorCode, reply};
+    std::lock_guard<std::mutex> lock(dataMutex_);
+    return HandleMsg(msgId, rspInfo);
+}
+
 int32_t InputDataChannelProxyWrap::WaitResponse(std::shared_ptr<ResponseHandler> handler, SyncOutPut output)
 {
+    if (handler->syncBlockData_ == nullptr) {
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     ResponseInfo rspInfo;
     if (!handler->syncBlockData_->GetValue(rspInfo)) {
         return ErrorCode::ERROR_RESPONSE_TIMEOUT;
