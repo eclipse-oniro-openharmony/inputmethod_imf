@@ -63,7 +63,8 @@ public:
     static constexpr const char *INPUT_SYS_CGF = "{\"systemConfig\":{\"enableInputMethodFeature\":true,"
                                                  "\"enableFullExperienceFeature\":true,"
                                                  "\"systemInputMethodConfigAbility\":\"setAbility\","
-                                                 "\"defaultInputMethod\":\"bundleName/extName\"}, "
+                                                 "\"defaultInputMethod\":\"bundleName/extName\","
+                                                 "\"systemSpecialInputMethod\":\"systemSpecialInputMethod\"}, "
                                                  "\"supportedInputTypeList\":[{\"inputType\":0,\"bundleName\":"
                                                  "\"testBundleName\", "
                                                  "\"subtypeId\":\"testSubtypeId\"},{\"inputType\":1,\"bundleName\":"
@@ -157,6 +158,7 @@ HWTEST_F(JsonOperateTest, testParseSystemConfig001, TestSize.Level1)
     auto systemConfig = imeSystemConfig.systemConfig;
     EXPECT_EQ(systemConfig.systemInputMethodConfigAbility, "setAbility");
     EXPECT_EQ(systemConfig.defaultInputMethod, "bundleName/extName");
+    EXPECT_EQ(systemConfig.systemSpecialInputMethod, "systemSpecialInputMethod");
     EXPECT_TRUE(systemConfig.enableInputMethodFeature);
     EXPECT_TRUE(systemConfig.enableFullExperienceFeature);
 }
