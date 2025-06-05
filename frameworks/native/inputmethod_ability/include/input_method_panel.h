@@ -139,12 +139,12 @@ private:
 
     void CalculateHotAreas(const EnhancedLayoutParams &enhancedParams, const Rosen::KeyboardLayoutParams &params,
         const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas);
-    void CalculateDefaultHotArea(
-        const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
-    void CalculateHotArea(
-        const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
+    void CalculateDefaultHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel,
+        const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY);
+    void CalculateHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo,
+        HotArea &hotArea, uint32_t changeY);
     void CalculateEnhancedHotArea(
-        const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
+        const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY);
     void RectifyAreas(const std::vector<Rosen::Rect> availableAreas, std::vector<Rosen::Rect> &areas);
     Rosen::Rect GetRectIntersection(Rosen::Rect a, Rosen::Rect b);
     uint32_t SafeSubtract(uint32_t minuend, uint32_t subtrahend);
@@ -238,6 +238,8 @@ private:
     std::atomic<bool> isInEnhancedAdjust_{ false };
     ImmersiveMode immersiveMode_ { ImmersiveMode::NONE_IMMERSIVE };
     ImmersiveEffect immersiveEffect_ { 0, GradientMode::NONE, FluidLightMode::NONE };
+    uint32_t portraitChangeY_ = 0;
+    uint32_t landscapeChangeY_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

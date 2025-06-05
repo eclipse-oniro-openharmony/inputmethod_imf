@@ -140,11 +140,17 @@ int32_t InputMethodPanel::FullScreenPrepare(Rosen::KeyboardLayoutParams &param)
         return result;
     }
 
+    portraitChangeY_ = 0;
+    landscapeChangeY_ = 0;
     if (ifChangePortraitPanelRect) {
-        param.PortraitPanelRect_.height_ = param.portraitAvoidHeight_ + immersiveEffect_.blurHeight;
+        uint32_t avoidHeightTmp = param.portraitAvoidHeight_ + immersiveEffect_.blurHeight;
+        portraitChangeY_ = avoidHeightTmp - param.PortraitPanelRect_.height_;
+        param.PortraitPanelRect_.height_ = avoidHeightTmp;
     }
     if (ifChangeLandscapePanelRect) {
-        param.LandscapePanelRect_.height_ = param.landscapeAvoidHeight_ + immersiveEffect_.blurHeight;
+        uint32_t avoidHeightTmp = param.landscapeAvoidHeight_ + immersiveEffect_.blurHeight;
+        landscapeChangeY_ = avoidHeightTmp - param.LandscapePanelRect_.height_;
+        param.LandscapePanelRect_.height_ = avoidHeightTmp;
     }
     param.landscapeAvoidHeight_ += immersiveEffect_.blurHeight;
     param.portraitAvoidHeight_ += immersiveEffect_.blurHeight;
@@ -170,6 +176,8 @@ int32_t InputMethodPanel::NormalImePrepare(Rosen::KeyboardLayoutParams &param)
     param.LandscapePanelRect_.height_ = landscapeHeight;
     param.LandscapePanelRect_.posY_ -= immersiveEffect_.blurHeight;
     param.PortraitPanelRect_.posY_ -= immersiveEffect_.blurHeight;
+    portraitChangeY_ = immersiveEffect_.blurHeight;
+    landscapeChangeY_ = immersiveEffect_.blurHeight;
     return ErrorCode::NO_ERROR;
 }
 
@@ -827,9 +835,9 @@ void InputMethodPanel::UpdateHotAreas()
         return;
     }
     CalculateDefaultHotArea(keyboardLayoutParams_.LandscapeKeyboardRect_, keyboardLayoutParams_.LandscapePanelRect_,
-        adjustInfo.landscape, hotAreas.landscape);
+        adjustInfo.landscape, hotAreas.landscape, landscapeChangeY_);
     CalculateDefaultHotArea(keyboardLayoutParams_.PortraitKeyboardRect_, keyboardLayoutParams_.PortraitPanelRect_,
-        adjustInfo.portrait, hotAreas.portrait);
+        adjustInfo.portrait, hotAreas.portrait, portraitChangeY_);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
     WMError result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
     if (result != WMError::WM_OK) {
@@ -846,13 +854,13 @@ void InputMethodPanel::CalculateHotAreas(const EnhancedLayoutParams &enhancedPar
     const Rosen::KeyboardLayoutParams &params, const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas)
 {
     if (isInEnhancedAdjust_.load()) {
-        CalculateEnhancedHotArea(enhancedParams.portrait, adjustInfo.portrait, hotAreas.portrait);
-        CalculateEnhancedHotArea(enhancedParams.landscape, adjustInfo.landscape, hotAreas.landscape);
+        CalculateEnhancedHotArea(enhancedParams.portrait, adjustInfo.portrait, hotAreas.portrait, portraitChangeY_);
+        CalculateEnhancedHotArea(enhancedParams.landscape, adjustInfo.landscape, hotAreas.landscape, landscapeChangeY_);
     } else {
-        CalculateHotArea(
-            params.PortraitKeyboardRect_, params.PortraitPanelRect_, adjustInfo.portrait, hotAreas.portrait);
-        CalculateHotArea(
-            params.LandscapeKeyboardRect_, params.LandscapePanelRect_, adjustInfo.landscape, hotAreas.landscape);
+        CalculateHotArea(params.PortraitKeyboardRect_, params.PortraitPanelRect_, adjustInfo.portrait,
+            hotAreas.portrait, portraitChangeY_);
+        CalculateHotArea(params.LandscapeKeyboardRect_, params.LandscapePanelRect_, adjustInfo.landscape,
+            hotAreas.landscape, landscapeChangeY_);
     }
     hotAreas.isSet = true;
     IMSA_HILOGD("portrait keyboard: %{public}s, panel: %{public}s",
@@ -863,8 +871,8 @@ void InputMethodPanel::CalculateHotAreas(const EnhancedLayoutParams &enhancedPar
         HotArea::ToString(hotAreas.landscape.panelHotArea).c_str());
 }
 
-void InputMethodPanel::CalculateHotArea(
-    const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
+void InputMethodPanel::CalculateHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel,
+    const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY)
 {
     // calculate keyboard hot area
     if (hotArea.keyboardHotArea.empty()) {
@@ -873,9 +881,9 @@ void InputMethodPanel::CalculateHotArea(
     std::vector<Rosen::Rect> availableAreas = { { { ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ } } };
     RectifyAreas(availableAreas, hotArea.keyboardHotArea);
     // calculate panel hot area
-    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
+    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y + changeY, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
     Rosen::Rect right = { .posX_ = static_cast<int32_t>(panel.width_) - adjustInfo.right,
-        .posY_ = ORIGIN_POS_Y,
+        .posY_ = ORIGIN_POS_Y + changeY,
         .width_ = static_cast<uint32_t>(adjustInfo.right),
         .height_ = panel.height_ };
     Rosen::Rect bottom = { .posX_ = ORIGIN_POS_X,
@@ -886,7 +894,7 @@ void InputMethodPanel::CalculateHotArea(
 }
 
 void InputMethodPanel::CalculateEnhancedHotArea(
-    const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
+    const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY)
 {
     // calculate keyboard hot area
     if (hotArea.keyboardHotArea.empty()) {
@@ -912,16 +920,16 @@ void InputMethodPanel::CalculateEnhancedHotArea(
     hotArea.panelHotArea = { left, right, bottom };
 }
 
-void InputMethodPanel::CalculateDefaultHotArea(
-    const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
+void InputMethodPanel::CalculateDefaultHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel,
+    const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY)
 {
     // calculate keyboard hot area
     hotArea.keyboardHotArea.clear();
     hotArea.keyboardHotArea.push_back({ ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ });
     // calculate panel hot area
-    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
+    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y + changeY, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
     Rosen::Rect right = { .posX_ = static_cast<int32_t>(panel.width_) - adjustInfo.right,
-        .posY_ = ORIGIN_POS_Y,
+        .posY_ = ORIGIN_POS_Y + changeY,
         .width_ = static_cast<uint32_t>(adjustInfo.right),
         .height_ = panel.height_ };
     Rosen::Rect bottom = { .posX_ = ORIGIN_POS_X,
