@@ -15,7 +15,6 @@
 #define private public
 #define protected public
 #include "full_ime_info_manager.h"
-#include "ime_info_inquirer.h"
 #include "settings_data_utils.h"
 #include "user_session_manager.h"
 #undef private
@@ -486,17 +485,6 @@ void TddUtil::DisabledAllIme()
     for (const auto &prop : props) {
         imc->EnableIme(prop.name, prop.id, EnabledStatus::DISABLED);
     }
-}
-
-void TddUtil::SetCapacitySupport(const std::string capacityName, bool isSupport)
-{
-    auto supportedCapacityList = ImeInfoInquirer::GetInstance().GetSystemConfig().supportedCapacityList;
-    if (isSupport) {
-        supportedCapacityList.insert(capacityName);
-    } else {
-        supportedCapacityList.erase(capacityName);
-    }
-    ImeInfoInquirer::GetInstance().systemConfig_.supportedCapacityList = supportedCapacityList;
 }
 
 void TddUtil::WindowManager::CreateWindow()

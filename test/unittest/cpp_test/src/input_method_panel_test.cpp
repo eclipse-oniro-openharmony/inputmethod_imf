@@ -16,6 +16,7 @@
 #define protected public
 #include "input_method_panel.h"
 
+#include "ime_info_inquirer.h"
 #include "input_method_ability.h"
 #include "input_method_ability_utils.h"
 #include "input_method_controller.h"
@@ -2256,7 +2257,10 @@ HWTEST_F(InputMethodPanelTest, testMoveEnhancedPanelRect, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testSetImmersiveEffect, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect Test START");
-    TddUtil::SetCapacitySupport(IMMERSIVE_EFFECT, false);
+    auto supportedCapacityList = ImeInfoInquirer::GetInstance().GetSystemConfig().supportedCapacityList;
+    supportedCapacityList.erase(IMMERSIVE_EFFECT);
+    ImeInfoInquirer::GetInstance().systemConfig_.supportedCapacityList = supportedCapacityList;
+
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;

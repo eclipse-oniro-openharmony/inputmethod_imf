@@ -2038,6 +2038,9 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         return ErrorCode::ERROR_IME;
     }
 
+    if (mode != immersiveMode_ && mode == ImmersiveMode::NONE_IMMERSIVE) {
+        SetImmersiveEffectToNone();
+    }
     KeyboardEffectOption option = ConvertToWmEffect(mode, immersiveEffect_);
     // call window manager to set immersive mode
     auto ret = window_->ChangeKeyboardEffectOption(option);
@@ -2048,9 +2051,6 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ChangeKeyboardViewMode failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
-    }
-    if (mode != immersiveMode_ && mode == ImmersiveMode::NONE_IMMERSIVE) {
-        SetImmersiveEffectToNone();
     }
     immersiveMode_ = mode;
     IMSA_HILOGI("SetImmersiveMode success, mode: %{public}d", mode);
@@ -2149,6 +2149,7 @@ KeyboardEffectOption InputMethodPanel::ConvertToWmEffect(ImmersiveMode mode, con
     option.viewMode_ = static_cast<KeyboardViewMode>(mode);
     option.gradientMode_ = static_cast<KeyboardGradientMode>(effect.gradientMode);
     option.flowLightMode_ = static_cast<KeyboardFlowLightMode>(effect.fluidLightMode);
+    IMSA_HILOGI("effect: %{public}s", effect.ToString().c_str());
     return option;
 }
 
@@ -2205,6 +2206,11 @@ int32_t InputMethodPanel::SetImmersiveEffect(const ImmersiveEffect &effect)
         return ret;
     }
     UpdateImmersiveHotArea();
+
+    if (!IsShowing()) {
+        IMSA_HILOGW("keyboard is not showing, do nothing");
+        return ErrorCode::NO_ERROR;
+    }
 
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr");
