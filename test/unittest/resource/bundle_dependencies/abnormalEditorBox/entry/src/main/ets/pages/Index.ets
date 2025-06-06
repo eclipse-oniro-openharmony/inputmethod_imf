@@ -26,9 +26,11 @@ struct Index {
             this.data = data
           }).width('100%').height('100%')
           .onClick(() => {
-            while(true) {
-              console.info('circle')
-            }
+            setTimeout(() =>{
+              while(true) {
+                console.info('circle')
+              }
+            }, 200)
           })
       }
       .width('100%')

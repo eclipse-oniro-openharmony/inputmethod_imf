@@ -32,6 +32,7 @@
 #include "scope_utils.h"
 #include "tdd_util.h"
 #include "text_listener.h"
+#include "variant_util.h"
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
@@ -75,8 +76,9 @@ public:
         IMSA_HILOGI("ImaTextEditTest::TearDown");
         KeyboardListenerTestImpl::ResetParam();
         auto ret = InputMethodAbility::GetInstance().DeleteForward(finalText_.size());
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(""));
+        if (!finalText_.empty() && ret == ErrorCode::NO_ERROR) {
+            EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(""));
+        }
         finalText_.clear();
         ResetParams();
         InputMethodEngineListenerImpl::ResetParam();
@@ -86,6 +88,8 @@ public:
     static void ResetParams()
     {
         dealRet_ = ErrorCode::ERROR_CLIENT_NOT_BOUND;
+        getForwardRspNums_ = 0;
+        getForwardText_ = "";
     }
 
     static void InertTextRsp(int32_t ret, const ResponseData &data)
@@ -113,9 +117,36 @@ public:
         retCv_.wait_for(lock, std::chrono::seconds(MAX_WAIT_TIME), []() { return dealRet_ == ErrorCode::NO_ERROR; });
         return dealRet_ == ErrorCode::NO_ERROR;
     }
+
+    static void GetForwardRsp(int32_t ret, const ResponseData &data)
+    {
+        std::lock_guard<std::mutex> lock(retCvLock_);
+        getForwardRspNums_++;
+        dealRet_ = ret;
+        VariantUtil::GetValue(data, getForwardText_);
+        retCv_.notify_one();
+    }
+    static bool WaitGetForwardRspAbnormal(int32_t num)
+    {
+        std::unique_lock<std::mutex> lock(retCvLock_);
+        retCv_.wait_for(lock, std::chrono::seconds(MAX_WAIT_TIME),
+            [&num]() { return getForwardRspNums_ == num && dealRet_ == ErrorCode::ERROR_IMA_CHANNEL_NULLPTR; });
+        return getForwardRspNums_ == num && dealRet_ == ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+
+    static bool WaitGetForwardRsp(const std::string &text)
+    {
+        std::unique_lock<std::mutex> lock(retCvLock_);
+        retCv_.wait_for(lock, std::chrono::seconds(MAX_WAIT_TIME),
+            [&]() { return dealRet_ == ErrorCode::NO_ERROR && text == getForwardText_; });
+        return dealRet_ == ErrorCode::NO_ERROR;
+    }
+
     static std::mutex retCvLock_;
     static std::condition_variable retCv_;
     static int32_t dealRet_;
+    static int32_t getForwardRspNums_;
+    static std::string getForwardText_;
     static std::string finalText_;
 };
 
@@ -124,6 +155,8 @@ std::condition_variable ImaTextEditTest::retCv_;
 int32_t ImaTextEditTest::dealRet_{ ErrorCode::ERROR_CLIENT_NOT_BOUND };
 const std::string ImaTextEditTest::INSERT_TEXT = "ABCDEFGHIJKMN";
 std::string ImaTextEditTest::finalText_;
+int32_t ImaTextEditTest::getForwardRspNums_{ 0 };
+std::string ImaTextEditTest::getForwardText_;
 
 /**
  * @tc.name: ImaTextEditTest_InsertText_001
@@ -172,6 +205,39 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteForward_002, TestSize.Level0)
     EXPECT_TRUE(WaitDeleteForwardRsp());
     finalText_ = finalText_.substr(0, finalText_.size() - DEL_LENGTH);
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(finalText_));
+}
+
+/**
+ * @tc.name: ImaTextEditTest_ClearRspHandler
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_ClearRspHandler, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_ClearRspHandler");
+    TddUtil::StartApp(ABNORMAL_EDITOR_BOX_BUNDLE_NAME);
+    TddUtil::ClickApp(CLICK_CMD);
+    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
+    EXPECT_TRUE(TddUtil::WaitTaskEmpty());
+    usleep(300000);
+
+    auto delayTask = []() {
+        usleep(200000);
+        TddUtil::StopApp(ABNORMAL_EDITOR_BOX_BUNDLE_NAME);
+    };
+    std::thread delayThread(delayTask);
+    delayThread.detach();
+
+    std::u16string text;
+    // async
+    auto ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, text, GetForwardRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, text, GetForwardRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    // sync
+    ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
+    EXPECT_TRUE(WaitGetForwardRspAbnormal(2));
 }
 } // namespace MiscServices
 } // namespace OHOS
