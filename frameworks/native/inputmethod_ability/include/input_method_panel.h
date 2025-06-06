@@ -190,7 +190,8 @@ private:
     int32_t PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param);
     bool IsImmersiveEffectSupported();
     Rosen::KeyboardEffectOption ConvertToWmEffect(ImmersiveMode mode, const ImmersiveEffect &effect);
-    void SetBlurHeightToZero();
+    void SetImmersiveEffectToNone();
+    void UpdateImmersiveHotArea();
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;

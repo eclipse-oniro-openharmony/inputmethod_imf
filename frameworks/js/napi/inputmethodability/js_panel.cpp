@@ -751,10 +751,11 @@ bool JsPanelRect::Read(napi_env env, napi_value object, LayoutParams &layoutPara
 
 bool JsImmersiveEffect::Read(napi_env env, napi_value object, ImmersiveEffect &effect)
 {
-    auto ret = JsUtil::Object::ReadProperty(env, object, "blurHeight", effect.blurHeight);
+    auto ret = JsUtil::Object::ReadProperty(env, object, "gradientHeight", effect.gradientHeight);
     int32_t gradientMode = 0;
     ret = ret && JsUtil::Object::ReadProperty(env, object, "gradientMode", gradientMode);
-    if (gradientMode < static_cast<int32_t>(GradientMode::NONE) || gradientMode >= static_cast<int32_t>(GradientMode::END)) {
+    if (gradientMode < static_cast<int32_t>(GradientMode::NONE) ||
+        gradientMode >= static_cast<int32_t>(GradientMode::END)) {
         IMSA_HILOGW("gradientMode is invalid");
         effect.gradientMode = GradientMode::NONE;
     } else {
@@ -763,7 +764,8 @@ bool JsImmersiveEffect::Read(napi_env env, napi_value object, ImmersiveEffect &e
     // optional property
     int32_t fluidLightMode = 0;
     JsUtil::Object::ReadProperty(env, object, "fluidLightMode", fluidLightMode);
-    if (fluidLightMode < static_cast<int32_t>(FluidLightMode::NONE) || fluidLightMode >= static_cast<int32_t>(FluidLightMode::END)) {
+    if (fluidLightMode < static_cast<int32_t>(FluidLightMode::NONE) ||
+        fluidLightMode >= static_cast<int32_t>(FluidLightMode::END)) {
         IMSA_HILOGW("fluidLightMode is invalid");
         effect.fluidLightMode = FluidLightMode::NONE;
     } else {

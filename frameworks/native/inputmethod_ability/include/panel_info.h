@@ -86,14 +86,14 @@ enum class FluidLightMode : int32_t {
 };
 
 struct ImmersiveEffect {
-    uint32_t blurHeight;
+    uint32_t gradientHeight;
     GradientMode gradientMode;
     FluidLightMode fluidLightMode;
     inline std::string ToString() const
     {
         std::stringstream ss;
         ss << "[ImmersiveEffect: "
-           << "blurHeight=" << blurHeight << ", "
+           << "gradientHeight=" << gradientHeight << ", "
            << "gradientMode=" << static_cast<int32_t>(gradientMode) << ", "
            << "fluidLightMode=" << static_cast<int32_t>(fluidLightMode) << "]";
         return ss.str();
