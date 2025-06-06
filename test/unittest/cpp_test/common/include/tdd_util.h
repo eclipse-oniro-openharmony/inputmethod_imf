@@ -69,7 +69,6 @@ public:
     static void InitCurrentImePermissionInfo();
     static void EnabledAllIme();
     static void DisabledAllIme();
-    static void SetCapacitySupport(const std::string capacityName, bool isSupport);
     static std::string currentBundleNameMock_;
     class WindowManager {
     public:

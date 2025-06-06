@@ -210,11 +210,13 @@ int32_t InputMethodPanelAdjustTest::GetDisplaySize(DisplaySize &size)
 void InputMethodPanelAdjustTest::SetImmersiveCapacitySupport(bool isSupport)
 {
     IMSA_HILOGI("InputMethodPanelAdjustTest isSupport: %{public}d", isSupport);
+    auto supportedCapacityList = ImeInfoInquirer::GetInstance().GetSystemConfig().supportedCapacityList;
     if (isSupport) {
-        TddUtil::SetCapacitySupport(IMMERSIVE_EFFECT, true);
+        supportedCapacityList.insert(IMMERSIVE_EFFECT);
     } else {
-        TddUtil::SetCapacitySupport(IMMERSIVE_EFFECT, false);
+        supportedCapacityList.erase(IMMERSIVE_EFFECT);
     }
+    ImeInfoInquirer::GetInstance().systemConfig_.supportedCapacityList = supportedCapacityList;
 }
 
 /**
