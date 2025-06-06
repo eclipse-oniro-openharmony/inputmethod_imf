@@ -17,6 +17,7 @@
 #include "full_ime_info_manager.h"
 #include "settings_data_utils.h"
 #include "user_session_manager.h"
+#include "task_manager.h"
 #undef private
 
 #include <unistd.h>
@@ -485,6 +486,39 @@ void TddUtil::DisabledAllIme()
     for (const auto &prop : props) {
         imc->EnableIme(prop.name, prop.id, EnabledStatus::DISABLED);
     }
+}
+
+void TddUtil::StartApp(const std::string &bundleName)
+{
+    std::string cmd = std::string("aa start ability -a EntryAbility -b") + " " + bundleName;
+    std::string result;
+    auto ret = ExecuteCmd(cmd, result);
+    IMSA_HILOGI("ExecuteCmd ret = %{public}d", ret);
+    sleep(WAIT_APP_START_COMPLETE);
+}
+
+void TddUtil::StopApp(const std::string &bundleName)
+{
+    static std::string cmd = std::string("aa force-stop") + " " + bundleName;
+    std::string result;
+    auto ret = ExecuteCmd(cmd, result);
+    IMSA_HILOGI("ExecuteCmd ret = %{public}d", ret);
+}
+
+void TddUtil::ClickApp(const std::string &cmd)
+{
+    std::string result;
+    auto ret = TddUtil::ExecuteCmd(cmd, result);
+    IMSA_HILOGI("ExecuteCmd ret = %{public}d", ret);
+}
+
+bool TddUtil::WaitTaskEmpty()
+{
+    return BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, []() {
+        return TaskManager::GetInstance().curTask_ == nullptr && TaskManager::GetInstance().amsTasks_.empty()
+               && TaskManager::GetInstance().imaTasks_.empty() && TaskManager::GetInstance().imsaTasks_.empty()
+               && TaskManager::GetInstance().innerTasks_.empty();
+    });
 }
 
 void TddUtil::WindowManager::CreateWindow()

@@ -23,6 +23,7 @@ group("unittest") {
       "cpp_test:FullImeInfoManagerTest",
       "cpp_test:ITypesUtilTest",
       "cpp_test:IdentityCheckerTest",
+      "cpp_test:ImaTextEditTest",
       "cpp_test:ImeControllerCpaiTest",
       "cpp_test:ImeEnabledInfoManagerTest",
       "cpp_test:ImeFreezeManagerTest",
