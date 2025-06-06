@@ -1089,6 +1089,10 @@ napi_value JsInputAttribute::Write(napi_env env, const InputAttribute &nativeObj
     ret = ret && JsUtil::Object::WritePropertyU16String(env, jsObject, "abilityName", nativeObject.abilityName);
     int32_t capitalizeMode = static_cast<int32_t>(nativeObject.capitalizeMode);
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "capitalizeMode", capitalizeMode);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "gradientMode", nativeObject.gradientMode);
+    if (InputMethodAbility::GetInstance().IsSystemApp()) {
+        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "fluidLightMode", nativeObject.fluidLightMode);
+    }
     return ret ? jsObject : JsUtil::Const::Null(env);
 }
 
@@ -1111,6 +1115,10 @@ bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &n
         nativeObject.capitalizeMode = static_cast<CapitalizeMode>(capitalizeMode);
     }
     ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "immersiveMode", nativeObject.immersiveMode);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "gradientMode", nativeObject.gradientMode);
+    if (InputMethodAbility::GetInstance().IsSystemApp()) {
+        ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "fluidLightMode", nativeObject.fluidLightMode);
+    }
     return ret;
 }
 

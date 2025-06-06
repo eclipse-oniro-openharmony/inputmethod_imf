@@ -63,6 +63,7 @@ napi_value JsPanel::Init(napi_env env)
         DECLARE_NAPI_FUNCTION("getDisplayId", GetDisplayId),
         DECLARE_NAPI_FUNCTION("setImmersiveMode", SetImmersiveMode),
         DECLARE_NAPI_FUNCTION("getImmersiveMode", GetImmersiveMode),
+        DECLARE_NAPI_FUNCTION("setImmersiveEffect", SetImmersiveEffect),
     };
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
@@ -748,6 +749,31 @@ bool JsPanelRect::Read(napi_env env, napi_value object, LayoutParams &layoutPara
     return ret;
 }
 
+bool JsImmersiveEffect::Read(napi_env env, napi_value object, ImmersiveEffect &effect)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, object, "gradientHeight", effect.gradientHeight);
+    int32_t gradientMode = 0;
+    ret = ret && JsUtil::Object::ReadProperty(env, object, "gradientMode", gradientMode);
+    if (gradientMode < static_cast<int32_t>(GradientMode::NONE) ||
+        gradientMode >= static_cast<int32_t>(GradientMode::END)) {
+        IMSA_HILOGW("gradientMode is invalid");
+        effect.gradientMode = GradientMode::NONE;
+    } else {
+        effect.gradientMode = static_cast<GradientMode>(gradientMode);
+    }
+    // optional property
+    int32_t fluidLightMode = 0;
+    JsUtil::Object::ReadProperty(env, object, "fluidLightMode", fluidLightMode);
+    if (fluidLightMode < static_cast<int32_t>(FluidLightMode::NONE) ||
+        fluidLightMode >= static_cast<int32_t>(FluidLightMode::END)) {
+        IMSA_HILOGW("fluidLightMode is invalid");
+        effect.fluidLightMode = FluidLightMode::NONE;
+    } else {
+        effect.fluidLightMode = static_cast<FluidLightMode>(fluidLightMode);
+    }
+    return ret;
+}
+
 bool JsEnhancedPanelRect::Read(napi_env env, napi_value object, EnhancedLayoutParams &layoutParams)
 {
     napi_status status = napi_generic_failure;
@@ -815,6 +841,32 @@ napi_value JsPanel::SetImmersiveMode(napi_env env, napi_callback_info info)
     jsQueue_.Push(eventInfo);
     jsQueue_.Wait(eventInfo);
     auto ret = panel->SetImmersiveMode(ImmersiveMode(immersiveMode));
+    jsQueue_.Pop();
+    RESULT_CHECK_RETURN(env, ret == ErrorCode::NO_ERROR, JsUtils::Convert(ret), "", TYPE_NONE, retVal);
+    return retVal;
+}
+
+napi_value JsPanel::SetImmersiveEffect(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
+    napi_value thisVar = nullptr;
+    napi_value retVal = JsUtil::Const::Null(env);
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
+    PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required", TYPE_NONE, retVal);
+
+    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "param effect type must be ImmersiveEffect",
+        TYPE_NONE, retVal);
+    ImmersiveEffect immersiveEffect;
+    PARAM_CHECK_RETURN(env, JsImmersiveEffect::Read(env, argv[0], immersiveEffect), "js param effect covert failed",
+        TYPE_NONE, retVal);
+
+    auto panel = UnwrapPanel(env, thisVar);
+    RESULT_CHECK_RETURN(env, panel != nullptr, JsUtils::Convert(ErrorCode::ERROR_IME), "", TYPE_NONE, retVal);
+    JsEventInfo eventInfo = { std::chrono::system_clock::now(), JsEvent::SET_IMMERSIVE_EFFECT };
+    jsQueue_.Push(eventInfo);
+    jsQueue_.Wait(eventInfo);
+    auto ret = panel->SetImmersiveEffect(immersiveEffect);
     jsQueue_.Pop();
     RESULT_CHECK_RETURN(env, ret == ErrorCode::NO_ERROR, JsUtils::Convert(ret), "", TYPE_NONE, retVal);
     return retVal;

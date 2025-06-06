@@ -87,6 +87,7 @@ public:
     int32_t SetImmersiveMode(ImmersiveMode mode);
     ImmersiveMode GetImmersiveMode();
     bool IsInMainDisplay();
+    int32_t SetImmersiveEffect(const ImmersiveEffect &effect);
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -138,12 +139,12 @@ private:
 
     void CalculateHotAreas(const EnhancedLayoutParams &enhancedParams, const Rosen::KeyboardLayoutParams &params,
         const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas);
-    void CalculateDefaultHotArea(
-        const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
-    void CalculateHotArea(
-        const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
+    void CalculateDefaultHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel,
+        const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY);
+    void CalculateHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo,
+        HotArea &hotArea, uint32_t changeY);
     void CalculateEnhancedHotArea(
-        const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea);
+        const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY);
     void RectifyAreas(const std::vector<Rosen::Rect> availableAreas, std::vector<Rosen::Rect> &areas);
     Rosen::Rect GetRectIntersection(Rosen::Rect a, Rosen::Rect b);
     uint32_t SafeSubtract(uint32_t minuend, uint32_t subtrahend);
@@ -181,6 +182,17 @@ private:
     void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
     std::vector<int32_t> GetIgnoreAdjustInputTypes();
     bool IsNeedConfig();
+    int32_t IsValidParam(const ImmersiveEffect &effect);
+    int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param);
+    std::pair<int32_t, bool> FullScreenPortraitPrepare(const Rosen::KeyboardLayoutParams &param);
+    std::pair<int32_t, bool> FullScreenLandscapePrepare(const Rosen::KeyboardLayoutParams &param);
+    int32_t FullScreenPrepare(Rosen::KeyboardLayoutParams &param);
+    int32_t NormalImePrepare(Rosen::KeyboardLayoutParams &param);
+    int32_t PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param);
+    bool IsImmersiveEffectSupported();
+    Rosen::KeyboardEffectOption ConvertToWmEffect(ImmersiveMode mode, const ImmersiveEffect &effect);
+    void SetImmersiveEffectToNone();
+    void UpdateImmersiveHotArea();
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
@@ -227,6 +239,9 @@ private:
     std::atomic<bool> isWaitSetUiContent_ { true };
     std::atomic<bool> isInEnhancedAdjust_{ false };
     ImmersiveMode immersiveMode_ { ImmersiveMode::NONE_IMMERSIVE };
+    ImmersiveEffect immersiveEffect_ { 0, GradientMode::NONE, FluidLightMode::NONE };
+    uint32_t portraitChangeY_ = 0;
+    uint32_t landscapeChangeY_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -91,6 +91,7 @@ public:
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
     int32_t UnregisterProxyIme(uint64_t displayId) override;
     ErrCode IsDefaultImeScreen(uint64_t displayId, bool &resultValue) override;
+    ErrCode IsCapacitySupport(int32_t capacity, bool &isSupport) override;
 
 protected:
     void OnStart() override;
