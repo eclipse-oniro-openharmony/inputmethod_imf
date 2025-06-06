@@ -414,11 +414,6 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodPanel::NotifyPanelStatus(PanelFlag panelFlag) {
-    SysPanelStatus sysPanelStatus = { InputType::NONE, panelFlag, keyboardSize_.width, keyboardSize_.height };
-    InputMethodAbility::GetInstance().NotifyPanelStatus(panelType_, sysPanelStatus);
-}
-
 int32_t InputMethodPanel::AdjustKeyboard()
 {
     isAdjustInfoInitialized_.store(false);
@@ -478,7 +473,7 @@ int32_t InputMethodPanel::AdjustPanelRect(
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     if (panelFlag_ != panelFlag) {
-        NotifyPanelStatus(panelFlag);
+        InputMethodAbility::GetInstance().NotifyPanelStatus(true, panelFlag);
     }
     UpdateResizeParams();
     UpdateLayoutInfo(panelFlag, layoutParams, {}, keyboardLayoutParams_, false);
@@ -579,7 +574,7 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
     }
     SetHotAreas(hotAreas);
     if (panelFlag_ != panelFlag) {
-        NotifyPanelStatus(panelFlag);
+        InputMethodAbility::GetInstance().NotifyPanelStatus(true, panelFlag);
     }
     UpdateLayoutInfo(panelFlag, {}, params, wmsParams, true);
     UpdateResizeParams();
@@ -1226,7 +1221,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     if (ret == WMError::WM_OK) {
         panelFlag_ = panelFlag;
     }
-    NotifyPanelStatus(panelFlag);
+    InputMethodAbility::GetInstance().NotifyPanelStatus(true, panelFlag);
     IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }

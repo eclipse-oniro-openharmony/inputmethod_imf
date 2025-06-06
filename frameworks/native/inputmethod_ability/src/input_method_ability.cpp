@@ -331,12 +331,7 @@ void InputMethodAbility::OnSetInputType(InputType inputType)
 {
     inputType_ = inputType;
     IMSA_HILOGD("OnSetInputType, inputType = %{public}d", static_cast<int32_t>(inputType));
-    auto panel = GetSoftKeyboardPanel();
-    if (panel != nullptr) {
-        auto keyboardSize = panel->GetKeyboardSize();
-        SysPanelStatus sysPanelStatus{ inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
-        NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
-    }
+    NotifyPanelStatus(false);
 }
 
 InputType InputMethodAbility::GetInputType()
@@ -445,12 +440,7 @@ void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
     attribute.callingDisplayId = GetInputAttribute().callingDisplayId;
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
-    auto panel = GetSoftKeyboardPanel();
-    if (panel != nullptr) {
-        auto keyboardSize = panel->GetKeyboardSize();
-        SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
-        NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
-    }
+    NotifyPanelStatus(false);
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
@@ -945,9 +935,7 @@ int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channe
     if (panel != nullptr) {
         auto flag = panel->GetPanelFlag();
         if (flag != FLG_CANDIDATE_COLUMN) {
-            auto keyboardSize = panel->GetKeyboardSize();
-            SysPanelStatus sysPanelStatus = { inputType_, flag, keyboardSize.width, keyboardSize.height };
-            NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
+            NotifyPanelStatus(false);
         }
     }
     return ErrorCode::NO_ERROR;
@@ -1070,11 +1058,9 @@ int32_t InputMethodAbility::ShowPanel(
             IMSA_HILOGE("failed to set keyBoard, ret: %{public}d!", ret);
         }
     }
-    auto keyboardSize = inputMethodPanel->GetKeyboardSize();
-    SysPanelStatus sysPanelStatus = { inputType_, flag, keyboardSize.width, keyboardSize.height };
-    NotifyPanelStatus(inputMethodPanel->GetPanelType(), sysPanelStatus);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
+        NotifyPanelStatus(false);
         PanelStatusInfo info;
         info.panelInfo.panelType = inputMethodPanel->GetPanelType();
         info.panelInfo.panelFlag = flag;
@@ -1109,20 +1095,22 @@ int32_t InputMethodAbility::HidePanel(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus)
+int32_t InputMethodAbility::NotifyPanelStatus(bool isUseParameterFlag, PanelFlag panelFlag)
 {
-    if (panelType != PanelType::SOFT_KEYBOARD) {
-        return ErrorCode::NO_ERROR;
+    auto panel = GetSoftKeyboardPanel();
+    if (panel == nullptr) {
+        IMSA_HILOGE("panel is null");
+        return ErrorCode::ERROR_NULL_POINTER;
     }
-    sysPanelStatus.inputType = inputType_;
+    auto keyboardSize = panel->GetKeyboardSize();
+    bool isInMainDisplay = panel->IsInMainDisplay();
+    PanelFlag curPanelFlag = isUseParameterFlag ? panelFlag : panel->GetPanelFlag();
+    SysPanelStatus sysPanelStatus = { inputType_, curPanelFlag, keyboardSize.width, keyboardSize.height };
+    sysPanelStatus.isMainDisplay = isInMainDisplay;
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    auto panel = GetSoftKeyboardPanel();
-    if (panel != nullptr) {
-        sysPanelStatus.isMainDisplay = panel->IsInMainDisplay();
     }
     return systemChannel->NotifyPanelStatus(sysPanelStatus);
 }
@@ -1305,18 +1293,16 @@ int32_t InputMethodAbility::ExitCurrentInputType()
 {
     IMSA_HILOGD("InputMethodAbility start.");
     ClearInputType();
-    auto panel = GetSoftKeyboardPanel();
-    if (panel != nullptr) {
-        auto keyboardSize = panel->GetKeyboardSize();
-        SysPanelStatus sysPanelStatus = { inputType_, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
-        NotifyPanelStatus(panel->GetPanelType(), sysPanelStatus);
-    }
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("failed to get imsa proxy!");
         return false;
     }
-    return proxy->ExitCurrentInputType();
+    auto ret = proxy->ExitCurrentInputType();
+    if (ret == ErrorCode::NO_ERROR) {
+        NotifyPanelStatus(false);
+    }
+    return ret;
 }
 
 void InputMethodAbility::ClearInputType()
