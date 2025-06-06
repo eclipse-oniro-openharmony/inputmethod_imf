@@ -149,9 +149,6 @@ public:
     napi_value Post(napi_env env, Context::ExecAction exec, std::shared_ptr<TaskQueue> queue, const char *func);
     napi_value SyncCall(napi_env env, Context::ExecAction exec = nullptr);
 
-private:
-    virtual void CallImpl(napi_env env, void *data, const std::string &resourceName);
-
 protected:
     struct AsyncContext {
         std::shared_ptr<Context> ctx = nullptr;
@@ -161,8 +158,11 @@ protected:
         napi_async_work work = nullptr;
         std::shared_ptr<TaskQueue> queue = nullptr;
     };
-    static void OnExecuteAsync(napi_env env, void *data, Context::CallBackAction cb);
+    static void OnExecuteAsync(napi_env env, AsyncContext *context, Context::CallBackAction cb);
     static void OnComplete(napi_env env, napi_status status, void *data);
+
+private:
+    virtual void CallImpl(napi_env env, AsyncContext *context, const std::string &resourceName);
 
 private:
     enum Arg : int { ARG_ERROR, ARG_DATA, ARG_BUTT };

@@ -556,7 +556,7 @@ void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 int32_t InputMethodAbility::InvokeStartInputCallback(bool isNotifyInputStart)
 {
     TextTotalConfig textConfig = {};
-    int32_t ret = GetTextConfig(textConfig, nullptr, true);
+    int32_t ret = GetTextConfig(textConfig);
     if (ret == ErrorCode::NO_ERROR) {
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         return InvokeStartInputCallback(textConfig, isNotifyInputStart);
@@ -810,41 +810,21 @@ int32_t InputMethodAbility::GetTextIndexAtCursorInner(int32_t &index, AsyncIpcCa
     return channel->GetTextIndexAtCursor(index, callback);
 }
 
-int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig, AsyncIpcCallBack callback, bool syncIpc)
+int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
 {
     IMSA_HILOGI("InputMethodAbility start.");
-    auto channel = GetInputDataChannelProxyWrap();
+    auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    auto processAfterIpc = [this](TextTotalConfig &textConfig) -> void {
+    TextTotalConfigInner textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
+    auto ret = channel->GetTextConfig(textConfigInner);
+    if (ret == ErrorCode::NO_ERROR) {
+        textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
         textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
         textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
         textConfig.inputAttribute.windowId = GetInputAttribute().windowId;
-    };
-    AsyncIpcCallBack middle = nullptr;
-    if (callback != nullptr) {
-        middle = [callback, this, processAfterIpc](int32_t code, const ResponseData &data) -> void {
-            TextTotalConfig textConfig = {};
-            if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, textConfig)) {
-                processAfterIpc(textConfig);
-                ResponseData rsp = textConfig;
-                callback(code, rsp);
-                return;
-            }
-            if (code == ErrorCode::NO_ERROR) {
-                code = ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
-            }
-            callback(code, data);
-        };
-    }
-    auto ret = channel->GetTextConfig(textConfig, middle, syncIpc);
-    if (middle != nullptr) {
-        return ret;
-    }
-    if (ret == ErrorCode::NO_ERROR) {
-        processAfterIpc(textConfig);
     }
     return ret;
 }
@@ -1513,10 +1493,10 @@ int32_t InputMethodAbility::FinishTextPreviewInner(bool isAsync, AsyncIpcCallBac
     return dataChannel->FinishTextPreview(isAsync, callback);
 }
 
-int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
 {
     IMSA_HILOGD("IMA start.");
-    auto channel = GetInputDataChannelProxyWrap();
+    auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
@@ -1526,41 +1506,22 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo, 
         IMSA_HILOGE("panel not found!");
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
-    auto processAfterIpc = [panel, &windowInfo](int32_t code, const ResponseData &data) -> int32_t {
-        if (code != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("failed to get window id, ret: %{public}d!", code);
-            return ErrorCode::ERROR_GET_TEXT_CONFIG;
-        }
-        TextTotalConfig rspTextConfig = {};
-        if (!VariantUtil::GetValue(data, rspTextConfig)) {
-            IMSA_HILOGE("failed to get TextConfig");
-            return ErrorCode::ERROR_GET_TEXT_CONFIG;
-        }
-        int32_t ret = panel->SetCallingWindow(rspTextConfig.windowId);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("failed to set calling window, ret: %{public}d!", ret);
-            return ret;
-        }
-        ret = panel->GetCallingWindowInfo(windowInfo);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("failed to get calling window, ret: %{public}d", ret);
-        }
-        return ret;
-    };
-    AsyncIpcCallBack middle = nullptr;
-    if (callback != nullptr) {
-        middle = [callback, &windowInfo, panel, processAfterIpc](int32_t code, const ResponseData &data) -> void {
-            int32_t ret = processAfterIpc(code, data);
-            ResponseData rspData = std::monostate{};
-            callback(ret, rspData);
-        };
-    }
     TextTotalConfig textConfig;
-    int32_t ret = GetTextConfig(textConfig, middle);
-    if (middle != nullptr) {
+    int32_t ret = GetTextConfig(textConfig);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to get window id, ret: %{public}d!", ret);
+        return ErrorCode::ERROR_GET_TEXT_CONFIG;
+    }
+    ret = panel->SetCallingWindow(textConfig.windowId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to set calling window, ret: %{public}d!", ret);
         return ret;
     }
-    return processAfterIpc(ret, textConfig);
+    ret = panel->GetCallingWindowInfo(windowInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to get calling window, ret: %{public}d", ret);
+    }
+    return ret;
 }
 
 void InputMethodAbility::NotifyPanelStatusInfo(
@@ -1866,7 +1827,8 @@ int32_t InputMethodAbility::OnResponse(uint64_t msgId, int32_t code, const Respo
 {
     auto channel = GetInputDataChannelProxyWrap();
     if (channel != nullptr) {
-        channel->HandleResponse(msgId, code, data);
+        ResponseInfo rspInfo = {code, data};
+        channel->HandleResponse(msgId, rspInfo);
     }
     return 0;
 }

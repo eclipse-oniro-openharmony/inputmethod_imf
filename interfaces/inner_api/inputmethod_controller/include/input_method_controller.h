@@ -120,6 +120,8 @@ public:
         return nullptr;
     }
 
+private:
+    friend class InputMethodController;
     void InsertTextV2(const std::u16string &text);
     void DeleteForwardV2(int32_t length);
     void DeleteBackwardV2(int32_t length);

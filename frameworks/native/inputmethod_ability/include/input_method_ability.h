@@ -74,7 +74,7 @@ public:
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);
     int32_t GetTextIndexAtCursor(int32_t &index, AsyncIpcCallBack callback = nullptr);
-    int32_t GetTextConfig(TextTotalConfig &textConfig, AsyncIpcCallBack callback = nullptr, bool syncIpc = false);
+    int32_t GetTextConfig(TextTotalConfig &textConfig);
     int32_t AdjustKeyboard();
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
@@ -98,7 +98,7 @@ public:
         AsyncIpcCallBack callback = nullptr);
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
-    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo, AsyncIpcCallBack callback = nullptr);
+    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range, AsyncIpcCallBack callback = nullptr);
     int32_t FinishTextPreview(bool isAsync, AsyncIpcCallBack callback = nullptr);
     int32_t NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus);

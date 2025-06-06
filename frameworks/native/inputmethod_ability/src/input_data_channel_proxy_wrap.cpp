@@ -28,7 +28,7 @@ InputDataChannelProxyWrap::InputDataChannelProxyWrap(std::shared_ptr<InputDataCh
 {
     auto now = std::chrono::steady_clock::now();
     auto duration = now.time_since_epoch();
-    msgId_ = (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    msgId_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
     msgId_ = msgId_ ? msgId_ : ++msgId_;
 
     channel_ = channel;
@@ -162,39 +162,6 @@ int32_t InputDataChannelProxyWrap::GetTextIndexAtCursor(int32_t &index, AsyncIpc
     return Request(callback, work, !callback, output);
 }
 
-int32_t InputDataChannelProxyWrap::GetTextConfig(TextTotalConfig &textConfig, AsyncIpcCallBack callback, bool ipcSync)
-{
-    auto channel = GetDataChannel();
-    if (channel == nullptr) {
-        IMSA_HILOGE("data channel is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    int32_t ret = 0;
-    TextTotalConfigInner inner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
-    if (ipcSync) {
-        ret = channel->GetTextConfigSync(inner);
-        if (ret == ErrorCode::NO_ERROR) {
-            textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(inner);
-        }
-        return ret;
-    }
-
-    auto work = [inner](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
-        return channel->GetTextConfig(inner, msgId);
-    };
-    SyncOutPut output = nullptr;
-    if (callback == nullptr) {
-        output = [&textConfig](const ResponseInfo &rspInfo) -> int32_t {
-            if (rspInfo.dealRet_ == ErrorCode::NO_ERROR) {
-                VariantUtil::GetValue(rspInfo.data_, textConfig);
-            }
-            return rspInfo.dealRet_;
-        };
-    }
-
-    return Request(callback, work, !callback, output);
-}
-
 int32_t InputDataChannelProxyWrap::SendPrivateCommand(const Value &value, AsyncIpcCallBack callback)
 {
     auto work = [value](uint64_t msgId, std::shared_ptr<InputDataChannelProxy> channel) -> int32_t {
@@ -234,13 +201,17 @@ int32_t InputDataChannelProxyWrap::Request(
         IMSA_HILOGE("BeforeRequest error: %{public}d.", ret);
         return ret;
     }
+    if (handler == nullptr) {
+        IMSA_HILOGE("handler is nullptr!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     ret = work(handler->msgId_, channel);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("work error: %{public}d.", ret);
         DeleteRspHandler(handler->msgId_);
-        return ret;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    if (handler != nullptr && handler->syncBlockData_ != nullptr) {
+    if (isSync && handler->syncBlockData_ != nullptr) {
         ret = WaitResponse(handler, output);
     }
     return ret;
@@ -252,7 +223,7 @@ std::shared_ptr<InputDataChannelProxy> InputDataChannelProxyWrap::GetDataChannel
     return channel_;
 }
 
-uint64_t InputDataChannelProxyWrap::GetMsgId()
+uint64_t InputDataChannelProxyWrap::GenerateMsgId()
 {
     return ++msgId_ ? msgId_ : ++msgId_;
 }
@@ -267,7 +238,7 @@ int32_t InputDataChannelProxyWrap::AddRspHandler(
         HandleMsg(msgId, rspInfo);
         IMSA_HILOGW("data channel, too many unanswered msgid:%{public}" PRIu64 "", msgId);
     }
-    handler = std::make_shared<ResponseHandler>(isSync, GetMsgId(), callBack);
+    handler = std::make_shared<ResponseHandler>(isSync, GenerateMsgId(), callBack);
     rspHandlers_.insert({ handler->msgId_, handler });
     return ErrorCode::NO_ERROR;
 }
@@ -312,9 +283,8 @@ int32_t InputDataChannelProxyWrap::HandleMsg(const uint64_t msgId, const Respons
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputDataChannelProxyWrap::HandleResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply)
+int32_t InputDataChannelProxyWrap::HandleResponse(const uint64_t msgId,  const ResponseInfo &rspInfo)
 {
-    ResponseInfo rspInfo = {errorCode, reply};
     std::lock_guard<std::mutex> lock(rspMutex_);
     return HandleMsg(msgId, rspInfo);
 }

@@ -133,7 +133,7 @@ ErrCode InputDataChannelServiceImpl::GetInputPattern(int32_t &inputPattern)
     return instance->GetInputPattern(inputPattern);
 }
 
-ErrCode InputDataChannelServiceImpl::GetTextConfig(const TextTotalConfigInner &textConfigInner, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::GetTextConfig(TextTotalConfigInner &textConfigInner)
 {
     TextTotalConfig textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
 
@@ -142,21 +142,7 @@ ErrCode InputDataChannelServiceImpl::GetTextConfig(const TextTotalConfigInner &t
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    auto ret =  instance->GetTextConfig(textConfig);
-    ResponseData data = textConfig;
-    instance->ResponseDataChannel(msgId, ret, data);
-    return ret;
-}
-
-ErrCode InputDataChannelServiceImpl::GetTextConfigSync(TextTotalConfigInner &textConfigInner)
-{
-    TextTotalConfig textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
-    auto instance = InputMethodController::GetInstance();
-    if (instance == nullptr) {
-        IMSA_HILOGE("failed to get InputMethodController instance!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    auto ret =  instance->GetTextConfig(textConfig);
+    auto ret = instance->GetTextConfig(textConfig);
     textConfigInner = InputMethodTools::GetInstance().TextTotalConfigToInner(textConfig);
     return ret;
 }

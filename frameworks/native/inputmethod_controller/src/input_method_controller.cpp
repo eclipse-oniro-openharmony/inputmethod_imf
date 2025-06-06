@@ -1168,7 +1168,7 @@ void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChange
     if (isNewEditor && isBound_.load() && lastListener != nullptr &&
         textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGD("last editor FinishTextPreview");
-        lastListener->FinishTextPreview();
+        lastListener->FinishTextPreviewV2();
     }
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);

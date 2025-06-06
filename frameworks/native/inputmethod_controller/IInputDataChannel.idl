@@ -26,8 +26,7 @@ interface OHOS.MiscServices.IInputDataChannel {
     [oneway] void DeleteBackward([in] int length, [in] unsigned long msgId);
     [oneway] void GetTextBeforeCursor([in] int number, [in] unsigned long msgId);
     [oneway] void GetTextAfterCursor([in] int number, [in] unsigned long msgId);
-    [oneway] void GetTextConfig([in] struct TextTotalConfigInner textConfiginner, [in] unsigned long msgId);
-    void GetTextConfigSync([out] struct TextTotalConfigInner textConfiginner);
+    void GetTextConfig([out] struct TextTotalConfigInner textConfiginner);
     [oneway] void SendKeyboardStatus([in] int status);
     [oneway] void SendFunctionKey([in] int funcKey, [in] unsigned long msgId);
     [oneway] void MoveCursor([in] int keyCode, [in] unsigned long msgId);

@@ -66,20 +66,19 @@ public:
     int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip, AsyncIpcCallBack callback = nullptr);
     int32_t HandleExtendAction(int32_t action, AsyncIpcCallBack callback = nullptr);
     int32_t GetTextIndexAtCursor(int32_t &index, AsyncIpcCallBack callback = nullptr);
-    int32_t GetTextConfig(TextTotalConfig &textConfig, AsyncIpcCallBack callback = nullptr, bool ipcSync = false);
     int32_t SendPrivateCommand(const Value &value, AsyncIpcCallBack callback = nullptr);
     int32_t SetPreviewText(const std::string &text, const RangeInner &range, AsyncIpcCallBack callback = nullptr);
     int32_t FinishTextPreview(bool isAsync, AsyncIpcCallBack callback = nullptr);
 
 public:
-    int32_t HandleResponse(const uint64_t msgId, int32_t errorCode, const ResponseData &reply);
+    int32_t HandleResponse(const uint64_t msgId, const ResponseInfo &rspInfo);
     std::shared_ptr<InputDataChannelProxy> GetDataChannel();
 
 private:
     int32_t AddRspHandler(std::shared_ptr<ResponseHandler> &handler, AsyncIpcCallBack callBack, bool isSync);
     int32_t WaitResponse(std::shared_ptr<ResponseHandler> rspHandler, SyncOutPut output);
     int32_t DeleteRspHandler(const uint64_t msgId);
-    uint64_t GetMsgId();    
+    uint64_t GenerateMsgId();    
     int32_t Request(AsyncIpcCallBack callback, ChannelWork work, bool isSync, SyncOutPut output = nullptr);
     int32_t HandleMsg(const uint64_t msgId, const ResponseInfo &rspInfo);
     int32_t ClearRspHandlers();

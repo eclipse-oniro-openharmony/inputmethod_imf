@@ -36,8 +36,7 @@ public:
     ErrCode DeleteBackward(int32_t length, uint64_t msgId) override;
     ErrCode GetTextBeforeCursor(int32_t number, uint64_t msgId) override;
     ErrCode GetTextAfterCursor(int32_t number, uint64_t msgId) override;
-    ErrCode GetTextConfig(const TextTotalConfigInner &textConfigInner, uint64_t msgId) override;
-    ErrCode GetTextConfigSync(TextTotalConfigInner &textConfigInner) override;
+    ErrCode GetTextConfig(TextTotalConfigInner &textConfigInner) override;
     ErrCode SendKeyboardStatus(int32_t status) override;
     ErrCode SendFunctionKey(int32_t funcKey, uint64_t msgId) override;
     ErrCode MoveCursor(int32_t keyCode, uint64_t msgId) override;

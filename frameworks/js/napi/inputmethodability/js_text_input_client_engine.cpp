@@ -699,35 +699,25 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
         *result = JsInputAttribute::Write(env, ctxt->inputAttribute);
         return napi_ok;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
-            TextTotalConfig config = {};
-            if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, config)) {
-                ctxt->inputAttribute = config.inputAttribute;
-                ctxt->SetState(napi_ok);
-                completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
-                return;
-            }
-            if (code == ErrorCode::NO_ERROR) {
-                code = ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
-            }
-            IMSA_HILOGE("failed to get text config: %{public}d!", code);
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        TextTotalConfig config;
+        int32_t ret = InputMethodAbility::GetInstance().GetTextConfig(config);
+        ctxt->inputAttribute = config.inputAttribute;
+        if (ret == ErrorCode::NO_ERROR) {
+            ctxt->SetState(napi_ok);
+            IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, isTextPreviewSupported: %{public}d",
+                config.inputAttribute.inputPattern, config.inputAttribute.enterKeyType,
+                config.inputAttribute.isTextPreviewSupported);
+        } else {
+            IMSA_HILOGE("failed to get text config: %{public}d!", ret);
             ctxt->SetErrorCode(IMFErrorCode::EXCEPTION_IMCLIENT);
             ctxt->SetErrorMessage("failed to get text config!");
-            completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
-        };
-        TextTotalConfig config;
-        int32_t ret = InputMethodAbility::GetInstance().GetTextConfig(config, rspCallBack);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("failed to get text config: %{public}d!", ret);
-            ctxt->SetErrorCode(ret);
-            completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
         }
     };
     ctxt->SetAction(nullptr, std::move(output));
     // 1 means JsAPI:getEditorAttribute has 1 param at most.
-    EditAsyncCall asyncCall(env, info, ctxt, 1);
-    return asyncCall.Call(env, exec, __FUNCTION__);
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return ASYNC_POST(env, exec);
 }
 
 napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_info info)
@@ -1049,26 +1039,19 @@ napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_call
         *result = JsCallingWindowInfo::Write(env, ctxt->windowInfo);
         return napi_ok;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
-            if (code == ErrorCode::NO_ERROR) {
-                IMSA_HILOGI("exec GetCallingWindowInfo success.");
-                ctxt->SetState(napi_ok);
-            } else {
-                ctxt->SetErrorCode(code);
-            }
-            completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
-        };
-        int32_t ret = InputMethodAbility::GetInstance().GetCallingWindowInfo(ctxt->windowInfo, rspCallBack);
-        if (ret != ErrorCode::NO_ERROR) {
-            ctxt->SetErrorCode(ret);
-            completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t ret = InputMethodAbility::GetInstance().GetCallingWindowInfo(ctxt->windowInfo);
+        if (ret == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec GetCallingWindowInfo success.");
+            ctxt->SetState(napi_ok);
+            return;
         }
+        ctxt->SetErrorCode(ret);
     };
     ctxt->SetAction(nullptr, std::move(output));
     // 0 means JsAPI:getCallingWindowInfo needs no parameter.
-    EditAsyncCall asyncCall(env, info, ctxt, 0);
-    return asyncCall.Call(env, exec, __FUNCTION__);
+    AsyncCall asyncCall(env, info, ctxt, 0);
+    return ASYNC_POST(env, exec);
 }
 
 napi_status JsTextInputClientEngine::GetPreviewTextParam(napi_env env, size_t argc, napi_value *argv,

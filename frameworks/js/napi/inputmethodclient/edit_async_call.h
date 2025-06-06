@@ -24,23 +24,22 @@ public:
         :AsyncCall(env, info, context, maxParamCount){};
     virtual ~EditAsyncCall(){};
 private:
-    void CallImpl(napi_env env, void *data, const std::string &resourceName) override
+    void CallImpl(napi_env env, AsyncContext *context, const std::string &resourceName) override
     {
-        if (data == nullptr) {
+        if (context == nullptr) {
             IMSA_HILOGE("context is nullptr!");
             return;
         }
-        AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
         auto cb = [env, context, resourceName]() -> void {
             auto task = [env, context]() -> void {
                 AsyncCall::OnComplete(env, context->ctx->GetState(), context);
             };
             auto handler = context->ctx->GetHandler();
             if (handler) {
-                handler->PostTask(task, "IMA" + resourceName, 0, AppExecFwk::EventQueue::Priority::VIP);
+                handler->PostTask(task, "IMF_" + resourceName + "_EDIT", 0, AppExecFwk::EventQueue::Priority::VIP);
             }
         };
-        AsyncCall::OnExecuteAsync(env, data, cb);
+        AsyncCall::OnExecuteAsync(env, context, cb);
     }
 };
 } // namespace MiscServices

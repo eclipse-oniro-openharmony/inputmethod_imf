@@ -312,6 +312,7 @@ ohos_shared_library("inputmethod_ability") {
     ubsan = true
   }
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_data_channel_proxy_wrap.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_interface.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_utils.cpp",
@@ -322,7 +323,6 @@ ohos_shared_library("inputmethod_ability") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/tasks/task.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/window_change_listener_impl.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy_wrap.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/services/src/sys_cfg_parser.cpp",
@@ -447,6 +447,7 @@ ohos_static_library("inputmethod_ability_static") {
     debug = false
   }
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_data_channel_proxy_wrap.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_interface.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_utils.cpp",
@@ -457,7 +458,6 @@ ohos_static_library("inputmethod_ability_static") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/tasks/task.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/window_change_listener_impl.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy_wrap.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/services/src/sys_cfg_parser.cpp",

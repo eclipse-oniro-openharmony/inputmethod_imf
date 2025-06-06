@@ -252,9 +252,8 @@ napi_value AsyncCall::Call(napi_env env, Context::AsynExecAction exec, const std
     return promise;
 }
 
-void AsyncCall::OnExecuteAsync(napi_env env, void *data, Context::CallBackAction cb)
+void AsyncCall::OnExecuteAsync(napi_env env, AsyncContext *context, Context::CallBackAction cb)
 {
-    AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
     if (context == nullptr || context->ctx == nullptr) {
         IMSA_HILOGE("context or context->ctx is nullptr!");
         return;
@@ -263,13 +262,12 @@ void AsyncCall::OnExecuteAsync(napi_env env, void *data, Context::CallBackAction
     context->ctx->AsyncExec(cb);
 }
 
-void AsyncCall::CallImpl(napi_env env, void *data, const std::string &resourceName)
+void AsyncCall::CallImpl(napi_env env, AsyncContext *context, const std::string &resourceName)
 {
-    if (data == nullptr) {
+    if (context == nullptr) {
         IMSA_HILOGE("context is nullptr!");
         return;
     }
-    AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
     napi_async_work work = context->work;
     napi_value resource = nullptr;
     std::string name = "IMF_" + resourceName;
