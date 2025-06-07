@@ -585,16 +585,15 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
     auto exec = [ctxt, traceId](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         InputMethodSyncTrace tracer("JS_GetForward_Exec", traceId);
         auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
-            if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, ctxt->text)) {
+            if (code == ErrorCode::NO_ERROR) {
+                if (!VariantUtil::GetValue(data, ctxt->text)) {
+                    IMSA_HILOGE("GetValue failed");
+                }
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
-                completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
-                return;
+            } else {
+                ctxt->SetErrorCode(code);
             }
-            if (code == ErrorCode::NO_ERROR) {
-                code = ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
-            }
-            ctxt->SetErrorCode(code);
             completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
         };
         std::u16string temp;
@@ -653,16 +652,15 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
-            if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, ctxt->text)) {
+            if (code == ErrorCode::NO_ERROR) {
+                if (!VariantUtil::GetValue(data, ctxt->text)) {
+                    IMSA_HILOGE("GetValue failed");
+                }
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
-                completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
-                return;
+            } else {
+                ctxt->SetErrorCode(code);
             }
-            if (code == ErrorCode::NO_ERROR) {
-                code = ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
-            }
-            ctxt->SetErrorCode(code);
             completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
         };
         std::u16string temp;
@@ -882,16 +880,15 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
     };
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
-            if (code == ErrorCode::NO_ERROR && VariantUtil::GetValue(data, ctxt->index)) {
+            if (code == ErrorCode::NO_ERROR) {
+                if (!VariantUtil::GetValue(data, ctxt->index)) {
+                    IMSA_HILOGE("GetValue failed");
+                }
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
-                completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
-                return;
+            } else {
+                ctxt->SetErrorCode(code);
             }
-            if (code == ErrorCode::NO_ERROR) {
-                code = ErrorCode::ERROR_PARSE_PARAMETER_FAILED;
-            }
-            ctxt->SetErrorCode(code);
             completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
         };
         int32_t code = InputMethodAbility::GetInstance().GetTextIndexAtCursor(ctxt->index, rspCallBack);

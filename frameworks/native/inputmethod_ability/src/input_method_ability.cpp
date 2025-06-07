@@ -638,7 +638,7 @@ bool InputMethodAbility::IsInputClientAttachOptionsChanged(RequestKeyboardReason
     return false;
 }
 
-int32_t InputMethodAbility::InsertTextInner(const std::string &text, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::InsertTextInner(const std::string &text, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_InsertText");
     IMSA_HILOGD("InputMethodAbility start.");
@@ -651,7 +651,7 @@ int32_t InputMethodAbility::InsertTextInner(const std::string &text, AsyncIpcCal
     return channel->InsertText(text, false, callback);
 }
 
-int32_t InputMethodAbility::DeleteForwardInner(int32_t length, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::DeleteForwardInner(int32_t length, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_DeleteForward");
     IMSA_HILOGD("InputMethodAbility start, length: %{public}d.", length);
@@ -663,7 +663,7 @@ int32_t InputMethodAbility::DeleteForwardInner(int32_t length, AsyncIpcCallBack 
     return channel->DeleteForward(length, callback);
 }
 
-int32_t InputMethodAbility::DeleteBackwardInner(int32_t length, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::DeleteBackwardInner(int32_t length, const AsyncIpcCallBack &callback)
 {
     IMSA_HILOGD("InputMethodAbility start, length: %{public}d.", length);
     auto channel = GetInputDataChannelProxyWrap();
@@ -674,7 +674,7 @@ int32_t InputMethodAbility::DeleteBackwardInner(int32_t length, AsyncIpcCallBack
     return channel->DeleteBackward(length, callback);
 }
 
-int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey, const AsyncIpcCallBack &callback)
 {
     auto channel = GetInputDataChannelProxyWrap();
     if (channel == nullptr) {
@@ -699,7 +699,7 @@ int32_t InputMethodAbility::HideKeyboardSelf()
     return ret == ErrorCode::ERROR_CLIENT_NULL_POINTER ? ret : ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::SendExtendAction(int32_t action, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::SendExtendAction(int32_t action, const AsyncIpcCallBack &callback)
 {
     IMSA_HILOGD("InputMethodAbility, action: %{public}d.", action);
     auto channel = GetInputDataChannelProxyWrap();
@@ -710,7 +710,8 @@ int32_t InputMethodAbility::SendExtendAction(int32_t action, AsyncIpcCallBack ca
     return channel->HandleExtendAction(action, callback);
 }
 
-int32_t InputMethodAbility::GetTextBeforeCursorInner(int32_t number, std::u16string &text, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::GetTextBeforeCursorInner(
+    int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_GetForward");
     IMSA_HILOGD("InputMethodAbility, number: %{public}d.", number);
@@ -725,7 +726,8 @@ int32_t InputMethodAbility::GetTextBeforeCursorInner(int32_t number, std::u16str
     return ret;
 }
 
-int32_t InputMethodAbility::GetTextAfterCursorInner(int32_t number, std::u16string &text, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::GetTextAfterCursorInner(
+    int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_GetTextAfterCursor");
     IMSA_HILOGD("InputMethodAbility, number: %{public}d.", number);
@@ -740,7 +742,7 @@ int32_t InputMethodAbility::GetTextAfterCursorInner(int32_t number, std::u16stri
     return ret;
 }
 
-int32_t InputMethodAbility::MoveCursor(int32_t keyCode, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::MoveCursor(int32_t keyCode, const AsyncIpcCallBack &callback)
 {
     IMSA_HILOGD("InputMethodAbility, keyCode: %{public}d.", keyCode);
     auto channel = GetInputDataChannelProxyWrap();
@@ -751,7 +753,7 @@ int32_t InputMethodAbility::MoveCursor(int32_t keyCode, AsyncIpcCallBack callbac
     return channel->MoveCursor(keyCode, callback);
 }
 
-int32_t InputMethodAbility::SelectByRange(int32_t start, int32_t end, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::SelectByRange(int32_t start, int32_t end, const AsyncIpcCallBack &callback)
 {
     IMSA_HILOGD("InputMethodAbility, start: %{public}d, end: %{public}d", start, end);
     if (start < 0 || end < 0) {
@@ -766,7 +768,7 @@ int32_t InputMethodAbility::SelectByRange(int32_t start, int32_t end, AsyncIpcCa
     return dataChannel->SelectByRange(start, end, callback);
 }
 
-int32_t InputMethodAbility::SelectByMovement(int32_t direction, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::SelectByMovement(int32_t direction, const AsyncIpcCallBack &callback)
 {
     IMSA_HILOGD("InputMethodAbility, direction: %{public}d.", direction);
     auto dataChannel = GetInputDataChannelProxyWrap();
@@ -799,7 +801,7 @@ int32_t InputMethodAbility::GetInputPattern(int32_t &inputPattern)
     return channel->GetInputPattern(inputPattern);
 }
 
-int32_t InputMethodAbility::GetTextIndexAtCursorInner(int32_t &index, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::GetTextIndexAtCursorInner(int32_t &index, const AsyncIpcCallBack &callback)
 {
     IMSA_HILOGD("InputMethodAbility start.");
     auto channel = GetInputDataChannelProxyWrap();
@@ -1428,7 +1430,7 @@ int32_t InputMethodAbility::SendPrivateCommand(
 }
 
 int32_t InputMethodAbility::SendPrivateCommandEx(
-    const std::unordered_map<std::string, PrivateDataValue> &privateCommand, AsyncIpcCallBack callback)
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand, const AsyncIpcCallBack &callback)
 {
     if (!IsDefaultIme()) {
         IMSA_HILOGE("current is not default ime!");
@@ -1446,7 +1448,7 @@ int32_t InputMethodAbility::SendPrivateCommandEx(
         }
         Value commandValueMap(privateCommand);
         int ret = systemChannel->SendPrivateCommand(commandValueMap);
-        if (callback && ret == ErrorCode::NO_ERROR) {
+        if (callback != nullptr && ret == ErrorCode::NO_ERROR) {
             ResponseData rspData = std::monostate{};
             callback(ret, rspData);
         }
@@ -1473,8 +1475,8 @@ int32_t InputMethodAbility::ReceivePrivateCommand(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::SetPreviewTextInner(const std::string &text, const Range &range,
-    AsyncIpcCallBack callback)
+int32_t InputMethodAbility::SetPreviewTextInner(
+    const std::string &text, const Range &range, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_SetPreviewText");
     auto dataChannel = GetInputDataChannelProxyWrap();
@@ -1486,7 +1488,7 @@ int32_t InputMethodAbility::SetPreviewTextInner(const std::string &text, const R
     return dataChannel->SetPreviewText(text, rangeInner, callback);
 }
 
-int32_t InputMethodAbility::FinishTextPreviewInner(bool isAsync, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::FinishTextPreviewInner(bool isAsync, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_FinishTextPreview");
     auto dataChannel = GetInputDataChannelProxyWrap();
@@ -1623,7 +1625,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     return ret;
 }
 
-int32_t InputMethodAbility::InsertText(const std::string text, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::InsertText(const std::string text, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = InsertTextInner(text, callback);
@@ -1632,7 +1634,7 @@ int32_t InputMethodAbility::InsertText(const std::string text, AsyncIpcCallBack 
     return ret;
 }
 
-int32_t InputMethodAbility::DeleteForward(int32_t length, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::DeleteForward(int32_t length, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = DeleteForwardInner(length, callback);
@@ -1641,7 +1643,7 @@ int32_t InputMethodAbility::DeleteForward(int32_t length, AsyncIpcCallBack callb
     return ret;
 }
 
-int32_t InputMethodAbility::DeleteBackward(int32_t length, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::DeleteBackward(int32_t length, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = DeleteBackwardInner(length, callback);
@@ -1650,7 +1652,8 @@ int32_t InputMethodAbility::DeleteBackward(int32_t length, AsyncIpcCallBack call
     return ret;
 }
 
-int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range &range, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::SetPreviewText(
+    const std::string &text, const Range &range, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = SetPreviewTextInner(text, range, callback);
@@ -1659,7 +1662,7 @@ int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range 
     return ret;
 }
 
-int32_t InputMethodAbility::FinishTextPreview(bool isAsync, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::FinishTextPreview(bool isAsync, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = FinishTextPreviewInner(isAsync, callback);
@@ -1669,7 +1672,7 @@ int32_t InputMethodAbility::FinishTextPreview(bool isAsync, AsyncIpcCallBack cal
     return ret;
 }
 
-int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &text, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextBeforeCursorInner(number, text, callback);
@@ -1678,7 +1681,7 @@ int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &
         ret, end - start);
     return ret;
 }
-int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &text, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextAfterCursorInner(number, text, callback);
@@ -1687,7 +1690,7 @@ int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &t
         ret, end - start);
     return ret;
 }
-int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index, AsyncIpcCallBack callback)
+int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextIndexAtCursorInner(index, callback);
@@ -1747,7 +1750,7 @@ void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errC
 
 int32_t InputMethodAbility::OnCallingDisplayIdChanged(uint64_t displayId)
 {
-    IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64".", displayId);
+    IMSA_HILOGD("InputMethodAbility calling display: %{public}" PRIu64 ".", displayId);
     if (imeListener_ == nullptr) {
         IMSA_HILOGD("imeListener_ is nullptr!");
         return ErrorCode::NO_ERROR;
@@ -1831,7 +1834,7 @@ int32_t InputMethodAbility::OnResponse(uint64_t msgId, int32_t code, const Respo
 {
     auto channel = GetInputDataChannelProxyWrap();
     if (channel != nullptr) {
-        ResponseInfo rspInfo = {code, data};
+        ResponseInfo rspInfo = { code, data };
         channel->HandleResponse(msgId, rspInfo);
     }
     return 0;

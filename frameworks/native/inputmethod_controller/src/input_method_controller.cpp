@@ -1807,9 +1807,7 @@ int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code,
 
 void OnTextChangedListener::InsertTextV2(const std::u16string &text)
 {
-    auto task = [this, text]() {
-        InsertText(text);
-    };
+    auto task = [this, text]() { InsertText(text); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "InsertTextV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1819,9 +1817,7 @@ void OnTextChangedListener::InsertTextV2(const std::u16string &text)
 }
 void OnTextChangedListener::DeleteForwardV2(int32_t length)
 {
-    auto task = [this, length]() {
-        DeleteForward(length);
-    };
+    auto task = [this, length]() { DeleteForward(length); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "DeleteForwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1832,9 +1828,7 @@ void OnTextChangedListener::DeleteForwardV2(int32_t length)
 
 void OnTextChangedListener::DeleteBackwardV2(int32_t length)
 {
-    auto task = [this, length]() {
-        DeleteBackward(length);
-    };
+    auto task = [this, length]() { DeleteBackward(length); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "DeleteBackwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1845,9 +1839,7 @@ void OnTextChangedListener::DeleteBackwardV2(int32_t length)
 
 void OnTextChangedListener::SendKeyboardStatusV2(const KeyboardStatus &keyboardStatus)
 {
-    auto task = [this, keyboardStatus]() {
-        SendKeyboardStatus(keyboardStatus);
-    };
+    auto task = [this, keyboardStatus]() { SendKeyboardStatus(keyboardStatus); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "SendKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1858,9 +1850,7 @@ void OnTextChangedListener::SendKeyboardStatusV2(const KeyboardStatus &keyboardS
 
 void OnTextChangedListener::SendFunctionKeyV2(const FunctionKey &functionKey)
 {
-    auto task = [this, functionKey]() {
-        SendFunctionKey(functionKey);
-    };
+    auto task = [this, functionKey]() { SendFunctionKey(functionKey); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "SendFunctionKeyV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1869,11 +1859,9 @@ void OnTextChangedListener::SendFunctionKeyV2(const FunctionKey &functionKey)
     }
 }
 
-void OnTextChangedListener::MoveCursorV2(const Direction direction)
+void OnTextChangedListener::MoveCursorV2(const Direction &direction)
 {
-    auto task = [this, direction]() {
-        MoveCursor(direction);
-    };
+    auto task = [this, direction]() { MoveCursor(direction); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "MoveCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1884,9 +1872,7 @@ void OnTextChangedListener::MoveCursorV2(const Direction direction)
 
 void OnTextChangedListener::HandleExtendActionV2(int32_t action)
 {
-    auto task = [this, action]() {
-        HandleExtendAction(action);
-    };
+    auto task = [this, action]() { HandleExtendAction(action); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "HandleExtendActionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1972,9 +1958,7 @@ int32_t OnTextChangedListener::GetTextIndexAtCursorV2()
 
 void OnTextChangedListener::SendKeyEventFromInputMethodV2(const KeyEvent &event)
 {
-    auto task = [this, event]() {
-        SendKeyEventFromInputMethod(event);
-    };
+    auto task = [this, event]() { SendKeyEventFromInputMethod(event); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "SendKeyEventFromInputMethodV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1985,9 +1969,7 @@ void OnTextChangedListener::SendKeyEventFromInputMethodV2(const KeyEvent &event)
 
 void OnTextChangedListener::NotifyPanelStatusInfoV2(const PanelStatusInfo &info)
 {
-    auto task = [this, info]() {
-        NotifyPanelStatusInfo(info);
-    };
+    auto task = [this, info]() { NotifyPanelStatusInfo(info); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "NotifyPanelStatusInfoV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1998,9 +1980,7 @@ void OnTextChangedListener::NotifyPanelStatusInfoV2(const PanelStatusInfo &info)
 
 void OnTextChangedListener::NotifyKeyboardHeightV2(uint32_t height)
 {
-    auto task = [this, height]() {
-        NotifyKeyboardHeight(height);
-    };
+    auto task = [this, height]() { NotifyKeyboardHeight(height); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "NotifyKeyboardHeightV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -2011,9 +1991,7 @@ void OnTextChangedListener::NotifyKeyboardHeightV2(uint32_t height)
 
 void OnTextChangedListener::SetKeyboardStatusV2(bool status)
 {
-    auto task = [this, status]() {
-        SetKeyboardStatus(status);
-    };
+    auto task = [this, status]() { SetKeyboardStatus(status); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "SetKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -2024,9 +2002,7 @@ void OnTextChangedListener::SetKeyboardStatusV2(bool status)
 
 void OnTextChangedListener::HandleSetSelectionV2(int32_t start, int32_t end)
 {
-    auto task = [this, start, end]() {
-        HandleSetSelection(start, end);
-    };
+    auto task = [this, start, end]() { HandleSetSelection(start, end); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "HandleSetSelectionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -2037,9 +2013,7 @@ void OnTextChangedListener::HandleSetSelectionV2(int32_t start, int32_t end)
 
 void OnTextChangedListener::HandleSelectV2(int32_t keyCode, int32_t cursorMoveSkip)
 {
-    auto task = [this, keyCode, cursorMoveSkip]() {
-        HandleSelect(keyCode, cursorMoveSkip);
-    };
+    auto task = [this, keyCode, cursorMoveSkip]() { HandleSelect(keyCode, cursorMoveSkip); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "HandleSelectV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -2053,21 +2027,11 @@ int32_t OnTextChangedListener::ReceivePrivateCommandV2(
 {
     int32_t ret = -1;
     auto eventHandler = GetEventHandler();
-    std::shared_ptr<BlockData<int32_t>> textResultHandler = nullptr;
-    if (eventHandler != nullptr) {
-        textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
-    }
-    auto task = [this, textResultHandler, privateCommand]() {
+    auto task = [this, privateCommand]() {
         int32_t command = ReceivePrivateCommand(privateCommand);
-        if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(command);
-        }
     };
     if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "ReceivePrivateCommandV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        if (!textResultHandler->GetValue(ret)) {
-            IMSA_HILOGW("ReceivePrivateCommandV2 timeout");
-        }
     } else {
         task();
     }
@@ -2089,9 +2053,9 @@ int32_t OnTextChangedListener::SetPreviewTextV2(const std::u16string &text, cons
         }
     };
     if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+        eventHandler->PostTask(task, "SetPreviewTextV2", 0, AppExecFwk::EventQueue::Priority::VIP);
         if (!textResultHandler->GetValue(ret)) {
-            IMSA_HILOGW("ReceivePrivateCommandV2 timeout");
+            IMSA_HILOGW("SetPreviewTextV2 timeout");
         }
     } else {
         task();
@@ -2101,9 +2065,7 @@ int32_t OnTextChangedListener::SetPreviewTextV2(const std::u16string &text, cons
 
 void OnTextChangedListener::FinishTextPreviewV2()
 {
-    auto task = [this]() {
-        FinishTextPreview();
-    };
+    auto task = [this]() { FinishTextPreview(); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "FinishTextPreviewV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -2114,9 +2076,7 @@ void OnTextChangedListener::FinishTextPreviewV2()
 
 void OnTextChangedListener::OnDetachV2()
 {
-    auto task = [this]() {
-        OnDetach();
-    };
+    auto task = [this]() { OnDetach(); };
     auto eventHandler = GetEventHandler();
     if (eventHandler) {
         eventHandler->PostTask(task, "OnDetachV2", 0, AppExecFwk::EventQueue::Priority::VIP);

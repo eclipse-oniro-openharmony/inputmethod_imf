@@ -21,21 +21,20 @@ namespace MiscServices {
 class EditAsyncCall : public AsyncCall {
 public:
     EditAsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount)
-        :AsyncCall(env, info, context, maxParamCount){};
+        : AsyncCall(env, info, context, maxParamCount){};
     virtual ~EditAsyncCall(){};
+
 private:
     void CallImpl(napi_env env, AsyncContext *context, const std::string &resourceName) override
     {
-        if (context == nullptr) {
+        if (context == nullptr || context->ctx == nullptr) {
             IMSA_HILOGE("context is nullptr!");
             return;
         }
         auto cb = [env, context, resourceName]() -> void {
-            auto task = [env, context]() -> void {
-                AsyncCall::OnComplete(env, context->ctx->GetState(), context);
-            };
+            auto task = [env, context]() -> void { AsyncCall::OnComplete(env, context->ctx->GetState(), context); };
             auto handler = context->ctx->GetHandler();
-            if (handler) {
+            if (handler != nullptr) {
                 handler->PostTask(task, "IMF_" + resourceName + "_EDIT", 0, AppExecFwk::EventQueue::Priority::VIP);
             }
         };

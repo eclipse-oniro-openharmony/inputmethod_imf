@@ -127,12 +127,11 @@ private:
     void DeleteBackwardV2(int32_t length);
     void SendKeyboardStatusV2(const KeyboardStatus &keyboardStatus);
     void SendFunctionKeyV2(const FunctionKey &functionKey);
-    void MoveCursorV2(const Direction direction);
+    void MoveCursorV2(const Direction &direction);
     void HandleExtendActionV2(int32_t action);
     std::u16string GetLeftTextOfCursorV2(int32_t number);
     std::u16string GetRightTextOfCursorV2(int32_t number);
     int32_t GetTextIndexAtCursorV2();
-    
     void SendKeyEventFromInputMethodV2(const KeyEvent &event);
     void NotifyPanelStatusInfoV2(const PanelStatusInfo &info);
     void NotifyKeyboardHeightV2(uint32_t height);

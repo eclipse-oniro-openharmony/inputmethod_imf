@@ -21,8 +21,8 @@ namespace MiscServices {
 class JsGetInputMethodController;
 class JsGetInputMethodTextChangedListener : public OnTextChangedListener {
 public:
-    JsGetInputMethodTextChangedListener() = default;
-    ~JsGetInputMethodTextChangedListener() = default;
+    JsGetInputMethodTextChangedListener();
+    ~JsGetInputMethodTextChangedListener() override;
     static sptr<JsGetInputMethodTextChangedListener> GetTextListener(bool newEditBox = false);
 
     void InsertText(const std::u16string &text) override;
@@ -56,7 +56,7 @@ public:
 private:
     static std::mutex listenerMutex_;
     static sptr<JsGetInputMethodTextChangedListener> inputMethodListener_;
-
+    std::mutex handlerMutex_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 } // namespace MiscServices
