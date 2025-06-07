@@ -160,12 +160,9 @@
             <option name="shell" value="power-shell timeout -o 86400000"/>
             <option name="push" value="editorBox/editorBox.hap -> /data/test/resource/imf" src="res"/>
             <option name="shell" value="bm install -r -p /data/test/resource/imf/editorBox.hap"/>
-            <option name="push" value="abnormalEditorBox/abnormalEditorBox.hap -> /data/test/resource/imf" src="res"/>
-            <option name="shell" value="bm install -r -p /data/test/resource/imf/abnormalEditorBox.hap"/>
         </preparer>
         <cleaner>
             <option name="shell" value="bm uninstall -n com.example.editorbox"/>
-            <option name="shell" value="bm uninstall -n com.example.abnormalEditorBox"/>
         </cleaner>
     </target>
 </configuration>

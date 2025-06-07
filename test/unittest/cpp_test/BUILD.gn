@@ -1643,7 +1643,6 @@ ohos_unittest("ImaTextEditTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/abnormalEditorBox:abnormalEditorBox",
     "${inputmethod_path}/test/unittest/resource/bundle_dependencies/editorBox:editorBox",
     "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
