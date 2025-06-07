@@ -55,6 +55,12 @@ void FuzzGenerateTargetUri(const std::string &key)
 {
     SettingsDataUtils::GetInstance().GenerateTargetUri(SETTING_URI_PROXY, key);
 }
+
+
+void FuzzSetStringValue(const std::string &key)
+{
+    SettingsDataUtils::GetInstance().SetStringValue(SETTING_URI_PROXY, key, key);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */

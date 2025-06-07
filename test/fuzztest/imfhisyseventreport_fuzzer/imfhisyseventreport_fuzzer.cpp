@@ -21,6 +21,7 @@
 #include "imf_hisysevent_reporter.h"
 #include "imf_hisysevent_util.h"
 #include "imsa_hisysevent_reporter.h"
+#include "inputmethod_sysevent.h"
 #undef private
 
 #include <sys/time.h>
@@ -143,6 +144,44 @@ void TestRecordBaseTextOperationStatistics(const uint8_t *data, size_t size)
     ImaHiSysEventReporter::GetInstance().RecordBaseTextOperationStatistics(*info);
     ImaHiSysEventReporter::GetInstance().RecordImeStartInputStatistics(*info);
 }
+
+void TestIntervalIndex(const uint8_t *data, size_t size)
+{
+    auto fuzzInt32 = static_cast<int32_t>(size);
+    ImaHiSysEventReporter::GetInstance().GetBaseTextOperationSucceedIntervalIndex(fuzzInt32);
+    ImaHiSysEventReporter::GetInstance().ReportStatisticsEvent();
+    ImaHiSysEventReporter::GetInstance().ModImeCbTimeConsumeInfo(fuzzInt32);
+}
+
+void TestInputMethodSysEvent(const uint8_t *data, size_t size)
+{
+    auto fuzzInt32 = static_cast<int32_t>(size);
+    auto fuzzUint32 = static_cast<uint32_t>(size);
+    std::string fuzzedString(reinterpret_cast<const char *>(data), size);
+    using TimerCallback = std::function<void()>;
+    TimerCallback tc;
+    InputMethodSysEvent::GetInstance().ServiceFaultReporter(fuzzedString, fuzzInt32);
+    InputMethodSysEvent::GetInstance().ImeUsageBehaviourReporter();
+    InputMethodSysEvent::GetInstance().GetOperateInfo(fuzzInt32);
+    InputMethodSysEvent::GetInstance().StartTimer(tc, fuzzUint32);
+    InputMethodSysEvent::GetInstance().StartTimerForReport();
+    InputMethodSysEvent::GetInstance().ReportSystemShortCut(fuzzedString);
+}
+
+void TestOnDemandStartStopSa(const uint8_t *data, size_t size)
+{
+    auto fuzzInt32 = static_cast<int32_t>(size);
+    auto fuzzUint32 = static_cast<uint32_t>(size);
+    std::string fuzzedString(reinterpret_cast<const char *>(data), size);
+    using TimerCallback = std::function<void()>;
+    TimerCallback tc;
+    InputMethodSysEvent::GetInstance().ServiceFaultReporter(fuzzedString, fuzzInt32);
+    InputMethodSysEvent::GetInstance().ImeUsageBehaviourReporter();
+    InputMethodSysEvent::GetInstance().GetOperateInfo(fuzzInt32);
+    InputMethodSysEvent::GetInstance().StartTimer(tc, fuzzUint32);
+    InputMethodSysEvent::GetInstance().StartTimerForReport();
+    InputMethodSysEvent::GetInstance().ReportSystemShortCut(fuzzedString);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -158,5 +197,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestStartInput(data, size);
     OHOS::TestBaseTextOperation(data, size);
     OHOS::TestRecordBaseTextOperationStatistics(data, size);
+    OHOS::TestIntervalIndex(data, size);
+    OHOS::TestInputMethodSysEvent(data, size);
     return 0;
 }
