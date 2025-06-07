@@ -35,7 +35,6 @@ ErrCode InputDataChannelServiceImpl::InsertText(const std::string &text, uint64_
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
-    } else {
     }
     int32_t ret = instance->InsertText(Str8ToStr16(text));
     ResponseData data = std::monostate{};

@@ -535,14 +535,9 @@ struct DetachOptions {
     bool isNotifyClientAsync{ false };
 };
 
-enum class ResponseDataType : uint64_t {
-    NALL_TYPE = 0,
-    STRING_TYPE,
-    INT32_TYPE,
-    CONFIG_TYPE
-};
+enum class ResponseDataType : uint64_t { NONE_TYPE = 0, STRING_TYPE, INT32_TYPE };
 
-using ResponseData = std::variant<std::monostate, std::string, int32_t, TextTotalConfig>;
+using ResponseData = std::variant<std::monostate, std::string, int32_t>;
 
 struct ResponseDataInner : public Parcelable {
     bool ReadFromParcel(Parcel &in);
