@@ -117,7 +117,7 @@ bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId, sptr<IRe
     if (displayIdByWindow != DEFAULT_DISPLAY_ID) {
         FocusChangeInfo focusInfo;
         WindowAdapter::GetFocusInfo(focusInfo, displayIdByWindow);
-        return windowId == focusInfo.windowId_;
+        return windowId == static_cast<uint32_t>(focusInfo.windowId_);
     }
 
     bool isFocused = false;

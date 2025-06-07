@@ -15,6 +15,7 @@
 
 #ifndef INPUTMETHOD_IMF_PANEL_INFO_H
 #define INPUTMETHOD_IMF_PANEL_INFO_H
+#include <sstream>
 
 #include "parcel.h"
 
@@ -70,6 +71,33 @@ enum class ImmersiveMode : int32_t {
     LIGHT_IMMERSIVE = 2,
     DARK_IMMERSIVE = 3,
     END,
+};
+
+enum class GradientMode : int32_t {
+    NONE,
+    LINEAR_GRADIENT,
+    END,
+};
+
+enum class FluidLightMode : int32_t {
+    NONE,
+    BACKGROUND_FLUID_LIGHT,
+    END,
+};
+
+struct ImmersiveEffect {
+    uint32_t gradientHeight;
+    GradientMode gradientMode;
+    FluidLightMode fluidLightMode;
+    inline std::string ToString() const
+    {
+        std::stringstream ss;
+        ss << "[ImmersiveEffect: "
+           << "gradientHeight=" << gradientHeight << ", "
+           << "gradientMode=" << static_cast<int32_t>(gradientMode) << ", "
+           << "fluidLightMode=" << static_cast<int32_t>(fluidLightMode) << "]";
+        return ss.str();
+    }
 };
 } // namespace MiscServices
 } // namespace OHOS

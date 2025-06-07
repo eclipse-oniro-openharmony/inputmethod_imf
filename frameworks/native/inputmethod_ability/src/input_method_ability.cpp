@@ -833,6 +833,10 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
 {
     IMSA_HILOGD("SetInputDataChannel start.");
     std::lock_guard<std::mutex> lock(dataChannelLock_);
+    if (dataChannelObject_ != nullptr && object != nullptr && object.GetRefPtr() == dataChannelObject_.GetRefPtr()) {
+        IMSA_HILOGD("datachannel has already been set.");
+        return;
+    }
     auto channelProxy = std::make_shared<InputDataChannelProxy>(object);
     if (channelProxy == nullptr) {
         IMSA_HILOGE("failed to create channel proxy!");
@@ -1831,6 +1835,17 @@ int32_t InputMethodAbility::OnResponse(uint64_t msgId, int32_t code, const Respo
         channel->HandleResponse(msgId, rspInfo);
     }
     return 0;
+}
+
+int32_t InputMethodAbility::IsCapacitySupport(int32_t capacity, bool &isSupport)
+{
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("failed to get imsa proxy!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+
+    return proxy->IsCapacitySupport(capacity, isSupport);
 }
 } // namespace MiscServices
 } // namespace OHOS

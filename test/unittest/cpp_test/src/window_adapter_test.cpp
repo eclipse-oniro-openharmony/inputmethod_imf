@@ -72,5 +72,19 @@ HWTEST_F(WindowAdapterTest, WindowAdapter_GetFocusInfo, TestSize.Level0)
     WindowAdapter::GetInstance().GetFocusInfo(focusInfo);
     EXPECT_TRUE(focusInfo.displayId_ >= 0);
 }
+
+/**
+ * @tc.name: WindowAdapter_GetDisplayId
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(WindowAdapterTest, WindowAdapter_GetDisplayId, TestSize.Level0)
+{
+    int64_t callingPid = -1000;
+    uint64_t displayId = 0;
+    auto ret = WindowAdapter::GetInstance().GetDisplayId(callingPid, displayId);
+    EXPECT_TRUE(ret);
+}
 } // namespace MiscServices
 } // namespace OHOS

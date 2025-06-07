@@ -94,6 +94,8 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_RESPONSE_TIMEOUT, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_TOO_MANY_UNANSWERED_MESSAGE, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_PARSE_PARAMETER_FAILED, EXCEPTION_IMCLIENT },
+    { ErrorCode::ERROR_IMA_INVALID_IMMERSIVE_EFFECT, EXCEPTION_INVALID_IMMERSIVE_EFFECT },
+    { ErrorCode::ERROR_IMA_PRECONDITION_REQUIRED, EXCEPTION_PRECONDITION_REQUIRED },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -124,6 +126,10 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
     { EXCEPTION_IME_NOT_FOUND, "the input method is not found." },
     { EXCEPTION_OPERATE_DEFAULTIME, "current operation cannot be applied to the preconfigured default input method." },
+    { EXCEPTION_INVALID_IMMERSIVE_EFFECT, "invalid immersive effect. \n\
+        1.The gradient mode and the fluid light mode can only be used when the immersive mode is enabled.\n\
+        2.The fluid light mode can only be used when the gradient mode is enabled.\n"},
+    { EXCEPTION_PRECONDITION_REQUIRED, "This operation requires a prerequisite operation." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {

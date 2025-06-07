@@ -1008,6 +1008,7 @@ private:
     void ReportClientShow(int32_t eventCode, int32_t errCode, ClientType type);
     void GetWindowScaleCoordinate(int32_t& x, int32_t& y, uint32_t windowId);
     int32_t ResponseDataChannel(uint64_t msgId, int32_t code, ResponseData &data);
+    void CalibrateImmersiveParam(InputAttribute &inputAttribute);
 
     friend class InputDataChannelServiceImpl;
     std::shared_ptr<ControllerListener> controllerListener_;

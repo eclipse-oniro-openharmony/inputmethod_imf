@@ -1067,6 +1067,21 @@ ErrCode InputMethodSystemAbility::IsSystemApp(bool& resultValue)
     return ERR_OK;
 }
 
+ErrCode InputMethodSystemAbility::IsCapacitySupport(int32_t capacity, bool &isSupport)
+{
+    IMSA_HILOGI("capacity:%{public}d", capacity);
+    if (capacity != static_cast<int32_t>(CapacityType::IMMERSIVE_EFFECT)) {
+        IMSA_HILOGE("capacity is invalid!");
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+
+    const auto &supportedCapacityList = ImeInfoInquirer::GetInstance().GetSystemConfig().supportedCapacityList;
+    if (supportedCapacityList.find("immersive_effect") != supportedCapacityList.end()) {
+        isSupport = true;
+    }
+    return ERR_OK;
+}
+
 int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId)
 {
     auto prop = std::make_shared<Property>();
