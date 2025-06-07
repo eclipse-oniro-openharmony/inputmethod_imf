@@ -99,6 +99,7 @@ public:
         dealRet_ = ret;
         retCv_.notify_one();
     }
+
     static bool WaitCommonRsp()
     {
         std::unique_lock<std::mutex> lock(retCvLock_);
@@ -114,6 +115,7 @@ public:
         VariantUtil::GetValue(data, getForwardText_);
         retCv_.notify_one();
     }
+
     static bool WaitGetForwardRspAbnormal(int32_t num)
     {
         std::unique_lock<std::mutex> lock(retCvLock_);
@@ -178,17 +180,44 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_GetForward, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
 
-    auto expectText = INSERT_TEXT.substr(INSERT_TEXT.size() - DEL_LENGTH);
+    auto expectText = INSERT_TEXT.substr(INSERT_TEXT.size() - GET_LENGTH);
     std::u16string syncText;
     // sync
-    ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, asyncText);
+    ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, syncText);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(Str16ToStr8(asyncText), expectText);
+    EXPECT_EQ(Str16ToStr8(syncText), expectText);
 
     // async
     std::u16string asyncText;
     KeyboardListenerTestImpl::ResetParam();
     ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, asyncText, GetForwardRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitGetForwardRsp(expectText));
+}
+
+/**
+ * @tc.name: ImaTextEditTest_GetBackward
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_GetBackward, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_GetBackward");
+    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
+
+    auto expectText = INSERT_TEXT.substr(INSERT_TEXT.size() - GET_LENGTH);
+    std::u16string syncText;
+    // sync
+    ret = InputMethodAbility::GetInstance().GetTextAfterCursor(GET_LENGTH, syncText);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(Str16ToStr8(syncText), expectText);
+
+    // async
+    std::u16string asyncText;
+    KeyboardListenerTestImpl::ResetParam();
+    ret = InputMethodAbility::GetInstance().GetTextAfterCursor(GET_LENGTH, asyncText, GetForwardRsp);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(WaitGetForwardRsp(expectText));
 }
@@ -258,13 +287,64 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_ClearRspHandlers, TestSize.Level0)
     };
     std::thread delayThread(delayTask);
     delayThread.detach();
-    channelWrap->AddRspHandler();           // getforward异步
-    channelWrap->AddRspHandler();           // getforward异步
-    channelWrap->AddRspHandler();           // 同步
-    auto ret = channelWrap->WaitResponse(); // 同步等待
+    std::shared_ptr<ResponseHandler> handler;
+    channelWrap->AddRspHandler(handler, GetForwardRsp, false);
+    channelWrap->AddRspHandler(handler, GetForwardRsp, false);
+    channelWrap->AddRspHandler(handler, GetForwardRsp, true);
+
+    SyncOutPut output = [](const ResponseInfo &rspInfo) -> int32_t {
+        return rspInfo.dealRet_;
+    };
+    auto ret = channelWrap->WaitResponse(handler, output);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
     EXPECT_TRUE(WaitGetForwardRspAbnormal(2));
 }
 
+/**
+ * @tc.name: ImaTextEditTest_DeleteRspHandler
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteRspHandler, TestSize.Level0)
+{
+    constexpr std::size_t UNANSWERED_MAX_NUMBER = 1000;
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_DeleteRspHandler");
+    auto channelProxy = std::make_shared<InputDataChannelProxy>();
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+
+    std::shared_ptr<ResponseHandler> firstHandler;
+    std::shared_ptr<ResponseHandler> lastHandler;
+    channelWrap->AddRspHandler(firstHandler, GetForwardRsp, false);
+    for (int i = 0; i < UNANSWERED_MAX_NUMBER; ++i) {        
+        channelWrap->AddRspHandler(lastHandler, GetForwardRsp, false);
+    }
+
+    for (uint64_t id = firstHandler->msgId_; id <= lastHandler->msgId_; ++id) {
+        EXPECT_EQ(DeleteRspHandler(id), ErrorCode::NO_ERROR);
+    }
+}
+
+/**
+ * @tc.name: ImaTextEditTest_HandleMsg
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleMsg, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_HandleMsg");
+    auto channelProxy = std::make_shared<InputDataChannelProxy>();
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+
+    std::shared_ptr<ResponseHandler> handler;
+    channelWrap->AddRspHandler(handler, CommonRsp, false);
+    ResponseInfo rspInfo = { ErrorCode::NO_ERROR, std::monostate{} };
+    channelWrap->HandleMsg(handler->msgId_, rspInfo);
+    EXPECT_TRUE(WaitCommonRsp());
+
+    channelWrap->AddRspHandler(handler, nullptr, false);
+    ResponseInfo rspInfo = { ErrorCode::NO_ERROR, std::monostate{} };
+    EXPECT_EQ(channelWrap->HandleMsg(handler->msgId_ - 1, rspInfo), ErrorCode::NO_ERROR);
+    EXPECT_EQ(channelWrap->HandleMsg(handler->msgId_, rspInfo), ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS
