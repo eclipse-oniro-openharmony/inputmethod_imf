@@ -2028,7 +2028,7 @@ int32_t OnTextChangedListener::ReceivePrivateCommandV2(
     int32_t ret = -1;
     auto eventHandler = GetEventHandler();
     auto task = [this, privateCommand]() {
-        int32_t command = ReceivePrivateCommand(privateCommand);
+        ReceivePrivateCommand(privateCommand);
     };
     if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "ReceivePrivateCommandV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -2083,6 +2083,18 @@ void OnTextChangedListener::OnDetachV2()
     } else {
         task();
     }
+}
+
+void InputMethodController::SetSpareAgent(const sptr<IRemoteObject> &agentObject)
+{
+    std::lock_guard<std::mutex> autoLock(agentLock_);
+    if (agent_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
+        IMSA_HILOGD("agent has already been set.");
+        return;
+    }
+    agent_ = std::make_shared<InputMethodAgentProxy>(agentObject);
+    agentObject_ = agentObject;
+
 }
 } // namespace MiscServices
 } // namespace OHOS

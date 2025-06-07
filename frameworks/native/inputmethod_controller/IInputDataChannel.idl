@@ -20,6 +20,7 @@ sequenceable input_method_utils..OHOS.MiscServices.FunctionKey;
 sequenceable input_method_utils..OHOS.MiscServices.Value;
 sequenceable input_method_utils..OHOS.MiscServices.RangeInner;
 sequenceable input_method_utils..OHOS.MiscServices.ArrayBuffer;
+sequenceable OHOS.IRemoteObject;
 interface OHOS.MiscServices.IInputDataChannel {
     [ipccode 0, oneway] void InsertText([in] String text, [in] unsigned long msgId);
     [oneway] void DeleteForward([in] int length, [in] unsigned long msgId);
@@ -42,4 +43,5 @@ interface OHOS.MiscServices.IInputDataChannel {
     [oneway] void SetPreviewText([in] String text, [in] RangeInner rangeInner, [in] unsigned long msgId);
     [oneway] void FinishTextPreview([in] unsigned long msgId);
     void SendMessage([in] ArrayBuffer arraybuffer);
+    [oneway] void SetSpareAgent([in] IRemoteObject agent);
 }

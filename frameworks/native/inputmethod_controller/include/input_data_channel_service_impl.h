@@ -52,6 +52,7 @@ public:
     ErrCode SetPreviewText(const std::string &text, const RangeInner &rangeInner, uint64_t msgId) override;
     ErrCode FinishTextPreview(uint64_t msgId) override;
     ErrCode SendMessage(const ArrayBuffer &arraybuffer) override;
+    ErrCode SetSpareAgent(const sptr<IRemoteObject> &agent) override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS

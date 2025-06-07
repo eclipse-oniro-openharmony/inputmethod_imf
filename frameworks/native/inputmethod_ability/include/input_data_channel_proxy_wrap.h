@@ -28,6 +28,9 @@
 
 namespace OHOS {
 namespace MiscServices {
+using ChannelWork = std::function<int32_t(uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel)>;
+using SyncOutput = std::function<void(const ResponseData &)>;
+using AsyncIpcCallBack = std::function<void(int32_t, const ResponseData &)>;
 struct ResponseInfo {
     int32_t dealRet_{ ErrorCode::NO_ERROR };
     ResponseData data_{ std::monostate{} };
@@ -40,15 +43,12 @@ struct ResponseHandler {
     ResponseHandler(uint64_t msgId, bool isSync, const AsyncIpcCallBack &callback)
     {
         msgId_ = msgId;
-        callBack_ = callBack;
+        callback_ = callback;
         if (isSync) {
             syncBlockData_ = std::make_shared<BlockData<ResponseInfo>>(SYNC_REPLY_TIMEOUT);
         }
     }
 };
-using AsyncIpcCallBack = std::function<void(int32_t, const ResponseData &)>;
-using ChannelWork = std::function<int32_t(uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel)>;
-using SyncOutput = std::function<void(const ResponseData &)>;
 class InputDataChannelProxyWrap {
 public:
     explicit InputDataChannelProxyWrap(const std::shared_ptr<InputDataChannelProxy> &channel);
@@ -84,7 +84,7 @@ private:
     int32_t ClearRspHandlers();
 
 private:
-    std::atomic<uint64_t> msgId_{ 0 };
+    uint64_t msgId_{ 0 };
     std::mutex rspMutex_;
     std::map<uint64_t, std::shared_ptr<ResponseHandler>> rspHandlers_;
     std::mutex channelMutex_;

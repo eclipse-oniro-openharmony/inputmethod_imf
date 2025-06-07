@@ -968,6 +968,8 @@ public:
      */
     IMF_API int32_t RegisterWindowScaleCallbackHandler(WindowScaleCallback&& callback);
 
+    void SetSpareAgent(const sptr<IRemoteObject> &agentObject);
+
 private:
     InputMethodController();
     ~InputMethodController();
