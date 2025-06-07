@@ -586,9 +586,7 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         InputMethodSyncTrace tracer("JS_GetForward_Exec", traceId);
         auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
-                if (!VariantUtil::GetValue(data, ctxt->text)) {
-                    IMSA_HILOGE("GetValue failed");
-                }
+                VariantUtil::GetValue(data, ctxt->text);
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
             } else {
@@ -653,9 +651,7 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
-                if (!VariantUtil::GetValue(data, ctxt->text)) {
-                    IMSA_HILOGE("GetValue failed");
-                }
+                VariantUtil::GetValue(data, ctxt->text);
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
             } else {
@@ -881,9 +877,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
     auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
         auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
             if (code == ErrorCode::NO_ERROR) {
-                if (!VariantUtil::GetValue(data, ctxt->index)) {
-                    IMSA_HILOGE("GetValue failed");
-                }
+                VariantUtil::GetValue(data, ctxt->index);
                 ctxt->status = napi_ok;
                 ctxt->SetState(ctxt->status);
             } else {

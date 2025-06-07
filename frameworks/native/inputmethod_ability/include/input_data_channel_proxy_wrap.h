@@ -34,10 +34,12 @@ struct ResponseInfo {
 };
 struct ResponseHandler {
     static constexpr uint32_t SYNC_REPLY_TIMEOUT = 3000; // unit ms
+    uint64_t msgId_ = 0;
     AsyncIpcCallBack callback_ = nullptr;
     std::shared_ptr<BlockData<ResponseInfo>> syncBlockData_ = nullptr;
-    ResponseHandler(bool isSync, const AsyncIpcCallBack &callback)
+    ResponseHandler(uint64_t msgId, bool isSync, const AsyncIpcCallBack &callback)
     {
+        msgId_ = msgId;
         callBack_ = callBack;
         if (isSync) {
             syncBlockData_ = std::make_shared<BlockData<ResponseInfo>>(SYNC_REPLY_TIMEOUT);
@@ -73,7 +75,7 @@ public:
     std::shared_ptr<InputDataChannelProxy> GetDataChannel();
 
 private:
-    int32_t AddRspHandler(uint64_t msgId, const std::shared_ptr<ResponseHandler> &handler);
+    std::shared_ptr<ResponseHandler> AddRspHandler(const AsyncIpcCallBack &callback, bool isSync);
     int32_t WaitResponse(const std::shared_ptr<ResponseHandler> &rspHandler, const SyncOutput &output);
     int32_t DeleteRspHandler(uint64_t msgId);
     uint64_t GenerateMsgId();

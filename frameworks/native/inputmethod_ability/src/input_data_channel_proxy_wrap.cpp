@@ -177,17 +177,15 @@ int32_t InputDataChannelProxyWrap::Request(
         IMSA_HILOGE("data channel is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    auto msgId = GenerateMsgId();
-    auto handler = std::make_shared<ResponseHandler>(isSync, callback);
-    int32_t ret = AddRspHandler(msgId, handler);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("BeforeRequest error: %{public}d.", ret);
-        return ret;
+    auto handler = AddRspHandler(callback, isSync);
+    if (handler == nullptr) {
+        IMSA_HILOGE("add rsp handler failed.");
+        return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
-    ret = work(msgId, channel);
+    auto ret = work(handler->msgId_, channel);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("work error: %{public}d.", ret);
-        DeleteRspHandler(msgId);
+        DeleteRspHandler(handler->msgId_);
         return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
     if (handler->syncBlockData_ != nullptr) {
@@ -207,15 +205,17 @@ uint64_t InputDataChannelProxyWrap::GenerateMsgId()
     return ++msgId_ ? msgId_ : ++msgId_;
 }
 
-int32_t InputDataChannelProxyWrap::AddRspHandler(uint64_t msgId, const std::shared_ptr<ResponseHandler> &handler)
+std::shared_ptr<ResponseHandler> InputDataChannelProxyWrap::AddRspHandler(const AsyncIpcCallBack &callback, bool isSync)
 {
     std::lock_guard<std::mutex> lock(rspMutex_);
     if (rspHandlers_.size() >= MESSAGE_UNANSWERED_MAX_NUMBER) {
         IMSA_HILOGW("too many unanswered, data channel abnormal");
-        return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
+        return nullptr;
     }
+    auto msgId = GenerateMsgId();
+    auto handler = std::make_shared<ResponseHandler>(msgId, isSync, callback);
     rspHandlers_.insert({ msgId, handler });
-    return ErrorCode::NO_ERROR;
+    return handler;
 }
 
 int32_t InputDataChannelProxyWrap::ClearRspHandlers()
@@ -240,6 +240,7 @@ int32_t InputDataChannelProxyWrap::ClearRspHandlers()
 
 int32_t InputDataChannelProxyWrap::HandleResponse(uint64_t msgId, const ResponseInfo &rspInfo)
 {
+    std::lock_guard<std::mutex> lock(rspMutex_);
     auto it = rspHandlers_.find(msgId);
     if (it == rspHandlers_.end()) {
         return ErrorCode::NO_ERROR;
