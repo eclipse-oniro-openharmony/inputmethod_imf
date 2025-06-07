@@ -29,9 +29,9 @@ public:
     CjInputMethodController() = default;
     ~CjInputMethodController() = default;
     static std::shared_ptr<CjInputMethodController> GetInstance();
-    static int32_t Attach(const CTextConfig &txtCfg, bool showKeyboard);
+    static int32_t Attach(const CTextConfig &txtCfg, const AttachOptions &attachOptions);
     static int32_t Detach();
-    static int32_t ShowTextInput();
+    static int32_t ShowTextInput(const AttachOptions &attachOptions);
     static int32_t HideTextInput();
     static int32_t SetCallingWindow(uint32_t windowId);
     static int32_t UpdateCursor(const CCursorInfo &cursor);

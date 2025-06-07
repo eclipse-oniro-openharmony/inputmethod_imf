@@ -1836,5 +1836,16 @@ int32_t InputMethodAbility::OnResponse(uint64_t msgId, int32_t code, const Respo
     }
     return 0;
 }
+
+int32_t InputMethodAbility::IsCapacitySupport(int32_t capacity, bool &isSupport)
+{
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("failed to get imsa proxy!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+
+    return proxy->IsCapacitySupport(capacity, isSupport);
+}
 } // namespace MiscServices
 } // namespace OHOS

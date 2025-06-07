@@ -38,8 +38,10 @@ extern "C" {
     FFI_EXPORT int32_t FfiInputMethodControllerOff(int8_t type);
 
     FFI_EXPORT int32_t FfiInputMethodControllerAttach(bool showKeyboard, CTextConfig txtCfg);
+    FFI_EXPORT int32_t FfiInputMethodControllerAttachWithReason(bool showKeyboard, CTextConfig txtCfg, int32_t reason);
     FFI_EXPORT int32_t FfiInputMethodControllerDetach();
     FFI_EXPORT int32_t FfiInputMethodControllerShowTextInput();
+    FFI_EXPORT int32_t FfiInputMethodControllerShowTextInputWithReason(int32_t reason);
     FFI_EXPORT int32_t FfiInputMethodControllerHideTextInput();
     FFI_EXPORT int32_t FfiInputMethodControllerSetCallingWindow(uint32_t windowId);
     FFI_EXPORT int32_t FfiInputMethodControllerUpdateCursor(CCursorInfo cursor);

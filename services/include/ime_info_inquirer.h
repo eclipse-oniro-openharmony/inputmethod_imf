@@ -94,6 +94,7 @@ public:
     void InitSystemConfig();
     SystemConfig GetSystemConfig();
     ImeNativeCfg GetDefaultIme();
+    std::string GetSystemSpecialIme();
     int32_t QueryFullImeInfo(std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> &imeInfos);
     int32_t QueryFullImeInfo(int32_t userId, std::vector<FullImeInfo> &imeInfos, bool needBrief = false);
     int32_t GetFullImeInfo(int32_t userId, const std::string &bundleName, FullImeInfo &imeInfo);

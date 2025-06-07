@@ -112,6 +112,7 @@ public:
     int32_t OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     bool HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent> &keyEvent);
     int32_t OnResponse(uint64_t msgId, int32_t code, const ResponseData &data);
+    int32_t IsCapacitySupport(int32_t capacity, bool &isSupport);
 
 public:
     /* called from TaskManager worker thread */
