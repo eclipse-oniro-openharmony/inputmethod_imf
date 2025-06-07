@@ -15,7 +15,6 @@
 #include "js_get_input_method_textchange_listener.h"
 #include "event_handler.h"
 #include "js_get_input_method_controller.h"
-#include "event_handler.h"
 namespace OHOS {
 namespace MiscServices {
 std::mutex JsGetInputMethodTextChangedListener::listenerMutex_;
@@ -31,10 +30,10 @@ sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::G
             std::lock_guard<std::mutex> lock(listenerMutex_);
             if (inputMethodListener_ == nullptr) {
                 inputMethodListener_ = new (std::nothrow) JsGetInputMethodTextChangedListener();
+                inputMethodListener_->handler_ = AppExecFwk::EventHandler::Current();
             }
         }
     }
-    inputMethodListener_->handler_ = AppExecFwk::EventHandler::Current();
     return inputMethodListener_;
 }
 

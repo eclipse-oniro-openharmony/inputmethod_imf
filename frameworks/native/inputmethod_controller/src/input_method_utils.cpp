@@ -359,7 +359,7 @@ bool ResponseDataInner::ReadFromParcel(Parcel &in)
             break;
         }
         default:
-            IMSA_HILOGE("bad parameter indxe: %{public}" PRIu64 "", index);
+            IMSA_HILOGE("bad parameter index: %{public}" PRIu64 "", index);
             return false;
     }
     return true;

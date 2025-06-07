@@ -1873,15 +1873,17 @@ std::u16string OnTextChangedListener::GetLeftTextOfCursorV2(int32_t number)
     if (eventHandler != nullptr) {
         textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
     }
-    auto task = [this, textResultHandler, number, &text]() {
-        text = GetLeftTextOfCursor(number);
+    auto task = [this, textResultHandler, number]() {
+        std::u16string info = GetLeftTextOfCursor(number);
         if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(text);
+            textResultHandler->SetValue(info);
         }
     };
     if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "GetLeftTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        textResultHandler->GetValue();
+        if (!textResultHandler->GetValue(text)) {
+            IMSA_HILOGW("GetLeftTextOfCursorV2 timeout");
+        }
     } else {
         task();
     }
@@ -1896,15 +1898,17 @@ std::u16string OnTextChangedListener::GetRightTextOfCursorV2(int32_t number)
     if (eventHandler != nullptr) {
         textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
     }
-    auto task = [this, textResultHandler, number, &text]() {
-        text = GetRightTextOfCursor(number);
+    auto task = [this, textResultHandler, number]() {
+        std::u16string info = GetRightTextOfCursor(number);
         if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(text);
+            textResultHandler->SetValue(info);
         }
     };
     if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "GetRightTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        textResultHandler->GetValue();
+        if (!textResultHandler->GetValue(text)) {
+            IMSA_HILOGW("GetRightTextOfCursorV2 timeout");
+        }
     } else {
         task();
     }
@@ -1919,15 +1923,17 @@ int32_t OnTextChangedListener::GetTextIndexAtCursorV2()
     if (eventHandler != nullptr) {
         textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
     }
-    auto task = [this, textResultHandler, &index]() {
-        index = GetTextIndexAtCursor();
+    auto task = [this, textResultHandler]() {
+        int32_t textIndex = GetTextIndexAtCursor();
         if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(index);
+            textResultHandler->SetValue(textIndex);
         }
     };
     if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        textResultHandler->GetValue();
+        if (!textResultHandler->GetValue(index)) {
+            IMSA_HILOGW("GetTextIndexAtCursorV2 timeout");
+        }
     } else {
         task();
     }
@@ -2021,15 +2027,17 @@ int32_t OnTextChangedListener::ReceivePrivateCommandV2(
     if (eventHandler != nullptr) {
         textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
     }
-    auto task = [this, textResultHandler, privateCommand, &ret]() {
-        ret = ReceivePrivateCommand(privateCommand);
+    auto task = [this, textResultHandler, privateCommand]() {
+        int32_t command = ReceivePrivateCommand(privateCommand);
         if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(ret);
+            textResultHandler->SetValue(command);
         }
     };
     if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        textResultHandler->GetValue();
+        eventHandler->PostTask(task, "ReceivePrivateCommandV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+        if (!textResultHandler->GetValue(ret)) {
+            IMSA_HILOGW("ReceivePrivateCommandV2 timeout");
+        }
     } else {
         task();
     }
@@ -2044,15 +2052,17 @@ int32_t OnTextChangedListener::SetPreviewTextV2(const std::u16string &text, cons
     if (eventHandler != nullptr) {
         textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
     }
-    auto task = [this, textResultHandler, text, range, &ret]() {
-        ret = SetPreviewText(text, range);
+    auto task = [this, textResultHandler, text, range]() {
+        int32_t code = SetPreviewText(text, range);
         if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(ret);
+            textResultHandler->SetValue(code);
         }
     };
     if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        textResultHandler->GetValue();
+        if (!textResultHandler->GetValue(ret)) {
+            IMSA_HILOGW("ReceivePrivateCommandV2 timeout");
+        }
     } else {
         task();
     }

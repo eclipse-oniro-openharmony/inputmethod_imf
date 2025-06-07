@@ -833,6 +833,10 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
 {
     IMSA_HILOGD("SetInputDataChannel start.");
     std::lock_guard<std::mutex> lock(dataChannelLock_);
+    if (dataChannelObject_ != nullptr && object != nullptr && object.GetRefPtr() == dataChannelObject_.GetRefPtr()) {
+        IMSA_HILOGD("datachannel has already been set.");
+        return;
+    }
     auto channelProxy = std::make_shared<InputDataChannelProxy>(object);
     if (channelProxy == nullptr) {
         IMSA_HILOGE("failed to create channel proxy!");

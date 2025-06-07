@@ -189,7 +189,7 @@ ErrCode InputDataChannelServiceImpl::SelectByRange(int32_t start, int32_t end, u
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
-        return ERR_OK;
+        return ErrorCode::ERROR_EX_NULL_POINTER;
     }
 
     instance->SelectByRange(start, end);
@@ -203,7 +203,7 @@ ErrCode InputDataChannelServiceImpl::SelectByMovement(int32_t direction, int32_t
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGW("failed to get InputMethodController instance!");
-        return ERR_OK;
+        return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     instance->SelectByMovement(direction, cursorMoveSkip);
     ResponseData data = std::monostate{};
