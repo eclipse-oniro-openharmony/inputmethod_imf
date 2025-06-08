@@ -849,6 +849,9 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
         IMSA_HILOGE("failed to create channel wrap!");
         return;
     }
+    if (agentStub_ != nullptr) {
+        channelProxy->SetSpareAgent(agentStub_->AsObject());
+    }
     dataChannelProxyWrap_ = channelWrap;
     dataChannelObject_ = object;
 }

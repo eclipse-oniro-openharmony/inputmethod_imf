@@ -298,5 +298,16 @@ ErrCode InputDataChannelServiceImpl::SendMessage(const ArrayBuffer &arraybuffer)
     }
     return instance->RecvMessage(arraybuffer);
 }
+
+ErrCode InputDataChannelServiceImpl::SetSpareAgent(const sptr<IRemoteObject> &agent)
+{
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    instance->SetSpareAgent(agent);
+    return ERR_OK;
+}
 } // namespace MiscServices
 } // namespace OHOS

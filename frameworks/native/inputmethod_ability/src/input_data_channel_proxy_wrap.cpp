@@ -31,9 +31,9 @@ InputDataChannelProxyWrap::InputDataChannelProxyWrap(const std::shared_ptr<Input
     auto duration = now.time_since_epoch();
     msgId_ = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
     msgId_ = msgId_ ? msgId_ : ++msgId_;
-
     channel_ = channel;
 }
+
 InputDataChannelProxyWrap::~InputDataChannelProxyWrap()
 {
     ClearRspHandlers();
@@ -230,8 +230,8 @@ int32_t InputDataChannelProxyWrap::ClearRspHandlers()
             handler.second->syncBlockData_->SetValue(rspInfo);
             continue;
         }
-        if (handler.second->callBack_ != nullptr) {
-            handler.second->callBack_(rspInfo.dealRet_, rspInfo.data_);
+        if (handler.second->callback_ != nullptr) {
+            handler.second->callback_(rspInfo.dealRet_, rspInfo.data_);
         }
     }
     rspHandlers_.clear();
@@ -251,8 +251,8 @@ int32_t InputDataChannelProxyWrap::HandleResponse(uint64_t msgId, const Response
     }
     if (it->second->syncBlockData_ != nullptr) {
         it->second->syncBlockData_->SetValue(rspInfo);
-    } else if (it->second->callBack_ != nullptr) {
-        it->second->callBack_(rspInfo.dealRet_, rspInfo.data_);
+    } else if (it->second->callback_ != nullptr) {
+        it->second->callback_(rspInfo.dealRet_, rspInfo.data_);
     }
     rspHandlers_.erase(it);
     return ErrorCode::NO_ERROR;

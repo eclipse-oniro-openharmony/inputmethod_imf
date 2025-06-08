@@ -23,8 +23,8 @@ std::mutex KeyboardListenerTestImpl::kdListenerLock_;
 std::condition_variable KeyboardListenerTestImpl::kdListenerCv_;
 int32_t KeyboardListenerTestImpl::keyCode_ { -1 };
 int32_t KeyboardListenerTestImpl::cursorHeight_ { -1 };
-int32_t KeyboardListenerTestImpl::newBegin_ { -1 };
-std::string KeyboardListenerTestImpl::text_{"-1"};
+int32_t KeyboardListenerTestImpl::newBegin_{ -1 };
+std::string KeyboardListenerTestImpl::text_{ "-1" };
 InputAttribute KeyboardListenerTestImpl::inputAttribute_ { 0, 0, 0 };
 bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
 {
