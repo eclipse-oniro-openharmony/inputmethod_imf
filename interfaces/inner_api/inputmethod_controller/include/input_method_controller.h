@@ -968,7 +968,7 @@ public:
      */
     IMF_API int32_t RegisterWindowScaleCallbackHandler(WindowScaleCallback&& callback);
 
-    void SetSpareAgent(const sptr<IRemoteObject> &agentObject);
+    void SetAgent(const sptr<IRemoteObject> &agentObject);
 
 private:
     InputMethodController();
@@ -995,7 +995,6 @@ private:
     void SetTextListener(sptr<OnTextChangedListener> listener);
     bool IsEditable();
     bool IsBound();
-    void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
     void PrintKeyEventLog();

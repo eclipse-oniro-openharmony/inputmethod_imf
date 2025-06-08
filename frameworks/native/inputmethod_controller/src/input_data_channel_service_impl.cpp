@@ -246,7 +246,7 @@ ErrCode InputDataChannelServiceImpl::NotifyKeyboardHeight(uint32_t height)
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::SendPrivateCommand(const Value &value, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::SendPrivateCommand(const Value &value)
 {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     privateCommand = value.valueMap;
@@ -255,10 +255,7 @@ ErrCode InputDataChannelServiceImpl::SendPrivateCommand(const Value &value, uint
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    auto ret = instance->ReceivePrivateCommand(privateCommand);
-    ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
-    return ret;
+    return instance->ReceivePrivateCommand(privateCommand);
 }
 
 ErrCode InputDataChannelServiceImpl::SetPreviewText(
@@ -306,7 +303,7 @@ ErrCode InputDataChannelServiceImpl::SetSpareAgent(const sptr<IRemoteObject> &ag
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    instance->SetSpareAgent(agent);
+    instance->SetAgent(agent);
     return ERR_OK;
 }
 } // namespace MiscServices
