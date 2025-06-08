@@ -222,8 +222,8 @@ int32_t InputDataChannelProxyWrap::ClearRspHandlers()
             handler.second->syncBlockData_->SetValue(rspInfo);
             continue;
         }
-        if (handler.second->callback_ != nullptr) {
-            handler.second->callback_(rspInfo.dealRet_, rspInfo.data_);
+        if (handler.second->asyncCallback_ != nullptr) {
+            handler.second->asyncCallback_(rspInfo.dealRet_, rspInfo.data_);
         }
     }
     rspHandlers_.clear();
@@ -243,8 +243,9 @@ int32_t InputDataChannelProxyWrap::HandleResponse(uint64_t msgId, const Response
     }
     if (it->second->syncBlockData_ != nullptr) {
         it->second->syncBlockData_->SetValue(rspInfo);
-    } else if (it->second->callback_ != nullptr) {
-        it->second->callback_(rspInfo.dealRet_, rspInfo.data_);
+    }
+    if (it->second->asyncCallback_ != nullptr) {
+        it->second->asyncCallback_(rspInfo.dealRet_, rspInfo.data_);
     }
     rspHandlers_.erase(it);
     return ErrorCode::NO_ERROR;
