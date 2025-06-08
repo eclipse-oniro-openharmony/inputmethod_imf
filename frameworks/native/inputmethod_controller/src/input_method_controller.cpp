@@ -1885,23 +1885,20 @@ std::u16string OnTextChangedListener::GetLeftTextOfCursorV2(int32_t number)
 {
     std::u16string text;
     auto eventHandler = GetEventHandler();
-    std::shared_ptr<BlockData<std::u16string>> textResultHandler = nullptr;
     if (eventHandler != nullptr) {
-        textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
-    }
-    auto task = [this, textResultHandler, number]() {
-        std::u16string info = GetLeftTextOfCursor(number);
-        if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(info);
-        }
-    };
-    if (eventHandler != nullptr) {
+        auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
+        auto task = [this, textResultHandler, number]() {
+            std::u16string info = GetLeftTextOfCursor(number);
+            if (textResultHandler != nullptr) {
+                textResultHandler->SetValue(info);
+            }
+        };
         eventHandler->PostTask(task, "GetLeftTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
         if (!textResultHandler->GetValue(text)) {
             IMSA_HILOGW("GetLeftTextOfCursorV2 timeout");
         }
     } else {
-        task();
+        text = GetLeftTextOfCursor(number);
     }
     return text;
 }
@@ -1910,23 +1907,20 @@ std::u16string OnTextChangedListener::GetRightTextOfCursorV2(int32_t number)
 {
     std::u16string text;
     auto eventHandler = GetEventHandler();
-    std::shared_ptr<BlockData<std::u16string>> textResultHandler = nullptr;
     if (eventHandler != nullptr) {
-        textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
-    }
-    auto task = [this, textResultHandler, number]() {
-        std::u16string info = GetRightTextOfCursor(number);
-        if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(info);
-        }
-    };
-    if (eventHandler != nullptr) {
+        auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
+        auto task = [this, textResultHandler, number]() {
+            std::u16string info = GetRightTextOfCursor(number);
+            if (textResultHandler != nullptr) {
+                textResultHandler->SetValue(info);
+            }
+        };
         eventHandler->PostTask(task, "GetRightTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
         if (!textResultHandler->GetValue(text)) {
             IMSA_HILOGW("GetRightTextOfCursorV2 timeout");
         }
     } else {
-        task();
+        text = GetRightTextOfCursor(number);
     }
     return text;
 }
@@ -1935,23 +1929,20 @@ int32_t OnTextChangedListener::GetTextIndexAtCursorV2()
 {
     int32_t index = -1;
     auto eventHandler = GetEventHandler();
-    std::shared_ptr<BlockData<int32_t>> textResultHandler = nullptr;
     if (eventHandler != nullptr) {
-        textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
-    }
-    auto task = [this, textResultHandler]() {
-        int32_t textIndex = GetTextIndexAtCursor();
-        if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(textIndex);
-        }
-    };
-    if (eventHandler != nullptr) {
+        auto textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+        auto task = [this, textResultHandler]() {
+            int32_t textIndex = GetTextIndexAtCursor();
+            if (textResultHandler != nullptr) {
+                textResultHandler->SetValue(textIndex);
+            }
+        };
         eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
         if (!textResultHandler->GetValue(index)) {
             IMSA_HILOGW("GetTextIndexAtCursorV2 timeout");
         }
     } else {
-        task();
+        index = GetTextIndexAtCursor();
     }
     return index;
 }

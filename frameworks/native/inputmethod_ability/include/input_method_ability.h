@@ -53,7 +53,7 @@ public:
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t RegisterProxyIme(uint64_t displayId = DEFAULT_DISPLAY_ID);
     int32_t UnregisterProxyIme(uint64_t displayId);
-    int32_t InsertText(const std::string text, const AsyncIpcCallBack &callback = nullptr);
+    int32_t InsertText(const std::string &text, const AsyncIpcCallBack &callback = nullptr);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     std::shared_ptr<InputMethodEngineListener> GetImeListener();
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
@@ -98,7 +98,7 @@ public:
     bool IsDefaultIme();
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range, const AsyncIpcCallBack &callback = nullptr);
-    int32_t FinishTextPreview(bool isAsync, const AsyncIpcCallBack &callback = nullptr);
+    int32_t FinishTextPreview(const AsyncIpcCallBack &callback = nullptr);
     int32_t NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     RequestKeyboardReason GetRequestKeyboardReason();
@@ -192,7 +192,7 @@ private:
         const std::string &text, const Range &range, const AsyncIpcCallBack &callback = nullptr);
     int32_t DeleteForwardInner(int32_t length, const AsyncIpcCallBack &callback = nullptr);
     int32_t DeleteBackwardInner(int32_t length, const AsyncIpcCallBack &callback = nullptr);
-    int32_t FinishTextPreviewInner(bool isAsync, const AsyncIpcCallBack &callback = nullptr);
+    int32_t FinishTextPreviewInner(const AsyncIpcCallBack &callback = nullptr);
     int32_t GetTextBeforeCursorInner(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback = nullptr);
     int32_t GetTextAfterCursorInner(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback = nullptr);
     int32_t GetTextIndexAtCursorInner(int32_t &index, const AsyncIpcCallBack &callback = nullptr);
