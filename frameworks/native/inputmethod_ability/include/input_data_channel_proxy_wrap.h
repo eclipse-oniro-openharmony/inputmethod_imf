@@ -54,7 +54,7 @@ public:
     explicit InputDataChannelProxyWrap(const std::shared_ptr<InputDataChannelProxy> &channel);
     ~InputDataChannelProxyWrap();
 
-    int32_t InsertText(const std::string &text, bool isSync = false, const AsyncIpcCallBack &callback = nullptr);
+    int32_t InsertText(const std::string &text, const AsyncIpcCallBack &callback = nullptr);
     int32_t DeleteForward(int32_t length, const AsyncIpcCallBack &callback = nullptr);
     int32_t DeleteBackward(int32_t length, const AsyncIpcCallBack &callback = nullptr);
     int32_t GetTextBeforeCursor(int32_t number, std::string &text, const AsyncIpcCallBack &callback = nullptr);
@@ -67,7 +67,7 @@ public:
     int32_t GetTextIndexAtCursor(int32_t &index, const AsyncIpcCallBack &callback = nullptr);
     int32_t SetPreviewText(
         const std::string &text, const RangeInner &range, const AsyncIpcCallBack &callback = nullptr);
-    int32_t FinishTextPreview(bool isAsync, const AsyncIpcCallBack &callback = nullptr);
+    int32_t FinishTextPreview(const AsyncIpcCallBack &callback = nullptr);
 
 public:
     int32_t HandleResponse(uint64_t msgId, const ResponseInfo &rspInfo);

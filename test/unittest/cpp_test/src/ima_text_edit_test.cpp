@@ -90,6 +90,7 @@ public:
         dealRet_ = ErrorCode::ERROR_CLIENT_NOT_BOUND;
         getForwardRspNums_ = 0;
         getForwardText_ = "";
+        getIndex_ = 0;
     }
 
     static void CommonRsp(int32_t ret, const ResponseData &data)
@@ -119,8 +120,8 @@ public:
     {
         std::unique_lock<std::mutex> lock(retCvLock_);
         retCv_.wait_for(lock, std::chrono::seconds(MAX_WAIT_TIME),
-            [&num]() { return getForwardRspNums_ == num && dealRet_ == ErrorCode::ERROR_IMA_CHANNEL_NULLPTR; });
-        return getForwardRspNums_ == num && dealRet_ == ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            [&num]() { return getForwardRspNums_ == num && dealRet_ == ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL; });
+        return getForwardRspNums_ == num && dealRet_ == ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
 
     static bool WaitGetForwardRsp(const std::string &text)
@@ -131,11 +132,29 @@ public:
         return dealRet_ == ErrorCode::NO_ERROR;
     }
 
+    static void GetTextIndexAtCursorRsp(int32_t ret, const ResponseData &data)
+    {
+        std::lock_guard<std::mutex> lock(retCvLock_);
+        getForwardRspNums_++;
+        dealRet_ = ret;
+        VariantUtil::GetValue(data, getIndex_);
+        retCv_.notify_one();
+    }
+
+    static bool WaitGetTextIndexAtCursorRsp(int32_t index)
+    {
+        std::unique_lock<std::mutex> lock(retCvLock_);
+        retCv_.wait_for(lock, std::chrono::seconds(MAX_WAIT_TIME),
+            [&]() { return dealRet_ == ErrorCode::NO_ERROR && index == getIndex_; });
+        return dealRet_ == ErrorCode::NO_ERROR;
+    }
+
     static std::mutex retCvLock_;
     static std::condition_variable retCv_;
     static int32_t dealRet_;
     static int32_t getForwardRspNums_;
     static std::string getForwardText_;
+    static int32_t getIndex_;
     static std::string finalText_;
 };
 
@@ -146,6 +165,249 @@ const std::string ImaTextEditTest::INSERT_TEXT = "ABCDEFGHIJKMN";
 std::string ImaTextEditTest::finalText_;
 int32_t ImaTextEditTest::getForwardRspNums_{ 0 };
 std::string ImaTextEditTest::getForwardText_;
+int32_t ImaTextEditTest::getIndex_{ 0 };
+
+/**
+ * @tc.name: ImaTextEditTest_GetForward
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_GetForward, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_GetForward");
+    finalText_ = INSERT_TEXT;
+    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
+
+    auto expectText = INSERT_TEXT.substr(INSERT_TEXT.size() - GET_LENGTH);
+    std::u16string syncText;
+    // sync
+    ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, syncText);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(Str16ToStr8(syncText), expectText);
+
+    // async
+    std::u16string asyncText;
+    ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, asyncText, GetForwardRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitGetForwardRsp(expectText));
+}
+
+/**
+ * @tc.name: ImaTextEditTest_GetBackward
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_GetBackward, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_GetBackward");
+    finalText_ = INSERT_TEXT;
+    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
+
+    std::string expectText;
+    std::u16string syncText;
+    // sync
+    ret = InputMethodAbility::GetInstance().GetTextAfterCursor(GET_LENGTH, syncText);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(Str16ToStr8(syncText), expectText);
+
+    // async
+    std::u16string asyncText;
+    ret = InputMethodAbility::GetInstance().GetTextAfterCursor(GET_LENGTH, asyncText, GetForwardRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitGetForwardRsp(expectText));
+}
+
+/**
+ * @tc.name: ImaTextEditTest_GetTextIndexAtCursor
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_GetTextIndexAtCursor, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_GetTextIndexAtCursor");
+    finalText_ = INSERT_TEXT;
+    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
+
+    int32_t syncIndex = 0;
+    int32_t expectIndex = INSERT_TEXT.size();
+    // sync
+    ret = InputMethodAbility::GetInstance().GetTextIndexAtCursor(syncIndex);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(syncIndex, expectIndex);
+
+    // async
+    int32_t asyncIndex = 0;
+    ret = InputMethodAbility::GetInstance().GetTextIndexAtCursor(asyncIndex, GetTextIndexAtCursorRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitGetTextIndexAtCursorRsp(expectIndex));
+}
+
+/**
+ * @tc.name: ImaTextEditTest_InsertText
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_InsertText, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_InsertText");
+    // sync
+    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
+    KeyboardListenerTestImpl::ResetParam();
+    // async
+    ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT, CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+    finalText_ = INSERT_TEXT + INSERT_TEXT;
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(finalText_));
+}
+
+/**
+ * @tc.name: ImaTextEditTest_SetPreviewText_FinishTextPreview
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_SetPreviewText_FinishTextPreview, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_SetPreviewText_FinishTextPreview");
+    Range range = { -1, -1 };
+    // sync
+    auto ret = InputMethodAbility::GetInstance().SetPreviewText(INSERT_TEXT, range);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodAbility::GetInstance().FinishTextPreview();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
+    KeyboardListenerTestImpl::ResetParam();
+
+    // async
+    ret = InputMethodAbility::GetInstance().SetPreviewText(INSERT_TEXT, range, CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+    ResetParams();
+    ret = InputMethodAbility::GetInstance().FinishTextPreview(CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
+}
+/**
+ * @tc.name: ImaTextEditTest_DeleteForward
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteForward, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_DeleteForward");
+    // sync
+    auto ret = InputMethodAbility::GetInstance().DeleteForward(DEL_LENGTH);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // async
+    ret = InputMethodAbility::GetInstance().DeleteForward(DEL_LENGTH, CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+}
+
+/**
+ * @tc.name: ImaTextEditTest_DeleteBackward
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteBackward, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_DeleteBackward");
+    // sync
+    auto ret = InputMethodAbility::GetInstance().DeleteBackward(DEL_LENGTH);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // async
+    ret = InputMethodAbility::GetInstance().DeleteBackward(DEL_LENGTH, CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+}
+
+/**
+ * @tc.name: ImaTextEditTest_SendExtendAction
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_SendExtendAction, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_SendExtendAction");
+    // sync
+    int32_t action = 1;
+    auto ret = InputMethodAbility::GetInstance().SendExtendAction(action);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // async
+    ret = InputMethodAbility::GetInstance().SendExtendAction(action, CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+}
+
+/**
+ * @tc.name: ImaTextEditTest_MoveCursor
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_MoveCursor, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_MoveCursor");
+    // sync
+    int32_t direction = 3;
+    auto ret = InputMethodAbility::GetInstance().MoveCursor(direction);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // async
+    ret = InputMethodAbility::GetInstance().MoveCursor(direction, CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+}
+
+/**
+ * @tc.name: ImaTextEditTest_SelectByRange
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_SelectByRange, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_SelectByRange");
+    // sync
+    int32_t start = 1;
+    int32_t end = 2;
+    auto ret = InputMethodAbility::GetInstance().SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // async
+    ret = InputMethodAbility::GetInstance().SelectByRange(start, end, CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+}
+
+/**
+ * @tc.name: ImaTextEditTest_SelectByMovement
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_SelectByMovement, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_SelectByMovement");
+    // sync
+    int32_t direction = 1;
+    auto ret = InputMethodAbility::GetInstance().SelectByMovement(direction);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // async
+    ret = InputMethodAbility::GetInstance().SelectByMovement(direction, CommonRsp);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(WaitCommonRsp());
+}
 
 /**
  * @tc.name: ImaTextEditTest_SendFunctionKey
@@ -161,113 +423,9 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_SendFunctionKey, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // async
-    KeyboardListenerTestImpl::ResetParam();
     ret = InputMethodAbility::GetInstance().SendFunctionKey(funcKey, CommonRsp);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(WaitCommonRsp());
-}
-
-/**
- * @tc.name: ImaTextEditTest_GetForward
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(ImaTextEditTest, ImaTextEditTest_GetForward, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_GetForward");
-    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
-
-    auto expectText = INSERT_TEXT.substr(INSERT_TEXT.size() - GET_LENGTH);
-    std::u16string syncText;
-    // sync
-    ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, syncText);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(Str16ToStr8(syncText), expectText);
-
-    // async
-    std::u16string asyncText;
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbility::GetInstance().GetTextBeforeCursor(GET_LENGTH, asyncText, GetForwardRsp);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(WaitGetForwardRsp(expectText));
-}
-
-/**
- * @tc.name: ImaTextEditTest_GetBackward
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(ImaTextEditTest, ImaTextEditTest_GetBackward, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_GetBackward");
-    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
-
-    auto expectText = INSERT_TEXT.substr(INSERT_TEXT.size() - GET_LENGTH);
-    std::u16string syncText;
-    // sync
-    ret = InputMethodAbility::GetInstance().GetTextAfterCursor(GET_LENGTH, syncText);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(Str16ToStr8(syncText), expectText);
-
-    // async
-    std::u16string asyncText;
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbility::GetInstance().GetTextAfterCursor(GET_LENGTH, asyncText, GetForwardRsp);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(WaitGetForwardRsp(expectText));
-}
-
-/**
- * @tc.name: ImaTextEditTest_InsertText
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(ImaTextEditTest, ImaTextEditTest_InsertText, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_InsertText");
-    // sync
-    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
-    // async
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT, CommonRsp);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(WaitCommonRsp());
-    finalText_ = INSERT_TEXT + INSERT_TEXT;
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(finalText_));
-}
-
-/**
- * @tc.name: ImaTextEditTest_DeleteForward
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteForward, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_DeleteForward");
-    auto ret = InputMethodAbility::GetInstance().InsertText(INSERT_TEXT);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
-
-    // sync
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbility::GetInstance().DeleteForward(DEL_LENGTH);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    finalText_ = INSERT_TEXT.substr(0, INSERT_TEXT.size() - DEL_LENGTH);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(finalText_));
-
-    // async
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbility::GetInstance().DeleteForward(DEL_LENGTH, CommonRsp);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(WaitCommonRsp());
-    finalText_ = finalText_.substr(0, finalText_.size() - DEL_LENGTH);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(finalText_));
 }
 
 /**
@@ -291,7 +449,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_ClearRspHandlers, TestSize.Level0)
     channelWrap->AddRspHandler(GetForwardRsp, false);
     auto handler = channelWrap->AddRspHandler(GetForwardRsp, true);
     auto ret = channelWrap->WaitResponse(handler, nullptr);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL);
     EXPECT_TRUE(WaitGetForwardRspAbnormal(2));
 }
 

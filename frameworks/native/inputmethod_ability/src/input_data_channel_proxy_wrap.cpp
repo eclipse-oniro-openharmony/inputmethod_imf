@@ -39,12 +39,12 @@ InputDataChannelProxyWrap::~InputDataChannelProxyWrap()
     ClearRspHandlers();
 }
 
-int32_t InputDataChannelProxyWrap::InsertText(const std::string &text, bool isSync, const AsyncIpcCallBack &callback)
+int32_t InputDataChannelProxyWrap::InsertText(const std::string &text, const AsyncIpcCallBack &callback)
 {
     auto work = [text](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->InsertText(text, msgId);
     };
-    return Request(callback, work, isSync);
+    return Request(callback, work, !callback);
 }
 
 int32_t InputDataChannelProxyWrap::DeleteForward(int32_t length, const AsyncIpcCallBack &callback)
@@ -153,12 +153,12 @@ int32_t InputDataChannelProxyWrap::SetPreviewText(
     return Request(callback, work, !callback);
 }
 
-int32_t InputDataChannelProxyWrap::FinishTextPreview(bool isAsync, const AsyncIpcCallBack &callback)
+int32_t InputDataChannelProxyWrap::FinishTextPreview(const AsyncIpcCallBack &callback)
 {
     auto work = [](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->FinishTextPreview(msgId);
     };
-    return Request(callback, work, !isAsync);
+    return Request(callback, work, !callback);
 }
 
 int32_t InputDataChannelProxyWrap::Request(

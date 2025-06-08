@@ -648,7 +648,7 @@ int32_t InputMethodAbility::InsertTextInner(const std::string &text, const Async
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
 
-    return channel->InsertText(text, false, callback);
+    return channel->InsertText(text, callback);
 }
 
 int32_t InputMethodAbility::DeleteForwardInner(int32_t length, const AsyncIpcCallBack &callback)
@@ -1129,7 +1129,8 @@ int32_t InputMethodAbility::HidePanel(
     info.sessionId = sessionId;
     NotifyPanelStatusInfo(info);
     if (trigger == Trigger::IMF && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-        FinishTextPreview(true);
+        AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) { ; };
+        FinishTextPreview(callback);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -1402,7 +1403,8 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
             NotifyPanelStatusInfo(info, channelProxy);
             // finish previewing text when soft keyboard hides
             if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-                FinishTextPreview(true);
+                AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) { ; };
+                FinishTextPreview(callback);
             }
         }
         return false;
@@ -1479,7 +1481,7 @@ int32_t InputMethodAbility::SetPreviewTextInner(
     return dataChannel->SetPreviewText(text, rangeInner, callback);
 }
 
-int32_t InputMethodAbility::FinishTextPreviewInner(bool isAsync, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::FinishTextPreviewInner(const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_FinishTextPreview");
     auto dataChannel = GetInputDataChannelProxyWrap();
@@ -1487,7 +1489,7 @@ int32_t InputMethodAbility::FinishTextPreviewInner(bool isAsync, const AsyncIpcC
         IMSA_HILOGE("dataChannel is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    return dataChannel->FinishTextPreview(isAsync, callback);
+    return dataChannel->FinishTextPreview(callback);
 }
 
 int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
@@ -1616,7 +1618,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     return ret;
 }
 
-int32_t InputMethodAbility::InsertText(const std::string text, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::InsertText(const std::string &text, const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = InsertTextInner(text, callback);
@@ -1653,10 +1655,10 @@ int32_t InputMethodAbility::SetPreviewText(
     return ret;
 }
 
-int32_t InputMethodAbility::FinishTextPreview(bool isAsync, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::FinishTextPreview(const AsyncIpcCallBack &callback)
 {
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = FinishTextPreviewInner(isAsync, callback);
+    auto ret = FinishTextPreviewInner(callback);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_FINISH_TEXT_PREVIEW),
         ret, end - start);
@@ -1804,9 +1806,10 @@ bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent
     }
     int32_t keyCode = keyEvent->GetKeyCode();
     std::string inputNumber;
+    AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) { ; };
     if (MMI::KeyEvent::KEYCODE_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_9) {
         IMSA_HILOGI("auto input a number");
-        channel->InsertText(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_0));
+        channel->InsertText(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_0), callback);
         return true;
     }
     if (!keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY)) {
@@ -1815,7 +1818,7 @@ bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent
     }
     if (MMI::KeyEvent::KEYCODE_NUMPAD_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_NUMPAD_9) {
         IMSA_HILOGI("auto input a number");
-        channel->InsertText(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_NUMPAD_0));
+        channel->InsertText(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_NUMPAD_0), callback);
         return true;
     }
     return false;

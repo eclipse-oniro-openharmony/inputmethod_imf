@@ -981,7 +981,7 @@ napi_value JsTextInputClientEngine::FinishTextPreview(napi_env env, napi_callbac
             }
             completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
         };
-        int32_t code = InputMethodAbility::GetInstance().FinishTextPreview(false, rspCallBack);
+        int32_t code = InputMethodAbility::GetInstance().FinishTextPreview(rspCallBack);
         if (code != ErrorCode::NO_ERROR) {
             ctxt->SetErrorCode(code);
             completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
@@ -997,7 +997,7 @@ napi_value JsTextInputClientEngine::FinishTextPreviewSync(napi_env env, napi_cal
 {
     InputMethodSyncTrace tracer("JS_FinishTextPreviewSync", GenerateTraceId());
     IMSA_HILOGD("JsTextInputClientEngine in");
-    int32_t ret = InputMethodAbility::GetInstance().FinishTextPreview(false);
+    int32_t ret = InputMethodAbility::GetInstance().FinishTextPreview();
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to finish text preview!", TYPE_NONE);
     }
