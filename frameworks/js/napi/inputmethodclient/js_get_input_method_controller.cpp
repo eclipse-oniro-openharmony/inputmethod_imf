@@ -654,7 +654,8 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
         }
         ctxt->info = { std::chrono::system_clock::now(), ctxt->attribute};
         attachQueue_.Push(ctxt->info);
-        ctxt->textListener = JsGetInputMethodTextChangedListener::GetTextListener(ctxt->textConfig.newEditBox);
+        ctxt->textListener =
+            JsGetInputMethodTextChangedListener::GetTextListener(GetEventHandler(), ctxt->textConfig.newEditBox);
         return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {

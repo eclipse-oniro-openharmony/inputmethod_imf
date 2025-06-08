@@ -75,10 +75,9 @@ ErrCode InputDataChannelServiceImpl::GetTextBeforeCursor(int32_t number, uint64_
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    std::string text;
-    std::u16string textu16 = Str8ToStr16(text);
-    int32_t ret = instance->GetLeft(number, textu16);
-    ResponseData data = Str16ToStr8(textu16);
+    std::u16string text;
+    int32_t ret = instance->GetLeft(number, text);
+    ResponseData data = Str16ToStr8(text);
     instance->ResponseDataChannel(msgId, ret, data);
     return ret;
 }
@@ -90,10 +89,9 @@ ErrCode InputDataChannelServiceImpl::GetTextAfterCursor(int32_t number, uint64_t
         IMSA_HILOGE("failed to get InputMethodController instance!");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    std::string text;
-    std::u16string textu16 = Str8ToStr16(text);
-    auto ret =  instance->GetRight(number, textu16);
-    ResponseData data = Str16ToStr8(textu16);
+    std::u16string text;
+    auto ret =  instance->GetRight(number, text);
+    ResponseData data = Str16ToStr8(text);
     instance->ResponseDataChannel(msgId, ret, data);
     return ret;
 }
