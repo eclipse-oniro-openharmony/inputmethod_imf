@@ -40,7 +40,6 @@ namespace MiscServices {
 class ImaTextEditTest : public testing::Test {
 public:
     static constexpr const char *NORMAL_EDITOR_BOX_BUNDLE_NAME = "com.example.editorbox";
-    static constexpr const char *ABNORMAL_EDITOR_BOX_BUNDLE_NAME = "com.example.abnormalEditorBox";
     static constexpr const char *CLICK_CMD = "uinput -T -d 200 200 -u 200 200";
     static const std::string INSERT_TEXT;
     static constexpr int32_t GET_LENGTH = 2;

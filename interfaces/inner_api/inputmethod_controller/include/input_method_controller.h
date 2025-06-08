@@ -115,7 +115,7 @@ public:
     {
         return false;
     }
-    virtual std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler() const
+    virtual std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler()
     {
         return nullptr;
     }

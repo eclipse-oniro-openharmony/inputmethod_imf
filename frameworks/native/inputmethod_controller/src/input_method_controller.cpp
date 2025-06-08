@@ -1441,7 +1441,7 @@ int32_t InputMethodController::SendFunctionKey(int32_t functionKey)
     }
     FunctionKey funcKey;
     funcKey.SetEnterKeyType(static_cast<EnterKeyType>(functionKey));
-    listener->SendFunctionKey(funcKey);
+    listener->SendFunctionKeyV2(funcKey);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1809,7 +1809,7 @@ void OnTextChangedListener::InsertTextV2(const std::u16string &text)
 {
     auto task = [this, text]() { InsertText(text); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "InsertTextV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1819,7 +1819,7 @@ void OnTextChangedListener::DeleteForwardV2(int32_t length)
 {
     auto task = [this, length]() { DeleteForward(length); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "DeleteForwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1830,7 +1830,7 @@ void OnTextChangedListener::DeleteBackwardV2(int32_t length)
 {
     auto task = [this, length]() { DeleteBackward(length); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "DeleteBackwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1841,7 +1841,7 @@ void OnTextChangedListener::SendKeyboardStatusV2(const KeyboardStatus &keyboardS
 {
     auto task = [this, keyboardStatus]() { SendKeyboardStatus(keyboardStatus); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "SendKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1852,7 +1852,7 @@ void OnTextChangedListener::SendFunctionKeyV2(const FunctionKey &functionKey)
 {
     auto task = [this, functionKey]() { SendFunctionKey(functionKey); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "SendFunctionKeyV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1863,7 +1863,7 @@ void OnTextChangedListener::MoveCursorV2(const Direction &direction)
 {
     auto task = [this, direction]() { MoveCursor(direction); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "MoveCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1874,7 +1874,7 @@ void OnTextChangedListener::HandleExtendActionV2(int32_t action)
 {
     auto task = [this, action]() { HandleExtendAction(action); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "HandleExtendActionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1960,7 +1960,7 @@ void OnTextChangedListener::SendKeyEventFromInputMethodV2(const KeyEvent &event)
 {
     auto task = [this, event]() { SendKeyEventFromInputMethod(event); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "SendKeyEventFromInputMethodV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1971,7 +1971,7 @@ void OnTextChangedListener::NotifyPanelStatusInfoV2(const PanelStatusInfo &info)
 {
     auto task = [this, info]() { NotifyPanelStatusInfo(info); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "NotifyPanelStatusInfoV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1982,7 +1982,7 @@ void OnTextChangedListener::NotifyKeyboardHeightV2(uint32_t height)
 {
     auto task = [this, height]() { NotifyKeyboardHeight(height); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "NotifyKeyboardHeightV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -1993,7 +1993,7 @@ void OnTextChangedListener::SetKeyboardStatusV2(bool status)
 {
     auto task = [this, status]() { SetKeyboardStatus(status); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "SetKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -2004,7 +2004,7 @@ void OnTextChangedListener::HandleSetSelectionV2(int32_t start, int32_t end)
 {
     auto task = [this, start, end]() { HandleSetSelection(start, end); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "HandleSetSelectionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -2015,7 +2015,7 @@ void OnTextChangedListener::HandleSelectV2(int32_t keyCode, int32_t cursorMoveSk
 {
     auto task = [this, keyCode, cursorMoveSkip]() { HandleSelect(keyCode, cursorMoveSkip); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "HandleSelectV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -2037,7 +2037,7 @@ void OnTextChangedListener::FinishTextPreviewV2()
 {
     auto task = [this]() { FinishTextPreview(); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "FinishTextPreviewV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
@@ -2048,7 +2048,7 @@ void OnTextChangedListener::OnDetachV2()
 {
     auto task = [this]() { OnDetach(); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler) {
+    if (eventHandler != nullptr) {
         eventHandler->PostTask(task, "OnDetachV2", 0, AppExecFwk::EventQueue::Priority::VIP);
     } else {
         task();
