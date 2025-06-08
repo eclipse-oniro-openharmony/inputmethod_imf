@@ -681,7 +681,7 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey, const AsyncIpcCallB
         IMSA_HILOGE("channel is nullptr!");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return channel->SendFunctionKey(funcKey);
+    return channel->SendFunctionKey(funcKey, callback);
 }
 
 int32_t InputMethodAbility::HideKeyboardSelf()
@@ -1831,7 +1831,7 @@ int32_t InputMethodAbility::OnResponse(uint64_t msgId, int32_t code, const Respo
         ResponseInfo rspInfo = { code, data };
         channel->HandleResponse(msgId, rspInfo);
     }
-    return 0;
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::IsCapacitySupport(int32_t capacity, bool &isSupport)

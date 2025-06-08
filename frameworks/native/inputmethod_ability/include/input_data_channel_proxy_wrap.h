@@ -38,12 +38,12 @@ struct ResponseInfo {
 struct ResponseHandler {
     static constexpr uint32_t SYNC_REPLY_TIMEOUT = 3000; // unit ms
     uint64_t msgId_ = 0;
-    AsyncIpcCallBack callback_ = nullptr;
+    AsyncIpcCallBack asyncCallback_ = nullptr;
     std::shared_ptr<BlockData<ResponseInfo>> syncBlockData_ = nullptr;
     ResponseHandler(uint64_t msgId, bool isSync, const AsyncIpcCallBack &callback)
     {
         msgId_ = msgId;
-        callback_ = callback;
+        asyncCallback_ = callback;
         if (isSync) {
             syncBlockData_ = std::make_shared<BlockData<ResponseInfo>>(SYNC_REPLY_TIMEOUT);
         }

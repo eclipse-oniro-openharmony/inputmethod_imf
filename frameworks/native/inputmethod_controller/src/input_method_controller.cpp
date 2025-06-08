@@ -1800,7 +1800,7 @@ int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code,
         IMSA_HILOGE("agent is nullptr!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    ResponseDataInner inner = {};
+    ResponseDataInner inner;
     inner.rspData = data;
     return agent->ResponseDataChannel(msgId, code, inner);
 }

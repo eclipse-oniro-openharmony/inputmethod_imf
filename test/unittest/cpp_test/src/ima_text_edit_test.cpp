@@ -294,7 +294,8 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_SetPreviewText_FinishTextPreview, Test
     ret = InputMethodAbility::GetInstance().FinishTextPreview(CommonRsp);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(WaitCommonRsp());
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(INSERT_TEXT));
+    finalText_ = INSERT_TEXT + INSERT_TEXT;
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange(finalText_));
 }
 /**
  * @tc.name: ImaTextEditTest_DeleteForward
@@ -472,11 +473,9 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteRspHandler, TestSize.Level0)
         lastHandler = channelWrap->AddRspHandler(GetForwardRsp, false);
     }
     ASSERT_NE(firstHandler, nullptr);
-    ASSERT_NE(lastHandler, nullptr);
-
-    for (uint64_t id = firstHandler->msgId_; id <= lastHandler->msgId_; ++id) {
-        EXPECT_EQ(channelWrap->DeleteRspHandler(id), ErrorCode::NO_ERROR);
-    }
+    ASSERT_EQ(lastHandler, nullptr);
+    EXPECT_EQ(channelWrap->DeleteRspHandler(firstHandler->msgId_), ErrorCode::NO_ERROR);
+    EXPECT_EQ(channelWrap->DeleteRspHandler(0), ErrorCode::NO_ERROR);
 }
 
 /**

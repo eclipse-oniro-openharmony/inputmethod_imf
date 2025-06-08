@@ -915,7 +915,7 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
             } else if (code == ErrorCode::ERROR_INVALID_RANGE) {
                 ctxt->SetErrorCode(code);
                 ctxt->SetErrorMessage("range should be included in preview text range, otherwise should be included in "
-                    "total text range!");
+                                      "total text range!");
             } else {
                 ctxt->SetErrorCode(code);
             }
