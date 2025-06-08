@@ -279,7 +279,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteForward, TestSize.Level0)
 HWTEST_F(ImaTextEditTest, ImaTextEditTest_ClearRspHandlers, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_ClearRspHandlers");
-    auto channelProxy = std::make_shared<InputDataChannelProxy>();
+    auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
     auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
     auto delayTask = [&channelWrap]() {
         usleep(100000);
@@ -287,15 +287,11 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_ClearRspHandlers, TestSize.Level0)
     };
     std::thread delayThread(delayTask);
     delayThread.detach();
-    std::shared_ptr<ResponseHandler> handler;
-    channelWrap->AddRspHandler(handler, GetForwardRsp, false);
-    channelWrap->AddRspHandler(handler, GetForwardRsp, false);
-    channelWrap->AddRspHandler(handler, GetForwardRsp, true);
 
-    SyncOutPut output = [](const ResponseInfo &rspInfo) -> int32_t {
-        return rspInfo.dealRet_;
-    };
-    auto ret = channelWrap->WaitResponse(handler, output);
+    channelWrap->AddRspHandler(GetForwardRsp, false);
+    channelWrap->AddRspHandler(GetForwardRsp, false);
+    auto handler = channelWrap->AddRspHandler(GetForwardRsp, true);
+    auto ret = channelWrap->WaitResponse(handler, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
     EXPECT_TRUE(WaitGetForwardRspAbnormal(2));
 }
@@ -309,42 +305,46 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteRspHandler, TestSize.Level0)
 {
     constexpr std::size_t UNANSWERED_MAX_NUMBER = 1000;
     IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_DeleteRspHandler");
-    auto channelProxy = std::make_shared<InputDataChannelProxy>();
+    auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
     auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
 
-    std::shared_ptr<ResponseHandler> firstHandler;
-    std::shared_ptr<ResponseHandler> lastHandler;
-    channelWrap->AddRspHandler(firstHandler, GetForwardRsp, false);
-    for (int i = 0; i < UNANSWERED_MAX_NUMBER; ++i) {        
-        channelWrap->AddRspHandler(lastHandler, GetForwardRsp, false);
+    std::shared_ptr<ResponseHandler> firstHandler = nullptr;
+    std::shared_ptr<ResponseHandler> lastHandler = nullptr;
+    firstHandler = channelWrap->AddRspHandler(GetForwardRsp, false);
+    for (int i = 0; i < UNANSWERED_MAX_NUMBER; ++i) {
+        lastHandler = channelWrap->AddRspHandler(GetForwardRsp, false);
     }
+    ASSERT_NE(firstHandler, nullptr);
+    ASSERT_NE(lastHandler, nullptr);
 
     for (uint64_t id = firstHandler->msgId_; id <= lastHandler->msgId_; ++id) {
-        EXPECT_EQ(DeleteRspHandler(id), ErrorCode::NO_ERROR);
+        EXPECT_EQ(channelWrap->DeleteRspHandler(id), ErrorCode::NO_ERROR);
     }
 }
 
 /**
- * @tc.name: ImaTextEditTest_HandleMsg
+ * @tc.name: ImaTextEditTest_HandleResponse
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleMsg, TestSize.Level0)
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleResponse, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_HandleMsg");
-    auto channelProxy = std::make_shared<InputDataChannelProxy>();
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_HandleResponse");
+    auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
     auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
 
-    std::shared_ptr<ResponseHandler> handler;
-    channelWrap->AddRspHandler(handler, CommonRsp, false);
+    std::shared_ptr<ResponseHandler> handler = nullptr;
+    handler = channelWrap->AddRspHandler(CommonRsp, false);
+    ASSERT_NE(handler, nullptr);
     ResponseInfo rspInfo = { ErrorCode::NO_ERROR, std::monostate{} };
-    channelWrap->HandleMsg(handler->msgId_, rspInfo);
+    channelWrap->HandleResponse(handler->msgId_, rspInfo);
     EXPECT_TRUE(WaitCommonRsp());
 
-    channelWrap->AddRspHandler(handler, nullptr, false);
-    ResponseInfo rspInfo = { ErrorCode::NO_ERROR, std::monostate{} };
-    EXPECT_EQ(channelWrap->HandleMsg(handler->msgId_ - 1, rspInfo), ErrorCode::NO_ERROR);
-    EXPECT_EQ(channelWrap->HandleMsg(handler->msgId_, rspInfo), ErrorCode::NO_ERROR);
+    std::shared_ptr<ResponseHandler> handler1 = nullptr;
+    handler1 = channelWrap->AddRspHandler(nullptr, false);
+    ASSERT_NE(handler1, nullptr);
+    EXPECT_EQ(channelWrap->HandleResponse(handler1->msgId_ - 1, rspInfo), ErrorCode::NO_ERROR);
+    EXPECT_EQ(channelWrap->HandleResponse(handler1->msgId_, rspInfo), ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

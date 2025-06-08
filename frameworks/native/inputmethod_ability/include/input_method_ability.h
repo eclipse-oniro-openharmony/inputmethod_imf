@@ -94,8 +94,6 @@ public:
     void OnClientInactive(const sptr<IRemoteObject> &channel);
     void NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag);
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-    int32_t SendPrivateCommandEx(const std::unordered_map<std::string, PrivateDataValue> &privateCommand,
-        const AsyncIpcCallBack &callback = nullptr);
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);

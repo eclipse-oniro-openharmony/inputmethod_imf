@@ -1493,7 +1493,7 @@ int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &is
     return proxy->IsPanelShown(panelInfo, isShown);
 }
 
-void InputMethodController::SetAgent(sptr<IRemoteObject> &agentObject)
+void InputMethodController::SetAgent(const sptr<IRemoteObject> &agentObject)
 {
     std::lock_guard<std::mutex> autoLock(agentLock_);
     if (agent_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
@@ -2025,42 +2025,12 @@ void OnTextChangedListener::HandleSelectV2(int32_t keyCode, int32_t cursorMoveSk
 int32_t OnTextChangedListener::ReceivePrivateCommandV2(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    int32_t ret = -1;
-    auto eventHandler = GetEventHandler();
-    auto task = [this, privateCommand]() {
-        ReceivePrivateCommand(privateCommand);
-    };
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "ReceivePrivateCommandV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
-    }
-    return ret;
+    return ReceivePrivateCommand(privateCommand);
 }
 
 int32_t OnTextChangedListener::SetPreviewTextV2(const std::u16string &text, const Range &range)
 {
-    int32_t ret = -1;
-    auto eventHandler = GetEventHandler();
-    std::shared_ptr<BlockData<int32_t>> textResultHandler = nullptr;
-    if (eventHandler != nullptr) {
-        textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
-    }
-    auto task = [this, textResultHandler, text, range]() {
-        int32_t code = SetPreviewText(text, range);
-        if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(code);
-        }
-    };
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "SetPreviewTextV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        if (!textResultHandler->GetValue(ret)) {
-            IMSA_HILOGW("SetPreviewTextV2 timeout");
-        }
-    } else {
-        task();
-    }
-    return ret;
+    return SetPreviewText(text, range);
 }
 
 void OnTextChangedListener::FinishTextPreviewV2()
@@ -2083,18 +2053,6 @@ void OnTextChangedListener::OnDetachV2()
     } else {
         task();
     }
-}
-
-void InputMethodController::SetSpareAgent(const sptr<IRemoteObject> &agentObject)
-{
-    std::lock_guard<std::mutex> autoLock(agentLock_);
-    if (agent_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
-        IMSA_HILOGD("agent has already been set.");
-        return;
-    }
-    agent_ = std::make_shared<InputMethodAgentProxy>(agentObject);
-    agentObject_ = agentObject;
-
 }
 } // namespace MiscServices
 } // namespace OHOS

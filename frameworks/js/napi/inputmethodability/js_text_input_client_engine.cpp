@@ -331,26 +331,19 @@ napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callba
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
-    auto exec = [ctxt](AsyncCall::Context *ctx, AsyncCall::Context::CallBackAction completeFunc) {
-        auto rspCallBack = [ctxt, completeFunc](int32_t code, const ResponseData &data) -> void {
-            if (code == ErrorCode::NO_ERROR) {
-                ctxt->status = napi_ok;
-                ctxt->SetState(ctxt->status);
-            } else {
-                ctxt->SetErrorCode(code);
-            }
-            completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
-        };
-        int32_t code = InputMethodAbility::GetInstance().SendPrivateCommandEx(ctxt->privateCommand, rspCallBack);
-        if (code != ErrorCode::NO_ERROR) {
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t code = InputMethodAbility::GetInstance().SendPrivateCommand(ctxt->privateCommand);
+        if (code == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
             ctxt->SetErrorCode(code);
-            completeFunc != nullptr ? completeFunc() : IMSA_HILOGE("completeFunc is nullptr");
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     // 1 means JsAPI:SendPrivateCommand has 1 param at most.
-    EditAsyncCall asyncCall(env, info, ctxt, 1);
-    return asyncCall.Call(env, exec, __FUNCTION__);
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return ASYNC_POST(env, exec);
 }
 
 napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callback_info info)

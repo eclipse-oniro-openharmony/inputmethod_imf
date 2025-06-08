@@ -48,7 +48,7 @@ public:
     ErrCode GetTextIndexAtCursor(uint64_t msgId) override;
     ErrCode NotifyPanelStatusInfo(const PanelStatusInfoInner &info) override;
     ErrCode NotifyKeyboardHeight(uint32_t height) override;
-    ErrCode SendPrivateCommand(const Value &value, uint64_t msgId) override;
+    ErrCode SendPrivateCommand(const Value &value) override;
     ErrCode SetPreviewText(const std::string &text, const RangeInner &rangeInner, uint64_t msgId) override;
     ErrCode FinishTextPreview(uint64_t msgId) override;
     ErrCode SendMessage(const ArrayBuffer &arraybuffer) override;

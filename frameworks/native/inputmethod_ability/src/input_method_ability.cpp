@@ -1426,14 +1426,7 @@ void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag pa
     channel->NotifyKeyboardHeight(panelHeight);
 }
 
-int32_t InputMethodAbility::SendPrivateCommand(
-    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
-{
-    return SendPrivateCommandEx(privateCommand, nullptr);
-}
-
-int32_t InputMethodAbility::SendPrivateCommandEx(
-    const std::unordered_map<std::string, PrivateDataValue> &privateCommand, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     if (!IsDefaultIme()) {
         IMSA_HILOGE("current is not default ime!");
@@ -1450,20 +1443,15 @@ int32_t InputMethodAbility::SendPrivateCommandEx(
             return ErrorCode::ERROR_SYSTEM_CMD_CHANNEL_ERROR;
         }
         Value commandValueMap(privateCommand);
-        int ret = systemChannel->SendPrivateCommand(commandValueMap);
-        if (callback != nullptr && ret == ErrorCode::NO_ERROR) {
-            ResponseData rspData = std::monostate{};
-            callback(ret, rspData);
-        }
-        return ret;
+        return systemChannel->SendPrivateCommand(commandValueMap);
     } else {
-        auto channel = GetInputDataChannelProxyWrap();
+        auto channel = GetInputDataChannelProxy();
         if (channel == nullptr) {
             IMSA_HILOGE("channel is nullptr!");
             return ErrorCode::ERROR_CLIENT_NULL_POINTER;
         }
         Value commandValueMap(privateCommand);
-        return channel->SendPrivateCommand(commandValueMap, callback);
+        return channel->SendPrivateCommand(commandValueMap);
     }
 }
 

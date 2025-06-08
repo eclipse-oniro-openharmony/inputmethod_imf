@@ -65,7 +65,6 @@ public:
     int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip, const AsyncIpcCallBack &callback = nullptr);
     int32_t HandleExtendAction(int32_t action, const AsyncIpcCallBack &callback = nullptr);
     int32_t GetTextIndexAtCursor(int32_t &index, const AsyncIpcCallBack &callback = nullptr);
-    int32_t SendPrivateCommand(const Value &value, const AsyncIpcCallBack &callback = nullptr);
     int32_t SetPreviewText(
         const std::string &text, const RangeInner &range, const AsyncIpcCallBack &callback = nullptr);
     int32_t FinishTextPreview(bool isAsync, const AsyncIpcCallBack &callback = nullptr);

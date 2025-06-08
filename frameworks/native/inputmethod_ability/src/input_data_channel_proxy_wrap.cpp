@@ -144,14 +144,6 @@ int32_t InputDataChannelProxyWrap::GetTextIndexAtCursor(int32_t &index, const As
     return Request(callback, work, !callback, output);
 }
 
-int32_t InputDataChannelProxyWrap::SendPrivateCommand(const Value &value, const AsyncIpcCallBack &callback)
-{
-    auto work = [value](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
-        return channel->SendPrivateCommand(value, msgId);
-    };
-    return Request(callback, work, !callback);
-}
-
 int32_t InputDataChannelProxyWrap::SetPreviewText(
     const std::string &text, const RangeInner &range, const AsyncIpcCallBack &callback)
 {
