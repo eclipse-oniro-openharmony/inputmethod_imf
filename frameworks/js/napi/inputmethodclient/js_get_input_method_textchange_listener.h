@@ -21,7 +21,7 @@ namespace MiscServices {
 class JsGetInputMethodController;
 class JsGetInputMethodTextChangedListener : public OnTextChangedListener {
 public:
-    JsGetInputMethodTextChangedListener(const std::shared_ptr<AppExecFwk::EventHandler> &handler);
+    explicit JsGetInputMethodTextChangedListener(const std::shared_ptr<AppExecFwk::EventHandler> &handler);
     ~JsGetInputMethodTextChangedListener() override;
     static sptr<JsGetInputMethodTextChangedListener> GetTextListener(
         const std::shared_ptr<AppExecFwk::EventHandler> &handler, bool newEditBox = false);

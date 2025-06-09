@@ -44,7 +44,7 @@ int32_t InputDataChannelProxyWrap::InsertText(const std::string &text, const Asy
     auto work = [text](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->InsertText(text, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::DeleteForward(int32_t length, const AsyncIpcCallBack &callback)
@@ -52,7 +52,7 @@ int32_t InputDataChannelProxyWrap::DeleteForward(int32_t length, const AsyncIpcC
     auto work = [length](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->DeleteForward(length, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::DeleteBackward(int32_t length, const AsyncIpcCallBack &callback)
@@ -60,7 +60,7 @@ int32_t InputDataChannelProxyWrap::DeleteBackward(int32_t length, const AsyncIpc
     auto work = [length](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->DeleteBackward(length, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::GetTextBeforeCursor(
@@ -74,7 +74,7 @@ int32_t InputDataChannelProxyWrap::GetTextBeforeCursor(
         output = [&text](const ResponseData &data) -> void { VariantUtil::GetValue(data, text); };
     }
 
-    return Request(callback, work, !callback, output);
+    return Request(callback, work, callback == nullptr, output);
 }
 
 int32_t InputDataChannelProxyWrap::GetTextAfterCursor(
@@ -87,7 +87,7 @@ int32_t InputDataChannelProxyWrap::GetTextAfterCursor(
     if (callback == nullptr) {
         output = [&text](const ResponseData &data) -> void { VariantUtil::GetValue(data, text); };
     }
-    return Request(callback, work, !callback, output);
+    return Request(callback, work, callback == nullptr, output);
 }
 
 int32_t InputDataChannelProxyWrap::SendFunctionKey(int32_t funcKey, const AsyncIpcCallBack &callback)
@@ -95,7 +95,7 @@ int32_t InputDataChannelProxyWrap::SendFunctionKey(int32_t funcKey, const AsyncI
     auto work = [funcKey](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->SendFunctionKey(funcKey, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::MoveCursor(int32_t keyCode, const AsyncIpcCallBack &callback)
@@ -103,7 +103,7 @@ int32_t InputDataChannelProxyWrap::MoveCursor(int32_t keyCode, const AsyncIpcCal
     auto work = [keyCode](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->MoveCursor(keyCode, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::SelectByRange(int32_t start, int32_t end, const AsyncIpcCallBack &callback)
@@ -111,7 +111,7 @@ int32_t InputDataChannelProxyWrap::SelectByRange(int32_t start, int32_t end, con
     auto work = [start, end](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->SelectByRange(start, end, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::SelectByMovement(
@@ -121,7 +121,7 @@ int32_t InputDataChannelProxyWrap::SelectByMovement(
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->SelectByMovement(direction, cursorMoveSkip, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::HandleExtendAction(int32_t action, const AsyncIpcCallBack &callback)
@@ -129,7 +129,7 @@ int32_t InputDataChannelProxyWrap::HandleExtendAction(int32_t action, const Asyn
     auto work = [action](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->HandleExtendAction(action, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::GetTextIndexAtCursor(int32_t &index, const AsyncIpcCallBack &callback)
@@ -141,7 +141,7 @@ int32_t InputDataChannelProxyWrap::GetTextIndexAtCursor(int32_t &index, const As
     if (callback == nullptr) {
         output = [&index](const ResponseData &data) -> void { VariantUtil::GetValue(data, index); };
     }
-    return Request(callback, work, !callback, output);
+    return Request(callback, work, callback == nullptr, output);
 }
 
 int32_t InputDataChannelProxyWrap::SetPreviewText(
@@ -150,7 +150,7 @@ int32_t InputDataChannelProxyWrap::SetPreviewText(
     auto work = [text, range](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->SetPreviewText(text, range, msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::FinishTextPreview(const AsyncIpcCallBack &callback)
@@ -158,7 +158,7 @@ int32_t InputDataChannelProxyWrap::FinishTextPreview(const AsyncIpcCallBack &cal
     auto work = [](uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->FinishTextPreview(msgId);
     };
-    return Request(callback, work, !callback);
+    return Request(callback, work, callback == nullptr);
 }
 
 int32_t InputDataChannelProxyWrap::Request(

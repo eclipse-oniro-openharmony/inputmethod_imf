@@ -1389,23 +1389,24 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         imeListener_->OnKeyboardStatus(false);
     }
     panels_.ForEach([this, &channelProxy](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
-        if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
-            auto ret = panel->HidePanel();
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("failed, ret: %{public}d", ret);
-                return false;
-            }
-            PanelStatusInfo info;
-            info.panelInfo.panelType = panel->GetPanelType();
-            info.panelInfo.panelFlag = panel->GetPanelFlag();
-            info.visible = false;
-            info.trigger = Trigger::IME_APP;
-            NotifyPanelStatusInfo(info, channelProxy);
-            // finish previewing text when soft keyboard hides
-            if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-                AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) { ; };
-                FinishTextPreview(callback);
-            }
+        if (panelType == PanelType::SOFT_KEYBOARD && panel->GetPanelFlag() == PanelFlag::FLG_FIXED) {
+            return false;
+        }
+        auto ret = panel->HidePanel();
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed, ret: %{public}d", ret);
+            return false;
+        }
+        PanelStatusInfo info;
+        info.panelInfo.panelType = panel->GetPanelType();
+        info.panelInfo.panelFlag = panel->GetPanelFlag();
+        info.visible = false;
+        info.trigger = Trigger::IME_APP;
+        NotifyPanelStatusInfo(info, channelProxy);
+        // finish previewing text when soft keyboard hides
+        if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+            AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) { ; };
+            FinishTextPreview(callback);
         }
         return false;
     });

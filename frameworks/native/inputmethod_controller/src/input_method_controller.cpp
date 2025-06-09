@@ -1793,7 +1793,7 @@ void InputMethodController::GetWindowScaleCoordinate(int32_t& x, int32_t& y, uin
     handler(x, y, windowId);
 }
 
-int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code, ResponseData &data)
+int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code, const ResponseData &data)
 {
     auto agent = GetAgent();
     if (agent == nullptr) {

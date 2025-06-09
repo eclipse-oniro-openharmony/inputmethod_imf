@@ -130,7 +130,7 @@ public:
     {
         IMSA_HILOGI("VirtualListenerTest::SetUpTestCase");
         textListener_ = new (std::nothrow) TextListenerImpl();
-        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_eventHandlerTextListener_");
+        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("eventHandlerTextListener");
         auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
         eventHandlerTextListener_ = new (std::nothrow) EventHandlerTextListenerImpl(handler);
         eventListener_ = std::make_shared<EventListenerImpl>();

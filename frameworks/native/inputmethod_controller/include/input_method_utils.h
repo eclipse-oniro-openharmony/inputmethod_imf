@@ -545,7 +545,7 @@ struct ResponseDataInner : public Parcelable {
     static ResponseDataInner *Unmarshalling(Parcel &in)
     {
         ResponseDataInner *data = new (std::nothrow) ResponseDataInner();
-        if (data && !data->ReadFromParcel(in)) {
+        if (data != nullptr && !data->ReadFromParcel(in)) {
             delete data;
             data = nullptr;
         }
