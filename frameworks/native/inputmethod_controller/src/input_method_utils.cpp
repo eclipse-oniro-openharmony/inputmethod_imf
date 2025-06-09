@@ -338,18 +338,22 @@ bool ResponseDataInner::ReadFromParcel(Parcel &in)
 {
     uint64_t index = in.ReadUint64();
     switch (index) {
-        case static_cast<uint64_t>(ResponseDataType::NONE_TYPE):
+        case static_cast<uint64_t>(ResponseDataType::NONE_TYPE): {
             rspData = std::monostate{};
             break;
-        case static_cast<uint64_t>(ResponseDataType::STRING_TYPE):
+        }
+        case static_cast<uint64_t>(ResponseDataType::STRING_TYPE): {
             rspData = in.ReadString();
             break;
-        case static_cast<uint64_t>(ResponseDataType::INT32_TYPE):
+        }
+        case static_cast<uint64_t>(ResponseDataType::INT32_TYPE): {
             rspData = in.ReadInt32();
             break;
-        default:
+        }
+        default: {
             IMSA_HILOGE("bad parameter index: %{public}" PRIu64 "", index);
             return false;
+        }
     }
     return true;
 }
@@ -361,8 +365,9 @@ bool ResponseDataInner::Marshalling(Parcel &out) const
         return false;
     }
     switch (index) {
-        case static_cast<uint64_t>(ResponseDataType::NONE_TYPE):
+        case static_cast<uint64_t>(ResponseDataType::NONE_TYPE): {
             return true;
+        }
         case static_cast<uint64_t>(ResponseDataType::STRING_TYPE): {
             if (!std::holds_alternative<std::string>(rspData)) {
                 return false;
@@ -375,8 +380,9 @@ bool ResponseDataInner::Marshalling(Parcel &out) const
             }
             return out.WriteInt32(std::get<int32_t>(rspData));
         }
-        default:
+        default: {
             return false;
+        }
     }
 }
 } // namespace MiscServices
