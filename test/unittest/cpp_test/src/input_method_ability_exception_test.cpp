@@ -42,7 +42,10 @@ public:
         IMSA_HILOGI("InputMethodAbilityExceptionTest::TearDownTestCase");
     }
     void SetUp() { }
-    void TearDown() { }
+    void TearDown()
+    {
+        ResetMemberVar();
+    }
     static void ResetMemberVar()
     {
         inputMethodAbility_.dataChannelProxyWrap_ = nullptr;
@@ -356,7 +359,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Lev
 HWTEST_F(InputMethodAbilityExceptionTest, OnResponse_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest OnResponse_001 START");
-    ResetMemberVar();
     ResponseData data = std::monostate{};
     auto ret = inputMethodAbility_.OnResponse(0, 0, data);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -372,7 +374,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, OnResponse_001, TestSize.Level1)
 HWTEST_F(InputMethodAbilityExceptionTest, OnClientInactive_001, TestSize.Level1)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest OnClientInactive_001 START");
-    ResetMemberVar();
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_FIXED;
     auto panel1 = std::make_shared<InputMethodPanel>();
