@@ -184,8 +184,6 @@ private:
     bool IsNeedConfig();
     int32_t IsValidParam(const ImmersiveEffect &effect);
     int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param);
-    std::pair<int32_t, bool> FullScreenPortraitPrepare(const Rosen::KeyboardLayoutParams &param);
-    std::pair<int32_t, bool> FullScreenLandscapePrepare(const Rosen::KeyboardLayoutParams &param);
     int32_t FullScreenPrepare(Rosen::KeyboardLayoutParams &param);
     int32_t NormalImePrepare(Rosen::KeyboardLayoutParams &param);
     int32_t PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param);
@@ -193,6 +191,7 @@ private:
     Rosen::KeyboardEffectOption ConvertToWmEffect(ImmersiveMode mode, const ImmersiveEffect &effect);
     void SetImmersiveEffectToNone();
     void UpdateImmersiveHotArea();
+    bool IsValidGradientHeight(uint32_t gradientHeight);
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;

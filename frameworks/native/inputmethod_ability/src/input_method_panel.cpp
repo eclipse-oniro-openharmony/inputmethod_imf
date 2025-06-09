@@ -46,6 +46,7 @@ constexpr int32_t WAITTIME = 10;
 constexpr uint32_t INTERVAL_TIME = 5;
 constexpr uint32_t RETRY_TIMES = 4;
 InputMethodPanel::~InputMethodPanel() = default;
+constexpr float GRADIENT_HEIGHT_RATIO = 0.15;
 
 int32_t InputMethodPanel::CreatePanel(
     const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo)
@@ -97,87 +98,36 @@ std::string InputMethodPanel::GeneratePanelName()
     return windowName;
 }
 
-std::pair<int32_t, bool> InputMethodPanel::FullScreenPortraitPrepare(const Rosen::KeyboardLayoutParams &param)
-{
-    uint32_t portraitAvoidHeight = param.portraitAvoidHeight_ + immersiveEffect_.gradientHeight;
-    if (!CheckSize(panelFlag_, param.PortraitPanelRect_.width_, portraitAvoidHeight, true)) {
-        IMSA_HILOGE("param is invalid, gradientHeight:%{public}u, avoidHeight:%{public}u",
-            immersiveEffect_.gradientHeight, param.portraitAvoidHeight_);
-        return std::make_pair(ErrorCode::ERROR_PARAMETER_CHECK_FAILED, false);
-    }
-
-    if (param.PortraitPanelRect_.height_ < immersiveEffect_.gradientHeight + param.portraitAvoidHeight_) {
-        return std::make_pair(ErrorCode::NO_ERROR, true);
-    }
-    return std::make_pair(ErrorCode::NO_ERROR, false);
-}
-
-std::pair<int32_t, bool> InputMethodPanel::FullScreenLandscapePrepare(const Rosen::KeyboardLayoutParams &param)
-{
-    uint32_t landscapeAvoidHeight = param.landscapeAvoidHeight_ + immersiveEffect_.gradientHeight;
-    if (!CheckSize(panelFlag_, param.LandscapePanelRect_.width_, landscapeAvoidHeight, false)) {
-        IMSA_HILOGE("param is invalid, gradientHeight:%{public}u, avoidHeight:%{public}u",
-            immersiveEffect_.gradientHeight, param.landscapeAvoidHeight_);
-        return std::make_pair(ErrorCode::ERROR_PARAMETER_CHECK_FAILED, false);
-    }
-
-    if (param.LandscapePanelRect_.height_ < immersiveEffect_.gradientHeight + param.landscapeAvoidHeight_) {
-        return std::make_pair(ErrorCode::NO_ERROR, true);
-    }
-    return std::make_pair(ErrorCode::NO_ERROR, false);
-}
-
 int32_t InputMethodPanel::FullScreenPrepare(Rosen::KeyboardLayoutParams &param)
 {
-    auto [ret, ifChangePortraitPanelRect] = FullScreenPortraitPrepare(param);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("portrait prepare failed");
-        return ret;
-    }
-    auto [result, ifChangeLandscapePanelRect] = FullScreenLandscapePrepare(param);
-    if (result != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("landscape prepare failed");
-        return result;
-    }
-
     portraitChangeY_ = 0;
     landscapeChangeY_ = 0;
-    if (ifChangePortraitPanelRect) {
+    if (param.PortraitPanelRect_.height_ < immersiveEffect_.gradientHeight + param.portraitAvoidHeight_) {
         uint32_t avoidHeightTmp = param.portraitAvoidHeight_ + immersiveEffect_.gradientHeight;
         portraitChangeY_ = avoidHeightTmp - param.PortraitPanelRect_.height_;
         param.PortraitPanelRect_.height_ = avoidHeightTmp;
-        param.PortraitPanelRect_.posY_ -= portraitChangeY_;
+        param.PortraitPanelRect_.posY_ = SafeSubtract(param.PortraitPanelRect_.posY_, portraitChangeY_);
     }
-    if (ifChangeLandscapePanelRect) {
+    if (param.LandscapePanelRect_.height_ < immersiveEffect_.gradientHeight + param.landscapeAvoidHeight_) {
         uint32_t avoidHeightTmp = param.landscapeAvoidHeight_ + immersiveEffect_.gradientHeight;
         landscapeChangeY_ = avoidHeightTmp - param.LandscapePanelRect_.height_;
         param.LandscapePanelRect_.height_ = avoidHeightTmp;
-        param.LandscapePanelRect_.posY_ -= landscapeChangeY_;
+        param.LandscapePanelRect_.posY_ = SafeSubtract(param.LandscapePanelRect_.posY_, landscapeChangeY_);
     }
-    param.landscapeAvoidHeight_ += immersiveEffect_.gradientHeight;
     param.portraitAvoidHeight_ += immersiveEffect_.gradientHeight;
+    param.landscapeAvoidHeight_ += immersiveEffect_.gradientHeight;
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::NormalImePrepare(Rosen::KeyboardLayoutParams &param)
 {
     uint32_t portraitHeight = param.PortraitPanelRect_.height_ + immersiveEffect_.gradientHeight;
-    if (!CheckSize(panelFlag_, param.PortraitPanelRect_.width_, portraitHeight, true)) {
-        IMSA_HILOGE("portrait invalid size, portraitHeight: %{public}u, gradientHeight: %{public}u",
-            portraitHeight, immersiveEffect_.gradientHeight);
-        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
-    }
     uint32_t landscapeHeight = param.LandscapePanelRect_.height_ + immersiveEffect_.gradientHeight;
-    if (!CheckSize(panelFlag_, param.LandscapePanelRect_.width_, landscapeHeight, false)) {
-        IMSA_HILOGE("landscape invalid size, landscapeHeight: %{public}u, gradientHeight: %{public}u",
-            landscapeHeight, immersiveEffect_.gradientHeight);
-        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
-    }
 
     param.PortraitPanelRect_.height_ = portraitHeight;
     param.LandscapePanelRect_.height_ = landscapeHeight;
-    param.LandscapePanelRect_.posY_ -= immersiveEffect_.gradientHeight;
-    param.PortraitPanelRect_.posY_ -= immersiveEffect_.gradientHeight;
+    param.LandscapePanelRect_.posY_ = SafeSubtract(param.LandscapePanelRect_.posY_, immersiveEffect_.gradientHeight);
+    param.PortraitPanelRect_.posY_ = SafeSubtract(param.PortraitPanelRect_.posY_, immersiveEffect_.gradientHeight);
     portraitChangeY_ = immersiveEffect_.gradientHeight;
     landscapeChangeY_ = immersiveEffect_.gradientHeight;
     return ErrorCode::NO_ERROR;
@@ -601,6 +551,9 @@ int32_t InputMethodPanel::AdjustPanelRect(
         IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+
+    keyboardLayoutParams_.landscapeAvoidHeight_ = DEFAULT_AVOID_HEIGHT;
+    keyboardLayoutParams_.portraitAvoidHeight_ = DEFAULT_AVOID_HEIGHT;
     auto ret = AdjustLayout(keyboardLayoutParams_);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("AdjustPanelRect error, err: %{public}d!", ret);
@@ -990,6 +943,7 @@ Rosen::Rect InputMethodPanel::GetRectIntersection(Rosen::Rect a, Rosen::Rect b)
 uint32_t InputMethodPanel::SafeSubtract(uint32_t minuend, uint32_t subtrahend)
 {
     if (minuend < subtrahend) {
+        IMSA_HILOGE("subtrahend:%{public}u is larger than minuend:%{public}u", subtrahend, minuend);
         return 0;
     }
     return minuend - subtrahend;
@@ -2063,6 +2017,34 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
     return ErrorCode::NO_ERROR;
 }
 
+bool InputMethodPanel::IsValidGradientHeight(uint32_t gradientHeight)
+{
+    if (gradientHeight > INT32_MAX) {
+        IMSA_HILOGE("gradientHeight over maximum!");
+        return false;
+    }
+    DisplaySize displaySize;
+    auto ret = GetDisplaySize(displaySize);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Get portrait display size failed, ret: %{public}d", ret);
+        return false;
+    }
+
+    if (static_cast<float>(gradientHeight) > displaySize.portrait.height * GRADIENT_HEIGHT_RATIO) {
+        IMSA_HILOGE("invalid gradientHeight:%{public}u, portraitHeight:%{public}u", gradientHeight,
+            displaySize.portrait.height);
+        return false;
+    }
+
+    if (static_cast<float>(gradientHeight) > displaySize.landscape.height * GRADIENT_HEIGHT_RATIO) {
+        IMSA_HILOGE("invalid gradientHeight:%{public}u, landscapeHeight:%{public}u", gradientHeight,
+            displaySize.landscape.height);
+        return false;
+    }
+
+    return true;
+}
+
 int32_t InputMethodPanel::IsValidParam(const ImmersiveEffect &effect)
 {
     if (effect.gradientMode < GradientMode::NONE || effect.gradientMode >= GradientMode::END ||
@@ -2100,16 +2082,8 @@ int32_t InputMethodPanel::IsValidParam(const ImmersiveEffect &effect)
         return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
     }
 
-    WindowSize displaySize { 0, 0 };
-    if (!GetDisplaySize(IsDisplayPortrait(), displaySize)) {
-        IMSA_HILOGE("GetDisplaySize failed!");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-
-    // The gradient height cannot be greater than the screen height
-    if (effect.gradientHeight > displaySize.height) {
-        IMSA_HILOGE("invalid gradientHeight:%{public}u, displayHeight:%{public}u", effect.gradientHeight,
-            displaySize.height);
+    // The gradient height cannot be greater than the screen height * GRADIENT_HEIGHT_RATIO.
+    if (!IsValidGradientHeight(effect.gradientHeight)) {
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
 
