@@ -2025,5 +2025,23 @@ HWTEST_F(InputMethodControllerTest, GetWindowScaleCoordinate, TestSize.Level0)
     EXPECT_EQ(x, 101);
     EXPECT_EQ(y, 101);
 }
+
+/**
+ * @tc.name: TestImcOptionalInputMethod
+ * @tc.desc: Test ImcOptionalInputMethod
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestImcOptionalInputMethod, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::TestImcOptionalInputMethod");
+    Property property;
+    std::vector<SubProperty> subProps;
+    auto ret = inputMethodController_->ListInputMethodSubtype(property, subProps);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->ShowOptionalInputMethod();
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->DisplayOptionalInputMethod();
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

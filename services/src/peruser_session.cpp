@@ -2176,6 +2176,16 @@ bool PerUserSession::IsScreenLockOrSecurityFlag()
     return false;
 }
 
+std::pair<int32_t, int32_t> PerUserSession::GetCurrentInputPattern()
+{
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("clientInfo is nullptr!");
+        return { ErrorCode::ERROR_NULL_POINTER, static_cast<int32_t>(InputType::NONE) };
+    }
+    return { ErrorCode::NO_ERROR, clientInfo->config.inputAttribute.inputPattern };
+}
+
 int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string,
     PrivateDataValue> &privateCommand)
 {

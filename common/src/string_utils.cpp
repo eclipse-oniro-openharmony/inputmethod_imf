@@ -66,7 +66,7 @@ void StringUtils::TruncateUtf16String(std::u16string &in, int32_t maxChars)
     size_t srcLen = in.size();
     size_t offset = 0;
     int32_t count = 0;
-    if (maxChars < 0  || srcLen <= maxChars) {
+    if (maxChars < 0  || static_cast<int32_t>(srcLen) <= maxChars) {
         IMSA_HILOGD("srcLen:%{public}zu,maxChars:%{public}d", srcLen, maxChars);
         return;
     }
