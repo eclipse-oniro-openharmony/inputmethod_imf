@@ -312,6 +312,7 @@ ohos_shared_library("inputmethod_ability") {
     ubsan = true
   }
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_data_channel_proxy_wrap.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_interface.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_utils.cpp",
@@ -446,6 +447,7 @@ ohos_static_library("inputmethod_ability_static") {
     debug = false
   }
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_data_channel_proxy_wrap.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_interface.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_utils.cpp",

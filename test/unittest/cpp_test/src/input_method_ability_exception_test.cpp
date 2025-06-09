@@ -42,10 +42,13 @@ public:
         IMSA_HILOGI("InputMethodAbilityExceptionTest::TearDownTestCase");
     }
     void SetUp() { }
-    void TearDown() { }
+    void TearDown()
+    {
+        ResetMemberVar();
+    }
     static void ResetMemberVar()
     {
-        inputMethodAbility_.dataChannelProxy_ = nullptr;
+        inputMethodAbility_.dataChannelProxyWrap_ = nullptr;
         inputMethodAbility_.dataChannelObject_ = nullptr;
         inputMethodAbility_.imeListener_ = nullptr;
         inputMethodAbility_.panels_.Clear();
@@ -344,6 +347,49 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Lev
         agentStub->OnRemoteRequest(static_cast<uint32_t>(IInputMethodAgentIpcCode::COMMAND_DISPATCH_KEY_EVENT),
         data, reply, option);
     EXPECT_EQ(ret, ERR_TRANSACTION_FAILED);
+}
+
+/**
+ * @tc.name: OnResponse_001
+ * @tc.desc: OnResponse Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, OnResponse_001, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest OnResponse_001 START");
+    ResponseData data = std::monostate{};
+    auto ret = inputMethodAbility_.OnResponse(0, 0, data);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: OnClientInactive_001
+ * @tc.desc: OnClientInactive Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, OnClientInactive_001, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest OnClientInactive_001 START");
+    auto panel = std::make_shared<InputMethodPanel>();
+    panel->panelFlag_ = FLG_FIXED;
+    auto panel1 = std::make_shared<InputMethodPanel>();
+    panel1->panelFlag_ = FLG_FLOATING;
+    auto panel2 = std::make_shared<InputMethodPanel>();
+    panel2->panelFlag_ = FLG_CANDIDATE_COLUMN;
+    auto panel3 = std::make_shared<InputMethodPanel>();
+    inputMethodAbility_.panels_.Insert(SOFT_KEYBOARD, panel);
+    inputMethodAbility_.panels_.Insert(SOFT_KEYBOARD, panel1);
+    inputMethodAbility_.panels_.Insert(SOFT_KEYBOARD, panel2);
+    inputMethodAbility_.panels_.Insert(STATUS_BAR, panel3);
+    sptr<InputDataChannelServiceImpl> stub = new InputDataChannelServiceImpl();
+    ASSERT_NE(stub, nullptr);
+    inputMethodAbility_.dataChannelObject_ = stub->AsObject();
+    inputMethodAbility_.OnClientInactive(inputMethodAbility_.dataChannelObject_);
+    EXPECT_EQ(inputMethodAbility_.dataChannelObject_, nullptr);
 }
 } // namespace MiscServices
 } // namespace OHOS
