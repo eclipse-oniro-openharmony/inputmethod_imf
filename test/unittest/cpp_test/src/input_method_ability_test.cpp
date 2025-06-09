@@ -630,7 +630,6 @@ HWTEST_F(InputMethodAbilityTest, testGetTextConfig, TestSize.Level0)
     ret = InputMethodAbilityInterface::GetInstance().GetInputAttribute(inputAttribute);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputAttribute, textConfig.inputAttribute);
-    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 /**
@@ -648,7 +647,6 @@ HWTEST_F(InputMethodAbilityTest, testSelectByRange_001, TestSize.Level0)
     auto ret = inputMethodAbility_.SelectByRange(start, end);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitHandleSetSelection(start, end));
-    std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 /**
