@@ -2299,5 +2299,20 @@ bool InputMethodPanel::IsNeedConfig()
     IMSA_HILOGD("isNeedConfig is %{public}d", needConfig);
     return needConfig;
 }
+
+int32_t InputMethodPanel::SetKeepScreenOn(bool isKeepScreenOn)
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    auto ret = window_->SetKeepScreenOn(isKeepScreenOn);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("SetKeepScreenOn error: %{public}d!", ret);
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    IMSA_HILOGI("SetKeepScreenOn success");
+    return ErrorCode::NO_ERROR;
+}
 } // namespace MiscServices
 } // namespace OHOS
