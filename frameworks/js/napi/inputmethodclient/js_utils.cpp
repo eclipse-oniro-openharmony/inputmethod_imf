@@ -126,8 +126,9 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_OPERATE_DEFAULTIME, "current operation cannot be applied to the preconfigured default input method." },
     { EXCEPTION_INVALID_IMMERSIVE_EFFECT, "invalid immersive effect. \n\
         1.The gradient mode and the fluid light mode can only be used when the immersive mode is enabled.\n\
-        2.The fluid light mode can only be used when the gradient mode is enabled.\n"},
-    { EXCEPTION_PRECONDITION_REQUIRED, "This operation requires a prerequisite operation." },
+        2.The fluid light mode can only be used when the gradient mode is enabled.\n\
+        3.When the gradient mode is not enabled, the gradient height can only be 0." },
+    { EXCEPTION_PRECONDITION_REQUIRED, "this operation must be called after adjustPanelRect or resize." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
