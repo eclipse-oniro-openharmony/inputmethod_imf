@@ -15,6 +15,7 @@
 
 
 @!sts_inject_into_module("import {ElementName} from 'bundleManager.ElementName';")
+@!sts_inject_into_module("import * as ohos_InputMethodSubtype from './@ohos.InputMethodSubtype';")
 @!namespace("@ohos.inputMethod", "inputMethod")
 from ohos.inputMethod.Panel use PanelInfo;
 from ohos.InputMethodSubtype use InputMethodSubtype;
@@ -55,8 +56,8 @@ interface InputMethodSetting {
     @gen_promise("getAllInputMethods")
     GetAllInputMethodsSync(): Array<InputMethodProperty>;
     @!sts_inject_into_interface("""
-        on(type: string, callback: (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_InputMethodSubtype.InputMethodSubtype) => void): void;
-        off(type: string, callback?: (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_InputMethodSubtype.InputMethodSubtype) => void): void;
+        on(type: string, callback: (inputMethodProperty: InputMethodProperty, inputMethodSubtype: ohos_InputMethodSubtype.InputMethodSubtype) => void): void;
+        off(type: string, callback?: (inputMethodProperty: InputMethodProperty, inputMethodSubtype: ohos_InputMethodSubtype.InputMethodSubtype) => void): void;
         on(type: string, callback: (info: Array<InputWindowInfo>) => void): void;
         off(type: string, callback?: (info: Array<InputWindowInfo>) => void): void;
     """)
@@ -65,7 +66,7 @@ interface InputMethodSetting {
             switch(type) {
                 case "imeHide": return this.onImeHide(cb as (info: Array<InputWindowInfo>) => void, cb);
                 case "imeShow": return this.onImeShow(cb as (info: Array<InputWindowInfo>) => void, cb);
-                case "imeChange": return this.onImeChange(cb as (inputMethodProperty: InputMethodProperty, inputMethodSubtype: __ohos_InputMethodSubtype.InputMethodSubtype) => void, cb);
+                case "imeChange": return this.onImeChange(cb as (inputMethodProperty: InputMethodProperty, inputMethodSubtype: ohos_InputMethodSubtype.InputMethodSubtype) => void, cb);
                 default: throw new Error(`Unknown type: ${type}`);
             }
         }
