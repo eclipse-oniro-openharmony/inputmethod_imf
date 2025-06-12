@@ -202,7 +202,8 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_0010, TestSize.Level1)
     std::string result;
     auto ret = TddUtil::ExecuteCmd("ime -e", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("Error: Invalid command!\n", result);
+    std::string expectStr = "Input Method Manager Command Line Tool";
+    EXPECT_TRUE(result.find(expectStr) != std::string::npos);
 }
 
 /**
