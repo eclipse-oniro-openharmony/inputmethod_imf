@@ -24,6 +24,7 @@
 #include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
+#include "parameters.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
 
@@ -1215,6 +1216,18 @@ bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
 bool ImeInfoInquirer::IsDefaultImeScreen(const std::string &screenName)
 {
     return systemConfig_.defaultImeScreenList.find(screenName) != systemConfig_.defaultImeScreenList.end();
+}
+
+bool ImeInfoInquirer::IsDynamicStartIme()
+{
+    if (systemConfig_.dynamicStartImeSysParam == "") {
+        return false;
+    }
+    std::string value = system::GetParameter(systemConfig_.dynamicStartImeSysParam, "default");
+    if (value == systemConfig_.dynamicStartImeValue) {
+        return true;
+    }
+    return false;
 }
 } // namespace MiscServices
 } // namespace OHOS

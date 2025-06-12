@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_FREEZE_MANAGER_H
-#define INPUTMETHOD_IMF_FREEZE_MANAGER_H
+#ifndef IME_LIFECYCLE_MANAEGR_H
+#define IME_LIFECYCLE_MANAEGR_H
+#include <functional>
 
 #include "ime_state_manager.h"
-
 namespace OHOS {
 namespace MiscServices {
-class FreezeManager : public ImeStateManager {
+class ImeLifecycleManager : public ImeStateManager {
 public:
-    explicit FreezeManager(pid_t pid) : ImeStateManager(pid)
-    {
-    }
-    ~FreezeManager() = default;
-    void ControlIme(bool shouldFreeze) override;
+    explicit ImeLifecycleManager(pid_t pid, std::function<void()> stopImeFunc)
+        : ImeStateManager(pid), stopImeFunc_(stopImeFunc) { };
+    ~ImeLifecycleManager() = default;
 
 private:
-    static void ReportRss(bool shouldFreeze, pid_t pid);
+    void ControlIme(bool shouldStop) override;
+    std::function<void()> stopImeFunc_;
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif //INPUTMETHOD_IMF_FREEZE_MANAGER_H
+#endif // IME_LIFECYCLE_MANAEGR_H
