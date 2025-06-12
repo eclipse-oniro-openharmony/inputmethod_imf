@@ -235,6 +235,7 @@ private:
     
     std::mutex bindClientInfoLock_;
     HiSysEventClientInfo bindClientInfo_;
+    bool isNotify_ = false;
 
     bool IsDisplayChanged(uint64_t oldDisplayId, uint64_t newDisplayId);
 };
