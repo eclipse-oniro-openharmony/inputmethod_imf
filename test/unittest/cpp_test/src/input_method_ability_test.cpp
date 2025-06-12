@@ -474,6 +474,24 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testStartInput
+ * @tc.desc: InputMethodAbility StartInput
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testStartInput, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testStartInput start.");
+    inputMethodAbility_.SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelServiceImpl();
+    InputClientInfo clientInfo;
+    clientInfo.channel = channelStub;
+    auto ret = inputMethodAbility_.StartInput(clientInfo, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(inputMethodAbility_.isNotify_);
+}
+
+/**
  * @tc.name: testStartInputBeforeCreatePanel
  * @tc.desc: InputMethodAbility StartInput before create panel
  * @tc.type: FUNC

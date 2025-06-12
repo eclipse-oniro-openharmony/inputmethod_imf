@@ -585,7 +585,8 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
     IsInputClientAttachOptionsChanged(textConfig.requestKeyboardReason);
-    if (isNotifyInputStart) {
+    if (isNotifyInputStart || !isNotify_) {
+        isNotify_ = true;
         imeListener_->OnInputStart();
     }
     if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
