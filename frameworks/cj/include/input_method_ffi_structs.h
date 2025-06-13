@@ -21,7 +21,6 @@
 #include "cj_ffi/cj_common_ffi.h"
 
 extern "C" {
-    const int32_t ERR_NO_MEMORY = -2;
     struct CInputMethodProperty {
         char* name;
         char* id;

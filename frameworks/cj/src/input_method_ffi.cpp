@@ -32,7 +32,7 @@ int32_t FfiInputMethodGetDefaultInputMethod(CInputMethodProperty *props)
         return ERR_NO_MEMORY;
     }
     std::shared_ptr<Property> property;
-    int32_t ret = ctrl->GetDefaultInputMethod(property);
+    int32_t ret = Utils::ConvertErrorCode(ctrl->GetDefaultInputMethod(property));
     if (property == nullptr) {
         IMSA_HILOGE("default input method is nullptr!");
         return ret;
@@ -53,7 +53,7 @@ int32_t FfiInputMethodGetCurrentInputMethod(CInputMethodProperty *props)
         return ERR_NO_MEMORY;
     }
     Utils::InputMethodProperty2C(props, *property);
-    return 0;
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t FfiInputMethodSwitchInputMethod(bool *result, CInputMethodProperty props)
@@ -68,7 +68,7 @@ int32_t FfiInputMethodSwitchInputMethod(bool *result, CInputMethodProperty props
     if (errCode == ErrorCode::NO_ERROR) {
         *result = true;
     }
-    return errCode;
+    return Utils::ConvertErrorCode(errCode);
 }
 
 int32_t FfiInputMethodSwitchCurrentInputMethodSubtype(bool *result, CInputMethodSubtype target)
@@ -83,7 +83,7 @@ int32_t FfiInputMethodSwitchCurrentInputMethodSubtype(bool *result, CInputMethod
     if (errCode == ErrorCode::NO_ERROR) {
         *result = true;
     }
-    return errCode;
+    return Utils::ConvertErrorCode(errCode);
 }
 
 int32_t FfiInputMethodGetCurrentInputMethodSubtype(CInputMethodSubtype *props)
@@ -98,7 +98,7 @@ int32_t FfiInputMethodGetCurrentInputMethodSubtype(CInputMethodSubtype *props)
         return ERR_NO_MEMORY;
     }
     Utils::InputMethodSubProperty2C(props, *subProperty);
-    return 0;
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t FfiInputMethodSwitchCurrentInputMethodAndSubtype(bool *result,
@@ -114,7 +114,7 @@ int32_t FfiInputMethodSwitchCurrentInputMethodAndSubtype(bool *result,
     if (errCode == ErrorCode::NO_ERROR) {
         *result = true;
     }
-    return errCode;
+    return Utils::ConvertErrorCode(errCode);
 }
 
 int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName *elem)
@@ -131,7 +131,7 @@ int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName *elem)
         elem->abilityName = Utils::MallocCString(inputMethodConfig.GetAbilityName());
         elem->moduleName = Utils::MallocCString(inputMethodConfig.GetModuleName());
     }
-    return ret;
+    return Utils::ConvertErrorCode(ret);
 }
 
 RetInputMethodSubtype FfiInputMethodSettingListInputMethodSubtype(CInputMethodProperty props)
@@ -146,7 +146,7 @@ RetInputMethodSubtype FfiInputMethodSettingListInputMethodSubtype(CInputMethodPr
         return ret;
     }
     int32_t errCode = ctrl->ListInputMethodSubtype(property, subProps);
-    ret.code = errCode;
+    ret.code = Utils::ConvertErrorCode(errCode);
     if (errCode != ErrorCode::NO_ERROR) {
         return ret;
     }
@@ -178,7 +178,7 @@ RetInputMethodSubtype FfiInputMethodSettingListCurrentInputMethodSubtype()
         return ret;
     }
     int32_t errCode = ctrl->ListCurrentInputMethodSubtype(subProps);
-    ret.code = errCode;
+    ret.code = Utils::ConvertErrorCode(errCode);
     if (errCode != ErrorCode::NO_ERROR) {
         return ret;
     }
@@ -210,7 +210,7 @@ RetInputMethodProperty FfiInputMethodSettingGetInputMethods(bool enable)
         return ret;
     }
     int32_t errCode = ctrl->ListInputMethod(enable, properties);
-    ret.code = errCode;
+    ret.code = Utils::ConvertErrorCode(errCode);
     if (errCode != ErrorCode::NO_ERROR) {
         return ret;
     }
@@ -241,7 +241,7 @@ RetInputMethodProperty FfiInputMethodSettingGetAllInputMethods()
         return ret;
     }
     int32_t errCode = ctrl->ListInputMethod(properties);
-    ret.code = errCode;
+    ret.code = Utils::ConvertErrorCode(errCode);
     if (errCode != ErrorCode::NO_ERROR) {
         return ret;
     }
@@ -267,7 +267,7 @@ int32_t FfiInputMethodSettingOn(uint32_t type, void (*func)(CInputMethodProperty
     if (setting == nullptr) {
         return ERR_NO_MEMORY;
     }
-    return setting->Subscribe(type, func);
+    return Utils::ConvertErrorCode(setting->Subscribe(type, func));
 }
 
 int32_t FfiInputMethodSettingOff(uint32_t type)
@@ -276,7 +276,7 @@ int32_t FfiInputMethodSettingOff(uint32_t type)
     if (setting == nullptr) {
         return ERR_NO_MEMORY;
     }
-    return setting->UnSubscribe(type);
+    return Utils::ConvertErrorCode(setting->UnSubscribe(type));
 }
 
 int32_t FfiInputMethodSettingShowOptionalInputMethods(bool *result)
@@ -291,17 +291,17 @@ int32_t FfiInputMethodSettingShowOptionalInputMethods(bool *result)
         IMSA_HILOGI("exec DisplayOptionalInputMethod success");
         *result = true;
     }
-    return errCode;
+    return Utils::ConvertErrorCode(errCode);
 }
 
 int32_t FfiInputMethodControllerOn(int8_t type, int64_t id)
 {
-    return CjInputMethodController::Subscribe(type, id);
+    return Utils::ConvertErrorCode(CjInputMethodController::Subscribe(type, id));
 }
 
 int32_t FfiInputMethodControllerOff(int8_t type)
 {
-    return CjInputMethodController::Unsubscribe(type);
+    return Utils::ConvertErrorCode(CjInputMethodController::Unsubscribe(type));
 }
 
 int32_t FfiInputMethodControllerAttach(bool showKeyboard, CTextConfig txtCfg)
@@ -309,7 +309,7 @@ int32_t FfiInputMethodControllerAttach(bool showKeyboard, CTextConfig txtCfg)
     AttachOptions attachOptions;
     attachOptions.isShowKeyboard = showKeyboard;
     attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
-    return CjInputMethodController::Attach(txtCfg, attachOptions);
+    return Utils::ConvertErrorCode(CjInputMethodController::Attach(txtCfg, attachOptions));
 }
 
 int32_t FfiInputMethodControllerAttachWithReason(bool showKeyboard, CTextConfig txtCfg, int32_t reason)
@@ -317,12 +317,12 @@ int32_t FfiInputMethodControllerAttachWithReason(bool showKeyboard, CTextConfig 
     AttachOptions attachOptions;
     attachOptions.isShowKeyboard = showKeyboard;
     attachOptions.requestKeyboardReason = static_cast<RequestKeyboardReason>(reason);
-    return CjInputMethodController::Attach(txtCfg, attachOptions);
+    return Utils::ConvertErrorCode(CjInputMethodController::Attach(txtCfg, attachOptions));
 }
 
 int32_t FfiInputMethodControllerDetach()
 {
-    return CjInputMethodController::Detach();
+    return Utils::ConvertErrorCode(CjInputMethodController::Detach());
 }
 
 int32_t FfiInputMethodControllerShowTextInput()
@@ -330,7 +330,7 @@ int32_t FfiInputMethodControllerShowTextInput()
     AttachOptions attachOptions;
     attachOptions.isShowKeyboard = false;
     attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
-    return CjInputMethodController::ShowTextInput(attachOptions);
+    return Utils::ConvertErrorCode(CjInputMethodController::ShowTextInput(attachOptions));
 }
 
 int32_t FfiInputMethodControllerShowTextInputWithReason(int32_t reason)
@@ -338,47 +338,47 @@ int32_t FfiInputMethodControllerShowTextInputWithReason(int32_t reason)
     AttachOptions attachOptions;
     attachOptions.isShowKeyboard = false;
     attachOptions.requestKeyboardReason = static_cast<RequestKeyboardReason>(reason);
-    return CjInputMethodController::ShowTextInput(attachOptions);
+    return Utils::ConvertErrorCode(CjInputMethodController::ShowTextInput(attachOptions));
 }
 
 int32_t FfiInputMethodControllerHideTextInput()
 {
-    return CjInputMethodController::HideTextInput();
+    return Utils::ConvertErrorCode(CjInputMethodController::HideTextInput());
 }
 
 int32_t FfiInputMethodControllerSetCallingWindow(uint32_t windowId)
 {
-    return CjInputMethodController::SetCallingWindow(windowId);
+    return Utils::ConvertErrorCode(CjInputMethodController::SetCallingWindow(windowId));
 }
 
 int32_t FfiInputMethodControllerUpdateCursor(CCursorInfo cursor)
 {
-    return CjInputMethodController::UpdateCursor(cursor);
+    return Utils::ConvertErrorCode(CjInputMethodController::UpdateCursor(cursor));
 }
 
 int32_t FfiInputMethodControllerChangeSelection(char *text, int32_t start, int32_t end)
 {
-    return CjInputMethodController::ChangeSelection(std::string(text), start, end);
+    return Utils::ConvertErrorCode(CjInputMethodController::ChangeSelection(std::string(text), start, end));
 }
 
 int32_t FfiInputMethodControllerUpdateAttribute(CInputAttribute inputAttribute)
 {
-    return CjInputMethodController::UpdateAttribute(inputAttribute);
+    return Utils::ConvertErrorCode(CjInputMethodController::UpdateAttribute(inputAttribute));
 }
 
 int32_t FfiInputMethodControllerShowSoftKeyboard()
 {
-    return CjInputMethodController::ShowSoftKeyboard();
+    return Utils::ConvertErrorCode(CjInputMethodController::ShowSoftKeyboard());
 }
 
 int32_t FfiInputMethodControllerHideSoftKeyboard()
 {
-    return CjInputMethodController::HideSoftKeyboard();
+    return Utils::ConvertErrorCode(CjInputMethodController::HideSoftKeyboard());
 }
 
 int32_t FfiInputMethodControllerStopInputSession()
 {
-    return CjInputMethodController::StopInputSession();
+    return Utils::ConvertErrorCode(CjInputMethodController::StopInputSession());
 }
 }
 }
