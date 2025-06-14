@@ -21,9 +21,10 @@ namespace MiscServices {
 class JsGetInputMethodController;
 class JsGetInputMethodTextChangedListener : public OnTextChangedListener {
 public:
-    JsGetInputMethodTextChangedListener() = default;
-    ~JsGetInputMethodTextChangedListener() = default;
-    static sptr<JsGetInputMethodTextChangedListener> GetTextListener(bool newEditBox = false);
+    explicit JsGetInputMethodTextChangedListener(const std::shared_ptr<AppExecFwk::EventHandler> &handler);
+    ~JsGetInputMethodTextChangedListener() override;
+    static sptr<JsGetInputMethodTextChangedListener> GetTextListener(
+        const std::shared_ptr<AppExecFwk::EventHandler> &handler, bool newEditBox = false);
 
     void InsertText(const std::u16string &text) override;
     void DeleteForward(int32_t length) override;
@@ -51,10 +52,13 @@ public:
     bool IsFromTs() override;
     int32_t SetPreviewText(const std::u16string &text, const Range &range) override;
     void FinishTextPreview() override;
+    std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler() override;
 
 private:
     static std::mutex listenerMutex_;
     static sptr<JsGetInputMethodTextChangedListener> inputMethodListener_;
+    std::mutex handlerMutex_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

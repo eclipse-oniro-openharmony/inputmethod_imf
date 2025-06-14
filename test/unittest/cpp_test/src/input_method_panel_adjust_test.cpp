@@ -49,6 +49,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
+constexpr float GRADIENT_HEIGHT_RATIO = 0.15;
 const constexpr char *IMMERSIVE_EFFECT = "immersive_effect";
 class InputMethodPanelAdjustTest : public testing::Test {
 public:
@@ -988,7 +989,7 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_004, TestSize.Level0
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
 
     IdentityCheckerMock::SetSystemApp(true);
-    immersiveEffect = { .gradientHeight = displaySize.height - 1,
+    immersiveEffect = { .gradientHeight = 0,
         .gradientMode = GradientMode::LINEAR_GRADIENT,
         .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
     Rosen::KeyboardLayoutParams emptyParams;
@@ -1042,13 +1043,13 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_005, TestSize.Level0
 }
 
 /**
- * @tc.name: testSetImmersiveEffect_007
+ * @tc.name: testSetImmersiveEffect_006
  * @tc.desc: Test SetImmersiveEffect, FullScreenPrepare check portrait parameter failed.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_007, TestSize.Level0)
+HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_006, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect_007 Test START");
+    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect_006 Test START");
     InputMethodPanelAdjustTest::SetImmersiveCapacitySupport(true);
     IdentityCheckerMock::SetSystemApp(true);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1073,8 +1074,11 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_007, TestSize.Level0
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
+    WindowSize displaySize { 0, 0 };
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
+    EXPECT_TRUE(inputMethodPanel->GetDisplaySize(isPortrait, displaySize));
     ImmersiveEffect immersiveEffect;
-    immersiveEffect = { .gradientHeight = 1,
+    immersiveEffect = { .gradientHeight = displaySize.height * GRADIENT_HEIGHT_RATIO,
         .gradientMode = GradientMode::LINEAR_GRADIENT,
         .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
     ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
@@ -1083,13 +1087,13 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_007, TestSize.Level0
 }
 
 /**
- * @tc.name: testSetImmersiveEffect_008
+ * @tc.name: testSetImmersiveEffect_007
  * @tc.desc: Test SetImmersiveEffect, FullScreenPrepare check landscape parameter failed.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_008, TestSize.Level0)
+HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_007, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect_008 Test START");
+    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect_007 Test START");
     InputMethodPanelAdjustTest::SetImmersiveCapacitySupport(true);
     IdentityCheckerMock::SetSystemApp(true);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
@@ -1114,11 +1118,147 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_008, TestSize.Level0
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
+    WindowSize displaySize { 0, 0 };
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
+    EXPECT_TRUE(inputMethodPanel->GetDisplaySize(isPortrait, displaySize));
+    ImmersiveEffect immersiveEffect;
+    immersiveEffect = { .gradientHeight = displaySize.height * GRADIENT_HEIGHT_RATIO + 1,
+        .gradientMode = GradientMode::LINEAR_GRADIENT,
+        .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
+    ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
+}
+/**
+ * @tc.name: testSetImmersiveEffect_008
+ * @tc.desc: Test SetImmersiveEffect, NormalImePrepare success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_008, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect_008 Test START");
+    InputMethodPanelAdjustTest::SetImmersiveCapacitySupport(true);
+    IdentityCheckerMock::SetSystemApp(true);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    inputMethodPanel->immersiveMode_ = ImmersiveMode::IMMERSIVE;
+
+    DisplaySize display;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    Rosen::Rect portraitRect = { 0, 0, 0, static_cast<uint32_t>(display.portrait.height * 0.4) };
+    Rosen::Rect landscapeRect = { 0, 0, 0, static_cast<uint32_t>(display.landscape.height * 0.4) };
+    LayoutParams layoutParams = { .landscapeRect = landscapeRect, .portraitRect = portraitRect };
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams, true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ImmersiveEffect immersiveEffect;
+    immersiveEffect = { .gradientHeight = static_cast<uint32_t>(display.landscape.height * 0.1),
+        .gradientMode = GradientMode::LINEAR_GRADIENT,
+        .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
+    ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testSetImmersiveEffect_009
+ * @tc.desc: Test SetImmersiveEffect, FullScreenPrepare success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_009, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect_009 Test START");
+    InputMethodPanelAdjustTest::SetImmersiveCapacitySupport(true);
+    IdentityCheckerMock::SetSystemApp(true);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    inputMethodPanel->immersiveMode_ = ImmersiveMode::IMMERSIVE;
+
+    DisplaySize display;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(display), ErrorCode::NO_ERROR);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    uint32_t portraitAvoidHeight = display.portrait.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO - 1;
+    uint32_t portraitAvoidY = display.portrait.height - portraitAvoidHeight;
+    uint32_t landscapeAvoidHeight = display.landscape.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO - 1;
+    uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
+    EnhancedLayoutParams params = {
+        .isFullScreen = true,
+        .portrait = { {}, static_cast<int32_t>(portraitAvoidY),  0 },
+        .landscape = { {}, static_cast<int32_t>(landscapeAvoidY), 0 },
+    };
+    HotAreas hotAreas;
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     ImmersiveEffect immersiveEffect;
     immersiveEffect = { .gradientHeight = 1,
         .gradientMode = GradientMode::LINEAR_GRADIENT,
         .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
     ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testSetImmersiveEffect_010
+ * @tc.desc: Test SetImmersiveEffect, invalid gradientHeight.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_010, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect_010 Test START");
+    InputMethodPanelAdjustTest::SetImmersiveCapacitySupport(true);
+    IdentityCheckerMock::SetSystemApp(true);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    inputMethodPanel->immersiveMode_ = ImmersiveMode::IMMERSIVE;
+
+    WindowSize displaySize { 0, 0 };
+    bool isPortrait = inputMethodPanel->IsDisplayPortrait();
+    EXPECT_TRUE(inputMethodPanel->GetDisplaySize(isPortrait, displaySize));
+    ImmersiveEffect immersiveEffect;
+    immersiveEffect = { .gradientHeight = displaySize.width * GRADIENT_HEIGHT_RATIO + 1,
+        .gradientMode = GradientMode::LINEAR_GRADIENT,
+        .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
+    auto ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testSetImmersiveEffect_011
+ * @tc.desc: Test SetImmersiveEffect, invalid gradientHeight.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_011, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect_011 Test START");
+    InputMethodPanelAdjustTest::SetImmersiveCapacitySupport(true);
+    IdentityCheckerMock::SetSystemApp(true);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    inputMethodPanel->immersiveMode_ = ImmersiveMode::IMMERSIVE;
+
+    ImmersiveEffect immersiveEffect;
+    immersiveEffect = { .gradientHeight = INT32_MAX + 1,
+        .gradientMode = GradientMode::LINEAR_GRADIENT,
+        .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
+    auto ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelAdjustTest::ImaDestroyPanel(inputMethodPanel);
 }

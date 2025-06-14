@@ -359,6 +359,62 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
 }
 
 /**
+ * @tc.name: testExitCurrentInputType
+ * @tc.desc: InputMethodAbility ExitCurrentInputType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testExitCurrentInputType, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testExitCurrentInputType start.");
+    auto ret = inputMethodAbility_.ExitCurrentInputType();
+    EXPECT_EQ(ret, ErrorCode::ERROR_NOT_DEFAULT_IME);
+
+    InputMethodAbilityTest::GetIMCDetachIMA();
+    IdentityCheckerMock::SetBundleNameValid(true);
+    ret = inputMethodAbility_.ExitCurrentInputType();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    IdentityCheckerMock::SetBundleNameValid(false);
+}
+
+/**
+ * @tc.name: testNotifyPanelStatus
+ * @tc.desc: InputMethodAbility NotifyPanelStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatus1, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testNotifyPanelStatus1 start.");
+    auto ret = inputMethodAbility_.NotifyPanelStatus(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+ 
+/**
+ * @tc.name: testNotifyPanelStatus
+ * @tc.desc: InputMethodAbility NotifyPanelStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatus2, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testNotifyPanelStatus2 start.");
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
+    auto ret = inputMethodAbility_.CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
+    EXPECT_TRUE(softKeyboardPanel1 != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+ 
+    ret = inputMethodAbility_.NotifyPanelStatus(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+ 
+    ret = inputMethodAbility_.NotifyPanelStatus(true, FLG_FIXED);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
  * @tc.name: testShowKeyboardWithoutImeListener
  * @tc.desc: InputMethodAbility ShowKeyboard without imeListener
  * @tc.type: FUNC
@@ -415,6 +471,24 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
     clientInfo.isShowKeyboard = true;
     ret = inputMethodAbility_.StartInput(clientInfo, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testStartInput
+ * @tc.desc: InputMethodAbility StartInput
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testStartInput, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testStartInput start.");
+    inputMethodAbility_.SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelServiceImpl();
+    InputClientInfo clientInfo;
+    clientInfo.channel = channelStub;
+    auto ret = inputMethodAbility_.StartInput(clientInfo, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(inputMethodAbility_.isNotify_);
 }
 
 /**
@@ -1537,7 +1611,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_001, TestSize.Level0)
     TextListener::ResetParam();
     InputMethodAbilityTest::GetIMCAttachIMA();
     InputMethodAbilityTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
-    auto ret = InputMethodAbilityTest::inputMethodAbility_.FinishTextPreview(false);
+    auto ret = InputMethodAbilityTest::inputMethodAbility_.FinishTextPreview();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
     InputMethodAbilityTest::GetIMCDetachIMA();
@@ -1556,7 +1630,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_002, TestSize.Level0)
     TextListener::ResetParam();
     InputMethodAbilityTest::inputMethodAbility_.ClearDataChannel(
         InputMethodAbilityTest::inputMethodAbility_.dataChannelObject_);
-    auto ret = InputMethodAbilityTest::inputMethodAbility_.FinishTextPreview(false);
+    auto ret = InputMethodAbilityTest::inputMethodAbility_.FinishTextPreview();
     EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
@@ -1574,7 +1648,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_003, TestSize.Level0)
     TextListener::ResetParam();
     InputMethodAbilityTest::GetIMCAttachIMA();
     InputMethodAbilityTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = false;
-    auto ret = InputMethodAbilityTest::inputMethodAbility_.FinishTextPreview(false);
+    auto ret = InputMethodAbilityTest::inputMethodAbility_.FinishTextPreview();
     EXPECT_EQ(ret, ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED);
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
     InputMethodAbilityTest::GetIMCDetachIMA();
@@ -1857,7 +1931,8 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_008, TestSize.Level0)
 
     sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
     auto channelProxy = std::make_shared<InputDataChannelProxy>(channelObject->AsObject());
-    InputMethodAbility::GetInstance().dataChannelProxy_ = channelProxy;
+    InputMethodAbility::GetInstance().dataChannelProxyWrap_
+        = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
     InputMethodAbility::GetInstance().inputAttribute_.needAutoInputNumkey = true;
 
     auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_NUMPAD_0, MMI::KeyEvent::KEY_ACTION_DOWN);
@@ -1876,7 +1951,8 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_009, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_009 START");
     sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
     auto channelProxy = std::make_shared<InputDataChannelProxy>(channelObject->AsObject());
-    InputMethodAbility::GetInstance().dataChannelProxy_ = channelProxy;
+    InputMethodAbility::GetInstance().dataChannelProxyWrap_
+        = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
     InputMethodAbility::GetInstance().inputAttribute_.needAutoInputNumkey = true;
 
     auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);

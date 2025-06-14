@@ -15,7 +15,10 @@
 
 #include "imeenabledinfomanager_fuzzer.h"
 
+#define private public
+#define protected public
 #include "ime_enabled_info_manager.h"
+#undef private
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -161,6 +164,47 @@ void FuzzOnFullExperienceTableChanged(const uint8_t *data, size_t size)
     auto userId = static_cast<int32_t>(size);
     ImeEnabledInfoManager::GetInstance().OnFullExperienceTableChanged(userId);
 }
+
+void FuzzGetEnabledStateInner(const uint8_t *data, size_t size)
+{
+    static std::vector<Property> props;
+    static std::vector<FullImeInfo> imeInfos;
+    static std::vector<ImeEnabledInfo> enabledInfos;
+    auto fuzzedString = GetString(data, size);
+    for (size_t i = 0; i < size; i++) {
+        Property prop;
+        prop.name = fuzzedString + std::to_string(i);
+        prop.id = std::to_string(i) + fuzzedString;
+        props.push_back(prop);
+    }
+    auto userId = static_cast<int32_t>(size);
+    auto fuzzedBool = static_cast<bool>(data[0] % 2);
+    auto fuzzUint32 = static_cast<uint32_t>(size);
+    auto fuzzInt32 = static_cast<int32_t>(size);
+    EnabledStatus status = static_cast<EnabledStatus>(fuzzInt32);
+    FullImeInfo imeInfo = { .isNewIme = fuzzedBool, .tokenId = fuzzUint32, .appId = fuzzedString,
+        .versionCode = fuzzUint32 };
+    ImeEnabledInfo imeEnabeleInfo;
+    imeEnabeleInfo.bundleName = fuzzedString;
+    imeEnabeleInfo.extensionName = fuzzedString;
+    imeEnabeleInfo.enabledStatus = static_cast<EnabledStatus>(fuzzInt32);
+    imeEnabeleInfo.stateUpdateTime = fuzzedString;
+    enabledInfos.push_back(imeEnabeleInfo);
+    ImeEnabledCfg newEnabledCfg;
+    newEnabledCfg.version = fuzzedString;
+    newEnabledCfg.enabledInfos = enabledInfos;
+    ImeEnabledInfoManager::GetInstance().GetEnabledStateInner(userId, fuzzedString, status);
+    ImeEnabledInfoManager::GetInstance().GetEnabledStatesInner(userId, props);
+    ImeEnabledInfoManager::GetInstance().IsInEnabledCache(userId, fuzzedString, fuzzedString);
+    ImeEnabledInfoManager::GetInstance().CorrectByBundleMgr(userId, imeInfos, enabledInfos);
+    ImeEnabledInfoManager::GetInstance().ComputeEnabledStatus(fuzzedString, status);
+    ImeEnabledInfoManager::GetInstance().UpdateEnabledCfgCache(userId, newEnabledCfg);
+    ImeEnabledInfoManager::GetInstance().NotifyCurrentImeStatusChanged(userId, fuzzedString, status);
+    ImeEnabledInfoManager::GetInstance().IsExpired(fuzzedString);
+    ImeEnabledInfoManager::GetInstance().UpdateGlobalEnabledTable(userId, newEnabledCfg);
+    ImeEnabledInfoManager::GetInstance().ModCurrentIme(enabledInfos);
+    ImeEnabledInfoManager::GetInstance().IsCurrentIme(fuzzedString, enabledInfos);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -180,5 +224,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::FuzzGetCurrentImeCfg(data, size);
     OHOS::FuzzIsDefaultImeSet(data, size);
     OHOS::FuzzOnFullExperienceTableChanged(data, size);
+    OHOS::FuzzGetEnabledStateInner(data, size);
     return 0;
 }

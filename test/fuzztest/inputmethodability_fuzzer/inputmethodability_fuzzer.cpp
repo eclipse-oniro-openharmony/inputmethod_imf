@@ -188,7 +188,7 @@ void TestInterfaceCoverage(int32_t dataInt32, bool dataBool, std::u16string &tex
     InputMethodAbility::GetInstance().SelectByMovement(dataInt32);
     InputMethodAbility::GetInstance().GetEnterKeyType(dataInt32);
     InputMethodAbility::GetInstance().GetSecurityMode(dataInt32);
-    InputMethodAbility::GetInstance().FinishTextPreview(dataBool);
+    InputMethodAbility::GetInstance().FinishTextPreview();
     InputMethodAbility::GetInstance().GetTextBeforeCursor(dataInt32, text);
     InputMethodAbility::GetInstance().ReportBaseTextOperation(dataInt32, dataInt32, consumeTime);
 }

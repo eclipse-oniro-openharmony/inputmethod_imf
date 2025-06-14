@@ -19,17 +19,18 @@ namespace OHOS {
 namespace MiscServices {
 std::mutex JsGetInputMethodTextChangedListener::listenerMutex_;
 sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::inputMethodListener_{ nullptr };
-sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::GetTextListener(bool newEditBox)
+sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::GetTextListener(
+    const std::shared_ptr<AppExecFwk::EventHandler> &handler, bool newEditBox)
 {
     IMSA_HILOGD("newEditBox is %{public}d.", newEditBox);
     if (newEditBox) {
         std::lock_guard<std::mutex> lock(listenerMutex_);
-        inputMethodListener_ = new (std::nothrow) JsGetInputMethodTextChangedListener();
+        inputMethodListener_ = new (std::nothrow) JsGetInputMethodTextChangedListener(handler);
     } else {
         if (inputMethodListener_ == nullptr) {
             std::lock_guard<std::mutex> lock(listenerMutex_);
             if (inputMethodListener_ == nullptr) {
-                inputMethodListener_ = new (std::nothrow) JsGetInputMethodTextChangedListener();
+                inputMethodListener_ = new (std::nothrow) JsGetInputMethodTextChangedListener(handler);
             }
         }
     }
@@ -105,6 +106,21 @@ int32_t JsGetInputMethodTextChangedListener::SetPreviewText(const std::u16string
 void JsGetInputMethodTextChangedListener::FinishTextPreview()
 {
     return JsGetInputMethodController::GetInstance()->FinishTextPreview();
+}
+
+std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodTextChangedListener::GetEventHandler()
+{
+    std::lock_guard<std::mutex> lock(handlerMutex_);
+    return handler_;
+}
+
+JsGetInputMethodTextChangedListener::JsGetInputMethodTextChangedListener(
+    const std::shared_ptr<AppExecFwk::EventHandler> &handler)
+{
+    handler_ = handler;
+}
+JsGetInputMethodTextChangedListener::~JsGetInputMethodTextChangedListener()
+{
 }
 } // namespace MiscServices
 } // namespace OHOS

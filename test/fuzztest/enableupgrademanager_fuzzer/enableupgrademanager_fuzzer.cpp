@@ -20,12 +20,13 @@
 #define private public
 #define protected public
 #include "enable_upgrade_manager.h"
+#include "full_ime_info_manager.h"
 #undef private
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
 
-__attribute__((no_sanitize("cfi"))) void FuzzAgentStub(const uint8_t *data, size_t size)
+void FuzzAgentStub(const uint8_t *data, size_t size)
 {
     static std::vector<FullImeInfo> imeInfos;
     static std::set<std::string> bundleNames;
@@ -69,11 +70,35 @@ __attribute__((no_sanitize("cfi"))) void FuzzAgentStub(const uint8_t *data, size
     EnableUpgradeManager::GetInstance().PaddedByImePersistCfg(userId, enabledInfos);
     EnableUpgradeManager::GetInstance().ComputeEnabledStatus(fuzzedString, initStatus);
 }
+
+void FuzzFullImeInfo(const uint8_t *data, size_t size)
+{
+    auto fuzzInt32 = static_cast<int32_t>(size);
+    std::string fuzzedString(reinterpret_cast<const char *>(data), size);
+    auto fuzzedBool = static_cast<bool>(data[0] % 2);
+    auto fuzzUint32 = static_cast<uint32_t>(size);
+    static std::vector<FullImeInfo> infos;
+    FullImeInfo imeInfo = { .isNewIme = fuzzedBool, .tokenId = fuzzUint32, .appId = fuzzedString,
+        .versionCode = fuzzUint32 };
+    infos.push_back(imeInfo);
+    FullImeInfoManager::GetInstance().RegularInit();
+    FullImeInfoManager::GetInstance().Switch(fuzzInt32);
+    FullImeInfoManager::GetInstance().Update();
+    FullImeInfoManager::GetInstance().Delete(fuzzInt32);
+    FullImeInfoManager::GetInstance().Add(fuzzInt32, fuzzedString);
+    FullImeInfoManager::GetInstance().Delete(fuzzInt32, fuzzedString);
+    FullImeInfoManager::GetInstance().Update(fuzzInt32, fuzzedString);
+    FullImeInfoManager::GetInstance().Has(fuzzInt32, fuzzedString);
+    FullImeInfoManager::GetInstance().AddUser(fuzzInt32, infos);
+    FullImeInfoManager::GetInstance().AddPackage(fuzzInt32, fuzzedString, imeInfo);
+    FullImeInfoManager::GetInstance().DeletePackage(fuzzInt32, fuzzedString);
+}
 } // namespace OHOS
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
     OHOS::FuzzAgentStub(data, size);
+    OHOS::FuzzFullImeInfo(data, size);
     return 0;
 }
