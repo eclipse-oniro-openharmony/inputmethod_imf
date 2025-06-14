@@ -37,6 +37,7 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getSystemInputMethodConfigAbility", GetSystemInputMethodConfigAbility),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodSubtype", SwitchCurrentInputMethodSubtype),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodAndSubtype", SwitchCurrentInputMethodAndSubtype),
+        DECLARE_NAPI_FUNCTION("setSimpleKeyboardEnabled", SetSimpleKeyboardEnabled),
     };
     NAPI_CALL(env,
         napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -427,6 +428,37 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
     // 3 means JsAPI:switchCurrentInputMethodAndSubtype has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec, "switchCurrentInputMethodAndSubtype");
+}
+
+napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_info info)
+{
+    InputMethodSyncTrace tracer("JsInputMethod_SetSimpleKeyboardEnabled");
+    auto ctxt = std::make_shared<SwitchInputMethodContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->isSimpleKeyboardEnabled),
+            "SimpleKeyboard covert failed, type must be boolean!", TYPE_NONE, napi_generic_failure);
+        return status;
+    };
+
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
+        auto instance = InputMethodController::GetInstance();
+        if (instance != nullptr) {
+            errCode = instance->SetSimpleKeyboardEnabled(ctxt->isSimpleKeyboardEnabled);
+        }
+        if (errCode == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            IMSA_HILOGE("exec SetSimpleKeyboardEnabled failed ret: %{public}d!", errCode);
+            ctxt->SetErrorCode(errCode);
+        }
+    };
+    ctxt->SetAction(std::move(input));
+    // 1 means JsAPI:switchInputMethod has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec, "setSimpleKeyboardEnabled");
 }
 } // namespace MiscServices
 } // namespace OHOS

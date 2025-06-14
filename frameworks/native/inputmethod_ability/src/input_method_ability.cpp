@@ -368,6 +368,7 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject, uint32_
     ClearInputAttribute();
     ClearRequestKeyboardReason();
     ClearInputType();
+    ClearIsSimpleKeyboardEnabled();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
@@ -594,6 +595,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
     IsInputClientAttachOptionsChanged(textConfig.requestKeyboardReason);
+    IsSimpleKeyboardEnabledChanged(textConfig.isSimpleKeyboardEnabled);
     if (isNotifyInputStart) {
         imeListener_->OnInputStart();
     }
@@ -629,7 +631,25 @@ bool InputMethodAbility::IsInputClientAttachOptionsChanged(RequestKeyboardReason
         SetRequestKeyboardReason(requestKeyboardReason);
         if (textInputClientListener_ != nullptr) {
             AttachOptions attachOptions;
+            attachOptions.isSimpleKeyboardEnabled = GetIsSimpleKeyboardEnabled();
             attachOptions.requestKeyboardReason = requestKeyboardReason;
+            textInputClientListener_->OnAttachOptionsChanged(attachOptions);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool InputMethodAbility::IsSimpleKeyboardEnabledChanged(bool isSimpleKeyboardEnabled)
+{
+    IMSA_HILOGD("AttachOptionsChanged newSimpleKeyboardEnabled:%{public}d, oldSimpleKeyboardEnabled:%{public}d",
+        isSimpleKeyboardEnabled, GetIsSimpleKeyboardEnabled());
+    if (isSimpleKeyboardEnabled != GetIsSimpleKeyboardEnabled()) {
+        SetIsSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
+        if (textInputClientListener_ != nullptr) {
+            AttachOptions attachOptions;
+            attachOptions.requestKeyboardReason = GetRequestKeyboardReason();
+            attachOptions.isSimpleKeyboardEnabled = isSimpleKeyboardEnabled;
             textInputClientListener_->OnAttachOptionsChanged(attachOptions);
             return true;
         }
@@ -1163,6 +1183,24 @@ RequestKeyboardReason InputMethodAbility::GetRequestKeyboardReason()
     return requestKeyboardReason_;
 }
 
+bool InputMethodAbility::GetIsSimpleKeyboardEnabled()
+{
+    std::lock_guard<std::mutex> lock(isSimpleKeyboardEnabledLock_);
+    return isSimpleKeyboardEnabled_;
+}
+
+void InputMethodAbility::SetIsSimpleKeyboardEnabled(bool isSimpleKeyboardEnabled)
+{
+    std::lock_guard<std::mutex> lock(isSimpleKeyboardEnabledLock_);
+    isSimpleKeyboardEnabled_ = isSimpleKeyboardEnabled;
+}
+
+void InputMethodAbility::ClearIsSimpleKeyboardEnabled()
+{
+    std::lock_guard<std::mutex> lock(isSimpleKeyboardEnabledLock_);
+    isSimpleKeyboardEnabled_ = false;
+}
+
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger, uint32_t sessionId)
 {
     isShowAfterCreate_.store(false);
@@ -1384,6 +1422,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
     });
     ClearDataChannel(channel);
     ClearRequestKeyboardReason();
+    ClearIsSimpleKeyboardEnabled();
 }
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)

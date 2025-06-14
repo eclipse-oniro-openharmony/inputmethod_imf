@@ -106,6 +106,7 @@ bool TextTotalConfigInner::ReadFromParcel(Parcel &in)
     commandValue = *commandValueInfo;
     requestKeyboardReason = static_cast<RequestKeyboardReason>(in.ReadInt32());
     abilityToken = (static_cast<MessageParcel*>(&in))->ReadRemoteObject();
+    isSimpleKeyboardEnabled = in.ReadBool();
     return true;
 }
 
@@ -312,6 +313,9 @@ bool TextTotalConfigInner::Marshalling(Parcel &out) const
     }
 
     if (abilityToken != nullptr && !out.WriteRemoteObject(abilityToken)) {
+        return false;
+    }
+    if (!out.WriteBool(isSimpleKeyboardEnabled)) {
         return false;
     }
     return true;

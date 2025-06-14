@@ -101,6 +101,7 @@ public:
     int32_t NotifyPanelStatus(PanelType panelType, SysPanelStatus &sysPanelStatus);
     InputAttribute GetInputAttribute();
     RequestKeyboardReason GetRequestKeyboardReason();
+    bool GetIsSimpleKeyboardEnabled();
     void OnSetInputType(InputType inputType);
     int32_t SendMessage(const ArrayBuffer &arrayBuffer);
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
@@ -165,6 +166,7 @@ private:
     int32_t InvokeStartInputCallback(bool isNotifyInputStart);
     int32_t InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart);
     bool IsInputClientAttachOptionsChanged(RequestKeyboardReason requestKeyboardReason);
+    bool IsSimpleKeyboardEnabledChanged(bool isSimpleKeyboardEnabled);
     int32_t HideKeyboard(Trigger trigger, uint32_t sessionId);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
     /* param flag: ShowPanel is async, show/hide softkeyboard in alphabet keyboard attached,
@@ -196,6 +198,9 @@ private:
     HiSysEventClientInfo GetBindClientInfo();
     void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);
     void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
+    void SetIsSimpleKeyboardEnabled(bool isSimpleKeyboardEnabled);
+    void ClearIsSimpleKeyboardEnabled();
+
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
     std::atomic_bool isBound_ { false };
     std::atomic_bool isProxyIme_{ false };
@@ -217,6 +222,8 @@ private:
     RequestKeyboardReason requestKeyboardReason_ = RequestKeyboardReason::NONE;
     std::recursive_mutex keyboardCmdLock_;
     int32_t cmdId_ = 0;
+    std::mutex isSimpleKeyboardEnabledLock_;
+    bool isSimpleKeyboardEnabled_ = false;
 
     std::mutex inputTypeLock_;
     InputType inputType_ = InputType::NONE;

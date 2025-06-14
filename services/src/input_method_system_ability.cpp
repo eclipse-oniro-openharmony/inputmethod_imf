@@ -668,6 +668,14 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     if (inputClientInfo.config.inputAttribute.IsSecurityImeFlag()) {
         return StartSecurityIme(userId, inputClientInfo);
     }
+    if (inputClientInfo.config.isSimpleKeyboardEnabled) {
+        std::string ime;
+        if (GetScreenLockIme(userId, ime) != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("not ime screenlocked");
+            return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
+        }
+        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId, ime);
+    }
     if (!inputClientInfo.isNotifyInputStart) {
         IMSA_HILOGD("NormalFlag, same textField, not deal.");
         return ErrorCode::NO_ERROR;
@@ -1171,6 +1179,11 @@ ErrCode InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
                ? OnStartInputType(userId, switchInfo, true)
                : OnSwitchInputMethod(userId, switchInfo, static_cast<SwitchTrigger>(trigger));
 }
+
+// ErrCode InputMethodSystemAbility::SetSimpleKeyboardEnabled(bool enable)
+// {
+
+// }
 
 ErrCode InputMethodSystemAbility::EnableIme(
     const std::string &bundleName, const std::string &extensionName, int32_t status)

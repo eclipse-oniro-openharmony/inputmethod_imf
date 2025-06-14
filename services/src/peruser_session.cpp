@@ -545,6 +545,11 @@ int32_t PerUserSession::OnStartInput(
     infoTemp.needHide = inputClientInfo.needHide;
     infoTemp.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
     infoTemp.config.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
+    if (inputClientInfo.config.inputAttribute.IsSecurityImeFlag()) {
+        infoTemp.config.isSimpleKeyboardEnabled = false;
+    } else {
+        infoTemp.config.isSimpleKeyboardEnabled = inputClientInfo.isSimpleKeyboardEnabled;
+    }
     int32_t ret =
         BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true, inputClientInfo.displayId);
     if (ret != ErrorCode::NO_ERROR) {

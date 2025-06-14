@@ -342,6 +342,7 @@ public:
     double height = 0;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
     RequestKeyboardReason requestKeyboardReason = RequestKeyboardReason::NONE;
+    bool isSimpleKeyboardEnabled = false;
     sptr<IRemoteObject> abilityToken { nullptr };
 
     std::string ToString() const
@@ -371,6 +372,7 @@ public:
     double height = 0;
     Value commandValue;
     RequestKeyboardReason requestKeyboardReason = RequestKeyboardReason::NONE;
+    bool isSimpleKeyboardEnabled = false;
     sptr<IRemoteObject> abilityToken { nullptr };
 
     bool ReadFromParcel(Parcel &parcel);
@@ -521,6 +523,7 @@ struct ArrayBuffer : public Parcelable {
 
 struct AttachOptions {
     bool isShowKeyboard = false;
+    bool isSimpleKeyboardEnabled = false;
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE };
 };
 struct ImfCallingWindowInfo {

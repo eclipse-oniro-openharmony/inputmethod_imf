@@ -130,6 +130,7 @@ TextTotalConfigInner InputMethodTools::TextTotalConfigToInner(const TextTotalCon
     inner.commandValue.valueMap = textTotalConfig.privateCommand;
     inner.requestKeyboardReason = textTotalConfig.requestKeyboardReason;
     inner.abilityToken = textTotalConfig.abilityToken;
+    inner.isSimpleKeyboardEnabled = textTotalConfig.isSimpleKeyboardEnabled;
     return inner;
 }
 
@@ -145,6 +146,7 @@ TextTotalConfig InputMethodTools::InnerToTextTotalConfig(const TextTotalConfigIn
     textTotalConfig.privateCommand = inner.commandValue.valueMap;
     textTotalConfig.requestKeyboardReason = inner.requestKeyboardReason;
     textTotalConfig.abilityToken = inner.abilityToken;
+    textTotalConfig.isSimpleKeyboardEnabled = inner.isSimpleKeyboardEnabled;
     return textTotalConfig;
 }
 
@@ -169,6 +171,7 @@ InputClientInfoInner InputMethodTools::InputClientInfoToInner(const InputClientI
     inner.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
     inner.type = inputClientInfo.type;
     inner.name = inputClientInfo.name;
+    inner.isSimpleKeyboardEnabled = inputClientInfo.isSimpleKeyboardEnabled;
     return inner;
 }
 
@@ -193,6 +196,7 @@ InputClientInfo InputMethodTools::InnerToInputClientInfo(const InputClientInfoIn
     inputClientInfo.requestKeyboardReason = inner.requestKeyboardReason;
     inputClientInfo.type = inner.type;
     inputClientInfo.name = inner.name;
+    inputClientInfo.isSimpleKeyboardEnabled = inner.isSimpleKeyboardEnabled;
     return inputClientInfo;
 }
 
