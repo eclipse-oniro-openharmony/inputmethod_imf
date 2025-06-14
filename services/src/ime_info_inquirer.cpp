@@ -832,7 +832,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 std::string ImeInfoInquirer::GetSystemSpecialIme()
 {
     if (!systemConfig_.systemSpecialInputMethod.empty()) {
-        IMSA_HILOGI("systemSpecialInputMethod: %{public}s.", systemConfig_.systemSpecialInputMethod.c_str());
+        IMSA_HILOGD("systemSpecialInputMethod: %{public}s.", systemConfig_.systemSpecialInputMethod.c_str());
         return systemConfig_.systemSpecialInputMethod;
     }
     return "";
@@ -842,7 +842,7 @@ ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
 {
     ImeNativeCfg imeCfg;
     if (!systemConfig_.defaultInputMethod.empty()) {
-        IMSA_HILOGI("defaultInputMethod: %{public}s.", systemConfig_.defaultInputMethod.c_str());
+        IMSA_HILOGD("defaultInputMethod: %{public}s.", systemConfig_.defaultInputMethod.c_str());
         imeCfg.imeId = systemConfig_.defaultInputMethod;
     } else {
         char value[CONFIG_LEN] = { 0 };

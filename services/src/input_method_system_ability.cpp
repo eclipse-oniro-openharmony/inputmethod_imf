@@ -956,7 +956,7 @@ ErrCode InputMethodSystemAbility::PanelStatusChange(uint32_t status, const ImeWi
 ErrCode InputMethodSystemAbility::UpdateListenEventFlag(const InputClientInfoInner &clientInfoInner, uint32_t eventFlag)
 {
     InputClientInfo clientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(clientInfoInner);
-    IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u.", clientInfo.eventFlag, eventFlag);
+    IMSA_HILOGD("finalEventFlag: %{public}u, eventFlag: %{public}u.", clientInfo.eventFlag, eventFlag);
     if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag) ||
         EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
         if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&

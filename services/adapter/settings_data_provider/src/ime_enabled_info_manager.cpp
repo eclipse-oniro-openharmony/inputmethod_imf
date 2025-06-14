@@ -661,7 +661,7 @@ int32_t ImeEnabledInfoManager::SetCurrentIme(
 int32_t ImeEnabledInfoManager::SetTmpIme(int32_t userId, const std::string &imeId)
 {
     std::lock_guard<std::mutex> lock(operateLock_);
-    IMSA_HILOGI("%{public}d set tmp ime:%{public}s.", userId, imeId.c_str());
+    IMSA_HILOGD("%{public}d set tmp ime:%{public}s.", userId, imeId.c_str());
     ImeEnabledCfg enabledCfg;
     if (imeId.empty()) {
         auto ret = GetEnabledCacheWithCorrect(userId, enabledCfg);
@@ -728,7 +728,7 @@ std::shared_ptr<ImeNativeCfg> ImeEnabledInfoManager::GetCurrentImeCfg(int32_t us
     iter = std::find_if(enabledCfg.enabledInfos.begin(), enabledCfg.enabledInfos.end(),
         [](const auto &info) { return info.extraInfo.isDefaultIme; });
     if (iter != enabledCfg.enabledInfos.end()) {
-        IMSA_HILOGI("%{public}d has default ime:%{public}s.", userId, iter->bundleName.c_str());
+        IMSA_HILOGD("%{public}d has default ime:%{public}s.", userId, iter->bundleName.c_str());
         ImeNativeCfg nativeInfo;
         nativeInfo.imeId = iter->bundleName + "/" + iter->extensionName;
         nativeInfo.bundleName = iter->bundleName;

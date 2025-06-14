@@ -590,7 +590,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
         imeListener_->OnInputStart();
     }
     if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
-        IMSA_HILOGI("notify privateCommand.");
+        IMSA_HILOGD("notify privateCommand.");
         imeListener_->ReceivePrivateCommand(textConfig.privateCommand);
     }
     if (kdListener_ != nullptr) {

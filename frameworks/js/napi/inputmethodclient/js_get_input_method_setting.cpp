@@ -788,7 +788,7 @@ void JsGetInputMethodSetting::OnImeHide(const ImeWindowInfo &info)
 
 void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const InputWindowInfo &info)
 {
-    IMSA_HILOGI("type: %{public}s, rect[%{public}d, %{public}d, %{public}u, %{public}u].", type.c_str(), info.left,
+    IMSA_HILOGD("type: %{public}s, rect[%{public}d, %{public}d, %{public}u, %{public}u].", type.c_str(), info.left,
         info.top, info.width, info.height);
     auto entry = GetEntry(type, [&info](UvEntry &entry) { entry.windowInfo = { info }; });
     if (entry == nullptr) {
