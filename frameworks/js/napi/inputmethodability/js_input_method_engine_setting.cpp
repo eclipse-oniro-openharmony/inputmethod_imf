@@ -94,7 +94,9 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_PROPERTY("SecurityMode", GetJsSecurityModeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("ImmersiveMode", GetJsImmersiveModeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("RequestKeyboardReason", GetJsRequestKeyboardReasonProperty(env)),
-        DECLARE_NAPI_STATIC_PROPERTY("CapitalizeMode", GetJsCapitalizeModeProperty(env))
+        DECLARE_NAPI_STATIC_PROPERTY("CapitalizeMode", GetJsCapitalizeModeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("GradientMode", GetJsGradientModeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("FluidLightMode", GetJsFluidLightModeProperty(env))
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -240,6 +242,28 @@ napi_value JsInputMethodEngineSetting::GetJsImmersiveModeProperty(napi_env env)
         JsUtil::Object::WriteProperty(
             env, immersive, "DARK_IMMERSIVE", static_cast<int32_t>(ImmersiveMode::DARK_IMMERSIVE));
     return ret ? immersive : JsUtil::Const::Null(env);
+}
+
+napi_value JsInputMethodEngineSetting::GetJsGradientModeProperty(napi_env env)
+{
+    napi_value gradientMode = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &gradientMode));
+    bool ret = JsUtil::Object::WriteProperty(env, gradientMode, "NONE", static_cast<int32_t>(GradientMode::NONE));
+    ret = ret &&
+        JsUtil::Object::WriteProperty(
+            env, gradientMode, "LINEAR_GRADIENT", static_cast<int32_t>(GradientMode::LINEAR_GRADIENT));
+    return ret ? gradientMode : JsUtil::Const::Null(env);
+}
+
+napi_value JsInputMethodEngineSetting::GetJsFluidLightModeProperty(napi_env env)
+{
+    napi_value fluidLightMode = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &fluidLightMode));
+    bool ret = JsUtil::Object::WriteProperty(
+        env, fluidLightMode, "NONE", static_cast<int32_t>(FluidLightMode::NONE));
+    ret = ret && JsUtil::Object::WriteProperty(
+        env, fluidLightMode, "BACKGROUND_FLUID_LIGHT", static_cast<int32_t>(FluidLightMode::BACKGROUND_FLUID_LIGHT));
+    return ret ? fluidLightMode : JsUtil::Const::Null(env);
 }
 
 napi_value JsInputMethodEngineSetting::GetJsRequestKeyboardReasonProperty(napi_env env)

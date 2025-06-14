@@ -979,6 +979,7 @@ private:
     int32_t ShowSoftKeyboardInner(ClientType type);
     void ReportClientShow(int32_t eventCode, int32_t errCode, ClientType type);
     void GetWindowScaleCoordinate(int32_t& x, int32_t& y, uint32_t windowId);
+    void CalibrateImmersiveParam(InputAttribute &inputAttribute);
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;

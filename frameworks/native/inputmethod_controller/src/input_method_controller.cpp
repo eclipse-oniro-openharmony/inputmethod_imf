@@ -204,6 +204,27 @@ void InputMethodController::DeactivateClient()
     SendKeyboardStatus(KeyboardStatus::NONE);
 }
 
+void InputMethodController::CalibrateImmersiveParam(InputAttribute &inputAttribute)
+{
+    // 1.The gradient mode and the fluid light mode can only be used when the immersive mode is enabled.
+    if (inputAttribute.immersiveMode == 0) {
+        if (inputAttribute.gradientMode != 0 || inputAttribute.fluidLightMode != 0) {
+            IMSA_HILOGW("immersiveMode is NONE, but gradientMode=%{public}d, fluidLightMode=%{public}d",
+                inputAttribute.gradientMode, inputAttribute.fluidLightMode);
+            inputAttribute.gradientMode = 0;
+            inputAttribute.fluidLightMode = 0;
+        }
+        return;
+    }
+
+    // 2.The fluid light mode can only be used when the gradient mode is enabled.
+    if (inputAttribute.gradientMode == 0 && inputAttribute.fluidLightMode != 0) {
+        IMSA_HILOGW("gradientMode is NONE, but fluidLightMode=%{public}d", inputAttribute.fluidLightMode);
+        inputAttribute.fluidLightMode = 0;
+        return;
+    }
+}
+
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
 {
     IMSA_HILOGD("textConfig: %{public}s.", textConfig.ToString().c_str());
@@ -214,6 +235,7 @@ void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_ = textConfig;
+        CalibrateImmersiveParam(textConfig_.inputAttribute);
         textConfig_.cursorInfo.left = x;
         textConfig_.cursorInfo.top = y;
         StringUtils::TruncateUtf16String(textConfig_.inputAttribute.placeholder, MAX_PLACEHOLDER_SIZE);
@@ -264,6 +286,14 @@ int32_t InputMethodController::IsValidTextConfig(const TextConfig &textConfig)
         textConfig.inputAttribute.immersiveMode >= static_cast<int32_t>(ImmersiveMode::END)) {
         IMSA_HILOGE("invalid immersiveMode: %{public}d", textConfig.inputAttribute.immersiveMode);
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+    if (textConfig.inputAttribute.gradientMode < static_cast<int32_t>(GradientMode::NONE) ||
+        textConfig.inputAttribute.gradientMode >= static_cast<int32_t>(GradientMode::END)) {
+        IMSA_HILOGW("invalid gradientMode: %{public}d", textConfig.inputAttribute.gradientMode);
+    }
+    if (textConfig.inputAttribute.fluidLightMode < static_cast<int32_t>(FluidLightMode::NONE) ||
+        textConfig.inputAttribute.fluidLightMode >= static_cast<int32_t>(FluidLightMode::END)) {
+        IMSA_HILOGW("invalid fluidLightMode: %{public}d", textConfig.inputAttribute.fluidLightMode);
     }
     return ErrorCode::NO_ERROR;
 }

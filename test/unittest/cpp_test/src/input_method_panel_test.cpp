@@ -16,6 +16,7 @@
 #define protected public
 #include "input_method_panel.h"
 
+#include "ime_info_inquirer.h"
 #include "input_method_ability.h"
 #include "input_method_ability_utils.h"
 #include "input_method_controller.h"
@@ -59,6 +60,7 @@ constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf.input_panel_status_changed";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
+const constexpr char *IMMERSIVE_EFFECT = "immersive_effect";
 enum ListeningStatus : uint32_t {
     ON,
     OFF,
@@ -2245,6 +2247,31 @@ HWTEST_F(InputMethodPanelTest, testMoveEnhancedPanelRect, TestSize.Level0)
 
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ErrorCode::ERROR_NULL_POINTER, ret);
+}
+
+/**
+ * @tc.name: testSetImmersiveEffect
+ * @tc.desc: Test SetImmersiveEffect device not supported.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testSetImmersiveEffect, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelAdjustTest testSetImmersiveEffect Test START");
+    auto supportedCapacityList = ImeInfoInquirer::GetInstance().GetSystemConfig().supportedCapacityList;
+    supportedCapacityList.erase(IMMERSIVE_EFFECT);
+    ImeInfoInquirer::GetInstance().systemConfig_.supportedCapacityList = supportedCapacityList;
+
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = SOFT_KEYBOARD;
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+
+    ImmersiveEffect immersiveEffect = {
+        .gradientHeight = 20, .gradientMode = GradientMode::LINEAR_GRADIENT, .fluidLightMode = FluidLightMode::NONE
+    };
+    int32_t ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
+    EXPECT_EQ(ret, ErrorCode::ERROR_DEVICE_UNSUPPORTED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
 }
 } // namespace MiscServices
 } // namespace OHOS

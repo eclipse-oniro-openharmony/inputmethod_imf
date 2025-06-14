@@ -33,6 +33,8 @@ InputAttributeInner InputMethodTools::AttributeToInner(const InputAttribute &att
     inner.isTextPreviewSupported = attribute.isTextPreviewSupported;
     inner.bundleName = attribute.bundleName;
     inner.immersiveMode = attribute.immersiveMode;
+    inner.gradientMode = attribute.gradientMode;
+    inner.fluidLightMode = attribute.fluidLightMode;
     inner.windowId = attribute.windowId;
     inner.callingDisplayId = attribute.callingDisplayId;
     inner.placeholder = attribute.placeholder;
@@ -51,6 +53,8 @@ InputAttribute InputMethodTools::InnerToAttribute(const InputAttributeInner &inn
     inputAttribute.isTextPreviewSupported = inner.isTextPreviewSupported;
     inputAttribute.bundleName = inner.bundleName;
     inputAttribute.immersiveMode = inner.immersiveMode;
+    inputAttribute.gradientMode = inner.gradientMode;
+    inputAttribute.fluidLightMode = inner.fluidLightMode;
     inputAttribute.windowId = inner.windowId;
     inputAttribute.callingDisplayId = inner.callingDisplayId;
     inputAttribute.placeholder = inner.placeholder;

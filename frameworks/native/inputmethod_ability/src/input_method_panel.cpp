@@ -46,6 +46,7 @@ constexpr int32_t WAITTIME = 10;
 constexpr uint32_t INTERVAL_TIME = 5;
 constexpr uint32_t RETRY_TIMES = 4;
 InputMethodPanel::~InputMethodPanel() = default;
+constexpr float GRADIENT_HEIGHT_RATIO = 0.15;
 
 int32_t InputMethodPanel::CreatePanel(
     const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo)
@@ -97,6 +98,84 @@ std::string InputMethodPanel::GeneratePanelName()
     return windowName;
 }
 
+int32_t InputMethodPanel::FullScreenPrepare(Rosen::KeyboardLayoutParams &param)
+{
+    portraitChangeY_ = 0;
+    landscapeChangeY_ = 0;
+    if (param.PortraitPanelRect_.height_ < immersiveEffect_.gradientHeight + param.portraitAvoidHeight_) {
+        uint32_t avoidHeightTmp = param.portraitAvoidHeight_ + immersiveEffect_.gradientHeight;
+        portraitChangeY_ = avoidHeightTmp - param.PortraitPanelRect_.height_;
+        param.PortraitPanelRect_.height_ = avoidHeightTmp;
+        param.PortraitPanelRect_.posY_ = SafeSubtract(param.PortraitPanelRect_.posY_, portraitChangeY_);
+    }
+    if (param.LandscapePanelRect_.height_ < immersiveEffect_.gradientHeight + param.landscapeAvoidHeight_) {
+        uint32_t avoidHeightTmp = param.landscapeAvoidHeight_ + immersiveEffect_.gradientHeight;
+        landscapeChangeY_ = avoidHeightTmp - param.LandscapePanelRect_.height_;
+        param.LandscapePanelRect_.height_ = avoidHeightTmp;
+        param.LandscapePanelRect_.posY_ = SafeSubtract(param.LandscapePanelRect_.posY_, landscapeChangeY_);
+    }
+    param.portraitAvoidHeight_ += immersiveEffect_.gradientHeight;
+    param.landscapeAvoidHeight_ += immersiveEffect_.gradientHeight;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::NormalImePrepare(Rosen::KeyboardLayoutParams &param)
+{
+    uint32_t portraitHeight = param.PortraitPanelRect_.height_ + immersiveEffect_.gradientHeight;
+    uint32_t landscapeHeight = param.LandscapePanelRect_.height_ + immersiveEffect_.gradientHeight;
+
+    param.PortraitPanelRect_.height_ = portraitHeight;
+    param.LandscapePanelRect_.height_ = landscapeHeight;
+    param.LandscapePanelRect_.posY_ = SafeSubtract(param.LandscapePanelRect_.posY_, immersiveEffect_.gradientHeight);
+    param.PortraitPanelRect_.posY_ = SafeSubtract(param.PortraitPanelRect_.posY_, immersiveEffect_.gradientHeight);
+    portraitChangeY_ = immersiveEffect_.gradientHeight;
+    landscapeChangeY_ = immersiveEffect_.gradientHeight;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param)
+{
+    int32_t ret = ErrorCode::NO_ERROR;
+    // full screen keyboard
+    if (param.landscapeAvoidHeight_ != DEFAULT_AVOID_HEIGHT && param.portraitAvoidHeight_ != DEFAULT_AVOID_HEIGHT) {
+        ret = FullScreenPrepare(param);
+    } else {
+        ret = NormalImePrepare(param);
+    }
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("prepare failed");
+        return ret;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::AdjustLayout(const Rosen::KeyboardLayoutParams &param)
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+
+    Rosen::KeyboardLayoutParams paramTmp = param;
+    if (immersiveEffect_.gradientHeight != 0) {
+        IMSA_HILOGI("gradientHeight:%{public}u is not zero, need adjust layout",  immersiveEffect_.gradientHeight);
+        auto ret = PrepareAdjustLayout(paramTmp);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
+    } else {
+        portraitChangeY_ = 0;
+        landscapeChangeY_ = 0;
+    }
+    // The actual system panel height includes the gradient height, which may not be consistent with the cached value.
+    auto wmRet = window_->AdjustKeyboardLayout(paramTmp);
+    if (wmRet != WMError::WM_OK) {
+        IMSA_HILOGE("AdjustKeyboardLayout failed, wmError is %{public}d!", wmRet);
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodPanel::SetPanelProperties()
 {
     if (window_ == nullptr) {
@@ -133,9 +212,9 @@ int32_t InputMethodPanel::SetPanelProperties()
         return ErrorCode::NO_ERROR;
     }
     keyboardLayoutParams_.gravity_ = gravity;
-    auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
-    if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window!", ret);
+    auto ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("SetWindowGravity failed, ret is %{public}d, start destroy window!", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     return ErrorCode::NO_ERROR;
@@ -466,8 +545,11 @@ int32_t InputMethodPanel::AdjustPanelRect(
         IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
-    if (ret != WMError::WM_OK) {
+
+    keyboardLayoutParams_.landscapeAvoidHeight_ = DEFAULT_AVOID_HEIGHT;
+    keyboardLayoutParams_.portraitAvoidHeight_ = DEFAULT_AVOID_HEIGHT;
+    auto ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("AdjustPanelRect error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
@@ -555,20 +637,20 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
     }
     // adjust rect
     auto wmsParams = ConvertToWMSParam(panelFlag, params);
-    WMError result = window_->AdjustKeyboardLayout(wmsParams);
-    if (result != WMError::WM_OK) {
-        IMSA_HILOGE("AdjustKeyboardLayout error, err: %{public}d!", result);
+    ret = AdjustLayout(wmsParams);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("AdjustKeyboardLayout error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     // set hot area
     isInEnhancedAdjust_.store(true);
     CalculateHotAreas(params, wmsParams, adjustInfo, hotAreas);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
-    result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
+    auto result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
     if (result != WMError::WM_OK) {
         IMSA_HILOGE("SetKeyboardTouchHotAreas error, err: %{public}d!", result);
-        result = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
-        IMSA_HILOGE("restore layout param, result: %{public}d", result);
+        ret = AdjustLayout(keyboardLayoutParams_);
+        IMSA_HILOGE("restore layout param, result: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     SetHotAreas(hotAreas);
@@ -711,9 +793,9 @@ void InputMethodPanel::UpdateHotAreas()
         return;
     }
     CalculateDefaultHotArea(keyboardLayoutParams_.LandscapeKeyboardRect_, keyboardLayoutParams_.LandscapePanelRect_,
-        adjustInfo.landscape, hotAreas.landscape);
+        adjustInfo.landscape, hotAreas.landscape, landscapeChangeY_);
     CalculateDefaultHotArea(keyboardLayoutParams_.PortraitKeyboardRect_, keyboardLayoutParams_.PortraitPanelRect_,
-        adjustInfo.portrait, hotAreas.portrait);
+        adjustInfo.portrait, hotAreas.portrait, portraitChangeY_);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
     WMError result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
     if (result != WMError::WM_OK) {
@@ -730,13 +812,13 @@ void InputMethodPanel::CalculateHotAreas(const EnhancedLayoutParams &enhancedPar
     const Rosen::KeyboardLayoutParams &params, const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas)
 {
     if (isInEnhancedAdjust_.load()) {
-        CalculateEnhancedHotArea(enhancedParams.portrait, adjustInfo.portrait, hotAreas.portrait);
-        CalculateEnhancedHotArea(enhancedParams.landscape, adjustInfo.landscape, hotAreas.landscape);
+        CalculateEnhancedHotArea(enhancedParams.portrait, adjustInfo.portrait, hotAreas.portrait, portraitChangeY_);
+        CalculateEnhancedHotArea(enhancedParams.landscape, adjustInfo.landscape, hotAreas.landscape, landscapeChangeY_);
     } else {
-        CalculateHotArea(
-            params.PortraitKeyboardRect_, params.PortraitPanelRect_, adjustInfo.portrait, hotAreas.portrait);
-        CalculateHotArea(
-            params.LandscapeKeyboardRect_, params.LandscapePanelRect_, adjustInfo.landscape, hotAreas.landscape);
+        CalculateHotArea(params.PortraitKeyboardRect_, params.PortraitPanelRect_, adjustInfo.portrait,
+            hotAreas.portrait, portraitChangeY_);
+        CalculateHotArea(params.LandscapeKeyboardRect_, params.LandscapePanelRect_, adjustInfo.landscape,
+            hotAreas.landscape, landscapeChangeY_);
     }
     hotAreas.isSet = true;
     IMSA_HILOGD("portrait keyboard: %{public}s, panel: %{public}s",
@@ -747,9 +829,10 @@ void InputMethodPanel::CalculateHotAreas(const EnhancedLayoutParams &enhancedPar
         HotArea::ToString(hotAreas.landscape.panelHotArea).c_str());
 }
 
-void InputMethodPanel::CalculateHotArea(
-    const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
+void InputMethodPanel::CalculateHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel,
+    const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY)
 {
+    IMSA_HILOGI("changeY: %{public}u", changeY);
     // calculate keyboard hot area
     if (hotArea.keyboardHotArea.empty()) {
         hotArea.keyboardHotArea.push_back({ ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ });
@@ -757,21 +840,22 @@ void InputMethodPanel::CalculateHotArea(
     std::vector<Rosen::Rect> availableAreas = { { { ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ } } };
     RectifyAreas(availableAreas, hotArea.keyboardHotArea);
     // calculate panel hot area
-    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
+    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y + changeY, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
     Rosen::Rect right = { .posX_ = static_cast<int32_t>(panel.width_) - adjustInfo.right,
-        .posY_ = ORIGIN_POS_Y,
+        .posY_ = ORIGIN_POS_Y + changeY,
         .width_ = static_cast<uint32_t>(adjustInfo.right),
         .height_ = panel.height_ };
     Rosen::Rect bottom = { .posX_ = ORIGIN_POS_X,
-        .posY_ = static_cast<int32_t>(panel.height_) - adjustInfo.bottom,
+        .posY_ = static_cast<int32_t>(panel.height_ + changeY) - adjustInfo.bottom,
         .width_ = panel.width_,
         .height_ = static_cast<uint32_t>(adjustInfo.bottom) };
     hotArea.panelHotArea = { left, right, bottom };
 }
 
 void InputMethodPanel::CalculateEnhancedHotArea(
-    const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
+    const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY)
 {
+    IMSA_HILOGI("changeY: %{public}u", changeY);
     // calculate keyboard hot area
     if (hotArea.keyboardHotArea.empty()) {
         hotArea.keyboardHotArea.push_back({ ORIGIN_POS_X, ORIGIN_POS_Y, layout.rect.width_, layout.rect.height_ });
@@ -784,32 +868,34 @@ void InputMethodPanel::CalculateEnhancedHotArea(
         .height_ = SafeSubtract(layout.avoidHeight, static_cast<uint32_t>(adjustInfo.bottom)) });
     RectifyAreas(availableAreas, hotArea.keyboardHotArea);
     // calculate panel hot area
-    Rosen::Rect left = { ORIGIN_POS_X, layout.avoidY, static_cast<uint32_t>(adjustInfo.left), layout.avoidHeight };
+    Rosen::Rect left = { ORIGIN_POS_X, layout.avoidY + changeY, static_cast<uint32_t>(adjustInfo.left),
+        layout.avoidHeight };
     Rosen::Rect right = { .posX_ = static_cast<int32_t>(layout.rect.width_) - adjustInfo.right,
-        .posY_ = layout.avoidY,
+        .posY_ = layout.avoidY + changeY,
         .width_ = static_cast<uint32_t>(adjustInfo.right),
         .height_ = layout.avoidHeight };
     Rosen::Rect bottom = { .posX_ = ORIGIN_POS_X,
-        .posY_ = static_cast<int32_t>(layout.rect.height_) - adjustInfo.bottom,
+        .posY_ = static_cast<int32_t>(layout.rect.height_ + changeY) - adjustInfo.bottom,
         .width_ = layout.rect.width_,
         .height_ = static_cast<uint32_t>(adjustInfo.bottom) };
     hotArea.panelHotArea = { left, right, bottom };
 }
 
-void InputMethodPanel::CalculateDefaultHotArea(
-    const Rosen::Rect &keyboard, const Rosen::Rect &panel, const PanelAdjustInfo &adjustInfo, HotArea &hotArea)
+void InputMethodPanel::CalculateDefaultHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel,
+    const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY)
 {
+    IMSA_HILOGI("changeY: %{public}u", changeY);
     // calculate keyboard hot area
     hotArea.keyboardHotArea.clear();
     hotArea.keyboardHotArea.push_back({ ORIGIN_POS_X, ORIGIN_POS_Y, keyboard.width_, keyboard.height_ });
     // calculate panel hot area
-    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
+    Rosen::Rect left = { ORIGIN_POS_X, ORIGIN_POS_Y + changeY, static_cast<uint32_t>(adjustInfo.left), panel.height_ };
     Rosen::Rect right = { .posX_ = static_cast<int32_t>(panel.width_) - adjustInfo.right,
-        .posY_ = ORIGIN_POS_Y,
+        .posY_ = ORIGIN_POS_Y + changeY,
         .width_ = static_cast<uint32_t>(adjustInfo.right),
         .height_ = panel.height_ };
     Rosen::Rect bottom = { .posX_ = ORIGIN_POS_X,
-        .posY_ = static_cast<int32_t>(panel.height_) - adjustInfo.bottom,
+        .posY_ = static_cast<int32_t>(panel.height_ + changeY) - adjustInfo.bottom,
         .width_ = panel.width_,
         .height_ = static_cast<uint32_t>(adjustInfo.bottom) };
     hotArea.panelHotArea = { left, right, bottom };
@@ -851,6 +937,7 @@ Rosen::Rect InputMethodPanel::GetRectIntersection(Rosen::Rect a, Rosen::Rect b)
 uint32_t InputMethodPanel::SafeSubtract(uint32_t minuend, uint32_t subtrahend)
 {
     if (minuend < subtrahend) {
+        IMSA_HILOGE("subtrahend:%{public}u is larger than minuend:%{public}u", subtrahend, minuend);
         return 0;
     }
     return minuend - subtrahend;
@@ -1216,13 +1303,13 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
         return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
     }
     keyboardLayoutParams_.gravity_ = gravity;
-    auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
-    if (ret == WMError::WM_OK) {
+    auto ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret == ErrorCode::NO_ERROR) {
         panelFlag_ = panelFlag;
     }
     NotifyPanelStatus(panelFlag);
     IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
-    return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+    return ret == ErrorCode::NO_ERROR ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
 PanelType InputMethodPanel::GetPanelType()
@@ -1254,8 +1341,9 @@ int32_t InputMethodPanel::ShowPanel()
     }
     auto ret = WMError::WM_OK;
     {
+        KeyboardEffectOption option = ConvertToWmEffect(immersiveMode_, immersiveEffect_);
         InputMethodSyncTrace tracer("InputMethodPanel_ShowPanel");
-        ret = window_->ShowKeyboard(static_cast<KeyboardViewMode>(immersiveMode_));
+        ret = window_->ShowKeyboard(option);
     }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
@@ -1856,6 +1944,35 @@ int32_t InputMethodPanel::GetDisplaySize(DisplaySize &size)
     return ErrorCode::NO_ERROR;
 }
 
+void InputMethodPanel::SetImmersiveEffectToNone()
+{
+    if (immersiveEffect_.gradientHeight == 0) {
+        immersiveEffect_.gradientMode = GradientMode::NONE;
+        immersiveEffect_.fluidLightMode = FluidLightMode::NONE;
+        return;
+    }
+
+    // The SetImmersiveEffect API must be called after the AdjustPanelRect API is called.
+    Rosen::KeyboardLayoutParams emptyParams;
+    if (keyboardLayoutParams_ == emptyParams) {
+        IMSA_HILOGW("set gradientHeight to zero");
+        return;
+    }
+
+    auto effectTmp = immersiveEffect_;
+    immersiveEffect_.gradientHeight = 0;
+    immersiveEffect_.gradientMode = GradientMode::NONE;
+    immersiveEffect_.fluidLightMode = FluidLightMode::NONE;
+    auto ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("adjust failed, ret: %{public}d", ret);
+        immersiveEffect_ = effectTmp;
+        return;
+    }
+    UpdateImmersiveHotArea();
+    IMSA_HILOGW("set gradientHeight to zero and adjust layout success");
+}
+
 int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
 {
     if ((mode != ImmersiveMode::NONE_IMMERSIVE && mode != ImmersiveMode::LIGHT_IMMERSIVE &&
@@ -1864,6 +1981,9 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     if (!IsShowing()) {
+        if (mode != immersiveMode_ && mode == ImmersiveMode::NONE_IMMERSIVE) {
+            SetImmersiveEffectToNone();
+        }
         immersiveMode_ = mode;
         IMSA_HILOGW("window is not show, mode: %{public}d", mode);
         return ErrorCode::NO_ERROR;
@@ -1874,8 +1994,12 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         return ErrorCode::ERROR_IME;
     }
 
+    if (mode != immersiveMode_ && mode == ImmersiveMode::NONE_IMMERSIVE) {
+        SetImmersiveEffectToNone();
+    }
+    KeyboardEffectOption option = ConvertToWmEffect(mode, immersiveEffect_);
     // call window manager to set immersive mode
-    auto ret = window_->ChangeKeyboardViewMode(static_cast<KeyboardViewMode>(mode));
+    auto ret = window_->ChangeKeyboardEffectOption(option);
     if (ret == WMError::WM_DO_NOTHING) {
         IMSA_HILOGW("repeat set mode new:%{public}d, old:%{public}d", mode, immersiveMode_);
         return ErrorCode::NO_ERROR;
@@ -1885,7 +2009,202 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     immersiveMode_ = mode;
-    IMSA_HILOGD("SetImmersiveMode success, mode: %{public}d", mode);
+    IMSA_HILOGI("SetImmersiveMode success, mode: %{public}d", mode);
+    return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodPanel::IsValidGradientHeight(uint32_t gradientHeight)
+{
+    if (gradientHeight > INT32_MAX) {
+        IMSA_HILOGE("gradientHeight over maximum!");
+        return false;
+    }
+    DisplaySize displaySize;
+    auto ret = GetDisplaySize(displaySize);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Get portrait display size failed, ret: %{public}d", ret);
+        return false;
+    }
+
+    if (static_cast<float>(gradientHeight) > displaySize.portrait.height * GRADIENT_HEIGHT_RATIO) {
+        IMSA_HILOGE("invalid gradientHeight:%{public}u, portraitHeight:%{public}u", gradientHeight,
+            displaySize.portrait.height);
+        return false;
+    }
+
+    if (static_cast<float>(gradientHeight) > displaySize.landscape.height * GRADIENT_HEIGHT_RATIO) {
+        IMSA_HILOGE("invalid gradientHeight:%{public}u, landscapeHeight:%{public}u", gradientHeight,
+            displaySize.landscape.height);
+        return false;
+    }
+
+    return true;
+}
+
+int32_t InputMethodPanel::IsValidParam(const ImmersiveEffect &effect)
+{
+    if (effect.gradientMode < GradientMode::NONE || effect.gradientMode >= GradientMode::END ||
+        effect.fluidLightMode < FluidLightMode::NONE || effect.fluidLightMode >= FluidLightMode::END) {
+        IMSA_HILOGE("invalid effect, gradientMpde:%{public}d, fluidLightMode:%{public}d", effect.gradientMode,
+            effect.fluidLightMode);
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+
+    // The gradient mode and the fluid light mode can only be used when the immersive mode is enabled.
+    if (immersiveMode_ == ImmersiveMode::NONE_IMMERSIVE) {
+        if (effect.gradientMode != GradientMode::NONE || effect.fluidLightMode != FluidLightMode::NONE ||
+            effect.gradientHeight != 0) {
+            IMSA_HILOGE("immersiveMode is NONE, but gradientMode=%{public}d, fluidLightMode=%{public}d",
+                effect.gradientMode, effect.fluidLightMode);
+            return ErrorCode::ERROR_IMA_INVALID_IMMERSIVE_EFFECT;
+        }
+        return ErrorCode::NO_ERROR;
+    }
+
+    // The fluid light mode can only be used when the gradient mode is enabled.
+    if (effect.gradientMode == GradientMode::NONE && effect.fluidLightMode != FluidLightMode::NONE) {
+        IMSA_HILOGE("gradientMode is NONE, but fluidLightMode=%{public}d", effect.fluidLightMode);
+        return ErrorCode::ERROR_IMA_INVALID_IMMERSIVE_EFFECT;
+    }
+
+    if (effect.gradientMode == GradientMode::NONE && effect.gradientHeight != 0) {
+        IMSA_HILOGE("gradientMode is NONE, but gradientHeight:%{public}u", effect.gradientHeight);
+        return ErrorCode::ERROR_IMA_INVALID_IMMERSIVE_EFFECT;
+    }
+
+    // Only system applications can set the fluid light mode.
+    if (!InputMethodAbility::GetInstance().IsSystemApp() && effect.fluidLightMode != FluidLightMode::NONE) {
+        IMSA_HILOGE("only system app can set fluidLightMode:%{public}d", effect.fluidLightMode);
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+
+    // The gradient height cannot be greater than the screen height * GRADIENT_HEIGHT_RATIO.
+    if (!IsValidGradientHeight(effect.gradientHeight)) {
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
+    }
+
+    // The SetImmersiveEffect API must be called after the AdjustPanelRect API is called.
+    Rosen::KeyboardLayoutParams emptyParams;
+    if (keyboardLayoutParams_ == emptyParams) {
+        IMSA_HILOGE("adjust is not call, %{public}s", effect.ToString().c_str());
+        return ErrorCode::ERROR_IMA_PRECONDITION_REQUIRED;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodPanel::IsImmersiveEffectSupported()
+{
+    static int32_t isSupport = 0;
+    static std::mutex isSupportMutex;
+    if (isSupport != 0) {
+        return isSupport == 1 ? true : false;
+    }
+
+    std::lock_guard<std::mutex> lock(isSupportMutex);
+    bool isSupportTemp = false;
+    int32_t ret = InputMethodAbility::GetInstance().IsCapacitySupport(
+        static_cast<int32_t>(CapacityType::IMMERSIVE_EFFECT), isSupportTemp);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("IsCapacitySupport failed, ret:%{public}d", ret);
+        return false;
+    }
+
+    if (isSupportTemp) {
+        isSupport = 1;
+    } else {
+        isSupport = -1;
+    }
+    IMSA_HILOGI("isSupportTemp:%{public}d", isSupportTemp);
+    return isSupportTemp;
+}
+
+KeyboardEffectOption InputMethodPanel::ConvertToWmEffect(ImmersiveMode mode, const ImmersiveEffect &effect)
+{
+    KeyboardEffectOption option;
+    option.blurHeight_ = effect.gradientHeight;
+    option.viewMode_ = static_cast<KeyboardViewMode>(mode);
+    option.gradientMode_ = static_cast<KeyboardGradientMode>(effect.gradientMode);
+    option.flowLightMode_ = static_cast<KeyboardFlowLightMode>(effect.fluidLightMode);
+    IMSA_HILOGI("effect: %{public}s", effect.ToString().c_str());
+    return option;
+}
+
+void InputMethodPanel::UpdateImmersiveHotArea()
+{
+    auto hotAreas = GetHotAreas();
+    if (!hotAreas.isSet) {
+        return;
+    }
+    FullPanelAdjustInfo adjustInfo;
+    auto ret = GetAdjustInfo(panelFlag_, adjustInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetAdjustInfo failed ret: %{public}d", ret);
+        return;
+    }
+
+    CalculateHotAreas(enhancedLayoutParams_, keyboardLayoutParams_, adjustInfo, hotAreas);
+    auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
+    WMError result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
+    if (result != WMError::WM_OK) {
+        IMSA_HILOGE("SetKeyboardTouchHotAreas error, err: %{public}d!", result);
+        return;
+    }
+    SetHotAreas(hotAreas);
+    IMSA_HILOGI("success, portrait: %{public}s", HotArea::ToString(hotAreas.portrait.keyboardHotArea).c_str());
+    IMSA_HILOGI("success, landscape: %{public}s", HotArea::ToString(hotAreas.landscape.keyboardHotArea).c_str());
+}
+
+int32_t InputMethodPanel::SetImmersiveEffect(const ImmersiveEffect &effect)
+{
+    if (!IsImmersiveEffectSupported()) {
+        IMSA_HILOGE("immersive effect is not supported");
+        return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
+    }
+
+    auto ret = IsValidParam(effect);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("invalid param, ret:%{public}d", ret);
+        return ret;
+    }
+
+    // adjust again
+    ImmersiveEffect effectTmp = immersiveEffect_;
+    immersiveEffect_ = effect;
+    if (effectTmp.gradientMode != effect.gradientMode && effect.gradientMode == GradientMode::NONE) {
+        immersiveEffect_.gradientHeight = 0;
+        immersiveEffect_.gradientMode = GradientMode::NONE;
+        immersiveEffect_.fluidLightMode = FluidLightMode::NONE;
+    }
+    ret = AdjustLayout(keyboardLayoutParams_);
+    if (ret != ErrorCode::NO_ERROR) {
+        immersiveEffect_ = effectTmp;
+        IMSA_HILOGE("AdjustLayout failed, ret:%{public}d", ret);
+        return ret;
+    }
+    UpdateImmersiveHotArea();
+
+    if (!IsShowing()) {
+        IMSA_HILOGW("keyboard is not showing, do nothing");
+        return ErrorCode::NO_ERROR;
+    }
+
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    KeyboardEffectOption option = ConvertToWmEffect(immersiveMode_, immersiveEffect_);
+    // call window manager to set immersive mode
+    auto wmRet = window_->ChangeKeyboardEffectOption(option);
+    if (wmRet == WMError::WM_DO_NOTHING) {
+        IMSA_HILOGW("repeat set mode new:, old:%{public}d", immersiveMode_);
+        return ErrorCode::NO_ERROR;
+    }
+    if (wmRet != WMError::WM_OK) {
+        IMSA_HILOGE("ChangeKeyboardViewMode failed, wmRet: %{public}d", wmRet);
+        immersiveEffect_ = effectTmp;
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    IMSA_HILOGI("success, %{public}s", effect.ToString().c_str());
     return ErrorCode::NO_ERROR;
 }
 
