@@ -147,7 +147,7 @@ void TaskManager::ProcessNextInnerTask()
         // curTask_ is not NULL, it must be paused
         // Loop through innerTasks_, try resume
         if (innerTasks_.empty()) {
-            IMSA_HILOGI("InnerTasks_ empty, return");
+            IMSA_HILOGD("InnerTasks_ empty, return");
             return;
         }
 
@@ -252,7 +252,7 @@ void TaskManager::ExecuteCurrentTask()
     }
     auto state = curTask_->Execute();
     if (state == RUNNING_STATE_COMPLETED) {
-        IMSA_HILOGI("curTask_ completed");
+        IMSA_HILOGD("curTask_ completed");
         curTask_.reset();
         ProcessAsync();
         return;

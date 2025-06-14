@@ -370,7 +370,9 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<MMI::KeyEvent
     bool consumeResult = isKeyEventConsumed || isKeyCodeConsumed;
     if (consumer != nullptr) {
         if (!consumeResult) {
-            IMSA_HILOGW("keyEvent is not consumed by ime");
+            if (keyEvent != nullptr && keyEvent->GetKeyAction() == MMI::KeyEvent::KEY_ACTION_DOWN) {
+                IMSA_HILOGW("keyEvent is not consumed by ime");
+            }
             consumeResult = InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent);
         }
         IMSA_HILOGD("final consumed result: %{public}d.", consumeResult);

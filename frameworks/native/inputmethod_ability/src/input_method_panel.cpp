@@ -489,7 +489,7 @@ int32_t InputMethodPanel::GetDisplayId(uint64_t &displayId)
         IMSA_HILOGE("display id invalid!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    IMSA_HILOGI("GetDisplayId success dispalyId = %{public}" PRIu64 "", displayId);
+    IMSA_HILOGD("GetDisplayId success dispalyId = %{public}" PRIu64 "", displayId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1468,7 +1468,7 @@ int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
         IMSA_HILOGE("SetWindowPrivacyMode error, ret: %{public}d", ret);
         return static_cast<int32_t>(ret);
     }
-    IMSA_HILOGI("end, isPrivacyMode: %{public}d.", isPrivacyMode);
+    IMSA_HILOGD("end, isPrivacyMode: %{public}d.", isPrivacyMode);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1984,7 +1984,7 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
             SetImmersiveEffectToNone();
         }
         immersiveMode_ = mode;
-        IMSA_HILOGW("window is not show, mode: %{public}d", mode);
+        IMSA_HILOGD("window is not show, mode: %{public}d", mode);
         return ErrorCode::NO_ERROR;
     }
 
