@@ -1056,6 +1056,8 @@ ohos_unittest("ImeFreezeManagerTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "src/ime_freeze_manager_test.cpp",
+    "src/ime_lifecycle_manager_test.cpp",
+    "src/ime_state_manager_factory_test.cpp",
   ]
 
   configs = [ ":module_private_config" ]

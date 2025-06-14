@@ -1633,7 +1633,7 @@ int32_t PerUserSession::UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteO
     }
     it->second->core = core;
     it->second->agent = agent;
-    it->second->pid = pid;;
+    it->second->pid = pid;
     it->second->imeStateManager = ImeStateManagerFactory::GetInstance().CreateImeStateManager(pid, [this] {
         StopCurrentIme();
     });

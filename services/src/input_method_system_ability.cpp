@@ -2202,7 +2202,7 @@ void InputMethodSystemAbility::HandleWmsDisconnected(int32_t userId, int32_t scr
     }
 
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
-    if (userId == userId_) {
+    if (userId == userId_ && !ImeStateManagerFactory::GetInstance().GetDynamicStartIme()) {
         // user switched or scb in foreground died, not deal
         return;
     }

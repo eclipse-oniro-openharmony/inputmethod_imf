@@ -16,19 +16,29 @@
 #ifndef IME_LIFECYCLE_MANAEGR_H
 #define IME_LIFECYCLE_MANAEGR_H
 #include <functional>
+#include <memory>
 
 #include "ime_state_manager.h"
+#include "global.h"
 namespace OHOS {
 namespace MiscServices {
-class ImeLifecycleManager : public ImeStateManager {
+class ImeLifecycleManager : public ImeStateManager, public std::enable_shared_from_this<ImeLifecycleManager> {
 public:
-    explicit ImeLifecycleManager(pid_t pid, std::function<void()> stopImeFunc)
-        : ImeStateManager(pid), stopImeFunc_(stopImeFunc) { };
-    ~ImeLifecycleManager() = default;
+    explicit ImeLifecycleManager(pid_t pid, std::function<void()> stopImeFunc, int32_t stopDelayTime = STOP_DELAY_TIME)
+        : ImeStateManager(pid), stopImeFunc_(stopImeFunc), stopDelayTime_(stopDelayTime)
+    {
+        IMSA_HILOGD("Constructor");
+    };
+    ~ImeLifecycleManager()
+    {
+        IMSA_HILOGD("Destructor");
+    }
 
 private:
     void ControlIme(bool shouldStop) override;
     std::function<void()> stopImeFunc_;
+    int32_t stopDelayTime_ { STOP_DELAY_TIME };
+    constexpr static int32_t STOP_DELAY_TIME = 20000L;
 };
 } // namespace MiscServices
 } // namespace OHOS

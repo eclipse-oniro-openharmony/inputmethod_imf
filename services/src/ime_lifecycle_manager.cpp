@@ -19,7 +19,6 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr const char *STOP_IME_TASK_NAME = "StopImeTask";
-constexpr std::int32_t STOP_DELAY_TIME = 20000L;
 void ImeLifecycleManager::ControlIme(bool shouldStop)
 {
     if (eventHandler_ == nullptr) {
@@ -28,13 +27,22 @@ void ImeLifecycleManager::ControlIme(bool shouldStop)
     }
     if (shouldStop) {
         // Delay the stop report by 20s.
+        std::weak_ptr<ImeLifecycleManager> weakThis = shared_from_this();
         eventHandler_->PostTask(
-            [this]() {
-                if (stopImeFunc_ != nullptr) {
-                    stopImeFunc_();
+            [weakThis]() {
+                auto sharedThis = weakThis.lock();
+                if (sharedThis == nullptr) {
+                    IMSA_HILOGE("sharedThis is nullptr.");
+                    return;
                 }
+                if (sharedThis->stopImeFunc_ == nullptr) {
+                    IMSA_HILOGE("stopImeFunc_ is nullptr.");
+                    return;
+                }
+                IMSA_HILOGD("Stop ime pid %{public}d", sharedThis->pid_);
+                sharedThis->stopImeFunc_();
             },
-            STOP_IME_TASK_NAME, STOP_DELAY_TIME);
+            STOP_IME_TASK_NAME, stopDelayTime_);
     } else {
         // Cancel the unexecuted FREEZE task.
         eventHandler_->RemoveTask(STOP_IME_TASK_NAME);

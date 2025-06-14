@@ -22,7 +22,7 @@ namespace OHOS {
 namespace MiscServices {
 void ImeStateManagerFactory::SetDynamicStartIme(bool ifDynamicStartIme)
 {
-   ifDynamicStartIme_ = ifDynamicStartIme;
+    ifDynamicStartIme_ = ifDynamicStartIme;
 }
 
 bool ImeStateManagerFactory::GetDynamicStartIme()
@@ -37,7 +37,7 @@ ImeStateManagerFactory &ImeStateManagerFactory::GetInstance()
 }
 
 std::shared_ptr<ImeStateManager> ImeStateManagerFactory::CreateImeStateManager(pid_t pid,
-        std::function<void()> stopImeFunc)
+    std::function<void()> stopImeFunc)
 {
     if (ifDynamicStartIme_) {
         return std::make_shared<ImeLifecycleManager>(pid, stopImeFunc);
