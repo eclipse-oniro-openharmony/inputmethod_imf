@@ -44,6 +44,7 @@
 #endif
 #include "window_adapter.h"
 #include "input_method_tools.h"
+#include "ime_state_manager_factory.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -913,6 +914,9 @@ int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sp
     auto imeData = std::make_shared<ImeData>(core, agent, deathRecipient, pid);
     imeData->imeStatus = ImeStatus::READY;
     imeData->ime.first = "proxyIme";
+    imeData->imeStateManager = ImeStateManagerFactory::GetInstance().CreateImeStateManager(pid, [this] {
+        StopCurrentIme();
+    });
     if (type == ImeType::PROXY_IME) {
         imeData->ime.first.append(GET_NAME(_PROXY_IME));
     } else if (type == ImeType::PROXY_AGENT_IME) {
@@ -1027,7 +1031,9 @@ void PerUserSession::OnScreenUnlock()
     }
     IMSA_HILOGI("user %{public}d unlocked, start current ime", userId_);
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
-    AddRestartIme();
+    if (!ImeStateManagerFactory::GetInstance().GetDynamicStartIme()) {
+        AddRestartIme();
+    }
 #endif
 }
 
@@ -1456,17 +1462,17 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
         IMSA_HILOGD("proxy enable.");
         return exec();
     }
-    if (data == nullptr || data->freezeMgr == nullptr) {
+    if (data == nullptr || data->imeStateManager == nullptr) {
         IMSA_HILOGE("data is nullptr!");
         return ErrorCode::NO_ERROR;
     }
-    if (!data->freezeMgr->IsIpcNeeded(type)) {
+    if (!data->imeStateManager->IsIpcNeeded(type)) {
         IMSA_HILOGD("no need to request, type: %{public}d.", type);
         return ErrorCode::NO_ERROR;
     }
-    data->freezeMgr->BeforeIpc(type);
+    data->imeStateManager->BeforeIpc(type);
     auto ret = exec();
-    data->freezeMgr->AfterIpc(type, ret == ErrorCode::NO_ERROR);
+    data->imeStateManager->AfterIpc(type, ret == ErrorCode::NO_ERROR);
     return ret;
 }
 
@@ -1604,6 +1610,9 @@ int32_t PerUserSession::InitImeData(
     auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, -1);
     imeData->startTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     imeData->ime = ime;
+    imeData->imeStateManager = ImeStateManagerFactory::GetInstance().CreateImeStateManager(-1, [this] {
+        StopCurrentIme();
+    });
     if (imeNativeCfg != nullptr && !imeNativeCfg->imeExtendInfo.privateCommand.empty()) {
         imeData->imeExtendInfo.privateCommand = imeNativeCfg->imeExtendInfo.privateCommand;
     }
@@ -1625,7 +1634,9 @@ int32_t PerUserSession::UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteO
     it->second->core = core;
     it->second->agent = agent;
     it->second->pid = pid;
-    it->second->freezeMgr = std::make_shared<FreezeManager>(pid);
+    it->second->imeStateManager = ImeStateManagerFactory::GetInstance().CreateImeStateManager(pid, [this] {
+        StopCurrentIme();
+    });
     sptr<InputDeathRecipient> deathRecipient = new (std::nothrow) InputDeathRecipient();
     if (deathRecipient == nullptr) {
         IMSA_HILOGE("failed to new deathRecipient!");
@@ -1978,8 +1989,8 @@ void PerUserSession::HandleImeBindTypeChanged(
 void PerUserSession::TryUnloadSystemAbility()
 {
     auto data = GetReadyImeData(ImeType::IME);
-    if (data != nullptr && data->freezeMgr != nullptr) {
-        if (data->freezeMgr->IsImeInUse()) {
+    if (data != nullptr && data->imeStateManager != nullptr) {
+        if (data->imeStateManager->IsImeInUse()) {
             return;
         }
     }
