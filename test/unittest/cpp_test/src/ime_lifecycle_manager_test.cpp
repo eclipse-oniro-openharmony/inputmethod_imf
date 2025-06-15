@@ -18,13 +18,11 @@
 #include "ime_lifecycle_manager.h"
 #undef private
 #include <gtest/gtest.h>
-#include <gtest/hwext/gtest-multithread.h>
 #include <sys/time.h>
 
 #include "event_handler.h"
 #include "global.h"
 using namespace testing::ext;
-using namespace testing::mt;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t TEST_STOP_DELAY_TIME = 100; // 100ms
@@ -101,8 +99,35 @@ HWTEST_F(ImeLifecycleManagerTest, ControlIme_shouldStopIme, TestSize.Level1)
  */
 HWTEST_F(ImeLifecycleManagerTest, ControlIme_shouldNotStopIme, TestSize.Level1)
 {
-    ASSERT_NE(ImeLifecycleManagerTest::imeLifecycleManager_, nullptr);
-    ImeLifecycleManagerTest::imeLifecycleManager_->ControlIme(false);
+    auto manager = std::make_shared<ImeLifecycleManager>(-1, ImeLifecycleManagerTest::StopImeCb, TEST_STOP_DELAY_TIME);
+    manager->ControlIme(false);
+    usleep((TEST_STOP_DELAY_TIME + WAIT_FOR_OTHERS) * MS_TO_US);
+    EXPECT_FALSE(ImeLifecycleManagerTest::isStopImeCalled_);
+}
+
+/**
+ * @tc.name: ControlIme_stopImeFuncIsNull
+ * @tc.desc: test ime lifecycle manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeLifecycleManagerTest, ControlIme_stopImeFuncIsNull, TestSize.Level1)
+{
+    auto manager = std::make_shared<ImeLifecycleManager>(-1, nullptr, TEST_STOP_DELAY_TIME);
+    manager->ControlIme(true);
+    usleep((TEST_STOP_DELAY_TIME + WAIT_FOR_OTHERS) * MS_TO_US);
+    EXPECT_FALSE(ImeLifecycleManagerTest::isStopImeCalled_);
+}
+
+/**
+ * @tc.name: ControlIme_weakPtrIsExpired
+ * @tc.desc: test ime lifecycle manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeLifecycleManagerTest, ControlIme_weakPtrIsExpired, TestSize.Level1)
+{
+    auto manager = std::make_shared<ImeLifecycleManager>(-1, ImeLifecycleManagerTest::StopImeCb, TEST_STOP_DELAY_TIME);
+    manager->ControlIme(true);
+    manager = nullptr;
     usleep((TEST_STOP_DELAY_TIME + WAIT_FOR_OTHERS) * MS_TO_US);
     EXPECT_FALSE(ImeLifecycleManagerTest::isStopImeCalled_);
 }

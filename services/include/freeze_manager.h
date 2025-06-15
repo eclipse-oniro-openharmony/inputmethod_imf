@@ -26,7 +26,7 @@ public:
     {
     }
     ~FreezeManager() = default;
-    void ControlIme(bool shouldFreeze) override;
+    void ControlIme(bool shouldApply) override;
 
 private:
     static void ReportRss(bool shouldFreeze, pid_t pid);

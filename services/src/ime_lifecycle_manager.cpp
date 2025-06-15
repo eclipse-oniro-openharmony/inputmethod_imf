@@ -19,34 +19,36 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr const char *STOP_IME_TASK_NAME = "StopImeTask";
-void ImeLifecycleManager::ControlIme(bool shouldStop)
+void ImeLifecycleManager::ControlIme(bool shouldApply)
 {
     if (eventHandler_ == nullptr) {
         IMSA_HILOGE("eventHandler_ is nullptr.");
         return;
     }
-    if (shouldStop) {
-        // Delay the stop report by 20s.
-        std::weak_ptr<ImeLifecycleManager> weakThis = shared_from_this();
-        eventHandler_->PostTask(
-            [weakThis]() {
-                auto sharedThis = weakThis.lock();
-                if (sharedThis == nullptr) {
-                    IMSA_HILOGE("sharedThis is nullptr.");
-                    return;
-                }
-                if (sharedThis->stopImeFunc_ == nullptr) {
-                    IMSA_HILOGE("stopImeFunc_ is nullptr.");
-                    return;
-                }
-                IMSA_HILOGD("Stop ime pid %{public}d", sharedThis->pid_);
-                sharedThis->stopImeFunc_();
-            },
-            STOP_IME_TASK_NAME, stopDelayTime_);
-    } else {
-        // Cancel the unexecuted FREEZE task.
+
+    if (!shouldApply) {
+        // Cancel the unexecuted stop task.
         eventHandler_->RemoveTask(STOP_IME_TASK_NAME);
+        return;
     }
+
+    // Delay the stop report by 20s.
+    std::weak_ptr<ImeLifecycleManager> weakThis = shared_from_this();
+    eventHandler_->PostTask(
+        [weakThis]() {
+            auto sharedThis = weakThis.lock();
+            if (sharedThis == nullptr) {
+                IMSA_HILOGE("sharedThis is nullptr.");
+                return;
+            }
+            if (sharedThis->stopImeFunc_ == nullptr) {
+                IMSA_HILOGE("stopImeFunc_ is nullptr.");
+                return;
+            }
+            IMSA_HILOGD("Stop ime pid %{public}d", sharedThis->pid_);
+            sharedThis->stopImeFunc_();
+        },
+        STOP_IME_TASK_NAME, stopDelayTime_);
 }
 } // namespace MiscServices
 } // namespace OHOS

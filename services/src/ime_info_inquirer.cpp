@@ -1223,11 +1223,8 @@ bool ImeInfoInquirer::IsDynamicStartIme()
     if (systemConfig_.dynamicStartImeSysParam == "") {
         return false;
     }
-    std::string value = system::GetParameter(systemConfig_.dynamicStartImeSysParam, "default");
-    if (value == systemConfig_.dynamicStartImeValue) {
-        return true;
-    }
-    return false;
+    std::string value = system::GetParameter(systemConfig_.dynamicStartImeSysParam, "");
+    return value == systemConfig_.dynamicStartImeValue;
 }
 } // namespace MiscServices
 } // namespace OHOS

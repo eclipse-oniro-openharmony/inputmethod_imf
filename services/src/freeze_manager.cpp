@@ -25,21 +25,24 @@ namespace MiscServices {
 constexpr const char *INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
 constexpr const char *STOP_TASK_NAME = "ReportStop";
 constexpr std::int32_t DELAY_TIME = 3000L;
-void FreezeManager::ControlIme(bool shouldFreeze)
+void FreezeManager::ControlIme(bool shouldApply)
 {
     if (eventHandler_ == nullptr) {
         IMSA_HILOGW("eventHandler_ is nullptr.");
-        ReportRss(shouldFreeze, pid_);
+        ReportRss(shouldApply, pid_);
         return;
     }
-    if (shouldFreeze) {
+    if (shouldApply) {
         // Delay the FREEZE report by 3s.
         eventHandler_->PostTask(
-            [shouldFreeze, pid = pid_]() { ReportRss(shouldFreeze, pid); }, STOP_TASK_NAME, DELAY_TIME);
+            [shouldApply, pid = pid_]() {
+                ReportRss(shouldApply, pid);
+            },
+            STOP_TASK_NAME, DELAY_TIME);
     } else {
         // Cancel the unexecuted FREEZE task.
         eventHandler_->RemoveTask(STOP_TASK_NAME);
-        ReportRss(shouldFreeze, pid_);
+        ReportRss(shouldApply, pid_);
     }
 }
 

@@ -64,9 +64,7 @@ HWTEST_F(ImeStateManagerFactoryTest, CreateImeLifecycleManagerWhenDynamic, TestS
 {
     auto &factory = ImeStateManagerFactory::GetInstance();
     factory.SetDynamicStartIme(true);
-
-    const pid_t testPid = 12345;
-    auto manager = factory.CreateImeStateManager(testPid, [] {
+    auto manager = factory.CreateImeStateManager(0, [] {
         return;
     });
 
@@ -82,11 +80,8 @@ HWTEST_F(ImeStateManagerFactoryTest, CreateFreezeManagerWhenNotDynamic, TestSize
 {
     auto &factory = ImeStateManagerFactory::GetInstance();
     factory.SetDynamicStartIme(false); // Explicit set for clarity
-
-    const pid_t testPid = 67890;
-
     // stopFunc should be ignored in this mode
-    auto manager = factory.CreateImeStateManager(testPid, [] {
+    auto manager = factory.CreateImeStateManager(0, [] {
         FAIL() << "Should not be called";
     });
 

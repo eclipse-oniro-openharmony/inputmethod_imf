@@ -40,7 +40,7 @@ protected:
     pid_t pid_;
 
 private:
-    virtual void ControlIme(bool shouldFreeze) = 0;
+    virtual void ControlIme(bool shouldApply) = 0;
     std::mutex mutex_;
     bool isImeInUse_ { false };
     bool isFrozen_ { true };

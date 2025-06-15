@@ -35,7 +35,7 @@ public:
     }
 
 private:
-    void ControlIme(bool shouldStop) override;
+    void ControlIme(bool shouldApply) override;
     std::function<void()> stopImeFunc_;
     int32_t stopDelayTime_ { STOP_DELAY_TIME };
     constexpr static int32_t STOP_DELAY_TIME = 20000L;
