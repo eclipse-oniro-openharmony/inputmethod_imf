@@ -1220,7 +1220,7 @@ bool ImeInfoInquirer::IsDefaultImeScreen(const std::string &screenName)
 
 bool ImeInfoInquirer::IsDynamicStartIme()
 {
-    if (systemConfig_.dynamicStartImeSysParam == "") {
+    if (systemConfig_.dynamicStartImeSysParam.empty()) {
         return false;
     }
     std::string value = system::GetParameter(systemConfig_.dynamicStartImeSysParam, "");

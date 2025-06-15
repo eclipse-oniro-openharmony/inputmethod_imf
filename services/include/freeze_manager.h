@@ -20,13 +20,16 @@
 
 namespace OHOS {
 namespace MiscServices {
-class FreezeManager : public ImeStateManager {
+class FreezeManager final : public ImeStateManager {
 public:
     explicit FreezeManager(pid_t pid) : ImeStateManager(pid)
     {
     }
-    ~FreezeManager() = default;
+    ~FreezeManager() final = default;
     void ControlIme(bool shouldApply) override;
+
+    FreezeManager(const FreezeManager&) = delete;
+    FreezeManager &operator=(const FreezeManager&) = delete;
 
 private:
     static void ReportRss(bool shouldFreeze, pid_t pid);
