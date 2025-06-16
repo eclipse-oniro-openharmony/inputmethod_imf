@@ -438,7 +438,7 @@ napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_i
         PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_invalid_arg);
         PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->isSimpleKeyboardEnabled),
             "SimpleKeyboard covert failed, type must be boolean!", TYPE_NONE, napi_generic_failure);
-        return status;
+        return napi_ok;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
