@@ -50,6 +50,8 @@ public:
     static napi_value GetSecurityMode(napi_env env, napi_callback_info info);
     static napi_value GetJsImmersiveModeProperty(napi_env env);
     static napi_value GetJsRequestKeyboardReasonProperty(napi_env env);
+    static napi_value GetJsGradientModeProperty(napi_env env);
+    static napi_value GetJsFluidLightModeProperty(napi_env env);
     void OnInputStart() override;
     void OnKeyboardStatus(bool isShow) override;
     int32_t OnInputStop() override;

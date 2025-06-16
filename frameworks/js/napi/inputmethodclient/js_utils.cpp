@@ -120,6 +120,11 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_INVALID_PANEL_TYPE_FLAG, "invalid panel type or panel flag." },
     { EXCEPTION_IME_NOT_FOUND, "the input method is not found." },
     { EXCEPTION_DISABLE_DEFAULTIME, "the preconfigured default input method cannot be disabled" },
+    { EXCEPTION_INVALID_IMMERSIVE_EFFECT, "invalid immersive effect. \n\
+        1.The gradient mode and the fluid light mode can only be used when the immersive mode is enabled.\n\
+        2.The fluid light mode can only be used when the gradient mode is enabled.\n\
+        3.When the gradient mode is not enabled, the gradient height can only be 0." },
+    { EXCEPTION_PRECONDITION_REQUIRED, "this operation must be called after adjustPanelRect or resize." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {

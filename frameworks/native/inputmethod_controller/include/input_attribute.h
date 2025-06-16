@@ -43,6 +43,8 @@ struct InputAttribute {
     bool isTextPreviewSupported { false };
     std::string bundleName { "" };
     int32_t immersiveMode = 0;
+    int32_t gradientMode { 0 };
+    int32_t fluidLightMode { 0 };
     uint32_t windowId = 0; // for transfer
     uint64_t callingDisplayId = 0;
     std::u16string placeholder { u"" };
@@ -98,6 +100,8 @@ struct InputAttributeInner : public Parcelable {
     bool isTextPreviewSupported { false };
     std::string bundleName { "" };
     int32_t immersiveMode = 0;
+    int32_t gradientMode { 0 };
+    int32_t fluidLightMode { 0 };
     uint32_t windowId = 0; // for transfer
     uint64_t callingDisplayId = 0;
     std::u16string placeholder { u"" };
@@ -124,6 +128,8 @@ struct InputAttributeInner : public Parcelable {
         }
         capitalizeMode = static_cast<CapitalizeMode>(readCapitalizeMode);
         needAutoInputNumkey = in.ReadBool();
+        gradientMode = in.ReadInt32();
+        fluidLightMode = in.ReadInt32();
         return true;
     }
 
@@ -156,6 +162,8 @@ struct InputAttributeInner : public Parcelable {
         auto ret = out.WriteString16(placeholder) && out.WriteString16(abilityName);
         ret = ret && out.WriteInt32(static_cast<int32_t>(capitalizeMode));
         ret = ret && out.WriteBool(needAutoInputNumkey);
+        ret = ret && out.WriteInt32(gradientMode);
+        ret = ret && out.WriteInt32(fluidLightMode);
         return ret;
     }
 

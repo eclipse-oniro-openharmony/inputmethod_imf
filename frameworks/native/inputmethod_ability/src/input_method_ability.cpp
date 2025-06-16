@@ -1799,5 +1799,16 @@ bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent
     }
     return false;
 }
+
+int32_t InputMethodAbility::IsCapacitySupport(int32_t capacity, bool &isSupport)
+{
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("failed to get imsa proxy!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+
+    return proxy->IsCapacitySupport(capacity, isSupport);
+}
 } // namespace MiscServices
 } // namespace OHOS
