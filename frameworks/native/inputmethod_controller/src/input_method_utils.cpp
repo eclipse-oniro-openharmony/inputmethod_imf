@@ -12,7 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+#include <cinttypes>
 #include "input_method_utils.h"
+#include "input_method_tools.h"
 namespace OHOS {
 namespace MiscServices {
 
@@ -333,6 +336,58 @@ bool ArrayBuffer::Marshalling(Parcel &out) const
         return false;
     }
     return true;
+}
+
+bool ResponseDataInner::ReadFromParcel(Parcel &in)
+{
+    uint64_t index = in.ReadUint64();
+    switch (index) {
+        case static_cast<uint64_t>(ResponseDataType::NONE_TYPE): {
+            rspData = std::monostate{};
+            break;
+        }
+        case static_cast<uint64_t>(ResponseDataType::STRING_TYPE): {
+            rspData = in.ReadString();
+            break;
+        }
+        case static_cast<uint64_t>(ResponseDataType::INT32_TYPE): {
+            rspData = in.ReadInt32();
+            break;
+        }
+        default: {
+            IMSA_HILOGE("bad parameter index: %{public}" PRIu64 "", index);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ResponseDataInner::Marshalling(Parcel &out) const
+{
+    uint64_t index = static_cast<uint64_t>(rspData.index());
+    if (!out.WriteUint64(index)) {
+        return false;
+    }
+    switch (index) {
+        case static_cast<uint64_t>(ResponseDataType::NONE_TYPE): {
+            return true;
+        }
+        case static_cast<uint64_t>(ResponseDataType::STRING_TYPE): {
+            if (!std::holds_alternative<std::string>(rspData)) {
+                return false;
+            }
+            return out.WriteString(std::get<std::string>(rspData));
+        }
+        case static_cast<uint64_t>(ResponseDataType::INT32_TYPE): {
+            if (!std::holds_alternative<int32_t>(rspData)) {
+                return false;
+            }
+            return out.WriteInt32(std::get<int32_t>(rspData));
+        }
+        default: {
+            return false;
+        }
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

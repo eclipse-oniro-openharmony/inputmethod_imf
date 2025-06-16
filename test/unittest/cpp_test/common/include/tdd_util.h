@@ -39,6 +39,9 @@ public:
 };
 class TddUtil {
 public:
+    static constexpr int32_t WAIT_APP_START_COMPLETE = 5;
+    static constexpr int32_t WAIT_TASK_EMPTY_TIMES = 100;
+    static constexpr int32_t WAIT_TASK_EMPTY_INTERVAL = 20;
     static int32_t GetCurrentUserId();
     static void StorageSelfTokenID();
     static uint64_t AllocTestTokenID(
@@ -69,6 +72,10 @@ public:
     static void InitCurrentImePermissionInfo();
     static void EnabledAllIme();
     static void DisabledAllIme();
+    static void StartApp(const std::string &bundleName);
+    static void StopApp(const std::string &bundleName);
+    static void ClickApp(const std::string &cmd);
+    static bool WaitTaskEmpty();
     static std::string currentBundleNameMock_;
     class WindowManager {
     public:

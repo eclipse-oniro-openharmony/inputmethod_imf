@@ -71,6 +71,7 @@ static const std::map<int32_t, InputMethod_ErrorCode> ERROR_CODE_MAP = {
     { ErrorCode::ERROR_IMSA_IME_START_MORE_THAN_EIGHT_SECOND, IME_ERR_IMMS        },
     { ErrorCode::ERROR_IMSA_FORCE_STOP_IME_TIMEOUT,    IME_ERR_IMMS               },
     { ErrorCode::ERROR_IMC_NULLPTR,                    IME_ERR_IMMS               },
+    { ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL,      IME_ERR_IMCLIENT           },
 };
 
 InputMethod_ErrorCode ErrorCodeConvert(int32_t code)
