@@ -126,7 +126,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_getInputMethodController_001
    * @tc.name    Test to get an InputMethodController instance.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_getInputMethodController_001', 0, async function (done) {
     console.info('************* inputmethod_test_getInputMethodController_001 Test start*************');
@@ -140,7 +140,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_getController_001
    * @tc.name    Test to get an InputMethodController instance.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_getController_001', 0, async function (done) {
     console.info('************* inputmethod_test_getController_001 Test start*************');
@@ -154,7 +154,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_getInputMethodSetting_001
    * @tc.name    Test to get an InputMethodSetting instance.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_getInputMethodSetting_001', 0, async function (done) {
     console.info('************* inputmethod_test_getInputMethodSetting_001 Test start*************');
@@ -168,7 +168,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_getInputMethodSetting_001
    * @tc.name    Test to get an InputMethodSetting instance.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_getSetting_001', 0, async function (done) {
     console.info('************* inputmethod_test_getSetting_001 Test start*************');
@@ -182,7 +182,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_switchInputMethod_001
    * @tc.name    Test Indicates the input method which will replace the current one.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_switchInputMethod_001', 0, async function (done) {
     console.info('************* inputmethod_test_switchInputMethod_001 Test start*************');
@@ -701,7 +701,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_attach_001
    * @tc.name    Test whether the current application can be bound with the default input method.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_attach_001', 0, async function (done) {
     console.info('************* inputmethod_test_attach_001 Test start*************');
@@ -735,7 +735,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_attach_002
    * @tc.name    Test whether the current application can be bound with the default input method.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_attach_002', 0, async function (done) {
     console.info('************* inputmethod_test_attach_002 Test start*************');
@@ -768,7 +768,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_detach_001
    * @tc.name    Test whether it can successfully unbind with input method.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_detach_001', 0, async function (done) {
     console.info('************* inputmethod_test_detach_001 Test start*************');
@@ -789,7 +789,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_detach_002
    * @tc.name    Test whether the keyboard is hide successfully.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_detach_002', 0, async function (done) {
     console.info('************* inputmethod_test_detach_002 Test start*************');
@@ -810,7 +810,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_showTextInput_001
    * @tc.name    Test whether the keyboard is displayed successfully.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_showTextInput_001', 0, async function (done) {
     console.info('************* inputmethod_test_showTextInput_001 Test start*************');
@@ -831,7 +831,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_hideTextInput_001
    * @tc.name    Test whether the keyboard is hidden successfully.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_hideTextInput_001', 0, async function (done) {
     console.info('************* inputmethod_test_hideTextInput_001 Test start*************');
@@ -851,7 +851,7 @@ describe('InputMethodTest', function () {
    * @tc.number  inputmethod_test_setCallingWindow_001
    * @tc.name    Test whether set calling window successfully.
    * @tc.desc    Function test
-   * @tc.level   2
+   * @tc.level   0
    */
   it('inputmethod_test_setCallingWindow_001', 0, async function (done) {
     console.info('************* inputmethod_test_setCallingWindow_001 Test start*************');

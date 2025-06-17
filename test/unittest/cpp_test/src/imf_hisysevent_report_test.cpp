@@ -571,7 +571,7 @@ int32_t ImfHiSysEventReporterTest::multiThreadExecTotalNum_{ 0 };
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ImcClientAttachFailed_001, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ImcClientAttachFailed_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImcClientAttachFailed_001");
     int32_t errCode = ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
@@ -602,7 +602,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ImcClientAttachFailed_001, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ImsaClientAttachFailed_002, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ImsaClientAttachFailed_002, TestSize.Level1)
 {
     IMSA_HILOGI("ImsaClientAttachFailed_002");
     int32_t errCode = ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
@@ -631,7 +631,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ImsaClientAttachFailed_002, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ImsaClientAttachFailed_003, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ImsaClientAttachFailed_003, TestSize.Level1)
 {
     IMSA_HILOGI("ImsaClientAttachFailed_003");
     int32_t errCode = ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
@@ -658,7 +658,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ImsaClientAttachFailed_003, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ImcClientShowFailed_004, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ImcClientShowFailed_004, TestSize.Level1)
 {
     IMSA_HILOGI("ImcClientShowFailed_004");
     int32_t errCode = ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
@@ -687,7 +687,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ImcClientShowFailed_004, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ImsaClientShowFailed_005, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ImsaClientShowFailed_005, TestSize.Level1)
 {
     IMSA_HILOGI("ImsaClientShowFailed_005");
     int32_t errCode = ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -716,7 +716,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ImsaClientShowFailed_005, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ImcClientShowFailed_006, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ImcClientShowFailed_006, TestSize.Level1)
 {
     IMSA_HILOGI("ImcClientShowFailed_006");
     int32_t errCode = ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -743,7 +743,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ImcClientShowFailed_006, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ImeStartInputFailed_007, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ImeStartInputFailed_007, TestSize.Level1)
 {
     IMSA_HILOGI("ImeStartInputFailed_007");
     int32_t errCode = ErrorCode::ERROR_IME;
@@ -770,7 +770,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ImeStartInputFailed_007, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, BaseTextOperationFailed_008, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, BaseTextOperationFailed_008, TestSize.Level1)
 {
     IMSA_HILOGI("BaseTextOperationFailed_008");
     int32_t errCode = ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
@@ -798,7 +798,7 @@ HWTEST_F(ImfHiSysEventReporterTest, BaseTextOperationFailed_008, TestSize.Level0
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ClientAttachStatistic_009, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ClientAttachStatistic_009, TestSize.Level1)
 {
     IMSA_HILOGI("ClientAttachStatistic_009");
     int32_t errCode1 = ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -849,7 +849,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ClientAttachStatistic_009, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ClientShowStatistic_010, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ClientShowStatistic_010, TestSize.Level1)
 {
     IMSA_HILOGI("ClientShowStatistic_010");
     int32_t errCode = ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
@@ -896,7 +896,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ClientShowStatistic_010, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, ImeStartInputStatistic_011, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, ImeStartInputStatistic_011, TestSize.Level1)
 {
     IMSA_HILOGI("ImeStartInputStatistic_011");
     int32_t errCode = ErrorCode::ERROR_IME;
@@ -944,7 +944,7 @@ HWTEST_F(ImfHiSysEventReporterTest, ImeStartInputStatistic_011, TestSize.Level0)
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, BaseTextOperationStatistic_012, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, BaseTextOperationStatistic_012, TestSize.Level1)
 {
     IMSA_HILOGI("BaseTextOperationStatistic_012");
     int32_t failedConsumeTime = 60;
@@ -999,7 +999,7 @@ HWTEST_F(ImfHiSysEventReporterTest, BaseTextOperationStatistic_012, TestSize.Lev
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfHiSysEventReporterTest, StatisticsEventConcurrentTest_013, TestSize.Level0)
+HWTEST_F(ImfHiSysEventReporterTest, StatisticsEventConcurrentTest_013, TestSize.Level1)
 {
     IMSA_HILOGI("StatisticsEventConcurrentTest_013");
     SET_THREAD_NUM(THREAD_NUM);

@@ -91,7 +91,7 @@ void SecurityModeParserTest::TearDown()
  * @tc.require:
  * @tc.author: guojin
  */
-HWTEST_F(SecurityModeParserTest, testGetFullModeList_001, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testGetFullModeList_001, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetFullModeList_001 START");
     int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(101);
@@ -109,7 +109,7 @@ HWTEST_F(SecurityModeParserTest, testGetFullModeList_001, TestSize.Level0)
  * @tc.require:
  * @tc.author: guojin
  */
-HWTEST_F(SecurityModeParserTest, testGetFullModeList_002, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testGetFullModeList_002, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetFullModeList_002 START");
     int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(SecurityModeParserTest::USER_ID);
@@ -129,7 +129,7 @@ HWTEST_F(SecurityModeParserTest, testGetFullModeList_002, TestSize.Level0)
  * @tc.require:
  * @tc.author: guojin
  */
-HWTEST_F(SecurityModeParserTest, testGetSecurityMode_001, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testGetSecurityMode_001, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_001 START");
     int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(SecurityModeParserTest::USER_ID);
@@ -146,7 +146,7 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_001, TestSize.Level0)
  * @tc.require:
  * @tc.author: guojin
  */
-HWTEST_F(SecurityModeParserTest, testGetSecurityMode_002, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testGetSecurityMode_002, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_002 START");
     int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(SecurityModeParserTest::USER_ID);
@@ -162,7 +162,7 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_002, TestSize.Level0)
  * @tc.require:
  * @tc.author: guojin
  */
-HWTEST_F(SecurityModeParserTest, testGetSecurityMode_003, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testGetSecurityMode_003, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_003 START");
     service_->enableSecurityMode_ = false;
@@ -179,7 +179,7 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_003, TestSize.Level0)
  * @tc.require:
  * @tc.author: guojin
  */
-HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_004 START");
     service_->enableSecurityMode_ = true;
@@ -194,7 +194,7 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(SecurityModeParserTest, testInitialize, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testInitialize, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testInitialize START");
     auto ret = SecurityModeParser::GetInstance()->Initialize(SecurityModeParserTest::USER_ID);
@@ -206,7 +206,7 @@ HWTEST_F(SecurityModeParserTest, testInitialize, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(SecurityModeParserTest, testIsExpired, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testIsExpired, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testIsExpired START");
     auto ret = SecurityModeParser::GetInstance()->IsExpired("test");
@@ -218,7 +218,7 @@ HWTEST_F(SecurityModeParserTest, testIsExpired, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(SecurityModeParserTest, testRegisterObserver, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testRegisterObserver, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testRegisterObserver START");
     sptr<SettingsDataObserver> observer = nullptr;
@@ -231,7 +231,7 @@ HWTEST_F(SecurityModeParserTest, testRegisterObserver, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(SecurityModeParserTest, testReleaseDataShareHelper, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testReleaseDataShareHelper, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testReleaseDataShareHelper START");
     std::shared_ptr<DataShare::DataShareHelper> helper;
@@ -247,7 +247,7 @@ HWTEST_F(SecurityModeParserTest, testReleaseDataShareHelper, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(SecurityModeParserTest, testParseSecurityMode_001, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testParseSecurityMode_001, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testParseSecurityMode_001 START");
     auto ret = SecurityModeParser::GetInstance()->ParseSecurityMode("", SecurityModeParserTest::USER_ID);
@@ -259,7 +259,7 @@ HWTEST_F(SecurityModeParserTest, testParseSecurityMode_001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(SecurityModeParserTest, testParseSecurityMode_002, TestSize.Level0)
+HWTEST_F(SecurityModeParserTest, testParseSecurityMode_002, TestSize.Level1)
 {
     IMSA_HILOGI("SecurityModeParserTest testParseSecurityMode_002 START");
     auto ret = SecurityModeParser::GetInstance()->ParseSecurityMode(
