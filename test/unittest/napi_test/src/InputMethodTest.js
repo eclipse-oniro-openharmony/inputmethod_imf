@@ -1507,4 +1507,40 @@ describe('InputMethodTest', function () {
       done();
     }
   });
+
+  /*
+   * @tc.number  inputmethod_test_setSimpleKeyboardEnabled_001
+   * @tc.name    Set simple keyboard mode.
+   * @tc.desc    Function test
+   * @tc.level   1
+   */
+  it('inputmethod_test_setSimpleKeyboardEnabled_001', 0, async function (done) {
+    console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test start*************');
+    inputMethod.setSimpleKeyboardEnabled(true).then(ret => {
+      expect(ret).assertTrue();
+      console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test end*************');
+      done();
+    }).catch( err=> {
+      console.info(`inputmethod_test_setSimpleKeyboardEnabled_001 err: ${JSON.stringify(err.message)}`);
+      expect().assertFail();
+    })
+  });
+
+  /*
+   * @tc.number  inputmethod_test_setSimpleKeyboardEnabled_002
+   * @tc.name    Set simple keyboard mode.
+   * @tc.desc    Function test
+   * @tc.level   1
+   */
+  it('inputmethod_test_setSimpleKeyboardEnabled_002', 0, async function (done) {
+    console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test start*************');
+    inputMethod.setSimpleKeyboardEnabled(false).then(ret => {
+      expect(ret).assertTrue();
+      console.info('************* inputmethod_test_setSimpleKeyboardEnabled_002 Test end*************');
+      done();
+    }).catch( err=> {
+      console.info(`inputmethod_test_setSimpleKeyboardEnabled_002 err: ${JSON.stringify(err.message)}`);
+      expect().assertFail();
+    })
+  });
 });

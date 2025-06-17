@@ -1150,17 +1150,17 @@ int32_t InputMethodController::SwitchInputMethod(
         return proxy->SwitchInputMethod(name, subName, static_cast<uint32_t>(trigger));
 }
 
+
 int32_t InputMethodController::SetSimpleKeyboardEnabled(bool enable)
 {
     InputMethodSyncTrace tracer("IMC_SetSimpleKeyboardEnabled");
-    clientInfo_.isSimpleKeyboardEnabled = enable;
-    // auto proxy = GetSystemAbilityProxy();
-    // if (proxy == nullptr) {
-    //     IMSA_HILOGE("proxy is nullptr!");
-    //     return ErrorCode::ERROR_EX_NULL_POINTER;
-    // }
-    // return proxy->SetSimpleKeyboardEnabled(enable);
-    return 0;
+    clientInfo_.config.isSimpleKeyboardEnabled = enable;
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    return proxy->SetSimpleKeyboardEnabled(enable);
 }
 
 void InputMethodController::OnInputReady(

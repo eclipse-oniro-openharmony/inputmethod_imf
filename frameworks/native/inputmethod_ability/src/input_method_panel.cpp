@@ -2293,7 +2293,7 @@ bool InputMethodPanel::IsNeedConfig()
             return static_cast<int32_t>(inputType) == mInputType;
         });
     isSpecialInputType = (it != ignoreAdjustInputTypes.end());
-    if (isSpecialInputType || !IsInMainDisplay()) {
+    if (isSpecialInputType || !IsInMainDisplay() || InputMethodAbility::GetInstance().GetIsSimpleKeyboardEnabled()) {
         needConfig = false;
     }
     IMSA_HILOGD("isNeedConfig is %{public}d", needConfig);

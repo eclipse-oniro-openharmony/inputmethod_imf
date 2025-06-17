@@ -1150,10 +1150,10 @@ int32_t InputMethodAbility::NotifyPanelStatus(bool isUseParameterFlag, PanelFlag
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto keyboardSize = panel->GetKeyboardSize();
-    bool isInMainDisplay = panel->IsInMainDisplay();
+    bool isNeedShowBar = panel->IsInMainDisplay() || GetIsSimpleKeyboardEnabled();
     PanelFlag curPanelFlag = isUseParameterFlag ? panelFlag : panel->GetPanelFlag();
     SysPanelStatus sysPanelStatus = { inputType_, curPanelFlag, keyboardSize.width, keyboardSize.height };
-    sysPanelStatus.isMainDisplay = isInMainDisplay;
+    sysPanelStatus.isNeedShowBar = isNeedShowBar;
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
