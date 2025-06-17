@@ -92,7 +92,7 @@ void ImfBlockQueueTest::TestImfBlockQueue()
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(ImfBlockQueueTest, blockQueueTest_001, TestSize.Level0)
+HWTEST_F(ImfBlockQueueTest, blockQueueTest_001, TestSize.Level1)
 {
     IMSA_HILOGI("ImfBlockQueueTest blockQueueTest_001 START");
     SET_THREAD_NUM(5);

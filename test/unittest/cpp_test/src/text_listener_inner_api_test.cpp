@@ -82,7 +82,7 @@ sptr<OnTextChangedListener> TextListenerInnerApiTest::textListener_;
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testInsertText01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testInsertText01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testInsertText01 START");
     TextListener::ResetParam();
@@ -100,7 +100,7 @@ HWTEST_F(TextListenerInnerApiTest, testInsertText01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testInsertText02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testInsertText02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testInsertText02 START");
     TextListener::ResetParam();
@@ -126,7 +126,7 @@ HWTEST_F(TextListenerInnerApiTest, testInsertText02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testDeleteForward01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testDeleteForward01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testDeleteForward01 START");
     TextListener::ResetParam();
@@ -143,7 +143,7 @@ HWTEST_F(TextListenerInnerApiTest, testDeleteForward01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testDeleteForward02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testDeleteForward02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testDeleteForward02 START");
     TextListener::ResetParam();
@@ -168,7 +168,7 @@ HWTEST_F(TextListenerInnerApiTest, testDeleteForward02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testDeleteBackward01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testDeleteBackward01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testDeleteBackward01 START");
     TextListener::ResetParam();
@@ -185,7 +185,7 @@ HWTEST_F(TextListenerInnerApiTest, testDeleteBackward01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testDeleteBackward02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testDeleteBackward02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testDeleteBackward02 START");
     TextListener::ResetParam();
@@ -210,7 +210,7 @@ HWTEST_F(TextListenerInnerApiTest, testDeleteBackward02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testGetLeft01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testGetLeft01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetLeft01 START");
     TextListener::ResetParam();
@@ -228,7 +228,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetLeft01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testGetLeft02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testGetLeft02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetLeft02 START");
     TextListener::ResetParam();
@@ -255,7 +255,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetLeft02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testGetRight01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testGetRight01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetRight01 START");
     TextListener::ResetParam();
@@ -273,7 +273,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetRight01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testGetRight02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testGetRight02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetRight02 START");
     TextListener::ResetParam();
@@ -299,7 +299,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetRight02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSendKeyboardStatus01 START");
     TextListener::ResetParam();
@@ -314,7 +314,7 @@ HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSendKeyboardStatus02 START");
     TextListenerInnerApiTest::GetIMCAttached();
@@ -335,7 +335,7 @@ HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSendFunctionKey01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSendFunctionKey01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSendFunctionKey01 START");
     TextListener::ResetParam();
@@ -351,7 +351,7 @@ HWTEST_F(TextListenerInnerApiTest, testSendFunctionKey01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSendFunctionKey02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSendFunctionKey02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSendFunctionKey02 START");
     TextListener::ResetParam();
@@ -374,7 +374,7 @@ HWTEST_F(TextListenerInnerApiTest, testSendFunctionKey02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testMoveCursor01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testMoveCursor01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testMoveCursor01 START");
     TextListener::ResetParam();
@@ -391,7 +391,7 @@ HWTEST_F(TextListenerInnerApiTest, testMoveCursor01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testMoveCursor02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testMoveCursor02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testMoveCursor02 START");
     TextListener::ResetParam();
@@ -416,7 +416,7 @@ HWTEST_F(TextListenerInnerApiTest, testMoveCursor02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSelectByRange01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSelectByRange01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSelectByRange01 START");
     TextListener::ResetParam();
@@ -434,7 +434,7 @@ HWTEST_F(TextListenerInnerApiTest, testSelectByRange01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSelectByRange02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSelectByRange02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSelectByRange02 START");
     TextListener::ResetParam();
@@ -460,7 +460,7 @@ HWTEST_F(TextListenerInnerApiTest, testSelectByRange02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSelectByMovement01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSelectByMovement01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSelectByMovement01 START");
     TextListener::ResetParam();
@@ -478,7 +478,7 @@ HWTEST_F(TextListenerInnerApiTest, testSelectByMovement01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSelectByMovement02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSelectByMovement02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSelectByMovement02 START");
     TextListener::ResetParam();
@@ -504,7 +504,7 @@ HWTEST_F(TextListenerInnerApiTest, testSelectByMovement02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testHandleExtendAction01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testHandleExtendAction01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testHandleExtendAction01 START");
     TextListener::ResetParam();
@@ -521,7 +521,7 @@ HWTEST_F(TextListenerInnerApiTest, testHandleExtendAction01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testHandleExtendAction02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testHandleExtendAction02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testHandleExtendAction02 START");
     TextListener::ResetParam();
@@ -546,7 +546,7 @@ HWTEST_F(TextListenerInnerApiTest, testHandleExtendAction02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetTextIndexAtCursor01 START");
     TextListener::ResetParam();
@@ -563,7 +563,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetTextIndexAtCursor02 START");
     TextListener::ResetParam();
@@ -589,7 +589,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSetPreviewText01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSetPreviewText01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSetPreviewText01 START");
     TextListener::ResetParam();
@@ -611,7 +611,7 @@ HWTEST_F(TextListenerInnerApiTest, testSetPreviewText01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testSetPreviewText02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testSetPreviewText02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSetPreviewText02 START");
     TextListener::ResetParam();
@@ -650,7 +650,7 @@ HWTEST_F(TextListenerInnerApiTest, testSetPreviewText02, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview01, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview01, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testFinishTextPreview01 START");
     TextListener::ResetParam();
@@ -668,7 +668,7 @@ HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview01, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview02, TestSize.Level0)
+HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview02, TestSize.Level1)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testFinishTextPreview02 START");
     TextListener::ResetParam();

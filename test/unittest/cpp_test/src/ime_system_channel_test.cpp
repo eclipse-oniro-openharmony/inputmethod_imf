@@ -76,7 +76,7 @@ void ImeSystemChannelTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ImeSystemChannelTest, testConnectSystemCmd001, TestSize.Level0)
+HWTEST_F(ImeSystemChannelTest, testConnectSystemCmd001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeSystemChannelTest testConnectSystemCmd001 Test START");
     auto ret = imeSystemChannel_->ConnectSystemCmd(sysCmdListener_);
@@ -89,7 +89,7 @@ HWTEST_F(ImeSystemChannelTest, testConnectSystemCmd001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ImeSystemChannelTest, testConnectSystemCmd002, TestSize.Level0)
+HWTEST_F(ImeSystemChannelTest, testConnectSystemCmd002, TestSize.Level1)
 {
     IMSA_HILOGI("ImeSystemChannelTest testConnectSystemCmd002 Test START");
     TokenScope scope(ImeSystemChannelTest::permissionTokenId_);
@@ -103,7 +103,7 @@ HWTEST_F(ImeSystemChannelTest, testConnectSystemCmd002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ImeSystemChannelTest, testSendPrivateCommand001, TestSize.Level0)
+HWTEST_F(ImeSystemChannelTest, testSendPrivateCommand001, TestSize.Level1)
 {
     IMSA_HILOGI("ImeSystemChannelTest testSendPrivateCommand001 Test START");
     TokenScope scope(ImeSystemChannelTest::permissionTokenId_);
@@ -118,7 +118,7 @@ HWTEST_F(ImeSystemChannelTest, testSendPrivateCommand001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(ImeSystemChannelTest, testImeSystemChannel_nullptr, TestSize.Level0)
+HWTEST_F(ImeSystemChannelTest, testImeSystemChannel_nullptr, TestSize.Level1)
 {
     IMSA_HILOGI("ImeSystemChannelTest testImeSystemChannel_nullptr Test START");
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
