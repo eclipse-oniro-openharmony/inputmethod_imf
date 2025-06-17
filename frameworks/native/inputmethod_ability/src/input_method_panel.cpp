@@ -43,8 +43,6 @@ constexpr int32_t DEFAULT_AVOID_HEIGHT = -1;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_ { 0 };
 constexpr int32_t MAXWAITTIME = 30;
 constexpr int32_t WAITTIME = 10;
-constexpr uint32_t INTERVAL_TIME = 5;
-constexpr uint32_t RETRY_TIMES = 4;
 InputMethodPanel::~InputMethodPanel() = default;
 constexpr float GRADIENT_HEIGHT_RATIO = 0.15;
 
@@ -1402,7 +1400,7 @@ int32_t InputMethodPanel::HidePanel()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId, bool needWait)
+int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
 {
     IMSA_HILOGD("InputMethodPanel start, windowId: %{public}d.", windowId);
     if (window_ == nullptr) {
@@ -1410,25 +1408,6 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId, bool needWait)
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
     auto ret = window_->SetCallingWindow(windowId);
-    if (needWait) {
-        IMSA_HILOGD("retry start.");
-        bool blockRet = BlockRetry(INTERVAL_TIME, RETRY_TIMES, [this]()->bool {
-            uint64_t displayId = 0;
-            auto ret = GetDisplayId(displayId);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("GetDisplayId ret:%{public}d", ret);
-                return true;
-            }
-            auto callingDisplayId = InputMethodAbility::GetInstance().GetInputAttribute().callingDisplayId;
-            if (displayId == callingDisplayId) {
-                return true;
-            }
-            IMSA_HILOGI("retry, dispalyId:%{public}" PRIu64", calingDisplayId:%{public}" PRIu64"",
-                displayId, callingDisplayId);
-            return false;
-        });
-        IMSA_HILOGD("retry ret: %{public}d.", blockRet);
-    }
     IMSA_HILOGI("ret: %{public}d, windowId: %{public}u", ret, windowId);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_WINDOW_MANAGER;
 }
@@ -2225,22 +2204,14 @@ HotAreas InputMethodPanel::GetHotAreas()
     return hotAreas_;
 }
 
-
 sptr<Rosen::Display> InputMethodPanel::GetCurDisplay()
 {
     IMSA_HILOGD("enter!!");
-    uint64_t displayId = Rosen::DISPLAY_ID_INVALID;
-    auto ret = GetDisplayId(displayId);
-    sptr<Rosen::Display> displayInfo = nullptr;
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("get window displayId err:%{public}d!", ret);
+    uint64_t displayId = InputMethodAbility::GetInstance().GetInputAttribute().callingDisplayId;
+    auto displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("get display info err:%{public}" PRIu64 "!", displayId);
         displayInfo = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    } else {
-        displayInfo = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
-        if (displayInfo == nullptr) {
-            IMSA_HILOGE("get display info err:%{public}" PRIu64"!", displayId);
-            displayInfo = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-        }
     }
     return displayInfo;
 }

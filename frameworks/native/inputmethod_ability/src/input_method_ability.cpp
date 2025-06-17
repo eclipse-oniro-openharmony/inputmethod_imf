@@ -573,7 +573,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     auto task = [this, textConfig]() {
         panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(textConfig.windowId, true);
+                panel->SetCallingWindow(textConfig.windowId);
             }
             return false;
         });
@@ -1740,7 +1740,7 @@ int32_t InputMethodAbility::OnCallingDisplayIdChanged(uint64_t displayId)
     auto task = [this, windowId]() {
         panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(windowId, true);
+                panel->SetCallingWindow(windowId);
             }
             return false;
         });
@@ -1752,11 +1752,6 @@ int32_t InputMethodAbility::OnCallingDisplayIdChanged(uint64_t displayId)
     }
     imeListener_->OnCallingDisplayIdChanged(displayId);
     return ErrorCode::NO_ERROR;
-}
-
-uint64_t InputMethodAbility::GetCallingWindowDisplayId()
-{
-    return GetInputAttribute().callingDisplayId;
 }
 
 int32_t InputMethodAbility::OnSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
