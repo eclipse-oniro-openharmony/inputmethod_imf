@@ -2043,5 +2043,24 @@ HWTEST_F(InputMethodControllerTest, TestImcOptionalInputMethod, TestSize.Level0)
     ret = inputMethodController_->DisplayOptionalInputMethod();
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: testUpdateLargeMemorySceneState
+ * @tc.desc: test testUpdateLargeMemorySceneState
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testUpdateLargeMemorySceneState, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testUpdateLargeMemorySceneState Test START");
+    int memoryState = 3;
+    auto ret = inputMethodController_->UpdateLargeMemorySceneState(memoryState);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    memoryState = 2;
+    ret = inputMethodController_->UpdateLargeMemorySceneState(memoryState);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->UpdateLargeMemorySceneState(memoryState);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

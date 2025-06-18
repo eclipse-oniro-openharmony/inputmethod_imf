@@ -17,6 +17,7 @@
 #define SERVICES_INCLUDE_PERUSER_SESSION_H
 
 #include <unordered_set>
+#include <shared_mutex>
 
 #include "block_queue.h"
 #include "client_group.h"
@@ -43,6 +44,10 @@ enum class ImeEvent : uint32_t {
     START_IME_TIMEOUT,
     STOP_IME,
     SET_CORE_AND_AGENT,
+};
+enum LargeMemoryState : int32_t {
+    LARGE_MEMORY_NEED = 2,
+    LARGE_MEMORY_NOT_NEED = 3
 };
 enum class ImeAction : uint32_t {
     DO_NOTHING,
@@ -108,6 +113,7 @@ public:
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
+    int32_t UpdateLargeMemorySceneState(const int32_t memoryState);
     int32_t OnRegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnregisterProxyIme(uint64_t displayId);
@@ -238,6 +244,8 @@ private:
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     void ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo);
+    bool CompareExchange(const int32_t value);
+    bool isLargeMemoryStateNeed();
 
     std::mutex imeStartLock_;
 
@@ -276,6 +284,8 @@ private:
     std::mutex virtualDisplayLock_{};
     std::unordered_set<uint64_t> virtualScreenDisplayId_;
     std::atomic<uint64_t> agentDisplayId_{ DEFAULT_DISPLAY_ID };
+    std::shared_lock largeMemoryStateMutex_;
+    int32_t largeMemoryState_ = LargeMemoryState::LARGE_MEMORY_NOT_NEED;
     std::mutex clientGroupLock_{};
     std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
 };

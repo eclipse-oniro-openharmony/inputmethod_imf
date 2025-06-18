@@ -907,6 +907,16 @@ public:
         EnabledStatus status = EnabledStatus::BASIC_MODE);
 
     /**
+     * @brief Update state of large memory app.
+     * 
+     * This function is used to update the large memory state to control
+     * the restart of the input method.
+     *
+     * @since 18
+     */
+    IMF_API int32_t UpdateLargeMemorySceneState(const int32_t memoryState);
+
+    /**
      * @brief Send ArrayBuffer message to ime.
      *
      * This function is used to Send ArrayBuffer message to ime.

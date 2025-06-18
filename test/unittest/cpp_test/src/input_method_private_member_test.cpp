@@ -341,6 +341,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSi
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
     userSession->OnClientDied(nullptr);
+    userSession->UpdateLargeMemorySceneState(3);
     userSession->OnImeDied(nullptr, ImeType::IME);
     bool isShowKeyboard = false;
     clientGroup->UpdateClientInfo(nullptr, { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
@@ -1613,6 +1614,24 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_IsOneTimeCodeSwitchSubtype, TestSize.L
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     bool ret1 = service_->IsOneTimeCodeSwitchSubtype(userSession, switchInfo);
     EXPECT_FALSE(ret1);
+}
+
+/**
+ * @tc.name: PerUserSessionParameterStartImeImeDied001
+ * @tc.desc: Test PerUserSession restrain restart.
+ * @tc.type: FUNC
+ * @tc.require: issuesIC7VH8
+ * @tc.author: Houjiahui
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterStartImeImeDied001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterStartImeImeDied001 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    auto ret = userSession->UpdateLargeMemorySceneState(3);
+    userSession->StartImeInImeDied();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = userSession->UpdateLargeMemorySceneState(2);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

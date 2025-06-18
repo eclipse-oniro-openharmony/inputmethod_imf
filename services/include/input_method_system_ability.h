@@ -61,6 +61,7 @@ public:
         const std::string &bundleName, const std::string &subName, uint32_t trigger) override;
     ErrCode DisplayOptionalInputMethod() override;
     ErrCode SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
+    ErrCode UpdateLargeMemorySceneState(const int32_t memoryState) override;
     ErrCode InitConnect() override;
     ErrCode UnRegisteredProxyIme(int32_t type, const sptr<IInputMethodCore> &core) override;
     ErrCode PanelStatusChange(uint32_t status, const ImeWindowInfo &info) override;
