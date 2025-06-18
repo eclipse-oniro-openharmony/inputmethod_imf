@@ -1357,12 +1357,6 @@ napi_value JsTextInputClientEngine::GetAttachOptions(napi_env env, napi_callback
 {
     IMSA_HILOGD("GetAttachOptions requestKeyboardReason:%{public}d.",
         InputMethodAbility::GetInstance().GetRequestKeyboardReason());
-    bool flag = IsTargetDeviceType(DEVICE_TYPE_2IN1);
-    if (!flag) {
-        JsUtils::ThrowException(
-            env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED), "only 2in1 supported!", TYPE_NONE);
-        return JsUtil::Const::Null(env);
-    }
     AttachOptions attachOptions;
     attachOptions.requestKeyboardReason = InputMethodAbility::GetInstance().GetRequestKeyboardReason();
     attachOptions.isSimpleKeyboardEnabled = InputMethodAbility::GetInstance().GetIsSimpleKeyboardEnabled();
@@ -1383,11 +1377,6 @@ napi_value JsTextInputClientEngine::Subscribe(napi_env env, napi_callback_info i
         JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("subscribe failed, type: %{public}s.", type.c_str());
         return nullptr;
-    }
-    if (type == "attachOptionsDidChange" && !IsTargetDeviceType(DEVICE_TYPE_2IN1)) {
-        JsUtils::ThrowException(
-            env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED), "only 2in1 supported!", TYPE_NONE);
-        return JsUtil::Const::Null(env);
     }
     IMSA_HILOGD("subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsTextInputClientEngine *>(JsUtils::GetNativeSelf(env, info));
