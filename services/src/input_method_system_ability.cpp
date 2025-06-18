@@ -692,7 +692,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId, ime);
     }
 #endif
-    if (inputClientInfo.config.isSimpleKeyboardEnabled) {
+    if (inputClientInfo.isSimpleKeyboardEnabled) {
         std::string ime;
         if (GetScreenLockIme(userId, ime) != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("not ime screenlocked");

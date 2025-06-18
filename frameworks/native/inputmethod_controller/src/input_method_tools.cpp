@@ -171,6 +171,7 @@ InputClientInfoInner InputMethodTools::InputClientInfoToInner(const InputClientI
     inner.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
     inner.type = inputClientInfo.type;
     inner.name = inputClientInfo.name;
+    inner.isSimpleKeyboardEnabled = inputClientInfo.isSimpleKeyboardEnabled;
     return inner;
 }
 
@@ -195,6 +196,7 @@ InputClientInfo InputMethodTools::InnerToInputClientInfo(const InputClientInfoIn
     inputClientInfo.requestKeyboardReason = inner.requestKeyboardReason;
     inputClientInfo.type = inner.type;
     inputClientInfo.name = inner.name;
+    inputClientInfo.isSimpleKeyboardEnabled = inner.isSimpleKeyboardEnabled;
     return inputClientInfo;
 }
 

@@ -548,7 +548,7 @@ int32_t PerUserSession::OnStartInput(
     if (inputClientInfo.config.inputAttribute.IsSecurityImeFlag()) {
         infoTemp.config.isSimpleKeyboardEnabled = false;
     } else {
-        infoTemp.config.isSimpleKeyboardEnabled = inputClientInfo.config.isSimpleKeyboardEnabled;
+        infoTemp.config.isSimpleKeyboardEnabled = inputClientInfo.isSimpleKeyboardEnabled;
     }
     int32_t ret =
         BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true, inputClientInfo.displayId);

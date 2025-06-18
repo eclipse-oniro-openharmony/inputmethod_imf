@@ -1228,7 +1228,7 @@ bool JsAttachOptions::Read(napi_env env, napi_value jsObject, AttachOptions &att
     uint32_t requestKeyboardReason = static_cast<uint32_t>(RequestKeyboardReason::NONE);
     auto ret = JsUtil::Object::ReadProperty(env, jsObject, "requestKeyboardReason", requestKeyboardReason);
     attachOptions.requestKeyboardReason = static_cast<RequestKeyboardReason>(requestKeyboardReason);
-    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "isSimpleKeyboardEnabled", 
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "isSimpleKeyboardEnabled",
         attachOptions.isSimpleKeyboardEnabled);
     return ret;
 }

@@ -61,6 +61,7 @@ bool InputClientInfoInner::ReadFromParcel(Parcel &in)
     uint32_t typeData = in.ReadUint32();
     type = static_cast<ClientType>(typeData);
     name = in.ReadString();
+    isSimpleKeyboardEnabled = in.ReadBool();
     return true;
 }
 
@@ -162,6 +163,9 @@ bool InputClientInfoInner::MarshallingOne(Parcel &out) const
         return false;
     }
     if (!out.WriteString(name)) {
+        return false;
+    }
+    if (!out.WriteBool(isSimpleKeyboardEnabled)) {
         return false;
     }
     return true;

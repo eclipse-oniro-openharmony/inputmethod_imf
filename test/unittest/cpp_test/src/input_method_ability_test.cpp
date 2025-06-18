@@ -492,6 +492,24 @@ HWTEST_F(InputMethodAbilityTest, testStartInput, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testStartInputWithSimpleKeyBoard
+ * @tc.desc: InputMethodAbility StartInput
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testStartInputWithSimpleKeyBoard, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testStartInputWithSimpleKeyBoard start.");
+    inputMethodAbility_.SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelServiceImpl();
+    InputClientInfo clientInfo;
+    clientInfo.channel = channelStub;
+    clientInfo.isSimpleKeyboardEnabled = true;
+    auto ret = inputMethodAbility_.StartInput(clientInfo, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: testStartInputBeforeCreatePanel
  * @tc.desc: InputMethodAbility StartInput before create panel
  * @tc.type: FUNC

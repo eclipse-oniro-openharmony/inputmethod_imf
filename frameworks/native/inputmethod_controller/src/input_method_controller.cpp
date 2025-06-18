@@ -1154,7 +1154,7 @@ int32_t InputMethodController::SwitchInputMethod(
 int32_t InputMethodController::SetSimpleKeyboardEnabled(bool enable)
 {
     InputMethodSyncTrace tracer("IMC_SetSimpleKeyboardEnabled");
-    clientInfo_.config.isSimpleKeyboardEnabled = enable;
+    clientInfo_.isSimpleKeyboardEnabled = enable;
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr!");
