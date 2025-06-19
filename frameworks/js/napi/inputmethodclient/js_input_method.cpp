@@ -437,7 +437,7 @@ napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_i
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_invalid_arg);
         PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->isSimpleKeyboardEnabled),
-            "SimpleKeyboard covert failed, type must be boolean!", TYPE_NONE, napi_generic_failure);
+            "enable must be boolean!", TYPE_NONE, napi_generic_failure);
         return napi_ok;
     };
 
@@ -451,7 +451,6 @@ napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_i
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
         } else {
-            IMSA_HILOGE("exec SetSimpleKeyboardEnabled failed ret: %{public}d!", errCode);
             ctxt->SetErrorCode(errCode);
         }
     };

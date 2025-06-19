@@ -342,8 +342,8 @@ public:
     double height = 0;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
     RequestKeyboardReason requestKeyboardReason = RequestKeyboardReason::NONE;
-    bool isSimpleKeyboardEnabled = false;
     sptr<IRemoteObject> abilityToken { nullptr };
+    bool isSimpleKeyboardEnabled { false }; // indicates enable basic keyboard or not
 
     std::string ToString() const
     {

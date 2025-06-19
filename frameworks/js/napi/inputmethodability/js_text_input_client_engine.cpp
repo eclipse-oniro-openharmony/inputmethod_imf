@@ -1355,11 +1355,9 @@ void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attach
 
 napi_value JsTextInputClientEngine::GetAttachOptions(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGD("GetAttachOptions requestKeyboardReason:%{public}d.",
-        InputMethodAbility::GetInstance().GetRequestKeyboardReason());
-    AttachOptions attachOptions;
-    attachOptions.requestKeyboardReason = InputMethodAbility::GetInstance().GetRequestKeyboardReason();
-    attachOptions.isSimpleKeyboardEnabled = InputMethodAbility::GetInstance().GetIsSimpleKeyboardEnabled();
+    auto attachOptions = InputMethodAbility::GetInstance().GetAttachOptions();
+    IMSA_HILOGD("GetAttachOptions:%{public}d/%{public}d.", attachOptions.requestKeyboardReason,
+        attachOptions.isSimpleKeyboardEnabled);
     return JsAttachOptions::Write(env, attachOptions);
 }
 

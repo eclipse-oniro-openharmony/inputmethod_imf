@@ -260,14 +260,9 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
             panel->HidePanel();
         }
     }
-    {
-        std::lock_guard<std::mutex> lock(inputAttrLock_);
-        inputAttribute_.bundleName = clientInfo.config.inputAttribute.bundleName;
-        inputAttribute_.windowId = clientInfo.config.inputAttribute.windowId;
-        inputAttribute_.callingDisplayId = clientInfo.config.inputAttribute.callingDisplayId;
-    }
-    int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart) :
-                                     InvokeStartInputCallback(clientInfo.isNotifyInputStart);
+    int32_t ret = isBindFromClient
+                      ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
+                      : InvokeStartInputCallbackWithInfoRestruct(clientInfo.config, clientInfo.isNotifyInputStart);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d!", ret);
         return ret;
@@ -362,7 +357,7 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject, uint32_
     HideKeyboardImplWithoutLock(cmdCount, sessionId);
     ClearDataChannel(channelObject);
     ClearInputAttribute();
-    ClearRequestKeyboardReason();
+    ClearAttachOptions();
     ClearInputType();
     ClearIsSimpleKeyboardEnabled();
     if (imeListener_ != nullptr) {
@@ -491,7 +486,7 @@ int32_t InputMethodAbility::ShowKeyboard(int32_t requestKeyboardReason)
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     int32_t cmdCount = ++cmdId_;
-    IsInputClientAttachOptionsChanged(static_cast<RequestKeyboardReason>(requestKeyboardReason));
+    HandleRequestKeyboardReasonChanged(static_cast<RequestKeyboardReason>(requestKeyboardReason));
     return ShowKeyboardImplWithoutLock(cmdCount);
 }
 
@@ -544,13 +539,17 @@ void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     NotifyPanelStatusInfo(info, channel);
 }
 
-int32_t InputMethodAbility::InvokeStartInputCallback(bool isNotifyInputStart)
+int32_t InputMethodAbility::InvokeStartInputCallbackWithInfoRestruct(
+    const TextTotalConfig &textConfig, bool isNotifyInputStart)
 {
-    TextTotalConfig textConfig = {};
-    int32_t ret = GetTextConfig(textConfig);
+    TextTotalConfig newTextConfig = {};
+    int32_t ret = GetTextConfig(newTextConfig);
     if (ret == ErrorCode::NO_ERROR) {
-        textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
-        return InvokeStartInputCallback(textConfig, isNotifyInputStart);
+        newTextConfig.inputAttribute.bundleName = textConfig.inputAttribute.bundleName;
+        newTextConfig.inputAttribute.callingDisplayId = textConfig.inputAttribute.callingDisplayId;
+        newTextConfig.inputAttribute.windowId = textConfig.inputAttribute.windowId;
+        newTextConfig.isSimpleKeyboardEnabled = textConfig.isSimpleKeyboardEnabled;
+        return InvokeStartInputCallback(newTextConfig, isNotifyInputStart);
     }
     IMSA_HILOGW("failed to get text config, ret: %{public}d.", ret);
     if (imeListener_ == nullptr) {
@@ -585,8 +584,10 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
-    IsInputClientAttachOptionsChanged(textConfig.requestKeyboardReason);
-    IsSimpleKeyboardEnabledChanged(textConfig.isSimpleKeyboardEnabled);
+    AttachOptions options;
+    options.requestKeyboardReason = textConfig.requestKeyboardReason;
+    options.isSimpleKeyboardEnabled = textConfig.isSimpleKeyboardEnabled;
+    InvokeAttachOptionsCallback(options, isNotifyInputStart || !isNotify_);
     if (isNotifyInputStart || !isNotify_) {
         isNotify_ = true;
         imeListener_->OnInputStart();
@@ -615,38 +616,43 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodAbility::IsInputClientAttachOptionsChanged(RequestKeyboardReason requestKeyboardReason)
+void InputMethodAbility::HandleRequestKeyboardReasonChanged(const RequestKeyboardReason &requestKeyboardReason)
 {
-    IMSA_HILOGD("AttachOptionsChanged newReason:%{public}d, oldReason:%{public}d", requestKeyboardReason,
-        GetRequestKeyboardReason());
-    if (requestKeyboardReason != GetRequestKeyboardReason()) {
-        SetRequestKeyboardReason(requestKeyboardReason);
-        if (textInputClientListener_ != nullptr) {
-            AttachOptions attachOptions;
-            attachOptions.isSimpleKeyboardEnabled = GetIsSimpleKeyboardEnabled();
-            attachOptions.requestKeyboardReason = requestKeyboardReason;
-            textInputClientListener_->OnAttachOptionsChanged(attachOptions);
-            return true;
-        }
-    }
-    return false;
+    AttachOptions options;
+    options.requestKeyboardReason = requestKeyboardReason;
+    options.isSimpleKeyboardEnabled = GetAttachOptions().isSimpleKeyboardEnabled;
+    InvokeAttachOptionsCallback(options);
 }
 
-bool InputMethodAbility::IsSimpleKeyboardEnabledChanged(bool isSimpleKeyboardEnabled)
+void InputMethodAbility::InvokeAttachOptionsCallback(const AttachOptions &options, bool isFirstNotify)
 {
-    IMSA_HILOGD("AttachOptionsChanged newSimpleKeyboardEnabled:%{public}d, oldSimpleKeyboardEnabled:%{public}d",
-        isSimpleKeyboardEnabled, GetIsSimpleKeyboardEnabled());
-    if (isSimpleKeyboardEnabled != GetIsSimpleKeyboardEnabled()) {
-        SetIsSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
-        if (textInputClientListener_ != nullptr) {
-            AttachOptions attachOptions;
-            attachOptions.requestKeyboardReason = GetRequestKeyboardReason();
-            attachOptions.isSimpleKeyboardEnabled = isSimpleKeyboardEnabled;
-            textInputClientListener_->OnAttachOptionsChanged(attachOptions);
-            return true;
-        }
+    auto oldOptions = GetAttachOptions();
+    if (!isFirstNotify && oldOptions.isSimpleKeyboardEnabled == options.isSimpleKeyboardEnabled
+        && options.requestKeyboardReason == oldOptions.requestKeyboardReason) {
+        return;
     }
-    return false;
+    if (textInputClientListener_ != nullptr) {
+        textInputClientListener_->OnAttachOptionsChanged(options);
+    }
+    SetAttachOptions(options);
+}
+
+void InputMethodAbility::SetAttachOptions(const AttachOptions &options)
+{
+    std::lock_guard<std::mutex> lock(attachOptionsLock_);
+    attachOptions_ = options;
+}
+
+void InputMethodAbility::ClearAttachOptions()
+{
+    std::lock_guard<std::mutex> lock(attachOptionsLock_);
+    attachOptions_ = {};
+}
+
+AttachOptions InputMethodAbility::GetAttachOptions()
+{
+    std::lock_guard<std::mutex> lock(attachOptionsLock_);
+    return attachOptions_;
 }
 
 int32_t InputMethodAbility::InsertTextInner(const std::string &text, const AsyncIpcCallBack &callback)
@@ -835,9 +841,6 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
     auto ret = channel->GetTextConfig(textConfigInner);
     if (ret == ErrorCode::NO_ERROR) {
         textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
-        textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
-        textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
-        textConfig.inputAttribute.windowId = GetInputAttribute().windowId;
     }
     return ret;
 }
@@ -1150,10 +1153,14 @@ int32_t InputMethodAbility::NotifyPanelStatus(bool isUseParameterFlag, PanelFlag
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto keyboardSize = panel->GetKeyboardSize();
-    bool isNeedShowBar = panel->IsInMainDisplay() || GetIsSimpleKeyboardEnabled();
     PanelFlag curPanelFlag = isUseParameterFlag ? panelFlag : panel->GetPanelFlag();
     SysPanelStatus sysPanelStatus = { inputType_, curPanelFlag, keyboardSize.width, keyboardSize.height };
-    sysPanelStatus.isNeedShowBar = isNeedShowBar;
+    if (!panel->IsInMainDisplay()) {
+        sysPanelStatus.isPanelRaised = false;
+    }
+    if (GetAttachOptions().isSimpleKeyboardEnabled || !panel->IsInMainDisplay()) {
+        sysPanelStatus.needFuncButton = false;
+    }
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr!");
@@ -1178,42 +1185,6 @@ InputAttribute InputMethodAbility::GetInputAttribute()
 {
     std::lock_guard<std::mutex> lock(inputAttrLock_);
     return inputAttribute_;
-}
-
-void InputMethodAbility::SetRequestKeyboardReason(RequestKeyboardReason requestKeyboardReason)
-{
-    std::lock_guard<std::mutex> lock(requestKeyboardReasonLock_);
-    requestKeyboardReason_ = requestKeyboardReason;
-}
-
-void InputMethodAbility::ClearRequestKeyboardReason()
-{
-    std::lock_guard<std::mutex> lock(requestKeyboardReasonLock_);
-    requestKeyboardReason_ = RequestKeyboardReason::NONE;
-}
-
-RequestKeyboardReason InputMethodAbility::GetRequestKeyboardReason()
-{
-    std::lock_guard<std::mutex> lock(requestKeyboardReasonLock_);
-    return requestKeyboardReason_;
-}
-
-bool InputMethodAbility::GetIsSimpleKeyboardEnabled()
-{
-    std::lock_guard<std::mutex> lock(isSimpleKeyboardEnabledLock_);
-    return isSimpleKeyboardEnabled_;
-}
-
-void InputMethodAbility::SetIsSimpleKeyboardEnabled(bool isSimpleKeyboardEnabled)
-{
-    std::lock_guard<std::mutex> lock(isSimpleKeyboardEnabledLock_);
-    isSimpleKeyboardEnabled_ = isSimpleKeyboardEnabled;
-}
-
-void InputMethodAbility::ClearIsSimpleKeyboardEnabled()
-{
-    std::lock_guard<std::mutex> lock(isSimpleKeyboardEnabledLock_);
-    isSimpleKeyboardEnabled_ = false;
 }
 
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger, uint32_t sessionId)
@@ -1436,8 +1407,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         return false;
     });
     ClearDataChannel(channel);
-    ClearRequestKeyboardReason();
-    ClearIsSimpleKeyboardEnabled();
+    ClearAttachOptions();
 }
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)

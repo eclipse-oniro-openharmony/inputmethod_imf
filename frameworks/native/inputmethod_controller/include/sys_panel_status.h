@@ -28,7 +28,8 @@ struct SysPanelStatus : public Parcelable {
     int32_t flag = FLG_FIXED;
     uint32_t width = 0;
     uint32_t height = 0;
-    bool isNeedShowBar = true;
+    bool isPanelRaised = true;
+    bool needFuncButton = true;
 
     SysPanelStatus(InputType sysType, int32_t sysFlag, uint32_t sysWidth, uint32_t sysHeight) : inputType(sysType),
         flag(sysFlag), width(sysWidth), height(sysHeight) {}
@@ -42,7 +43,8 @@ struct SysPanelStatus : public Parcelable {
         flag = in.ReadInt32();
         width = in.ReadUint32();
         height = in.ReadUint32();
-        isNeedShowBar = in.ReadBool();
+        isPanelRaised = in.ReadBool();
+        needFuncButton = in.ReadBool();
         return true;
     }
 
@@ -60,7 +62,10 @@ struct SysPanelStatus : public Parcelable {
         if (!out.WriteUint32(height)) {
             return false;
         }
-        if (!out.WriteBool(isNeedShowBar)) {
+        if (!out.WriteBool(isPanelRaised)) {
+            return false;
+        }
+        if (!out.WriteBool(needFuncButton)) {
             return false;
         }
         return true;
@@ -68,7 +73,7 @@ struct SysPanelStatus : public Parcelable {
 
     static SysPanelStatus *Unmarshalling(Parcel &in)
     {
-        SysPanelStatus *data = new (std::nothrow) SysPanelStatus(InputType::NONE, FLG_FIXED, 0, 0);
+        SysPanelStatus *data = new (std::nothrow) SysPanelStatus();
         if (data && !data->ReadFromParcel(in)) {
             delete data;
             data = nullptr;
