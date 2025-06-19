@@ -504,7 +504,7 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithSimpleKeyBoard, TestSize.Leve
     sptr<InputDataChannelStub> channelStub = new InputDataChannelServiceImpl();
     InputClientInfo clientInfo;
     clientInfo.channel = channelStub;
-    clientInfo.isSimpleKeyboardEnabled = true;
+    clientInfo.config.isSimpleKeyboardEnabled = true;
     auto ret = inputMethodAbility_.StartInput(clientInfo, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
