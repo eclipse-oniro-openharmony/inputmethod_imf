@@ -2043,5 +2043,18 @@ HWTEST_F(InputMethodControllerTest, TestImcOptionalInputMethod, TestSize.Level0)
     ret = inputMethodController_->DisplayOptionalInputMethod();
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: TestSetSimpleKeyboardEnabled
+ * @tc.desc: Test SetSimpleKeyboardEnabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestSetSimpleKeyboardEnabled, TestSize.Level0)
+{
+    auto ret = inputMethodController_->SetSimpleKeyboardEnabled(true);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->SetSimpleKeyboardEnabled(false);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS
