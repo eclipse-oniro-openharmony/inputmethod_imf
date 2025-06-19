@@ -2273,5 +2273,40 @@ HWTEST_F(InputMethodPanelTest, testSetImmersiveEffect, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_DEVICE_UNSUPPORTED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
 }
+
+/**
+ * @tc.name: testSetKeepScreenOn1
+ * @tc.desc: Test SetKeepScreenOn.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testSetKeepScreenOn1, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testSetKeepScreenOn1 start.");
+
+    auto inputMethodPanel = InputMethodPanelTest::CreatePanel();
+    ASSERT_NE(inputMethodPanel, nullptr);
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+    inputMethodPanel->window_ = nullptr;
+    bool isKeepScreenOn = false;
+    auto ret = inputMethodPanel->SetKeepScreenOn(isKeepScreenOn);
+    EXPECT_EQ(ret, ErrorCode::ERROR_WINDOW_MANAGER);
+}
+
+/**
+ * @tc.name: testSetKeepScreenOn2
+ * @tc.desc: Test SetKeepScreenOn.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testSetKeepScreenOn2, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testSetKeepScreenOn2 start.");
+
+    auto inputMethodPanel = InputMethodPanelTest::CreatePanel();
+    ASSERT_NE(inputMethodPanel, nullptr);
+    bool isKeepScreenOn = true;
+    auto ret = inputMethodPanel->SetKeepScreenOn(isKeepScreenOn);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+}
 } // namespace MiscServices
 } // namespace OHOS

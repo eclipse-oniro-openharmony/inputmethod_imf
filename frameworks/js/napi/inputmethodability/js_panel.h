@@ -96,6 +96,7 @@ public:
     static napi_value SetImmersiveMode(napi_env env, napi_callback_info info);
     static napi_value GetImmersiveMode(napi_env env, napi_callback_info info);
     static napi_value SetImmersiveEffect(napi_env env, napi_callback_info info);
+    static napi_value SetKeepScreenOn(napi_env env, napi_callback_info info);
 
 private:
     struct PanelContentContext : public AsyncCall::Context {
@@ -111,6 +112,7 @@ private:
         int32_t x = 0;
         int32_t y = 0;
         uint64_t displayId = 0;
+        bool isKeepScreenOn = false;
         std::shared_ptr<InputMethodPanel> inputMethodPanel = nullptr;
         std::shared_ptr<NativeReference> contentStorage = nullptr;
         JsEventInfo info;

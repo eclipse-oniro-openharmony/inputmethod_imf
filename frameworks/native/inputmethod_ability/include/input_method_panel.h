@@ -88,6 +88,7 @@ public:
     ImmersiveMode GetImmersiveMode();
     bool IsInMainDisplay();
     int32_t SetImmersiveEffect(const ImmersiveEffect &effect);
+    int32_t SetKeepScreenOn(bool isKeepScreenOn);
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
