@@ -2165,7 +2165,7 @@ bool PerUserSession::SpecialScenarioCheck()
         IMSA_HILOGE("send failed, is screen locked");
         return false;
     }
-    if (clientInfo->config.isSimpleKeyboardEnabled) {
+    if (clientInfo->isSimpleKeyboardEnabled) {
         IMSA_HILOGE("send failed, is simple keyboard!");
         return false;
     }
