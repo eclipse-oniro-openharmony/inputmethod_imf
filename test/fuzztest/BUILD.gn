@@ -18,6 +18,7 @@ group("fuzztest") {
 
   deps = [
     "agentstub_fuzzer:fuzztest",
+    "commonevent_fuzzer:fuzztest",
     "controlchannelstub_fuzzer:fuzztest",
     "corestub_fuzzer:fuzztest",
     "datachannelstub_fuzzer:fuzztest",
