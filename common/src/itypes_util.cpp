@@ -367,7 +367,8 @@ bool ITypesUtil::Marshalling(const SysPanelStatus &input, MessageParcel &data)
         data.WriteInt32(input.flag) &&
         data.WriteUint32(input.width) &&
         data.WriteUint32(input.height) &&
-        data.WriteBool(input.isMainDisplay);
+        data.WriteBool(input.isPanelRaised) &&
+        data.WriteBool(input.needFuncButton);
     return ret;
 }
 
@@ -379,7 +380,8 @@ bool ITypesUtil::Unmarshalling(SysPanelStatus &output, MessageParcel &data)
         return false;
     }
     output.inputType = static_cast<InputType>(inputType);
-    data.ReadBool(output.isMainDisplay);
+    data.ReadBool(output.isPanelRaised);
+    data.ReadBool(output.needFuncButton);
     return true;
 }
 

@@ -438,9 +438,9 @@ napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_i
     napi_value argv[1] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     // 1 means least param num.
-    CHECK_RETURN(argc >= 1, "at least one parameter is required!", JsUtil::Const::Null(env));
-    CHECK_RETURN(JsUtil::GetValue(env, argv[0], isSimpleKeyboardEnabled), "enable must be boolean!",
-        JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], isSimpleKeyboardEnabled), 
+        "enable must be boolean!", TYPE_NONE, JsUtil::Const::Null(env));
     auto ret = InputMethodController::GetInstance()->SetSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "SetSimpleKeyboardEnabled err", TYPE_NONE);
