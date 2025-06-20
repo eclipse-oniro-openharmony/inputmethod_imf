@@ -291,5 +291,19 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_RequestShow_001, TestSize.Level1)
     ClearState();
     TestRequestShowInput(true);
 }
+
+/**
+ * @tc.name: SingleThread_IsImeInUse_001
+ * @tc.desc: test freeze manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeFreezeManagerTest, SingleThread_IsImeInUse_001, TestSize.Level1)
+{
+    IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_RequestShow_001");
+    ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
+    ClearState();
+    auto ret = ImeFreezeManagerTest::freezeManager_->IsImeInUse();
+    EXPECT_FALSE(ret);
+}
 } // namespace MiscServices
 } // namespace OHOS

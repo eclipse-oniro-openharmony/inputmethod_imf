@@ -77,7 +77,7 @@ public:
     WindowSize GetKeyboardSize();
     bool SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
-    int32_t SetCallingWindow(uint32_t windowId, bool needWait = false);
+    int32_t SetCallingWindow(uint32_t windowId);
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
@@ -88,6 +88,7 @@ public:
     ImmersiveMode GetImmersiveMode();
     bool IsInMainDisplay();
     int32_t SetImmersiveEffect(const ImmersiveEffect &effect);
+    int32_t SetKeepScreenOn(bool isKeepScreenOn);
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:

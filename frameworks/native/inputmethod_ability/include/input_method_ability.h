@@ -127,7 +127,6 @@ public:
     void OnAttributeChange(InputAttribute attribute);
 
     int32_t OnStopInputService(bool isTerminateIme);
-    uint64_t GetCallingWindowDisplayId();
 private:
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;

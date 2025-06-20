@@ -185,7 +185,7 @@ void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::Commo
 {
     auto const &want = data.GetWant();
     std::string action = want.GetAction();
-    IMSA_HILOGI("ImCommonEventManager::action: %{public}s!", action.c_str());
+    IMSA_HILOGD("ImCommonEventManager::action: %{public}s!", action.c_str());
     auto iter = EventManagerFunc_.find(action);
     if (iter != EventManagerFunc_.end()) {
         EventManagerFunc_[action] (this, data);

@@ -161,7 +161,7 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy(boo
     if (abilityManager_ != nullptr) {
         return abilityManager_;
     }
-    IMSA_HILOGI("get input method service proxy.");
+    IMSA_HILOGD("get input method service proxy.");
     auto systemAbility = OnDemandStartStopSa::GetInputMethodSystemAbility(ifRetry);
     if (systemAbility == nullptr) {
         IMSA_HILOGE("systemAbility is nullptr!");
@@ -1161,7 +1161,7 @@ int32_t InputMethodController::SetSimpleKeyboardEnabled(bool enable)
 void InputMethodController::OnInputReady(
     sptr<IRemoteObject> agentObject, const std::pair<int64_t, std::string> &imeInfo)
 {
-    IMSA_HILOGI("InputMethodController start.");
+    IMSA_HILOGD("InputMethodController start.");
     SetBindImeInfo(imeInfo);
     isBound_.store(true);
     isEditable_.store(true);
@@ -1810,7 +1810,7 @@ int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code,
 {
     auto agent = GetAgent();
     if (agent == nullptr) {
-        IMSA_HILOGE("agent is nullptr!");
+        IMSA_HILOGD("agent is nullptr!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     ResponseDataInner inner;

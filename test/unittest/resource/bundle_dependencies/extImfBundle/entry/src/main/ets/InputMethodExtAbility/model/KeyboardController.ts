@@ -52,6 +52,7 @@ enum TEST_FUNCTION {
   ADJUST_SUCCESS,
   SET_PREVIEW_TEXT,
   FINISH_TEXT_PREVIEW,
+  SET_KEEP_SCREEN_ON,
 }
 
 export class KeyboardController {
@@ -192,11 +193,23 @@ export class KeyboardController {
           case TEST_FUNCTION.FINISH_TEXT_PREVIEW:
             globalThis.textInputClient.finishTextPreviewSync();
             break;
+          case TEST_FUNCTION.SET_KEEP_SCREEN_ON:
+            this.setKeepScreenOn();
+            break;
           default:
             break;
         }
       })
     })
+  }
+
+  private async setKeepScreenOn() { 
+    try {
+      await this.panel.setKeepScreenOn(true);
+      this.publishCommonEvent('setKeepScreenOn', TEST_RESULT_CODE.SUCCESS);
+    } catch (err) {
+      this.publishCommonEvent('setKeepScreenOn', TEST_RESULT_CODE.FAILED);
+    }
   }
 
   private registerInputListener(): void { // 注册对输入法框架服务的开启及停止事件监听

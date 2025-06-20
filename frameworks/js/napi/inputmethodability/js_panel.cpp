@@ -64,6 +64,7 @@ napi_value JsPanel::Init(napi_env env)
         DECLARE_NAPI_FUNCTION("setImmersiveMode", SetImmersiveMode),
         DECLARE_NAPI_FUNCTION("getImmersiveMode", GetImmersiveMode),
         DECLARE_NAPI_FUNCTION("setImmersiveEffect", SetImmersiveEffect),
+        DECLARE_NAPI_FUNCTION("setKeepScreenOn", SetKeepScreenOn),
     };
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
@@ -887,6 +888,35 @@ napi_value JsPanel::GetImmersiveMode(napi_env env, napi_callback_info info)
     napi_value jsImmersiveMode = nullptr;
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(immersiveMode), &jsImmersiveMode));
     return jsImmersiveMode;
+}
+
+napi_value JsPanel::SetKeepScreenOn(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, ctxt->inputMethodPanel != nullptr, "panel is null", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameters is required", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->isKeepScreenOn),
+            "isKeepScreenOn type must be boolean!", TYPE_NONE, napi_generic_failure);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel_ is nullptr!");
+            return;
+        }
+        auto ret = ctxt->inputMethodPanel->SetKeepScreenOn(ctxt->isKeepScreenOn);
+        if (ret == ErrorCode::NO_ERROR) {
+            ctxt->SetState(napi_ok);
+            return;
+        }
+        ctxt->SetErrorCode(ret);
+    };
+
+    ctxt->SetAction(std::move(input));
+    // 1 means JsAPI:setKeepScreenOn has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec, "setKeepScreenOn");
 }
 } // namespace MiscServices
 } // namespace OHOS

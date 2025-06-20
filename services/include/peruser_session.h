@@ -21,7 +21,6 @@
 #include "block_queue.h"
 #include "client_group.h"
 #include "event_status_manager.h"
-#include "freeze_manager.h"
 #include "iinput_method_core.h"
 #include "ime_cfg_manager.h"
 #include "input_method_types.h"
@@ -29,6 +28,7 @@
 #include "inputmethod_message_handler.h"
 #include "inputmethod_sysevent.h"
 #include "want.h"
+#include "ime_state_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,14 +60,13 @@ struct ImeData {
     sptr<IRemoteObject> agent{ nullptr };
     sptr<InputDeathRecipient> deathRecipient{ nullptr };
     pid_t pid;
-    std::shared_ptr<FreezeManager> freezeMgr;
+    std::shared_ptr<ImeStateManager> imeStateManager;
     ImeStatus imeStatus{ ImeStatus::STARTING };
     std::pair<std::string, std::string> ime; // first: bundleName  second:extName
     int64_t startTime{ 0 };
     ImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, sptr<InputDeathRecipient> deathRecipient,
         pid_t imePid)
-        : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient)), pid(imePid),
-          freezeMgr(std::make_shared<FreezeManager>(imePid))
+        : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient)), pid(imePid)
     {
     }
     ImeExtendInfo imeExtendInfo;

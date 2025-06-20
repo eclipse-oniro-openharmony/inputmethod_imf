@@ -48,7 +48,6 @@ public:
     static bool GetImeAppId(int32_t userId, const std::string &bundleName, std::string &appId);
     static bool GetImeVersionCode(int32_t userId, const std::string &bundleName, uint32_t &versionCode);
     ImeNativeCfg GetDefaultIme();
-
 private:
     static std::shared_ptr<ImeInfo> defaultIme_;
     static std::shared_ptr<Property> currentIme_;

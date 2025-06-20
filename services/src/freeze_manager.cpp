@@ -1,93 +1,48 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+* Copyright (c) 2025 Huawei Device Co., Ltd.
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+#ifndef FREEZE_MANAGER_H
+#define FREEZE_MANAGER_H
 #include "freeze_manager.h"
 
 #include "ability_manager_client.h"
 #include "global.h"
 #include "res_sched_client.h"
 #include "system_ability_definition.h"
-
 namespace OHOS {
 namespace MiscServices {
 constexpr const char *INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
 constexpr const char *STOP_TASK_NAME = "ReportStop";
 constexpr std::int32_t DELAY_TIME = 3000L;
-std::shared_ptr<AppExecFwk::EventHandler> FreezeManager::eventHandler_ = nullptr;
-bool FreezeManager::IsIpcNeeded(RequestType type)
-{
-    // If ime is in use, no need to request hide.
-    std::lock_guard<std::mutex> lock(mutex_);
-    return !(type == RequestType::REQUEST_HIDE && !isImeInUse_);
-}
-
-void FreezeManager::BeforeIpc(RequestType type)
-{
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (type == RequestType::START_INPUT || type == RequestType::REQUEST_SHOW) {
-            isImeInUse_ = true;
-        }
-        if (!isFrozen_) {
-            IMSA_HILOGD("not frozen already.");
-            return;
-        }
-        isFrozen_ = false;
-    }
-    ControlIme(false);
-}
-
-void FreezeManager::AfterIpc(RequestType type, bool isSuccess)
-{
-    bool shouldFreeze = false;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (type == RequestType::START_INPUT || type == RequestType::REQUEST_SHOW) {
-            isImeInUse_ = isSuccess;
-        }
-        if (type == RequestType::REQUEST_HIDE && isImeInUse_) {
-            isImeInUse_ = !isSuccess;
-        }
-        if (type == RequestType::STOP_INPUT) {
-            isImeInUse_ = false;
-        }
-        if (isFrozen_ == !isImeInUse_) {
-            IMSA_HILOGD("frozen state already: %{public}d.", isFrozen_);
-            return;
-        }
-        isFrozen_ = !isImeInUse_;
-        shouldFreeze = isFrozen_;
-    }
-    ControlIme(shouldFreeze);
-}
-
-void FreezeManager::ControlIme(bool shouldFreeze)
+void FreezeManager::ControlIme(bool shouldApply)
 {
     if (eventHandler_ == nullptr) {
         IMSA_HILOGW("eventHandler_ is nullptr.");
-        ReportRss(shouldFreeze, pid_);
+        ReportRss(shouldApply, pid_);
         return;
     }
-    if (shouldFreeze) {
+    if (shouldApply) {
         // Delay the FREEZE report by 3s.
         eventHandler_->PostTask(
-            [shouldFreeze, pid = pid_]() { ReportRss(shouldFreeze, pid); }, STOP_TASK_NAME, DELAY_TIME);
+            [shouldApply, pid = pid_]() {
+                ReportRss(shouldApply, pid);
+            },
+            STOP_TASK_NAME, DELAY_TIME);
     } else {
         // Cancel the unexecuted FREEZE task.
         eventHandler_->RemoveTask(STOP_TASK_NAME);
-        ReportRss(shouldFreeze, pid_);
+        ReportRss(shouldApply, pid_);
     }
 }
 
@@ -103,16 +58,6 @@ void FreezeManager::ReportRss(bool shouldFreeze, pid_t pid)
     IMSA_HILOGD("report RSS should freeze: %{public}d.", shouldFreeze);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
 }
-
-void FreezeManager::SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
-{
-    eventHandler_ = eventHandler;
-}
-
-bool FreezeManager::IsImeInUse()
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    return isImeInUse_;
-}
 } // namespace MiscServices
 } // namespace OHOS
+#endif // FREEZE_MANAGER_H

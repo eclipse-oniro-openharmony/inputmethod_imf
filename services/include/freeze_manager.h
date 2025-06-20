@@ -16,30 +16,23 @@
 #ifndef INPUTMETHOD_IMF_FREEZE_MANAGER_H
 #define INPUTMETHOD_IMF_FREEZE_MANAGER_H
 
-#include "event_handler.h"
+#include "ime_state_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
-enum class RequestType : int32_t { NORMAL = 0, START_INPUT, STOP_INPUT, REQUEST_SHOW, REQUEST_HIDE };
-class FreezeManager {
+class FreezeManager final : public ImeStateManager {
 public:
-    explicit FreezeManager(pid_t pid) : pid_(pid)
+    explicit FreezeManager(pid_t pid) : ImeStateManager(pid)
     {
     }
-    static void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
-    bool IsIpcNeeded(RequestType type);
-    void BeforeIpc(RequestType type);
-    void AfterIpc(RequestType type, bool isSuccess);
-    bool IsImeInUse();
+    ~FreezeManager() final = default;
+    void ControlIme(bool shouldApply) override;
+
+    FreezeManager(const FreezeManager&) = delete;
+    FreezeManager &operator=(const FreezeManager&) = delete;
 
 private:
-    static std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
-    void ControlIme(bool shouldFreeze);
     static void ReportRss(bool shouldFreeze, pid_t pid);
-    std::mutex mutex_;
-    bool isImeInUse_{ false };
-    bool isFrozen_{ true };
-    pid_t pid_;
 };
 } // namespace MiscServices
 } // namespace OHOS

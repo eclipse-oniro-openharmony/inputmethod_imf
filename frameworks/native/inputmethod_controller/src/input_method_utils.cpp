@@ -50,12 +50,12 @@ bool Value::ReadFromParcel(Parcel &in)
 
     valueMap.clear();
     if (size == 0) {
-        IMSA_HILOGE("size is zero!");
+        IMSA_HILOGD("size is zero!");
         return true;
     }
 
     if (size > MAX_VALUE_MAP_COUNT) {
-        IMSA_HILOGE("size is invalid!");
+        IMSA_HILOGD("size is invalid!");
         return false;
     }
 

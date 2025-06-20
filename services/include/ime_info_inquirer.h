@@ -105,6 +105,7 @@ public:
     bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
     bool IsInputMethodExtension(pid_t pid);
     bool IsDefaultImeScreen(const std::string &screenName);
+    bool IsDynamicStartIme();
 
 private:
     ImeInfoInquirer() = default;

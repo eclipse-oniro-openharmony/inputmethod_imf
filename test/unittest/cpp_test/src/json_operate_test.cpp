@@ -383,5 +383,33 @@ HWTEST_F(JsonOperateTest, testGetResMgr, TestSize.Level1)
     auto ret = ImeInfoInquirer::GetInstance().GetResMgr(resourcePath);
     ASSERT_FALSE(ret);
 }
+
+/**
+ * @tc.name: testIsDynamicStartIme
+ * @tc.desc: test IsDynamicStartIme
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, testIsDynamicStartIme, TestSize.Level1)
+{
+    IMSA_HILOGI("JsonOperateTest testIsDynamicStartIme START");
+    auto instance = ImeInfoInquirer::GetInstance();
+    // dynamicStartImeSysParam is empty
+    auto ret = instance.IsDynamicStartIme();
+    EXPECT_FALSE(false);
+
+    // dynamicStartImeValue is empty
+    instance.systemConfig_.dynamicStartImeSysParam = "123";
+    ret = instance.IsDynamicStartIme();
+    EXPECT_TRUE(ret);
+
+    // dynamicStartImeValue is default
+    instance.systemConfig_.dynamicStartImeValue = "default";
+    ret = instance.IsDynamicStartIme();
+    EXPECT_FALSE(ret);
+
+    instance.systemConfig_.dynamicStartImeValue = "";
+    instance.systemConfig_.dynamicStartImeSysParam = "";
+}
 } // namespace MiscServices
 } // namespace OHOS

@@ -47,6 +47,7 @@
 #endif
 #include "window_adapter.h"
 #include "input_method_tools.h"
+#include "ime_state_manager_factory.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -141,11 +142,11 @@ bool InputMethodSystemAbility::IsImeInUse()
     }
 
     auto data = session->GetReadyImeData(ImeType::IME);
-    if (data == nullptr || data->freezeMgr == nullptr) {
-        IMSA_HILOGE("data or freezeMgr is nullptr");
+    if (data == nullptr || data->imeStateManager == nullptr) {
+        IMSA_HILOGE("data or imeStateManager is nullptr");
         return false;
     }
-    return data->freezeMgr->IsImeInUse();
+    return data->imeStateManager->IsImeInUse();
 }
 #endif
 
@@ -365,6 +366,7 @@ int32_t InputMethodSystemAbility::Init()
     IMSA_HILOGI("publish success");
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeInfoInquirer::GetInstance().InitSystemConfig();
+    ImeStateManagerFactory::GetInstance().SetDynamicStartIme(ImeInfoInquirer::GetInstance().IsDynamicStartIme());
 #endif
     InitMonitors();
     return ErrorCode::NO_ERROR;
@@ -395,7 +397,7 @@ int32_t InputMethodSystemAbility::OnIdle(const SystemAbilityOnDemandReason &idle
 void InputMethodSystemAbility::OnStop()
 {
     IMSA_HILOGI("OnStop start.");
-    FreezeManager::SetEventHandler(nullptr);
+    ImeStateManager::SetEventHandler(nullptr);
     UserSessionManager::GetInstance().SetEventHandler(nullptr);
     ImeEnabledInfoManager::GetInstance().SetEventHandler(nullptr);
     ImeCfgManager::GetInstance().SetEventHandler(nullptr);
@@ -413,7 +415,7 @@ void InputMethodSystemAbility::InitServiceHandler()
     }
     std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_InputMethodSystemAbility");
     serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-    FreezeManager::SetEventHandler(serviceHandler_);
+    ImeStateManager::SetEventHandler(serviceHandler_);
     ImeEnabledInfoManager::GetInstance().SetEventHandler(serviceHandler_);
     IMSA_HILOGI("InitServiceHandler succeeded.");
 }
@@ -453,7 +455,9 @@ void InputMethodSystemAbility::RestartSessionIme(std::shared_ptr<PerUserSession>
         return;
     }
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
-    session->AddRestartIme();
+    if (!ImeStateManagerFactory::GetInstance().GetDynamicStartIme()) {
+        session->AddRestartIme();
+    }
 #endif
     StopImeInBackground();
 }
@@ -913,7 +917,7 @@ ErrCode InputMethodSystemAbility::PanelStatusChange(uint32_t status, const ImeWi
 ErrCode InputMethodSystemAbility::UpdateListenEventFlag(const InputClientInfoInner &clientInfoInner, uint32_t eventFlag)
 {
     InputClientInfo clientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(clientInfoInner);
-    IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u.", clientInfo.eventFlag, eventFlag);
+    IMSA_HILOGD("finalEventFlag: %{public}u, eventFlag: %{public}u.", clientInfo.eventFlag, eventFlag);
     if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag) ||
         EventStatusManager::IsInputStatusChangedOn(eventFlag)) {
         if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
@@ -2118,7 +2122,9 @@ void InputMethodSystemAbility::HandleScbStarted(int32_t userId, int32_t screenId
         return;
     }
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
-    session->AddRestartIme();
+    if (!ImeStateManagerFactory::GetInstance().GetDynamicStartIme()) {
+        session->AddRestartIme();
+    }
 #endif
 }
 
@@ -2149,7 +2155,7 @@ void InputMethodSystemAbility::HandleWmsDisconnected(int32_t userId, int32_t scr
     }
 
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
-    if (userId == userId_) {
+    if (userId == userId_ && !ImeStateManagerFactory::GetInstance().GetDynamicStartIme()) {
         // user switched or scb in foreground died, not deal
         return;
     }

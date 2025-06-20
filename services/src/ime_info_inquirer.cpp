@@ -24,6 +24,7 @@
 #include "locale_info.h"
 #include "os_account_adapter.h"
 #include "parameter.h"
+#include "parameters.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
 
@@ -832,7 +833,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 std::string ImeInfoInquirer::GetSystemSpecialIme()
 {
     if (!systemConfig_.systemSpecialInputMethod.empty()) {
-        IMSA_HILOGI("systemSpecialInputMethod: %{public}s.", systemConfig_.systemSpecialInputMethod.c_str());
+        IMSA_HILOGD("systemSpecialInputMethod: %{public}s.", systemConfig_.systemSpecialInputMethod.c_str());
         return systemConfig_.systemSpecialInputMethod;
     }
     return "";
@@ -842,7 +843,7 @@ ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
 {
     ImeNativeCfg imeCfg;
     if (!systemConfig_.defaultInputMethod.empty()) {
-        IMSA_HILOGI("defaultInputMethod: %{public}s.", systemConfig_.defaultInputMethod.c_str());
+        IMSA_HILOGD("defaultInputMethod: %{public}s.", systemConfig_.defaultInputMethod.c_str());
         imeCfg.imeId = systemConfig_.defaultInputMethod;
     } else {
         char value[CONFIG_LEN] = { 0 };
@@ -1215,6 +1216,15 @@ bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
 bool ImeInfoInquirer::IsDefaultImeScreen(const std::string &screenName)
 {
     return systemConfig_.defaultImeScreenList.find(screenName) != systemConfig_.defaultImeScreenList.end();
+}
+
+bool ImeInfoInquirer::IsDynamicStartIme()
+{
+    if (systemConfig_.dynamicStartImeSysParam.empty()) {
+        return false;
+    }
+    std::string value = system::GetParameter(systemConfig_.dynamicStartImeSysParam, "");
+    return value == systemConfig_.dynamicStartImeValue;
 }
 } // namespace MiscServices
 } // namespace OHOS

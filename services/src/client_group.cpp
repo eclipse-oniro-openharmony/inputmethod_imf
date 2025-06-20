@@ -262,7 +262,7 @@ int32_t ClientGroup::NotifyInputStartToClients(uint32_t callingWndId, int32_t re
         auto clientInfo = client.second;
         if (clientInfo == nullptr || clientInfo->client == nullptr ||
             !EventStatusManager::IsInputStatusChangedOn(clientInfo->eventFlag)) {
-            IMSA_HILOGE("nullptr clientInfo or no need to notify");
+            IMSA_HILOGD("nullptr clientInfo or no need to notify");
             continue;
         }
         int32_t ret = clientInfo->client->NotifyInputStart(callingWndId, requestKeyboardReason);
@@ -282,7 +282,7 @@ int32_t ClientGroup::NotifyInputStopToClients()
         auto clientInfo = client.second;
         if (clientInfo == nullptr || clientInfo->client == nullptr
             || !EventStatusManager::IsInputStatusChangedOn(clientInfo->eventFlag)) {
-            IMSA_HILOGE("nullptr clientInfo or no need to notify");
+            IMSA_HILOGD("nullptr clientInfo or no need to notify");
             continue;
         }
         int32_t ret = clientInfo->client->NotifyInputStop();
