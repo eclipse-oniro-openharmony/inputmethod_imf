@@ -190,18 +190,21 @@ describe('InputMethodTest', function () {
       name:bundleName,
       id:extName
     };
-    inputMethod.switchInputMethod(inputMethodProperty).then(ret => {
-      expect(ret).assertTrue();
-      let property = inputMethod.getCurrentInputMethod();
-      checkNewImeCurrentProp(property);
-      console.info('************* inputmethod_test_switchInputMethod_001 Test end*************');
-      wait(WAIT_DEAL_OK);
-      expect(true).assertTrue();
-      done();
-    }).catch( err=> {
-      console.info(`inputmethod_test_switchInputMethod_001 err: ${JSON.stringify(err.message)}`);
-      expect().assertFail();
-    })
+    inputMethod.getSetting().enableInputMethod(inputMethodProperty.name, inputMethodProperty.id,
+      inputMethod.EnabledState.FULL_EXPERIENCE_MODE);
+    setTimeout(() => {
+      inputMethod.switchInputMethod(inputMethodProperty).then(ret => {
+        expect(ret).assertTrue();
+        let property = inputMethod.getCurrentInputMethod();
+        checkNewImeCurrentProp(property);
+        console.info('************* inputmethod_test_switchInputMethod_001 Test end*************');
+        expect(true).assertTrue();
+        done();
+      }).catch( err=> {
+        console.info(`inputmethod_test_switchInputMethod_001 err: ${JSON.stringify(err.message)}`);
+        expect().assertFail();
+      })
+    }, WAIT_DEAL_OK);
   });
 
   /*
@@ -212,6 +215,7 @@ describe('InputMethodTest', function () {
   */
   it('inputmethod_test_listCurrentInputMethodSubtype_001', 0, async function (done) {
     console.info('************* inputmethod_test_listCurrentInputMethodSubtype_001 Test start*************');
+    wait(WAIT_DEAL_OK);
     let inputMethodSetting = inputMethod.getSetting();
     inputMethodSetting.listCurrentInputMethodSubtype((err, subProps) => {
       if (err) {
@@ -235,6 +239,7 @@ describe('InputMethodTest', function () {
    */
   it('inputmethod_test_listCurrentInputMethodSubtype_002', 0, async function (done) {
     console.info('************* inputmethod_test_listCurrentInputMethodSubtype_002 Test start*************');
+    wait(WAIT_DEAL_OK);
     let inputMethodSetting = inputMethod.getSetting();
     inputMethodSetting.listCurrentInputMethodSubtype().then((subProps)=>{
       checkNewImeSubProps(subProps);
