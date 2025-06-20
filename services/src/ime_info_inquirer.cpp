@@ -27,6 +27,8 @@
 #include "parameters.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
+#include "display_manager_lite.h"
+#include "display_info.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -1213,8 +1215,19 @@ bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
     return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
 }
 
-bool ImeInfoInquirer::IsDefaultImeScreen(const std::string &screenName)
+bool ImeInfoInquirer::IsDefaultImeScreen(uint64_t displayId)
 {
+    sptr<Rosen::DisplayLite> display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
+    if (display == nullptr) {
+        IMSA_HILOGE("display is null!");
+        return false;
+    }
+    sptr<Rosen::DisplayInfo> displayInfo = display->GetDisplayInfo();
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("displayInfo is null!");
+        return false;
+    }
+    auto screenName = displayInfo->GetName();
     return systemConfig_.defaultImeScreenList.find(screenName) != systemConfig_.defaultImeScreenList.end();
 }
 
