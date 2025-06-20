@@ -92,7 +92,6 @@ public:
     int32_t UnregisterProxyIme(uint64_t displayId) override;
     ErrCode IsDefaultImeScreen(uint64_t displayId, bool &resultValue) override;
     ErrCode IsCapacitySupport(int32_t capacity, bool &isSupport) override;
-    ErrCode SetSimpleKeyboardEnabled(bool enable) override;
 
 protected:
     void OnStart() override;
@@ -209,9 +208,6 @@ private:
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
-
-    void ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo);
-    bool IsDefaultImeScreen(uint64_t displayId);
 };
 } // namespace MiscServices
 } // namespace OHOS

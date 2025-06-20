@@ -44,6 +44,8 @@
 #endif
 #include "window_adapter.h"
 #include "input_method_tools.h"
+#include "display_manager_lite.h"
+#include "display_info.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -548,7 +550,7 @@ int32_t PerUserSession::OnStartInput(
     if (inputClientInfo.config.inputAttribute.IsSecurityImeFlag()) {
         infoTemp.config.isSimpleKeyboardEnabled = false;
     } else {
-        infoTemp.config.isSimpleKeyboardEnabled = inputClientInfo.isSimpleKeyboardEnabled;
+        infoTemp.config.isSimpleKeyboardEnabled = inputClientInfo.config.isSimpleKeyboardEnabled;
     }
     int32_t ret =
         BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true, inputClientInfo.displayId);
@@ -2195,37 +2197,23 @@ std::pair<int32_t, int32_t> PerUserSession::GetCurrentInputPattern()
     return { ErrorCode::NO_ERROR, clientInfo->config.inputAttribute.inputPattern };
 }
 
-int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string,
-    PrivateDataValue> &privateCommand)
+int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
-    if (defaultIme == nullptr) {
-        IMSA_HILOGE("failed to get default ime!");
-        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
-    }
-    auto imeData = GetReadyImeData(ImeType::IME);
-    defaultIme->imeExtendInfo.privateCommand = privateCommand;
-    if (imeData == nullptr) {
-        auto ret = StartIme(defaultIme, true);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
-        }
-        return ret;
-    }
-    if (defaultIme->bundleName == imeData->ime.first) {
-        auto ret = SendPrivateData(privateCommand);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("Notify send private data failed, ret: %{public}d!", ret);
-        }
-        return ret;
-    }
-    auto ret = StartIme(defaultIme);
+    auto [ret, status] = StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID, privateCommand, true);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
+        IMSA_HILOGE("start pre default ime failed, ret: %{public}d!", ret);
+        return ret;
+    }
+    if (status == StartPreDefaultImeStatus::NO_NEED || status == StartPreDefaultImeStatus::TO_START) {
+        return ret;
+    }
+    ret = SendPrivateData(privateCommand);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Notify send private data failed, ret: %{public}d!", ret);
     }
     return ret;
 }
-    
+
 int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     auto data = GetReadyImeData(ImeType::IME);
@@ -2262,6 +2250,61 @@ void PerUserSession::ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo>
 bool PerUserSession::IsNumkeyAutoInputApp(const std::string &bundleName)
 {
     return NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(userId_, bundleName);
+}
+
+bool PerUserSession::IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo)
+{
+    auto callingWindowInfo = GetCallingWindowInfo(inputClientInfo);
+    return IsDefaultImeScreen(callingWindowInfo.displayId) || inputClientInfo.config.isSimpleKeyboardEnabled;
+}
+
+bool PerUserSession::IsDefaultImeScreen(uint64_t displayId)
+{
+    sptr<Rosen::DisplayLite> display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
+    if (display == nullptr) {
+        IMSA_HILOGE("display is null!");
+        return false;
+    }
+    sptr<Rosen::DisplayInfo> displayInfo = display->GetDisplayInfo();
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("displayInfo is null!");
+        return false;
+    }
+    return identityChecker_->IsDefaultImeScreen(displayInfo->GetName());
+}
+
+bool PerUserSession::AllowSwitchImeByCombinationKey()
+{
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+        return false;
+    }
+#endif
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo == nullptr) {
+        return true;
+    }
+    return !IsPreconfiguredDefaultImeSpecified(*clientInfo);
+}
+
+std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredDefaultIme(
+    uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo, bool isStopCurrentIme)
+{
+    if (!IsDefaultDisplayGroup(callingDisplayId)) { // todo 都是傳入的DEFAULT_DISPLAY_ID
+        IMSA_HILOGI("only start in default display, calling display: %{public}" PRIu64 "", callingDisplayId);
+        return std::make_pair(ErrorCode::NO_ERROR, StartPreDefaultImeStatus::NO_NEED);
+    }
+    auto preDefaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
+    auto ime = GetReadyImeData(ImeType::IME);
+    if (ime != nullptr && (ime->ime.first == preDefaultIme.bundleName && ime->ime.second == preDefaultIme.extName)) {
+        return std::make_pair(ErrorCode::NO_ERROR, StartPreDefaultImeStatus::HAS_STARTED);
+    }
+    preDefaultIme.imeExtendInfo = imeExtendInfo;
+    auto ret = StartIme(std::make_shared<ImeNativeCfg>(preDefaultIme), isStopCurrentIme);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("start ime failed, ret: %{public}d!", ret);
+    }
+    return std::make_pair(ret, StartPreDefaultImeStatus::TO_START);
 }
 } // namespace MiscServices
 } // namespace OHOS

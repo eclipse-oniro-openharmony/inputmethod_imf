@@ -373,7 +373,8 @@ napi_value JsPanelStatus::Write(napi_env env, const SysPanelStatus &in)
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "flag", in.flag);
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", in.width);
     ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", in.height);
-    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "isNeedShowBar", in.isNeedShowBar);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "isPanelRaised", in.isPanelRaised);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "needFuncButton", in.needFuncButton);
     return ret ? jsObject : JsUtil::Const::Null(env);
 }
 } // namespace MiscServices

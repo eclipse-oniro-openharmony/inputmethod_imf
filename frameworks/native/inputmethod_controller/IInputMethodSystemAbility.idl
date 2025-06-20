@@ -71,5 +71,4 @@ interface OHOS.MiscServices.IInputMethodSystemAbility {
     void SendPrivateData([in] Value value);
     void IsDefaultImeScreen([in] unsigned long displayId, [out] boolean resultValue);
     void IsCapacitySupport([in] int capacity, [out] boolean isSupport);
-    void SetSimpleKeyboardEnabled([in] boolean enable);
 }
