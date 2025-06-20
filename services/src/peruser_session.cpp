@@ -45,6 +45,9 @@
 #include "window_adapter.h"
 #include "input_method_tools.h"
 #include "ime_state_manager_factory.h"
+#include "display_manager_lite.h"
+#include "display_info.h"
+#include "identity_checker_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -2176,7 +2179,7 @@ bool PerUserSession::SpecialScenarioCheck()
         IMSA_HILOGE("send failed, is screen locked");
         return false;
     }
-    if (clientInfo->isSimpleKeyboardEnabled) {
+    if (clientInfo->config.isSimpleKeyboardEnabled) {
         IMSA_HILOGE("send failed, is simple keyboard!");
         return false;
     }
@@ -2208,7 +2211,9 @@ std::pair<int32_t, int32_t> PerUserSession::GetCurrentInputPattern()
 
 int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    auto [ret, status] = StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID, privateCommand, true);
+    ImeExtendInfo imeExtendInfo;
+    imeExtendInfo.privateCommand = privateCommand;
+    auto [ret, status] = StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID, imeExtendInfo, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start pre default ime failed, ret: %{public}d!", ret);
         return ret;

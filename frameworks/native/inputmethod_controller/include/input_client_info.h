@@ -97,7 +97,6 @@ struct InputClientInfoInner : public Parcelable {
     RequestKeyboardReason requestKeyboardReason { RequestKeyboardReason::NONE }; // show keyboard reason
     ClientType type{ INNER_KIT };                                               // for hiSysEvent
     std::string name; // for hiSysEvent, client name:SA/processName app/bundleName
-    bool isSimpleKeyboardEnabled { false }; // indicates enable basic keyboard or not
 
     bool ReadFromParcel(Parcel &in);
     bool Marshalling(Parcel &out) const;

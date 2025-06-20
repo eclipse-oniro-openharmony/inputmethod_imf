@@ -359,7 +359,6 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject, uint32_
     ClearInputAttribute();
     ClearAttachOptions();
     ClearInputType();
-    ClearIsSimpleKeyboardEnabled();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
@@ -631,10 +630,10 @@ void InputMethodAbility::InvokeAttachOptionsCallback(const AttachOptions &option
         && options.requestKeyboardReason == oldOptions.requestKeyboardReason) {
         return;
     }
+    SetAttachOptions(options);
     if (textInputClientListener_ != nullptr) {
         textInputClientListener_->OnAttachOptionsChanged(options);
     }
-    SetAttachOptions(options);
 }
 
 void InputMethodAbility::SetAttachOptions(const AttachOptions &options)

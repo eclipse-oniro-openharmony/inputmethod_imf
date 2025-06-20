@@ -823,10 +823,10 @@ HWTEST_F(InputMethodAttachTest, testAttach008, TestSize.Level0)
     AttachOptions attachOptions;
     attachOptions.isShowKeyboard = false;
     attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
-    inputMethodController_->clientInfo_.isSimpleKeyboardEnabled = true;
+    inputMethodController_->clientInfo_.config.isSimpleKeyboardEnabled = true;
     auto ret = inputMethodController_->Attach(textListener, attachOptions, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    inputMethodController_->clientInfo_.isSimpleKeyboardEnabled = false;
+    inputMethodController_->clientInfo_.config.isSimpleKeyboardEnabled = false;
     ret = inputMethodController_->Attach(textListener, attachOptions, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }

@@ -367,7 +367,7 @@ bool ITypesUtil::Marshalling(const SysPanelStatus &input, MessageParcel &data)
         data.WriteInt32(input.flag) &&
         data.WriteUint32(input.width) &&
         data.WriteUint32(input.height) &&
-        data.WriteBool(input.isNeedShowBar);
+        data.WriteBool(input.isMainDisplay);
     return ret;
 }
 
@@ -379,7 +379,7 @@ bool ITypesUtil::Unmarshalling(SysPanelStatus &output, MessageParcel &data)
         return false;
     }
     output.inputType = static_cast<InputType>(inputType);
-    data.ReadBool(output.isNeedShowBar);
+    data.ReadBool(output.isMainDisplay);
     return true;
 }
 
