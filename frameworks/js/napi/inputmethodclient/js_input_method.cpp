@@ -433,31 +433,19 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
 napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JsInputMethod_SetSimpleKeyboardEnabled");
-    auto ctxt = std::make_shared<SwitchInputMethodContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_invalid_arg);
-        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->isSimpleKeyboardEnabled),
-            "enable must be boolean!", TYPE_NONE, napi_generic_failure);
-        return napi_ok;
-    };
-
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = ErrorCode::ERROR_EX_NULL_POINTER;
-        auto instance = InputMethodController::GetInstance();
-        if (instance != nullptr) {
-            errCode = instance->SetSimpleKeyboardEnabled(ctxt->isSimpleKeyboardEnabled);
-        }
-        if (errCode == ErrorCode::NO_ERROR) {
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-        } else {
-            ctxt->SetErrorCode(errCode);
-        }
-    };
-    ctxt->SetAction(std::move(input));
-    // 1 means JsAPI:switchInputMethod has 1 params at most.
-    AsyncCall asyncCall(env, info, ctxt, 1);
-    return asyncCall.Call(env, exec, "setSimpleKeyboardEnabled");
+    bool isSimpleKeyboardEnabled = false;
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    // 1 means least param num.
+    CHECK_RETURN(argc >= 1, "at least one parameter is required!", JsUtil::Const::Null(env));
+    CHECK_RETURN(JsUtil::GetValue(env, argv[0], isSimpleKeyboardEnabled), "enable must be boolean!",
+        JsUtil::Const::Null(env));
+    auto ret = InputMethodController::GetInstance()->SetSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "SetSimpleKeyboardEnabled err", TYPE_NONE);
+    }
+    return JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
 } // namespace OHOS

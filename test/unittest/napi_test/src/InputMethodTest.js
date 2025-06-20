@@ -1516,31 +1516,11 @@ describe('InputMethodTest', function () {
    */
   it('inputmethod_test_setSimpleKeyboardEnabled_001', 0, async function (done) {
     console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test start*************');
-    inputMethod.setSimpleKeyboardEnabled(true).then(() => {
-      expect(true).assertTrue();
-      console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test end*************');
-      done();
-    }).catch((err) => {
-      console.info(`inputmethod_test_setSimpleKeyboardEnabled_001 err: ${JSON.stringify(err.message)}`);
-      expect().assertFail();
-    })
-  });
+    inputMethod.setSimpleKeyboardEnabled(true);
+    expect(true).assertTrue();
+    inputMethod.setSimpleKeyboardEnabled(false);
+    expect(true).assertTrue();
+    console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test end*************');
 
-  /*
-   * @tc.number  inputmethod_test_setSimpleKeyboardEnabled_002
-   * @tc.name    Set simple keyboard mode.
-   * @tc.desc    Function test
-   * @tc.level   1
-   */
-  it('inputmethod_test_setSimpleKeyboardEnabled_002', 0, async function (done) {
-    console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test start*************');
-    inputMethod.setSimpleKeyboardEnabled(false).then(() => {
-      expect(true).assertTrue();
-      console.info('************* inputmethod_test_setSimpleKeyboardEnabled_002 Test end*************');
-      done();
-    }).catch( (err)=> {
-      console.info(`inputmethod_test_setSimpleKeyboardEnabled_002 err: ${JSON.stringify(err.message)}`);
-      expect().assertFail();
-    })
   });
 });
