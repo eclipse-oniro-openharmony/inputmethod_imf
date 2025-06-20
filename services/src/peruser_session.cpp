@@ -45,9 +45,6 @@
 #include "window_adapter.h"
 #include "input_method_tools.h"
 #include "ime_state_manager_factory.h"
-#include "display_manager_lite.h"
-#include "display_info.h"
-#include "identity_checker_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -2269,22 +2266,8 @@ bool PerUserSession::IsNumkeyAutoInputApp(const std::string &bundleName)
 bool PerUserSession::IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo)
 {
     auto callingWindowInfo = GetCallingWindowInfo(inputClientInfo);
-    return IsDefaultImeScreen(callingWindowInfo.displayId) || inputClientInfo.config.isSimpleKeyboardEnabled;
-}
-
-bool PerUserSession::IsDefaultImeScreen(uint64_t displayId)
-{
-    sptr<Rosen::DisplayLite> display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
-    if (display == nullptr) {
-        IMSA_HILOGE("display is null!");
-        return false;
-    }
-    sptr<Rosen::DisplayInfo> displayInfo = display->GetDisplayInfo();
-    if (displayInfo == nullptr) {
-        IMSA_HILOGE("displayInfo is null!");
-        return false;
-    }
-    return identityChecker_->IsDefaultImeScreen(displayInfo->GetName());
+    return ImeInfoInquirer::GetInstance().IsDefaultImeScreen(callingWindowInfo.displayId)
+           || inputClientInfo.config.isSimpleKeyboardEnabled;
 }
 
 bool PerUserSession::AllowSwitchImeByCombinationKey()

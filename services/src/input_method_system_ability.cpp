@@ -703,7 +703,7 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
 
 ErrCode InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId, bool &resultValue)
 {
-    resultValue = IsDefaultImeScreen(displayId);
+    resultValue = ImeInfoInquirer::GetInstance().IsDefaultImeScreen(displayId);
     return ErrorCode::NO_ERROR;
 }
 
