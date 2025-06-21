@@ -531,6 +531,7 @@ void InputMethodSystemAbility::SubscribeCommonEvent()
 
 int32_t InputMethodSystemAbility::PrepareInput(int32_t userId, InputClientInfo &clientInfo)
 {
+    InputMethodSyncTrace tracer("InputMethodSystemAbility PrepareInput");
     auto ret = GenerateClientInfo(userId, clientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;

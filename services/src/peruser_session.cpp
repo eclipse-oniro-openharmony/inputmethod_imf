@@ -45,6 +45,7 @@
 #include "window_adapter.h"
 #include "input_method_tools.h"
 #include "ime_state_manager_factory.h"
+#include "inputmethod_trace.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -1174,6 +1175,7 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 
 int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
 {
+    InputMethodSyncTrace tracer("StartInputService trace.");
     if (ime == nullptr) {
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
     }
@@ -1191,6 +1193,7 @@ int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &i
         return ErrorCode::ERROR_IMSA_MALLOC_FAILED;
     }
     auto want = GetWant(imeToStart);
+    IMSA_HILOGI("connect %{public}s start!", imeToStart->imeId.c_str());
     ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("connect %{public}s failed, ret: %{public}d!", imeToStart->imeId.c_str(), ret);
@@ -1872,6 +1875,7 @@ int32_t PerUserSession::HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &im
 
 int32_t PerUserSession::RestoreCurrentIme(uint64_t callingDisplayId)
 {
+    InputMethodSyncTrace tracer("RestoreCurrentIme trace.");
     if (!IsDefaultDisplayGroup(callingDisplayId)) {
         IMSA_HILOGI("only need restore in default display, calling display: %{public}" PRIu64 "", callingDisplayId);
         return ErrorCode::NO_ERROR;
@@ -2121,6 +2125,7 @@ int32_t PerUserSession::NotifyCallingDisplayChanged(uint64_t displayId)
 
 ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo)
 {
+    InputMethodSyncTrace tracer("GetCallingWindowInfo trace");
     auto finalWindowId = clientInfo.config.windowId;
     ImfCallingWindowInfo finalWindowInfo{ finalWindowId, 0 };
     if (!SceneBoardJudgement::IsSceneBoardEnabled()) {
