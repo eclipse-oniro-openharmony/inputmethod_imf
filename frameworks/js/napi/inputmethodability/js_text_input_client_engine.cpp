@@ -1345,7 +1345,7 @@ void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attach
             }
             napi_value attachOptions = JsAttachOptions::Write(env, entry->attachOptions);
             // 0 means the first param of callback.
-            args[0] = { attachOptions };
+            args[0] = attachOptions;
             return true;
         };
         JsCallbackHandler::Traverse({ entry->vecCopy }, { 1, gitAttachOptionsParams });

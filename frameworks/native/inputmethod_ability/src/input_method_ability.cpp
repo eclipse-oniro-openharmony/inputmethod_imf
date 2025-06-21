@@ -1156,8 +1156,9 @@ int32_t InputMethodAbility::NotifyPanelStatus(bool isUseParameterFlag, PanelFlag
     SysPanelStatus sysPanelStatus = { inputType_, curPanelFlag, keyboardSize.width, keyboardSize.height };
     if (!panel->IsInMainDisplay()) {
         sysPanelStatus.isPanelRaised = false;
+        sysPanelStatus.needFuncButton = false;
     }
-    if (GetAttachOptions().isSimpleKeyboardEnabled || !panel->IsInMainDisplay()) {
+    if (GetAttachOptions().isSimpleKeyboardEnabled) {
         sysPanelStatus.needFuncButton = false;
     }
     auto systemChannel = GetSystemCmdChannelProxy();

@@ -670,16 +670,16 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     if (inputClientInfo.config.inputAttribute.IsSecurityImeFlag()) {
         return StartSecurityIme(userId, inputClientInfo);
     }
-    if (!inputClientInfo.isNotifyInputStart) {
-        IMSA_HILOGD("NormalFlag, same textField, not deal.");
-        return ErrorCode::NO_ERROR;
-    }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
-    if (InputTypeManager::GetInstance().IsStarted()) {
+    if (!inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGD("NormalFlag, same textField, input type started, not deal.");
+        return ErrorCode::NO_ERROR;
+    }
+    if (inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
         session->RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
     }

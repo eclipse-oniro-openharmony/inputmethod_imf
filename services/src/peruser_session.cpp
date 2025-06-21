@@ -841,6 +841,13 @@ void PerUserSession::StartImeInImeDied()
 
 void PerUserSession::StartImeIfInstalled()
 {
+    auto clientGroup = GetClientGroup(ImeType::IME);
+    auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
+    if (!InputTypeManager::GetInstance().IsStarted() && clientInfo != nullptr
+        && IsPreconfiguredDefaultImeSpecified(*clientInfo)) {
+        StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
+        return;
+    }
     std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
     if (!GetInputTypeToStart(imeToStart)) {
         imeToStart = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
@@ -2287,10 +2294,11 @@ bool PerUserSession::AllowSwitchImeByCombinationKey()
 std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredDefaultIme(
     uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo, bool isStopCurrentIme)
 {
-    if (!IsDefaultDisplayGroup(callingDisplayId)) { // todo 都是傳入的DEFAULT_DISPLAY_ID
+    if (!IsDefaultDisplayGroup(callingDisplayId)) {
         IMSA_HILOGI("only start in default display, calling display: %{public}" PRIu64 "", callingDisplayId);
         return std::make_pair(ErrorCode::NO_ERROR, StartPreDefaultImeStatus::NO_NEED);
     }
+    InputTypeManager::GetInstance().Set(false);
     auto preDefaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
     auto ime = GetReadyImeData(ImeType::IME);
     if (ime != nullptr && (ime->ime.first == preDefaultIme.bundleName && ime->ime.second == preDefaultIme.extName)) {
