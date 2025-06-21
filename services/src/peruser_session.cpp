@@ -2179,7 +2179,8 @@ bool PerUserSession::SpecialScenarioCheck()
         IMSA_HILOGE("send failed, is collaborative input!");
         return false;
     }
-    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+    auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
+    if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
         IMSA_HILOGE("send failed, is screen locked");
         return false;
     }
