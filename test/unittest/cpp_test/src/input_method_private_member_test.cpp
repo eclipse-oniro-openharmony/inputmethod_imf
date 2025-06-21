@@ -1660,7 +1660,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_StartPreconfiguredDefaultIme, TestSize
     // running ime not same with pre default ime
     ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName1 + "/" + extName1;
     auto [ret5, status5] = session.StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
-    EXPECT_EQ(status4, StartPreDefaultImeStatus::TO_START);
+    EXPECT_EQ(status5, StartPreDefaultImeStatus::TO_START);
 }
 
 /**

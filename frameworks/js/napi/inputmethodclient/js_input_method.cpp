@@ -441,8 +441,10 @@ napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_i
     PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, JsUtil::Const::Null(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], isSimpleKeyboardEnabled), 
         "enable must be boolean!", TYPE_NONE, JsUtil::Const::Null(env));
-    InputMethodController::GetInstance()->SetSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
-
+    auto ret = InputMethodController::GetInstance()->SetSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "SetSimpleKeyboardEnabled err", TYPE_NONE);
+    }
     return JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
