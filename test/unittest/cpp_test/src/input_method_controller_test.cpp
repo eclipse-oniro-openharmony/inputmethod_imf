@@ -1963,6 +1963,29 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_006, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testSendPrivateData_007
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_007, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_007 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(true);
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    inputMethodController_->clientInfo_.config.isSimpleKeyboardEnabled = true;
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->clientInfo_.config.isSimpleKeyboardEnabled = false;
+    inputMethodController_->Close();
+}
+
+/**
  * @tc.name: testUpdateTextPreviewState
  * @tc.desc: test IMC Reset
  * @tc.type: FUNC

@@ -49,6 +49,7 @@
 #include "os_account_manager.h"
 #include "tdd_util.h"
 #include "user_session_manager.h"
+#include "input_type_manager.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -1698,6 +1699,20 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_AllowSwitchImeByCombinationKey, TestSi
     info->config.isSimpleKeyboardEnabled = true;
     session.StartImeIfInstalled();
     EXPECT_FALSE(allow);
+}
+
+/**
+ * @tc.name: testTextTotalConfigInner
+ * @tc.desc: testTextTotalConfigInner
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, testTextTotalConfigInner, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::testTextTotalConfigInner start.");
+    MessageParcel data;
+    TextTotalConfigInner txtConfig;
+    EXPECT_FALSE(txtConfig.Marshalling(data));
 }
 } // namespace MiscServices
 } // namespace OHOS

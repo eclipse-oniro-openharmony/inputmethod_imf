@@ -830,5 +830,27 @@ HWTEST_F(InputMethodAttachTest, testAttach008, TestSize.Level0)
     ret = inputMethodController_->Attach(textListener, attachOptions, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: testAttach009
+ * @tc.desc: test set simple keyboard after attach
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAttachTest, testAttach009, TestSize.Level0)
+{
+    IMSA_HILOGI("test testAttach009 after attach.");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputAttribute attribute;
+    attribute.inputPattern = 8;
+    attribute.enterKeyType = 2;
+    TextConfig config;
+    config.inputAttribute = attribute;
+    AttachOptions attachOptions;
+    attachOptions.isShowKeyboard = false;
+    attachOptions.requestKeyboardReason = RequestKeyboardReason::NONE;
+    inputMethodController_->clientInfo_.config.isSimpleKeyboardEnabled = true;
+    auto ret = inputMethodController_->Attach(textListener, attachOptions, config);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

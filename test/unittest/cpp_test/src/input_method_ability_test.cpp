@@ -123,6 +123,17 @@ public:
         }
     };
 
+    class TextInputClientListenerImpl : public TextInputClientListener {
+    public:
+        TextInputClientListenerImpl() = default;
+        ~TextInputClientListenerImpl() = default;
+
+        void OnAttachOptionsChanged(const AttachOptions &options)
+        {
+            IMSA_HILOGI("TextInputClientListenerImpl OnAttachOptionsChanged");
+        }
+    };
+
     static void SetUpTestCase(void)
     {
         IdentityCheckerMock::ResetParam();
@@ -2017,6 +2028,25 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_011, TestSize.Level0)
     keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_DOWN);
     EXPECT_FALSE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
     InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testInvokeAttachOptionsCallback
+ * @tc.desc: testInvokeAttachOptionsCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testInvokeAttachOptionsCallback, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testInvokeAttachOptionsCallback START");
+    AttachOptions options;
+    auto textInputClientListener = std::make_shared<TextInputClientListenerImpl>();
+    inputMethodAbility_.SetTextInputClientListener(textInputClientListener);
+    inputMethodAbility_.SetAttachOptions(options);
+    inputMethodAbility_.InvokeAttachOptionsCallback(options, true);
+    uint64_t displayid = 0;
+    uint64_t displayidNew = 1;
+    auto ret = inputMethodAbility_.IsDisplayChanged(displayid, displayidNew);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS
