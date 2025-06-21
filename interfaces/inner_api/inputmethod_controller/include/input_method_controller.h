@@ -487,7 +487,7 @@ public:
     /**
      * @brief Set simple keyboard mode.
      *
-     * This function is set simple keyboard mode.
+     * This function is used to set the simple keyboard mode.
      *
      * @param enable   indicates enable simple keyboard or not.
      * @return Returns 0 for success, others for failure.

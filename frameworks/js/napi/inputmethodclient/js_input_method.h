@@ -67,7 +67,7 @@ public:
     static napi_value GetJSInputMethodProperties(napi_env env, const std::vector<Property> &properties);
     static napi_value GetJsInputMethodSubProperty(napi_env env, const SubProperty &subProperty);
     static napi_value GetJsInputConfigElement(napi_env env, const OHOS::AppExecFwk::ElementName &elementName);
-    static napi_value SetSimpleKeyboardEnabled(napi_env env, napi_callback_info info);
+    static napi_value SetSimpleKeyboardEnabledSync(napi_env env, napi_callback_info info);
 
 private:
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv,

@@ -37,7 +37,7 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getSystemInputMethodConfigAbility", GetSystemInputMethodConfigAbility),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodSubtype", SwitchCurrentInputMethodSubtype),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodAndSubtype", SwitchCurrentInputMethodAndSubtype),
-        DECLARE_NAPI_FUNCTION("setSimpleKeyboardEnabled", SetSimpleKeyboardEnabled),
+        DECLARE_NAPI_FUNCTION("setSimpleKeyboardEnabledSync", SetSimpleKeyboardEnabledSync),
     };
     NAPI_CALL(env,
         napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -430,7 +430,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
     return asyncCall.Call(env, exec, "switchCurrentInputMethodAndSubtype");
 }
 
-napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_info info)
+napi_value JsInputMethod::SetSimpleKeyboardEnabledSync(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JsInputMethod_SetSimpleKeyboardEnabled");
     bool isSimpleKeyboardEnabled = false;
@@ -441,10 +441,14 @@ napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_i
     PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, JsUtil::Const::Null(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], isSimpleKeyboardEnabled), 
         "enable must be boolean!", TYPE_NONE, JsUtil::Const::Null(env));
-    auto ret = InputMethodController::GetInstance()->SetSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
-    if (ret != ErrorCode::NO_ERROR) {
-        JsUtils::ThrowException(env, JsUtils::Convert(ret), "SetSimpleKeyboardEnabled err", TYPE_NONE);
+    auto controller = InputMethodController::GetInstance();
+    if (controller != nullptr) {
+        auto ret = controller->SetSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
+        if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("SetSimpleKeyboardEnabled failed:%{public}d.", ret);
+        }
     }
+
     return JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
