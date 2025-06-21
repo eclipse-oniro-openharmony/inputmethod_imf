@@ -2171,6 +2171,10 @@ bool PerUserSession::SpecialScenarioCheck()
         IMSA_HILOGE("send failed, not input Status!");
         return false;
     }
+    if (clientInfo->config.isSimpleKeyboardEnabled) {
+        IMSA_HILOGE("send failed, is simple keyboard!");
+        return false;
+    }
     if (clientInfo->config.inputAttribute.IsSecurityImeFlag()) {
         IMSA_HILOGE("send failed, is special input box!");
         return false;
@@ -2182,10 +2186,6 @@ bool PerUserSession::SpecialScenarioCheck()
     auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
     if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
         IMSA_HILOGE("send failed, is screen locked");
-        return false;
-    }
-    if (clientInfo->config.isSimpleKeyboardEnabled) {
-        IMSA_HILOGE("send failed, is simple keyboard!");
         return false;
     }
     return true;

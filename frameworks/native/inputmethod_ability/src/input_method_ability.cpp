@@ -579,7 +579,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     };
     imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     SetInputAttribute(textConfig.inputAttribute);
-    IMSA_HILOGD("attribute info:%{public}s", textConfig.inputAttribute.ToString().c_str());
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
@@ -592,7 +591,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
         imeListener_->OnInputStart();
     }
     if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
-        IMSA_HILOGD("notify privateCommand.");
         imeListener_->ReceivePrivateCommand(textConfig.privateCommand);
     }
     if (kdListener_ != nullptr) {
