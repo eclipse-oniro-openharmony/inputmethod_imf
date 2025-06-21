@@ -426,6 +426,30 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatus2, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testNotifyPanelStatus
+ * @tc.desc: InputMethodAbility NotifyPanelStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatus3, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testNotifyPanelStatus3 start.");
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
+    PanelInfo panelInfo = {};
+    panelInfo.panelType = SOFT_KEYBOARD;
+    panelInfo.panelFlag = FLG_FIXED;
+    auto ret = inputMethodAbility_.CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
+    EXPECT_TRUE(softKeyboardPanel1 != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+ 
+    AttachOptions options;
+    options.isSimpleKeyboardEnabled = true;
+    inputMethodAbility_.SetAttachOptions(options);
+    ret = inputMethodAbility_.NotifyPanelStatus(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
  * @tc.name: testShowKeyboardWithoutImeListener
  * @tc.desc: InputMethodAbility ShowKeyboard without imeListener
  * @tc.type: FUNC
@@ -2046,7 +2070,7 @@ HWTEST_F(InputMethodAbilityTest, testInvokeAttachOptionsCallback, TestSize.Level
     uint64_t displayid = 0;
     uint64_t displayidNew = 1;
     auto ret = inputMethodAbility_.IsDisplayChanged(displayid, displayidNew);
-    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

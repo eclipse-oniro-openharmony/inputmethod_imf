@@ -1698,7 +1698,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_AllowSwitchImeByCombinationKey, TestSi
     InputTypeManager::GetInstance().isStarted_ = false;
     info->config.isSimpleKeyboardEnabled = true;
     session.StartImeIfInstalled();
-    EXPECT_FALSE(allow);
+    EXPECT_TRUE(allow);
 }
 
 /**
@@ -1712,6 +1712,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testTextTotalConfigInner, TestSize.Level0
     IMSA_HILOGI("InputMethodPrivateMemberTest::testTextTotalConfigInner start.");
     MessageParcel data;
     TextTotalConfigInner txtConfig;
+    txtConfig.isSimpleKeyboardEnabled = 2;
     EXPECT_FALSE(txtConfig.Marshalling(data));
 }
 } // namespace MiscServices

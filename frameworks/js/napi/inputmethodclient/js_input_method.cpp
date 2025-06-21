@@ -439,7 +439,7 @@ napi_value JsInputMethod::SetSimpleKeyboardEnabledSync(napi_env env, napi_callba
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     // 1 means least param num.
     PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, JsUtil::Const::Null(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], isSimpleKeyboardEnabled), 
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], isSimpleKeyboardEnabled),
         "enable must be boolean!", TYPE_NONE, JsUtil::Const::Null(env));
     auto controller = InputMethodController::GetInstance();
     if (controller != nullptr) {

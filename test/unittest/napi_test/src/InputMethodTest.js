@@ -1516,9 +1516,9 @@ describe('InputMethodTest', function () {
    */
   it('inputmethod_test_setSimpleKeyboardEnabled_001', 0, async function (done) {
     console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test start*************');
-    inputMethod.setSimpleKeyboardEnabled(true);
+    inputMethod.setSimpleKeyboardEnabledSync(true);
     expect(true).assertTrue();
-    inputMethod.setSimpleKeyboardEnabled(false);
+    inputMethod.setSimpleKeyboardEnabledSync(false);
     expect(true).assertTrue();
     console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test end*************');
 
