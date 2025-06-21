@@ -2067,6 +2067,12 @@ HWTEST_F(InputMethodAbilityTest, testInvokeAttachOptionsCallback, TestSize.Level
     inputMethodAbility_.SetTextInputClientListener(textInputClientListener);
     inputMethodAbility_.SetAttachOptions(options);
     inputMethodAbility_.InvokeAttachOptionsCallback(options, true);
+    options.isSimpleKeyboardEnabled = true;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputMethodAbility_.InvokeAttachOptionsCallback(options, false);
+    options.requestKeyboardReason = RequestKeyboardReason::TOUCH;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputMethodAbility_.InvokeAttachOptionsCallback(options, false);
     uint64_t displayid = 0;
     uint64_t displayidNew = 1;
     auto ret = inputMethodAbility_.IsDisplayChanged(displayid, displayidNew);
