@@ -25,6 +25,7 @@
 #include "peruser_session.h"
 #include "wms_connection_observer.h"
 #include "settings_data_utils.h"
+#include "input_type_manager.h"
 #undef private
 #include <gtest/gtest.h>
 #include <sys/time.h>
@@ -1613,6 +1614,90 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_IsOneTimeCodeSwitchSubtype, TestSize.L
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     bool ret1 = service_->IsOneTimeCodeSwitchSubtype(userSession, switchInfo);
     EXPECT_FALSE(ret1);
+}
+
+/**
+ * @tc.name: SA_StartPreconfiguredDefaultIme
+ * @tc.desc: SA_StartPreconfiguredDefaultIme
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_StartPreconfiguredDefaultIme, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_StartPreconfiguredDefaultIme start.");
+    PerUserSession session(MAIN_USER_ID);
+    // not default displayId
+    uint64_t otherDisplayId = 10000000;
+    session.virtualScreenDisplayId_.insert(otherDisplayId);
+    auto [ret, status] = session.StartPreconfiguredDefaultIme(otherDisplayId);
+    EXPECT_EQ(status, StartPreDefaultImeStatus::NO_NEED);
+
+    // not has running ime
+    session.imeData_.clear();
+    auto [ret1, status1] = session.StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(status1, StartPreDefaultImeStatus::TO_START);
+
+    std::string bundleName = "bundleName";
+    std::string extName = "extName";
+    std::string bundleName1 = "bundleName1";
+    std::string extName1 = "extName1";
+    // running ime same with pre default ime
+    auto imeData1 = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 100);
+    imeData1->imeStatus = ImeStatus::READY;
+    imeData1->ime = std::make_pair(bundleName, extName);
+    session.imeData_.insert_or_assign(ImeType::IME, imeData1);
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName + "/" + extName;
+    auto [ret2, status2] = session.StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(status2, StartPreDefaultImeStatus::HAS_STARTED);
+    // running ime extName not same with pre default ime
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName + "/" + extName1;
+    auto [ret3, status3] = session.StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(status3, StartPreDefaultImeStatus::TO_START);
+    // running ime bundleName not same with pre default ime
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName1 + "/" + extName;
+    auto [ret4, status4] = session.StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(status4, StartPreDefaultImeStatus::TO_START);
+    // running ime not same with pre default ime
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName1 + "/" + extName1;
+    auto [ret5, status5] = session.StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
+    EXPECT_EQ(status4, StartPreDefaultImeStatus::TO_START);
+}
+
+/**
+ * @tc.name: SA_AllowSwitchImeByCombinationKey
+ * @tc.desc: SA_AllowSwitchImeByCombinationKey
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_AllowSwitchImeByCombinationKey, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_AllowSwitchImeByCombinationKey start.");
+    PerUserSession session(MAIN_USER_ID);
+    // not has current client info
+    session.clientGroupMap_.clear();
+    auto allow = session.AllowSwitchImeByCombinationKey();
+    InputTypeManager::GetInstance().isStarted_ = false;
+    session.StartImeIfInstalled();
+    InputTypeManager::GetInstance().isStarted_ = true;
+    session.StartImeIfInstalled();
+    EXPECT_TRUE(allow);
+
+    // has current client info
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultImeScreenList.clear();
+    auto group = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+    group->currentClient_ = client;
+    auto info = std::make_shared<InputClientInfo>();
+    info->config.isSimpleKeyboardEnabled = false;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert({ DEFAULT_DISPLAY_ID, group });
+    allow = session.AllowSwitchImeByCombinationKey();
+    InputTypeManager::GetInstance().isStarted_ = true;
+    session.StartImeIfInstalled();
+    InputTypeManager::GetInstance().isStarted_ = false;
+    info->config.isSimpleKeyboardEnabled = true;
+    session.StartImeIfInstalled();
+    EXPECT_FALSE(allow);
 }
 } // namespace MiscServices
 } // namespace OHOS
