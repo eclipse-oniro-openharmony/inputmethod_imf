@@ -595,12 +595,12 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed",
             TYPE_NONE);
     }
-    // if the second param is not napi_function/napi_null/napi_undefined, return
+    // if the second param is not napi_function/napi_null/napi_undefined, return.
     auto paramType = JsUtil::GetType(env, argv[1]);
     if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
         return nullptr;
     }
-    // if the second param is napi_function, delete it, else delete all
+    // if the second param is napi_function, delete it, else delete all.
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
     IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());
@@ -664,7 +664,6 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
 
 void JsInputMethodEngineSetting::OnInputStart()
 {
-    IMSA_HILOGI("OnInputStart start.");
     std::string type = "inputStart";
     auto entry = GetEntry(type);
     if (entry == nullptr) {
@@ -676,11 +675,12 @@ void JsInputMethodEngineSetting::OnInputStart()
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
+    IMSA_HILOGI("OnInputStart start.");
     auto task = [entry]() {
         IMSA_HILOGI("OnInputStart task start!");
         auto paramGetter = [](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 2) {
-                IMSA_HILOGE("the num:%{public}d of params in OnInputStart is abnormal!", argc);
+                IMSA_HILOGE("the num:%{public}u of params in OnInputStart is abnormal!", argc);
                 return false;
             }
             napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(env);
