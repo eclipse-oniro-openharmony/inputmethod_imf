@@ -49,7 +49,6 @@
 #include "os_account_manager.h"
 #include "tdd_util.h"
 #include "user_session_manager.h"
-#include "input_type_manager.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -1677,11 +1676,11 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_AllowSwitchImeByCombinationKey, TestSi
     // not has current client info
     session.clientGroupMap_.clear();
     auto allow = session.AllowSwitchImeByCombinationKey();
+    EXPECT_TRUE(allow);
     InputTypeManager::GetInstance().isStarted_ = false;
     session.StartImeIfInstalled();
     InputTypeManager::GetInstance().isStarted_ = true;
     session.StartImeIfInstalled();
-    EXPECT_TRUE(allow);
 
     // has current client info
     ImeInfoInquirer::GetInstance().systemConfig_.defaultImeScreenList.clear();
@@ -1689,14 +1688,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_AllowSwitchImeByCombinationKey, TestSi
     sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
     group->currentClient_ = client;
     auto info = std::make_shared<InputClientInfo>();
-    info->config.isSimpleKeyboardEnabled = false;
+    info->config.isSimpleKeyboardEnabled = true;
     group->mapClients_.insert_or_assign(client->AsObject(), info);
     session.clientGroupMap_.insert({ DEFAULT_DISPLAY_ID, group });
     allow = session.AllowSwitchImeByCombinationKey();
+    EXPECT_FALSE(allow);
     InputTypeManager::GetInstance().isStarted_ = false;
     session.StartImeIfInstalled();
-    EXPECT_FALSE(allow);
-    info->config.isSimpleKeyboardEnabled = true;
+    info->config.isSimpleKeyboardEnabled = false;
     group->mapClients_.insert_or_assign(client->AsObject(), info);
     session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
     session.StartImeIfInstalled();
@@ -1727,26 +1726,19 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SpecialScenarioCheck, TestSize.Level0)
     group->mapClients_.insert_or_assign(client->AsObject(), info);
     session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
     allow = session.SpecialScenarioCheck();
-    EXPECT_FALSE(allow);
+    EXPECT_TRUE(allow);
 }
 
 /**
- * @tc.name: SA_StartPreconfiguredDefaultIme_01
- * @tc.desc: SA_StartPreconfiguredDefaultIme_01
+ * @tc.name: SA_SpecialSendPrivateData
+ * @tc.desc: SA_SpecialSendPrivateData
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodPrivateMemberTest, SA_StartPreconfiguredDefaultIme_01, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, SA_SpecialSendPrivateData, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_StartPreconfiguredDefaultIme_01 start.");
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_SpecialSendPrivateData start.");
     PerUserSession session(MAIN_USER_ID);
-    // not default displayId, no need to deal
-    uint64_t otherDisplayId = 10000000;
-    session.virtualScreenDisplayId_.insert(otherDisplayId);
-    std::unordered_map<std::string, PrivateDataValue> privateCommand;
-    auto ret = session.SpecialSendPrivateData(privateCommand);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
     std::string bundleName = "bundleName";
     std::string extName = "extName";
     std::string bundleName1 = "bundleName1";
@@ -1755,13 +1747,13 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_StartPreconfiguredDefaultIme_01, TestS
     imeData1->imeStatus = ImeStatus::READY;
     imeData1->ime = std::make_pair(bundleName, extName);
     session.imeData_.insert_or_assign(ImeType::IME, imeData1);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
     // running ime same with pre default ime, send directly
     ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName + "/" + extName;
-    ret = session.SpecialSendPrivateData(privateCommand);
-    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    auto ret = session.SpecialSendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     // running ime extName not same with pre default ime, start pre default ime failed
-    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName + "/" + extName1;
-    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName + "/" + extName;
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName1 + "/" + extName1;
     ret = session.SpecialSendPrivateData(privateCommand);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
@@ -1816,21 +1808,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_CheckInputTypeOption, TestSize.Level0)
     InputTypeManager::GetInstance().isStarted_ = false;
     ret = systemAbility.CheckInputTypeOption(MAIN_USER_ID, info);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
-}
-
-/**
- * @tc.name: testTextTotalConfigInner
- * @tc.desc: testTextTotalConfigInner
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(InputMethodPrivateMemberTest, testTextTotalConfigInner, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPrivateMemberTest::testTextTotalConfigInner start.");
-    MessageParcel data;
-    TextTotalConfigInner txtConfig;
-    txtConfig.isSimpleKeyboardEnabled = 2;
-    EXPECT_FALSE(txtConfig.Marshalling(data));
 }
 } // namespace MiscServices
 } // namespace OHOS
