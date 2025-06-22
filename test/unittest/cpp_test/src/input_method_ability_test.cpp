@@ -123,6 +123,17 @@ public:
         }
     };
 
+    class TextInputClientListenerImpl : public TextInputClientListener {
+    public:
+        TextInputClientListenerImpl() = default;
+        ~TextInputClientListenerImpl() = default;
+
+        void OnAttachOptionsChanged(const AttachOptions &options)
+        {
+            IMSA_HILOGI("TextInputClientListenerImpl OnAttachOptionsChanged");
+        }
+    };
+
     static void SetUpTestCase(void)
     {
         IdentityCheckerMock::ResetParam();
@@ -412,6 +423,12 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatus2, TestSize.Level0)
  
     ret = inputMethodAbility_.NotifyPanelStatus(true, FLG_FIXED);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+
+    AttachOptions options;
+    options.isSimpleKeyboardEnabled = true;
+    inputMethodAbility_.SetAttachOptions(options);
+    ret = inputMethodAbility_.NotifyPanelStatus(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
 /**
@@ -489,6 +506,24 @@ HWTEST_F(InputMethodAbilityTest, testStartInput, TestSize.Level0)
     auto ret = inputMethodAbility_.StartInput(clientInfo, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(inputMethodAbility_.isNotify_);
+}
+
+/**
+ * @tc.name: testStartInputWithSimpleKeyBoard
+ * @tc.desc: InputMethodAbility StartInput
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testStartInputWithSimpleKeyBoard, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testStartInputWithSimpleKeyBoard start.");
+    inputMethodAbility_.SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelServiceImpl();
+    InputClientInfo clientInfo;
+    clientInfo.channel = channelStub;
+    clientInfo.config.isSimpleKeyboardEnabled = true;
+    auto ret = inputMethodAbility_.StartInput(clientInfo, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -1999,6 +2034,31 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_011, TestSize.Level0)
     keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_DOWN);
     EXPECT_FALSE(InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent));
     InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testInvokeAttachOptionsCallback
+ * @tc.desc: testInvokeAttachOptionsCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testInvokeAttachOptionsCallback, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testInvokeAttachOptionsCallback START");
+    AttachOptions options;
+    auto textInputClientListener = std::make_shared<TextInputClientListenerImpl>();
+    inputMethodAbility_.SetTextInputClientListener(textInputClientListener);
+    inputMethodAbility_.SetAttachOptions(options);
+    inputMethodAbility_.InvokeAttachOptionsCallback(options, true);
+    options.isSimpleKeyboardEnabled = true;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputMethodAbility_.InvokeAttachOptionsCallback(options, false);
+    options.requestKeyboardReason = RequestKeyboardReason::TOUCH;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputMethodAbility_.InvokeAttachOptionsCallback(options, false);
+    uint64_t displayid = 0;
+    uint64_t displayidNew = 1;
+    auto ret = inputMethodAbility_.IsDisplayChanged(displayid, displayidNew);
+    EXPECT_FALSE(ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

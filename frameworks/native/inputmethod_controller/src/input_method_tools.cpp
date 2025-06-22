@@ -130,6 +130,7 @@ TextTotalConfigInner InputMethodTools::TextTotalConfigToInner(const TextTotalCon
     inner.commandValue.valueMap = textTotalConfig.privateCommand;
     inner.requestKeyboardReason = textTotalConfig.requestKeyboardReason;
     inner.abilityToken = textTotalConfig.abilityToken;
+    inner.isSimpleKeyboardEnabled = textTotalConfig.isSimpleKeyboardEnabled;
     return inner;
 }
 
@@ -145,6 +146,7 @@ TextTotalConfig InputMethodTools::InnerToTextTotalConfig(const TextTotalConfigIn
     textTotalConfig.privateCommand = inner.commandValue.valueMap;
     textTotalConfig.requestKeyboardReason = inner.requestKeyboardReason;
     textTotalConfig.abilityToken = inner.abilityToken;
+    textTotalConfig.isSimpleKeyboardEnabled = inner.isSimpleKeyboardEnabled;
     return textTotalConfig;
 }
 

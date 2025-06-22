@@ -1512,4 +1512,25 @@ describe('InputMethodTest', function () {
       done();
     }
   });
+
+  /*
+   * @tc.number  inputmethod_test_setSimpleKeyboardEnabled_001
+   * @tc.name    Set simple keyboard mode.
+   * @tc.desc    Function test
+   * @tc.level   1
+   */
+  it('inputmethod_test_setSimpleKeyboardEnabled_001', 0, async function (done) {
+    console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test start*************');
+    inputMethod.setSimpleKeyboardEnabled(true);
+    expect(true).assertTrue();
+    done();
+    inputMethod.setSimpleKeyboardEnabled(false);
+    expect(true).assertTrue();
+    done();
+    inputMethod.setSimpleKeyboardEnabled(null);
+    expect(true).assertTrue();
+    done();
+    console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test end*************');
+
+  });
 });

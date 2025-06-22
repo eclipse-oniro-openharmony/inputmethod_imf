@@ -1963,6 +1963,29 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateData_006, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testSendPrivateData_007
+ * @tc.desc: IMC
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateData_007, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateData_007 Test START");
+    InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetSpecialSaUid(true);
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue = std::string("stringValue");
+    privateCommand.emplace("value", privateDataValue);
+    inputMethodController_->clientInfo_.config.isSimpleKeyboardEnabled = true;
+    ret = inputMethodController_->SendPrivateData(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->clientInfo_.config.isSimpleKeyboardEnabled = false;
+    inputMethodController_->Close();
+}
+
+/**
  * @tc.name: testUpdateTextPreviewState
  * @tc.desc: test IMC Reset
  * @tc.type: FUNC
@@ -2042,6 +2065,19 @@ HWTEST_F(InputMethodControllerTest, TestImcOptionalInputMethod, TestSize.Level0)
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
     ret = inputMethodController_->DisplayOptionalInputMethod();
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestSetSimpleKeyboardEnabled
+ * @tc.desc: Test SetSimpleKeyboardEnabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestSetSimpleKeyboardEnabled, TestSize.Level0)
+{
+    auto ret = inputMethodController_->SetSimpleKeyboardEnabled(true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->SetSimpleKeyboardEnabled(false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

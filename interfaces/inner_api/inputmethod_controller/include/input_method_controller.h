@@ -485,6 +485,17 @@ public:
     IMF_API int32_t SwitchInputMethod(SwitchTrigger trigger, const std::string &name, const std::string &subName = "");
 
     /**
+     * @brief Set simple keyboard mode.
+     *
+     * This function is used to set the simple keyboard mode.
+     *
+     * @param enable   indicates enable simple keyboard or not.
+     * @return Returns 0 for success, others for failure.
+     * @since 20
+     */
+    IMF_API int32_t SetSimpleKeyboardEnabled(bool enable);
+
+    /**
      * @brief Show soft keyboard.
      *
      * This function is used to show soft keyboard of current client.

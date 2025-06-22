@@ -208,9 +208,6 @@ private:
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
-
-    void ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo);
-    bool IsDefaultImeScreen(uint64_t displayId);
 };
 } // namespace MiscServices
 } // namespace OHOS

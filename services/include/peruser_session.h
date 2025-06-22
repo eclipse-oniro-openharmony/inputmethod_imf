@@ -71,6 +71,8 @@ struct ImeData {
     }
     ImeExtendInfo imeExtendInfo;
 };
+
+enum class StartPreDefaultImeStatus : uint32_t { NO_NEED, HAS_STARTED, TO_START };
 /**@class PerUserSession
  *
  * @brief The class provides session management in input method management service
@@ -150,6 +152,10 @@ public:
     bool IsDefaultDisplayGroup(uint64_t displayId);
     bool IsNumkeyAutoInputApp(const std::string &bundleName);
     std::pair<int32_t, int32_t> GetCurrentInputPattern();
+    bool IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo);
+    bool AllowSwitchImeByCombinationKey();
+    std::pair<int32_t, StartPreDefaultImeStatus> StartPreconfiguredDefaultIme(
+        uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo = {}, bool isStopCurrentIme = false);
 
 private:
     struct ResetManager {
@@ -238,6 +244,7 @@ private:
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     void ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo);
+    std::shared_ptr<ImeNativeCfg> GetRealCurrentIme(bool needSwitchToPresetImeIfNoCurIme = false);
 
     std::mutex imeStartLock_;
 

@@ -37,6 +37,7 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getSystemInputMethodConfigAbility", GetSystemInputMethodConfigAbility),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodSubtype", SwitchCurrentInputMethodSubtype),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodAndSubtype", SwitchCurrentInputMethodAndSubtype),
+        DECLARE_NAPI_FUNCTION("setSimpleKeyboardEnabled", SetSimpleKeyboardEnabled),
     };
     NAPI_CALL(env,
         napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -427,6 +428,28 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
     // 3 means JsAPI:switchCurrentInputMethodAndSubtype has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec, "switchCurrentInputMethodAndSubtype");
+}
+
+napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_info info)
+{
+    InputMethodSyncTrace tracer("JsInputMethod_SetSimpleKeyboardEnabled");
+    bool isSimpleKeyboardEnabled = false;
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    // 1 means least param num.
+    PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], isSimpleKeyboardEnabled),
+        "enable must be boolean!", TYPE_NONE, JsUtil::Const::Null(env));
+    auto controller = InputMethodController::GetInstance();
+    if (controller != nullptr) {
+        auto ret = controller->SetSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("SetSimpleKeyboardEnabled failed:%{public}d.", ret);
+        }
+    }
+
+    return JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
 } // namespace OHOS
