@@ -841,17 +841,7 @@ void PerUserSession::StartImeInImeDied()
 
 void PerUserSession::StartImeIfInstalled()
 {
-    auto clientGroup = GetClientGroup(ImeType::IME);
-    auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
-    if (!InputTypeManager::GetInstance().IsStarted() && clientInfo != nullptr
-        && IsPreconfiguredDefaultImeSpecified(*clientInfo)) {
-        StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
-        return;
-    }
-    std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
-    if (!GetInputTypeToStart(imeToStart)) {
-        imeToStart = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    }
+    auto imeToStart = GetRealCurrentIme();
     if (imeToStart == nullptr || imeToStart->imeId.empty()) {
         IMSA_HILOGE("imeToStart is nullptr!");
         return;
@@ -1027,11 +1017,7 @@ void PerUserSession::OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid)
 void PerUserSession::OnScreenUnlock()
 {
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
-    std::shared_ptr<ImeNativeCfg> currentIme = nullptr;
-    if (!GetInputTypeToStart(currentIme)) {
-        IMSA_HILOGI("GetInputTypeToStart failed");
-        currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    }
+    auto currentIme = GetRealCurrentIme();
     if (currentIme == nullptr) {
         IMSA_HILOGE("currentIme nullptr");
         return;
@@ -1065,12 +1051,26 @@ bool PerUserSession::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> 
     return source != nullptr && dest != nullptr && source->AsObject() == dest->AsObject();
 }
 
-int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
+std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needSwitchToPresetImeIfNoCurIme)
 {
     std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
-    if (!GetInputTypeToStart(imeToStart)) {
-        imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+    if (GetInputTypeToStart(imeToStart)) {
+        return imeToStart;
     }
+    auto clientGroup = GetClientGroup(ImeType::IME);
+    auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
+    if (clientInfo != nullptr && IsPreconfiguredDefaultImeSpecified(*clientInfo)) {
+        return ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    }
+    if (!needSwitchToPresetImeIfNoCurIme) {
+        return ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    }
+    return ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+}
+
+int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
+{
+    auto imeToStart = GetRealCurrentIme(true);
     if (imeToStart == nullptr) {
         IMSA_HILOGE("imeToStart is nullptr!");
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
@@ -1085,8 +1085,22 @@ int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
             imeToStart->imeId, "start ime failed!");
         return ret;
     }
+    auto readyIme = GetReadyImeData(ImeType::IME);
+    if (readyIme == nullptr) {
+        IMSA_HILOGE("ime abnormal.");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    IMSA_HILOGI("current ime changed to %{public}s.", readyIme->ime.first.c_str());
     currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    IMSA_HILOGI("current ime changed to %{public}s.", currentIme->imeId.c_str());
+    if (currentIme == nullptr) {
+        IMSA_HILOGW("currentIme not find.");
+        return ErrorCode::NO_ERROR;
+    }
+    if (readyIme->ime.first != currentIme->bundleName) {
+        IMSA_HILOGI("ime:%{public}s not user set default ime: %{public}s, no need to notify.",
+            readyIme->ime.first.c_str(), currentIme->bundleName.c_str());
+        return ErrorCode::NO_ERROR;
+    }
     auto currentImeInfo =
         ImeInfoInquirer::GetInstance().GetImeInfo(userId_, currentIme->bundleName, currentIme->subName);
     if (currentImeInfo == nullptr) {
