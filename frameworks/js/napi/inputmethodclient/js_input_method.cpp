@@ -37,7 +37,7 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getSystemInputMethodConfigAbility", GetSystemInputMethodConfigAbility),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodSubtype", SwitchCurrentInputMethodSubtype),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodAndSubtype", SwitchCurrentInputMethodAndSubtype),
-        DECLARE_NAPI_FUNCTION("setSimpleKeyboardEnabledSync", SetSimpleKeyboardEnabledSync),
+        DECLARE_NAPI_FUNCTION("setSimpleKeyboardEnabled", SetSimpleKeyboardEnabled),
     };
     NAPI_CALL(env,
         napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -430,7 +430,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
     return asyncCall.Call(env, exec, "switchCurrentInputMethodAndSubtype");
 }
 
-napi_value JsInputMethod::SetSimpleKeyboardEnabledSync(napi_env env, napi_callback_info info)
+napi_value JsInputMethod::SetSimpleKeyboardEnabled(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JsInputMethod_SetSimpleKeyboardEnabled");
     bool isSimpleKeyboardEnabled = false;
