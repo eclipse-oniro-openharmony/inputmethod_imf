@@ -1810,7 +1810,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetRealCurrentIme, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SA_GetRealCurrentIme start.");
     std::shared_ptr<Property> realPreIme = nullptr;
-    InputMethodController::GetInstance().GetDefaultInputMethod(realPreIme);
+    InputMethodController::GetInstance()->GetDefaultInputMethod(realPreIme);
     ASSERT_NE(realPreIme, nullptr);
     auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
     // input type start
