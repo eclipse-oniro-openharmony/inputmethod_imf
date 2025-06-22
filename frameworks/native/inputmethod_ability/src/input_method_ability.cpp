@@ -838,6 +838,9 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
     auto ret = channel->GetTextConfig(textConfigInner);
     if (ret == ErrorCode::NO_ERROR) {
         textConfig = InputMethodTools::GetInstance().InnerToTextTotalConfig(textConfigInner);
+        textConfig.inputAttribute.bundleName = GetInputAttribute().bundleName;
+        textConfig.inputAttribute.callingDisplayId = GetInputAttribute().callingDisplayId;
+        textConfig.inputAttribute.windowId = GetInputAttribute().windowId;
     }
     return ret;
 }

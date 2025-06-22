@@ -2183,8 +2183,7 @@ bool PerUserSession::SpecialScenarioCheck()
         IMSA_HILOGE("send failed, is collaborative input!");
         return false;
     }
-    auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
-    if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         IMSA_HILOGE("send failed, is screen locked");
         return false;
     }
@@ -2281,7 +2280,8 @@ bool PerUserSession::IsPreconfiguredDefaultImeSpecified(const InputClientInfo &i
 bool PerUserSession::AllowSwitchImeByCombinationKey()
 {
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
-    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+    auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
+    if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
         return false;
     }
 #endif

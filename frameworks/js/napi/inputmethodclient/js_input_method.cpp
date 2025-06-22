@@ -445,7 +445,7 @@ napi_value JsInputMethod::SetSimpleKeyboardEnabledSync(napi_env env, napi_callba
     if (controller != nullptr) {
         auto ret = controller->SetSimpleKeyboardEnabled(isSimpleKeyboardEnabled);
         if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("SetSimpleKeyboardEnabled failed:%{public}d.", ret);
+            IMSA_HILOGE("SetSimpleKeyboardEnabled failed:%{public}d.", ret);
         }
     }
 
