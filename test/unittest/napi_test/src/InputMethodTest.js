@@ -1518,8 +1518,13 @@ describe('InputMethodTest', function () {
     console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test start*************');
     inputMethod.setSimpleKeyboardEnabledSync(true);
     expect(true).assertTrue();
+    done();
     inputMethod.setSimpleKeyboardEnabledSync(false);
     expect(true).assertTrue();
+    done();
+    inputMethod.setSimpleKeyboardEnabledSync(null);
+    expect(true).assertTrue();
+    done();
     console.info('************* inputmethod_test_setSimpleKeyboardEnabled_001 Test end*************');
 
   });

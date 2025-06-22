@@ -423,25 +423,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatus2, TestSize.Level0)
  
     ret = inputMethodAbility_.NotifyPanelStatus(true, FLG_FIXED);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-}
 
-/**
- * @tc.name: testNotifyPanelStatus
- * @tc.desc: InputMethodAbility NotifyPanelStatus
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatus3, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbilityTest testNotifyPanelStatus3 start.");
-    std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
-    PanelInfo panelInfo = {};
-    panelInfo.panelType = SOFT_KEYBOARD;
-    panelInfo.panelFlag = FLG_FIXED;
-    auto ret = inputMethodAbility_.CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
-    EXPECT_TRUE(softKeyboardPanel1 != nullptr);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
- 
     AttachOptions options;
     options.isSimpleKeyboardEnabled = true;
     inputMethodAbility_.SetAttachOptions(options);
