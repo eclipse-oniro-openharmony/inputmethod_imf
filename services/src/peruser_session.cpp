@@ -1705,7 +1705,11 @@ std::shared_ptr<ImeData> PerUserSession::GetImeData(ImeType type)
 
 int32_t PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme)
 {
-    std::lock_guard<std::mutex> lock(imeStartLock_);
+    std::unique_lock<std::mutex> lock(imeStartLock_, std::defer_lock);
+    if (!lock.try_lock()) {
+        IMSA_HILOGW("try_lock failed!");
+        return ErrorCode::ERROR_IME_START_INPUT_FAILED;
+    }
     if (ime == nullptr) {
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
     }
