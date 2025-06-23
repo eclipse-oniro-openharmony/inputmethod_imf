@@ -16,6 +16,7 @@
 #include "inputmethod_extension.h"
 
 #include "ability_loader.h"
+#include "cj_inputmethod_extension_loader.h"
 #include "configuration_utils.h"
 #include "connection_manager.h"
 #include "global.h"
@@ -35,6 +36,8 @@ InputMethodExtension *InputMethodExtension::Create(const std::unique_ptr<Runtime
     switch (runtime->GetLanguage()) {
         case Runtime::Language::JS:
             return JsInputMethodExtension::Create(runtime);
+        case Runtime::Language::CJ:
+            return CreateCjInputMethodExtension();
         default:
             return new (std::nothrow) InputMethodExtension();
     }
