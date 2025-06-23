@@ -65,6 +65,7 @@ bool ImCommonEventManager::SubscribeEvent()
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_STOPPED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -178,6 +179,10 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED] =
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
             return that->OnScreenUnlock(data);
+        };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->OnScreenLock(data);
         };
 }
 
@@ -335,6 +340,29 @@ void ImCommonEventManager::EventSubscriber::OnScreenUnlock(const EventFwk::Commo
         return;
     }
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SCREEN_UNLOCK, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("failed to create Message!");
+        delete parcel;
+        return;
+    }
+    MessageHandler::Instance()->SendMessage(msg);
+}
+
+void ImCommonEventManager::EventSubscriber::OnScreenLock(const EventFwk::CommonEventData &data)
+{
+    MessageParcel *parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("parcel is nullptr!");
+        return;
+    }
+    auto const &want = data.GetWant();
+    int32_t userId = want.GetIntParam("userId", OsAccountAdapter::INVALID_USER_ID);
+    if (!ITypesUtil::Marshal(*parcel, userId)) {
+        IMSA_HILOGE("Failed to write message parcel!");
+        delete parcel;
+        return;
+    }
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SCREEN_LOCK, parcel);
     if (msg == nullptr) {
         IMSA_HILOGE("failed to create Message!");
         delete parcel;

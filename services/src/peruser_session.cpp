@@ -842,7 +842,17 @@ void PerUserSession::StartImeInImeDied()
 
 void PerUserSession::StartImeIfInstalled()
 {
-    auto imeToStart = GetRealCurrentIme();
+    auto clientGroup = GetClientGroup(ImeType::IME);
+    auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
+    if (!InputTypeManager::GetInstance().IsStarted() && clientInfo != nullptr
+        && IsPreconfiguredDefaultImeSpecified(*clientInfo)) {
+        StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
+        return;
+    }
+    std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
+    if (!GetInputTypeToStart(imeToStart)) {
+        imeToStart = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    }
     if (imeToStart == nullptr || imeToStart->imeId.empty()) {
         IMSA_HILOGE("imeToStart is nullptr!");
         return;
@@ -1018,13 +1028,8 @@ void PerUserSession::OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid)
 void PerUserSession::OnScreenUnlock()
 {
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
-    auto currentIme = GetRealCurrentIme();
-    if (currentIme == nullptr) {
-        IMSA_HILOGE("currentIme nullptr");
-        return;
-    }
     auto imeData = GetImeData(ImeType::IME);
-    if (imeData != nullptr && imeData->ime.first == currentIme->bundleName) {
+    if (imeData != nullptr && imeData->ime == GetImeUsedBeforeScreenLocked()) {
         IMSA_HILOGD("no need to switch");
         return;
     }
@@ -1036,6 +1041,15 @@ void PerUserSession::OnScreenUnlock()
 #endif
 }
 
+void PerUserSession::OnScreenLock()
+{
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        IMSA_HILOGD("no need to switch");
+        return;
+    }
+    SetImeUsedBeforeScreenLocked(imeData->ime);
+}
 
 std::shared_ptr<InputClientInfo> PerUserSession::GetCurrentClientInfo(uint64_t displayId)
 {
@@ -1052,26 +1066,12 @@ bool PerUserSession::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> 
     return source != nullptr && dest != nullptr && source->AsObject() == dest->AsObject();
 }
 
-std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needSwitchToPresetImeIfNoCurIme)
-{
-    std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
-    if (GetInputTypeToStart(imeToStart)) {
-        return imeToStart;
-    }
-    auto clientGroup = GetClientGroup(ImeType::IME);
-    auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
-    if (clientInfo != nullptr && IsPreconfiguredDefaultImeSpecified(*clientInfo)) {
-        return ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
-    }
-    if (!needSwitchToPresetImeIfNoCurIme) {
-        return ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    }
-    return ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
-}
-
 int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
 {
-    auto imeToStart = GetRealCurrentIme(true);
+    std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
+    if (!GetInputTypeToStart(imeToStart)) {
+        imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+    }
     if (imeToStart == nullptr) {
         IMSA_HILOGE("imeToStart is nullptr!");
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
@@ -2296,6 +2296,13 @@ bool PerUserSession::IsPreconfiguredDefaultImeSpecified(const InputClientInfo &i
            || inputClientInfo.config.isSimpleKeyboardEnabled;
 }
 
+bool PerUserSession::IsSimpleKeyboardEnabled()
+{
+    auto clientGroup = GetClientGroup(ImeType::IME);
+    auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
+    return clientInfo != nullptr && clientInfo->config.isSimpleKeyboardEnabled;
+}
+
 bool PerUserSession::AllowSwitchImeByCombinationKey()
 {
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
@@ -2330,6 +2337,18 @@ std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredD
         IMSA_HILOGE("start ime failed, ret: %{public}d!", ret);
     }
     return std::make_pair(ret, StartPreDefaultImeStatus::TO_START);
+}
+
+std::pair<std::string, std::string> PerUserSession::GetImeUsedBeforeScreenLocked()
+{
+    std::lock_guard<std::mutex> lock(imeUsedLock_);
+    return imeUsedBeforeScreenLocked_;
+}
+
+void PerUserSession::SetImeUsedBeforeScreenLocked(const std::pair<std::string, std::string> &ime)
+{
+    std::lock_guard<std::mutex> lock(imeUsedLock_);
+    imeUsedBeforeScreenLocked_ = ime;
 }
 } // namespace MiscServices
 } // namespace OHOS

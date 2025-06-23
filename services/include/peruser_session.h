@@ -104,6 +104,7 @@ public:
     void OnFocused(uint64_t displayId, int32_t pid, int32_t uid);
     void OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid);
     void OnScreenUnlock();
+    void OnScreenLock();
     int64_t GetCurrentClientPid(uint64_t displayId);
     int64_t GetInactiveClientPid(uint64_t displayId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info, uint64_t displayId);
@@ -153,6 +154,7 @@ public:
     bool IsNumkeyAutoInputApp(const std::string &bundleName);
     std::pair<int32_t, int32_t> GetCurrentInputPattern();
     bool IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo);
+    bool IsSimpleKeyboardEnabled();
     bool AllowSwitchImeByCombinationKey();
     std::pair<int32_t, StartPreDefaultImeStatus> StartPreconfiguredDefaultIme(
         uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo = {}, bool isStopCurrentIme = false);
@@ -244,7 +246,8 @@ private:
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     void ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo);
-    std::shared_ptr<ImeNativeCfg> GetRealCurrentIme(bool needSwitchToPresetImeIfNoCurIme = false);
+    std::pair<std::string, std::string> GetImeUsedBeforeScreenLocked();
+    void SetImeUsedBeforeScreenLocked(const std::pair<std::string, std::string> &ime);
 
     std::mutex imeStartLock_;
 
@@ -285,6 +288,8 @@ private:
     std::atomic<uint64_t> agentDisplayId_{ DEFAULT_DISPLAY_ID };
     std::mutex clientGroupLock_{};
     std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
+    std::mutex imeUsedLock_;
+    std::pair<std::string, std::string> imeUsedBeforeScreenLocked_;
 };
 } // namespace MiscServices
 } // namespace OHOS

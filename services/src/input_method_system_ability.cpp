@@ -1521,6 +1521,10 @@ void InputMethodSystemAbility::WorkThread()
                 OnScreenUnlock(msg);
                 break;
             }
+            case MSG_ID_SCREEN_LOCK: {
+                OnScreenLock(msg);
+                break;
+            }
             case MSG_ID_REGULAR_UPDATE_IME_INFO: {
                 FullImeInfoManager::GetInstance().RegularInit();
                 break;
@@ -1661,6 +1665,30 @@ void InputMethodSystemAbility::OnScreenUnlock(const Message *msg)
         return;
     }
     session->OnScreenUnlock();
+}
+
+void InputMethodSystemAbility::OnScreenLock(const Message *msg)
+{
+    if (msg == nullptr || msg->msgContent_ == nullptr) {
+        IMSA_HILOGE("message is nullptr");
+        return;
+    }
+    int32_t userId = 0;
+    if (!ITypesUtil::Unmarshal(*msg->msgContent_, userId)) {
+        IMSA_HILOGE("failed to read message");
+        return;
+    }
+    IMSA_HILOGD("userId: %{public}d", userId);
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+    session->OnScreenLock();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -2285,6 +2313,10 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     }
     if (!session->IsDefaultDisplayGroup(GetCallingDisplayId())) {
         IMSA_HILOGI("only need input type in default display");
+        return ErrorCode::NO_ERROR;
+    }
+    if (session->IsSimpleKeyboardEnabled() && type == InputType::CAMERA_INPUT) {
+        IMSA_HILOGI("current client simple keyboard enabled, not start camera input");
         return ErrorCode::NO_ERROR;
     }
     ImeIdentification ime;
