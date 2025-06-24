@@ -71,9 +71,11 @@ int32_t InputDataChannelProxyWrap::GetTextBeforeCursor(
     };
     SyncOutput output = nullptr;
     if (callback == nullptr) {
-        output = [&text](const ResponseData &data) -> void { VariantUtil::GetValue(data, text); };
+        output = [&text](const ResponseData &data) -> void {
+            VariantUtil::GetValue(data, text);
+            IMSA_HILOGD("text:%{public}s.", text.c_str());
+        };
     }
-
     return Request(callback, work, callback == nullptr, output);
 }
 
@@ -241,6 +243,7 @@ int32_t InputDataChannelProxyWrap::HandleResponse(uint64_t msgId, const Response
         rspHandlers_.erase(it);
         return ErrorCode::NO_ERROR;
     }
+    IMSA_HILOGD("rsp info id: %{public}" PRIu64 " ret: %{public}d", msgId, rspInfo.dealRet_);
     if (it->second->syncBlockData_ != nullptr) {
         it->second->syncBlockData_->SetValue(rspInfo);
     }
@@ -257,10 +260,8 @@ int32_t InputDataChannelProxyWrap::WaitResponse(
     if (handler == nullptr || handler->syncBlockData_ == nullptr) {
         return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
-    ResponseInfo rspInfo;
-    if (!handler->syncBlockData_->GetValue(rspInfo)) {
-        return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
-    }
+    ResponseInfo rspInfo = handler->syncBlockData_->GetValueWithoutTimeout();
+    IMSA_HILOGD("rsp info id: %{public}" PRIu64 " ret: %{public}d", handler->msgId_, rspInfo.dealRet_);
     if (rspInfo.dealRet_ != ErrorCode::NO_ERROR) {
         return rspInfo.dealRet_;
     }

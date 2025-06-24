@@ -56,6 +56,14 @@ public:
         return isSet_;
     }
 
+    T GetValueWithoutTimeout()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait(lock, [this]() { return isSet_; });
+        T data = data_;
+        return data;
+    }
+
     void Clear(const T &invalid = T())
     {
         std::lock_guard<std::mutex> lock(mutex_);
