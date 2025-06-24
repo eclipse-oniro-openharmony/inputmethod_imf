@@ -153,9 +153,9 @@ struct InputAttribute {
 
 struct TextConfig {
     inputAttribute: InputAttribute;
-    @readonly cursorInfo: Optional<CursorInfo>;
-    @readonly selection: Optional<Range>;
-    @readonly windowId: Optional<i32>;
+    cursorInfo: Optional<CursorInfo>;
+    selection: Optional<Range>;
+    windowId: Optional<i32>;
 }
 
 
