@@ -34,6 +34,7 @@ public:
     void BeforeIpc(RequestType type);
     void AfterIpc(RequestType type, bool isSuccess);
     bool IsImeInUse();
+    virtual void PasteBoardActiveIme() { };
 
 protected:
     static std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;

@@ -30,9 +30,10 @@ public:
 
     FreezeManager(const FreezeManager&) = delete;
     FreezeManager &operator=(const FreezeManager&) = delete;
+    void PasteBoardActiveIme() override;
 
 private:
-    static void ReportRss(bool shouldFreeze, pid_t pid);
+    static void ReportRss(bool shouldFreeze, pid_t pid, bool isDelay = false);
 };
 } // namespace MiscServices
 } // namespace OHOS

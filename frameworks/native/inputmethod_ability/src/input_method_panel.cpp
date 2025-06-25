@@ -100,32 +100,50 @@ int32_t InputMethodPanel::FullScreenPrepare(Rosen::KeyboardLayoutParams &param)
 {
     portraitChangeY_ = 0;
     landscapeChangeY_ = 0;
-    if (param.PortraitPanelRect_.height_ < immersiveEffect_.gradientHeight + param.portraitAvoidHeight_) {
-        uint32_t avoidHeightTmp = param.portraitAvoidHeight_ + immersiveEffect_.gradientHeight;
+    if (param.portraitAvoidHeight_ < 0 || param.landscapeAvoidHeight_ < 0 || param.PortraitPanelRect_.posY_  < 0 ||
+        param.LandscapePanelRect_.posY_ < 0) {
+        IMSA_HILOGE("invalid portraitAvoidHeight_:%{public}d, landscapeAvoidHeight_:%{public}d, portraitPosY_:\
+            %{public}d, landscapePosY_:%{public}d", param.portraitAvoidHeight_, param.landscapeAvoidHeight_,
+            param.PortraitPanelRect_.posY_, param.LandscapePanelRect_.posY_);
+        return ErrorCode::ERROR_INVALID_RANGE;
+    }
+
+    uint32_t avoidHeightTmp = static_cast<uint32_t>(param.portraitAvoidHeight_) + immersiveEffect_.gradientHeight;
+    if (param.PortraitPanelRect_.height_ < avoidHeightTmp) {
         portraitChangeY_ = avoidHeightTmp - param.PortraitPanelRect_.height_;
         param.PortraitPanelRect_.height_ = avoidHeightTmp;
-        param.PortraitPanelRect_.posY_ = SafeSubtract(param.PortraitPanelRect_.posY_, portraitChangeY_);
+        param.PortraitPanelRect_.posY_ = static_cast<int32_t>(SafeSubtract(
+            static_cast<uint32_t>(param.PortraitPanelRect_.posY_), portraitChangeY_));
     }
-    if (param.LandscapePanelRect_.height_ < immersiveEffect_.gradientHeight + param.landscapeAvoidHeight_) {
-        uint32_t avoidHeightTmp = param.landscapeAvoidHeight_ + immersiveEffect_.gradientHeight;
+
+    avoidHeightTmp = static_cast<uint32_t>(param.landscapeAvoidHeight_) + immersiveEffect_.gradientHeight;
+    if (param.LandscapePanelRect_.height_ < avoidHeightTmp) {
         landscapeChangeY_ = avoidHeightTmp - param.LandscapePanelRect_.height_;
         param.LandscapePanelRect_.height_ = avoidHeightTmp;
-        param.LandscapePanelRect_.posY_ = SafeSubtract(param.LandscapePanelRect_.posY_, landscapeChangeY_);
+        param.LandscapePanelRect_.posY_ = static_cast<int32_t>(SafeSubtract(
+            static_cast<uint32_t>(param.LandscapePanelRect_.posY_), landscapeChangeY_));
     }
-    param.portraitAvoidHeight_ += immersiveEffect_.gradientHeight;
-    param.landscapeAvoidHeight_ += immersiveEffect_.gradientHeight;
+    param.portraitAvoidHeight_ += static_cast<int32_t>(immersiveEffect_.gradientHeight);
+    param.landscapeAvoidHeight_ += static_cast<int32_t>(immersiveEffect_.gradientHeight);
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::NormalImePrepare(Rosen::KeyboardLayoutParams &param)
 {
+    if (param.PortraitPanelRect_.posY_ < 0 || param.LandscapePanelRect_.posY_ < 0) {
+        IMSA_HILOGE("invalid portraitPosY_:%{public}d, landscapePosY_:%{public}d", param.PortraitPanelRect_.posY_,
+            param.LandscapePanelRect_.posY_);
+        return ErrorCode::ERROR_INVALID_RANGE;
+    }
     uint32_t portraitHeight = param.PortraitPanelRect_.height_ + immersiveEffect_.gradientHeight;
     uint32_t landscapeHeight = param.LandscapePanelRect_.height_ + immersiveEffect_.gradientHeight;
 
     param.PortraitPanelRect_.height_ = portraitHeight;
     param.LandscapePanelRect_.height_ = landscapeHeight;
-    param.LandscapePanelRect_.posY_ = SafeSubtract(param.LandscapePanelRect_.posY_, immersiveEffect_.gradientHeight);
-    param.PortraitPanelRect_.posY_ = SafeSubtract(param.PortraitPanelRect_.posY_, immersiveEffect_.gradientHeight);
+    param.LandscapePanelRect_.posY_ = static_cast<int32_t>(SafeSubtract(
+        static_cast<uint32_t>(param.LandscapePanelRect_.posY_), immersiveEffect_.gradientHeight));
+    param.PortraitPanelRect_.posY_ = static_cast<int32_t>(SafeSubtract(
+        static_cast<uint32_t>(param.PortraitPanelRect_.posY_), immersiveEffect_.gradientHeight));
     portraitChangeY_ = immersiveEffect_.gradientHeight;
     landscapeChangeY_ = immersiveEffect_.gradientHeight;
     return ErrorCode::NO_ERROR;
@@ -1927,6 +1945,8 @@ int32_t InputMethodPanel::GetDisplaySize(DisplaySize &size)
 void InputMethodPanel::SetImmersiveEffectToNone()
 {
     if (immersiveEffect_.gradientHeight == 0) {
+        immersiveEffect_.gradientMode = GradientMode::NONE;
+        immersiveEffect_.fluidLightMode = FluidLightMode::NONE;
         return;
     }
 
