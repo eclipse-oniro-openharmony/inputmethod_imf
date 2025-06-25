@@ -1854,5 +1854,33 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_CheckInputTypeOption, TestSize.Level0)
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 
+/**
+ * @tc.name: SA_TestPerUserSessionStartImeIfInstalled
+ * @tc.desc: SA_TestPerUserSessionStartImeIfInstalled.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestPerUserSessionStartImeIfInstalled, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestPerUserSessionStartImeIfInstalled start.");
+    PerUserSession session(MAIN_USER_ID);
+    // has current client info
+    auto group = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+    group->currentClient_ = client;
+    auto info = std::make_shared<InputClientInfo>();
+    info->config.isSimpleKeyboardEnabled = true;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    ImeIdentification currentIme;
+    InputTypeManager::GetInstance().Set(false, currentIme);
+    EXPECT_FALSE(InputTypeManager::GetInstance().IsStarted());
+    session.StartImeIfInstalled();
+
+    info->config.isSimpleKeyboardEnabled = false;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    session.StartImeIfInstalled();
+}
 } // namespace MiscServices
 } // namespace OHOS
