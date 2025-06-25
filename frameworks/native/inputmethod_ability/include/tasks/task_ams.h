@@ -31,7 +31,7 @@ public:
     TaskAmsInit() : Task(TASK_TYPE_AMS_INIT)
     {
         auto action = std::make_unique<ActionWait>(seqId_, AMS_INIT_TIMEOUT_MS,
-            std::bind(&TaskAmsInit::OnComplete, this), std::bind(&TaskAmsInit::OnTimeout, this));
+            [this]() { OnComplete(); }, [this]() { OnTimeout(); });
         actions_.push_back(std::move(action));
     }
     ~TaskAmsInit() = default;
