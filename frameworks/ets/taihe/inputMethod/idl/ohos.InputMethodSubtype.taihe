@@ -15,14 +15,14 @@
 
 @!namespace("@ohos.InputMethodSubtype")
 struct InputMethodSubtype {
-    @readonly name: String;
-    @readonly id: String;
-    @readonly locale: String;
-    @readonly language: String;
-    @readonly mode: Optional<String>;
-    @readonly icon: Optional<String>;
-    @readonly iconId: Optional<f64>;
     @readonly label: Optional<String>;
     @readonly labelId: Optional<f64>;
+    @readonly name: String;
+    @readonly id: String;
+    @readonly mode: Optional<String>;
+    @readonly locale: String;
+    @readonly language: String;
+    @readonly icon: Optional<String>;
+    @readonly iconId: Optional<f64>;
     extra: Optional<Opaque>;
 }
