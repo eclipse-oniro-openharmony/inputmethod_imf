@@ -852,5 +852,21 @@ HWTEST_F(InputMethodAttachTest, testAttach009, TestSize.Level0)
     auto ret = inputMethodController_->Attach(textListener, attachOptions, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: testOninputstop001
+ * @tc.desc: test OnInputStop callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAttachTest, testOninputstop001, TestSize.Level0)
+{
+    IMSA_HILOGI("test testOninputstop001 start!");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    ASSERT_NE(textListener, nullptr);
+    auto ret = inputMethodController_->Attach(textListener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->Close();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

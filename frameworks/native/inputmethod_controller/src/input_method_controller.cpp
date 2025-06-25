@@ -40,6 +40,8 @@
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
 #include "input_method_tools.h"
+#include "notify_service_impl.h"
+#include "on_input_stop_notify_proxy.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -1172,7 +1174,7 @@ void InputMethodController::OnInputReady(
     SetAgent(agentObject);
 }
 
-void InputMethodController::OnInputStop(bool isStopInactiveClient)
+void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteObject> proxy)
 {
     {
         std::lock_guard<std::mutex> autoLock(agentLock_);
@@ -1198,6 +1200,8 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient)
     selectOldEnd_ = INVALID_VALUE;
     selectNewBegin_ = INVALID_VALUE;
     selectNewEnd_ = INVALID_VALUE;
+    auto channelProxy = std::make_shared<OnInputStopNotifyProxy>(proxy);
+    channelProxy->NotifyOnInputStopFinished();
 }
 
 void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChangedListener> lastListener)

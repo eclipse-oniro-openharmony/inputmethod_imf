@@ -58,6 +58,7 @@
 #include "key_event_util.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
+#include "notify_service_impl.h"
 #include "scope_utils.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
@@ -2078,6 +2079,24 @@ HWTEST_F(InputMethodControllerTest, TestSetSimpleKeyboardEnabled, TestSize.Level
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodController_->SetSimpleKeyboardEnabled(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestNotifyOnInputStopFinished001
+ * @tc.desc: Test NotifyOnInputStopFinished in 20ms
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestNotifyOnInputStopFinished001, TestSize.Level0)
+{
+    IMSA_HILOGI("TestNotifyOnInputStopFinished001 START");
+    sptr<OnInputStopNotifyStub> proxy = new (std::nothrow) OnInputStopNotifyServiceImpl();
+    ASSERT_NE(proxy, nullptr);
+    std::shared_ptr<OnInputStopNotifyProxy> channelProxy = std::make_shared<OnInputStopNotifyProxy>(proxy);
+    auto sessionTemp = std::make_shared<PerUserSession>(0, nullptr);
+    UserSessionManager::GetInstance().userSessions_.insert({0, sessionTemp});
+    auto ret = channelProxy->NotifyOnInputStopFinished();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    UserSessionManager::GetInstance().userSessions_.clear();
 }
 } // namespace MiscServices
 } // namespace OHOS

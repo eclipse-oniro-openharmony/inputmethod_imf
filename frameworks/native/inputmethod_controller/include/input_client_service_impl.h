@@ -19,6 +19,8 @@
 #include "iinput_client.h"
 #include "input_client_stub.h"
 #include "iremote_object.h"
+#include "notify_service_impl.h"
+#include "on_input_stop_notify_proxy.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -30,7 +32,7 @@ public:
     InputClientServiceImpl();
     ~InputClientServiceImpl();
     ErrCode OnInputReady(const sptr<IRemoteObject>& agent, const int64_t pid, const std::string& bundleName) override;
-    ErrCode OnInputStop(bool isStopInactiveClient) override;
+    ErrCode OnInputStop(bool isStopInactiveClient, const sptr<IRemoteObject> &object) override;
     ErrCode OnInputStopAsync(bool isStopInactiveClient) override;
     ErrCode OnSwitchInput(const Property& property, const SubProperty& subProperty) override;
     ErrCode OnPanelStatusChange(const uint32_t status, const ImeWindowInfo& info) override;

@@ -25,6 +25,11 @@ idl_gen_interface("input_method_agent_interface") {
           "${inputmethod_path}/frameworks/native/inputmethod_ability/IInputMethodAgent.idl")
 }
 
+idl_gen_interface("oninputstop_notify_interface") {
+  src_idl = rebase_path(
+          "${inputmethod_path}/frameworks/native/inputmethod_controller/IOnInputStopNotify.idl")
+}
+
 config("inputmethod_client_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
@@ -147,6 +152,44 @@ ohos_source_set("input_method_agent_proxy") {
   part_name = "imf"
 }
 
+ohos_source_set("oninputstop_notify_stub") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_client_native_public_config" ]
+  output_values = get_target_outputs(":oninputstop_notify_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":oninputstop_notify_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_source_set("oninputstop_notify_proxy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":inputmethod_client_native_public_config" ]
+  output_values = get_target_outputs(":oninputstop_notify_interface")
+  sources = filter_include(output_values, [ "*_proxy.cpp" ])
+  deps = [ ":oninputstop_notify_interface" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
 ohos_shared_library("inputmethod_client") {
   branch_protector_ret = "pac_ret"
 
@@ -188,6 +231,7 @@ ohos_shared_library("inputmethod_client") {
   deps = [
     ":input_client_interface",
     ":input_method_agent_interface",
+    ":oninputstop_notify_interface",
     "${inputmethod_path}/common:inputmethod_common",
     "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_stub",
@@ -210,6 +254,13 @@ ohos_shared_library("inputmethod_client") {
                             [
                               "*_proxy.cpp",
                               "*_stub.cpp",
+                            ])
+
+  oninputstop_notify_output_values =
+      get_target_outputs(":oninputstop_notify_interface")
+  sources += filter_include(oninputstop_notify_output_values,
+                            [
+                              "*_proxy.cpp",
                             ])
 
   external_deps = [
@@ -275,6 +326,7 @@ ohos_static_library("inputmethod_client_static") {
   deps = [
     ":input_client_interface",
     ":input_method_agent_interface",
+    ":oninputstop_notify_interface",
     "${inputmethod_path}/common:inputmethod_common",
     "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_data_channel_stub",
@@ -308,6 +360,13 @@ ohos_static_library("inputmethod_client_static") {
                             [
                               "*_proxy.cpp",
                               "*_stub.cpp",
+                            ])
+
+  oninputstop_notify_output_values =
+      get_target_outputs(":oninputstop_notify_interface")
+  sources += filter_include(oninputstop_notify_output_values,
+                            [
+                              "*_proxy.cpp",
                             ])
 
   public_external_deps = [ "ability_base:want" ]

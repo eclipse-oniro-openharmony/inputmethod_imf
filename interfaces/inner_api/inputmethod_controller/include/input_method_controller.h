@@ -629,7 +629,7 @@ public:
      *
      * @since 10
      */
-    void OnInputStop(bool isStopInactiveClient = false);
+    void OnInputStop(bool isStopInactiveClient = false, sptr<IRemoteObject> proxy = nullptr);
 
     /**
      * @brief Insert text.
