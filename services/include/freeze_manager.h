@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-class FreezeManager final : public ImeStateManager {
+class FreezeManager final : public ImeStateManager, public std::enable_shared_from_this<FreezeManager> {
 public:
     explicit FreezeManager(pid_t pid) : ImeStateManager(pid)
     {
@@ -30,10 +30,10 @@ public:
 
     FreezeManager(const FreezeManager&) = delete;
     FreezeManager &operator=(const FreezeManager&) = delete;
-    void PasteBoardActiveIme() override;
+    void PasteBoardActiveIme(int32_t delayTime = DELAY_TIME) override;
 
 private:
-    static void ReportRss(bool shouldFreeze, pid_t pid, bool isDelay = false);
+    static void ReportRss(bool shouldFreeze, pid_t pid);
 };
 } // namespace MiscServices
 } // namespace OHOS
