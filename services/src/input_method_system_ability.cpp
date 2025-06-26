@@ -46,8 +46,6 @@
 #include "on_demand_start_stop_sa.h"
 #endif
 #include "window_adapter.h"
-#include "display_manager_lite.h"
-#include "display_info.h"
 #include "input_method_tools.h"
 #include "ime_state_manager_factory.h"
 
@@ -531,6 +529,7 @@ void InputMethodSystemAbility::SubscribeCommonEvent()
 
 int32_t InputMethodSystemAbility::PrepareInput(int32_t userId, InputClientInfo &clientInfo)
 {
+    InputMethodSyncTrace tracer("InputMethodSystemAbility PrepareInput");
     auto ret = GenerateClientInfo(userId, clientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
@@ -672,20 +671,19 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     if (inputClientInfo.config.inputAttribute.IsSecurityImeFlag()) {
         return StartSecurityIme(userId, inputClientInfo);
     }
-    if (!inputClientInfo.isNotifyInputStart) {
-        IMSA_HILOGD("NormalFlag, same textField, not deal.");
-        return ErrorCode::NO_ERROR;
-    }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
-    if (InputTypeManager::GetInstance().IsStarted()) {
+    if (!inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGD("NormalFlag, same textField, input type started, not deal.");
+        return ErrorCode::NO_ERROR;
+    }
+    if (inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
         IMSA_HILOGD("NormalFlag, diff textField, input type started, restore.");
         session->RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
     }
-    ChangeToDefaultImeForHiCar(userId, inputClientInfo);
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         std::string ime;
@@ -694,59 +692,19 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
             return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
         }
         ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId, ime);
+        return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
     }
 #endif
+    if (session->IsPreconfiguredDefaultImeSpecified(inputClientInfo)) {
+        auto [ret, status] = session->StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
+        return ret;
+    }
     return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
-}
-
-void InputMethodSystemAbility::ChangeToDefaultImeForHiCar(int32_t userId, InputClientInfo &inputClientInfo)
-{
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return;
-    }
-    auto callingWindowInfo = session->GetCallingWindowInfo(inputClientInfo);
-    if (IsDefaultImeScreen(callingWindowInfo.displayId)) {
-        auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-        auto imeToStart = std::make_shared<ImeNativeCfg>();
-        auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
-        if (defaultIme == nullptr) {
-            IMSA_HILOGE("failed to get default ime");
-            return;
-        }
-        if (defaultIme->bundleName == currentIme->bundleName) {
-            IMSA_HILOGD("is default ime, not need change ime");
-            imeToStart = currentIme;
-            return;
-        }
-        imeToStart = defaultIme;
-        ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, imeToStart->imeId);
-        return;
-    }
-    ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
-    return;
-}
-
-bool InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId)
-{
-    sptr<Rosen::DisplayLite> display =
-        Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
-    if (display == nullptr) {
-        IMSA_HILOGE("display is null!");
-        return false;
-    }
-    sptr<Rosen::DisplayInfo> displayInfo = display->GetDisplayInfo();
-    if (displayInfo == nullptr) {
-        IMSA_HILOGE("displayInfo is null!");
-        return false;
-    }
-    return identityChecker_->IsDefaultImeScreen(displayInfo->GetName());
 }
 
 ErrCode InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId, bool &resultValue)
 {
-    resultValue = IsDefaultImeScreen(displayId);
+    resultValue = ImeInfoInquirer::GetInstance().IsDefaultImeScreen(displayId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1756,14 +1714,10 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
         IMSA_HILOGI("switch language.");
         return SwitchLanguage();
     }
-    bool isScreenLocked = false;
-#ifdef IMF_SCREENLOCK_MGR_ENABLE
-    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
-        IMSA_HILOGI("isScreenLocked  now.");
-        isScreenLocked = true;
+    if (!session->AllowSwitchImeByCombinationKey()) {
+        return ErrorCode::NO_ERROR;
     }
-#endif
-    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state) && !isScreenLocked) {
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime.");
         DealSwitchRequest();
         return ErrorCode::NO_ERROR;
@@ -1880,6 +1834,8 @@ void InputMethodSystemAbility::InitMonitors()
     IMSA_HILOGI("init KeyEvent monitor, ret: %{public}d.", ret);
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
+    ret = InitPasteboardMonitor();
+    IMSA_HILOGI("init Pasteboard monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
 }
 
@@ -1937,6 +1893,42 @@ void InputMethodSystemAbility::InitWmsConnectionMonitor()
         [this](bool isConnected, int32_t userId, int32_t screenId) {
             isConnected ? HandleWmsConnected(userId, screenId) : HandleWmsDisconnected(userId, screenId);
         });
+}
+
+void InputMethodSystemAbility::HandlePasteboardStarted()
+{
+    IMSA_HILOGI("pasteboard started");
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+
+    auto data = session->GetReadyImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("readyImeData is nullptr.");
+        return;
+    }
+
+    if (data->imeStateManager == nullptr) {
+        IMSA_HILOGE("imeStateManager is nullptr.");
+        return;
+    }
+
+    data->imeStateManager->PasteBoardActiveIme();
+}
+
+bool InputMethodSystemAbility::InitPasteboardMonitor()
+{
+    auto commonEventMgr = ImCommonEventManager::GetInstance();
+    if (commonEventMgr == nullptr) {
+        IMSA_HILOGE("commonEventMgr is nullptr.");
+        return false;
+    }
+
+    return commonEventMgr->SubscribePasteboardService([this]() {
+        HandlePasteboardStarted();
+    });
 }
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()

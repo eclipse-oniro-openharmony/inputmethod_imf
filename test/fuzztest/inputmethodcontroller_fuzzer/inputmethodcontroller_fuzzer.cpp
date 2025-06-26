@@ -32,6 +32,7 @@
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
+constexpr int32_t PRIVATEDATAVALUE = 100;
 void TestListInputMethod(sptr<InputMethodController> imc)
 {
     std::vector<Property> properties = {};
@@ -212,6 +213,58 @@ void FUZZGetInputStartInfo(sptr<InputMethodController> imc, bool &dataBool,
     imc->IsCurrentImeByPid(int32Value);
     imc->UpdateTextPreviewState(dataBool);
 }
+
+void FUZZSetControllerListener(sptr<InputMethodController> imc,
+    uint32_t &uint32Value, const std::string &fuzzedString, bool &dataBool)
+{
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    imc->Attach(textListener);
+    static std::vector<SubProperty> subProps;
+    static std::shared_ptr<Property> property = std::make_shared<Property>();
+    property->name = fuzzedString;
+    property->id = fuzzedString;
+    property->label = fuzzedString;
+    property->icon = fuzzedString;
+    property->iconId = uint32Value;
+
+    OHOS::AppExecFwk::ElementName inputMethodConfig;
+    inputMethodConfig.SetDeviceID(fuzzedString);
+    inputMethodConfig.SetAbilityName(fuzzedString);
+    inputMethodConfig.SetBundleName(fuzzedString);
+    inputMethodConfig.SetModuleName(fuzzedString);
+    wptr<IRemoteObject> agentObject = nullptr;
+    SubProperty subProperty;
+    subProperty.label = fuzzedString;
+    subProperty.labelId = uint32Value;
+    subProperty.name = fuzzedString;
+    subProperty.id = fuzzedString;
+    subProperty.mode = fuzzedString;
+    subProperty.locale = fuzzedString;
+    subProperty.icon = fuzzedString;
+    subProps.push_back(subProperty);
+    std::unordered_map <std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = fuzzedString;
+    PrivateDataValue privateDataValue2 = static_cast<int32_t>(dataBool);
+    PrivateDataValue privateDataValue3 = PRIVATEDATAVALUE;
+    privateCommand.emplace("value1", privateDataValue1);
+    privateCommand.emplace("value2", privateDataValue2);
+    privateCommand.emplace("value3", privateDataValue3);
+    imc->SetControllerListener(nullptr);
+    imc->DiscardTypingText();
+    imc->GetDefaultInputMethod(property);
+    imc->GetInputMethodConfig(inputMethodConfig);
+    imc->OnRemoteSaDied(agentObject);
+    imc->ListCurrentInputMethodSubtype(subProps);
+    imc->SendPrivateCommand(privateCommand);
+    imc->Reset();
+    imc->IsDefaultImeSet();
+}
+
+void FUZZUpdateLargeMemorySceneState(sptr<InputMethodController> imc, int32_t fuzzedInt32)
+{
+    imc->UpdateLargeMemorySceneState(fuzzedInt32);
+}
+
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -248,5 +301,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestUpdateListenEventFlag(imc, fuzzedUint32);
     OHOS::FUZZSendPrivateData(imc, fuzzedString);
     OHOS::FUZZGetInputStartInfo(imc, fuzzedBool, fuzzedUint32, fuzzedInt32, fuzzedString);
+    OHOS::FUZZSetControllerListener(imc, fuzzedUint32, fuzzedString, fuzzedBool);
+    OHOS::FUZZUpdateLargeMemorySceneState(imc, fuzzedInt32);
     return 0;
 }

@@ -47,7 +47,7 @@ uint64_t TaskManager::PostTask(task_ptr_t task, uint32_t delayMs)
         return 0;
     }
 
-    auto func = std::bind(&TaskManager::OnNewTask, this, task);
+    auto func = [this, task]() { OnNewTask(task); };
     eventHandler_->PostTask(func, __FUNCTION__, delayMs);
     return task->GetSeqId();
 }

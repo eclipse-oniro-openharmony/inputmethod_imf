@@ -45,6 +45,7 @@
 #include "window_adapter.h"
 #include "input_method_tools.h"
 #include "ime_state_manager_factory.h"
+#include "inputmethod_trace.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -546,6 +547,11 @@ int32_t PerUserSession::OnStartInput(
     infoTemp.needHide = inputClientInfo.needHide;
     infoTemp.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
     infoTemp.config.requestKeyboardReason = inputClientInfo.requestKeyboardReason;
+    if (inputClientInfo.config.inputAttribute.IsSecurityImeFlag()) {
+        infoTemp.config.isSimpleKeyboardEnabled = false;
+    } else {
+        infoTemp.config.isSimpleKeyboardEnabled = inputClientInfo.config.isSimpleKeyboardEnabled;
+    }
     int32_t ret =
         BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true, inputClientInfo.displayId);
     if (ret != ErrorCode::NO_ERROR) {
@@ -743,7 +749,6 @@ bool PerUserSession::CompareExchange(const int32_t value)
 int32_t PerUserSession::UpdateLargeMemorySceneState(const int32_t memoryState)
 {
     if (CompareExchange(memoryState)) {
-        IMSA_HILOGD("Duplicate message.");
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGI("large memory state: %{public}d.", memoryState);
@@ -837,7 +842,7 @@ int32_t PerUserSession::InitInputControlChannel()
         [&data, &inputControlChannel] { return data->core->InitInputControlChannel(inputControlChannel); });
 }
 
-bool PerUserSession::isLargeMemoryStateNeed()
+bool PerUserSession::IsLargeMemoryStateNeed()
 {
     std::shared_lock<std::shared_mutex> lock(largeMemoryStateMutex_);
     if (largeMemoryState_ == LargeMemoryState::LARGE_MEMORY_NEED) {
@@ -873,10 +878,7 @@ void PerUserSession::StartImeInImeDied()
 
 void PerUserSession::StartImeIfInstalled()
 {
-    std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
-    if (!GetInputTypeToStart(imeToStart)) {
-        imeToStart = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    }
+    auto imeToStart = GetRealCurrentIme();
     if (imeToStart == nullptr || imeToStart->imeId.empty()) {
         IMSA_HILOGE("imeToStart is nullptr!");
         return;
@@ -1052,11 +1054,7 @@ void PerUserSession::OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid)
 void PerUserSession::OnScreenUnlock()
 {
     ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, "");
-    std::shared_ptr<ImeNativeCfg> currentIme = nullptr;
-    if (!GetInputTypeToStart(currentIme)) {
-        IMSA_HILOGI("GetInputTypeToStart failed");
-        currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    }
+    auto currentIme = GetRealCurrentIme();
     if (currentIme == nullptr) {
         IMSA_HILOGE("currentIme nullptr");
         return;
@@ -1090,12 +1088,26 @@ bool PerUserSession::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> 
     return source != nullptr && dest != nullptr && source->AsObject() == dest->AsObject();
 }
 
-int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
+std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needSwitchToPresetImeIfNoCurIme)
 {
     std::shared_ptr<ImeNativeCfg> imeToStart = nullptr;
-    if (!GetInputTypeToStart(imeToStart)) {
-        imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+    if (GetInputTypeToStart(imeToStart)) {
+        return imeToStart;
     }
+    auto clientGroup = GetClientGroup(ImeType::IME);
+    auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
+    if (clientInfo != nullptr && IsPreconfiguredDefaultImeSpecified(*clientInfo)) {
+        return ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+    }
+    if (!needSwitchToPresetImeIfNoCurIme) {
+        return ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    }
+    return ImeInfoInquirer::GetInstance().GetImeToStart(userId_);
+}
+
+int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
+{
+    auto imeToStart = GetRealCurrentIme(true);
     if (imeToStart == nullptr) {
         IMSA_HILOGE("imeToStart is nullptr!");
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
@@ -1110,8 +1122,22 @@ int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
             imeToStart->imeId, "start ime failed!");
         return ret;
     }
+    auto readyIme = GetReadyImeData(ImeType::IME);
+    if (readyIme == nullptr) {
+        IMSA_HILOGE("ime abnormal.");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    IMSA_HILOGI("current ime changed to %{public}s.", readyIme->ime.first.c_str());
     currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    IMSA_HILOGI("current ime changed to %{public}s.", currentIme->imeId.c_str());
+    if (currentIme == nullptr) {
+        IMSA_HILOGW("currentIme not find.");
+        return ErrorCode::NO_ERROR;
+    }
+    if (readyIme->ime.first != currentIme->bundleName) {
+        IMSA_HILOGI("ime:%{public}s not user set default ime: %{public}s, no need to notify.",
+            readyIme->ime.first.c_str(), currentIme->bundleName.c_str());
+        return ErrorCode::NO_ERROR;
+    }
     auto currentImeInfo =
         ImeInfoInquirer::GetInstance().GetImeInfo(userId_, currentIme->bundleName, currentIme->subName);
     if (currentImeInfo == nullptr) {
@@ -1211,6 +1237,7 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 
 int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
 {
+    InputMethodSyncTrace tracer("StartInputService trace.");
     if (ime == nullptr) {
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
     }
@@ -1228,6 +1255,7 @@ int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &i
         return ErrorCode::ERROR_IMSA_MALLOC_FAILED;
     }
     auto want = GetWant(imeToStart);
+    IMSA_HILOGI("connect %{public}s start!", imeToStart->imeId.c_str());
     ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("connect %{public}s failed, ret: %{public}d!", imeToStart->imeId.c_str(), ret);
@@ -1713,7 +1741,11 @@ std::shared_ptr<ImeData> PerUserSession::GetImeData(ImeType type)
 
 int32_t PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme)
 {
-    std::lock_guard<std::mutex> lock(imeStartLock_);
+    std::unique_lock<std::mutex> lock(imeStartLock_, std::defer_lock);
+    if (!lock.try_lock()) {
+        IMSA_HILOGW("try_lock failed!");
+        return ErrorCode::ERROR_IME_START_INPUT_FAILED;
+    }
     if (ime == nullptr) {
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
     }
@@ -1909,6 +1941,7 @@ int32_t PerUserSession::HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &im
 
 int32_t PerUserSession::RestoreCurrentIme(uint64_t callingDisplayId)
 {
+    InputMethodSyncTrace tracer("RestoreCurrentIme trace.");
     if (!IsDefaultDisplayGroup(callingDisplayId)) {
         IMSA_HILOGI("only need restore in default display, calling display: %{public}" PRIu64 "", callingDisplayId);
         return ErrorCode::NO_ERROR;
@@ -2158,6 +2191,7 @@ int32_t PerUserSession::NotifyCallingDisplayChanged(uint64_t displayId)
 
 ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo)
 {
+    InputMethodSyncTrace tracer("GetCallingWindowInfo trace");
     auto finalWindowId = clientInfo.config.windowId;
     ImfCallingWindowInfo finalWindowInfo{ finalWindowId, 0 };
     if (!SceneBoardJudgement::IsSceneBoardEnabled()) {
@@ -2194,6 +2228,10 @@ bool PerUserSession::SpecialScenarioCheck()
     auto clientInfo = GetCurrentClientInfo();
     if (clientInfo == nullptr) {
         IMSA_HILOGE("send failed, not input Status!");
+        return false;
+    }
+    if (clientInfo->config.isSimpleKeyboardEnabled) {
+        IMSA_HILOGE("send failed, is simple keyboard!");
         return false;
     }
     if (clientInfo->config.inputAttribute.IsSecurityImeFlag()) {
@@ -2234,37 +2272,25 @@ std::pair<int32_t, int32_t> PerUserSession::GetCurrentInputPattern()
     return { ErrorCode::NO_ERROR, clientInfo->config.inputAttribute.inputPattern };
 }
 
-int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string,
-    PrivateDataValue> &privateCommand)
+int32_t PerUserSession::SpecialSendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
-    if (defaultIme == nullptr) {
-        IMSA_HILOGE("failed to get default ime!");
-        return ErrorCode::ERROR_IMSA_DEFAULT_IME_NOT_FOUND;
-    }
-    auto imeData = GetReadyImeData(ImeType::IME);
-    defaultIme->imeExtendInfo.privateCommand = privateCommand;
-    if (imeData == nullptr) {
-        auto ret = StartIme(defaultIme, true);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
-        }
-        return ret;
-    }
-    if (defaultIme->bundleName == imeData->ime.first) {
-        auto ret = SendPrivateData(privateCommand);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("Notify send private data failed, ret: %{public}d!", ret);
-        }
-        return ret;
-    }
-    auto ret = StartIme(defaultIme);
+    ImeExtendInfo imeExtendInfo;
+    imeExtendInfo.privateCommand = privateCommand;
+    auto [ret, status] = StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID, imeExtendInfo, true);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("notify start ime failed, ret: %{public}d!", ret);
+        IMSA_HILOGE("start pre default ime failed, ret: %{public}d!", ret);
+        return ret;
+    }
+    if (status == StartPreDefaultImeStatus::NO_NEED || status == StartPreDefaultImeStatus::TO_START) {
+        return ret;
+    }
+    ret = SendPrivateData(privateCommand);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Notify send private data failed, ret: %{public}d!", ret);
     }
     return ret;
 }
-    
+
 int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     auto data = GetReadyImeData(ImeType::IME);
@@ -2301,6 +2327,49 @@ void PerUserSession::ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo>
 bool PerUserSession::IsNumkeyAutoInputApp(const std::string &bundleName)
 {
     return NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(userId_, bundleName);
+}
+
+bool PerUserSession::IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo)
+{
+    auto callingWindowInfo = GetCallingWindowInfo(inputClientInfo);
+    return ImeInfoInquirer::GetInstance().IsDefaultImeScreen(callingWindowInfo.displayId)
+           || inputClientInfo.config.isSimpleKeyboardEnabled;
+}
+
+bool PerUserSession::AllowSwitchImeByCombinationKey()
+{
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
+    if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
+        return false;
+    }
+#endif
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo == nullptr) {
+        return true;
+    }
+    return !IsPreconfiguredDefaultImeSpecified(*clientInfo);
+}
+
+std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredDefaultIme(
+    uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo, bool isStopCurrentIme)
+{
+    if (!IsDefaultDisplayGroup(callingDisplayId)) {
+        IMSA_HILOGI("only start in default display, calling display: %{public}" PRIu64 "", callingDisplayId);
+        return std::make_pair(ErrorCode::NO_ERROR, StartPreDefaultImeStatus::NO_NEED);
+    }
+    InputTypeManager::GetInstance().Set(false);
+    auto preDefaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
+    auto ime = GetReadyImeData(ImeType::IME);
+    if (ime != nullptr && (ime->ime.first == preDefaultIme.bundleName && ime->ime.second == preDefaultIme.extName)) {
+        return std::make_pair(ErrorCode::NO_ERROR, StartPreDefaultImeStatus::HAS_STARTED);
+    }
+    preDefaultIme.imeExtendInfo = imeExtendInfo;
+    auto ret = StartIme(std::make_shared<ImeNativeCfg>(preDefaultIme), isStopCurrentIme);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("start ime failed, ret: %{public}d!", ret);
+    }
+    return std::make_pair(ret, StartPreDefaultImeStatus::TO_START);
 }
 } // namespace MiscServices
 } // namespace OHOS

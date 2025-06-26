@@ -833,6 +833,22 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_003, TestSize.Level
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
 
+/**
+ * @tc.name: testUpdateLargeMemorySceneState_001
+ * @tc.desc: test UpdateLargeMemorySceneState
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(IdentityCheckerTest, testUpdateLargeMemorySceneState_001, TestSize.Level1)
+{
+    IMSA_HILOGI("IdentityCheckerTest testUpdateLargeMemorySceneState_001 start");
+    IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
+    int32_t memoryState = 3;
+    int32_t ret = IdentityCheckerTest::service_->UpdateLargeMemorySceneState(memoryState);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+}
+
 TEST_F(IdentityCheckerTest, OnExtension_extensionIsEmpty_ReturnsOK)
 {
     MessageParcel data;

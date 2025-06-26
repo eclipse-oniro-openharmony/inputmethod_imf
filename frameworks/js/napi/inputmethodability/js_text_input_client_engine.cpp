@@ -1218,6 +1218,8 @@ napi_value JsAttachOptions::Write(napi_env env, const AttachOptions &attachOptio
     napi_create_object(env, &jsObject);
     bool ret = JsUtil::Object::WriteProperty(
         env, jsObject, "requestKeyboardReason", static_cast<uint32_t>(attachOptions.requestKeyboardReason));
+    ret = ret && JsUtil::Object::WriteProperty(
+        env, jsObject, "isSimpleKeyboardEnabled", attachOptions.isSimpleKeyboardEnabled);
     return ret ? jsObject : JsUtil::Const::Null(env);
 }
 
@@ -1226,6 +1228,8 @@ bool JsAttachOptions::Read(napi_env env, napi_value jsObject, AttachOptions &att
     uint32_t requestKeyboardReason = static_cast<uint32_t>(RequestKeyboardReason::NONE);
     auto ret = JsUtil::Object::ReadProperty(env, jsObject, "requestKeyboardReason", requestKeyboardReason);
     attachOptions.requestKeyboardReason = static_cast<RequestKeyboardReason>(requestKeyboardReason);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "isSimpleKeyboardEnabled",
+        attachOptions.isSimpleKeyboardEnabled);
     return ret;
 }
 
@@ -1323,6 +1327,7 @@ void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attach
     std::string type = "attachOptionsDidChange";
     auto entry = GetEntry(type, [&attachOptions](UvEntry &entry) {
         entry.attachOptions.requestKeyboardReason = attachOptions.requestKeyboardReason;
+        entry.attachOptions.isSimpleKeyboardEnabled = attachOptions.isSimpleKeyboardEnabled;
     });
     if (entry == nullptr) {
         IMSA_HILOGE("failed to get uv entry!");
@@ -1340,7 +1345,7 @@ void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attach
             }
             napi_value attachOptions = JsAttachOptions::Write(env, entry->attachOptions);
             // 0 means the first param of callback.
-            args[0] = { attachOptions };
+            args[0] = attachOptions;
             return true;
         };
         JsCallbackHandler::Traverse({ entry->vecCopy }, { 1, gitAttachOptionsParams });
@@ -1350,16 +1355,9 @@ void JsTextInputClientEngine::OnAttachOptionsChanged(const AttachOptions &attach
 
 napi_value JsTextInputClientEngine::GetAttachOptions(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGD("GetAttachOptions requestKeyboardReason:%{public}d.",
-        InputMethodAbility::GetInstance().GetRequestKeyboardReason());
-    bool flag = IsTargetDeviceType(DEVICE_TYPE_2IN1);
-    if (!flag) {
-        JsUtils::ThrowException(
-            env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED), "only 2in1 supported!", TYPE_NONE);
-        return JsUtil::Const::Null(env);
-    }
-    AttachOptions attachOptions;
-    attachOptions.requestKeyboardReason = InputMethodAbility::GetInstance().GetRequestKeyboardReason();
+    auto attachOptions = InputMethodAbility::GetInstance().GetAttachOptions();
+    IMSA_HILOGD("GetAttachOptions:%{public}d/%{public}d.", attachOptions.requestKeyboardReason,
+        attachOptions.isSimpleKeyboardEnabled);
     return JsAttachOptions::Write(env, attachOptions);
 }
 
@@ -1377,11 +1375,6 @@ napi_value JsTextInputClientEngine::Subscribe(napi_env env, napi_callback_info i
         JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("subscribe failed, type: %{public}s.", type.c_str());
         return nullptr;
-    }
-    if (type == "attachOptionsDidChange" && !IsTargetDeviceType(DEVICE_TYPE_2IN1)) {
-        JsUtils::ThrowException(
-            env, JsUtils::Convert(ErrorCode::ERROR_DEVICE_UNSUPPORTED), "only 2in1 supported!", TYPE_NONE);
-        return JsUtil::Const::Null(env);
     }
     IMSA_HILOGD("subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsTextInputClientEngine *>(JsUtils::GetNativeSelf(env, info));

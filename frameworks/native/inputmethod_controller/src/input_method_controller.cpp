@@ -1150,6 +1150,14 @@ int32_t InputMethodController::SwitchInputMethod(
         return proxy->SwitchInputMethod(name, subName, static_cast<uint32_t>(trigger));
 }
 
+int32_t InputMethodController::SetSimpleKeyboardEnabled(bool enable)
+{
+    InputMethodSyncTrace tracer("IMC_SetSimpleKeyboardEnabled");
+    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+    clientInfo_.config.isSimpleKeyboardEnabled = enable;
+    return ErrorCode::NO_ERROR;
+}
+
 void InputMethodController::OnInputReady(
     sptr<IRemoteObject> agentObject, const std::pair<int64_t, std::string> &imeInfo)
 {
@@ -1220,7 +1228,12 @@ void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChange
         std::lock_guard<std::mutex> lock(cursorInfoMutex_);
         cursorInfo_ = {};
     }
-    clientInfo_.config = {};
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        auto isSimpleKeyboardEnabled = clientInfo_.config.isSimpleKeyboardEnabled;
+        clientInfo_.config = {};
+        clientInfo_.config.isSimpleKeyboardEnabled = isSimpleKeyboardEnabled; // global scope
+    }
 }
 
 void InputMethodController::SelectByRange(int32_t start, int32_t end)

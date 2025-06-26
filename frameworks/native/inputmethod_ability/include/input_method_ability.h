@@ -101,7 +101,6 @@ public:
     int32_t FinishTextPreview(const AsyncIpcCallBack &callback = nullptr);
     int32_t NotifyPanelStatus(bool isUseParameterFlag = false, PanelFlag panelFlag = FLG_FIXED);
     InputAttribute GetInputAttribute();
-    RequestKeyboardReason GetRequestKeyboardReason();
     void OnSetInputType(InputType inputType);
     int32_t SendMessage(const ArrayBuffer &arrayBuffer);
     int32_t RecvMessage(const ArrayBuffer &arrayBuffer);
@@ -111,6 +110,7 @@ public:
     bool HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent> &keyEvent);
     int32_t OnResponse(uint64_t msgId, int32_t code, const ResponseData &data);
     int32_t IsCapacitySupport(int32_t capacity, bool &isSupport);
+    AttachOptions GetAttachOptions();
 
 public:
     /* called from TaskManager worker thread */
@@ -164,9 +164,12 @@ private:
     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
 
     void Initialize();
-    int32_t InvokeStartInputCallback(bool isNotifyInputStart);
+    int32_t InvokeStartInputCallbackWithInfoRestruct(const TextTotalConfig &textConfig, bool isNotifyInputStart);
     int32_t InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart);
-    bool IsInputClientAttachOptionsChanged(RequestKeyboardReason requestKeyboardReason);
+    void HandleRequestKeyboardReasonChanged(const RequestKeyboardReason &requestKeyboardReason);
+    void InvokeAttachOptionsCallback(const AttachOptions &options, bool isFirstNotify = false);
+    void SetAttachOptions(const AttachOptions &options);
+    void ClearAttachOptions();
     int32_t HideKeyboard(Trigger trigger, uint32_t sessionId);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
     /* param flag: ShowPanel is async, show/hide softkeyboard in alphabet keyboard attached,
@@ -176,8 +179,6 @@ private:
         const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger, uint32_t sessionId);
     void SetInputAttribute(const InputAttribute &inputAttribute);
     void ClearInputAttribute();
-    void SetRequestKeyboardReason(RequestKeyboardReason requestKeyboardReason);
-    void ClearRequestKeyboardReason();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
     int32_t HideKeyboardImplWithoutLock(int32_t cmdId, uint32_t sessionId);
     int32_t ShowKeyboardImplWithLock(int32_t cmdId);
@@ -199,6 +200,7 @@ private:
     HiSysEventClientInfo GetBindClientInfo();
     void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);
     void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
+
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
     std::atomic_bool isBound_ { false };
     std::atomic_bool isProxyIme_{ false };
@@ -216,10 +218,10 @@ private:
     bool isDefaultIme_ = false;
     std::mutex inputAttrLock_;
     InputAttribute inputAttribute_ {};
-    std::mutex requestKeyboardReasonLock_;
-    RequestKeyboardReason requestKeyboardReason_ = RequestKeyboardReason::NONE;
     std::recursive_mutex keyboardCmdLock_;
     int32_t cmdId_ = 0;
+    std::mutex attachOptionsLock_;
+    AttachOptions attachOptions_;  // isShowKeyboard not be maintained at present
 
     std::mutex inputTypeLock_;
     InputType inputType_ = InputType::NONE;
