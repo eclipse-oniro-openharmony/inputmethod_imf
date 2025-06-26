@@ -1,17 +1,17 @@
 /*
-* Copyright (c) 2025 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #ifndef FREEZE_MANAGER_H
 #define FREEZE_MANAGER_H
 #include "freeze_manager.h"
@@ -24,7 +24,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr const char *INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
 constexpr const char *STOP_TASK_NAME = "ReportStop";
-constexpr std::int32_t DELAY_TIME = 3000L;
+constexpr const char *PASTEBOARD_STOP_IME_TASK = "PasteboardStopIme";
 void FreezeManager::ControlIme(bool shouldApply)
 {
     if (eventHandler_ == nullptr) {
@@ -49,14 +49,52 @@ void FreezeManager::ControlIme(bool shouldApply)
 void FreezeManager::ReportRss(bool shouldFreeze, pid_t pid)
 {
     auto type = ResourceSchedule::ResType::RES_TYPE_SA_CONTROL_APP_EVENT;
-    auto status = shouldFreeze ? ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP
-                               : ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
-    std::unordered_map<std::string, std::string> payload = { { "saId", std::to_string(INPUT_METHOD_SYSTEM_ABILITY_ID) },
-        { "saName", std::string(INPUT_METHOD_SERVICE_SA_NAME) },
+    auto status = shouldFreeze ? ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP :
+                                 ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
+    std::unordered_map<std::string, std::string> payload = {
+        { "saId",          std::to_string(INPUT_METHOD_SYSTEM_ABILITY_ID)                                      },
+        { "saName",        std::string(INPUT_METHOD_SERVICE_SA_NAME)                                           },
         { "extensionType", std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD)) },
-        { "pid", std::to_string(pid) } };
+        { "pid",           std::to_string(pid)                                                                 },
+    };
     IMSA_HILOGD("report RSS should freeze: %{public}d.", shouldFreeze);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
+}
+
+void FreezeManager::PasteBoardActiveIme(int32_t delayTime)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!isFrozen_) {
+        IMSA_HILOGI("IME is not frozen, no need active");
+        return;
+    }
+
+    IMSA_HILOGI("Pasteboard active IME");
+    ReportRss(false, pid_);
+    if (eventHandler_ == nullptr) {
+        IMSA_HILOGE("eventHandler_ is nullptr.");
+        ReportRss(true, pid_);
+        return;
+    }
+
+    eventHandler_->RemoveTask(PASTEBOARD_STOP_IME_TASK);
+    std::weak_ptr<FreezeManager> self = shared_from_this();
+    eventHandler_->PostTask(
+        [self]() {
+            auto sharedSelf = self.lock();
+            if (sharedSelf == nullptr) {
+                IMSA_HILOGE("sharedSelf is nullptr.");
+                return;
+            }
+            std::lock_guard<std::mutex> lock(sharedSelf->mutex_);
+            if (!sharedSelf->isFrozen_) {
+                IMSA_HILOGI("Ime is not frozen, no need to freeze");
+                return;
+            }
+            IMSA_HILOGI("Pasteboard freeze IME");
+            ReportRss(true, sharedSelf->pid_);
+        },
+        PASTEBOARD_STOP_IME_TASK, delayTime);
 }
 } // namespace MiscServices
 } // namespace OHOS

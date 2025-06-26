@@ -2037,6 +2037,19 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_011, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testInitPasteBoardstart_001
+ * @tc.desc: testInitPasteBoardstart_001
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testInitPasteBoardstart_001, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testInitPasteBoardstart_001 START");
+    ASSERT_NE(imsa_, nullptr);
+    auto ret = imsa_->InitPasteboardMonitor();
+    EXPECT_TRUE(ret);
+    imsa_->HandlePasteboardStarted();
+}
+/**
  * @tc.name: testInvokeAttachOptionsCallback
  * @tc.desc: testInvokeAttachOptionsCallback
  * @tc.type: FUNC
