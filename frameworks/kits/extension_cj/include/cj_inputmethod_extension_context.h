@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_CJ_INPUTMETHOD_EXTENSION_CONTEXT_H
-#define OHOS_ABILITY_RUNTIME_CJ_INPUTMETHOD_EXTENSION_CONTEXT_H
+#ifndef CJ_INPUTMETHOD_EXTENSION_CONTEXT_H
+#define CJ_INPUTMETHOD_EXTENSION_CONTEXT_H
 
 #include "cj_context.h"
 #include "cj_extension_context.h"
@@ -43,4 +43,4 @@ private:
 } // namespace AbilityRuntime
 } // namespace OHOS
 
-#endif // OHOS_ABILITY_RUNTIME_CJ_INPUTMETHOD_EXTENSION_CONTEXT_H
+#endif // CJ_INPUTMETHOD_EXTENSION_CONTEXT_H

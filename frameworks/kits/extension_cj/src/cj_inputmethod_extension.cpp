@@ -36,7 +36,7 @@ constexpr int32_t SUCCESS_CODE = 0;
 
 extern "C" __attribute__((visibility("default"))) InputMethodExtension *OHOS_ABILITY_CjInputMethodExtension()
 {
-    return new CjInputMethodExtension();
+    return new (std::nothrow) CjInputMethodExtension();
 }
 
 CjInputMethodExtension::CjInputMethodExtension() { }
@@ -45,7 +45,7 @@ CjInputMethodExtension::~CjInputMethodExtension()
 {
     IMSA_HILOGD("~CjInputMethodExtension");
     auto context = GetContext();
-    if (context) {
+    if (context != nullptr) {
         context->Unbind();
     }
     cjObj_.Destroy();
@@ -113,10 +113,6 @@ void CjInputMethodExtension::SystemAbilityStatusChangeListener::OnAddSystemAbili
 void CjInputMethodExtension::OnStart(const AAFwk::Want &want)
 {
     auto task = std::make_shared<TaskAmsInit>();
-    if (task == nullptr) {
-        IMSA_HILOGE("Failed to create TaskAmsInit.");
-        return;
-    }
     TaskManager::GetInstance().PostTask(task);
     InputMethodAbility::GetInstance().InitConnect();
     StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
@@ -127,12 +123,7 @@ void CjInputMethodExtension::OnStart(const AAFwk::Want &want)
     StartAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     cjObj_.OnCreate(want);
     FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
-    auto taskImsaSet = std::make_shared<TaskImsaSetCoreAndAgent>();
-    if (taskImsaSet == nullptr) {
-        IMSA_HILOGE("Failed to create TaskImsaSetCoreAndAgent.");
-        return;
-    }
-    TaskManager::GetInstance().PostTask(taskImsaSet);
+    TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaSetCoreAndAgent>());
     IMSA_HILOGI("ime bind imf");
     FinishAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
     TaskManager::GetInstance().Complete(task->GetSeqId());
@@ -164,7 +155,7 @@ void CjInputMethodExtension::OnStop()
     if (ret) {
         IMSA_HILOGI("the input method extension connection is not disconnected.");
     }
-    IMSA_HILOGI("CjInputMethodExtension %{public}s end.", __func__);
+    IMSA_HILOGI("CjInputMethodExtension OnStop end.");
 }
 
 sptr<IRemoteObject> CjInputMethodExtension::OnConnect(const AAFwk::Want &want)
@@ -234,24 +225,21 @@ void CjInputMethodExtension::OnChange(Rosen::DisplayId displayId)
 
     bool isConfigChanged = false;
     auto configUtils = std::make_shared<ConfigurationUtils>();
-    if (configUtils == nullptr) {
-        IMSA_HILOGE("Failed to create ConfigurationUtils");
-        return;
-    }
     configUtils->UpdateDisplayConfig(displayId, contextConfig, context->GetResourceManager(), isConfigChanged);
     IMSA_HILOGD("OnChange, isConfigChanged: %{public}d, Config after update: %{public}s.", isConfigChanged,
         contextConfig->GetName().c_str());
 
-    if (isConfigChanged) {
-        auto inputMethodExtension = std::static_pointer_cast<CjInputMethodExtension>(shared_from_this());
-        auto task = [inputMethodExtension]() {
-            if (inputMethodExtension) {
-                inputMethodExtension->ConfigurationUpdated();
-            }
-        };
-        if (handler_ != nullptr) {
-            handler_->PostTask(task, "CjInputMethodExtension:OnChange", 0, AppExecFwk::EventQueue::Priority::VIP);
+    if (!isConfigChanged) {
+        return;
+    }
+    auto inputMethodExtension = std::static_pointer_cast<CjInputMethodExtension>(shared_from_this());
+    auto task = [inputMethodExtension]() {
+        if (inputMethodExtension) {
+            inputMethodExtension->ConfigurationUpdated();
         }
+    };
+    if (handler_ != nullptr) {
+        handler_->PostTask(task, "CjInputMethodExtension:OnChange", 0, AppExecFwk::EventQueue::Priority::VIP);
     }
 }
 } // namespace AbilityRuntime

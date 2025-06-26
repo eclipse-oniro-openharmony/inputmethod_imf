@@ -13,18 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_CJ_INPUTMETHOD_EXTENSION_OBJECT_H
-#define OHOS_ABILITY_RUNTIME_CJ_INPUTMETHOD_EXTENSION_OBJECT_H
+#ifndef CJ_INPUTMETHOD_EXTENSION_OBJECT_H
+#define CJ_INPUTMETHOD_EXTENSION_OBJECT_H
 
 #include "cj_common_ffi.h"
 #include "configuration.h"
 #include "want.h"
-
-#ifdef WINDOWS_PLATFORM
-#define CJ_EXPORT __declspec(dllexport)
-#else
-#define CJ_EXPORT __attribute__((visibility("default")))
-#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -36,7 +30,7 @@ using WantHandle = void *;
  */
 class CjInputMethodExtensionObject {
 public:
-    CjInputMethodExtensionObject() : cjID_(0) { }
+    CjInputMethodExtensionObject() : cjId_(0) { }
     ~CjInputMethodExtensionObject() = default;
 
     int32_t Init(const std::string &abilityName, InputMethodExtesionAbilityHandle handle);
@@ -45,9 +39,9 @@ public:
     void Destroy();
 
 protected:
-    int64_t cjID_;
+    int64_t cjId_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
 
-#endif // OHOS_ABILITY_RUNTIME_CJ_INPUTMETHOD_EXTENSION_OBJECT_H
+#endif // CJ_INPUTMETHOD_EXTENSION_OBJECT_H

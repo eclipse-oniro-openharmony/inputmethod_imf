@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef FOUNDATION_ABILITYRUNTIME_OHOS_CJ_INPUTMETHOD_EXTENSION_H
-#define FOUNDATION_ABILITYRUNTIME_OHOS_CJ_INPUTMETHOD_EXTENSION_H
+#ifndef CJ_INPUTMETHOD_EXTENSION_H
+#define CJ_INPUTMETHOD_EXTENSION_H
 
 #include "cj_inputmethod_extension_context.h"
 #include "cj_inputmethod_extension_object.h"
@@ -50,7 +50,7 @@ class CjInputMethodExtension : public InputMethodExtension {
 
 public:
     CjInputMethodExtension();
-    virtual ~CjInputMethodExtension() override;
+    ~CjInputMethodExtension() override;
     static CjInputMethodExtension *cjInputMethodExtension;
     /**
      * @brief Create CjInputMethodExtension.
@@ -68,7 +68,7 @@ public:
      * @param handler the extension handler.
      * @param token the remote token.
      */
-    virtual void Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &record,
+    void Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &record,
         const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
         std::shared_ptr<AppExecFwk::AbilityHandler> &handler, const sptr<IRemoteObject> &token) override;
 
@@ -79,7 +79,7 @@ public:
      * This function can be called only once in the entire lifecycle of an extension.
      * @param Want Indicates the {@link Want} structure containing startup information about the extension.
      */
-    virtual void OnStart(const AAFwk::Want &want) override;
+    void OnStart(const AAFwk::Want &want) override;
 
     /**
      * @brief Called when this InputMethod extension is connected for the first time.
@@ -91,7 +91,7 @@ public:
      *
      * @return Returns a pointer to the <b>sid</b> of the connected InputMethod extension.
      */
-    virtual sptr<IRemoteObject> OnConnect(const AAFwk::Want &want) override;
+    sptr<IRemoteObject> OnConnect(const AAFwk::Want &want) override;
 
     /**
      * @brief Called when all abilities connected to this InputMethod extension are disconnected.
@@ -99,7 +99,7 @@ public:
      * You can override this function to implement your own processing logic.
      *
      */
-    virtual void OnDisconnect(const AAFwk::Want &want) override;
+    void OnDisconnect(const AAFwk::Want &want) override;
 
     /**
      * @brief Called back when InputMethod is started.
@@ -115,7 +115,7 @@ public:
      * by 1 every time the extension is started. For example, if the extension has been started for six times, the
      * value of startId is 6.
      */
-    virtual void OnCommand(const AAFwk::Want &want, bool restart, int startId) override;
+    void OnCommand(const AAFwk::Want &want, bool restart, int startId) override;
 
     /**
      * @brief Called when this extension enters the <b>STATE_STOP</b> state.
@@ -123,14 +123,14 @@ public:
      * The extension in the <b>STATE_STOP</b> is being destroyed.
      * You can override this function to implement your own processing logic.
      */
-    virtual void OnStop() override;
+    void OnStop() override;
 
     /**
      * @brief Called when the system configuration is updated.
      *
      * @param configuration Indicates the updated configuration information.
      */
-    virtual void OnConfigurationUpdated(const AppExecFwk::Configuration &config) override;
+    void OnConfigurationUpdated(const AppExecFwk::Configuration &config) override;
 
     /**
      * @brief Called when configuration changed, including system configuration and window configuration.
@@ -200,8 +200,8 @@ private:
     public:
         SystemAbilityStatusChangeListener(sptr<CjInputMethodExtensionDisplayListener> displayListener)
             : listener_(displayListener) { };
-        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
-        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override { }
+        void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+        void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override { }
 
     private:
         sptr<CjInputMethodExtensionDisplayListener> listener_ = nullptr;
@@ -211,4 +211,4 @@ private:
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
-#endif // FOUNDATION_ABILITYRUNTIME_OHOS_CJ_INPUTMETHOD_EXTENSION_H
+#endif // CJ_INPUTMETHOD_EXTENSION_H

@@ -14,9 +14,11 @@
  */
 
 #include "cj_inputmethod_extension_context.h"
+#include "global.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+static const ErrCode ERROR_INVALIDE_CONTEXT = 16000011;
 
 CjInputMethodExtensionContext::CjInputMethodExtensionContext(
     const std::shared_ptr<InputMethodExtensionContext> &context)
@@ -31,12 +33,22 @@ std::shared_ptr<InputMethodExtensionContext> CjInputMethodExtensionContext::GetC
 
 ErrCode CjInputMethodExtensionContext::StartAbility(const AAFwk::Want &want)
 {
-    return GetContext()->StartAbility(want);
+    auto context = GetContext();
+    if (context == nullptr) {
+        IMSA_HILOGE("context is nullptr!");
+        return ERROR_INVALIDE_CONTEXT;
+    }
+    return context->StartAbility(want);
 }
 
 ErrCode CjInputMethodExtensionContext::TerminateAbility()
 {
-    return GetContext()->TerminateAbility();
+    auto context = GetContext();
+    if (context == nullptr) {
+        IMSA_HILOGE("context is nullptr!");
+        return ERROR_INVALIDE_CONTEXT;
+    }
+    return context->TerminateAbility();
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

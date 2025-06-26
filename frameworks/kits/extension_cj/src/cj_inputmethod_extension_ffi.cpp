@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 extern "C" {
-CJ_EXPORT int32_t FfiInputMethodExtensionContextGetContext(InputMethodExtesionAbilityHandle extAbility, int64_t *id)
+FFI_EXPORT int32_t FfiInputMethodExtensionContextGetContext(InputMethodExtesionAbilityHandle extAbility, int64_t *id)
 {
     auto ability = static_cast<CjInputMethodExtension *>(extAbility);
     if (ability == nullptr) {
@@ -48,7 +48,7 @@ CJ_EXPORT int32_t FfiInputMethodExtensionContextGetContext(InputMethodExtesionAb
     return SUCCESS_CODE;
 }
 
-CJ_EXPORT int32_t FfiInputMethodExtensionContextDestroy(int64_t id)
+FFI_EXPORT int32_t FfiInputMethodExtensionContextDestroy(int64_t id)
 {
     auto cjContext = FFI::FFIData::GetData<CjInputMethodExtensionContext>(id);
     if (cjContext == nullptr) {
@@ -58,7 +58,7 @@ CJ_EXPORT int32_t FfiInputMethodExtensionContextDestroy(int64_t id)
     return cjContext->TerminateAbility();
 }
 
-CJ_EXPORT int32_t FfiInputMethodExtensionContextStartAbility(int64_t id, WantHandle want)
+FFI_EXPORT int32_t FfiInputMethodExtensionContextStartAbility(int64_t id, WantHandle want)
 {
     auto cjContext = FFI::FFIData::GetData<CjInputMethodExtensionContext>(id);
     if (cjContext == nullptr) {

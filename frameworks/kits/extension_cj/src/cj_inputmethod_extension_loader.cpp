@@ -20,33 +20,20 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-#if defined(WINDOWS_PLATFORM)
-constexpr char CJ_INPUTMETHOD_EXT_LIB_NAME[] = "libcj_inputmethod_extension_ffi.dll";
-#elif defined(MAC_PLATFORM)
-constexpr char CJ_INPUTMETHOD_EXT_LIB_NAME[] = "libcj_inputmethod_extension_ffi.dylib";
-#else
 constexpr char CJ_INPUTMETHOD_EXT_LIB_NAME[] = "libcj_inputmethod_extension_ffi.z.so";
-#endif
 
 using CreateFunc = InputMethodExtension *(*)();
 static constexpr char CJ_INPUTMETHOD_EXT_CREATE_FUNC[] = "OHOS_ABILITY_CjInputMethodExtension";
 
-#ifndef CJ_EXPORT
-#ifndef __WINDOWS__
-#define CJ_EXPORT __attribute__((visibility("default")))
-#else
-#define CJ_EXPORT __declspec(dllexport)
-#endif
-#endif
 } // namespace
 
 InputMethodExtension *CreateCjInputMethodExtension()
 {
     void *handle = dlopen(CJ_INPUTMETHOD_EXT_LIB_NAME, RTLD_LAZY);
     if (handle == nullptr) {
-        IMSA_HILOGE("open cj_inputmthod_extension library %{public}s failed, reason: %{public}sn",
+        IMSA_HILOGE("open cj_inputmthod_extension library %{public}s failed, reason: %{public}s",
             CJ_INPUTMETHOD_EXT_LIB_NAME, dlerror());
-        return new InputMethodExtension();
+        return new (std::nothrow) InputMethodExtension();
     }
 
     auto entry = reinterpret_cast<CreateFunc>(dlsym(handle, CJ_INPUTMETHOD_EXT_CREATE_FUNC));
@@ -54,14 +41,14 @@ InputMethodExtension *CreateCjInputMethodExtension()
         dlclose(handle);
         IMSA_HILOGE("get cj_inputmthod_extension symbol %{public}s in %{public}s failed",
             CJ_INPUTMETHOD_EXT_CREATE_FUNC, CJ_INPUTMETHOD_EXT_LIB_NAME);
-        return new InputMethodExtension();
+        return new (std::nothrow) InputMethodExtension();
     }
 
     auto instance = entry();
     if (instance == nullptr) {
         dlclose(handle);
         IMSA_HILOGE("get cj_inputmthod_extension instance in %{public}s failed", CJ_INPUTMETHOD_EXT_LIB_NAME);
-        return new InputMethodExtension();
+        return new (std::nothrow) InputMethodExtension();
     }
 
     return instance;

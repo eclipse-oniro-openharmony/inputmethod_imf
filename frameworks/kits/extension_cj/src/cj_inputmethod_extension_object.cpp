@@ -40,39 +40,45 @@ namespace AbilityRuntime {
 void CjInputMethodExtensionObject::OnCreate(const AAFwk::Want &want)
 {
     IMSA_HILOGD("OnCreate");
-    if (cjID_ != 0) {
-        if (g_cjFuncs.onCreateCjInputMethodExtensionAbility == nullptr) {
-            IMSA_HILOGE("onCreateCjInputMethodExtensionAbility is not registered");
-            return;
-        }
-        WantHandle wantHandle = const_cast<AAFwk::Want *>(&want);
-        g_cjFuncs.onCreateCjInputMethodExtensionAbility(cjID_, wantHandle);
+    if (cjId_ == 0) {
+        IMSA_HILOGE("invalid instance id");
+        return;
     }
+    if (g_cjFuncs.onCreateCjInputMethodExtensionAbility == nullptr) {
+        IMSA_HILOGE("onCreateCjInputMethodExtensionAbility is not registered");
+        return;
+    }
+    WantHandle wantHandle = const_cast<AAFwk::Want *>(&want);
+    g_cjFuncs.onCreateCjInputMethodExtensionAbility(cjId_, wantHandle);
 }
 
 void CjInputMethodExtensionObject::OnDestroy()
 {
     IMSA_HILOGD("OnDestroy");
-    if (cjID_ != 0) {
-        if (g_cjFuncs.onDestroyCjInputMethodExtensionAbility == nullptr) {
-            IMSA_HILOGE("onDestroyCjInputMethodExtensionAbility is not registered");
-            return;
-        }
-        g_cjFuncs.onDestroyCjInputMethodExtensionAbility(cjID_);
+    if (cjId_ == 0) {
+        IMSA_HILOGE("invalid instance id");
+        return;
     }
+    if (g_cjFuncs.onDestroyCjInputMethodExtensionAbility == nullptr) {
+        IMSA_HILOGE("onDestroyCjInputMethodExtensionAbility is not registered");
+        return;
+    }
+    g_cjFuncs.onDestroyCjInputMethodExtensionAbility(cjId_);
 }
 
 void CjInputMethodExtensionObject::Destroy()
 {
     IMSA_HILOGD("destroy CjInputMethodExtensionObject");
-    if (cjID_ != 0) {
-        if (g_cjFuncs.releaseCjInputMethodExtensionAbility == nullptr) {
-            IMSA_HILOGE("releaseCjInputMethodExtensionAbility is not registered");
-            return;
-        }
-        g_cjFuncs.releaseCjInputMethodExtensionAbility(cjID_);
-        cjID_ = 0;
+    if (cjId_ == 0) {
+        IMSA_HILOGE("invalid instance id");
+        return;
     }
+    if (g_cjFuncs.releaseCjInputMethodExtensionAbility == nullptr) {
+        IMSA_HILOGE("releaseCjInputMethodExtensionAbility is not registered");
+        return;
+    }
+    g_cjFuncs.releaseCjInputMethodExtensionAbility(cjId_);
+    cjId_ = 0;
 }
 
 int32_t CjInputMethodExtensionObject::Init(const std::string &abilityName, InputMethodExtesionAbilityHandle extAbility)
@@ -82,8 +88,8 @@ int32_t CjInputMethodExtensionObject::Init(const std::string &abilityName, Input
         IMSA_HILOGE("Function create is not registered.");
         return CJ_OBJECT_ERR_CODE;
     }
-    cjID_ = g_cjFuncs.createCjInputMethodExtensionAbility(abilityName.c_str(), extAbility);
-    if (cjID_ == 0) {
+    cjId_ = g_cjFuncs.createCjInputMethodExtensionAbility(abilityName.c_str(), extAbility);
+    if (cjId_ == 0) {
         IMSA_HILOGE("Failed to init CjInputMethodExtensionAbility: %{public}s is not registered.", abilityName.c_str());
         return CJ_OBJECT_ERR_CODE;
     }
@@ -91,12 +97,12 @@ int32_t CjInputMethodExtensionObject::Init(const std::string &abilityName, Input
         IMSA_HILOGE("Function init is not registered.");
         return CJ_OBJECT_ERR_CODE;
     }
-    g_cjFuncs.initCjInputMethodExtensionAbility(cjID_, extAbility);
+    g_cjFuncs.initCjInputMethodExtensionAbility(cjId_, extAbility);
     return 0;
 }
 
 extern "C" {
-CJ_EXPORT void FfiInputMethodExtensionAbilityRegisterFuncs(void (*registerFunc)(CJInputMethodExtensionAbilityFuncs *))
+FFI_EXPORT void FfiInputMethodExtensionAbilityRegisterFuncs(void (*registerFunc)(CJInputMethodExtensionAbilityFuncs *))
 {
     IMSA_HILOGD("start register CJInputMethodExtensionAbility function");
     if (g_cjFuncs.createCjInputMethodExtensionAbility != nullptr) {
