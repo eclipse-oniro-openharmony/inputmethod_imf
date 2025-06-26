@@ -2073,5 +2073,25 @@ HWTEST_F(InputMethodAbilityTest, testInvokeAttachOptionsCallback, TestSize.Level
     auto ret = inputMethodAbility_.IsDisplayChanged(displayid, displayidNew);
     EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: testClearBindInfo
+ * @tc.desc: testClearBindInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testClearBindInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testClearBindInfo START");
+    TextListener::ResetParam();
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    AttachOptions options;
+    options.isSimpleKeyboardEnabled = true;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputMethodAbility_.OnClientInactive(inputMethodAbility_.dataChannelObject_);
+    InputAttribute nullAttribute = {};
+    EXPECT_TRUE(inputMethodAbility_.GetInputAttribute() == nullAttribute);
+    EXPECT_TRUE(inputMethodAbility_.dataChannelObject_ == nullptr);
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
 } // namespace MiscServices
 } // namespace OHOS

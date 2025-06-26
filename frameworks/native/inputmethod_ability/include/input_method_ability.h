@@ -198,8 +198,10 @@ private:
     int32_t GetTextIndexAtCursorInner(int32_t &index, const AsyncIpcCallBack &callback = nullptr);
     void SetBindClientInfo(const InputClientInfo &clientInfo);
     HiSysEventClientInfo GetBindClientInfo();
+    void ClearBindClientInfo();
     void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);
     void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
+    void ClearBindInfo(const sptr<IRemoteObject> &channel);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};
     std::atomic_bool isBound_ { false };

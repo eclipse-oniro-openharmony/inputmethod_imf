@@ -355,14 +355,20 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject, uint32_
     int32_t cmdCount = ++cmdId_;
     IMSA_HILOGI("IMA");
     HideKeyboardImplWithoutLock(cmdCount, sessionId);
-    ClearDataChannel(channelObject);
-    ClearInputAttribute();
-    ClearAttachOptions();
+    ClearBindInfo(channelObject);
     ClearInputType();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::ClearBindInfo(const sptr<IRemoteObject> &channel)
+{
+    ClearDataChannel(channel);
+    ClearInputAttribute();
+    ClearAttachOptions();
+    ClearBindClientInfo();
 }
 
 int32_t InputMethodAbility::DispatchKeyEvent(
@@ -1407,8 +1413,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         }
         return false;
     });
-    ClearDataChannel(channel);
-    ClearAttachOptions();
+    ClearBindInfo(channel);
 }
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)
@@ -1701,6 +1706,12 @@ HiSysEventClientInfo InputMethodAbility::GetBindClientInfo()
 {
     std::lock_guard<std::mutex> lock(bindClientInfoLock_);
     return bindClientInfo_;
+}
+
+void InputMethodAbility::ClearBindClientInfo()
+{
+    std::lock_guard<std::mutex> lock(bindClientInfoLock_);
+    bindClientInfo_ = { };
 }
 
 void InputMethodAbility::ReportImeStartInput(
