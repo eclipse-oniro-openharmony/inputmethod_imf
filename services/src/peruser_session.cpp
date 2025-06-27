@@ -738,11 +738,11 @@ int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, c
 bool PerUserSession::CompareExchange(const int32_t value)
 {
     std::lock_guard<std::mutex> lock(largeMemoryStateMutex_);
-    if (largeMemoryState_ == memoryState) {
+    if (largeMemoryState_ == value) {
         IMSA_HILOGD("Duplicate message.");
         return true;
     }
-    largeMemoryState_ = memoryState;
+    largeMemoryState_ = value;
     return false;
 }
 
