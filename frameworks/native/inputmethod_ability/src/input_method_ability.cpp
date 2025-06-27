@@ -572,15 +572,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
-    auto task = [this, textConfig]() {
-        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
-            if (panel != nullptr) {
-                panel->SetCallingWindow(textConfig.windowId);
-            }
-            return false;
-        });
-    };
-    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
+    NotifyInfoToWmsInStartInput(textConfig);
     SetInputAttribute(textConfig.inputAttribute);
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
@@ -614,6 +606,27 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig)
+{
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGD("imeListener_ is nullptr!");
+        return;
+    }
+    auto task = [this, textConfig]() {
+        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
+            if (panel == nullptr) {
+                return false;
+            }
+            if (type == SOFT_KEYBOARD && panel->GetPanelFlag() == FLG_FIXED && panel->IsShowing()) {
+                panel->SetTextFieldAvoidInfo(textConfig.positionY, textConfig.height);
+            }
+            panel->SetCallingWindow(textConfig.windowId);
+            return false;
+        });
+    };
+    imeListener_->PostTaskToEventHandler(task, "NotifyInfoToWms");
 }
 
 void InputMethodAbility::HandleRequestKeyboardReasonChanged(const RequestKeyboardReason &requestKeyboardReason)
