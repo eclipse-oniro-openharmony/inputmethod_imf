@@ -737,7 +737,7 @@ int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, c
 
 bool PerUserSession::CompareExchange(const int32_t value)
 {
-    std::shared_lock<std::shared_mutex> lock(largeMemoryStateMutex_);
+    std::lock_guard<std::mutex> lock(largeMemoryStateMutex_);
     if (largeMemoryState_ == memoryState) {
         IMSA_HILOGD("Duplicate message.");
         return true;
@@ -844,7 +844,7 @@ int32_t PerUserSession::InitInputControlChannel()
 
 bool PerUserSession::IsLargeMemoryStateNeed()
 {
-    std::shared_lock<std::shared_mutex> lock(largeMemoryStateMutex_);
+    std::lock_guard<std::mutex> lock(largeMemoryStateMutex_);
     if (largeMemoryState_ == LargeMemoryState::LARGE_MEMORY_NEED) {
         IMSA_HILOGI("large memory state is True");
         return true;
@@ -870,7 +870,7 @@ void PerUserSession::StartImeInImeDied()
         IMSA_HILOGW("not ready to start ime.");
         return;
     }
-    if (isLargeMemoryStateNeed()) {
+    if (IsLargeMemoryStateNeed()) {
         return;
     }
     StartImeIfInstalled();

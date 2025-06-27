@@ -17,7 +17,6 @@
 #define SERVICES_INCLUDE_PERUSER_SESSION_H
 
 #include <unordered_set>
-#include <shared_mutex>
 
 #include "block_queue.h"
 #include "client_group.h"
@@ -291,7 +290,7 @@ private:
     std::mutex virtualDisplayLock_{};
     std::unordered_set<uint64_t> virtualScreenDisplayId_;
     std::atomic<uint64_t> agentDisplayId_{ DEFAULT_DISPLAY_ID };
-    std::shared_lock largeMemoryStateMutex_;
+    std::mutex largeMemoryStateMutex_{};
     int32_t largeMemoryState_ = LargeMemoryState::LARGE_MEMORY_NOT_NEED;
     std::mutex clientGroupLock_{};
     std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
