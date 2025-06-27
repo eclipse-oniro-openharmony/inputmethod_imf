@@ -344,6 +344,9 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
     }
     if (dataChannelObject_.GetRefPtr() == channel.GetRefPtr()) {
         dataChannelObject_ = nullptr;
+        if (dataChannelProxyWrap_ != nullptr) {
+            dataChannelProxyWrap_->ClearRspHandlers();
+        }
         dataChannelProxyWrap_ = nullptr;
         IMSA_HILOGD("end.");
     }
@@ -572,7 +575,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     auto task = [this, textConfig]() {
         panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
             if (panel != nullptr) {
-                panel->SetCallingWindow(textConfig.windowId);
+                panel.SetCallingWindow(textConfig.windowId);
             }
             return false;
         });
@@ -865,6 +868,9 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
     }
     if (agentStub_ != nullptr) {
         channelProxy->SetSpareAgent(agentStub_->AsObject());
+    }
+    if (dataChannelProxyWrap_ != nullptr) {
+        dataChannelProxyWrap_->ClearRspHandlers();
     }
     dataChannelProxyWrap_ = channelWrap;
     dataChannelObject_ = object;

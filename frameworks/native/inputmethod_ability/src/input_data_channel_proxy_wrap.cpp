@@ -36,7 +36,6 @@ InputDataChannelProxyWrap::InputDataChannelProxyWrap(const std::shared_ptr<Input
 
 InputDataChannelProxyWrap::~InputDataChannelProxyWrap()
 {
-    ClearRspHandlers();
 }
 
 int32_t InputDataChannelProxyWrap::InsertText(const std::string &text, const AsyncIpcCallBack &callback)
@@ -71,10 +70,7 @@ int32_t InputDataChannelProxyWrap::GetTextBeforeCursor(
     };
     SyncOutput output = nullptr;
     if (callback == nullptr) {
-        output = [&text](const ResponseData &data) -> void {
-            VariantUtil::GetValue(data, text);
-            IMSA_HILOGD("text:%{public}s.", text.c_str());
-        };
+        output = [&text](const ResponseData &data) -> void { VariantUtil::GetValue(data, text); };
     }
     return Request(callback, work, callback == nullptr, output);
 }
@@ -243,7 +239,6 @@ int32_t InputDataChannelProxyWrap::HandleResponse(uint64_t msgId, const Response
         rspHandlers_.erase(it);
         return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGD("rsp info id: %{public}" PRIu64 " ret: %{public}d", msgId, rspInfo.dealRet_);
     if (it->second->syncBlockData_ != nullptr) {
         it->second->syncBlockData_->SetValue(rspInfo);
     }
