@@ -358,14 +358,20 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject, uint32_
     int32_t cmdCount = ++cmdId_;
     IMSA_HILOGI("IMA");
     HideKeyboardImplWithoutLock(cmdCount, sessionId);
-    ClearDataChannel(channelObject);
-    ClearInputAttribute();
-    ClearAttachOptions();
+    ClearBindInfo(channelObject);
     ClearInputType();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::ClearBindInfo(const sptr<IRemoteObject> &channel)
+{
+    ClearDataChannel(channel);
+    ClearInputAttribute();
+    ClearAttachOptions();
+    ClearBindClientInfo();
 }
 
 int32_t InputMethodAbility::DispatchKeyEvent(
@@ -606,27 +612,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
     return ErrorCode::NO_ERROR;
-}
-
-void InputMethodAbility::NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig)
-{
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGD("imeListener_ is nullptr!");
-        return;
-    }
-    auto task = [this, textConfig]() {
-        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
-            if (panel == nullptr) {
-                return false;
-            }
-            if (type == SOFT_KEYBOARD && panel->GetPanelFlag() == FLG_FIXED && panel->IsShowing()) {
-                panel->SetTextFieldAvoidInfo(textConfig.positionY, textConfig.height);
-            }
-            panel->SetCallingWindow(textConfig.windowId);
-            return false;
-        });
-    };
-    imeListener_->PostTaskToEventHandler(task, "NotifyInfoToWms");
 }
 
 void InputMethodAbility::HandleRequestKeyboardReasonChanged(const RequestKeyboardReason &requestKeyboardReason)
@@ -884,6 +869,27 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
     }
     dataChannelProxyWrap_ = channelWrap;
     dataChannelObject_ = object;
+}
+
+bool InputMethodAbility::NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig)
+{
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener_ is nullptr!");
+        return false;
+    }
+    auto task = [this, textConfig]() {
+        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
+            if (panel == nullptr) {
+                return false;
+            }
+            if (type == SOFT_KEYBOARD && panel->GetPanelFlag() == FLG_FIXED && panel->IsShowing()) {
+                panel->SetTextFieldAvoidInfo(textConfig.positionY, textConfig.height);
+            }
+            panel->SetCallingWindow(textConfig.windowId);
+            return false;
+        });
+    };
+    return imeListener_->PostTaskToEventHandler(task, "NotifyInfoToWms");
 }
 
 std::shared_ptr<InputDataChannelProxyWrap> InputMethodAbility::GetInputDataChannelProxyWrap()
@@ -1427,8 +1433,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         }
         return false;
     });
-    ClearDataChannel(channel);
-    ClearAttachOptions();
+    ClearBindInfo(channel);
 }
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)
@@ -1721,6 +1726,12 @@ HiSysEventClientInfo InputMethodAbility::GetBindClientInfo()
 {
     std::lock_guard<std::mutex> lock(bindClientInfoLock_);
     return bindClientInfo_;
+}
+
+void InputMethodAbility::ClearBindClientInfo()
+{
+    std::lock_guard<std::mutex> lock(bindClientInfoLock_);
+    bindClientInfo_ = { };
 }
 
 void InputMethodAbility::ReportImeStartInput(
