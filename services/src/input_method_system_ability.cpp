@@ -1737,6 +1737,10 @@ void InputMethodSystemAbility::DealSwitchRequest()
             SwitchType();
         } while (checkSwitchCount());
     };
+    if (serviceHandler_ == nullptr) {
+        IMSA_HILOGE("serviceHandler_ is nullptr");
+        return;
+    }
     // 0 means delay time is 0.
     serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
