@@ -23,6 +23,7 @@
 #include "input_method_agent_service_impl.h"
 #include "input_method_core_service_impl.h"
 #include "input_method_system_ability_proxy.h"
+#include "input_method_tools.h"
 #include "input_method_utils.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
@@ -36,7 +37,6 @@
 #include "task_manager.h"
 #include "tasks/task.h"
 #include "tasks/task_imsa.h"
-#include "input_method_tools.h"
 #include "variant_util.h"
 
 namespace OHOS {
@@ -166,9 +166,9 @@ int32_t InputMethodAbility::RegisterProxyIme(uint64_t displayId)
         IMSA_HILOGE("agent nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    int32_t ret = displayId == DEFAULT_DISPLAY_ID
-                      ? proxy->SetCoreAndAgent(coreStub_, agentStub_->AsObject())
-                      : proxy->RegisterProxyIme(displayId, coreStub_, agentStub_->AsObject());
+    int32_t ret = displayId == DEFAULT_DISPLAY_ID ?
+        proxy->SetCoreAndAgent(coreStub_, agentStub_->AsObject()) :
+        proxy->RegisterProxyIme(displayId, coreStub_, agentStub_->AsObject());
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed, displayId: %{public}" PRIu64 ", ret: %{public}d!", displayId, ret);
         return ret;
@@ -274,13 +274,16 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
         if (needShow) {
             ret = ShowKeyboardImplWithoutLock(cmdId_);
         }
-        ReportImeStartInput(static_cast<int32_t>(IInputMethodCoreIpcCode::COMMAND_START_INPUT),
-            ret, needShow, endTime - startTime);
+        ReportImeStartInput(
+            static_cast<int32_t>(IInputMethodCoreIpcCode::COMMAND_START_INPUT), ret, needShow, endTime - startTime);
         isImeTerminating.store(false);
     };
     uint64_t seqId = Task::GetNextSeqId();
     if (imeListener_ == nullptr ||
-        !imeListener_->PostTaskToEventHandler([seqId] { TaskManager::GetInstance().Complete(seqId); },
+        !imeListener_->PostTaskToEventHandler(
+            [seqId] {
+                TaskManager::GetInstance().Complete(seqId);
+            },
             "task_manager_complete")) {
         showPanel();
         return ErrorCode::NO_ERROR;
@@ -358,14 +361,20 @@ int32_t InputMethodAbility::StopInput(sptr<IRemoteObject> channelObject, uint32_
     int32_t cmdCount = ++cmdId_;
     IMSA_HILOGI("IMA");
     HideKeyboardImplWithoutLock(cmdCount, sessionId);
-    ClearDataChannel(channelObject);
-    ClearInputAttribute();
-    ClearAttachOptions();
+    ClearBindInfo(channelObject);
     ClearInputType();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::ClearBindInfo(const sptr<IRemoteObject> &channel)
+{
+    ClearDataChannel(channel);
+    ClearInputAttribute();
+    ClearAttachOptions();
+    ClearBindClientInfo();
 }
 
 int32_t InputMethodAbility::DispatchKeyEvent(
@@ -572,22 +581,16 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
-    auto task = [this, textConfig]() {
-        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
-            if (panel != nullptr) {
-                panel.SetCallingWindow(textConfig.windowId);
-            }
-            return false;
-        });
-    };
-    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
+    NotifyInfoToWmsInStartInput(textConfig);
     SetInputAttribute(textConfig.inputAttribute);
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
     }
     AttachOptions options;
     options.requestKeyboardReason = textConfig.requestKeyboardReason;
-    options.isSimpleKeyboardEnabled = textConfig.isSimpleKeyboardEnabled;
+    options.isSimpleKeyboardEnabled = (textConfig.inputAttribute.IsSecurityImeFlag() || !IsDefaultIme())
+                                          ? false
+                                          : textConfig.isSimpleKeyboardEnabled;
     InvokeAttachOptionsCallback(options, isNotifyInputStart || !isNotify_);
     if (isNotifyInputStart || !isNotify_) {
         isNotify_ = true;
@@ -876,6 +879,28 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
     dataChannelObject_ = object;
 }
 
+bool InputMethodAbility::NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig)
+{
+    auto imeListener = GetImeListener();
+    if (imeListener == nullptr) {
+        IMSA_HILOGE("imeListener is nullptr!");
+        return false;
+    }
+    auto task = [this, textConfig]() {
+        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
+            if (panel == nullptr) {
+                return false;
+            }
+            if (type == SOFT_KEYBOARD && panel->GetPanelFlag() == FLG_FIXED && panel->IsShowing()) {
+                panel->SetTextFieldAvoidInfo(textConfig.positionY, textConfig.height);
+            }
+            panel->SetCallingWindow(textConfig.windowId);
+            return false;
+        });
+    };
+    return imeListener->PostTaskToEventHandler(task, "NotifyInfoToWms");
+}
+
 std::shared_ptr<InputDataChannelProxyWrap> InputMethodAbility::GetInputDataChannelProxyWrap()
 {
     std::lock_guard<std::mutex> lock(dataChannelLock_);
@@ -1145,7 +1170,9 @@ int32_t InputMethodAbility::HidePanel(
     info.sessionId = sessionId;
     NotifyPanelStatusInfo(info);
     if (trigger == Trigger::IMF && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-        AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) { ; };
+        AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {
+            ;
+        };
         FinishTextPreview(callback);
     }
     return ErrorCode::NO_ERROR;
@@ -1408,13 +1435,14 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         NotifyPanelStatusInfo(info, channelProxy);
         // finish previewing text when soft keyboard hides
         if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-            AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) { ; };
+            AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {
+                ;
+            };
             FinishTextPreview(callback);
         }
         return false;
     });
-    ClearDataChannel(channel);
-    ClearAttachOptions();
+    ClearBindInfo(channel);
 }
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)
@@ -1617,8 +1645,8 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     if (ret == ErrorCode::NO_ERROR) {
         return ret;
     }
-    ReportImeStartInput(static_cast<int32_t>(IInputMethodCoreIpcCode::COMMAND_START_INPUT),
-        ret, clientInfo.isShowKeyboard);
+    ReportImeStartInput(
+        static_cast<int32_t>(IInputMethodCoreIpcCode::COMMAND_START_INPUT), ret, clientInfo.isShowKeyboard);
     return ret;
 }
 
@@ -1664,8 +1692,8 @@ int32_t InputMethodAbility::FinishTextPreview(const AsyncIpcCallBack &callback)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = FinishTextPreviewInner(callback);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_FINISH_TEXT_PREVIEW),
-        ret, end - start);
+    ReportBaseTextOperation(
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_FINISH_TEXT_PREVIEW), ret, end - start);
     return ret;
 }
 
@@ -1674,8 +1702,8 @@ int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextBeforeCursorInner(number, text, callback);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_BEFORE_CURSOR),
-        ret, end - start);
+    ReportBaseTextOperation(
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_BEFORE_CURSOR), ret, end - start);
     return ret;
 }
 int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
@@ -1683,8 +1711,8 @@ int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &t
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextAfterCursorInner(number, text, callback);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_AFTER_CURSOR),
-        ret, end - start);
+    ReportBaseTextOperation(
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_AFTER_CURSOR), ret, end - start);
     return ret;
 }
 int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index, const AsyncIpcCallBack &callback)
@@ -1692,8 +1720,8 @@ int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index, const AsyncIpcC
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     auto ret = GetTextIndexAtCursorInner(index, callback);
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_INDEX_AT_CURSOR),
-        ret, end - start);
+    ReportBaseTextOperation(
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_INDEX_AT_CURSOR), ret, end - start);
     return ret;
 }
 
@@ -1707,6 +1735,12 @@ HiSysEventClientInfo InputMethodAbility::GetBindClientInfo()
 {
     std::lock_guard<std::mutex> lock(bindClientInfoLock_);
     return bindClientInfo_;
+}
+
+void InputMethodAbility::ClearBindClientInfo()
+{
+    std::lock_guard<std::mutex> lock(bindClientInfoLock_);
+    bindClientInfo_ = { };
 }
 
 void InputMethodAbility::ReportImeStartInput(
@@ -1805,7 +1839,9 @@ bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent
     }
     int32_t keyCode = keyEvent->GetKeyCode();
     std::string inputNumber;
-    AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) { ; };
+    AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {
+        ;
+    };
     if (MMI::KeyEvent::KEYCODE_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_9) {
         IMSA_HILOGI("auto input a number");
         channel->InsertText(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_0), callback);

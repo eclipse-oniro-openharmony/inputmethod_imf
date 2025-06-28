@@ -121,6 +121,12 @@ public:
             IMSA_HILOGI("InputMethodEngineListenerImpl OnCallingDisplayIdChanged displayId:%{public}" PRIu64"",
                 callingDisplayId);
         }
+
+        bool PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)
+        {
+            task();
+            return true;
+        }
     };
 
     class TextInputClientListenerImpl : public TextInputClientListener {
@@ -1809,6 +1815,46 @@ HWTEST_F(InputMethodAbilityTest, testOnCallingDisplayIdChanged, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testNotifyInfoToWmsInStartInput
+ * @tc.desc: Test testNotifyInfoToWmsInStartInput
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testNotifyInfoToWmsInStartInput, TestSize.Level0)
+{
+    IMSA_HILOGI("testNotifyInfoToWmsInStartInput start.");
+    auto oldImeListener = inputMethodAbility_.imeListener_;
+    auto oldPanels = inputMethodAbility_.panels_;
+
+    inputMethodAbility_.imeListener_ = nullptr;
+    TextTotalConfig textConfig;
+    auto ret = inputMethodAbility_.NotifyInfoToWmsInStartInput(textConfig);
+    EXPECT_FALSE(ret);
+    inputMethodAbility_.imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
+    ret = inputMethodAbility_.NotifyInfoToWmsInStartInput(textConfig);
+    EXPECT_TRUE(ret);
+    inputMethodAbility_.panels_.Clear();
+    auto panel1 = std::make_shared<InputMethodPanel>();
+    panel1->panelType_ = PanelType::SOFT_KEYBOARD;
+    panel1->panelFlag_ = PanelFlag::FLG_FIXED;
+    InputMethodAbilityTest::inputMethodAbility_.panels_.Insert(PanelType::SOFT_KEYBOARD, panel1);
+    auto panel2 = std::make_shared<InputMethodPanel>();
+    panel2->panelType_ = PanelType::SOFT_KEYBOARD;
+    panel2->panelFlag_ = PanelFlag::FLG_FLOATING;
+    InputMethodAbilityTest::inputMethodAbility_.panels_.Insert(PanelType::SOFT_KEYBOARD, panel2);
+    auto panel3 = std::make_shared<InputMethodPanel>();
+    panel3->panelType_ = PanelType::STATUS_BAR;
+    panel3->panelFlag_ = PanelFlag::FLG_CANDIDATE_COLUMN;
+    InputMethodAbilityTest::inputMethodAbility_.panels_.Insert(PanelType::STATUS_BAR, panel3);
+    InputMethodAbilityTest::inputMethodAbility_.panels_.Insert(PanelType::SOFT_KEYBOARD, nullptr);
+    ret = inputMethodAbility_.NotifyInfoToWmsInStartInput(textConfig);
+    EXPECT_TRUE(ret);
+
+    inputMethodAbility_.imeListener_ = oldImeListener;
+    inputMethodAbility_.panels_ = oldPanels;
+}
+
+/**
  * @tc.name: testOnSendPrivateData_001
  * @tc.desc: IMA InputMethodCoreProxy OnSendPrivateData
  * @tc.type: FUNC
@@ -2037,6 +2083,19 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_011, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testInitPasteBoardstart_001
+ * @tc.desc: testInitPasteBoardstart_001
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testInitPasteBoardstart_001, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testInitPasteBoardstart_001 START");
+    ASSERT_NE(imsa_, nullptr);
+    auto ret = imsa_->InitPasteboardMonitor();
+    EXPECT_TRUE(ret);
+    imsa_->HandlePasteboardStarted();
+}
+/**
  * @tc.name: testInvokeAttachOptionsCallback
  * @tc.desc: testInvokeAttachOptionsCallback
  * @tc.type: FUNC
@@ -2059,6 +2118,26 @@ HWTEST_F(InputMethodAbilityTest, testInvokeAttachOptionsCallback, TestSize.Level
     uint64_t displayidNew = 1;
     auto ret = inputMethodAbility_.IsDisplayChanged(displayid, displayidNew);
     EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: testClearBindInfo
+ * @tc.desc: testClearBindInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testClearBindInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testClearBindInfo START");
+    TextListener::ResetParam();
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    AttachOptions options;
+    options.isSimpleKeyboardEnabled = true;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputMethodAbility_.OnClientInactive(inputMethodAbility_.dataChannelObject_);
+    InputAttribute nullAttribute = {};
+    EXPECT_TRUE(inputMethodAbility_.GetInputAttribute() == nullAttribute);
+    EXPECT_TRUE(inputMethodAbility_.dataChannelObject_ == nullptr);
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 } // namespace MiscServices
 } // namespace OHOS

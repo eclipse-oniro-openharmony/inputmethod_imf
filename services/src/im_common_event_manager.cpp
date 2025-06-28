@@ -132,6 +132,11 @@ bool ImCommonEventManager::SubscribeAccountManagerService(Handler handler)
     return SubscribeManagerServiceCommon(handler, SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
 }
 
+bool ImCommonEventManager::SubscribePasteboardService(const Handler &handler)
+{
+    return SubscribeManagerServiceCommon(handler, PASTEBOARD_SERVICE_ID);
+}
+
 bool ImCommonEventManager::UnsubscribeEvent()
 {
     return true;
@@ -382,7 +387,7 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility
     IMSA_HILOGD("systemAbilityId: %{public}d.", systemAbilityId);
     if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID &&
         systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN &&
-        systemAbilityId != MEMORY_MANAGER_SA_ID) {
+        systemAbilityId != MEMORY_MANAGER_SA_ID && systemAbilityId != PASTEBOARD_SERVICE_ID) {
         return;
     }
     if (func_ != nullptr) {

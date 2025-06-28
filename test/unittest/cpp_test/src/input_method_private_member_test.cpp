@@ -28,6 +28,7 @@
 #include "input_type_manager.h"
 #undef private
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -51,6 +52,7 @@
 #include "user_session_manager.h"
 
 using namespace testing::ext;
+using namespace testing::mt;
 namespace OHOS {
 namespace MiscServices {
 using namespace AppExecFwk;
@@ -61,10 +63,25 @@ public:
     void SetUp();
     void TearDown();
     static sptr<InputMethodSystemAbility> service_;
+    static void TestImfStartIme();
+    static std::atomic<int32_t> tryLockFailCount_;
+    static std::shared_ptr<PerUserSession> session_;
 };
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr std::int32_t INVALID_USER_ID = 10001;
 constexpr std::int32_t INVALID_PROCESS_ID = -1;
+std::atomic<int32_t> InputMethodPrivateMemberTest::tryLockFailCount_ = 0;
+std::shared_ptr<PerUserSession> InputMethodPrivateMemberTest::session_ = nullptr;
+void InputMethodPrivateMemberTest::TestImfStartIme()
+{
+    auto imeToStart = std::make_shared<ImeNativeCfg>();
+    int32_t startRet = session_->StartIme(imeToStart, false);
+    IMSA_HILOGI("startRet is %{public}d.", startRet);
+    if (startRet == ErrorCode::ERROR_IME_START_INPUT_FAILED) {
+        tryLockFailCount_++;
+        IMSA_HILOGI("tryLockFailCount_ is  %{public}d.", tryLockFailCount_.load());
+    }
+}
 void InputMethodPrivateMemberTest::SetUpTestCase(void)
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -1881,6 +1898,22 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestPerUserSessionStartImeIfInstalled,
     group->mapClients_.insert_or_assign(client->AsObject(), info);
     session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
     session.StartImeIfInstalled();
+}
+
+/**
+ * @tc.name: StartImeTryLock
+ * @tc.desc: StartImeTryLock
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, StartImeTryLock001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::StartImeTryLock001 start.");
+    session_ = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    SET_THREAD_NUM(5);
+    GTEST_RUN_TASK(TestImfStartIme);
+    IMSA_HILOGI("InputMethodPrivateMemberTest::StartImeTryLock %{public}d.", tryLockFailCount_.load());
+    EXPECT_GT(tryLockFailCount_, 0); // at least one thread try lock failed
 }
 } // namespace MiscServices
 } // namespace OHOS

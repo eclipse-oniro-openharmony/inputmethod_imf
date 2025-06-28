@@ -151,6 +151,7 @@ private:
     void HandleOsAccountStarted();
     void HandleFocusChanged(bool isFocused, uint64_t displayId, int32_t pid, int32_t uid);
     void HandleImeCfgCapsState();
+    void HandlePasteboardStarted();
     void StopImeInBackground();
     int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -164,6 +165,7 @@ private:
     void InitWmsConnectionMonitor();
     void InitFocusChangedMonitor();
     void InitWindowDisplayChangedMonitor();
+    bool InitPasteboardMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();

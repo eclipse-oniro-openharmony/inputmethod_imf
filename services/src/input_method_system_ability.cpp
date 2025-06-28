@@ -1846,6 +1846,8 @@ void InputMethodSystemAbility::InitMonitors()
     IMSA_HILOGI("init KeyEvent monitor, ret: %{public}d.", ret);
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
+    ret = InitPasteboardMonitor();
+    IMSA_HILOGI("init Pasteboard monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
 }
 
@@ -1903,6 +1905,42 @@ void InputMethodSystemAbility::InitWmsConnectionMonitor()
         [this](bool isConnected, int32_t userId, int32_t screenId) {
             isConnected ? HandleWmsConnected(userId, screenId) : HandleWmsDisconnected(userId, screenId);
         });
+}
+
+void InputMethodSystemAbility::HandlePasteboardStarted()
+{
+    IMSA_HILOGI("pasteboard started");
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+
+    auto data = session->GetReadyImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("readyImeData is nullptr.");
+        return;
+    }
+
+    if (data->imeStateManager == nullptr) {
+        IMSA_HILOGE("imeStateManager is nullptr.");
+        return;
+    }
+
+    data->imeStateManager->PasteBoardActiveIme();
+}
+
+bool InputMethodSystemAbility::InitPasteboardMonitor()
+{
+    auto commonEventMgr = ImCommonEventManager::GetInstance();
+    if (commonEventMgr == nullptr) {
+        IMSA_HILOGE("commonEventMgr is nullptr.");
+        return false;
+    }
+
+    return commonEventMgr->SubscribePasteboardService([this]() {
+        HandlePasteboardStarted();
+    });
 }
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()

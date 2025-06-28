@@ -673,12 +673,12 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
         return nullptr;
     }
 
-    // if the second param is not napi_function/napi_null/napi_undefined, return
+    // if the second param is not napi_function/napi_null/napi_undefined, return.
     auto paramType = JsUtil::GetType(env, argv[1]);
     if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
         return nullptr;
     }
-    // if the second param is napi_function, delete it, else delete all
+    // if the second param is napi_function, delete it, else delete all.
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
     IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());
@@ -800,6 +800,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
+    IMSA_HILOGD("type: %{public}s", type.c_str());
     auto task = [entry]() {
         auto getWindowInfo = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 1) {

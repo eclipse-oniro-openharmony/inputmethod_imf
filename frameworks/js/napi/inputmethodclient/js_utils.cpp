@@ -484,6 +484,26 @@ napi_value JsUtils::GetJsPrivateCommand(napi_env env, const std::unordered_map<s
     return jsPrivateCommand;
 }
 
+napi_status JsUtils::GetValue(napi_env env, napi_value in, Rosen::Rect &out)
+{
+    bool ret = JsUtil::Object::ReadProperty(env, in, "left", out.posX_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "top", out.posY_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "width", out.width_);
+    ret = ret && JsUtil::Object::ReadProperty(env, in, "height", out.height_);
+    return ret ? napi_ok : napi_generic_failure;
+}
+
+napi_value JsUtils::GetValue(napi_env env, const Rosen::Rect &in)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", in.posX_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", in.posY_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", in.width_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", in.height_);
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
 napi_value JsUtils::GetValue(napi_env env, const std::vector<uint8_t> &in)
 {
     void *data = nullptr;
@@ -508,7 +528,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::vector<uint8_t> 
         return status;
     }
     if (data == nullptr && length == 0) {
-        IMSA_HILOGE("Empty ArrayBuffer.");
+        IMSA_HILOGE("Empty ArrayBuffer!");
         out.clear();
         return napi_ok;
     }
@@ -555,26 +575,6 @@ napi_status JsUtils::GetMessageHandlerCallbackParam(napi_value *argv,
         argv[1] = { jsMsgParam };
     }
     return napi_ok;
-}
-
-napi_status JsUtils::GetValue(napi_env env, napi_value in, Rosen::Rect &out)
-{
-    bool ret = JsUtil::Object::ReadProperty(env, in, "left", out.posX_);
-    ret = ret && JsUtil::Object::ReadProperty(env, in, "top", out.posY_);
-    ret = ret && JsUtil::Object::ReadProperty(env, in, "width", out.width_);
-    ret = ret && JsUtil::Object::ReadProperty(env, in, "height", out.height_);
-    return ret ? napi_ok : napi_generic_failure;
-}
-
-napi_value JsUtils::GetValue(napi_env env, const Rosen::Rect &in)
-{
-    napi_value jsObject = nullptr;
-    napi_create_object(env, &jsObject);
-    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", in.posX_);
-    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", in.posY_);
-    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", in.width_);
-    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", in.height_);
-    return ret ? jsObject : JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
 } // namespace OHOS

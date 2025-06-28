@@ -29,41 +29,37 @@ bool ImeStateManager::IsIpcNeeded(RequestType type)
 
 void ImeStateManager::BeforeIpc(RequestType type)
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (type == RequestType::START_INPUT || type == RequestType::REQUEST_SHOW) {
-            isImeInUse_ = true;
-        }
-        if (!isFrozen_) {
-            IMSA_HILOGD("not frozen already.");
-            return;
-        }
-        isFrozen_ = false;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (type == RequestType::START_INPUT || type == RequestType::REQUEST_SHOW) {
+        isImeInUse_ = true;
     }
+    if (!isFrozen_) {
+        IMSA_HILOGD("not frozen already.");
+        return;
+    }
+    isFrozen_ = false;
     ControlIme(false);
 }
 
 void ImeStateManager::AfterIpc(RequestType type, bool isSuccess)
 {
     bool shouldFreeze = false;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (type == RequestType::START_INPUT || type == RequestType::REQUEST_SHOW) {
-            isImeInUse_ = isSuccess;
-        }
-        if (type == RequestType::REQUEST_HIDE && isImeInUse_) {
-            isImeInUse_ = !isSuccess;
-        }
-        if (type == RequestType::STOP_INPUT) {
-            isImeInUse_ = false;
-        }
-        if (isFrozen_ == !isImeInUse_) {
-            IMSA_HILOGD("frozen state already: %{public}d.", isFrozen_);
-            return;
-        }
-        isFrozen_ = !isImeInUse_;
-        shouldFreeze = isFrozen_;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (type == RequestType::START_INPUT || type == RequestType::REQUEST_SHOW) {
+        isImeInUse_ = isSuccess;
     }
+    if (type == RequestType::REQUEST_HIDE && isImeInUse_) {
+        isImeInUse_ = !isSuccess;
+    }
+    if (type == RequestType::STOP_INPUT) {
+        isImeInUse_ = false;
+    }
+    if (isFrozen_ == !isImeInUse_) {
+        IMSA_HILOGD("frozen state already: %{public}d.", isFrozen_);
+        return;
+    }
+    isFrozen_ = !isImeInUse_;
+    shouldFreeze = isFrozen_;
     ControlIme(shouldFreeze);
 }
 
