@@ -20,7 +20,6 @@
 #include "display_manager.h"
 #include "inputmethod_extension.h"
 #include "js_runtime.h"
-#include "system_ability_status_change_stub.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -197,19 +196,6 @@ protected:
     void CheckNeedAdjustKeyboard(Rosen::DisplayId displayId);
 
 private:
-    class SystemAbilityStatusChangeListener : public OHOS::SystemAbilityStatusChangeStub {
-    public:
-        SystemAbilityStatusChangeListener(sptr<JsInputMethodExtensionDisplayListener> displayListener)
-            : listener_(displayListener){};
-        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
-        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override
-        {
-        }
-
-    private:
-        sptr<JsInputMethodExtensionDisplayListener> listener_ = nullptr;
-    };
-
     sptr<JsInputMethodExtensionDisplayListener> displayListener_ = nullptr;
 };
 } // namespace AbilityRuntime
