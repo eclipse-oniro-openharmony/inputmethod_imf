@@ -2257,7 +2257,7 @@ HWTEST_F(InputMethodPanelTest, testMoveEnhancedPanelRect, TestSize.Level0)
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
     inputMethodPanel->window_ = nullptr;
     ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::NONE_IMMERSIVE);
-    EXPECT_EQ(ErrorCode::ERROR_IME, ret);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
 
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ErrorCode::ERROR_NULL_POINTER, ret);

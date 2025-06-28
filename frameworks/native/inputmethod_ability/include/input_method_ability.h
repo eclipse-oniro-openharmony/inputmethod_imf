@@ -196,6 +196,7 @@ private:
     int32_t GetTextBeforeCursorInner(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback = nullptr);
     int32_t GetTextAfterCursorInner(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback = nullptr);
     int32_t GetTextIndexAtCursorInner(int32_t &index, const AsyncIpcCallBack &callback = nullptr);
+    bool NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig);
     void SetBindClientInfo(const InputClientInfo &clientInfo);
     HiSysEventClientInfo GetBindClientInfo();
     void ClearBindClientInfo();

@@ -578,15 +578,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
-    auto task = [this, textConfig]() {
-        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
-            if (panel != nullptr) {
-                panel->SetCallingWindow(textConfig.windowId);
-            }
-            return false;
-        });
-    };
-    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
+    NotifyInfoToWmsInStartInput(textConfig);
     SetInputAttribute(textConfig.inputAttribute);
     if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
@@ -877,6 +869,27 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
     }
     dataChannelProxyWrap_ = channelWrap;
     dataChannelObject_ = object;
+}
+
+bool InputMethodAbility::NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig)
+{
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener_ is nullptr!");
+        return false;
+    }
+    auto task = [this, textConfig]() {
+        panels_.ForEach([&textConfig](const PanelType &type, const std::shared_ptr<InputMethodPanel> &panel) {
+            if (panel == nullptr) {
+                return false;
+            }
+            if (type == SOFT_KEYBOARD && panel->GetPanelFlag() == FLG_FIXED && panel->IsShowing()) {
+                panel->SetTextFieldAvoidInfo(textConfig.positionY, textConfig.height);
+            }
+            panel->SetCallingWindow(textConfig.windowId);
+            return false;
+        });
+    };
+    return imeListener_->PostTaskToEventHandler(task, "NotifyInfoToWms");
 }
 
 std::shared_ptr<InputDataChannelProxyWrap> InputMethodAbility::GetInputDataChannelProxyWrap()
