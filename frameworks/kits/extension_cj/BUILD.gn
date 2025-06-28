@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -32,7 +32,7 @@ config("ability_public_config") {
   include_dirs = [ "${inputmethod_path}/frameworks/kits/extension/include" ]
 }
 
-ohos_shared_library("inputmethod_extension") {
+ohos_shared_library("cj_inputmethod_extension_ffi") {
   branch_protector_ret = "pac_ret"
   sanitize = {
     boundary_sanitize = true
@@ -48,22 +48,16 @@ ohos_shared_library("inputmethod_extension") {
     "-Os",
   ]
   include_dirs = [
-    "${inputmethod_path}/frameworks/js/napi/common",
-    "${inputmethod_path}/frameworks/js/napi/inputmethodclient",
-    "${inputmethod_path}/frameworks/kits/extension/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
-    "${inputmethod_path}/common/include",
     "${inputmethod_path}/frameworks/kits/extension_cj/include",
+    "${inputmethod_path}/frameworks/kits/extension/include",
+    "${inputmethod_path}/common/include",
   ]
 
   sources = [
-    "${inputmethod_path}/frameworks/js/napi/inputmethodclient/js_utils.cpp",
-    "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension.cpp",
-    "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_context.cpp",
-    "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension.cpp",
-    "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension_context.cpp",
-    "${inputmethod_path}/frameworks/kits/extension_cj/src/cj_inputmethod_extension_loader.cpp"
+    "${inputmethod_path}/frameworks/kits/extension_cj/src/cj_inputmethod_extension_context.cpp",
+    "${inputmethod_path}/frameworks/kits/extension_cj/src/cj_inputmethod_extension_ffi.cpp",
+    "${inputmethod_path}/frameworks/kits/extension_cj/src/cj_inputmethod_extension_object.cpp",
+    "${inputmethod_path}/frameworks/kits/extension_cj/src/cj_inputmethod_extension.cpp",
   ]
   configs = [ ":ability_config" ]
   public_configs = [
@@ -73,10 +67,10 @@ ohos_shared_library("inputmethod_extension") {
 
   deps = [
     "${inputmethod_path}/common:inputmethod_common",
-    "${inputmethod_path}/frameworks/js/napi/common:inputmethod_js_common",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_extension_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/frameworks/kits/extension:inputmethod_extension"
   ]
 
   external_deps = [
@@ -88,57 +82,16 @@ ohos_shared_library("inputmethod_extension") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
     "ability_runtime:extensionkit_native",
-    "ability_runtime:napi_common",
     "ability_runtime:runtime",
+    "ability_runtime:cj_ability_context_native",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
-    "i18n:intl_util",
-    "input:libmmi-client",
-    "ipc:ipc_napi",
-    "ipc:ipc_single",
-    "napi:ace_napi",
-    "samgr:samgr_proxy",
     "window_manager:libdm",
+    "napi:cj_bind_ffi",
+    "napi:cj_bind_native",
   ]
 
-  subsystem_name = "inputmethod"
-  part_name = "imf"
-}
-
-ohos_shared_library("inputmethod_extension_module") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    boundary_sanitize = true
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-    integer_overflow = true
-    ubsan = true
-  }
-  include_dirs = [ "${inputmethod_path}/common/include" ]
-
-  sources = [ "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_module_loader.cpp" ]
-
-  configs = [ ":ability_config" ]
-  public_configs = [ ":ability_public_config" ]
-
-  deps = [ ":inputmethod_extension" ]
-
-  external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "ability_base:zuri",
-    "ability_runtime:abilitykit_native",
-    "ability_runtime:runtime",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_napi",
-    "ipc:ipc_single",
-    "napi:ace_napi",
-  ]
-
-  relative_install_dir = "extensionability/"
   subsystem_name = "inputmethod"
   part_name = "imf"
 }
