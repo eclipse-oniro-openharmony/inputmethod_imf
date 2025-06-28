@@ -923,7 +923,7 @@ public:
      * This function is used to update the large memory state to control
      * the restart of the input method.
      *
-     * @param memoryState Current memory state form memmgr. 
+     * @param memoryState Current memory state from memmgr.
      *                    LARGE_MEMORY_NEED or LARGE_MEMORY_NOT_NEED.
      * @return Return 0 for success, other for failure.
      * @since 18

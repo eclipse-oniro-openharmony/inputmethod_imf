@@ -1931,8 +1931,8 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_001, TestSize.
  * @tc.name: TestIsLargeMemoryStateNeed_002
  * @tc.desc: Test IsLargeMemoryStateNeed.
  * @tc.type: FUNC
- * @tc.require: issuesI794QF
- * @tc.author: Zhaolinglan
+ * @tc.require: issuesIC7VH8
+ * @tc.author:
  */
 HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_002, TestSize.Level0)
 {
