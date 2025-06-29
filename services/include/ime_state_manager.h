@@ -34,14 +34,13 @@ public:
     void BeforeIpc(RequestType type);
     void AfterIpc(RequestType type, bool isSuccess);
     bool IsImeInUse();
-    virtual void PasteBoardActiveIme(int32_t delayTime = DELAY_TIME) { };
+    virtual void TemporaryActiveIme() { };
 
 protected:
     std::mutex mutex_;
     static std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     pid_t pid_;
     bool isFrozen_ { true };
-    static constexpr int32_t DELAY_TIME = 3000; // 3s
 
 private:
     virtual void ControlIme(bool shouldApply) = 0;

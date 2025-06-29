@@ -1899,7 +1899,7 @@ void InputMethodSystemAbility::HandlePasteboardStarted()
         return;
     }
 
-    data->imeStateManager->PasteBoardActiveIme();
+    data->imeStateManager->TemporaryActiveIme();
 }
 
 bool InputMethodSystemAbility::InitPasteboardMonitor()

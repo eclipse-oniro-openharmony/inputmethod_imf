@@ -2383,6 +2383,29 @@ HWTEST_F(InputMethodPanelTest, testPortraitAdjustmentNeeded, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testLargegradientHeight
+ * @tc.desc: Test testLargegradientHeight
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testLargegradientHeight, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    KeyboardLayoutParams param;
+    // Configure valid parameters
+    param.portraitAvoidHeight_ = PORTRAIT_AVOID_HEIGHT;
+    param.landscapeAvoidHeight_ = LANDSCAPE_AVOID_HEIGHT;
+    param.PortraitPanelRect_.height_ = INITIAL_PORTRAIT_HEIGHT;
+    param.PortraitPanelRect_.posY_ = INITIAL_PORTRAIT_POS_Y;
+
+    inputMethodPanel->immersiveEffect_.gradientHeight = static_cast<uint32_t>(INT32_MAX);
+    auto ret = inputMethodPanel->FullScreenPrepare(param);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
+
+    inputMethodPanel->immersiveEffect_.gradientHeight = static_cast<uint32_t>(INT32_MAX - LANDSCAPE_AVOID_HEIGHT - 1);
+    ret = inputMethodPanel->FullScreenPrepare(param);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
+}
+/**
  * @tc.name: testLandscapeAdjustmentNeeded
  * @tc.desc: Test testLandscapeAdjustmentNeeded
  * @tc.type: FUNC

@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-class FreezeManager final : public ImeStateManager, public std::enable_shared_from_this<FreezeManager> {
+class FreezeManager final : public ImeStateManager {
 public:
     explicit FreezeManager(pid_t pid) : ImeStateManager(pid)
     {
@@ -30,7 +30,7 @@ public:
 
     FreezeManager(const FreezeManager&) = delete;
     FreezeManager &operator=(const FreezeManager&) = delete;
-    void PasteBoardActiveIme(int32_t delayTime = DELAY_TIME) override;
+    void TemporaryActiveIme() override;
 
 private:
     static void ReportRss(bool shouldFreeze, pid_t pid);
