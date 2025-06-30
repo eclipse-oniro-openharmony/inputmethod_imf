@@ -325,6 +325,12 @@ void FUZZSetControllerListener(sptr<InputMethodController> imc,
     imc->Reset();
     imc->IsDefaultImeSet();
 }
+
+void FUZZUpdateLargeMemorySceneState(sptr<InputMethodController> imc, int32_t fuzzedInt32)
+{
+    imc->UpdateLargeMemorySceneState(fuzzedInt32);
+}
+
 void TestShowTextInputInner(sptr<InputMethodController> imc, const uint8_t *data, size_t size)
 {
     sptr<OnTextChangedListener> textListener = new TextListener();
@@ -445,6 +451,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::FUZZSendPrivateData(imc, fuzzedString);
     OHOS::FUZZGetInputStartInfo(imc, fuzzedBool, fuzzedUint32, fuzzedInt32, fuzzedString);
     OHOS::FUZZSetControllerListener(imc, fuzzedUint32, fuzzedString, fuzzedBool);
+    OHOS::FUZZUpdateLargeMemorySceneState(imc, fuzzedInt32);
     OHOS::TestShowTextInputInner(imc, data, size);
     return 0;
 }
