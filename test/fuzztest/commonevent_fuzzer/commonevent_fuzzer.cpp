@@ -84,9 +84,8 @@ void FuzzSwitchOperation(const uint8_t *data, size_t size)
     auto fuzzedBool = static_cast<bool>(data[0] % 2);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
 
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->Init();
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnStop();
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->InitMemMgrMonitor();
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleUserSwitched(fuzzedInt32);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->InitFocusChangedMonitor();
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->InitWmsConnectionMonitor();
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->IsValidBundleName(fuzzedString);
@@ -107,6 +106,7 @@ void FuzzHandleOperation(const uint8_t *data, size_t size)
     auto fuzzedBool = static_cast<bool>(data[0] % 2);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
 
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleUserSwitched(fuzzedInt32);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->StopImeInBackground();
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleOsAccountStarted();
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleMemStarted();
