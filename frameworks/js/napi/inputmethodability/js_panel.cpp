@@ -496,11 +496,11 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], type), "type must be string!", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
         "type should be show/hide/sizeChange!", TYPE_NONE, nullptr);
-    // if the second param is not napi_function/napi_null/napi_undefined, return
+    // if the second param is not napi_function/napi_null/napi_undefined, return.
     auto paramType = JsUtil::GetType(env, argv[1]);
     PARAM_CHECK_RETURN(env, (paramType == napi_function || paramType == napi_null || paramType == napi_undefined),
         "callback should be function or null or undefined!", TYPE_NONE, nullptr);
-    // if the second param is napi_function, delete it, else delete all
+    // if the second param is napi_function, delete it, else delete all.
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
     IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());

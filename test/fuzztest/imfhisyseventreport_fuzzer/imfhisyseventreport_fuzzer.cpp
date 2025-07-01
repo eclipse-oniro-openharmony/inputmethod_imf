@@ -182,6 +182,17 @@ void TestOnDemandStartStopSa(const uint8_t *data, size_t size)
     InputMethodSysEvent::GetInstance().StartTimerForReport();
     InputMethodSysEvent::GetInstance().ReportSystemShortCut(fuzzedString);
 }
+
+void TestReportStatisticsEvent(const uint8_t *data, size_t size)
+{
+    std::string fuzzedString(reinterpret_cast<const char *>(data), size);
+    static std::vector<std::string> appNames;
+    static std::vector<std::string> statistics;
+    appNames.push_back(fuzzedString);
+    statistics.push_back(fuzzedString);
+    ImsaHiSysEventReporter::GetInstance().ReportStatisticsEvent();
+    ImfHiSysEventUtil::ReportStatisticsEvent(fuzzedString, fuzzedString, appNames, statistics);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -199,5 +210,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestRecordBaseTextOperationStatistics(data, size);
     OHOS::TestIntervalIndex(data, size);
     OHOS::TestInputMethodSysEvent(data, size);
+    OHOS::TestReportStatisticsEvent(data, size);
     return 0;
 }

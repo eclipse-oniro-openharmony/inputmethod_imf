@@ -61,6 +61,20 @@ constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf.input_panel_status_changed";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
 const constexpr char *IMMERSIVE_EFFECT = "immersive_effect";
+// Test constants
+constexpr uint32_t GRADIENT_HEIGHT = 10;          // Gradient height from immersive effect
+constexpr int32_t PORTRAIT_AVOID_HEIGHT = 20;     // Initial portrait avoid height
+constexpr int32_t LANDSCAPE_AVOID_HEIGHT = 15;    // Initial landscape avoid height
+constexpr uint32_t INITIAL_PORTRAIT_HEIGHT = 25;  // Initial portrait panel height
+constexpr uint32_t INITIAL_LANDSCAPE_HEIGHT = 20; // Initial landscape panel height
+constexpr int32_t INITIAL_PORTRAIT_POS_Y = 100;   // Initial Y position for portrait
+constexpr int32_t INITIAL_LANDSCAPE_POS_Y = 200;  // Initial Y position for landscape
+constexpr int32_t DEFAULT_WIDTH = 100;
+constexpr int32_t DEFAULT_HEIGHT = 200;
+constexpr int32_t LANDSCAPE_WIDTH = 150;
+constexpr int32_t LANDSCAPE_HEIGHT = 300;
+constexpr int32_t INVALID_POS_Y = -1;
+constexpr int32_t VALID_POS_Y = 0;
 enum ListeningStatus : uint32_t {
     ON,
     OFF,
@@ -2243,7 +2257,7 @@ HWTEST_F(InputMethodPanelTest, testMoveEnhancedPanelRect, TestSize.Level0)
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
     inputMethodPanel->window_ = nullptr;
     ret = inputMethodPanel->SetImmersiveMode(ImmersiveMode::NONE_IMMERSIVE);
-    EXPECT_EQ(ErrorCode::ERROR_IME, ret);
+    EXPECT_EQ(ErrorCode::NO_ERROR, ret);
 
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ErrorCode::ERROR_NULL_POINTER, ret);
@@ -2307,6 +2321,228 @@ HWTEST_F(InputMethodPanelTest, testSetKeepScreenOn2, TestSize.Level0)
     auto ret = inputMethodPanel->SetKeepScreenOn(isKeepScreenOn);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testInvalidParams
+ * @tc.desc: Test testInvalidParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testInvalidParams, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    inputMethodPanel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT; // Configure gradient
+    KeyboardLayoutParams param;
+    param.portraitAvoidHeight_ = -1; // Set invalid negative value
+    auto ret = inputMethodPanel->FullScreenPrepare(param);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
+
+    param.portraitAvoidHeight_ = PORTRAIT_AVOID_HEIGHT;
+    param.landscapeAvoidHeight_ = -1; // Set invalid negative value
+    ret = inputMethodPanel->FullScreenPrepare(param);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
+
+    param.landscapeAvoidHeight_ = LANDSCAPE_AVOID_HEIGHT;
+    param.PortraitPanelRect_.posY_ = -1; // Set invalid negative value
+    ret = inputMethodPanel->FullScreenPrepare(param);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
+
+    param.PortraitPanelRect_.posY_ = VALID_POS_Y;
+    param.LandscapePanelRect_.posY_ = -1; // Set invalid negative value
+    ret = inputMethodPanel->FullScreenPrepare(param);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
+}
+
+/**
+ * @tc.name: testPortraitAdjustmentNeeded
+ * @tc.desc: Test testPortraitAdjustmentNeeded
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testPortraitAdjustmentNeeded, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    inputMethodPanel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT; // Configure gradient
+    KeyboardLayoutParams param;
+    // Configure valid parameters
+    param.portraitAvoidHeight_ = PORTRAIT_AVOID_HEIGHT;
+    param.landscapeAvoidHeight_ = LANDSCAPE_AVOID_HEIGHT;
+    param.PortraitPanelRect_.height_ = INITIAL_PORTRAIT_HEIGHT; // 25 < 20+10=30 → needs adjustment
+    param.PortraitPanelRect_.posY_ = INITIAL_PORTRAIT_POS_Y;
+
+    auto ret = inputMethodPanel->FullScreenPrepare(param);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // Calculate expected values
+    const uint32_t expectedHeight = PORTRAIT_AVOID_HEIGHT + GRADIENT_HEIGHT;
+    const uint32_t expectedChangeY = expectedHeight - INITIAL_PORTRAIT_HEIGHT;
+    const int32_t expectedPosY = INITIAL_PORTRAIT_POS_Y - static_cast<int32_t>(expectedChangeY);
+
+    EXPECT_EQ(inputMethodPanel->portraitChangeY_, expectedChangeY);
+    EXPECT_EQ(param.PortraitPanelRect_.height_, expectedHeight);
+    EXPECT_EQ(param.PortraitPanelRect_.posY_, expectedPosY);
+}
+
+/**
+ * @tc.name: testLandscapeAdjustmentNeeded
+ * @tc.desc: Test testLandscapeAdjustmentNeeded
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testLandscapeAdjustmentNeeded, TestSize.Level0)
+{
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    inputMethodPanel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT; // Configure gradient
+    KeyboardLayoutParams param;
+    param.portraitAvoidHeight_ = PORTRAIT_AVOID_HEIGHT;
+    param.landscapeAvoidHeight_ = LANDSCAPE_AVOID_HEIGHT;
+    param.LandscapePanelRect_.height_ = INITIAL_LANDSCAPE_HEIGHT; // 20 < 15+10=25 → needs adjustment
+    param.LandscapePanelRect_.posY_ = INITIAL_LANDSCAPE_POS_Y;
+
+    auto ret = inputMethodPanel->FullScreenPrepare(param);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // Calculate expected values
+    const uint32_t expectedHeight = LANDSCAPE_AVOID_HEIGHT + GRADIENT_HEIGHT;
+    const uint32_t expectedChangeY = expectedHeight - INITIAL_LANDSCAPE_HEIGHT;
+    const int32_t expectedPosY = INITIAL_LANDSCAPE_POS_Y - static_cast<int32_t>(expectedChangeY);
+
+    EXPECT_EQ(inputMethodPanel->landscapeChangeY_, expectedChangeY);
+    EXPECT_EQ(param.LandscapePanelRect_.height_, expectedHeight);
+    EXPECT_EQ(param.LandscapePanelRect_.posY_, expectedPosY);
+}
+
+/**
+ * @tc.name: ShouldRejectNegativePortraitPosition
+ * @tc.desc: Test ShouldRejectNegativePortraitPosition
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, ShouldRejectNegativePortraitPosition, TestSize.Level0)
+{
+    // Create fresh test instance
+    auto panel = std::make_shared<InputMethodPanel>();
+    Rosen::KeyboardLayoutParams param;
+
+    // Configure test parameters
+    panel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT;
+    param.PortraitPanelRect_ = { 0, INVALID_POS_Y, DEFAULT_WIDTH, DEFAULT_HEIGHT };
+    param.LandscapePanelRect_ = { 0, VALID_POS_Y, LANDSCAPE_WIDTH, LANDSCAPE_HEIGHT };
+
+    // Verify error handling
+    ASSERT_EQ(panel->NormalImePrepare(param), ErrorCode::ERROR_INVALID_RANGE);
+}
+
+/**
+ * @tc.name: ShouldRejectNegativeLandscapePosition
+ * @tc.desc: Test ShouldRejectNegativeLandscapePosition
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, ShouldRejectNegativeLandscapePosition, TestSize.Level0)
+{
+    auto panel = std::make_shared<InputMethodPanel>();
+    Rosen::KeyboardLayoutParams param;
+
+    panel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT;
+    param.PortraitPanelRect_ = { 0, VALID_POS_Y, DEFAULT_WIDTH, DEFAULT_HEIGHT };
+    param.LandscapePanelRect_ = { 0, INVALID_POS_Y, LANDSCAPE_WIDTH, LANDSCAPE_HEIGHT };
+
+    ASSERT_EQ(panel->NormalImePrepare(param), ErrorCode::ERROR_INVALID_RANGE);
+}
+
+/**
+ * @tc.name: ShouldAdjustValidParametersCorrectly
+ * @tc.desc: Test ShouldAdjustValidParametersCorrectly
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, ShouldAdjustValidParametersCorrectly, TestSize.Level0)
+{
+    auto panel = std::make_shared<InputMethodPanel>();
+    Rosen::KeyboardLayoutParams param;
+
+    const int originalPortraitHeight = DEFAULT_HEIGHT;
+    const int originalLandscapeHeight = LANDSCAPE_HEIGHT;
+    panel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT;
+
+    param.PortraitPanelRect_ = { 0, VALID_POS_Y, DEFAULT_WIDTH, originalPortraitHeight };
+    param.LandscapePanelRect_ = { 0, VALID_POS_Y, LANDSCAPE_WIDTH, originalLandscapeHeight };
+
+    // Execute operation
+    ASSERT_EQ(panel->NormalImePrepare(param), ErrorCode::NO_ERROR);
+
+    // Verify height adjustments
+    EXPECT_EQ(param.PortraitPanelRect_.height_, originalPortraitHeight + GRADIENT_HEIGHT);
+    EXPECT_EQ(param.LandscapePanelRect_.height_, originalLandscapeHeight + GRADIENT_HEIGHT);
+
+    // Verify position adjustments
+    EXPECT_EQ(param.PortraitPanelRect_.posY_, 0);
+    EXPECT_EQ(param.LandscapePanelRect_.posY_, 0);
+
+    // Verify member variables
+    EXPECT_EQ(panel->portraitChangeY_, GRADIENT_HEIGHT);
+    EXPECT_EQ(panel->landscapeChangeY_, GRADIENT_HEIGHT);
+}
+
+/**
+ * @tc.name: SetNoneWhenHeightZero
+ * @tc.desc: Tests behavior when gradientHeight is already 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, SetNoneWhenHeightZero, TestSize.Level0)
+{
+    auto panel = std::make_shared<InputMethodPanel>();
+    // Setup initial state
+    panel->immersiveEffect_.gradientHeight = 0;
+    panel->immersiveEffect_.gradientMode = GradientMode::LINEAR_GRADIENT;
+    panel->immersiveEffect_.fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT;
+
+    // Execute target function
+    panel->SetImmersiveEffectToNone();
+
+    // Verify effect configuration
+    EXPECT_EQ(panel->immersiveEffect_.gradientMode, GradientMode::NONE);
+    EXPECT_EQ(panel->immersiveEffect_.fluidLightMode, FluidLightMode::NONE);
+    EXPECT_EQ(panel->immersiveEffect_.gradientHeight, 0);
+}
+
+/**
+ * @tc.name: ReturnWhenLayoutNotInitialized
+ * @tc.desc: Tests return when keyboard layout is uninitialized
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, ReturnWhenLayoutNotInitialized, TestSize.Level0)
+{
+    auto panel = std::make_shared<InputMethodPanel>();
+    // Set non-zero gradient height
+    panel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT;
+
+    // Set empty keyboard layout params
+    Rosen::KeyboardLayoutParams emptyParams;
+    panel->keyboardLayoutParams_ = emptyParams;
+
+    panel->SetImmersiveEffectToNone();
+    EXPECT_EQ(panel->immersiveEffect_.gradientHeight, GRADIENT_HEIGHT);
+}
+
+/**
+ * @tc.name: RestoreConfigWhenAdjustFails
+ * @tc.desc: Tests configuration restoration when layout adjustment fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, RestoreConfigWhenAdjustFails, TestSize.Level1)
+{
+    auto panel = std::make_shared<InputMethodPanel>();
+    // Set initial state
+    panel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT;
+    panel->immersiveEffect_.gradientMode = GradientMode::LINEAR_GRADIENT;
+
+    // Set valid layout parameters
+    Rosen::KeyboardLayoutParams validParams;
+    validParams.landscapeAvoidHeight_ = LANDSCAPE_AVOID_HEIGHT;
+    panel->keyboardLayoutParams_ = validParams;
+
+    panel->SetImmersiveEffectToNone();
+
+    // Verify configuration restoration
+    EXPECT_EQ(panel->immersiveEffect_.gradientHeight, GRADIENT_HEIGHT);
+    EXPECT_EQ(panel->immersiveEffect_.gradientMode, GradientMode::LINEAR_GRADIENT);
 }
 } // namespace MiscServices
 } // namespace OHOS

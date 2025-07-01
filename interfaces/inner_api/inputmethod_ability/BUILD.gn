@@ -71,6 +71,7 @@ config("inputmethod_ability_native_public_config") {
     "${inputmethod_path}/test/unittest/*",
     "../inputmethod_controller/*",
     "./*",
+    "${inputmethod_path}/frameworks/kits/extension_cj/*",
   ]
   include_dirs = [
     "include",

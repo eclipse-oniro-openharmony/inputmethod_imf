@@ -785,6 +785,22 @@ ErrCode InputMethodSystemAbility::RequestHideInput(bool isFocusTriggered)
     return session->OnRequestHideInput(pid, GetCallingDisplayId());
 }
 
+ErrCode InputMethodSystemAbility::UpdateLargeMemorySceneState(const int32_t memoryState)
+{
+    IMSA_HILOGD("UpdateLargeMemorySceneState start %{public}d.", memoryState);
+    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not native sa!");
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->UpdateLargeMemorySceneState(memoryState);
+}
+
 ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility start.");
@@ -1737,6 +1753,10 @@ void InputMethodSystemAbility::DealSwitchRequest()
             SwitchType();
         } while (checkSwitchCount());
     };
+    if (serviceHandler_ == nullptr) {
+        IMSA_HILOGE("serviceHandler_ is nullptr");
+        return;
+    }
     // 0 means delay time is 0.
     serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
@@ -1818,6 +1838,8 @@ void InputMethodSystemAbility::InitMonitors()
     IMSA_HILOGI("init KeyEvent monitor, ret: %{public}d.", ret);
     ret = InitWmsMonitor();
     IMSA_HILOGI("init wms monitor, ret: %{public}d.", ret);
+    ret = InitPasteboardMonitor();
+    IMSA_HILOGI("init Pasteboard monitor, ret: %{public}d.", ret);
     InitSystemLanguageMonitor();
 }
 
@@ -1875,6 +1897,42 @@ void InputMethodSystemAbility::InitWmsConnectionMonitor()
         [this](bool isConnected, int32_t userId, int32_t screenId) {
             isConnected ? HandleWmsConnected(userId, screenId) : HandleWmsDisconnected(userId, screenId);
         });
+}
+
+void InputMethodSystemAbility::HandlePasteboardStarted()
+{
+    IMSA_HILOGI("pasteboard started");
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        return;
+    }
+
+    auto data = session->GetReadyImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("readyImeData is nullptr.");
+        return;
+    }
+
+    if (data->imeStateManager == nullptr) {
+        IMSA_HILOGE("imeStateManager is nullptr.");
+        return;
+    }
+
+    data->imeStateManager->PasteBoardActiveIme();
+}
+
+bool InputMethodSystemAbility::InitPasteboardMonitor()
+{
+    auto commonEventMgr = ImCommonEventManager::GetInstance();
+    if (commonEventMgr == nullptr) {
+        IMSA_HILOGE("commonEventMgr is nullptr.");
+        return false;
+    }
+
+    return commonEventMgr->SubscribePasteboardService([this]() {
+        HandlePasteboardStarted();
+    });
 }
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()

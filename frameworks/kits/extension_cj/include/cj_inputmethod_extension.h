@@ -13,50 +13,52 @@
  * limitations under the License.
  */
 
-#ifndef FOUNDATION_ABILITYRUNTIME_OHOS_JS_INPUTMETHOD_EXTENSION_H
-#define FOUNDATION_ABILITYRUNTIME_OHOS_JS_INPUTMETHOD_EXTENSION_H
+#ifndef CJ_INPUTMETHOD_EXTENSION_H
+#define CJ_INPUTMETHOD_EXTENSION_H
 
+#include "cj_inputmethod_extension_context.h"
+#include "cj_inputmethod_extension_object.h"
 #include "configuration.h"
 #include "display_manager.h"
 #include "inputmethod_extension.h"
-#include "js_runtime.h"
+#include "system_ability_status_change_stub.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 /**
  * @brief Basic inputmethod components.
  */
-class JsInputMethodExtension : public InputMethodExtension {
-struct CacheDisplay {
-    int32_t displayWidth = 0;
-    int32_t displayHeight = 0;
-    Rosen::Rotation displayRotation = Rosen::Rotation::ROTATION_0;
-    Rosen::FoldStatus displayFoldStatus = Rosen::FoldStatus::UNKNOWN;
-    bool IsEmpty()
-    {
-        return displayWidth == 0 && displayHeight == 0 && displayRotation == Rosen::Rotation::ROTATION_0 &&
-            displayFoldStatus == Rosen::FoldStatus::UNKNOWN;
+class CjInputMethodExtension : public InputMethodExtension {
+    struct CacheDisplay {
+        int32_t displayWidth = 0;
+        int32_t displayHeight = 0;
+        Rosen::Rotation displayRotation = Rosen::Rotation::ROTATION_0;
+        Rosen::FoldStatus displayFoldStatus = Rosen::FoldStatus::UNKNOWN;
+        bool IsEmpty()
+        {
+            return displayWidth == 0 && displayHeight == 0 && displayRotation == Rosen::Rotation::ROTATION_0 &&
+                displayFoldStatus == Rosen::FoldStatus::UNKNOWN;
+        };
+        void SetCacheDisplay(int32_t width, int32_t height, Rosen::Rotation rotation, Rosen::FoldStatus foldStatus)
+        {
+            displayWidth = width;
+            displayHeight = height;
+            displayRotation = rotation;
+            displayFoldStatus = foldStatus;
+        };
     };
-    void SetCacheDisplay(int32_t width, int32_t height, Rosen::Rotation rotation, Rosen::FoldStatus foldStatus)
-    {
-        displayWidth = width;
-        displayHeight = height;
-        displayRotation = rotation;
-        displayFoldStatus = foldStatus;
-    };
-};
 
 public:
-    JsInputMethodExtension(JsRuntime &jsRuntime);
-    virtual ~JsInputMethodExtension() override;
-    static JsInputMethodExtension *jsInputMethodExtension;
+    CjInputMethodExtension();
+    ~CjInputMethodExtension() override;
+    static CjInputMethodExtension *cjInputMethodExtension;
     /**
-     * @brief Create JsInputMethodExtension.
+     * @brief Create CjInputMethodExtension.
      *
      * @param runtime The runtime.
-     * @return The JsInputMethodExtension instance.
+     * @return The CjInputMethodExtension instance.
      */
-    static JsInputMethodExtension *Create(const std::unique_ptr<Runtime> &runtime);
+    static CjInputMethodExtension *Create(const std::unique_ptr<Runtime> &runtime);
 
     /**
      * @brief Init the extension.
@@ -66,7 +68,7 @@ public:
      * @param handler the extension handler.
      * @param token the remote token.
      */
-    virtual void Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &record,
+    void Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &record,
         const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
         std::shared_ptr<AppExecFwk::AbilityHandler> &handler, const sptr<IRemoteObject> &token) override;
 
@@ -77,7 +79,7 @@ public:
      * This function can be called only once in the entire lifecycle of an extension.
      * @param Want Indicates the {@link Want} structure containing startup information about the extension.
      */
-    virtual void OnStart(const AAFwk::Want &want) override;
+    void OnStart(const AAFwk::Want &want) override;
 
     /**
      * @brief Called when this InputMethod extension is connected for the first time.
@@ -89,7 +91,7 @@ public:
      *
      * @return Returns a pointer to the <b>sid</b> of the connected InputMethod extension.
      */
-    virtual sptr<IRemoteObject> OnConnect(const AAFwk::Want &want) override;
+    sptr<IRemoteObject> OnConnect(const AAFwk::Want &want) override;
 
     /**
      * @brief Called when all abilities connected to this InputMethod extension are disconnected.
@@ -97,7 +99,7 @@ public:
      * You can override this function to implement your own processing logic.
      *
      */
-    virtual void OnDisconnect(const AAFwk::Want &want) override;
+    void OnDisconnect(const AAFwk::Want &want) override;
 
     /**
      * @brief Called back when InputMethod is started.
@@ -113,7 +115,7 @@ public:
      * by 1 every time the extension is started. For example, if the extension has been started for six times, the
      * value of startId is 6.
      */
-    virtual void OnCommand(const AAFwk::Want &want, bool restart, int startId) override;
+    void OnCommand(const AAFwk::Want &want, bool restart, int startId) override;
 
     /**
      * @brief Called when this extension enters the <b>STATE_STOP</b> state.
@@ -121,14 +123,14 @@ public:
      * The extension in the <b>STATE_STOP</b> is being destroyed.
      * You can override this function to implement your own processing logic.
      */
-    virtual void OnStop() override;
+    void OnStop() override;
 
     /**
      * @brief Called when the system configuration is updated.
      *
      * @param configuration Indicates the updated configuration information.
      */
-    virtual void OnConfigurationUpdated(const AppExecFwk::Configuration &config) override;
+    void OnConfigurationUpdated(const AppExecFwk::Configuration &config) override;
 
     /**
      * @brief Called when configuration changed, including system configuration and window configuration.
@@ -136,34 +138,32 @@ public:
      */
     void ConfigurationUpdated();
 
+    void SetCjContext(sptr<CjInputMethodExtensionContext> cjContext)
+    {
+        cjContext_ = cjContext;
+    }
+
 private:
-    napi_value CallObjectMethod(const char *name, const napi_value *argv = nullptr, size_t argc = 0);
-
-    void BindContext(napi_env env, napi_value obj);
-
-    void GetSrcPath(std::string &srcPath);
-
     void ListenWindowManager();
 
     void InitDisplayCache();
 
-    JsRuntime &jsRuntime_;
-    std::unique_ptr<NativeReference> jsObj_;
-    std::shared_ptr<NativeReference> shellContextRef_ = nullptr;
+    CjInputMethodExtensionObject cjObj_;
+    sptr<CjInputMethodExtensionContext> cjContext_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
     CacheDisplay cacheDisplay_;
 
 protected:
-    class JsInputMethodExtensionDisplayListener : public Rosen::DisplayManager::IDisplayListener {
+    class CjInputMethodExtensionDisplayListener : public Rosen::DisplayManager::IDisplayListener {
     public:
-        explicit JsInputMethodExtensionDisplayListener(const std::weak_ptr<JsInputMethodExtension> &extension)
+        explicit CjInputMethodExtensionDisplayListener(const std::weak_ptr<CjInputMethodExtension> &extension)
         {
-            jsInputMethodExtension_ = extension;
+            cjInputMethodExtension_ = extension;
         }
 
         void OnCreate(Rosen::DisplayId displayId) override
         {
-            auto inputMethodSptr = jsInputMethodExtension_.lock();
+            auto inputMethodSptr = cjInputMethodExtension_.lock();
             if (inputMethodSptr != nullptr) {
                 inputMethodSptr->OnCreate(displayId);
             }
@@ -171,7 +171,7 @@ protected:
 
         void OnDestroy(Rosen::DisplayId displayId) override
         {
-            auto inputMethodSptr = jsInputMethodExtension_.lock();
+            auto inputMethodSptr = cjInputMethodExtension_.lock();
             if (inputMethodSptr != nullptr) {
                 inputMethodSptr->OnDestroy(displayId);
             }
@@ -179,7 +179,7 @@ protected:
 
         void OnChange(Rosen::DisplayId displayId) override
         {
-            auto inputMethodSptr = jsInputMethodExtension_.lock();
+            auto inputMethodSptr = cjInputMethodExtension_.lock();
             if (inputMethodSptr != nullptr) {
                 inputMethodSptr->CheckNeedAdjustKeyboard(displayId);
                 inputMethodSptr->OnChange(displayId);
@@ -187,7 +187,7 @@ protected:
         }
 
     private:
-        std::weak_ptr<JsInputMethodExtension> jsInputMethodExtension_;
+        std::weak_ptr<CjInputMethodExtension> cjInputMethodExtension_;
     };
 
     void OnCreate(Rosen::DisplayId displayId);
@@ -196,8 +196,19 @@ protected:
     void CheckNeedAdjustKeyboard(Rosen::DisplayId displayId);
 
 private:
-    sptr<JsInputMethodExtensionDisplayListener> displayListener_ = nullptr;
+    class SystemAbilityStatusChangeListener : public OHOS::SystemAbilityStatusChangeStub {
+    public:
+        SystemAbilityStatusChangeListener(sptr<CjInputMethodExtensionDisplayListener> displayListener)
+            : listener_(displayListener) { };
+        void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+        void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override { }
+
+    private:
+        sptr<CjInputMethodExtensionDisplayListener> listener_ = nullptr;
+    };
+
+    sptr<CjInputMethodExtensionDisplayListener> displayListener_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
-#endif // FOUNDATION_ABILITYRUNTIME_OHOS_JS_INPUTMETHOD_EXTENSION_H
+#endif // CJ_INPUTMETHOD_EXTENSION_H

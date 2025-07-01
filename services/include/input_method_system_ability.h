@@ -61,6 +61,7 @@ public:
         const std::string &bundleName, const std::string &subName, uint32_t trigger) override;
     ErrCode DisplayOptionalInputMethod() override;
     ErrCode SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
+    ErrCode UpdateLargeMemorySceneState(const int32_t memoryState) override;
     ErrCode InitConnect() override;
     ErrCode UnRegisteredProxyIme(int32_t type, const sptr<IInputMethodCore> &core) override;
     ErrCode PanelStatusChange(uint32_t status, const ImeWindowInfo &info) override;
@@ -150,6 +151,7 @@ private:
     void HandleOsAccountStarted();
     void HandleFocusChanged(bool isFocused, uint64_t displayId, int32_t pid, int32_t uid);
     void HandleImeCfgCapsState();
+    void HandlePasteboardStarted();
     void StopImeInBackground();
     int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -163,6 +165,7 @@ private:
     void InitWmsConnectionMonitor();
     void InitFocusChangedMonitor();
     void InitWindowDisplayChangedMonitor();
+    bool InitPasteboardMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();

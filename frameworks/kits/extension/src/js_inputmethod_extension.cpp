@@ -22,7 +22,6 @@
 #include "input_method_ability.h"
 #include "inputmethod_extension_ability_service_impl.h"
 #include "inputmethod_trace.h"
-#include "iservice_registry.h"
 #include "js_extension_context.h"
 #include "js_inputmethod_extension_context.h"
 #include "js_runtime.h"
@@ -32,7 +31,6 @@
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
-#include "system_ability_definition.h"
 #include "tasks/task_ams.h"
 #include "tasks/task_imsa.h"
 #include "task_manager.h"
@@ -144,12 +142,6 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
 void JsInputMethodExtension::ListenWindowManager()
 {
     IMSA_HILOGD("register window manager service listener.");
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("failed to get SaMgr!");
-        return;
-    }
-
     auto jsInputMethodExtension = std::static_pointer_cast<JsInputMethodExtension>(shared_from_this());
     displayListener_ = sptr<JsInputMethodExtensionDisplayListener>::MakeSptr(jsInputMethodExtension);
     if (displayListener_ == nullptr) {
@@ -157,16 +149,7 @@ void JsInputMethodExtension::ListenWindowManager()
         return;
     }
 
-    auto listener = sptr<SystemAbilityStatusChangeListener>::MakeSptr(displayListener_);
-    if (listener == nullptr) {
-        IMSA_HILOGE("failed to create status change listener!");
-        return;
-    }
-
-    auto ret = abilityManager->SubscribeSystemAbility(WINDOW_MANAGER_SERVICE_ID, listener);
-    if (ret != 0) {
-        IMSA_HILOGE("failed to subscribe system ability, ret: %{public}d!", ret);
-    }
+    Rosen::DisplayManager::GetInstance().RegisterDisplayListener(displayListener_);
 }
 
 void JsInputMethodExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &config)
@@ -210,15 +193,6 @@ void JsInputMethodExtension::ConfigurationUpdated()
     }
 
     JsExtensionContext::ConfigurationUpdated(env, shellContextRef_, fullConfig);
-}
-
-void JsInputMethodExtension::SystemAbilityStatusChangeListener::OnAddSystemAbility(int32_t systemAbilityId,
-    const std::string &deviceId)
-{
-    IMSA_HILOGD("add systemAbilityId: %{public}d.", systemAbilityId);
-    if (systemAbilityId == WINDOW_MANAGER_SERVICE_ID) {
-        Rosen::DisplayManager::GetInstance().RegisterDisplayListener(listener_);
-    }
 }
 
 void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
