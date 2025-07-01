@@ -140,7 +140,7 @@ public:
     BlockQueue<SwitchInfo>& GetSwitchQueue();
     bool IsWmsReady();
     bool CheckPwdInputPatternConv(InputClientInfo &clientInfo, uint64_t displayId);
-    int32_t RestoreCurrentIme(uint64_t callingDisplayId);
+    int32_t StartUserSpecifiedIme(uint64_t callingDisplayId);
     int32_t SetInputType();
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
@@ -233,7 +233,6 @@ private:
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
-    bool GetCurrentUsingImeId(ImeIdentification &imeId);
     bool CanStartIme();
     int32_t ChangeToDefaultImeIfNeed(
         const std::shared_ptr<ImeNativeCfg> &ime, std::shared_ptr<ImeNativeCfg> &imeToStart);
@@ -253,8 +252,11 @@ private:
     void ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo);
     std::pair<std::string, std::string> GetImeUsedBeforeScreenLocked();
     void SetImeUsedBeforeScreenLocked(const std::pair<std::string, std::string> &ime);
+    std::shared_ptr<ImeNativeCfg> GetRealCurrentIme(bool needSwitchToPresetImeIfNoCurIme = false);
+    int32_t NotifyImeChangedToClients();
+    int32_t NotifySubTypeChangedToIme(const std::string &bundleName, const std::string &subName);
     bool CompareExchange(const int32_t value);
-    bool IsLargeMemoryStateNeed();r
+    bool IsLargeMemoryStateNeed();
 
     std::mutex imeStartLock_;
 
