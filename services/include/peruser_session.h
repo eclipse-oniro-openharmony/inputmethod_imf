@@ -44,6 +44,10 @@ enum class ImeEvent : uint32_t {
     STOP_IME,
     SET_CORE_AND_AGENT,
 };
+enum LargeMemoryState : int32_t {
+    LARGE_MEMORY_NEED = 2,
+    LARGE_MEMORY_NOT_NEED = 3
+};
 enum class ImeAction : uint32_t {
     DO_NOTHING,
     HANDLE_STARTING_IME,
@@ -111,6 +115,7 @@ public:
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
+    int32_t UpdateLargeMemorySceneState(const int32_t memoryState);
     int32_t OnRegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnregisterProxyIme(uint64_t displayId);
@@ -248,6 +253,8 @@ private:
     void ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo);
     std::pair<std::string, std::string> GetImeUsedBeforeScreenLocked();
     void SetImeUsedBeforeScreenLocked(const std::pair<std::string, std::string> &ime);
+    bool CompareExchange(const int32_t value);
+    bool IsLargeMemoryStateNeed();r
 
     std::mutex imeStartLock_;
 
@@ -286,6 +293,8 @@ private:
     std::mutex virtualDisplayLock_{};
     std::unordered_set<uint64_t> virtualScreenDisplayId_;
     std::atomic<uint64_t> agentDisplayId_{ DEFAULT_DISPLAY_ID };
+    std::mutex largeMemoryStateMutex_{};
+    int32_t largeMemoryState_ = LargeMemoryState::LARGE_MEMORY_NOT_NEED;
     std::mutex clientGroupLock_{};
     std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
     std::mutex imeUsedLock_;

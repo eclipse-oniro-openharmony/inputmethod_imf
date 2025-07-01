@@ -785,6 +785,22 @@ ErrCode InputMethodSystemAbility::RequestHideInput(bool isFocusTriggered)
     return session->OnRequestHideInput(pid, GetCallingDisplayId());
 }
 
+ErrCode InputMethodSystemAbility::UpdateLargeMemorySceneState(const int32_t memoryState)
+{
+    IMSA_HILOGD("UpdateLargeMemorySceneState start %{public}d.", memoryState);
+    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not native sa!");
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->UpdateLargeMemorySceneState(memoryState);
+}
+
 ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility start.");
@@ -1765,6 +1781,10 @@ void InputMethodSystemAbility::DealSwitchRequest()
             SwitchType();
         } while (checkSwitchCount());
     };
+    if (serviceHandler_ == nullptr) {
+        IMSA_HILOGE("serviceHandler_ is nullptr");
+        return;
+    }
     // 0 means delay time is 0.
     serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }

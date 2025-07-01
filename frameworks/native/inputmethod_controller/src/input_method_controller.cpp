@@ -1636,6 +1636,17 @@ int32_t InputMethodController::FinishTextPreview()
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodController::UpdateLargeMemorySceneState(const int32_t memoryState)
+{
+    IMSA_HILOGI("UpdateLargeMemorySceneState %{public}d.", memoryState);
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->UpdateLargeMemorySceneState(memoryState);
+}
+
 int32_t InputMethodController::SendMessage(const ArrayBuffer &arrayBuffer)
 {
     if (!IsBound()) {
@@ -1820,243 +1831,407 @@ int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code,
 
 void OnTextChangedListener::InsertTextV2(const std::u16string &text)
 {
-    auto task = [this, text]() { InsertText(text); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "InsertTextV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        InsertText(text);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, text]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->InsertText(text);
+    };
+    eventHandler->PostTask(task, "InsertTextV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
+
 void OnTextChangedListener::DeleteForwardV2(int32_t length)
 {
-    auto task = [this, length]() { DeleteForward(length); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "DeleteForwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        DeleteForward(length);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, length]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->DeleteForward(length);
+    };
+    eventHandler->PostTask(task, "DeleteForwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::DeleteBackwardV2(int32_t length)
 {
-    auto task = [this, length]() { DeleteBackward(length); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "DeleteBackwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        DeleteBackward(length);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, length]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->DeleteBackward(length);
+    };
+    eventHandler->PostTask(task, "DeleteBackwardV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::SendKeyboardStatusV2(const KeyboardStatus &keyboardStatus)
 {
-    auto task = [this, keyboardStatus]() { SendKeyboardStatus(keyboardStatus); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "SendKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        SendKeyboardStatus(keyboardStatus);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, keyboardStatus]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->SendKeyboardStatus(keyboardStatus);
+    };
+    eventHandler->PostTask(task, "SendKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::SendFunctionKeyV2(const FunctionKey &functionKey)
 {
-    auto task = [this, functionKey]() { SendFunctionKey(functionKey); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "SendFunctionKeyV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        SendFunctionKey(functionKey);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, functionKey]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->SendFunctionKey(functionKey);
+    };
+    eventHandler->PostTask(task, "SendFunctionKeyV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::MoveCursorV2(const Direction &direction)
 {
-    auto task = [this, direction]() { MoveCursor(direction); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "MoveCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        MoveCursor(direction);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, direction]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->MoveCursor(direction);
+    };
+    eventHandler->PostTask(task, "MoveCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::HandleExtendActionV2(int32_t action)
 {
-    auto task = [this, action]() { HandleExtendAction(action); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "HandleExtendActionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        HandleExtendAction(action);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, action]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->HandleExtendAction(action);
+    };
+    eventHandler->PostTask(task, "HandleExtendActionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 std::u16string OnTextChangedListener::GetLeftTextOfCursorV2(int32_t number)
 {
-    std::u16string text;
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
-        auto task = [this, textResultHandler, number]() {
-            std::u16string info = GetLeftTextOfCursor(number);
-            if (textResultHandler != nullptr) {
-                textResultHandler->SetValue(info);
-            }
-        };
-        eventHandler->PostTask(task, "GetLeftTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        if (!textResultHandler->GetValue(text)) {
-            IMSA_HILOGW("GetLeftTextOfCursorV2 timeout");
+    if (eventHandler == nullptr) {
+        return GetLeftTextOfCursor(number);
+    }
+    auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, textResultHandler, number]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
         }
-    } else {
-        text = GetLeftTextOfCursor(number);
+        std::u16string info = listener->GetLeftTextOfCursor(number);
+        if (textResultHandler != nullptr) {
+            textResultHandler->SetValue(info);
+        }
+    };
+    eventHandler->PostTask(task, "GetLeftTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    std::u16string text;
+    if (!textResultHandler->GetValue(text)) {
+        IMSA_HILOGW("GetLeftTextOfCursorV2 timeout");
     }
     return text;
 }
 
 std::u16string OnTextChangedListener::GetRightTextOfCursorV2(int32_t number)
 {
-    std::u16string text;
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
-        auto task = [this, textResultHandler, number]() {
-            std::u16string info = GetRightTextOfCursor(number);
-            if (textResultHandler != nullptr) {
-                textResultHandler->SetValue(info);
-            }
-        };
-        eventHandler->PostTask(task, "GetRightTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        if (!textResultHandler->GetValue(text)) {
-            IMSA_HILOGW("GetRightTextOfCursorV2 timeout");
+    if (eventHandler == nullptr) {
+        return GetRightTextOfCursor(number);
+    }
+    auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, textResultHandler, number]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
         }
-    } else {
-        text = GetRightTextOfCursor(number);
+        std::u16string info = listener->GetRightTextOfCursor(number);
+        if (textResultHandler != nullptr) {
+            textResultHandler->SetValue(info);
+        }
+    };
+    eventHandler->PostTask(task, "GetRightTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    std::u16string text;
+    if (!textResultHandler->GetValue(text)) {
+        IMSA_HILOGW("GetRightTextOfCursorV2 timeout");
     }
     return text;
 }
 
 int32_t OnTextChangedListener::GetTextIndexAtCursorV2()
 {
-    int32_t index = -1;
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        auto textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
-        auto task = [this, textResultHandler]() {
-            int32_t textIndex = GetTextIndexAtCursor();
-            if (textResultHandler != nullptr) {
-                textResultHandler->SetValue(textIndex);
-            }
-        };
-        eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-        if (!textResultHandler->GetValue(index)) {
-            IMSA_HILOGW("GetTextIndexAtCursorV2 timeout");
+    if (eventHandler == nullptr) {
+        return GetTextIndexAtCursor();
+    }
+    auto textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, textResultHandler]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
         }
-    } else {
-        index = GetTextIndexAtCursor();
+        int32_t textIndex = listener->GetTextIndexAtCursor();
+        if (textResultHandler != nullptr) {
+            textResultHandler->SetValue(textIndex);
+        }
+    };
+    eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    int32_t index = -1;
+    if (!textResultHandler->GetValue(index)) {
+        IMSA_HILOGW("GetTextIndexAtCursorV2 timeout");
     }
     return index;
 }
 
 void OnTextChangedListener::SendKeyEventFromInputMethodV2(const KeyEvent &event)
 {
-    auto task = [this, event]() { SendKeyEventFromInputMethod(event); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "SendKeyEventFromInputMethodV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        SendKeyEventFromInputMethod(event);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, event]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->SendKeyEventFromInputMethod(event);
+    };
+    eventHandler->PostTask(task, "SendKeyEventFromInputMethodV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::NotifyPanelStatusInfoV2(const PanelStatusInfo &info)
 {
-    auto task = [this, info]() { NotifyPanelStatusInfo(info); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "NotifyPanelStatusInfoV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        NotifyPanelStatusInfo(info);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, info]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->NotifyPanelStatusInfo(info);
+    };
+    eventHandler->PostTask(task, "NotifyPanelStatusInfoV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::NotifyKeyboardHeightV2(uint32_t height)
 {
-    auto task = [this, height]() { NotifyKeyboardHeight(height); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "NotifyKeyboardHeightV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        NotifyKeyboardHeight(height);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, height]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->NotifyKeyboardHeight(height);
+    };
+    eventHandler->PostTask(task, "NotifyKeyboardHeightV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::SetKeyboardStatusV2(bool status)
 {
-    auto task = [this, status]() { SetKeyboardStatus(status); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "SetKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        SetKeyboardStatus(status);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, status]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->SetKeyboardStatus(status);
+    };
+    eventHandler->PostTask(task, "SetKeyboardStatusV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::HandleSetSelectionV2(int32_t start, int32_t end)
 {
-    auto task = [this, start, end]() { HandleSetSelection(start, end); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "HandleSetSelectionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        HandleSetSelection(start, end);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, start, end]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->HandleSetSelection(start, end);
+    };
+    eventHandler->PostTask(task, "HandleSetSelectionV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::HandleSelectV2(int32_t keyCode, int32_t cursorMoveSkip)
 {
-    auto task = [this, keyCode, cursorMoveSkip]() { HandleSelect(keyCode, cursorMoveSkip); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "HandleSelectV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        HandleSelect(keyCode, cursorMoveSkip);
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, keyCode, cursorMoveSkip]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->HandleSelect(keyCode, cursorMoveSkip);
+    };
+    eventHandler->PostTask(task, "HandleSelectV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 int32_t OnTextChangedListener::ReceivePrivateCommandV2(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    return ReceivePrivateCommand(privateCommand);
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        return ReceivePrivateCommand(privateCommand);
+    }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, privateCommand]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->ReceivePrivateCommand(privateCommand);
+    };
+    eventHandler->PostTask(task, "ReceivePrivateCommandV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t OnTextChangedListener::SetPreviewTextV2(const std::u16string &text, const Range &range)
 {
-    return SetPreviewText(text, range);
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        return SetPreviewText(text, range);
+    }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr, text, range]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->SetPreviewText(text, range);
+    };
+    eventHandler->PostTask(task, "SetPreviewTextV2", 0, AppExecFwk::EventQueue::Priority::VIP);
+    return ErrorCode::NO_ERROR;
 }
 
 void OnTextChangedListener::FinishTextPreviewV2()
 {
-    auto task = [this]() { FinishTextPreview(); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "FinishTextPreviewV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        FinishTextPreview();
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->FinishTextPreview();
+    };
+    eventHandler->PostTask(task, "FinishTextPreviewV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
 void OnTextChangedListener::OnDetachV2()
 {
-    auto task = [this]() { OnDetach(); };
     auto eventHandler = GetEventHandler();
-    if (eventHandler != nullptr) {
-        eventHandler->PostTask(task, "OnDetachV2", 0, AppExecFwk::EventQueue::Priority::VIP);
-    } else {
-        task();
+    if (eventHandler == nullptr) {
+        OnDetach();
+        return;
     }
+    auto weakPtr = wptr<OnTextChangedListener>(this);
+    auto task = [weakPtr]() {
+        auto listener = weakPtr.promote();
+        if (listener == nullptr) {
+            IMSA_HILOGE("listener is nullptr.");
+            return;
+        }
+        listener->OnDetach();
+    };
+    eventHandler->PostTask(task, "OnDetachV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 } // namespace MiscServices
 } // namespace OHOS

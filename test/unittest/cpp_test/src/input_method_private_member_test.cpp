@@ -1915,5 +1915,60 @@ HWTEST_F(InputMethodPrivateMemberTest, StartImeTryLock001, TestSize.Level0)
     IMSA_HILOGI("InputMethodPrivateMemberTest::StartImeTryLock %{public}d.", tryLockFailCount_.load());
     EXPECT_GT(tryLockFailCount_, 0); // at least one thread try lock failed
 }
+
+/**
+ * @tc.name: TestCompareExchange_001
+ * @tc.desc: TestCompareExchange.
+ * @tc.type: FUNC
+ * @tc.require: issuesIC7VH8
+ * @tc.author:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestCompareExchange_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestCompareExchange_001 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->largeMemoryState_ = 2;
+    auto ret = userSession->CompareExchange(2);
+    EXPECT_TRUE(ret);
+    ret = userSession->CompareExchange(3);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: TestIsLargeMemoryStateNeed_001
+ * @tc.desc: TestIsLargeMemoryStateNeed.
+ * @tc.type: FUNC
+ * @tc.require: issuesIC7VH8
+ * @tc.author:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestIsLargeMemoryStateNeed_001 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->largeMemoryState_ = 2;
+    auto ret = userSession->IsLargeMemoryStateNeed();
+    EXPECT_TRUE(ret);
+    userSession->largeMemoryState_ = 3;
+    ret = userSession->IsLargeMemoryStateNeed();
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: TestIsLargeMemoryStateNeed_002
+ * @tc.desc: Test IsLargeMemoryStateNeed.
+ * @tc.type: FUNC
+ * @tc.require: issuesIC7VH8
+ * @tc.author:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestIsLargeMemoryStateNeed_002 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    auto ret = userSession->UpdateLargeMemorySceneState(2);
+    userSession->StartImeInImeDied();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    userSession->UpdateLargeMemorySceneState(3);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

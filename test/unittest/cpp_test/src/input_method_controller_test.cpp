@@ -2079,5 +2079,18 @@ HWTEST_F(InputMethodControllerTest, TestSetSimpleKeyboardEnabled, TestSize.Level
     ret = inputMethodController_->SetSimpleKeyboardEnabled(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: TestUpdateLargeMemorySceneState
+ * @tc.desc: Test UpdateLargeMemorySceneState
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestUpdateLargeMemorySceneState, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC TestUpdateLargeMemorySceneState Test start");
+    int memoryState = 3;
+    auto ret = inputMethodController_->UpdateLargeMemorySceneState(memoryState);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+}
 } // namespace MiscServices
 } // namespace OHOS

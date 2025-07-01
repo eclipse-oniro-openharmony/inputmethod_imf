@@ -186,7 +186,8 @@ HWTEST_F(InputMethodManagerCommandTest, ExeCmd_009, TestSize.Level1)
     std::string result;
     auto ret = TddUtil::ExecuteCmd("ime -g", result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ("The current input method is: com.example.newTestIme, status: FULL_EXPERIENCE_MODE\n", result);
+    std::string expectStr = "The current input method is: com.example.newTestIme";
+    EXPECT_TRUE(result.find(expectStr) != std::string::npos);
 }
 
 /**

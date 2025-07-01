@@ -730,6 +730,29 @@ int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, c
     return ErrorCode::NO_ERROR;
 }
 
+bool PerUserSession::CompareExchange(const int32_t value)
+{
+    std::lock_guard<std::mutex> lock(largeMemoryStateMutex_);
+    if (largeMemoryState_ == value) {
+        IMSA_HILOGD("Duplicate message.");
+        return true;
+    }
+    largeMemoryState_ = value;
+    return false;
+}
+
+int32_t PerUserSession::UpdateLargeMemorySceneState(const int32_t memoryState)
+{
+    if (CompareExchange(memoryState)) {
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGI("large memory state: %{public}d.", memoryState);
+    if (memoryState == LargeMemoryState::LARGE_MEMORY_NOT_NEED) {
+        StartCurrentIme();
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t PerUserSession::OnRegisterProxyIme(
     uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
@@ -814,6 +837,16 @@ int32_t PerUserSession::InitInputControlChannel()
         [&data, &inputControlChannel] { return data->core->InitInputControlChannel(inputControlChannel); });
 }
 
+bool PerUserSession::IsLargeMemoryStateNeed()
+{
+    std::lock_guard<std::mutex> lock(largeMemoryStateMutex_);
+    if (largeMemoryState_ == LargeMemoryState::LARGE_MEMORY_NEED) {
+        IMSA_HILOGI("large memory state is True");
+        return true;
+    }
+    return false;
+}
+
 void PerUserSession::StartImeInImeDied()
 {
     IMSA_HILOGD("StartImeInImeDied.");
@@ -830,6 +863,9 @@ void PerUserSession::StartImeInImeDied()
     }
     if (!IsWmsReady()) {
         IMSA_HILOGW("not ready to start ime.");
+        return;
+    }
+    if (IsLargeMemoryStateNeed()) {
         return;
     }
     StartImeIfInstalled();

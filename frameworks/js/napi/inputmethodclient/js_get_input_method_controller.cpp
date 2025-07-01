@@ -1279,29 +1279,21 @@ int32_t JsGetInputMethodController::SetPreviewText(const std::u16string &text, c
         IMSA_HILOGD("failed to get uv entry!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto eventHandler = GetEventHandler();
-    if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
     IMSA_HILOGI("previewText start.");
-    auto task = [entry]() {
-        auto getPreviewTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            // 2 means the callback has two params.
-            if (argc < 2) {
-                return false;
-            }
-            // 0 means the first param of callback.
-            args[0] = JsUtil::GetValue(env, entry->text);
-            // 1 means the second param of callback.
-            args[1] = CreateSelectRange(env, entry->start, entry->end);
-            return true;
-        };
-
-        // 2 means the callback has two param.
-        JsCallbackHandler::Traverse(entry->vecCopy, { 2, getPreviewTextProperty });
+    auto getPreviewTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+        // 2 means the callback has two params.
+        if (argc < 2) {
+            return false;
+        }
+        // 0 means the first param of callback.
+        args[0] = JsUtil::GetValue(env, entry->text);
+        // 1 means the second param of callback.
+        args[1] = CreateSelectRange(env, entry->start, entry->end);
+        return true;
     };
-    eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
+
+    // 2 means the callback has two param.
+    JsCallbackHandler::Traverse(entry->vecCopy, { 2, getPreviewTextProperty });
     return ErrorCode::NO_ERROR;
 }
 
