@@ -46,6 +46,7 @@
 #include "input_method_tools.h"
 #include "ime_state_manager_factory.h"
 #include "inputmethod_trace.h"
+#include "notify_service_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -648,7 +649,17 @@ void PerUserSession::StopClientInput(
     if (isAsync == true) {
         ret = clientInfo->client->OnInputStopAsync(isStopInactiveClient);
     } else {
-        ret = clientInfo->client->OnInputStop(isStopInactiveClient);
+        auto onInputStopObject = new (std::nothrow) OnInputStopNotifyServiceImpl();
+        if (onInputStopObject == nullptr) {
+            IMSA_HILOGE("Failed to create onInputStopObject.");
+            return;
+        }
+        std::lock_guard<std::mutex> lock(isNotifyFinishedLock_);
+        isNotifyFinished_.Clear(false);
+        ret = clientInfo->client->OnInputStop(isStopInactiveClient, onInputStopObject);
+        if (!isNotifyFinished_.GetValue()) {
+            IMSA_HILOGE("OnInputStop is not finished!");
+        }
     }
     IMSA_HILOGI("isStopInactiveClient: %{public}d, client pid: %{public}d, ret: %{public}d.", isStopInactiveClient,
         clientInfo->pid, ret);
@@ -2370,6 +2381,11 @@ std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredD
         IMSA_HILOGE("start ime failed, ret: %{public}d!", ret);
     }
     return std::make_pair(ret, StartPreDefaultImeStatus::TO_START);
+}
+
+void PerUserSession::NotifyOnInputStopFinished()
+{
+    isNotifyFinished_.SetValue(true);
 }
 } // namespace MiscServices
 } // namespace OHOS

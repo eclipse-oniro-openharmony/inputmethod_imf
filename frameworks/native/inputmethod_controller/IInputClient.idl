@@ -20,7 +20,7 @@ sequenceable input_window_info..OHOS.MiscServices.ImeWindowInfo;
 sequenceable OHOS.IRemoteObject;
 interface OHOS.MiscServices.IInputClient {
     void OnInputReady([in] IRemoteObject agent, [in] long pid, [in] String bundleName);
-    void OnInputStop([in] boolean isStopInactiveClient);
+    [oneway] void OnInputStop([in] boolean isStopInactiveClient, [in] IRemoteObject object);
     [oneway] void OnInputStopAsync([in] boolean isStopInactiveClient);
     void OnSwitchInput([in] Property property, [in] SubProperty subProperty);
     void OnPanelStatusChange([in] unsigned int status, [in] ImeWindowInfo info);

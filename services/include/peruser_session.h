@@ -161,6 +161,7 @@ public:
     bool AllowSwitchImeByCombinationKey();
     std::pair<int32_t, StartPreDefaultImeStatus> StartPreconfiguredDefaultIme(
         uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo = {}, bool isStopCurrentIme = false);
+    void NotifyOnInputStopFinished();
 
 private:
     struct ResetManager {
@@ -173,6 +174,7 @@ private:
 #else
     static const int MAX_IME_START_TIME = 1500;
 #endif
+    static const int MAX_NOTIFY_TIME = 20;
     std::mutex resetLock;
     ResetManager manager;
     using IpcExec = std::function<int32_t()>;
@@ -294,6 +296,8 @@ private:
     int32_t largeMemoryState_ = LargeMemoryState::LARGE_MEMORY_NOT_NEED;
     std::mutex clientGroupLock_{};
     std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
+    std::mutex isNotifyFinishedLock_{};
+    BlockData<bool> isNotifyFinished_{ false, MAX_NOTIFY_TIME };
 };
 } // namespace MiscServices
 } // namespace OHOS
