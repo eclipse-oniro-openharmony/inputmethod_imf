@@ -200,6 +200,12 @@ private:
     public:
         SystemAbilityStatusChangeListener(sptr<CjInputMethodExtensionDisplayListener> displayListener)
             : listener_(displayListener) { };
+        ~SystemAbilityStatusChangeListener()
+        {
+            if (listener_ != nullptr) {
+                Rosen::DisplayManager::GetInstance().RegisterDisplayListener(listener_);
+            }
+        }
         void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
         void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override { }
 

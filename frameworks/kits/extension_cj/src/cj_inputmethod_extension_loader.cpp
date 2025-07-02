@@ -31,7 +31,7 @@ InputMethodExtension *CreateCjInputMethodExtension()
 {
     void *handle = dlopen(CJ_INPUTMETHOD_EXT_LIB_NAME, RTLD_LAZY);
     if (handle == nullptr) {
-        IMSA_HILOGE("open cj_inputmthod_extension library %{public}s failed, reason: %{public}s",
+        IMSA_HILOGE("open cj_inputmethod_extension library %{public}s failed, reason: %{public}s",
             CJ_INPUTMETHOD_EXT_LIB_NAME, dlerror());
         return new (std::nothrow) InputMethodExtension();
     }
@@ -39,7 +39,7 @@ InputMethodExtension *CreateCjInputMethodExtension()
     auto entry = reinterpret_cast<CreateFunc>(dlsym(handle, CJ_INPUTMETHOD_EXT_CREATE_FUNC));
     if (entry == nullptr) {
         dlclose(handle);
-        IMSA_HILOGE("get cj_inputmthod_extension symbol %{public}s in %{public}s failed",
+        IMSA_HILOGE("get cj_inputmethod_extension symbol %{public}s in %{public}s failed",
             CJ_INPUTMETHOD_EXT_CREATE_FUNC, CJ_INPUTMETHOD_EXT_LIB_NAME);
         return new (std::nothrow) InputMethodExtension();
     }
@@ -47,7 +47,7 @@ InputMethodExtension *CreateCjInputMethodExtension()
     auto instance = entry();
     if (instance == nullptr) {
         dlclose(handle);
-        IMSA_HILOGE("get cj_inputmthod_extension instance in %{public}s failed", CJ_INPUTMETHOD_EXT_LIB_NAME);
+        IMSA_HILOGE("get cj_inputmethod_extension instance in %{public}s failed", CJ_INPUTMETHOD_EXT_LIB_NAME);
         return new (std::nothrow) InputMethodExtension();
     }
 
