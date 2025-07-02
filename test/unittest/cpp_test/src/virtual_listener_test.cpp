@@ -18,6 +18,7 @@
 #undef private
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 #include <string_ex.h>
 #include <unistd.h>
 
@@ -30,6 +31,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace testing::mt;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t GET_INDEX = 0;
@@ -126,13 +128,14 @@ bool SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_ { false };
 
 class VirtualListenerTest : public testing::Test {
 public:
+    static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 100;
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("VirtualListenerTest::SetUpTestCase");
         textListener_ = new (std::nothrow) TextListenerImpl();
         std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("eventHandlerTextListener");
-        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-        eventHandlerTextListener_ = new (std::nothrow) EventHandlerTextListenerImpl(handler);
+        eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+        eventHandlerTextListener_ = new (std::nothrow) EventHandlerTextListenerImpl(eventHandler_);
         eventListener_ = std::make_shared<EventListenerImpl>();
         engineListener_ = std::make_shared<EngineListenerImpl>();
         systemCmdListener_ = new (std::nothrow) SystemCmdChannelImpl();
@@ -147,15 +150,81 @@ public:
     }
     void TearDown()
     {
+        eventHandlerTextListener_ = new (std::nothrow) EventHandlerTextListenerImpl(eventHandler_);
         IMSA_HILOGI("VirtualListenerTest::TearDown");
     }
+
+    static sptr<OnTextChangedListener> GetEventHandlerTextListener()
+    {
+        std::lock_guard<std::mutex>lock(eventHandlerTextListenerLock_);
+        eventHandlerTextListener_ = new (std::nothrow) EventHandlerTextListenerImpl(eventHandler_);
+        return eventHandlerTextListener_;
+    }
+
+    static void ClearEventHandlerTextListener()
+    {
+        std::lock_guard<std::mutex>lock(eventHandlerTextListenerLock_);
+        eventHandlerTextListener_ = nullptr;
+    }
+
+    static void TextListenerMultiThreadTest1()
+    {
+        for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; i++) {
+            auto listener = GetEventHandlerTextListener();
+            ASSERT_NE(listener, nullptr);
+            listener->InsertTextV2(u"");
+            int32_t length = 1;
+            listener->DeleteForwardV2(length);
+            listener->DeleteBackwardV2(length);
+            listener->SendKeyboardStatusV2(KeyboardStatus::SHOW);
+            FunctionKey key;
+            listener->SendFunctionKeyV2(key);
+            listener->MoveCursorV2(Direction::DOWN);
+            listener->HandleExtendActionV2(0);
+            listener->GetLeftTextOfCursorV2(length);
+            listener->GetRightTextOfCursorV2(length);
+            listener->GetTextIndexAtCursorV2();
+            KeyEvent keyEvent;
+            listener->SendKeyEventFromInputMethodV2(keyEvent);
+            listener->SetKeyboardStatusV2(true);
+            ClearEventHandlerTextListener();
+        }
+    }
+
+    static void TextListenerMultiThreadTest2()
+    {
+        for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; i++) {
+            auto listener = GetEventHandlerTextListener();
+            ASSERT_NE(listener, nullptr);
+            int32_t start = 1;
+            int32_t end = 1;
+            listener->HandleSetSelectionV2(start, end);
+            int32_t keyCode = 1;
+            int32_t cursorMoveSkip = 1;
+            listener->HandleSelectV2(keyCode, cursorMoveSkip);
+            listener->OnDetachV2();
+            PanelStatusInfo statusInfo;
+            Range range;
+            std::unordered_map<std::string, PrivateDataValue> privateCommand;
+            listener->NotifyPanelStatusInfoV2(statusInfo);
+            listener->NotifyKeyboardHeightV2(0);
+            listener->ReceivePrivateCommandV2(privateCommand);
+            listener->FinishTextPreviewV2();
+            listener->SetPreviewTextV2(Str8ToStr16("test"), range);
+            ClearEventHandlerTextListener();
+        }
+    }
     static sptr<OnTextChangedListener> textListener_;
+    static std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
+    static std::mutex eventHandlerTextListenerLock_;
     static sptr<OnTextChangedListener> eventHandlerTextListener_;
     static std::shared_ptr<ImeEventListener> eventListener_;
     static std::shared_ptr<InputMethodEngineListener> engineListener_;
     static sptr<OnSystemCmdListener> systemCmdListener_;
 };
 sptr<OnTextChangedListener> VirtualListenerTest::textListener_{ nullptr };
+std::shared_ptr<AppExecFwk::EventHandler> VirtualListenerTest::eventHandler_{ nullptr };
+std::mutex VirtualListenerTest::eventHandlerTextListenerLock_;
 sptr<OnTextChangedListener> VirtualListenerTest::eventHandlerTextListener_{ nullptr };
 std::shared_ptr<ImeEventListener> VirtualListenerTest::eventListener_{ nullptr };
 std::shared_ptr<InputMethodEngineListener> VirtualListenerTest::engineListener_{ nullptr };
@@ -231,6 +300,34 @@ HWTEST_F(VirtualListenerTest, testOnTextChangedListener_002, TestSize.Level1)
     VirtualListenerTest::eventHandlerTextListener_->FinishTextPreviewV2();
     ret = VirtualListenerTest::eventHandlerTextListener_->SetPreviewTextV2(Str8ToStr16("test"), range);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testOnTextChangedListener_003
+ * @tc.desc: multi thread
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(VirtualListenerTest, testOnTextChangedListener_003, TestSize.Level1)
+{
+    IMSA_HILOGI("VirtualListenerTest testOnTextChangedListener_003 START");
+    SET_THREAD_NUM(5);
+    GTEST_RUN_TASK(TextListenerMultiThreadTest1);
+}
+
+/**
+ * @tc.name: testOnTextChangedListener_004
+ * @tc.desc: multi thread
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(VirtualListenerTest, testOnTextChangedListener_004, TestSize.Level1)
+{
+    IMSA_HILOGI("VirtualListenerTest testOnTextChangedListener_004 START");
+    SET_THREAD_NUM(5);
+    GTEST_RUN_TASK(TextListenerMultiThreadTest2);
 }
 
 /**

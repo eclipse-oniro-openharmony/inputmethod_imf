@@ -48,20 +48,20 @@ public:
         return data;
     }
 
-    bool GetValue(T &data)
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        cv_.wait_for(lock, std::chrono::milliseconds(INTERVAL), [this]() { return isSet_; });
-        data = data_;
-        return isSet_;
-    }
-
     T GetValueWithoutTimeout()
     {
         std::unique_lock<std::mutex> lock(mutex_);
         cv_.wait(lock, [this]() { return isSet_; });
         T data = data_;
         return data;
+    }
+
+    bool GetValue(T &data)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait_for(lock, std::chrono::milliseconds(INTERVAL), [this]() { return isSet_; });
+        data = data_;
+        return isSet_;
     }
 
     void Clear(const T &invalid = T())

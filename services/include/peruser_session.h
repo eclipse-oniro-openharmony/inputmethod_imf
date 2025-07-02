@@ -163,6 +163,7 @@ public:
     bool AllowSwitchImeByCombinationKey();
     std::pair<int32_t, StartPreDefaultImeStatus> StartPreconfiguredDefaultIme(
         uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo = {}, bool isStopCurrentIme = false);
+    void NotifyOnInputStopFinished();
 
 private:
     struct ResetManager {
@@ -175,6 +176,7 @@ private:
 #else
     static const int MAX_IME_START_TIME = 1500;
 #endif
+    static const int MAX_NOTIFY_TIME = 20;
     std::mutex resetLock;
     ResetManager manager;
     using IpcExec = std::function<int32_t()>;
@@ -233,6 +235,7 @@ private:
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
+    bool GetCurrentUsingImeId(ImeIdentification &imeId);
     bool CanStartIme();
     int32_t ChangeToDefaultImeIfNeed(
         const std::shared_ptr<ImeNativeCfg> &ime, std::shared_ptr<ImeNativeCfg> &imeToStart);
@@ -252,7 +255,7 @@ private:
     void ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo);
     std::pair<std::string, std::string> GetImeUsedBeforeScreenLocked();
     void SetImeUsedBeforeScreenLocked(const std::pair<std::string, std::string> &ime);
-    std::shared_ptr<ImeNativeCfg> GetRealCurrentIme(bool needSwitchToPresetImeIfNoCurIme = false);
+    std::shared_ptr<ImeNativeCfg> GetRealCurrentIme(bool needMinGuarantee);
     int32_t NotifyImeChangedToClients();
     int32_t NotifySubTypeChangedToIme(const std::string &bundleName, const std::string &subName);
     bool CompareExchange(const int32_t value);
@@ -291,7 +294,8 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
-
+    std::mutex imeUsedLock_;
+    std::pair<std::string, std::string> imeUsedBeforeScreenLocked_;
     std::mutex virtualDisplayLock_{};
     std::unordered_set<uint64_t> virtualScreenDisplayId_;
     std::atomic<uint64_t> agentDisplayId_{ DEFAULT_DISPLAY_ID };
@@ -299,8 +303,8 @@ private:
     int32_t largeMemoryState_ = LargeMemoryState::LARGE_MEMORY_NOT_NEED;
     std::mutex clientGroupLock_{};
     std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
-    std::mutex imeUsedLock_;
-    std::pair<std::string, std::string> imeUsedBeforeScreenLocked_;
+    std::mutex isNotifyFinishedLock_{};
+    BlockData<bool> isNotifyFinished_{ false, MAX_NOTIFY_TIME };
 };
 } // namespace MiscServices
 } // namespace OHOS

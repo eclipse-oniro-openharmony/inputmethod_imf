@@ -1694,7 +1694,7 @@ void InputMethodSystemAbility::OnScreenLock(const Message *msg)
     }
     session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr!", userId_);
+        IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return;
     }
     session->OnScreenLock();

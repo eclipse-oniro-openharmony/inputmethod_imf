@@ -42,11 +42,11 @@ ErrCode InputClientServiceImpl::OnInputReady(
     return ERR_OK;
 }
 
-ErrCode InputClientServiceImpl::OnInputStop(bool isStopInactiveClient)
+ErrCode InputClientServiceImpl::OnInputStop(bool isStopInactiveClient, const sptr<IRemoteObject> &object)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance != nullptr) {
-        instance->OnInputStop(isStopInactiveClient);
+        instance->OnInputStop(isStopInactiveClient, object);
     } else {
         IMSA_HILOGW("failed to get InputMethodController instance!");
     }
@@ -57,7 +57,7 @@ ErrCode InputClientServiceImpl::OnInputStopAsync(bool isStopInactiveClient)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance != nullptr) {
-        instance->OnInputStop(isStopInactiveClient);
+        instance->OnInputStop(isStopInactiveClient, nullptr);
     } else {
         IMSA_HILOGW("failed to get InputMethodController instance!");
     }

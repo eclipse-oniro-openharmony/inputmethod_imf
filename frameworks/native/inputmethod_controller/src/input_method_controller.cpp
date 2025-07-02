@@ -40,6 +40,8 @@
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
 #include "input_method_tools.h"
+#include "notify_service_impl.h"
+#include "on_input_stop_notify_proxy.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -1172,7 +1174,7 @@ void InputMethodController::OnInputReady(
     SetAgent(agentObject);
 }
 
-void InputMethodController::OnInputStop(bool isStopInactiveClient)
+void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteObject> proxy)
 {
     {
         std::lock_guard<std::mutex> autoLock(agentLock_);
@@ -1198,6 +1200,8 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient)
     selectOldEnd_ = INVALID_VALUE;
     selectNewBegin_ = INVALID_VALUE;
     selectNewEnd_ = INVALID_VALUE;
+    auto channelProxy = std::make_shared<OnInputStopNotifyProxy>(proxy);
+    channelProxy->NotifyOnInputStopFinished();
 }
 
 void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChangedListener> lastListener)
@@ -1840,7 +1844,7 @@ void OnTextChangedListener::InsertTextV2(const std::u16string &text)
     auto task = [weakPtr, text]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("InsertTextV2 listener is nullptr.");
             return;
         }
         listener->InsertText(text);
@@ -1859,7 +1863,7 @@ void OnTextChangedListener::DeleteForwardV2(int32_t length)
     auto task = [weakPtr, length]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("DeleteForwardV2 listener is nullptr.");
             return;
         }
         listener->DeleteForward(length);
@@ -1878,7 +1882,7 @@ void OnTextChangedListener::DeleteBackwardV2(int32_t length)
     auto task = [weakPtr, length]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("DeleteBackwardV2 listener is nullptr.");
             return;
         }
         listener->DeleteBackward(length);
@@ -1897,7 +1901,7 @@ void OnTextChangedListener::SendKeyboardStatusV2(const KeyboardStatus &keyboardS
     auto task = [weakPtr, keyboardStatus]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("SendKeyboardStatusV2 listener is nullptr.");
             return;
         }
         listener->SendKeyboardStatus(keyboardStatus);
@@ -1916,7 +1920,7 @@ void OnTextChangedListener::SendFunctionKeyV2(const FunctionKey &functionKey)
     auto task = [weakPtr, functionKey]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("SendFunctionKeyV2 listener is nullptr.");
             return;
         }
         listener->SendFunctionKey(functionKey);
@@ -1935,7 +1939,7 @@ void OnTextChangedListener::MoveCursorV2(const Direction &direction)
     auto task = [weakPtr, direction]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("MoveCursorV2 listener is nullptr.");
             return;
         }
         listener->MoveCursor(direction);
@@ -1954,7 +1958,7 @@ void OnTextChangedListener::HandleExtendActionV2(int32_t action)
     auto task = [weakPtr, action]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("HandleExtendActionV2 listener is nullptr.");
             return;
         }
         listener->HandleExtendAction(action);
@@ -1971,14 +1975,15 @@ std::u16string OnTextChangedListener::GetLeftTextOfCursorV2(int32_t number)
     auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
     auto weakPtr = wptr<OnTextChangedListener>(this);
     auto task = [weakPtr, textResultHandler, number]() {
+        std::u16string text;
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
-            return;
+            IMSA_HILOGE("GetLeftTextOfCursorV2 listener is nullptr.");
+        } else {
+            text = listener->GetLeftTextOfCursor(number);
         }
-        std::u16string info = listener->GetLeftTextOfCursor(number);
         if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(info);
+            textResultHandler->SetValue(text);
         }
     };
     eventHandler->PostTask(task, "GetLeftTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -1998,14 +2003,15 @@ std::u16string OnTextChangedListener::GetRightTextOfCursorV2(int32_t number)
     auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT);
     auto weakPtr = wptr<OnTextChangedListener>(this);
     auto task = [weakPtr, textResultHandler, number]() {
+        std::u16string text;
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
-            return;
+            IMSA_HILOGE("GetRightTextOfCursorV2 listener is nullptr.");
+        } else {
+            text = listener->GetRightTextOfCursor(number);
         }
-        std::u16string info = listener->GetRightTextOfCursor(number);
         if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(info);
+            textResultHandler->SetValue(text);
         }
     };
     eventHandler->PostTask(task, "GetRightTextOfCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -2025,14 +2031,15 @@ int32_t OnTextChangedListener::GetTextIndexAtCursorV2()
     auto textResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
     auto weakPtr = wptr<OnTextChangedListener>(this);
     auto task = [weakPtr, textResultHandler]() {
+        int32_t index = -1;
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
-            return;
+            IMSA_HILOGE("GetTextIndexAtCursorV2 listener is nullptr.");
+        } else {
+            index = listener->GetTextIndexAtCursor();
         }
-        int32_t textIndex = listener->GetTextIndexAtCursor();
         if (textResultHandler != nullptr) {
-            textResultHandler->SetValue(textIndex);
+            textResultHandler->SetValue(index);
         }
     };
     eventHandler->PostTask(task, "GetTextIndexAtCursorV2", 0, AppExecFwk::EventQueue::Priority::VIP);
@@ -2054,7 +2061,7 @@ void OnTextChangedListener::SendKeyEventFromInputMethodV2(const KeyEvent &event)
     auto task = [weakPtr, event]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("SendKeyEventFromInputMethodV2 listener is nullptr.");
             return;
         }
         listener->SendKeyEventFromInputMethod(event);
@@ -2073,7 +2080,7 @@ void OnTextChangedListener::NotifyPanelStatusInfoV2(const PanelStatusInfo &info)
     auto task = [weakPtr, info]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("NotifyPanelStatusInfoV2 listener is nullptr.");
             return;
         }
         listener->NotifyPanelStatusInfo(info);
@@ -2092,7 +2099,7 @@ void OnTextChangedListener::NotifyKeyboardHeightV2(uint32_t height)
     auto task = [weakPtr, height]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("NotifyKeyboardHeightV2 listener is nullptr.");
             return;
         }
         listener->NotifyKeyboardHeight(height);
@@ -2111,7 +2118,7 @@ void OnTextChangedListener::SetKeyboardStatusV2(bool status)
     auto task = [weakPtr, status]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("SetKeyboardStatusV2 listener is nullptr.");
             return;
         }
         listener->SetKeyboardStatus(status);
@@ -2130,7 +2137,7 @@ void OnTextChangedListener::HandleSetSelectionV2(int32_t start, int32_t end)
     auto task = [weakPtr, start, end]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("HandleSetSelectionV2 listener is nullptr.");
             return;
         }
         listener->HandleSetSelection(start, end);
@@ -2149,7 +2156,7 @@ void OnTextChangedListener::HandleSelectV2(int32_t keyCode, int32_t cursorMoveSk
     auto task = [weakPtr, keyCode, cursorMoveSkip]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("HandleSelectV2 listener is nullptr.");
             return;
         }
         listener->HandleSelect(keyCode, cursorMoveSkip);
@@ -2168,7 +2175,7 @@ int32_t OnTextChangedListener::ReceivePrivateCommandV2(
     auto task = [weakPtr, privateCommand]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("ReceivePrivateCommandV2 listener is nullptr.");
             return;
         }
         listener->ReceivePrivateCommand(privateCommand);
@@ -2187,7 +2194,7 @@ int32_t OnTextChangedListener::SetPreviewTextV2(const std::u16string &text, cons
     auto task = [weakPtr, text, range]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("SetPreviewTextV2 listener is nullptr.");
             return;
         }
         listener->SetPreviewText(text, range);
@@ -2207,7 +2214,7 @@ void OnTextChangedListener::FinishTextPreviewV2()
     auto task = [weakPtr]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("FinishTextPreviewV2 listener is nullptr.");
             return;
         }
         listener->FinishTextPreview();
@@ -2226,7 +2233,7 @@ void OnTextChangedListener::OnDetachV2()
     auto task = [weakPtr]() {
         auto listener = weakPtr.promote();
         if (listener == nullptr) {
-            IMSA_HILOGE("listener is nullptr.");
+            IMSA_HILOGE("OnDetachV2 listener is nullptr.");
             return;
         }
         listener->OnDetach();
