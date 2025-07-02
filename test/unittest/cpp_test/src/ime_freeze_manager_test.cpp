@@ -29,9 +29,6 @@ namespace OHOS {
 namespace MiscServices {
 constexpr int32_t TASK_NUM = 100;
 constexpr int32_t IPC_COST_TIME = 5000;
-constexpr int32_t TEST_DELAY_TIME = 100; // 100ms
-constexpr int32_t TEST_OTHER_WAIT_TIME = 20; // 20ms
-constexpr int32_t MS_TO_US = 1000;
 class ImeFreezeManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
@@ -310,44 +307,20 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_IsImeInUse_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: PasteBoardActiveImeTest_001
+ * @tc.name: TemporaryActiveImeTest_001
  * @tc.desc: test freeze manager
  * @tc.type: FUNC
  */
-HWTEST_F(ImeFreezeManagerTest, PasteBoardActiveImeTest_001, TestSize.Level1)
+HWTEST_F(ImeFreezeManagerTest, TemporaryActiveImeTest_001, TestSize.Level1)
 {
-    IMSA_HILOGI("ImeFreezeManagerTest::PasteBoardActiveImeTest_001");
+    IMSA_HILOGI("ImeFreezeManagerTest::TemporaryActiveImeTest_001");
     ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     ClearState();
-    freezeManager_->isFrozen_ = false;
-    ImeFreezeManagerTest::freezeManager_->PasteBoardActiveIme();
+    ImeFreezeManagerTest::freezeManager_->isFrozen_ = false;
+    ImeFreezeManagerTest::freezeManager_->TemporaryActiveIme();
     ImeFreezeManagerTest::freezeManager_->isFrozen_ = true;
-    ImeFreezeManagerTest::freezeManager_->SetEventHandler(nullptr);
-    ImeFreezeManagerTest::freezeManager_->PasteBoardActiveIme();
-    ImeFreezeManagerTest::freezeManager_->SetEventHandler(ImeFreezeManagerTest::eventHandler_);
-    ImeFreezeManagerTest::freezeManager_->PasteBoardActiveIme(TEST_DELAY_TIME);
-    usleep((TEST_DELAY_TIME + TEST_OTHER_WAIT_TIME) * MS_TO_US);
-}
-
-/**
- * @tc.name: PasteBoardActiveImeTest_002
- * @tc.desc: test freeze manager
- * @tc.type: FUNC
- */
-HWTEST_F(ImeFreezeManagerTest, PasteBoardActiveImeTest_002, TestSize.Level1)
-{
-    IMSA_HILOGI("ImeFreezeManagerTest::PasteBoardActiveImeTest_002");
-    auto freezeManager = std::make_shared<FreezeManager>(0);
-    freezeManager->isFrozen_ = true;
-    freezeManager->SetEventHandler(ImeFreezeManagerTest::eventHandler_);
-    freezeManager->PasteBoardActiveIme(TEST_DELAY_TIME);
-    freezeManager->isFrozen_ = false;
-    usleep((TEST_DELAY_TIME + TEST_OTHER_WAIT_TIME) * MS_TO_US);
-    freezeManager->isFrozen_ = true;
-    freezeManager->PasteBoardActiveIme(TEST_DELAY_TIME);
-    EXPECT_EQ(freezeManager->isFrozen_, true);
-    freezeManager = nullptr;
-    usleep((TEST_DELAY_TIME + TEST_OTHER_WAIT_TIME) * MS_TO_US);
+    ImeFreezeManagerTest::freezeManager_->TemporaryActiveIme();
+    EXPECT_TRUE(ImeFreezeManagerTest::freezeManager_->isFrozen_);
 }
 } // namespace MiscServices
 } // namespace OHOS

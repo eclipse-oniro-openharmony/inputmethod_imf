@@ -123,8 +123,19 @@ int32_t InputMethodPanel::FullScreenPrepare(Rosen::KeyboardLayoutParams &param)
         param.LandscapePanelRect_.posY_ = static_cast<int32_t>(SafeSubtract(
             static_cast<uint32_t>(param.LandscapePanelRect_.posY_), landscapeChangeY_));
     }
-    param.portraitAvoidHeight_ += static_cast<int32_t>(immersiveEffect_.gradientHeight);
-    param.landscapeAvoidHeight_ += static_cast<int32_t>(immersiveEffect_.gradientHeight);
+
+    int32_t gradientHeightTemp = static_cast<int32_t>(immersiveEffect_.gradientHeight);
+    if (param.landscapeAvoidHeight_ > INT32_MAX - gradientHeightTemp) {
+        IMSA_HILOGE("landscapeAvoidHeight_ overflow detected");
+        return ErrorCode::ERROR_INVALID_RANGE;
+    }
+    param.landscapeAvoidHeight_ += gradientHeightTemp;
+
+    if (param.portraitAvoidHeight_ > INT32_MAX - gradientHeightTemp) {
+        IMSA_HILOGE("portraitAvoidHeight_ overflow detected");
+        return ErrorCode::ERROR_INVALID_RANGE;
+    }
+    param.portraitAvoidHeight_ += gradientHeightTemp;
     return ErrorCode::NO_ERROR;
 }
 
@@ -1495,6 +1506,12 @@ void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, c
         IMSA_HILOGE("proxy is nullptr!");
         return;
     }
+
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return;
+    }
+
     std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
     info.windowInfo.name = std::move(name);
     info.windowInfo.left = rect.posX_;

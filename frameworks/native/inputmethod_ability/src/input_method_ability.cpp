@@ -935,6 +935,7 @@ void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
 {
     IMSA_HILOGI("input method service died.");
     isBound_.store(false);
+    ClearDataChannel(dataChannelObject_);
     ClearInputControlChannel();
     ClearSystemCmdChannel();
     {
