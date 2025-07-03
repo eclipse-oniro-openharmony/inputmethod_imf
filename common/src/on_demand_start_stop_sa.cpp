@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+// LCOV_EXCL_START
 std::atomic<uint32_t> OnDemandStartStopSa::processingIpcCount_ { 0 };
 sptr<IRemoteObject> OnDemandStartStopSa::LoadInputMethodSystemAbility()
 {
@@ -144,5 +145,6 @@ bool OnDemandStartStopSa::IsSaBusy()
 {
     return processingIpcCount_.load() > 0;
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

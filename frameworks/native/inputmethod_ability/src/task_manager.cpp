@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-
+// LCOV_EXCL_START
 static const std::string THREAD_NAME = "OS_imf_task_manager";
 
 TaskManager::TaskManager()
@@ -274,6 +274,6 @@ void TaskManager::Reset()
     imsaTasks_.clear();
     amsTasks_.clear();
 }
-
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

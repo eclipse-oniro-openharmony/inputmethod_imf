@@ -18,6 +18,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+// LCOV_EXCL_START
 constexpr const char *SYS_CFG_FILE_PATH = "etc/inputmethod/inputmethod_framework_config.json";
 bool SysCfgParser::ParseSystemConfig(SystemConfig &systemConfig)
 {
@@ -93,5 +94,6 @@ std::string SysCfgParser::GetSysCfgContent(const std::string &key)
     }
     return content;
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

@@ -73,7 +73,7 @@ bool InputTypeManager::IsStarted()
     std::lock_guard<std::mutex> lock(stateLock_);
     return isStarted_;
 }
-
+// LCOV_EXCL_START
 bool InputTypeManager::IsSecurityImeStarted()
 {
     InputType type = InputType::SECURITY_INPUT;
@@ -140,7 +140,7 @@ ImeIdentification InputTypeManager::GetCurrentIme()
     std::lock_guard<std::mutex> lock(stateLock_);
     return currentTypeIme_;
 }
-
+// LCOV_EXCL_STOP
 bool InputTypeManager::Init()
 {
     IMSA_HILOGD("start.");

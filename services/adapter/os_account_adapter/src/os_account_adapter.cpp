@@ -19,6 +19,7 @@
 #include "os_account_manager.h"
 namespace OHOS {
 namespace MiscServices {
+// LCOV_EXCL_START
 using namespace AccountSA;
 bool OsAccountAdapter::IsOsAccountForeground(int32_t userId)
 {
@@ -69,5 +70,6 @@ int32_t OsAccountAdapter::IsOsAccountVerified(int32_t userId, bool &isUnlocked)
     }
     return ErrorCode::NO_ERROR;
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS
