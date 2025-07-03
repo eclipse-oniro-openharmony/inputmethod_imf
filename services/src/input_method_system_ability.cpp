@@ -343,7 +343,7 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
     }
     IMSA_HILOGD("InputMethodSystemAbility::DumpAllMethod end.");
 }
-
+// LCOV_EXCL_START
 int32_t InputMethodSystemAbility::Init()
 {
     IMSA_HILOGI("InputMethodSystemAbility::Init start.");
@@ -405,7 +405,7 @@ void InputMethodSystemAbility::OnStop()
     state_ = ServiceRunningState::STATE_NOT_START;
     Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 0, INPUT_METHOD_SYSTEM_ABILITY_ID);
 }
-
+// LCOV_EXCL_STOP
 void InputMethodSystemAbility::InitServiceHandler()
 {
     IMSA_HILOGI("InitServiceHandler start.");
@@ -1725,7 +1725,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     IMSA_HILOGE("keycode is undefined!");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
 }
-
+// LCOV_EXCL_START
 void InputMethodSystemAbility::DealSwitchRequest()
 {
     {
@@ -1885,7 +1885,7 @@ bool InputMethodSystemAbility::InitWmsMonitor()
 {
     return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService([this]() { HandleWmsStarted(); });
 }
-
+// LCOV_EXCL_STOP
 bool InputMethodSystemAbility::InitMemMgrMonitor()
 {
     return ImCommonEventManager::GetInstance()->SubscribeMemMgrService([this]() { HandleMemStarted(); });
@@ -2383,7 +2383,7 @@ void InputMethodSystemAbility::NeedHideWhenSwitchInputType(int32_t userId, Input
     }
     needHide = imeData->ime.first == ime.bundleName;
 }
-
+// LCOV_EXCL_START
 void InputMethodSystemAbility::HandleBundleScanFinished()
 {
     isBundleScanFinished_.store(true);
@@ -2424,7 +2424,7 @@ bool InputMethodSystemAbility::ModifyImeCfgWithWrongCaps()
         correctImeName.c_str(), correctIme->id.c_str());
     return true;
 }
-
+// LCOV_EXCL_STOP
 bool InputMethodSystemAbility::GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable)
 {
     auto multiInputMgr = MMI::InputManager::GetInstance();

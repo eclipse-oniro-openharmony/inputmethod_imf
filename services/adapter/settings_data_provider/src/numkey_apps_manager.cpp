@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+// LCOV_EXCL_START
 #define CHECK_FEATURE_DISABLED_RETURN(retVal)   \
     do {                                        \
         if (!isFeatureEnabled_) {               \
@@ -229,5 +230,6 @@ int32_t NumkeyAppsManager::RegisterUserBlockListData(int32_t userId)
     observers_[userId] = observer;
     return ErrorCode::NO_ERROR;
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

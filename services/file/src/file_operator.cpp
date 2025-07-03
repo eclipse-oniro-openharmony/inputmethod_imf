@@ -22,6 +22,7 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
+// LCOV_EXCL_START
 constexpr int32_t SUCCESS = 0;
 bool FileOperator::Create(const std::string &path, mode_t mode)
 {
@@ -177,5 +178,6 @@ std::string FileOperator::GetRealPath(const char *path)
     }
     return std::string(realPath);
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

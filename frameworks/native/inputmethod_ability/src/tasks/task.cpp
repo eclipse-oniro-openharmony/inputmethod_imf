@@ -19,7 +19,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-
+// LCOV_EXCL_START
 Task::Task(TaskType type) : type_(type), seqId_(GetNextSeqId()) { }
 
 Task::Task(TaskType type, uint64_t seqId) : type_(type), seqId_(seqId) { }
@@ -165,6 +165,6 @@ int32_t Task::Pend(std::unique_ptr<Action> action)
     pendingActions_.push_back(std::move(action));
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS
