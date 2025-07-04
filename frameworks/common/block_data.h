@@ -48,6 +48,14 @@ public:
         return data;
     }
 
+    T GetValueWithoutTimeout()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait(lock, [this]() { return isSet_; });
+        T data = data_;
+        return data;
+    }
+
     bool GetValue(T &data)
     {
         std::unique_lock<std::mutex> lock(mutex_);

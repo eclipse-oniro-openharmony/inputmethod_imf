@@ -53,6 +53,7 @@ public:
         void ChangePackage(const EventFwk::CommonEventData &data);
         void HandleBootCompleted(const EventFwk::CommonEventData &data);
         void OnScreenUnlock(const EventFwk::CommonEventData &data);
+        void OnScreenLock(const EventFwk::CommonEventData &data);
 
     private:
         using EventListenerFunc = std::function<void(EventSubscriber *that, const EventFwk::CommonEventData &data)>;

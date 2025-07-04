@@ -68,6 +68,7 @@ public:
     int32_t SetPreviewText(
         const std::string &text, const RangeInner &range, const AsyncIpcCallBack &callback = nullptr);
     int32_t FinishTextPreview(const AsyncIpcCallBack &callback = nullptr);
+    int32_t ClearRspHandlers();
 
 public:
     int32_t HandleResponse(uint64_t msgId, const ResponseInfo &rspInfo);
@@ -80,7 +81,6 @@ private:
     uint64_t GenerateMsgId();
     int32_t Request(
         const AsyncIpcCallBack &callback, const ChannelWork &work, bool isSync, const SyncOutput &output = nullptr);
-    int32_t ClearRspHandlers();
 
 private:
     uint64_t msgId_{ 0 };

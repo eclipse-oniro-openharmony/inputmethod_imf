@@ -108,6 +108,7 @@ public:
     void OnFocused(uint64_t displayId, int32_t pid, int32_t uid);
     void OnUnfocused(uint64_t displayId, int32_t pid, int32_t uid);
     void OnScreenUnlock();
+    void OnScreenLock();
     int64_t GetCurrentClientPid(uint64_t displayId);
     int64_t GetInactiveClientPid(uint64_t displayId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info, uint64_t displayId);
@@ -139,7 +140,7 @@ public:
     BlockQueue<SwitchInfo>& GetSwitchQueue();
     bool IsWmsReady();
     bool CheckPwdInputPatternConv(InputClientInfo &clientInfo, uint64_t displayId);
-    int32_t RestoreCurrentIme(uint64_t callingDisplayId);
+    int32_t StartUserSpecifiedIme(uint64_t callingDisplayId);
     int32_t SetInputType();
     std::shared_ptr<ImeNativeCfg> GetImeNativeCfg(int32_t userId, const std::string &bundleName,
         const std::string &subName);
@@ -158,6 +159,7 @@ public:
     bool IsNumkeyAutoInputApp(const std::string &bundleName);
     std::pair<int32_t, int32_t> GetCurrentInputPattern();
     bool IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo);
+    bool IsSimpleKeyboardEnabled();
     bool AllowSwitchImeByCombinationKey();
     std::pair<int32_t, StartPreDefaultImeStatus> StartPreconfiguredDefaultIme(
         uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo = {}, bool isStopCurrentIme = false);
@@ -251,9 +253,13 @@ private:
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     void ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo);
+    std::pair<std::string, std::string> GetImeUsedBeforeScreenLocked();
+    void SetImeUsedBeforeScreenLocked(const std::pair<std::string, std::string> &ime);
+    std::shared_ptr<ImeNativeCfg> GetRealCurrentIme(bool needMinGuarantee);
+    int32_t NotifyImeChangedToClients();
+    int32_t NotifySubTypeChangedToIme(const std::string &bundleName, const std::string &subName);
     bool CompareExchange(const int32_t value);
     bool IsLargeMemoryStateNeed();
-    std::shared_ptr<ImeNativeCfg> GetRealCurrentIme(bool needSwitchToPresetImeIfNoCurIme = false);
 
     std::mutex imeStartLock_;
 
@@ -288,7 +294,8 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
-
+    std::mutex imeUsedLock_;
+    std::pair<std::string, std::string> imeUsedBeforeScreenLocked_;
     std::mutex virtualDisplayLock_{};
     std::unordered_set<uint64_t> virtualScreenDisplayId_;
     std::atomic<uint64_t> agentDisplayId_{ DEFAULT_DISPLAY_ID };

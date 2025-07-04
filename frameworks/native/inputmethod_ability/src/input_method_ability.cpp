@@ -347,6 +347,9 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
     }
     if (dataChannelObject_.GetRefPtr() == channel.GetRefPtr()) {
         dataChannelObject_ = nullptr;
+        if (dataChannelProxyWrap_ != nullptr) {
+            dataChannelProxyWrap_->ClearRspHandlers();
+        }
         dataChannelProxyWrap_ = nullptr;
         IMSA_HILOGD("end.");
     }
@@ -585,7 +588,9 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     AttachOptions options;
     options.requestKeyboardReason = textConfig.requestKeyboardReason;
-    options.isSimpleKeyboardEnabled = textConfig.isSimpleKeyboardEnabled;
+    options.isSimpleKeyboardEnabled = (textConfig.inputAttribute.IsSecurityImeFlag() || !IsDefaultIme())
+                                          ? false
+                                          : textConfig.isSimpleKeyboardEnabled;
     InvokeAttachOptionsCallback(options, isNotifyInputStart || !isNotify_);
     if (isNotifyInputStart || !isNotify_) {
         isNotify_ = true;
@@ -867,14 +872,18 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
     if (agentStub_ != nullptr) {
         channelProxy->SetSpareAgent(agentStub_->AsObject());
     }
+    if (dataChannelProxyWrap_ != nullptr) {
+        dataChannelProxyWrap_->ClearRspHandlers();
+    }
     dataChannelProxyWrap_ = channelWrap;
     dataChannelObject_ = object;
 }
 
 bool InputMethodAbility::NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig)
 {
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr!");
+    auto imeListener = GetImeListener();
+    if (imeListener == nullptr) {
+        IMSA_HILOGE("imeListener is nullptr!");
         return false;
     }
     auto task = [this, textConfig]() {
@@ -889,7 +898,7 @@ bool InputMethodAbility::NotifyInfoToWmsInStartInput(const TextTotalConfig &text
             return false;
         });
     };
-    return imeListener_->PostTaskToEventHandler(task, "NotifyInfoToWms");
+    return imeListener->PostTaskToEventHandler(task, "NotifyInfoToWms");
 }
 
 std::shared_ptr<InputDataChannelProxyWrap> InputMethodAbility::GetInputDataChannelProxyWrap()

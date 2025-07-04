@@ -131,6 +131,7 @@ private:
     int32_t HandlePackageEvent(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
     void OnScreenUnlock(const Message *msg);
+    void OnScreenLock(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
     void SubscribeCommonEvent();
     int32_t Switch(int32_t userId, const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);

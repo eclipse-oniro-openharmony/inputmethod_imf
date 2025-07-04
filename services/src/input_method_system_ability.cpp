@@ -692,14 +692,14 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
             return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
         }
         ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId, ime);
-        return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
+        return session->StartUserSpecifiedIme(DEFAULT_DISPLAY_ID);
     }
 #endif
     if (session->IsPreconfiguredDefaultImeSpecified(inputClientInfo)) {
         auto [ret, status] = session->StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
         return ret;
     }
-    return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
+    return session->StartUserSpecifiedIme(DEFAULT_DISPLAY_ID);
 }
 
 ErrCode InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId, bool &resultValue)
@@ -1023,15 +1023,8 @@ ErrCode InputMethodSystemAbility::ExitCurrentInputType()
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (session->CheckSecurityMode()) {
-        return StartInputType(userId, InputType::SECURITY_INPUT);
-    }
-    auto typeIme = InputTypeManager::GetInstance().GetCurrentIme();
-    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    if (cfgIme->bundleName == typeIme.bundleName) {
-        return session->RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
-    }
-    return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
+    InputTypeManager::GetInstance().Set(false);
+    return session->StartCurrentIme();
 }
 
 ErrCode InputMethodSystemAbility::IsDefaultIme()
@@ -1537,6 +1530,10 @@ void InputMethodSystemAbility::WorkThread()
                 OnScreenUnlock(msg);
                 break;
             }
+            case MSG_ID_SCREEN_LOCK: {
+                OnScreenLock(msg);
+                break;
+            }
             case MSG_ID_REGULAR_UPDATE_IME_INFO: {
                 FullImeInfoManager::GetInstance().RegularInit();
                 break;
@@ -1677,6 +1674,30 @@ void InputMethodSystemAbility::OnScreenUnlock(const Message *msg)
         return;
     }
     session->OnScreenUnlock();
+}
+
+void InputMethodSystemAbility::OnScreenLock(const Message *msg)
+{
+    if (msg == nullptr || msg->msgContent_ == nullptr) {
+        IMSA_HILOGE("message is nullptr");
+        return;
+    }
+    int32_t userId = 0;
+    if (!ITypesUtil::Unmarshal(*msg->msgContent_, userId)) {
+        IMSA_HILOGE("failed to read message");
+        return;
+    }
+    IMSA_HILOGD("userId: %{public}d", userId);
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        UserSessionManager::GetInstance().AddUserSession(userId);
+    }
+    session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId);
+        return;
+    }
+    session->OnScreenLock();
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
@@ -2046,11 +2067,7 @@ ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<
     }
     if (static_cast<UnRegisteredType>(type) == UnRegisteredType::SWITCH_PROXY_IME_TO_IME) {
         int32_t ret = ErrorCode::NO_ERROR;
-        if (session->CheckSecurityMode()) {
-            ret = StartInputType(userId, InputType::SECURITY_INPUT);
-        } else {
-            ret = session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
-        }
+        ret = session->StartCurrentIme();
         if (ret != ErrorCode::NO_ERROR) {
             return ret;
         }
@@ -2345,13 +2362,17 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
         IMSA_HILOGI("only need input type in default display");
         return ErrorCode::NO_ERROR;
     }
+    if (session->IsSimpleKeyboardEnabled() && type == InputType::CAMERA_INPUT) {
+        IMSA_HILOGI("current client simple keyboard enabled, not start camera input");
+        return ErrorCode::ERROR_SCENE_UNSUPPORTED;
+    }
     ImeIdentification ime;
     int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("not find input type: %{public}d.", type);
         // add for not adapter for SECURITY_INPUT
         if (type == InputType::SECURITY_INPUT || type == InputType::ONE_TIME_CODE) {
-            return session->RestoreCurrentIme(DEFAULT_DISPLAY_ID);
+            return session->StartUserSpecifiedIme(DEFAULT_DISPLAY_ID);
         }
         return ret;
     }
