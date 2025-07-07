@@ -30,6 +30,7 @@ struct SystemConfig : public Serializable {
     EnabledStatus initEnabledState{ EnabledStatus::DISABLED };
     bool enableAppAgentFeature = false;
     bool enableNumKeyFeature = false;
+    std::unordered_set<std::string> enabledNumKeyAppDeviceTypes;
     std::unordered_set<int32_t> proxyImeUidList;
     std::unordered_set<int32_t> specialSaUidList;
     std::unordered_set<std::string> defaultImeScreenList;
@@ -48,6 +49,7 @@ struct SystemConfig : public Serializable {
         initEnabledState = static_cast<EnabledStatus>(enableState);
         GetValue(node, GET_NAME(enableAppAgentFeature), enableAppAgentFeature);
         GetValue(node, GET_NAME(enableNumKeyFeature), enableNumKeyFeature);
+        GetValue(node, GET_NAME(enabledNumKeyAppDeviceTypes), enabledNumKeyAppDeviceTypes);
         GetValue(node, GET_NAME(proxyImeUidList), proxyImeUidList);
         GetValue(node, GET_NAME(specialSaUidList), specialSaUidList);
         GetValue(node, GET_NAME(defaultImeScreenList), defaultImeScreenList);

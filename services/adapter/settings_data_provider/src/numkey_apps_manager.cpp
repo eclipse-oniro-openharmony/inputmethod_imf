@@ -55,6 +55,10 @@ int32_t NumkeyAppsManager::Init(int32_t userId)
 {
     IMSA_HILOGI("start, userId: %{public}d", userId);
     isFeatureEnabled_ = ImeInfoInquirer::GetInstance().IsEnableNumKey();
+    {
+        std::lock_guard<std::mutex> lock(appDeviceTypeLock_);
+        enabledNumKeyAppDeviceTypes_ = ImeInfoInquirer::GetInstance().GetEnabledNumKeyAppDeviceTypes();
+    }
     CHECK_FEATURE_DISABLED_RETURN(ErrorCode::NO_ERROR);
 
     int32_t ret = InitWhiteList();
@@ -71,23 +75,31 @@ int32_t NumkeyAppsManager::Init(int32_t userId)
 bool NumkeyAppsManager::NeedAutoNumKeyInput(int32_t userId, const std::string &bundleName)
 {
     CHECK_FEATURE_DISABLED_RETURN(false);
-    {
-        std::lock_guard<std::mutex> lock(appListLock_);
-        if (numKeyAppList_.find(bundleName) == numKeyAppList_.end()) {
-            IMSA_HILOGD("not in white list %{public}s", bundleName.c_str());
-            return false;
-        }
+    if (IsInNumkeyBlockList(userId, bundleName)) {
+        return false;
     }
-    std::lock_guard<std::mutex> lock(blockListLock_);
-    auto iter = usersBlockList_.find(userId);
-    if (iter == usersBlockList_.end()) {
-        IMSA_HILOGD("user %{public}d block list is empty", userId);
+    if (IsInNumKeyWhiteList(bundleName)) {
         return true;
     }
-    auto blockList = iter->second;
-    bool needAutoInput = blockList.find(bundleName) == blockList.end();
-    IMSA_HILOGD("bundleName: %{public}s, needAutoInput: %{public}d", bundleName.c_str(), needAutoInput);
-    return needAutoInput;
+    std::lock_guard<std::mutex> lock(appDeviceTypeLock_);
+    if (enabledNumKeyAppDeviceTypes_.empty()) {
+        IMSA_HILOGD("enabledNumKeyAppDeviceTypes empty.");
+        return false;
+    }
+    std::string compatibleDeviceType = "";
+    bool ret = ImeInfoInquirer::GetInstance().GetCompatibleDeviceType(bundleName, compatibleDeviceType);
+    if (!ret || compatibleDeviceType.empty()) {
+        IMSA_HILOGD("getCompatibleDeviceType failed.");
+        return false;
+    }
+    std::transform(compatibleDeviceType.begin(), compatibleDeviceType.end(), compatibleDeviceType.begin(),
+        [](char c) { return static_cast<char>(std::tolower(static_cast<unsigned char>(c))); });
+    if (enabledNumKeyAppDeviceTypes_.find(compatibleDeviceType) != enabledNumKeyAppDeviceTypes_.end()) {
+        IMSA_HILOGD("bundleName: %{public}s, compatibleDeviceType not supported.", bundleName.c_str());
+        return false;
+    }
+    IMSA_HILOGD("bundleName: %{public}s, support auto numkey input.", bundleName.c_str());
+    return true;
 }
 
 int32_t NumkeyAppsManager::OnUserSwitched(int32_t userId)
@@ -229,6 +241,32 @@ int32_t NumkeyAppsManager::RegisterUserBlockListData(int32_t userId)
     std::lock_guard<std::mutex> lock(observersLock_);
     observers_[userId] = observer;
     return ErrorCode::NO_ERROR;
+}
+
+bool NumkeyAppsManager::IsInNumKeyWhiteList(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(appListLock_);
+    if (numKeyAppList_.find(bundleName) == numKeyAppList_.end()) {
+        return false;
+    }
+    IMSA_HILOGD("%{public}s in white list.", bundleName.c_str());
+    return true;
+}
+
+bool NumkeyAppsManager::IsInNumkeyBlockList(int32_t userId, const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(blockListLock_);
+    auto iter = usersBlockList_.find(userId);
+    if (iter == usersBlockList_.end()) {
+        IMSA_HILOGD("user %{public}d block list is empty.", userId);
+        return false;
+    }
+    auto blockList = iter->second;
+    if (blockList.find(bundleName) == blockList.end()) {
+        return false;
+    }
+    IMSA_HILOGD("%{public}s in block list.", bundleName.c_str());
+    return true;
 }
 // LCOV_EXCL_STOP
 } // namespace MiscServices
