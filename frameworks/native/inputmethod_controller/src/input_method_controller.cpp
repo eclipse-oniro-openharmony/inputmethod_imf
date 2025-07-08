@@ -1196,10 +1196,17 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
     isEditable_.store(false);
     isTextNotified_.store(false);
     textString_ = Str8ToStr16("");
-    selectOldBegin_ = INVALID_VALUE;
-    selectOldEnd_ = INVALID_VALUE;
-    selectNewBegin_ = INVALID_VALUE;
-    selectNewEnd_ = INVALID_VALUE;
+    {
+        std::lock_guard<std::mutex> lock(editorContentLock_);
+        selectOldBegin_ = INVALID_VALUE;
+        selectOldEnd_ = INVALID_VALUE;
+        selectNewBegin_ = INVALID_VALUE;
+        selectNewEnd_ = INVALID_VALUE;
+    }
+    if (proxy == nullptr) {
+        IMSA_HILOGD("proxy is nullptr.");
+        return;
+    }
     auto channelProxy = std::make_shared<OnInputStopNotifyProxy>(proxy);
     channelProxy->NotifyOnInputStopFinished();
 }
