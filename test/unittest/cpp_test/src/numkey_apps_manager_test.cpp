@@ -131,6 +131,7 @@ HWTEST_F(NumKeyAppsManagerTest, testNeedAutoNumKeyInput_001, TestSize.Level1)
     EXPECT_TRUE(ret);
 
     NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
+    NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.clear();
 }
 
 /**

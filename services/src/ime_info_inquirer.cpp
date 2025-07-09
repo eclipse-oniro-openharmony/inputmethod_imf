@@ -1249,13 +1249,13 @@ bool ImeInfoInquirer::GetCompatibleDeviceType(
     const std::string &bundleName, std::string &compatibleDeviceType)
 {
     auto bundleMgr = GetBundleMgr();
-    if (!bundleMgr) {
+    if (bundleMgr == nullptr) {
         IMSA_HILOGE("bundleMgr is nullptr.");
         return false;
     }
-    std::string deviceType = "";
+    std::string deviceType;
     int32_t ret = static_cast<int32_t>(bundleMgr->GetCompatibleDeviceType(bundleName, deviceType));
-    if (ret != 0) {
+    if (ret != 0 || deviceType.empty()) {
         IMSA_HILOGE("GetCompatibleDeviceType error: %{public}d", ret);
         return false;
     }
