@@ -626,6 +626,39 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_testReleaseInput_001, TestSize.Level0)
 }
 
 /**
+ * @tc.name: III_TestRestoreInputMethod_001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestRestoreInputMethod_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestRestoreInputMethod_001 TEST START");
+    std::string bundleName = "";
+    auto ret = service_->RestoreInputmethod(bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
+
+    auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    ret = service_->RestoreInputmethod(currentProp->name);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
+    ret = service_->RestoreInputmethod(defaultIme.bundleName);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    bundleName = "com.example.newTestIme";
+    ret = service_->RestoreInputmethod(bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
+
+    auto userId = service_->GetCallingUserId();
+    UserSessionManager::GetInstance().RemoveUserSession(userId);
+    ret = service_->RestoreInputmethod(defaultIme.bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+}
+
+/**
  * @tc.name: III_TestGetCurrentInputMethodSubtype_001
  * @tc.desc:
  * @tc.type: FUNC
