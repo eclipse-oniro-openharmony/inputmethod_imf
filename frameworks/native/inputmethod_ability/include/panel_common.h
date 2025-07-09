@@ -85,11 +85,24 @@ struct PanelAdjustInfo {
         return (top == panelAdjust.top && left == panelAdjust.left && right == panelAdjust.right
                 && bottom == panelAdjust.bottom);
     }
+    inline std::string ToString() const
+    {
+        std::stringstream ss;
+        ss << "[top=" << top << ", left=" << left << ", right=" << right << ", bottom=" << bottom << "]";
+        return ss.str();
+    }
 };
 
 struct FullPanelAdjustInfo {
     PanelAdjustInfo portrait;
     PanelAdjustInfo landscape;
+    inline std::string ToString() const
+    {
+        std::stringstream ss;
+        ss << " portrait: " << portrait.ToString()
+           << ", landscape: " << landscape.ToString();
+        return ss.str();
+    }
 };
 } // namespace MiscServices
 } // namespace OHOS
