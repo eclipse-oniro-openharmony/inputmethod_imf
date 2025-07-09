@@ -92,6 +92,7 @@ ohos_shared_library("cj_inputmethod_extension_ffi") {
     "napi:cj_bind_native",
   ]
 
+  innerapi_tags = [ "platformsdk" ]
   subsystem_name = "inputmethod"
   part_name = "imf"
 }
