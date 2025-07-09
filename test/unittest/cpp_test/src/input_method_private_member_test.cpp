@@ -655,7 +655,6 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestRestoreInputMethod_001, TestSize.
     UserSessionManager::GetInstance().RemoveUserSession(userId);
     ret = service_->RestoreInputmethod(defaultIme.bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-
 }
 
 /**
