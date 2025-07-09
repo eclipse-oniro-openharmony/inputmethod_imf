@@ -31,28 +31,29 @@ public:
     InputDataChannelServiceImpl();
     ~InputDataChannelServiceImpl();
 
-    ErrCode InsertText(const std::string &text, uint64_t msgId) override;
-    ErrCode DeleteForward(int32_t length, uint64_t msgId) override;
-    ErrCode DeleteBackward(int32_t length, uint64_t msgId) override;
-    ErrCode GetTextBeforeCursor(int32_t number, uint64_t msgId) override;
-    ErrCode GetTextAfterCursor(int32_t number, uint64_t msgId) override;
+    ErrCode InsertText(const std::string &text, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
+    ErrCode DeleteForward(int32_t length, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
+    ErrCode DeleteBackward(int32_t length, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
+    ErrCode GetTextBeforeCursor(int32_t number, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
+    ErrCode GetTextAfterCursor(int32_t number, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
     ErrCode GetTextConfig(TextTotalConfigInner &textConfigInner) override;
     ErrCode SendKeyboardStatus(int32_t status) override;
-    ErrCode SendFunctionKey(int32_t funcKey, uint64_t msgId) override;
-    ErrCode MoveCursor(int32_t keyCode, uint64_t msgId) override;
+    ErrCode SendFunctionKey(int32_t funcKey, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
+    ErrCode MoveCursor(int32_t keyCode, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
     ErrCode GetEnterKeyType(int32_t &keyType) override;
     ErrCode GetInputPattern(int32_t &inputPattern) override;
-    ErrCode SelectByRange(int32_t start, int32_t end, uint64_t msgId) override;
-    ErrCode SelectByMovement(int32_t direction, int32_t cursorMoveSkip, uint64_t msgId) override;
-    ErrCode HandleExtendAction(int32_t action, uint64_t msgId) override;
-    ErrCode GetTextIndexAtCursor(uint64_t msgId) override;
+    ErrCode SelectByRange(int32_t start, int32_t end, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
+    ErrCode SelectByMovement(
+        int32_t direction, int32_t cursorMoveSkip, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
+    ErrCode HandleExtendAction(int32_t action, uint64_t msgId, const sptr<IRemoteObject> &agent) override;
+    ErrCode GetTextIndexAtCursor(uint64_t msgId, const sptr<IRemoteObject> &agent) override;
     ErrCode NotifyPanelStatusInfo(const PanelStatusInfoInner &info) override;
     ErrCode NotifyKeyboardHeight(uint32_t height) override;
     ErrCode SendPrivateCommand(const Value &value) override;
-    ErrCode SetPreviewText(const std::string &text, const RangeInner &rangeInner, uint64_t msgId) override;
-    ErrCode FinishTextPreview(uint64_t msgId) override;
+    ErrCode SetPreviewText(const std::string &text, const RangeInner &rangeInner, uint64_t msgId,
+        const sptr<IRemoteObject> &agent) override;
+    ErrCode FinishTextPreview(uint64_t msgId, const sptr<IRemoteObject> &agent) override;
     ErrCode SendMessage(const ArrayBuffer &arraybuffer) override;
-    ErrCode SetSpareAgent(const sptr<IRemoteObject> &agent) override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS

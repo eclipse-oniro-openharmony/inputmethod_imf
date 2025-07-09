@@ -51,7 +51,8 @@ struct ResponseHandler {
 };
 class InputDataChannelProxyWrap {
 public:
-    explicit InputDataChannelProxyWrap(const std::shared_ptr<InputDataChannelProxy> &channel);
+    InputDataChannelProxyWrap(
+        const std::shared_ptr<InputDataChannelProxy> &channel, const sptr<IRemoteObject> &agentObject);
     ~InputDataChannelProxyWrap();
 
     int32_t InsertText(const std::string &text, const AsyncIpcCallBack &callback = nullptr);
@@ -88,6 +89,7 @@ private:
     std::map<uint64_t, std::shared_ptr<ResponseHandler>> rspHandlers_;
     std::mutex channelMutex_;
     std::shared_ptr<InputDataChannelProxy> channel_ = nullptr;
+    sptr<IRemoteObject> agentObject_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -864,13 +864,14 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
         IMSA_HILOGE("failed to create channel proxy!");
         return;
     }
-    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+    sptr<IRemoteObject> agentObject = nullptr;
+    if (agentStub_ != nullptr) {
+        agentObject = agentStub_->AsObject();
+    }
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy, agentObject);
     if (channelWrap == nullptr) {
         IMSA_HILOGE("failed to create channel wrap!");
         return;
-    }
-    if (agentStub_ != nullptr) {
-        channelProxy->SetSpareAgent(agentStub_->AsObject());
     }
     if (dataChannelProxyWrap_ != nullptr) {
         dataChannelProxyWrap_->ClearRspHandlers();

@@ -2111,5 +2111,20 @@ HWTEST_F(InputMethodControllerTest, TestNotifyOnInputStopFinished001, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     UserSessionManager::GetInstance().userSessions_.clear();
 }
+
+/**
+ * @tc.name: TestResponseDataChannel
+ * @tc.desc: Test ResponseDataChannel
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestResponseDataChannel, TestSize.Level0)
+{
+    IMSA_HILOGI("TestResponseDataChannel START");
+    uint64_t msgId = 10;
+    int32_t code = 5;
+    ResponseData data = std::monostate{};
+    auto ret = inputMethodController_->ResponseDataChannel(nullptr, msgId, code, data);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS
