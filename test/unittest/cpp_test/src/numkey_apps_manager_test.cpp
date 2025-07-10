@@ -94,12 +94,12 @@ HWTEST_F(NumKeyAppsManagerTest, testInit_001, TestSize.Level1)
     IMSA_HILOGI("NumKeyAppsManagerTest testInit_001 START");
     NumkeyAppsManager::GetInstance().isFeatureEnabled_ = true;
     ImeInfoInquirer::GetInstance().systemConfig_.enableNumKeyFeature = true;
-    NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.clear();
-    ImeInfoInquirer::GetInstance().systemConfig_.enabledNumKeyAppDeviceTypes.clear();
-    ImeInfoInquirer::GetInstance().systemConfig_.enabledNumKeyAppDeviceTypes.insert(DEFAULT_DEVICETYPE);
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
+    ImeInfoInquirer::GetInstance().systemConfig_.disableNumKeyAppDeviceTypes.clear();
+    ImeInfoInquirer::GetInstance().systemConfig_.disableNumKeyAppDeviceTypes.insert(DEFAULT_DEVICETYPE);
     int32_t ret = NumkeyAppsManager::GetInstance().Init(MAIN_USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.count(DEFAULT_DEVICETYPE), 1);
+    EXPECT_EQ(NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.count(DEFAULT_DEVICETYPE), 1);
     EXPECT_NE(NumkeyAppsManager::GetInstance().usersBlockList_.find(MAIN_USER_ID),
         NumkeyAppsManager::GetInstance().usersBlockList_.end());
 }
@@ -113,8 +113,8 @@ HWTEST_F(NumKeyAppsManagerTest, testNeedAutoNumKeyInput_001, TestSize.Level1)
 {
     IMSA_HILOGI("NumKeyAppsManagerTest testNeedAutoNumKeyInput_001 START");
     NumkeyAppsManager::GetInstance().isFeatureEnabled_ = true;
-    NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.clear();
-    NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.insert(DEFAULT_DEVICETYPE);
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.insert(DEFAULT_DEVICETYPE);
 
     NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
     NumkeyAppsManager::GetInstance().usersBlockList_.clear();
@@ -131,7 +131,7 @@ HWTEST_F(NumKeyAppsManagerTest, testNeedAutoNumKeyInput_001, TestSize.Level1)
     EXPECT_TRUE(ret);
 
     NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
-    NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.clear();
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
 }
 
 /**
@@ -146,15 +146,15 @@ HWTEST_F(NumKeyAppsManagerTest, testNeedAutoNumKeyInput_002, TestSize.Level1)
     NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
     NumkeyAppsManager::GetInstance().usersBlockList_.clear();
 
-    NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.clear();
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
     bool ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
     EXPECT_FALSE(ret);
 
-    NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.insert(DEFAULT_DEVICETYPE);
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.insert(DEFAULT_DEVICETYPE);
     ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
     EXPECT_FALSE(ret);
 
-    NumkeyAppsManager::GetInstance().enabledNumKeyAppDeviceTypes_.clear();
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
 }
 
 /**

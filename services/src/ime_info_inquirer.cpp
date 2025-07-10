@@ -68,9 +68,9 @@ bool ImeInfoInquirer::IsEnableNumKey()
     return systemConfig_.enableNumKeyFeature;
 }
 
-std::unordered_set<std::string> ImeInfoInquirer::GetEnabledNumKeyAppDeviceTypes()
+std::unordered_set<std::string> ImeInfoInquirer::GetDisableNumKeyAppDeviceTypes()
 {
-    return systemConfig_.enabledNumKeyAppDeviceTypes;
+    return systemConfig_.disableNumKeyAppDeviceTypes;
 }
 
 bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)

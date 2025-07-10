@@ -80,7 +80,7 @@ private:
 
     bool isFeatureEnabled_{ false };
     std::mutex appDeviceTypeLock_;
-    std::unordered_set<std::string> enabledNumKeyAppDeviceTypes_;
+    std::unordered_set<std::string> disableNumKeyAppDeviceTypes_;
 
     std::atomic<bool> isListInited_{ false };
     std::mutex appListLock_;

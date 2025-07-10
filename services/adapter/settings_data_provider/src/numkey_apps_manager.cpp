@@ -57,7 +57,7 @@ int32_t NumkeyAppsManager::Init(int32_t userId)
     isFeatureEnabled_ = ImeInfoInquirer::GetInstance().IsEnableNumKey();
     {
         std::lock_guard<std::mutex> lock(appDeviceTypeLock_);
-        enabledNumKeyAppDeviceTypes_ = ImeInfoInquirer::GetInstance().GetEnabledNumKeyAppDeviceTypes();
+        disableNumKeyAppDeviceTypes_ = ImeInfoInquirer::GetInstance().GetDisableNumKeyAppDeviceTypes();
     }
     CHECK_FEATURE_DISABLED_RETURN(ErrorCode::NO_ERROR);
 
@@ -83,8 +83,8 @@ bool NumkeyAppsManager::NeedAutoNumKeyInput(int32_t userId, const std::string &b
     }
     {
         std::lock_guard<std::mutex> lock(appDeviceTypeLock_);
-        if (enabledNumKeyAppDeviceTypes_.empty()) {
-            IMSA_HILOGE("enabledNumKeyAppDeviceTypes empty.");
+        if (disableNumKeyAppDeviceTypes_.empty()) {
+            IMSA_HILOGE("disableNumKeyAppDeviceTypes empty.");
             return false;
         }
     }
@@ -98,7 +98,7 @@ bool NumkeyAppsManager::NeedAutoNumKeyInput(int32_t userId, const std::string &b
         [](char c) { return static_cast<char>(std::tolower(static_cast<unsigned char>(c))); });
     {
         std::lock_guard<std::mutex> lock(appDeviceTypeLock_);
-        if (enabledNumKeyAppDeviceTypes_.find(compatibleDeviceType) != enabledNumKeyAppDeviceTypes_.end()) {
+        if (disableNumKeyAppDeviceTypes_.find(compatibleDeviceType) != disableNumKeyAppDeviceTypes_.end()) {
             IMSA_HILOGE("bundleName: %{public}s, compatibleDeviceType not supported.", bundleName.c_str());
             return false;
         }
