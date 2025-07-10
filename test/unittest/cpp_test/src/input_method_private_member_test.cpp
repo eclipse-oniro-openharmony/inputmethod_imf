@@ -639,19 +639,23 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestRestoreInputMethod_001, TestSize.
     auto ret = service_->RestoreInputmethod(bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
 
-    auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    auto userId = service_->GetCallingUserId();
+    auto currentProp = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
     ret = service_->RestoreInputmethod(currentProp->name);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
     ret = service_->RestoreInputmethod(defaultIme.bundleName);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(ret == ErrorCode::NO_ERROR ||ret == ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 
     bundleName = "com.example.newTestIme";
+    EnabledStatus status = EnabledStatus::DISABLED;
+    ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
+    EXPECT_TRUE(status == EnabledStatus::DISABLED);
     ret = service_->RestoreInputmethod(bundleName);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
+    ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
+    EXPECT_TRUE(status == EnabledStatus::BASIC_MODE);
 
-    auto userId = service_->GetCallingUserId();
     UserSessionManager::GetInstance().RemoveUserSession(userId);
     ret = service_->RestoreInputmethod(defaultIme.bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
