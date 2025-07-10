@@ -2152,5 +2152,38 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_002, TestSize.
     userSession->UpdateLargeMemorySceneState(3);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: TestGetDisableNumKeyAppDeviceTypes
+ * @tc.desc: Test GetDisableNumKeyAppDeviceTypes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestGetDisableNumKeyAppDeviceTypes, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestGetDisableNumKeyAppDeviceTypes START");
+    std::string testDeviceType = "testDeviceType";
+    ImeInfoInquirer::GetInstance().systemConfig_.disableNumKeyAppDeviceTypes.clear();
+    ImeInfoInquirer::GetInstance().systemConfig_.disableNumKeyAppDeviceTypes.insert(testDeviceType);
+    std::unordered_set<std::string> ret = ImeInfoInquirer::GetInstance().GetDisableNumKeyAppDeviceTypes();
+    EXPECT_FALSE(ret.empty());
+    EXPECT_EQ(ret.count(testDeviceType), 1);
+}
+
+/**
+ * @tc.name: TestGetCompatibleDeviceType
+ * @tc.desc: Test GetCompatibleDeviceType.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestGetCompatibleDeviceType, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestGetCompatibleDeviceType START");
+    std::string testBundleName = "testBundleName";
+    std::string testDeviceType = "testDeviceType";
+    bool ret = ImeInfoInquirer::GetInstance().GetCompatibleDeviceType(testBundleName, testDeviceType);
+    EXPECT_FALSE(ret);
+    EXPECT_NE(testDeviceType, "default");
+}
 } // namespace MiscServices
 } // namespace OHOS
