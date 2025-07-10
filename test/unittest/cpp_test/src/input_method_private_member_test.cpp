@@ -650,11 +650,14 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestRestoreInputMethod_001, TestSize.
 
     bundleName = "com.example.newTestIme";
     EnabledStatus status = EnabledStatus::DISABLED;
-    ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
-    EXPECT_TRUE(status == EnabledStatus::DISABLED);
+    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = true;
+    service_->EnableIme(userId, bundleName, "", status);
+    ImeEnabledInfoManager::GetInstance().GetEnabledStateInner(userId, bundleName, status);
+    EXPECT_EQ(status, EnabledStatus::DISABLED);
     ret = service_->RestoreInputmethod(bundleName);
-    ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, bundleName, status);
-    EXPECT_TRUE(status == EnabledStatus::BASIC_MODE);
+    ImeEnabledInfoManager::GetInstance().GetEnabledStateInner(userId, bundleName, status);
+    EXPECT_EQ(status, EnabledStatus::BASIC_MODE);
+    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = false;
 
     UserSessionManager::GetInstance().RemoveUserSession(userId);
     ret = service_->RestoreInputmethod(defaultIme.bundleName);
