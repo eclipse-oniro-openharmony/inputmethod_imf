@@ -90,6 +90,7 @@ ohos_shared_library("cj_inputmethod_extension_ffi") {
     "window_manager:libdm",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
+    "ipc:ipc_napi",
   ]
 
   subsystem_name = "inputmethod"

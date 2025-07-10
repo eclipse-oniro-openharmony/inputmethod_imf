@@ -40,6 +40,7 @@ constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr std::int32_t INVALID_USER_ID = 10001;
 static constexpr const char *WHITE_LIST_APP_NAME = "WHITE_LIST_APP_NAME";
 static constexpr const char *BLOCK_LIST_APP_NAME = "BLOCK_LIST_APP_NAME";
+static constexpr const char *DEFAULT_DEVICETYPE = "default";
 
 void NumKeyAppsManagerTest::SetUpTestCase(void)
 {
@@ -93,57 +94,67 @@ HWTEST_F(NumKeyAppsManagerTest, testInit_001, TestSize.Level1)
     IMSA_HILOGI("NumKeyAppsManagerTest testInit_001 START");
     NumkeyAppsManager::GetInstance().isFeatureEnabled_ = true;
     ImeInfoInquirer::GetInstance().systemConfig_.enableNumKeyFeature = true;
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
+    ImeInfoInquirer::GetInstance().systemConfig_.disableNumKeyAppDeviceTypes.clear();
+    ImeInfoInquirer::GetInstance().systemConfig_.disableNumKeyAppDeviceTypes.insert(DEFAULT_DEVICETYPE);
     int32_t ret = NumkeyAppsManager::GetInstance().Init(MAIN_USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.count(DEFAULT_DEVICETYPE), 1);
     EXPECT_NE(NumkeyAppsManager::GetInstance().usersBlockList_.find(MAIN_USER_ID),
         NumkeyAppsManager::GetInstance().usersBlockList_.end());
 }
 
 /**
  * @tc.name: testNeedAutoNumKeyInput_001
- * @tc.desc: test NeedAutoNumKeyInput when numKeyAppList_ empty or not empty
+ * @tc.desc: test NeedAutoNumKeyInput when app in usersBlockList_, or app not in usersBlockList_ but in numKeyAppList_
  * @tc.type: FUNC
  */
 HWTEST_F(NumKeyAppsManagerTest, testNeedAutoNumKeyInput_001, TestSize.Level1)
 {
     IMSA_HILOGI("NumKeyAppsManagerTest testNeedAutoNumKeyInput_001 START");
     NumkeyAppsManager::GetInstance().isFeatureEnabled_ = true;
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.insert(DEFAULT_DEVICETYPE);
 
     NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
+    NumkeyAppsManager::GetInstance().usersBlockList_.clear();
+    NumkeyAppsManager::GetInstance().usersBlockList_[MAIN_USER_ID] = { WHITE_LIST_APP_NAME };
     bool ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
     EXPECT_FALSE(ret);
 
     NumkeyAppsManager::GetInstance().numKeyAppList_.insert(WHITE_LIST_APP_NAME);
+    ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
+    EXPECT_FALSE(ret);
+
     NumkeyAppsManager::GetInstance().usersBlockList_.clear();
     ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
     EXPECT_TRUE(ret);
+
+    NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
 }
 
 /**
  * @tc.name: testNeedAutoNumKeyInput_002
- * @tc.desc: test NeedAutoNumKeyInput when numKeyAppList_ not empty, usersBlockList_ empty or not empty
+ * @tc.desc: test NeedAutoNumKeyInput when app not in numKeyAppList_ and usersBlockList_
  * @tc.type: FUNC
  */
 HWTEST_F(NumKeyAppsManagerTest, testNeedAutoNumKeyInput_002, TestSize.Level1)
 {
     IMSA_HILOGI("NumKeyAppsManagerTest testNeedAutoNumKeyInput_002 START");
     NumkeyAppsManager::GetInstance().isFeatureEnabled_ = true;
-    NumkeyAppsManager::GetInstance().numKeyAppList_.insert(WHITE_LIST_APP_NAME);
-
-    NumkeyAppsManager::GetInstance().usersBlockList_.clear();
-    bool ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
-    EXPECT_TRUE(ret);
-
-    NumkeyAppsManager::GetInstance().usersBlockList_[MAIN_USER_ID] = { BLOCK_LIST_APP_NAME };
-    ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
-    EXPECT_TRUE(ret);
-
-    NumkeyAppsManager::GetInstance().usersBlockList_[MAIN_USER_ID] = { BLOCK_LIST_APP_NAME };
-    ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, BLOCK_LIST_APP_NAME);
-    EXPECT_FALSE(ret);
-
     NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
     NumkeyAppsManager::GetInstance().usersBlockList_.clear();
+
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
+    bool ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
+    EXPECT_FALSE(ret);
+
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.insert(DEFAULT_DEVICETYPE);
+    ret = NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(MAIN_USER_ID, WHITE_LIST_APP_NAME);
+    EXPECT_FALSE(ret);
+
+    NumkeyAppsManager::GetInstance().disableNumKeyAppDeviceTypes_.clear();
 }
 
 /**
@@ -346,6 +357,50 @@ HWTEST_F(NumKeyAppsManagerTest, testRegisterUserBlockListData_002, TestSize.Leve
     auto ret = NumkeyAppsManager::GetInstance().RegisterUserBlockListData(MAIN_USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     NumkeyAppsManager::GetInstance().observers_.clear();
+}
+
+/**
+ * @tc.name: testIsInNumKeyWhiteList_001
+ * @tc.desc: test IsInNumKeyWhiteList
+ * @tc.type: FUNC
+ */
+HWTEST_F(NumKeyAppsManagerTest, testIsInNumKeyWhiteList_001, TestSize.Level1)
+{
+    IMSA_HILOGI("NumKeyAppsManagerTest testIsInNumKeyWhiteList_001 START");
+
+    NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
+    bool ret = NumkeyAppsManager::GetInstance().IsInNumKeyWhiteList(WHITE_LIST_APP_NAME);
+    EXPECT_FALSE(ret);
+
+    NumkeyAppsManager::GetInstance().numKeyAppList_.insert(WHITE_LIST_APP_NAME);
+    ret = NumkeyAppsManager::GetInstance().IsInNumKeyWhiteList(WHITE_LIST_APP_NAME);
+    EXPECT_TRUE(ret);
+
+    NumkeyAppsManager::GetInstance().numKeyAppList_.clear();
+}
+
+/**
+ * @tc.name: testIsInNumkeyBlockList_001
+ * @tc.desc: test IsInNumkeyBlockList
+ * @tc.type: FUNC
+ */
+HWTEST_F(NumKeyAppsManagerTest, testIsInNumkeyBlockList_001, TestSize.Level1)
+{
+    IMSA_HILOGI("NumKeyAppsManagerTest testIsInNumkeyBlockList_001 START");
+
+    NumkeyAppsManager::GetInstance().usersBlockList_.clear();
+    bool ret = NumkeyAppsManager::GetInstance().IsInNumkeyBlockList(MAIN_USER_ID, BLOCK_LIST_APP_NAME);
+    EXPECT_FALSE(ret);
+
+    NumkeyAppsManager::GetInstance().usersBlockList_[MAIN_USER_ID] = {};
+    ret = NumkeyAppsManager::GetInstance().IsInNumkeyBlockList(MAIN_USER_ID, BLOCK_LIST_APP_NAME);
+    EXPECT_FALSE(ret);
+
+    NumkeyAppsManager::GetInstance().usersBlockList_[MAIN_USER_ID] = { BLOCK_LIST_APP_NAME };
+    ret = NumkeyAppsManager::GetInstance().IsInNumkeyBlockList(MAIN_USER_ID, BLOCK_LIST_APP_NAME);
+    EXPECT_TRUE(ret);
+
+    NumkeyAppsManager::GetInstance().usersBlockList_.clear();
 }
 } // namespace MiscServices
 } // namespace OHOS

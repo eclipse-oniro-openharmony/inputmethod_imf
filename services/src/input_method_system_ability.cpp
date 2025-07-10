@@ -273,10 +273,13 @@ int32_t InputMethodSystemAbility::RestoreInputmethod(std::string &bundleName)
     }
 
     int32_t userId = GetCallingUserId();
-    auto result = EnableIme(userId, bundleName);
-    if (result != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("EnableIme failed");
-        return ErrorCode::ERROR_ENABLE_IME;
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
+    if (defaultIme.bundleName != bundleName) {
+        auto result = EnableIme(userId, bundleName);
+        if (result != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("EnableIme failed");
+            return ErrorCode::ERROR_ENABLE_IME;
+        }
     }
 
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);

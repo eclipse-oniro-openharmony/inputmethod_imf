@@ -304,7 +304,7 @@ private:
     std::mutex clientGroupLock_{};
     std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
     std::mutex isNotifyFinishedLock_{};
-    BlockData<bool> isNotifyFinished_{ false, MAX_NOTIFY_TIME };
+    BlockData<bool> isNotifyFinished_{ MAX_NOTIFY_TIME, false };
 };
 } // namespace MiscServices
 } // namespace OHOS

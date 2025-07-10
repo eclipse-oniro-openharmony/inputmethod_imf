@@ -75,8 +75,12 @@ private:
     int32_t UpdateUserBlockList(int32_t userId);
     static int32_t ParseWhiteList(std::unordered_set<std::string> &list);
     static int32_t ParseBlockList(int32_t userId, std::unordered_set<std::string> &list);
+    bool IsInNumKeyWhiteList(const std::string &bundleName);
+    bool IsInNumkeyBlockList(int32_t userId, const std::string &bundleName);
 
     bool isFeatureEnabled_{ false };
+    std::mutex appDeviceTypeLock_;
+    std::unordered_set<std::string> disableNumKeyAppDeviceTypes_;
 
     std::atomic<bool> isListInited_{ false };
     std::mutex appListLock_;

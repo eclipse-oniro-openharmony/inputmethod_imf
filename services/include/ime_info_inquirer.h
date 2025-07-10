@@ -106,6 +106,8 @@ public:
     bool IsInputMethodExtension(pid_t pid);
     bool IsDefaultImeScreen(uint64_t displayId);
     bool IsDynamicStartIme();
+    std::unordered_set<std::string> GetDisableNumKeyAppDeviceTypes();
+    bool GetCompatibleDeviceType(const std::string &bundleName, std::string &compatibleDeviceType);
 
 private:
     ImeInfoInquirer() = default;

@@ -1196,10 +1196,17 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
     isEditable_.store(false);
     isTextNotified_.store(false);
     textString_ = Str8ToStr16("");
-    selectOldBegin_ = INVALID_VALUE;
-    selectOldEnd_ = INVALID_VALUE;
-    selectNewBegin_ = INVALID_VALUE;
-    selectNewEnd_ = INVALID_VALUE;
+    {
+        std::lock_guard<std::mutex> lock(editorContentLock_);
+        selectOldBegin_ = INVALID_VALUE;
+        selectOldEnd_ = INVALID_VALUE;
+        selectNewBegin_ = INVALID_VALUE;
+        selectNewEnd_ = INVALID_VALUE;
+    }
+    if (proxy == nullptr) {
+        IMSA_HILOGD("proxy is nullptr.");
+        return;
+    }
     auto channelProxy = std::make_shared<OnInputStopNotifyProxy>(proxy);
     channelProxy->NotifyOnInputStopFinished();
 }
@@ -1810,13 +1817,14 @@ void InputMethodController::GetWindowScaleCoordinate(int32_t& x, int32_t& y, uin
     handler(x, y, windowId);
 }
 
-int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code, const ResponseData &data)
+int32_t InputMethodController::ResponseDataChannel(
+    const sptr<IRemoteObject> &agentObject, uint64_t msgId, int32_t code, const ResponseData &data)
 {
-    auto agent = GetAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGD("agent is nullptr!");
+    if (agentObject == nullptr) {
+        IMSA_HILOGE("agentObject is nullptr!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
+    auto agent = std::make_shared<InputMethodAgentProxy>(agentObject);
     ResponseDataInner inner;
     inner.rspData = data;
     return agent->ResponseDataChannel(msgId, code, inner);
