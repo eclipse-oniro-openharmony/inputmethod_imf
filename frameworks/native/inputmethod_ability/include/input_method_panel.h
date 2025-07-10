@@ -60,13 +60,6 @@ public:
     int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion = true);
     int32_t AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas);
     int32_t UpdateRegion(std::vector<Rosen::Rect> region);
-    int32_t ParsePanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
-    int32_t GetSysPanelAdjust(const PanelFlag panelFlag,
-        std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, const LayoutParams &layoutParams);
-    int32_t CalculatePanelRect(const PanelFlag panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
-        const LayoutParams &layoutParams);
-    int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, const LayoutParams &layoutParams,
-        PanelAdjustInfo &lanIterValue);
     std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(const PanelFlag panelFlag);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
@@ -82,7 +75,6 @@ public:
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
-    void SetPanelHeightCallback(CallbackFunc heightCallback);
     int32_t IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayoutParams &params);
     int32_t SetImmersiveMode(ImmersiveMode mode);
     ImmersiveMode GetImmersiveMode();
@@ -123,11 +115,7 @@ private:
     bool IsSizeValid(uint32_t width, uint32_t height);
     bool IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height, int32_t displayWidth, int32_t displayHeight);
     bool IsRectValid(const Rosen::Rect &rect, const WindowSize &displaySize);
-    bool CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t height, bool isDataPortrait);
-    bool GetDisplaySize(bool isPortrait, WindowSize &size);
-    int32_t CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
-        PanelAdjustInfo &porIterValue);
-    int32_t CalculateNoConfigRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
+    bool IsRectValid(PanelFlag panelFlag, const Rosen::Rect &rect, const WindowSize &displaySize);
     int32_t GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height);
 
     int32_t ParseEnhancedParams(
@@ -137,6 +125,10 @@ private:
     int32_t CalculateAvoidHeight(EnhancedLayoutParam &layoutParam, const WindowSize &displaySize, PanelFlag panelFlag,
         const PanelAdjustInfo &adjustInfo);
 
+    int32_t ParseParams(PanelFlag panelFlag, const LayoutParams &input, Rosen::KeyboardLayoutParams &output);
+    int32_t ParseParam(PanelFlag panelFlag, const PanelAdjustInfo &adjustInfo, const WindowSize &displaySize,
+        const Rosen::Rect &inputRect, EnhancedLayoutParam &outputParam);
+
     void CalculateHotAreas(const EnhancedLayoutParams &enhancedParams, const Rosen::KeyboardLayoutParams &params,
         const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas);
     void CalculateDefaultHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel,
@@ -145,7 +137,7 @@ private:
         HotArea &hotArea, uint32_t changeY);
     void CalculateEnhancedHotArea(
         const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY);
-    void RectifyAreas(const std::vector<Rosen::Rect> availableAreas, std::vector<Rosen::Rect> &areas);
+    void RectifyAreas(const std::vector<Rosen::Rect> &availableAreas, std::vector<Rosen::Rect> &areas);
     Rosen::Rect GetRectIntersection(Rosen::Rect a, Rosen::Rect b);
     uint32_t SafeSubtract(uint32_t minuend, uint32_t subtrahend);
 
@@ -182,7 +174,7 @@ private:
     void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
     std::vector<int32_t> GetIgnoreAdjustInputTypes();
     bool IsNeedConfig();
-    int32_t IsValidParam(const ImmersiveEffect &effect);
+    int32_t IsValidParam(const ImmersiveEffect &effect, const Rosen::KeyboardLayoutParams &layoutParams);
     int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param);
     int32_t FullScreenPrepare(Rosen::KeyboardLayoutParams &param);
     int32_t NormalImePrepare(Rosen::KeyboardLayoutParams &param);
@@ -192,6 +184,14 @@ private:
     void SetImmersiveEffectToNone();
     void UpdateImmersiveHotArea();
     bool IsValidGradientHeight(uint32_t gradientHeight);
+
+    CallbackFunc GetPanelHeightCallback();
+    void SetPanelHeightCallback(CallbackFunc heightCallback);
+    Rosen::KeyboardLayoutParams GetKeyboardLayoutParams();
+    void SetKeyboardLayoutParams(Rosen::KeyboardLayoutParams params);
+    EnhancedLayoutParams GetEnhancedLayoutParams();
+    void SetEnhancedLayoutParams(EnhancedLayoutParams params);
+
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
@@ -217,20 +217,25 @@ private:
 
     std::mutex hotAreasLock_;
     HotAreas hotAreas_;
+    std::mutex enhancedLayoutParamMutex_;
     EnhancedLayoutParams enhancedLayoutParams_;
+    std::mutex keyboardLayoutParamsMutex_;
     Rosen::KeyboardLayoutParams keyboardLayoutParams_;
 
     std::mutex keyboardSizeLock_;
     WindowSize keyboardSize_ { 0, 0 };
     std::mutex windowListenerLock_;
     sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
+    std::mutex heightCallbackMutex_;
     CallbackFunc panelHeightCallback_ = nullptr;
 
+    std::mutex foldResizeParamMutex_;
     LayoutParams resizePanelFoldParams_ { // FoldDefaultValue
         { FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, FOLD_BOTTOM },
         { FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, COMMON_BOTTOM }
     };
 
+    std::mutex unfoldResizeParamMutex_;
     LayoutParams resizePanelUnfoldParams_ { // UnfoldDefaultValue
         { UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, UNFOLD_BOTTOM },
         { UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, COMMON_BOTTOM }
