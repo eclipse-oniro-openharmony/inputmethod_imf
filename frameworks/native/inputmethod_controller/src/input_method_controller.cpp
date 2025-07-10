@@ -1828,13 +1828,14 @@ void InputMethodController::GetWindowScaleCoordinate(int32_t& x, int32_t& y, uin
     handler(x, y, windowId);
 }
 
-int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code, const ResponseData &data)
+int32_t InputMethodController::ResponseDataChannel(
+    const sptr<IRemoteObject> &agentObject, uint64_t msgId, int32_t code, const ResponseData &data)
 {
-    auto agent = GetAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGD("agent is nullptr!");
+    if (agentObject == nullptr) {
+        IMSA_HILOGE("agentObject is nullptr!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
+    auto agent = std::make_shared<InputMethodAgentProxy>(agentObject);
     ResponseDataInner inner;
     inner.rspData = data;
     return agent->ResponseDataChannel(msgId, code, inner);
