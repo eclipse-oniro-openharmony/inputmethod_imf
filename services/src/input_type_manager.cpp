@@ -99,12 +99,6 @@ bool InputTypeManager::IsVoiceKbImeStarted()
     return IsInputTypeImeStarted(type);
 }
 
-bool InputTypeManager::IsOneTimeCodeImeStarted()
-{
-    InputType type = InputType::ONE_TIME_CODE;
-    return IsInputTypeImeStarted(type);
-}
-
 bool InputTypeManager::IsInputTypeImeStarted(InputType type)
 {
     if (!IsStarted()) {
@@ -128,9 +122,6 @@ InputType InputTypeManager::GetCurrentInputType()
     }
     if (IsVoiceKbImeStarted()) {
         return InputType::VOICEKB_INPUT;
-    }
-    if (IsOneTimeCodeImeStarted()) {
-        return InputType::ONE_TIME_CODE;
     }
     return InputType::NONE;
 }

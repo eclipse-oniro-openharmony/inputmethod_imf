@@ -90,7 +90,7 @@ public:
     int32_t RegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
     int32_t UnregisterProxyIme(uint64_t displayId) override;
-    ErrCode IsDefaultImeScreen(uint64_t displayId, bool &resultValue) override;
+    ErrCode IsRestrictedDefaultImeByDisplay(uint64_t displayId, bool &resultValue) override;
     ErrCode IsCapacitySupport(int32_t capacity, bool &isSupport) override;
     int32_t GetCallingUserId();
 
@@ -205,7 +205,23 @@ private:
     bool IsValidBundleName(const std::string &bundleName);
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
-    bool IsOneTimeCodeSwitchSubtype(std::shared_ptr<PerUserSession> session, const SwitchInfo &switchInfo);
+    void IncreaseAttachCount();
+    void DecreaseAttachCount();
+
+    class AttachStateGuard {
+    public:
+        explicit AttachStateGuard(InputMethodSystemAbility &ability) : ability_(ability)
+        {
+            ability_.IncreaseAttachCount();
+        }
+        ~AttachStateGuard()
+        {
+            ability_.DecreaseAttachCount();
+        }
+
+    private:
+        InputMethodSystemAbility &ability_;
+    };
 
     std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;

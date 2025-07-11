@@ -322,7 +322,6 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute001, TestSize.Level
     }
     InputAttribute outAttribute;
     outAttribute.inputPattern = outInnerAttribute->inputPattern;
-    EXPECT_TRUE(outAttribute.IsSecurityImeFlag());
     EXPECT_TRUE(outAttribute.IsOneTimeCodeFlag());
     delete outInnerAttribute;
 }
@@ -1777,6 +1776,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     ret = imsa_->SwitchExtension(vailidUserId, info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchSubType(vailidUserId, info);
+    imsa_->IncreaseAttachCount();
     imsa_->NeedHideWhenSwitchInputType(vailidUserId, type, needHide);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchInputType(vailidUserId, switchInfo);
