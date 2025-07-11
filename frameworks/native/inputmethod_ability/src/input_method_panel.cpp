@@ -1017,16 +1017,15 @@ int32_t InputMethodPanel::UpdateRegion(std::vector<Rosen::Rect> region)
 
 int32_t InputMethodPanel::InitAdjustInfo()
 {
-    if (isAdjustInfoInitialized_.load()) {
-        return ErrorCode::NO_ERROR;
-    }
     std::lock_guard<std::mutex> initLk(adjustInfoInitLock_);
-    if (isAdjustInfoInitialized_.load()) {
+    auto curDisplayId = GetCurDisplayId();
+    if (isAdjustInfoInitialized_.load() && panelAdjustDisplayId_ == curDisplayId) {
         return ErrorCode::NO_ERROR;
     }
     std::vector<SysPanelAdjust> configs;
     auto isSuccess = SysCfgParser::ParsePanelAdjust(configs);
     if (!isSuccess) {
+        panelAdjustDisplayId_ = curDisplayId;
         isAdjustInfoInitialized_.store(true);
         return ErrorCode::NO_ERROR;
     }
@@ -1045,6 +1044,7 @@ int32_t InputMethodPanel::InitAdjustInfo()
             .bottom = static_cast<int32_t>(config.bottom * densityDpi) };
         panelAdjust_.insert({ config.style, info });
     }
+    panelAdjustDisplayId_ = curDisplayId;
     isAdjustInfoInitialized_.store(true);
     return ErrorCode::NO_ERROR;
 }
@@ -2253,15 +2253,15 @@ sptr<Rosen::Display> InputMethodPanel::GetCurDisplay()
     return displayInfo;
 }
 
+uint64_t InputMethodPanel::GetCurDisplayId()
+{
+    return InputMethodAbility::GetInstance().GetInputAttribute().callingDisplayId;
+}
+
 bool InputMethodPanel::IsInMainDisplay()
 {
     IMSA_HILOGD("enter!!");
-    uint64_t displayId = 0;
-    auto ret = GetDisplayId(displayId);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("GetDisplayId err:%{public}d!", ret);
-        return true;
-    }
+    uint64_t displayId = GetCurDisplayId();
     auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
     if (primaryDisplay == nullptr) {
         IMSA_HILOGE("primaryDisplay failed!");

@@ -341,6 +341,7 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, cons
                             .SetClientType(type)
                             .Build();
         ImcHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::CLIENT_ATTACH, *evenInfo);
+        TCLODE()
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;
