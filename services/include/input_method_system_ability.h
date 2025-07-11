@@ -61,7 +61,6 @@ public:
         const std::string &bundleName, const std::string &subName, uint32_t trigger) override;
     ErrCode DisplayOptionalInputMethod() override;
     ErrCode SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
-    ErrCode UpdateLargeMemorySceneState(const int32_t memoryState) override;
     ErrCode InitConnect() override;
     ErrCode UnRegisteredProxyIme(int32_t type, const sptr<IInputMethodCore> &core) override;
     ErrCode PanelStatusChange(uint32_t status, const ImeWindowInfo &info) override;
@@ -129,6 +128,7 @@ private:
         const std::shared_ptr<PerUserSession> &session);
     int32_t OnStartInputType(int32_t userId, const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t HandlePackageEvent(const Message *msg);
+    int32_t HandleUpdateLargeMemoryState(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
     void OnScreenUnlock(const Message *msg);
     void OnScreenLock(const Message *msg);

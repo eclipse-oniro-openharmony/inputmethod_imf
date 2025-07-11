@@ -20,6 +20,7 @@
 #include "itypes_util.h"
 #include "inputmethod_message_handler.h"
 #include "os_account_adapter.h"
+#include "peruser_session.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -32,6 +33,9 @@ constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf
 constexpr const char *COMMON_EVENT_PARAM_USER_ID = "userId";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_RECT = "panelRect";
+constexpr const char *EVENT_LARGE_MEMORY_STATUS_CHANGED = "usual.event.memmgr.large_memory_status_changed";
+constexpr const char *EVENT_MEMORY_STATE = "memory_state";
+constexpr const char *EVENT_PARAM_UID = "uid";
 ImCommonEventManager::ImCommonEventManager()
 {
 }
@@ -66,6 +70,7 @@ bool ImCommonEventManager::SubscribeEvent()
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED);
+    matchingSkills.AddEvent(EVENT_LARGE_MEMORY_STATUS_CHANGED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -189,6 +194,10 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
         [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
             return that->OnScreenLock(data);
         };
+    EventManagerFunc_[EVENT_LARGE_MEMORY_STATUS_CHANGED] =
+        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
+            return that->HandleLargeMemoryStateUpdate(data);
+        };
 }
 
 void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
@@ -215,6 +224,41 @@ void ImCommonEventManager::EventSubscriber::StartUser(const CommonEventData &dat
 void ImCommonEventManager::EventSubscriber::RemoveUser(const CommonEventData &data)
 {
     HandleUserEvent(MessageID::MSG_ID_USER_REMOVED, data);
+}
+
+void ImCommonEventManager::EventSubscriber::HandleLargeMemoryStateUpdate(const EventFwk::CommonEventData &data)
+{
+    auto const &want = data.GetWant();
+    int32_t uid = want.GetIntParam(EVENT_PARAM_UID, OsAccountAdapter::INVALID_UID);
+    int32_t memoryState = want.GetIntParam(EVENT_MEMORY_STATE, MiscServices::LargeMemoryState::LARGE_MEMORY_NOT_NEED);
+    if (uid == OsAccountAdapter::INVALID_UID) {
+        IMSA_HILOGE("Invaild uid received!");
+        return;
+    }
+    MessageParcel *parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("Parcel is nullptr!");
+        return;
+    }
+    if (!ITypesUtil::Marshal(*parcel, uid, memoryState)) {
+        IMSA_HILOGE("Failed to write message parcel.");
+        delete parcel;
+        return;
+    }
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_UPDATE_LARGE_MEMORY_STATE, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("Failed to create Message!");
+        delete parcel;
+        return;
+    }
+    MessageHandler *msgHandle = MessageHandler::Instance();
+    if (msgHandle == nullptr) {
+        IMSA_HILOGE("MessageHandler is nullptr!");
+        delete parcel;
+        delete msg;
+        return;
+    }
+    msgHandle->SendMessage(msg);
 }
 
 void ImCommonEventManager::EventSubscriber::HandleUserEvent(int32_t messageId, const EventFwk::CommonEventData &data)

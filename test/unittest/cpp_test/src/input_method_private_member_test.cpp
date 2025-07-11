@@ -42,6 +42,7 @@
 #include "iinput_method_agent.h"
 #include "iinput_method_core.h"
 #include "ime_cfg_manager.h"
+#include "im_common_event_manager.h"
 #include "input_method_agent_service_impl.h"
 #include "input_method_core_service_impl.h"
 #include "input_client_service_impl.h"
@@ -72,6 +73,9 @@ constexpr std::int32_t INVALID_USER_ID = 10001;
 constexpr std::int32_t INVALID_PROCESS_ID = -1;
 std::atomic<int32_t> InputMethodPrivateMemberTest::tryLockFailCount_ = 0;
 std::shared_ptr<PerUserSession> InputMethodPrivateMemberTest::session_ = nullptr;
+constexpr const char *EVENT_LARGE_MEMORY_STATUS_CHANGED = "usual.event.memmgr.large_memory_status_changed";
+constexpr const char *EVENT_MEMORY_STATE = "memory_state";
+constexpr const char *EVENT_PARAM_UID = "uid";
 void InputMethodPrivateMemberTest::TestImfStartIme()
 {
     auto imeToStart = std::make_shared<ImeNativeCfg>();
@@ -2158,6 +2162,90 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_002, TestSize.
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     userSession->UpdateLargeMemorySceneState(3);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestHandleUpdateLargeMemoryState_001
+ * @tc.desc: Test HandleUpdateLargeMemoryState.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestHandleUpdateLargeMemoryState_001, TestSize.Level0)
+{
+    // msg is nullptr
+    int32_t uid = 1014;
+    auto *msg = new Message(MessageID::MSG_ID_UPDATE_LARGE_MEMORY_STATE, nullptr);
+    ASSERT_NE(service_, nullptr);
+    auto ret = service_->HandleUpdateLargeMemoryState(msg);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ASSERT_NE(MessageHandler::Instance(), nullptr);
+    MessageHandler::Instance()->SendMessage(msg);
+
+    auto parcel1 = new (std::nothrow) MessageParcel();
+    ASSERT_NE(parcel1, nullptr);
+    parcel1->WriteInt32(uid);
+    parcel1->WriteInt32(3);
+    auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_UPDATE_LARGE_MEMORY_STATE, parcel1);
+    ASSERT_NE(msg1, nullptr);
+    auto ret1 = service_->HandleUpdateLargeMemoryState(msg1.get());
+    EXPECT_EQ(ret1, ErrorCode::NO_ERROR);
+
+    auto parcel2 = new (std::nothrow) MessageParcel();
+    ASSERT_NE(parcel2, nullptr);
+    parcel2->WriteInt32(uid);
+    parcel2->WriteInt32(4);
+    auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_UPDATE_LARGE_MEMORY_STATE, parcel2);
+    ASSERT_NE(msg2, nullptr);
+    auto ret2 = service_->HandleUpdateLargeMemoryState(msg2.get());
+    EXPECT_EQ(ret2, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    auto parcel3 = new (std::nothrow) MessageParcel();
+    ASSERT_NE(parcel3, nullptr);
+    parcel3->WriteInt32(-1);
+    parcel3->WriteInt32(3);
+    auto msg3 = std::make_shared<Message>(MessageID::MSG_ID_UPDATE_LARGE_MEMORY_STATE, parcel3);
+    ASSERT_NE(msg3, nullptr);
+    auto ret3 = service_->HandleUpdateLargeMemoryState(msg3.get());
+    EXPECT_EQ(ret3, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: TestEventUpdateLargeMemoryState_001
+ * @tc.desc: Test EventUpdateLargeMemoryState.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestEventUpdateLargeMemoryState_001, TestSize.Level0)
+{
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EVENT_LARGE_MEMORY_STATUS_CHANGED);
+    EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
+    std::shared_ptr<ImCommonEventManager::EventSubscriber> subscriber =
+        std::make_shared<ImCommonEventManager::EventSubscriber>(subscriberInfo);
+    ASSERT_NE(subscriber, nullptr);
+    EXPECT_NE(subscriber, nullptr);
+
+    AAFwk::Want want;
+    int32_t uid = 1014;
+    int32_t memoryState = 3;
+    want.SetAction(EVENT_LARGE_MEMORY_STATUS_CHANGED);
+    want.SetParam(EVENT_PARAM_UID, uid);
+    want.SetParam(EVENT_MEMORY_STATE, memoryState);
+    EventFwk::CommonEventData data;
+    data.SetWant(want);
+    subscriber->HandleLargeMemoryStateUpdate(data);
+
+    AAFwk::Want want1;
+    uid = -1;
+    memoryState = 3;
+    want1.SetAction(EVENT_LARGE_MEMORY_STATUS_CHANGED);
+    want1.SetParam(EVENT_PARAM_UID, uid);
+    want1.SetParam(EVENT_MEMORY_STATE, memoryState);
+    EventFwk::CommonEventData data1;
+    data1.SetWant(want1);
+    subscriber->HandleLargeMemoryStateUpdate(data1);
 }
 
 /**
