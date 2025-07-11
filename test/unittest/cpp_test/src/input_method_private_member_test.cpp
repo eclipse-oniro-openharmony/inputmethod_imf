@@ -71,6 +71,10 @@ public:
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr std::int32_t INVALID_USER_ID = 10001;
 constexpr std::int32_t INVALID_PROCESS_ID = -1;
+constexpr int32_t MS_TO_US = 1000;
+constexpr int32_t WAIT_FOR_THREAD_SCHEDULE = 10;
+constexpr int32_t WAIT_ATTACH_FINISH_DELAY = 50;
+constexpr uint32_t MAX_ATTACH_COUNT = 100000;
 std::atomic<int32_t> InputMethodPrivateMemberTest::tryLockFailCount_ = 0;
 std::shared_ptr<PerUserSession> InputMethodPrivateMemberTest::session_ = nullptr;
 constexpr const char *EVENT_LARGE_MEMORY_STATUS_CHANGED = "usual.event.memmgr.large_memory_status_changed";
@@ -1204,6 +1208,8 @@ HWTEST_F(InputMethodPrivateMemberTest, TestStartInputType, TestSize.Level0)
     InputType type = InputType::NONE;
     auto ret = service_->StartInputType(static_cast<int32_t>(type));
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    ret = service_->StartInputType(static_cast<int32_t>(InputType::VOICEKB_INPUT));
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -1712,25 +1718,6 @@ HWTEST_F(InputMethodPrivateMemberTest, Test_ClientGroup_UpdateClientInfo, TestSi
 }
 
 /**
- * @tc.name: SA_IsOneTimeCodeSwitchSubtype
- * @tc.desc: SA_IsOneTimeCodeSwitchSubtype
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(InputMethodPrivateMemberTest, SA_IsOneTimeCodeSwitchSubtype, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_IsOneTimeCodeSwitchSubtype start.");
-    std::shared_ptr<PerUserSession> session = nullptr;
-    SwitchInfo switchInfo;
-    bool ret = service_->IsOneTimeCodeSwitchSubtype(session, switchInfo);
-    EXPECT_FALSE(ret);
-
-    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    bool ret1 = service_->IsOneTimeCodeSwitchSubtype(userSession, switchInfo);
-    EXPECT_FALSE(ret1);
-}
-
-/**
  * @tc.name: SA_StartPreconfiguredDefaultIme
  * @tc.desc: SA_StartPreconfiguredDefaultIme
  * @tc.type: FUNC
@@ -1789,8 +1776,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_AllowSwitchImeByCombinationKey, TestSi
     PerUserSession session(MAIN_USER_ID);
     // not has current client info
     session.clientGroupMap_.clear();
-    auto allow = session.AllowSwitchImeByCombinationKey();
-    EXPECT_TRUE(allow);
+    auto ret = session.IsImeSwitchForbidden();
+    EXPECT_FALSE(ret);
 
     // has current client info
     ImeInfoInquirer::GetInstance().systemConfig_.defaultImeScreenList.clear();
@@ -1801,8 +1788,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_AllowSwitchImeByCombinationKey, TestSi
     info->config.isSimpleKeyboardEnabled = true;
     group->mapClients_.insert_or_assign(client->AsObject(), info);
     session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
-    allow = session.AllowSwitchImeByCombinationKey();
-    EXPECT_FALSE(allow);
+    ret = session.IsImeSwitchForbidden();
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -1831,6 +1818,101 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SpecialScenarioCheck, TestSize.Level0)
     session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
     allow = session.SpecialScenarioCheck();
     EXPECT_TRUE(allow);
+
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    allow = session.SpecialScenarioCheck();
+    EXPECT_FALSE(allow);
+
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    allow = session.SpecialScenarioCheck();
+    EXPECT_FALSE(allow);
+}
+
+/**
+ * @tc.name: SA_IsSimpleKeyboardEnabled
+ * @tc.desc: SA_IsSimpleKeyboardEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_IsSimpleKeyboardEnabled, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_IsSimpleKeyboardEnabled start.");
+    PerUserSession session(MAIN_USER_ID);
+    // has current client info
+    auto group = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+    group->currentClient_ = client;
+    auto info = std::make_shared<InputClientInfo>();
+    info->config.isSimpleKeyboardEnabled = false;
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    auto ret = session.IsSimpleKeyboardEnabled();
+    EXPECT_FALSE(ret);
+
+    info->config.isSimpleKeyboardEnabled = true;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    ret = session.IsSimpleKeyboardEnabled();
+    EXPECT_TRUE(ret);
+
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    ret = session.IsSimpleKeyboardEnabled();
+    EXPECT_FALSE(ret);
+
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    ret = session.IsSimpleKeyboardEnabled();
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: SA_IsScreenLockOrSecurityFlag
+ * @tc.desc: SA_IsScreenLockOrSecurityFlag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_IsScreenLockOrSecurityFlag, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_IsScreenLockOrSecurityFlag start.");
+    PerUserSession session(MAIN_USER_ID);
+    // has current client info
+    auto group = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+    group->currentClient_ = client;
+    auto info = std::make_shared<InputClientInfo>();
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    auto ret = session.IsImeSwitchForbidden();
+    EXPECT_FALSE(ret);
+
+
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    ret = session.IsImeSwitchForbidden();
+    EXPECT_FALSE(ret);
+
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    ret = session.IsImeSwitchForbidden();
+    EXPECT_TRUE(ret);
+
+    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
+    info->config.isSimpleKeyboardEnabled = true;
+    group->mapClients_.insert_or_assign(client->AsObject(), info);
+    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    ret = session.IsImeSwitchForbidden();
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -2002,15 +2084,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetRealCurrentIme_002, TestSize.Level0
     group->mapClients_.insert_or_assign(client->AsObject(), info);
     session->clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
     auto ime = session->GetRealCurrentIme(true);
-    ASSERT_NE(ime, nullptr);
-    EXPECT_EQ(ime->bundleName, realPreIme->name);
-
-    // input type not start, has current client, input type is one time code, isSimpleKeyboardEnabled is false
-    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
-    info->config.isSimpleKeyboardEnabled = false;
-    group->mapClients_.insert_or_assign(client->AsObject(), info);
-    session->clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
-    ime = session->GetRealCurrentIme(true);
     ASSERT_NE(ime, nullptr);
     EXPECT_EQ(ime->bundleName, realPreIme->name);
 }
@@ -2249,6 +2322,59 @@ HWTEST_F(InputMethodPrivateMemberTest, TestEventUpdateLargeMemoryState_001, Test
 }
 
 /**
+ * @tc.name: TestAttachCount001
+ * @tc.desc: Test TestAttachCount001.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestAttachCount001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestAttachCount001 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->IncreaseAttachCount();
+    EXPECT_EQ(userSession->GetAttachCount(), 1);
+    userSession->DecreaseAttachCount();
+    EXPECT_EQ(userSession->GetAttachCount(), 0);
+}
+
+/**
+ * @tc.name: TestAttachCount002
+ * @tc.desc: Test TestAttachCount002
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestAttachCount002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestAttachCount002 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    for (uint32_t i = 0; i < MAX_ATTACH_COUNT + 1; i++) {
+        userSession->IncreaseAttachCount();
+    }
+    EXPECT_EQ(userSession->GetAttachCount(), MAX_ATTACH_COUNT);
+    for (uint32_t i = 0; i < MAX_ATTACH_COUNT + 1; i++) {
+        userSession->DecreaseAttachCount();
+    }
+    EXPECT_EQ(userSession->GetAttachCount(), 0);
+}
+
+/**
+ * @tc.name: SA_TestGetSecurityInputType
+ * @tc.desc: SA_TestGetSecurityInputType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetSecurityInputType, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestGetSecurityInputType start.");
+    InputClientInfo inputClientInfo;
+    inputClientInfo.config.inputAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
+    auto ret = InputMethodPrivateMemberTest::service_->GetSecurityInputType(inputClientInfo);
+    EXPECT_EQ(ret, InputType::SECURITY_INPUT);
+
+    inputClientInfo.config.inputAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
+    ret = InputMethodPrivateMemberTest::service_->GetSecurityInputType(inputClientInfo);
+    EXPECT_EQ(ret, InputType::NONE);
+}
+
+/*
  * @tc.name: TestGetDisableNumKeyAppDeviceTypes
  * @tc.desc: Test GetDisableNumKeyAppDeviceTypes.
  * @tc.type: FUNC
@@ -2279,6 +2405,80 @@ HWTEST_F(InputMethodPrivateMemberTest, TestGetCompatibleDeviceType, TestSize.Lev
     bool ret = ImeInfoInquirer::GetInstance().GetCompatibleDeviceType(testBundleName, testDeviceType);
     EXPECT_FALSE(ret);
     EXPECT_NE(testDeviceType, "default");
+}
+
+/**
+ * @tc.name: SA_TestRestartIme001
+ * @tc.desc: restart request will be discarded, and reartTasks will be reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestRestartIme001 start.");
+    auto runner = AppExecFwk::EventRunner::Create("test_RestartIme");
+    auto eventHandler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    auto session = std::make_shared<PerUserSession>(MAIN_USER_ID, eventHandler);
+
+    // attach conflict with the first scb startup event
+    // restart request will be discarded, and reartTasks will be reset
+    session->IncreaseAttachCount();
+    EXPECT_EQ(session->GetAttachCount(), 1);
+    session->AddRestartIme();
+    session->AddRestartIme();
+    usleep(WAIT_FOR_THREAD_SCHEDULE * MS_TO_US);
+    EXPECT_EQ(session->restartTasks_, 0);
+}
+
+/**
+ * @tc.name: SA_TestRestartIme002
+ * @tc.desc: restart request will be delayed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestRestartIme002 start.");
+    auto runner = AppExecFwk::EventRunner::Create("test_RestartIme");
+    auto eventHandler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    auto session = std::make_shared<PerUserSession>(MAIN_USER_ID, eventHandler);
+
+    // attach conflict with no first scb startup event
+    // restart request will be delayed
+    session->IncreaseAttachCount();
+    session->IncreaseScbStartCount();
+    session->IncreaseScbStartCount();
+    EXPECT_EQ(session->GetAttachCount(), 1);
+    EXPECT_EQ(session->GetScbStartCount(), 2);
+    session->AddRestartIme();
+    usleep(WAIT_FOR_THREAD_SCHEDULE * MS_TO_US);
+    // restart request be delayed, restartTasks_ no change
+    EXPECT_EQ(session->restartTasks_, 1);
+
+    // attach finished
+    session->DecreaseAttachCount();
+    usleep((WAIT_ATTACH_FINISH_DELAY + WAIT_FOR_THREAD_SCHEDULE) * MS_TO_US);
+    EXPECT_EQ(session->restartTasks_, 0);
+}
+
+/**
+ * @tc.name: SA_TestRestartIme003
+ * @tc.desc: attach finished, and execute restart immediately
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestRestartIme003 start.");
+    auto runner = AppExecFwk::EventRunner::Create("test_RestartIme");
+    auto eventHandler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    auto session = std::make_shared<PerUserSession>(MAIN_USER_ID, eventHandler);
+
+    // attach finished, and execute restart immediately
+    EXPECT_EQ(session->GetAttachCount(), 0);
+    session->AddRestartIme();
+    usleep(WAIT_FOR_THREAD_SCHEDULE * MS_TO_US);
+    EXPECT_EQ(session->restartTasks_, 0);
 }
 } // namespace MiscServices
 } // namespace OHOS

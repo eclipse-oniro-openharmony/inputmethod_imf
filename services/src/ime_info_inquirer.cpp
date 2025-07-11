@@ -1220,7 +1220,7 @@ bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
     return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
 }
 
-bool ImeInfoInquirer::IsDefaultImeScreen(uint64_t displayId)
+bool ImeInfoInquirer::IsRestrictedDefaultImeByDisplay(uint64_t displayId)
 {
     sptr<Rosen::DisplayLite> display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
     if (display == nullptr) {

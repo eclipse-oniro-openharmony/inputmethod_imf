@@ -104,7 +104,7 @@ public:
     bool IsDefaultImeSet(int32_t userId);
     bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
     bool IsInputMethodExtension(pid_t pid);
-    bool IsDefaultImeScreen(uint64_t displayId);
+    bool IsRestrictedDefaultImeByDisplay(uint64_t displayId);
     bool IsDynamicStartIme();
     std::unordered_set<std::string> GetDisableNumKeyAppDeviceTypes();
     bool GetCompatibleDeviceType(const std::string &bundleName, std::string &compatibleDeviceType);

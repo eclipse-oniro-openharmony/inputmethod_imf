@@ -160,10 +160,14 @@ public:
     std::pair<int32_t, int32_t> GetCurrentInputPattern();
     bool IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo);
     bool IsSimpleKeyboardEnabled();
-    bool AllowSwitchImeByCombinationKey();
+    bool IsImeSwitchForbidden();
     std::pair<int32_t, StartPreDefaultImeStatus> StartPreconfiguredDefaultIme(
         uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo = {}, bool isStopCurrentIme = false);
     void NotifyOnInputStopFinished();
+    void IncreaseAttachCount();
+    void DecreaseAttachCount();
+    uint32_t GetAttachCount();
+    void IncreaseScbStartCount();
 
 private:
     struct ResetManager {
@@ -260,6 +264,9 @@ private:
     int32_t NotifySubTypeChangedToIme(const std::string &bundleName, const std::string &subName);
     bool CompareExchange(const int32_t value);
     bool IsLargeMemoryStateNeed();
+    bool IsAttachFinished();
+    uint32_t GetScbStartCount();
+    void ResetRestartTasks();
 
     std::mutex imeStartLock_;
 
@@ -305,6 +312,10 @@ private:
     std::unordered_map<uint64_t, std::shared_ptr<ClientGroup>> clientGroupMap_;
     std::mutex isNotifyFinishedLock_{};
     BlockData<bool> isNotifyFinished_{ MAX_NOTIFY_TIME, false };
+    std::mutex attachCountMtx_{};
+    uint32_t attachingCount_ { 0 };
+    std::mutex scbStartCountMtx_{};
+    uint32_t scbStartCount_ { 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS
