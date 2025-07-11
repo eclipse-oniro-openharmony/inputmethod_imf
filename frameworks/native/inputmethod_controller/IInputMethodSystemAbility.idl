@@ -57,7 +57,6 @@ interface OHOS.MiscServices.IInputMethodSystemAbility {
     void GetSecurityMode([out] int security);
     void IsDefaultIme();
     void IsDefaultImeSet([out] boolean resultValue);
-    void UpdateLargeMemorySceneState([in] int memoryState);
     void EnableIme([in] String bundleName, [in] String extensionName, [in] int status);
     void ConnectSystemCmd([in] IRemoteObject channel, [out] IRemoteObject agent);
     void GetInputMethodState([out] int state);

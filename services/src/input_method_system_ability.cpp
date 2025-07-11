@@ -273,10 +273,13 @@ int32_t InputMethodSystemAbility::RestoreInputmethod(std::string &bundleName)
     }
 
     int32_t userId = GetCallingUserId();
-    auto result = EnableIme(userId, bundleName);
-    if (result != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("EnableIme failed");
-        return ErrorCode::ERROR_ENABLE_IME;
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
+    if (defaultIme.bundleName != bundleName) {
+        auto result = EnableIme(userId, bundleName);
+        if (result != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("EnableIme failed");
+            return ErrorCode::ERROR_ENABLE_IME;
+        }
     }
 
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
@@ -783,22 +786,6 @@ ErrCode InputMethodSystemAbility::RequestHideInput(bool isFocusTriggered)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnRequestHideInput(pid, GetCallingDisplayId());
-}
-
-ErrCode InputMethodSystemAbility::UpdateLargeMemorySceneState(const int32_t memoryState)
-{
-    IMSA_HILOGD("UpdateLargeMemorySceneState start %{public}d.", memoryState);
-    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
-        IMSA_HILOGE("not native sa!");
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
-    auto userId = GetCallingUserId();
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return session->UpdateLargeMemorySceneState(memoryState);
 }
 
 ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
@@ -1538,6 +1525,13 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().RegularInit();
                 break;
             }
+            case MSG_ID_UPDATE_LARGE_MEMORY_STATE: {
+                int32_t ret = HandleUpdateLargeMemoryState(msg);
+                if (ret != ErrorCode::NO_ERROR) {
+                    IMSA_HILOGE("update large memory state failed %{public}d", ret);
+                }
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -1608,6 +1602,32 @@ int32_t InputMethodSystemAbility::OnHideKeyboardSelf(const Message *msg)
     }
     session->OnHideSoftKeyBoardSelf();
     return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::HandleUpdateLargeMemoryState(const Message *msg)
+{
+    IMSA_HILOGD("called");
+    if (msg == nullptr || msg->msgContent_ == nullptr) {
+        IMSA_HILOGE("Aborted! Message is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    MessageParcel *data = msg->msgContent_;
+    int32_t uid = 0;
+    int32_t memoryState = 0;
+    if (!ITypesUtil::Unmarshal(*data, uid, memoryState) ||
+        (memoryState != LargeMemoryState::LARGE_MEMORY_NEED &&
+        memoryState != LargeMemoryState::LARGE_MEMORY_NOT_NEED)) {
+        IMSA_HILOGE("Failed to read message parcel or invaild param %{public}d!", memoryState);
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    IMSA_HILOGI("memory state %{public}d.", memoryState);
+    auto userId = GetUserId(uid);
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->UpdateLargeMemorySceneState(memoryState);
 }
 
 int32_t InputMethodSystemAbility::HandlePackageEvent(const Message *msg)

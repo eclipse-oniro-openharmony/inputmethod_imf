@@ -211,7 +211,7 @@ private:
     std::mutex panelAdjustLock_;
     std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
     std::mutex adjustInfoInitLock_;
-    uint64_t panelAdjustDisplayId_ = 0;
+    uint64_t adjustInfoDisplayId_ = 0;
     std::atomic<bool> isAdjustInfoInitialized_{ false };
     std::atomic<bool> isIgnorePanelAdjustInitialized_{ false };
     std::mutex ignoreAdjustInputTypeLock_;

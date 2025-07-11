@@ -2567,5 +2567,32 @@ HWTEST_F(InputMethodPanelTest, RestoreConfigWhenAdjustFails, TestSize.Level1)
     EXPECT_EQ(panel->immersiveEffect_.gradientHeight, GRADIENT_HEIGHT);
     EXPECT_EQ(panel->immersiveEffect_.gradientMode, GradientMode::LINEAR_GRADIENT);
 }
+
+/**
+ * @tc.name: TestInitAdjustInfo
+ * @tc.desc: Test InitAdjustInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, TestInitAdjustInfo, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodPanelTest::TestInitAdjustInfo");
+    auto panel = std::make_shared<InputMethodPanel>();
+    InputMethodAbility::GetInstance().inputAttribute_.callingDisplayId = 0;
+    panel->isAdjustInfoInitialized_ = false;
+    panel->adjustInfoDisplayId_ = 0;
+    panel->panelAdjust_.clear();
+    auto ret = panel->InitAdjustInfo();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    panel->isAdjustInfoInitialized_ = true;
+    panel->adjustInfoDisplayId_ = 1000;
+    panel->panelAdjust_.clear();
+    ret = panel->InitAdjustInfo();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    panel->isAdjustInfoInitialized_ = true;
+    panel->adjustInfoDisplayId_ = 0;
+    panel->panelAdjust_.clear();
+    ret = panel->InitAdjustInfo();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

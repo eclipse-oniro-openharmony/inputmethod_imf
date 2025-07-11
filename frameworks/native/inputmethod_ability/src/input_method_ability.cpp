@@ -1444,7 +1444,10 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         }
         return false;
     });
-    ClearBindInfo(channel);
+    // cannot clear inputAttribute，otherwise it will affect hicar
+    ClearDataChannel(channel);
+    ClearAttachOptions();
+    ClearBindClientInfo();
 }
 
 void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)

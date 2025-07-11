@@ -25,6 +25,7 @@ class OsAccountAdapter {
 public:
     static constexpr int32_t MAIN_USER_ID = 100;
     static constexpr int32_t INVALID_USER_ID = -1;
+    static constexpr int32_t INVALID_UID = -1;
     static int32_t GetOsAccountLocalIdFromUid(int32_t uid);
     static int32_t GetForegroundOsAccountLocalId();
     static std::vector<int32_t> QueryActiveOsAccountIds();

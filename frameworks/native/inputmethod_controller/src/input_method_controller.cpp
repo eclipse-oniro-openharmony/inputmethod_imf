@@ -341,7 +341,6 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, cons
                             .SetClientType(type)
                             .Build();
         ImcHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::CLIENT_ATTACH, *evenInfo);
-        TCLODE()
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;
@@ -1646,17 +1645,6 @@ int32_t InputMethodController::FinishTextPreview()
         listener->FinishTextPreviewV2();
     }
     return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodController::UpdateLargeMemorySceneState(const int32_t memoryState)
-{
-    IMSA_HILOGI("UpdateLargeMemorySceneState %{public}d.", memoryState);
-    auto proxy = GetSystemAbilityProxy();
-    if (proxy == nullptr) {
-        IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return proxy->UpdateLargeMemorySceneState(memoryState);
 }
 
 int32_t InputMethodController::SendMessage(const ArrayBuffer &arrayBuffer)

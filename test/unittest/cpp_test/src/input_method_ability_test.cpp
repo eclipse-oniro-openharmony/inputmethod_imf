@@ -2134,8 +2134,7 @@ HWTEST_F(InputMethodAbilityTest, testClearBindInfo, TestSize.Level0)
     options.isSimpleKeyboardEnabled = true;
     inputMethodAbility_.SetAttachOptions(options);
     inputMethodAbility_.OnClientInactive(inputMethodAbility_.dataChannelObject_);
-    InputAttribute nullAttribute = {};
-    EXPECT_TRUE(inputMethodAbility_.GetInputAttribute() == nullAttribute);
+    EXPECT_TRUE(inputMethodAbility_.GetBindClientInfo().name.empty());
     EXPECT_TRUE(inputMethodAbility_.dataChannelObject_ == nullptr);
     InputMethodAbilityTest::GetIMCDetachIMA();
 }
