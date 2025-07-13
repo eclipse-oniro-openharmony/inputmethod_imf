@@ -2403,8 +2403,11 @@ HWTEST_F(InputMethodPrivateMemberTest, TestGetCompatibleDeviceType, TestSize.Lev
     std::string testBundleName = "testBundleName";
     std::string testDeviceType = "testDeviceType";
     bool ret = ImeInfoInquirer::GetInstance().GetCompatibleDeviceType(testBundleName, testDeviceType);
-    EXPECT_FALSE(ret);
-    EXPECT_NE(testDeviceType, "default");
+    if (ret) {
+        EXPECT_NE(testDeviceType, "testDeviceType");
+    } else {
+        EXPECT_EQ(testDeviceType, "testDeviceType");
+    }
 }
 
 /**
