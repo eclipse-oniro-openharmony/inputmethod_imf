@@ -21,7 +21,7 @@ namespace MiscServices {
 class NativeTextChangedListener : public OHOS::MiscServices::OnTextChangedListener {
 public:
     explicit NativeTextChangedListener(InputMethod_TextEditorProxy *textEditor) : textEditor_(textEditor) {};
-    ~NativeTextChangedListener() {};
+    ~NativeTextChangedListener();
     void InsertText(const std::u16string &text) override;
     void DeleteForward(int32_t length) override;
     void DeleteBackward(int32_t length) override;
