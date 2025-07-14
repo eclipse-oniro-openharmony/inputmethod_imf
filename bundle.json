@@ -60,7 +60,8 @@
               "screenlock_mgr",
               "cJSON",
               "icu",
-              "selinux_adapter"
+              "selinux_adapter",
+              "runtime_core"
           ]
       }, 
       "build": {
@@ -71,7 +72,8 @@
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodclient:inputmethod",
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodlist:inputmethodlist",
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodpanel:panel",
-                  "//base/inputmethod/imf/frameworks/ndk:ohinputmethod"
+                  "//base/inputmethod/imf/frameworks/ndk:ohinputmethod",
+                  "//base/inputmethod/imf/frameworks/ets/taihe/inputMethod:inputmethod_taihe"
               ], 
               "service_group": [
                   "//base/inputmethod/imf/etc/init:inputmethodservice.cfg", 
