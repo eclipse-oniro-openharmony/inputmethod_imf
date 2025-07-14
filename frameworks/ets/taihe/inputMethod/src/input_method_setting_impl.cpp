@@ -67,7 +67,9 @@ array<InputMethodSubtype_t> InputMethodSettingImpl::ListCurrentInputMethodSubtyp
 array<InputMethodSubtype_t> InputMethodSettingImpl::ListInputMethodSubtypeSync(
     InputMethodProperty_t const &inputMethodProperty)
 {
-    Property property{ .name = std::string(inputMethodProperty.name), .id = std::string(inputMethodProperty.id) };
+    Property property;
+    property.name = std::string(inputMethodProperty.name);
+    property.id = std::string(inputMethodProperty.id);
     if (property.name.empty() || property.id.empty()) {
         set_business_error(IMFErrorCode::EXCEPTION_PARAMCHECK, "name and id must be string and cannot empty");
         IMSA_HILOGE("Property name and id must be string and cannot empty");
@@ -238,7 +240,8 @@ void InputMethodSettingImpl::OnImeShowCallback(const ImeWindowInfo &info)
     auto showingFlag = GetSoftKbShowingFlag();
     // FLG_FIXED->FLG_FLOATING in show
     if (info.panelInfo.panelFlag == FLG_FLOATING && showingFlag == FLG_FIXED) {
-        InputWindowInfo windowInfo{ info.windowInfo.name, 0, 0, 0, 0 };
+        InputWindowInfo windowInfo;
+        windowInfo.name = info.windowInfo.name;
         OnPanelStatusChange("imeHide", windowInfo);
     }
     // FLG_FLOATING->FLG_FIXED in show/show FLG_FIXED/ rotating(resize) in FLG_FIXED show
