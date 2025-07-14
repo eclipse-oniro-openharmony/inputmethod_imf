@@ -18,6 +18,10 @@
 
 namespace OHOS {
 namespace MiscServices {
+NativeTextChangedListener::~NativeTextChangedListener()
+{
+    textEditor_ = nullptr;
+}
 void NativeTextChangedListener::InsertText(const std::u16string &text)
 {
     if (textEditor_ == nullptr) {
