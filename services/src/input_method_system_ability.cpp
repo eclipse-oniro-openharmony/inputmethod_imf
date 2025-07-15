@@ -2378,10 +2378,6 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
         IMSA_HILOGI("only need input type in default display");
         return ErrorCode::NO_ERROR;
     }
-    if (session->IsSimpleKeyboardEnabled() && type == InputType::CAMERA_INPUT) {
-        IMSA_HILOGI("current client simple keyboard enabled, not start camera input");
-        return ErrorCode::ERROR_SCENE_UNSUPPORTED;
-    }
     ImeIdentification ime;
     int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
     if (ret != ErrorCode::NO_ERROR) {

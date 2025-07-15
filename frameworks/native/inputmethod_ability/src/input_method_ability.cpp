@@ -588,10 +588,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     AttachOptions options;
     options.requestKeyboardReason = textConfig.requestKeyboardReason;
-    options.isSimpleKeyboardEnabled = (textConfig.inputAttribute.IsSecurityImeFlag() ||
-                                          textConfig.inputAttribute.IsOneTimeCodeFlag() || !IsDefaultIme()) ?
-        false :
-        textConfig.isSimpleKeyboardEnabled;
+    options.isSimpleKeyboardEnabled = IsDefaultIme() ? textConfig.isSimpleKeyboardEnabled : false;
     InvokeAttachOptionsCallback(options, isNotifyInputStart || !isNotify_);
     if (isNotifyInputStart || !isNotify_) {
         isNotify_ = true;
@@ -1195,7 +1192,7 @@ int32_t InputMethodAbility::NotifyPanelStatus(bool isUseParameterFlag, PanelFlag
         sysPanelStatus.isPanelRaised = false;
         sysPanelStatus.needFuncButton = false;
     }
-    if (GetAttachOptions().isSimpleKeyboardEnabled) {
+    if (GetAttachOptions().isSimpleKeyboardEnabled && !GetInputAttribute().IsOneTimeCodeFlag()) {
         sysPanelStatus.needFuncButton = false;
     }
     auto systemChannel = GetSystemCmdChannelProxy();
