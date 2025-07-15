@@ -68,6 +68,11 @@ bool ImeInfoInquirer::IsEnableNumKey()
     return systemConfig_.enableNumKeyFeature;
 }
 
+std::unordered_set<std::string> ImeInfoInquirer::GetDisableNumKeyAppDeviceTypes()
+{
+    return systemConfig_.disableNumKeyAppDeviceTypes;
+}
+
 bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)
 {
     return systemConfig_.proxyImeUidList.find(callingUid) != systemConfig_.proxyImeUidList.end();
@@ -1215,7 +1220,7 @@ bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
     return info.extensionType_ == ExtensionAbilityType::INPUTMETHOD;
 }
 
-bool ImeInfoInquirer::IsDefaultImeScreen(uint64_t displayId)
+bool ImeInfoInquirer::IsRestrictedDefaultImeByDisplay(uint64_t displayId)
 {
     sptr<Rosen::DisplayLite> display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
     if (display == nullptr) {
@@ -1238,6 +1243,24 @@ bool ImeInfoInquirer::IsDynamicStartIme()
     }
     std::string value = system::GetParameter(systemConfig_.dynamicStartImeSysParam, "");
     return value == systemConfig_.dynamicStartImeValue;
+}
+
+bool ImeInfoInquirer::GetCompatibleDeviceType(
+    const std::string &bundleName, std::string &compatibleDeviceType)
+{
+    auto bundleMgr = GetBundleMgr();
+    if (bundleMgr == nullptr) {
+        IMSA_HILOGE("bundleMgr is nullptr.");
+        return false;
+    }
+    std::string deviceType;
+    int32_t ret = static_cast<int32_t>(bundleMgr->GetCompatibleDeviceType(bundleName, deviceType));
+    if (ret != 0 || deviceType.empty()) {
+        IMSA_HILOGE("GetCompatibleDeviceType error: %{public}d", ret);
+        return false;
+    }
+    compatibleDeviceType = deviceType;
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

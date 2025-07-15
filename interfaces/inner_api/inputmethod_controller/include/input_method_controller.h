@@ -918,19 +918,6 @@ public:
         EnabledStatus status = EnabledStatus::BASIC_MODE);
 
     /**
-     * @brief Update state of large memory app.
-     *
-     * This function is used to update the large memory state to control
-     * the restart of the input method.
-     *
-     * @param memoryState Current memory state from memmgr.
-     *                    LARGE_MEMORY_NEED or LARGE_MEMORY_NOT_NEED.
-     * @return Return 0 for success, other for failure.
-     * @since 18
-     */
-    IMF_API int32_t UpdateLargeMemorySceneState(const int32_t memoryState);
-
-    /**
      * @brief Send ArrayBuffer message to ime.
      *
      * This function is used to Send ArrayBuffer message to ime.
@@ -992,8 +979,6 @@ public:
      */
     IMF_API int32_t RegisterWindowScaleCallbackHandler(WindowScaleCallback&& callback);
 
-    void SetAgent(const sptr<IRemoteObject> &agentObject);
-
 private:
     InputMethodController();
     ~InputMethodController();
@@ -1019,6 +1004,7 @@ private:
     void SetTextListener(sptr<OnTextChangedListener> listener);
     bool IsEditable();
     bool IsBound();
+    void SetAgent(const sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
     void PrintKeyEventLog();
@@ -1031,7 +1017,8 @@ private:
     int32_t ShowSoftKeyboardInner(ClientType type);
     void ReportClientShow(int32_t eventCode, int32_t errCode, ClientType type);
     void GetWindowScaleCoordinate(int32_t& x, int32_t& y, uint32_t windowId);
-    int32_t ResponseDataChannel(uint64_t msgId, int32_t code, const ResponseData &data);
+    int32_t ResponseDataChannel(
+        const sptr<IRemoteObject> &agentObject, uint64_t msgId, int32_t code, const ResponseData &data);
     void CalibrateImmersiveParam(InputAttribute &inputAttribute);
 
     friend class InputDataChannelServiceImpl;

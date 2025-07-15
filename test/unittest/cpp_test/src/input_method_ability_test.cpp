@@ -322,7 +322,6 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute001, TestSize.Level
     }
     InputAttribute outAttribute;
     outAttribute.inputPattern = outInnerAttribute->inputPattern;
-    EXPECT_TRUE(outAttribute.IsSecurityImeFlag());
     EXPECT_TRUE(outAttribute.IsOneTimeCodeFlag());
     delete outInnerAttribute;
 }
@@ -1777,6 +1776,7 @@ HWTEST_F(InputMethodAbilityTest, BranchCoverage002, TestSize.Level0)
     ret = imsa_->SwitchExtension(vailidUserId, info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchSubType(vailidUserId, info);
+    imsa_->IncreaseAttachCount();
     imsa_->NeedHideWhenSwitchInputType(vailidUserId, type, needHide);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     ret = imsa_->SwitchInputType(vailidUserId, switchInfo);
@@ -2012,8 +2012,8 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_008, TestSize.Level0)
 
     sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
     auto channelProxy = std::make_shared<InputDataChannelProxy>(channelObject->AsObject());
-    InputMethodAbility::GetInstance().dataChannelProxyWrap_
-        = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+    InputMethodAbility::GetInstance().dataChannelProxyWrap_ =
+        std::make_shared<InputDataChannelProxyWrap>(channelProxy, nullptr);
     InputMethodAbility::GetInstance().inputAttribute_.needAutoInputNumkey = true;
 
     auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_NUMPAD_0, MMI::KeyEvent::KEY_ACTION_DOWN);
@@ -2032,8 +2032,8 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_009, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testHandleUnconsumedKey_009 START");
     sptr<InputDataChannelStub> channelObject = new InputDataChannelServiceImpl();
     auto channelProxy = std::make_shared<InputDataChannelProxy>(channelObject->AsObject());
-    InputMethodAbility::GetInstance().dataChannelProxyWrap_
-        = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+    InputMethodAbility::GetInstance().dataChannelProxyWrap_ =
+        std::make_shared<InputDataChannelProxyWrap>(channelProxy, nullptr);
     InputMethodAbility::GetInstance().inputAttribute_.needAutoInputNumkey = true;
 
     auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);

@@ -2082,19 +2082,6 @@ HWTEST_F(InputMethodControllerTest, TestSetSimpleKeyboardEnabled, TestSize.Level
 }
 
 /**
- * @tc.name: TestUpdateLargeMemorySceneState
- * @tc.desc: Test UpdateLargeMemorySceneState
- * @tc.type: FUNC
- */
-HWTEST_F(InputMethodControllerTest, TestUpdateLargeMemorySceneState, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC TestUpdateLargeMemorySceneState Test start");
-    int memoryState = 3;
-    auto ret = inputMethodController_->UpdateLargeMemorySceneState(memoryState);
-    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-}
-
-/**
  * @tc.name: TestNotifyOnInputStopFinished001
  * @tc.desc: Test NotifyOnInputStopFinished in 20ms
  * @tc.type: FUNC
@@ -2110,6 +2097,21 @@ HWTEST_F(InputMethodControllerTest, TestNotifyOnInputStopFinished001, TestSize.L
     auto ret = channelProxy->NotifyOnInputStopFinished();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     UserSessionManager::GetInstance().userSessions_.clear();
+}
+
+/**
+ * @tc.name: TestResponseDataChannel
+ * @tc.desc: Test ResponseDataChannel
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestResponseDataChannel, TestSize.Level0)
+{
+    IMSA_HILOGI("TestResponseDataChannel START");
+    uint64_t msgId = 10;
+    int32_t code = 5;
+    ResponseData data = std::monostate{};
+    auto ret = inputMethodController_->ResponseDataChannel(nullptr, msgId, code, data);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

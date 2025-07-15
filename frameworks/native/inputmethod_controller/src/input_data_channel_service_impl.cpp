@@ -29,8 +29,10 @@ InputDataChannelServiceImpl::InputDataChannelServiceImpl() {}
 
 InputDataChannelServiceImpl::~InputDataChannelServiceImpl() {}
 
-ErrCode InputDataChannelServiceImpl::InsertText(const std::string &text, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::InsertText(
+    const std::string &text, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
+    IMSA_HILOGD("start.");
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
         IMSA_HILOGE("failed to get InputMethodController instance!");
@@ -38,11 +40,12 @@ ErrCode InputDataChannelServiceImpl::InsertText(const std::string &text, uint64_
     }
     int32_t ret = instance->InsertText(Str8ToStr16(text));
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
+    IMSA_HILOGD("end.");
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::DeleteForward(int32_t length, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::DeleteForward(int32_t length, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -51,11 +54,11 @@ ErrCode InputDataChannelServiceImpl::DeleteForward(int32_t length, uint64_t msgI
     }
     int32_t ret = instance->DeleteForward(length);
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::DeleteBackward(int32_t length, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::DeleteBackward(int32_t length, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -64,11 +67,12 @@ ErrCode InputDataChannelServiceImpl::DeleteBackward(int32_t length, uint64_t msg
     }
     int32_t ret = instance->DeleteBackward(length);
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::GetTextBeforeCursor(int32_t number, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::GetTextBeforeCursor(
+    int32_t number, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -78,11 +82,12 @@ ErrCode InputDataChannelServiceImpl::GetTextBeforeCursor(int32_t number, uint64_
     std::u16string text;
     int32_t ret = instance->GetLeft(number, text);
     ResponseData data = Str16ToStr8(text);
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::GetTextAfterCursor(int32_t number, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::GetTextAfterCursor(
+    int32_t number, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -90,13 +95,13 @@ ErrCode InputDataChannelServiceImpl::GetTextAfterCursor(int32_t number, uint64_t
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     std::u16string text;
-    auto ret =  instance->GetRight(number, text);
+    auto ret = instance->GetRight(number, text);
     ResponseData data = Str16ToStr8(text);
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::GetTextIndexAtCursor(uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::GetTextIndexAtCursor(uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     int32_t index = 0;
     auto instance = InputMethodController::GetInstance();
@@ -106,7 +111,7 @@ ErrCode InputDataChannelServiceImpl::GetTextIndexAtCursor(uint64_t msgId)
     }
     auto ret = instance->GetTextIndexAtCursor(index);
     ResponseData data = index;
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
@@ -155,7 +160,7 @@ ErrCode InputDataChannelServiceImpl::SendKeyboardStatus(int32_t status)
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::SendFunctionKey(int32_t funcKey, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::SendFunctionKey(int32_t funcKey, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -164,11 +169,11 @@ ErrCode InputDataChannelServiceImpl::SendFunctionKey(int32_t funcKey, uint64_t m
     }
     auto ret = instance->SendFunctionKey(funcKey);
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::MoveCursor(int32_t keyCode, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::MoveCursor(int32_t keyCode, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -177,11 +182,12 @@ ErrCode InputDataChannelServiceImpl::MoveCursor(int32_t keyCode, uint64_t msgId)
     }
     auto ret = instance->MoveCursor(static_cast<Direction>(keyCode));
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::SelectByRange(int32_t start, int32_t end, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::SelectByRange(
+    int32_t start, int32_t end, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -191,11 +197,12 @@ ErrCode InputDataChannelServiceImpl::SelectByRange(int32_t start, int32_t end, u
 
     instance->SelectByRange(start, end);
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ERR_OK, data);
+    instance->ResponseDataChannel(agent, msgId, ERR_OK, data);
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::SelectByMovement(int32_t direction, int32_t cursorMoveSkip, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::SelectByMovement(
+    int32_t direction, int32_t cursorMoveSkip, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -204,11 +211,12 @@ ErrCode InputDataChannelServiceImpl::SelectByMovement(int32_t direction, int32_t
     }
     instance->SelectByMovement(direction, cursorMoveSkip);
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ERR_OK, data);
+    instance->ResponseDataChannel(agent, msgId, ERR_OK, data);
     return ERR_OK;
 }
 
-ErrCode InputDataChannelServiceImpl::HandleExtendAction(int32_t action, uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::HandleExtendAction(
+    int32_t action, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -217,7 +225,7 @@ ErrCode InputDataChannelServiceImpl::HandleExtendAction(int32_t action, uint64_t
     }
     auto ret = instance->HandleExtendAction(action);
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
@@ -257,7 +265,7 @@ ErrCode InputDataChannelServiceImpl::SendPrivateCommand(const Value &value)
 }
 
 ErrCode InputDataChannelServiceImpl::SetPreviewText(
-    const std::string &text, const RangeInner &rangeInner, uint64_t msgId)
+    const std::string &text, const RangeInner &rangeInner, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     Range range = InputMethodTools::GetInstance().InnerToRange(rangeInner);
     auto instance = InputMethodController::GetInstance();
@@ -267,11 +275,11 @@ ErrCode InputDataChannelServiceImpl::SetPreviewText(
     }
     auto ret = instance->SetPreviewText(text, range);
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
-ErrCode InputDataChannelServiceImpl::FinishTextPreview(uint64_t msgId)
+ErrCode InputDataChannelServiceImpl::FinishTextPreview(uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
     if (instance == nullptr) {
@@ -280,7 +288,7 @@ ErrCode InputDataChannelServiceImpl::FinishTextPreview(uint64_t msgId)
     }
     auto ret = instance->FinishTextPreview();
     ResponseData data = std::monostate{};
-    instance->ResponseDataChannel(msgId, ret, data);
+    instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
 
@@ -292,17 +300,6 @@ ErrCode InputDataChannelServiceImpl::SendMessage(const ArrayBuffer &arraybuffer)
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     return instance->RecvMessage(arraybuffer);
-}
-
-ErrCode InputDataChannelServiceImpl::SetSpareAgent(const sptr<IRemoteObject> &agent)
-{
-    auto instance = InputMethodController::GetInstance();
-    if (instance == nullptr) {
-        IMSA_HILOGE("failed to get InputMethodController instance!");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    instance->SetAgent(agent);
-    return ERR_OK;
 }
 } // namespace MiscServices
 } // namespace OHOS

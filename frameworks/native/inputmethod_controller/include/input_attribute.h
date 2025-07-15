@@ -65,7 +65,7 @@ struct InputAttribute {
 
     bool IsSecurityImeFlag() const
     {
-        return GetSecurityFlag() || IsOneTimeCodeFlag();
+        return GetSecurityFlag();
     }
 
     bool operator==(const InputAttribute &info) const

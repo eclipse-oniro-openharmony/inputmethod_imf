@@ -304,13 +304,13 @@ bool InputMethodAbility::IsDisplayChanged(uint64_t oldDisplayId, uint64_t newDis
         return false;
     }
     bool ret = false;
-    int32_t result = proxy->IsDefaultImeScreen(oldDisplayId, ret);
+    int32_t result = proxy->IsRestrictedDefaultImeByDisplay(oldDisplayId, ret);
     if (result != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to get oldDisplay info , result is %{public}d!", result);
         return false;
     }
     if (!ret) {
-        result = proxy->IsDefaultImeScreen(newDisplayId, ret);
+        result = proxy->IsRestrictedDefaultImeByDisplay(newDisplayId, ret);
         if (result != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to get newDisplay info , result is %{public}d!", result);
             return false;
@@ -588,9 +588,10 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     AttachOptions options;
     options.requestKeyboardReason = textConfig.requestKeyboardReason;
-    options.isSimpleKeyboardEnabled = (textConfig.inputAttribute.IsSecurityImeFlag() || !IsDefaultIme())
-                                          ? false
-                                          : textConfig.isSimpleKeyboardEnabled;
+    options.isSimpleKeyboardEnabled = (textConfig.inputAttribute.IsSecurityImeFlag() ||
+                                          textConfig.inputAttribute.IsOneTimeCodeFlag() || !IsDefaultIme()) ?
+        false :
+        textConfig.isSimpleKeyboardEnabled;
     InvokeAttachOptionsCallback(options, isNotifyInputStart || !isNotify_);
     if (isNotifyInputStart || !isNotify_) {
         isNotify_ = true;
@@ -864,13 +865,14 @@ void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
         IMSA_HILOGE("failed to create channel proxy!");
         return;
     }
-    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+    sptr<IRemoteObject> agentObject = nullptr;
+    if (agentStub_ != nullptr) {
+        agentObject = agentStub_->AsObject();
+    }
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy, agentObject);
     if (channelWrap == nullptr) {
         IMSA_HILOGE("failed to create channel wrap!");
         return;
-    }
-    if (agentStub_ != nullptr) {
-        channelProxy->SetSpareAgent(agentStub_->AsObject());
     }
     if (dataChannelProxyWrap_ != nullptr) {
         dataChannelProxyWrap_->ClearRspHandlers();

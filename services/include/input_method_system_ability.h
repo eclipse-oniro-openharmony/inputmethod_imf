@@ -61,7 +61,6 @@ public:
         const std::string &bundleName, const std::string &subName, uint32_t trigger) override;
     ErrCode DisplayOptionalInputMethod() override;
     ErrCode SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
-    ErrCode UpdateLargeMemorySceneState(const int32_t memoryState) override;
     ErrCode InitConnect() override;
     ErrCode UnRegisteredProxyIme(int32_t type, const sptr<IInputMethodCore> &core) override;
     ErrCode PanelStatusChange(uint32_t status, const ImeWindowInfo &info) override;
@@ -91,7 +90,7 @@ public:
     int32_t RegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
     int32_t UnregisterProxyIme(uint64_t displayId) override;
-    ErrCode IsDefaultImeScreen(uint64_t displayId, bool &resultValue) override;
+    ErrCode IsRestrictedDefaultImeByDisplay(uint64_t displayId, bool &resultValue) override;
     ErrCode IsCapacitySupport(int32_t capacity, bool &isSupport) override;
     int32_t GetCallingUserId();
 
@@ -129,6 +128,7 @@ private:
         const std::shared_ptr<PerUserSession> &session);
     int32_t OnStartInputType(int32_t userId, const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t HandlePackageEvent(const Message *msg);
+    int32_t HandleUpdateLargeMemoryState(const Message *msg);
     int32_t OnPackageRemoved(int32_t userId, const std::string &packageName);
     void OnScreenUnlock(const Message *msg);
     void OnScreenLock(const Message *msg);
@@ -205,7 +205,23 @@ private:
     bool IsValidBundleName(const std::string &bundleName);
     std::string GetRestoreBundleName(MessageParcel &data);
     int32_t RestoreInputmethod(std::string &bundleName);
-    bool IsOneTimeCodeSwitchSubtype(std::shared_ptr<PerUserSession> session, const SwitchInfo &switchInfo);
+    void IncreaseAttachCount();
+    void DecreaseAttachCount();
+
+    class AttachStateGuard {
+    public:
+        explicit AttachStateGuard(InputMethodSystemAbility &ability) : ability_(ability)
+        {
+            ability_.IncreaseAttachCount();
+        }
+        ~AttachStateGuard()
+        {
+            ability_.DecreaseAttachCount();
+        }
+
+    private:
+        InputMethodSystemAbility &ability_;
+    };
 
     std::atomic<bool> isBundleScanFinished_ = false;
     std::atomic<bool> isScbEnable_ = false;

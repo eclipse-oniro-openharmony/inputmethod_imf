@@ -257,8 +257,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_002, TestSize.L
     Rosen::Rect validRect = { 1, 1, 100, 100 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, 50, 50 },
-        .landscape = { validRect, 50, 50 },
+        .portrait = { portraitRect, {}, 50, 50 },
+        .landscape = { validRect, {}, 50, 50 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -283,8 +283,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_003, TestSize.L
     Rosen::Rect validRect = { 1, 1, 100, 100 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { validRect, 50, 50 },
-        .landscape = { portraitRect, 50, 50 },
+        .portrait = { validRect, {}, 50, 50 },
+        .landscape = { portraitRect, {}, 50, 50 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -311,8 +311,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_004, TestSize.L
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width - 1, display.landscape.height - 1 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, 50, 50 },
-        .landscape = { landscapeRect, 50, 50 },
+        .portrait = { portraitRect, {}, 50, 50 },
+        .landscape = { landscapeRect, {}, 50, 50 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -339,8 +339,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_005, TestSize.L
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width - 1, display.landscape.height - 1 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, 50, 50 },
-        .landscape = { landscapeRect, 50, 50 },
+        .portrait = { portraitRect, {}, 50, 50 },
+        .landscape = { landscapeRect, {}, 50, 50 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -367,8 +367,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_006, TestSize.L
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width + 1, display.landscape.height - 1 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, 50, 50 },
-        .landscape = { landscapeRect, 50, 50 },
+        .portrait = { portraitRect, {}, 50, 50 },
+        .landscape = { landscapeRect, {}, 50, 50 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -395,8 +395,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_007, TestSize.L
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width - 1, display.landscape.height + 1 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, 50, 50 },
-        .landscape = { landscapeRect, 50, 50 },
+        .portrait = { portraitRect, {}, 50, 50 },
+        .landscape = { landscapeRect, {}, 50, 50 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -423,8 +423,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_008, TestSize.L
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width - 1, display.landscape.height - 1 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, -1, 0 },
-        .landscape = { landscapeRect, 1, 0 },
+        .portrait = { portraitRect, {}, -1, 0 },
+        .landscape = { landscapeRect, {}, 1, 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -451,8 +451,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_009, TestSize.L
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width - 1, display.landscape.height - 1 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, static_cast<int32_t>(portraitRect.height_) + 1, 0 },
-        .landscape = { landscapeRect, static_cast<int32_t>(landscapeRect.height_) - 1, 0 },
+        .portrait = { portraitRect, {}, static_cast<int32_t>(portraitRect.height_) + 1, 0 },
+        .landscape = { landscapeRect, {}, static_cast<int32_t>(landscapeRect.height_) - 1, 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -479,8 +479,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_010, TestSize.L
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width - 1, display.landscape.height - 1 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, 1, 0 },
-        .landscape = { landscapeRect, -1, 0 },
+        .portrait = { portraitRect, {}, 1, 0 },
+        .landscape = { landscapeRect, {}, -1, 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -507,8 +507,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_011, TestSize.L
     Rosen::Rect landscapeRect = { 0, 0, display.landscape.width - 1, display.landscape.height - 1 };
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, static_cast<int32_t>(portraitRect.height_) - 1, 0 },
-        .landscape = { landscapeRect, static_cast<int32_t>(landscapeRect.height_) + 1, 0 },
+        .portrait = { portraitRect, {}, static_cast<int32_t>(portraitRect.height_) - 1, 0 },
+        .landscape = { landscapeRect, {}, static_cast<int32_t>(landscapeRect.height_) + 1, 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -537,8 +537,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_012, TestSize.L
     uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = true,
-        .portrait = { {}, static_cast<int32_t>(portraitAvoidY), 0 },
-        .landscape = { {}, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { {}, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { {}, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -567,8 +567,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_013, TestSize.L
     uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = true,
-        .portrait = { {}, static_cast<int32_t>(portraitAvoidY), 0 },
-        .landscape = { {}, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { {}, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { {}, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -599,8 +599,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_014, TestSize.L
     uint32_t landscapeAvoidY = landscapeRect.height_ - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, static_cast<int32_t>(portraitAvoidY), 0 },
-        .landscape = { landscapeRect, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { portraitRect, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { landscapeRect, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -631,8 +631,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_015, TestSize.L
     uint32_t landscapeAvoidY = landscapeRect.height_ - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, static_cast<int32_t>(portraitAvoidY), 0 },
-        .landscape = { landscapeRect, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { portraitRect, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { landscapeRect, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -663,8 +663,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_016, TestSize.L
     uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = true,
-        .portrait = { portraitRect, static_cast<int32_t>(portraitAvoidY), 0 },
-        .landscape = { landscapeRect, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { portraitRect, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { landscapeRect, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -829,8 +829,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testAdjustEnhancedPanelRect_020, TestSize.L
     uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = false,
-        .portrait = { portraitRect, static_cast<int32_t>(portraitAvoidY), 0 },
-        .landscape = { landscapeRect, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { portraitRect, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { landscapeRect, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, {});
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -977,10 +977,18 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_004, TestSize.Level0
 
     // The blur height cannot be greater than the screen height.
     IdentityCheckerMock::SetSystemApp(true);
-    WindowSize displaySize{ 0, 0 };
+
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     bool isPortrait = inputMethodPanel->IsDisplayPortrait();
-    EXPECT_TRUE(inputMethodPanel->GetDisplaySize(isPortrait, displaySize));
-    immersiveEffect = { .gradientHeight = displaySize.height + 1,
+    uint32_t gradientHeight = 0;
+    if (isPortrait) {
+        gradientHeight = displaySize.portrait.height + 1;
+    } else {
+        gradientHeight = displaySize.landscape.height + 1;
+    }
+
+    immersiveEffect = { .gradientHeight = gradientHeight,
         .gradientMode = GradientMode::LINEAR_GRADIENT,
         .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
     ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
@@ -1065,18 +1073,23 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_006, TestSize.Level0
     uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = true,
-        .portrait = { {}, static_cast<int32_t>(portraitAvoidY), 0 },
-        .landscape = { {}, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { {}, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { {}, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    WindowSize displaySize { 0, 0 };
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     bool isPortrait = inputMethodPanel->IsDisplayPortrait();
-    EXPECT_TRUE(inputMethodPanel->GetDisplaySize(isPortrait, displaySize));
-    ImmersiveEffect immersiveEffect;
-    immersiveEffect = { .gradientHeight = displaySize.height * GRADIENT_HEIGHT_RATIO,
+    uint32_t gradientHeight = 0;
+    if (isPortrait) {
+        gradientHeight = displaySize.portrait.height * GRADIENT_HEIGHT_RATIO;
+    } else {
+        gradientHeight = displaySize.landscape.height * GRADIENT_HEIGHT_RATIO;
+    }
+    ImmersiveEffect immersiveEffect = { .gradientHeight = gradientHeight,
         .gradientMode = GradientMode::LINEAR_GRADIENT,
         .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
     ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
@@ -1109,18 +1122,23 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_007, TestSize.Level0
     uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = true,
-        .portrait = { {}, static_cast<int32_t>(portraitAvoidY), 0 },
-        .landscape = { {}, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { {}, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { {}, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    WindowSize displaySize { 0, 0 };
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     bool isPortrait = inputMethodPanel->IsDisplayPortrait();
-    EXPECT_TRUE(inputMethodPanel->GetDisplaySize(isPortrait, displaySize));
-    ImmersiveEffect immersiveEffect;
-    immersiveEffect = { .gradientHeight = displaySize.height * GRADIENT_HEIGHT_RATIO + 1,
+    uint32_t gradientHeight = 0;
+    if (isPortrait) {
+        gradientHeight = displaySize.portrait.height * GRADIENT_HEIGHT_RATIO + 1;
+    } else {
+        gradientHeight = displaySize.landscape.height * GRADIENT_HEIGHT_RATIO + 1;
+    }
+    ImmersiveEffect immersiveEffect = { .gradientHeight = gradientHeight,
         .gradientMode = GradientMode::LINEAR_GRADIENT,
         .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
     ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);
@@ -1189,8 +1207,8 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_009, TestSize.Level0
     uint32_t landscapeAvoidY = display.landscape.height - landscapeAvoidHeight;
     EnhancedLayoutParams params = {
         .isFullScreen = true,
-        .portrait = { {}, static_cast<int32_t>(portraitAvoidY),  0 },
-        .landscape = { {}, static_cast<int32_t>(landscapeAvoidY), 0 },
+        .portrait = { {}, {}, static_cast<int32_t>(portraitAvoidY), 0 },
+        .landscape = { {}, {}, static_cast<int32_t>(landscapeAvoidY), 0 },
     };
     HotAreas hotAreas;
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, params, hotAreas);
@@ -1224,11 +1242,16 @@ HWTEST_F(InputMethodPanelAdjustTest, testSetImmersiveEffect_010, TestSize.Level0
     InputMethodPanelAdjustTest::ImaCreatePanel(panelInfo, inputMethodPanel);
     inputMethodPanel->immersiveMode_ = ImmersiveMode::IMMERSIVE;
 
-    WindowSize displaySize { 0, 0 };
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelAdjustTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     bool isPortrait = inputMethodPanel->IsDisplayPortrait();
-    EXPECT_TRUE(inputMethodPanel->GetDisplaySize(isPortrait, displaySize));
-    ImmersiveEffect immersiveEffect;
-    immersiveEffect = { .gradientHeight = displaySize.width * GRADIENT_HEIGHT_RATIO + 1,
+    uint32_t gradientHeight = 0;
+    if (isPortrait) {
+        gradientHeight = displaySize.portrait.width * GRADIENT_HEIGHT_RATIO + 1;
+    } else {
+        gradientHeight = displaySize.landscape.width * GRADIENT_HEIGHT_RATIO + 1;
+    }
+    ImmersiveEffect immersiveEffect = { .gradientHeight = gradientHeight,
         .gradientMode = GradientMode::LINEAR_GRADIENT,
         .fluidLightMode = FluidLightMode::BACKGROUND_FLUID_LIGHT };
     auto ret = inputMethodPanel->SetImmersiveEffect(immersiveEffect);

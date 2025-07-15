@@ -438,7 +438,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_ClearRspHandlers, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_ClearRspHandlers");
     auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
-    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy, nullptr);
     auto delayTask = [&channelWrap]() {
         usleep(100000);
         channelWrap->ClearRspHandlers();
@@ -464,7 +464,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteRspHandler, TestSize.Level0)
     constexpr std::size_t UNANSWERED_MAX_NUMBER = 1000;
     IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_DeleteRspHandler");
     auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
-    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy, nullptr);
 
     std::shared_ptr<ResponseHandler> firstHandler = nullptr;
     std::shared_ptr<ResponseHandler> lastHandler = nullptr;
@@ -487,7 +487,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleResponse, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_HandleResponse");
     auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
-    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy, nullptr);
 
     std::shared_ptr<ResponseHandler> handler = nullptr;
     handler = channelWrap->AddRspHandler(CommonRsp, false);

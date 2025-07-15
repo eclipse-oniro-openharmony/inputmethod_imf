@@ -18,6 +18,7 @@
 #include "peruser_session.h"
 
 #include <cinttypes>
+#include <algorithm>
 
 #include "ability_manager_client.h"
 #include "full_ime_info_manager.h"
@@ -62,7 +63,11 @@ constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
 constexpr int32_t MAX_RESTART_NUM = 3;
 constexpr int32_t IME_RESET_TIME_OUT = 3;
 constexpr int32_t MAX_RESTART_TASKS = 2;
+constexpr uint32_t MAX_ATTACH_COUNT = 100000;
 constexpr const char *UNDEFINED = "undefined";
+constexpr int32_t WAIT_ATTACH_FINISH_DELAY = 50;
+constexpr int32_t WAIT_ATTACH_FINISH_MAX_TIMES = 20;
+constexpr uint32_t MAX_SCB_START_COUNT = 2;
 PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 
 PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
@@ -1108,9 +1113,6 @@ std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needMinGuar
     auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
     if (clientInfo != nullptr) {
         InputType type = InputType::NONE;
-        if (clientInfo->config.inputAttribute.IsOneTimeCodeFlag()) {
-            type = InputType::ONE_TIME_CODE;
-        }
         if (clientInfo->config.inputAttribute.GetSecurityFlag()) {
             type = InputType::SECURITY_INPUT;
         }
@@ -1174,6 +1176,7 @@ int32_t PerUserSession::NotifySubTypeChangedToIme(const std::string &bundleName,
 
 int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
 {
+    IMSA_HILOGD("enter");
     auto imeToStart = GetRealCurrentIme(true);
     if (imeToStart == nullptr) {
         IMSA_HILOGE("imeToStart is nullptr!");
@@ -1218,9 +1221,9 @@ bool PerUserSession::CanStartIme()
 {
     return (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() &&
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
-    IsSaReady(SCREENLOCK_SERVICE_ID) &&
+        IsSaReady(SCREENLOCK_SERVICE_ID) &&
 #endif
-    runningIme_.empty());
+        runningIme_.empty());
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
@@ -1671,30 +1674,78 @@ void PerUserSession::AddRestartIme()
     }
 }
 
+bool PerUserSession::IsAttachFinished()
+{
+    static uint32_t waitAttachTimes = 0;
+    if (GetAttachCount() != 0 && waitAttachTimes < WAIT_ATTACH_FINISH_MAX_TIMES) {
+        IMSA_HILOGI("wait for attach finish");
+        waitAttachTimes++;
+        return false;
+    }
+    waitAttachTimes = 0;
+    return true;
+}
+
+void PerUserSession::IncreaseScbStartCount()
+{
+    std::lock_guard<std::mutex> lock(scbStartCountMtx_);
+    scbStartCount_ = std::min(scbStartCount_ + 1, MAX_SCB_START_COUNT);
+    IMSA_HILOGI("scb start count: %{public}u", scbStartCount_);
+}
+
+uint32_t PerUserSession::GetScbStartCount()
+{
+    std::lock_guard<std::mutex> lock(scbStartCountMtx_);
+    return scbStartCount_;
+}
+
+void PerUserSession::ResetRestartTasks()
+{
+    std::lock_guard<std::mutex> lock(restartMutex_);
+    restartTasks_ = 0;
+}
+
 bool PerUserSession::RestartIme()
 {
+    static int32_t delayTime = 0;
+    IMSA_HILOGD("enter");
     auto task = [this]() {
+        // When the attach conflict with the first scb startup event, discard the first scb startup event.
+        if (GetAttachCount() != 0 && GetScbStartCount() <= 1) {
+            IMSA_HILOGI("attach conflict with the first scb startup event, discard the first scb startup event");
+            ResetRestartTasks();
+            return;
+        }
+        if (!IsAttachFinished()) {
+            delayTime = WAIT_ATTACH_FINISH_DELAY;
+            RestartIme();
+            return;
+        }
+        delayTime = 0;
         if (CanStartIme()) {
+            IMSA_HILOGI("start ime");
+            ResetRestartTasks();
             auto ret = StartCurrentIme(true);
             if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("start ime failed!");
+                IMSA_HILOGE("start ime failed:%{public}d", ret);
             }
         }
+        IMSA_HILOGD("restart again");
         int32_t tasks = 0;
         {
             std::lock_guard<std::mutex> lock(restartMutex_);
             tasks = --restartTasks_;
         }
         if (tasks > 0 && !RestartIme()) {
-            std::lock_guard<std::mutex> lock(restartMutex_);
-            restartTasks_ = 0;
+            ResetRestartTasks();
         }
     };
     if (eventHandler_ == nullptr) {
         IMSA_HILOGE("eventHandler_ is nullptr!");
         return false;
     }
-    return eventHandler_->PostTask(task, "RestartCurrentImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    return eventHandler_->PostTask(
+        task, "RestartCurrentImeTask", delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 BlockQueue<SwitchInfo>& PerUserSession::GetSwitchQueue()
@@ -1879,6 +1930,7 @@ int32_t PerUserSession::StartNewIme(const std::shared_ptr<ImeNativeCfg> &ime)
 
 int32_t PerUserSession::StopCurrentIme()
 {
+    IMSA_HILOGD("enter");
     auto action = GetImeAction(ImeEvent::STOP_IME);
     if (action == ImeAction::DO_ACTION_IN_NULL_IME_DATA) {
         return ErrorCode::NO_ERROR;
@@ -2277,7 +2329,8 @@ bool PerUserSession::SpecialScenarioCheck()
         IMSA_HILOGE("send failed, is simple keyboard!");
         return false;
     }
-    if (clientInfo->config.inputAttribute.IsSecurityImeFlag()) {
+    if (clientInfo->config.inputAttribute.IsSecurityImeFlag() ||
+        clientInfo->config.inputAttribute.IsOneTimeCodeFlag()) {
         IMSA_HILOGE("send failed, is special input box!");
         return false;
     }
@@ -2290,19 +2343,6 @@ bool PerUserSession::SpecialScenarioCheck()
         return false;
     }
     return true;
-}
-
-bool PerUserSession::IsScreenLockOrSecurityFlag()
-{
-    auto screenLockManager = ScreenLock::ScreenLockManager::GetInstance();
-    if (screenLockManager != nullptr && screenLockManager->IsScreenLocked()) {
-        return true;
-    }
-    auto clientInfo = GetCurrentClientInfo();
-    if (clientInfo != nullptr && clientInfo->config.inputAttribute.IsSecurityImeFlag()) {
-        return true;
-    }
-    return false;
 }
 
 std::pair<int32_t, int32_t> PerUserSession::GetCurrentInputPattern()
@@ -2375,8 +2415,8 @@ bool PerUserSession::IsNumkeyAutoInputApp(const std::string &bundleName)
 bool PerUserSession::IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo)
 {
     auto callingWindowInfo = GetCallingWindowInfo(inputClientInfo);
-    return ImeInfoInquirer::GetInstance().IsDefaultImeScreen(callingWindowInfo.displayId)
-           || inputClientInfo.config.isSimpleKeyboardEnabled;
+    return ImeInfoInquirer::GetInstance().IsRestrictedDefaultImeByDisplay(callingWindowInfo.displayId) ||
+        inputClientInfo.config.isSimpleKeyboardEnabled || inputClientInfo.config.inputAttribute.IsOneTimeCodeFlag();
 }
 
 bool PerUserSession::IsSimpleKeyboardEnabled()
@@ -2386,7 +2426,10 @@ bool PerUserSession::IsSimpleKeyboardEnabled()
     if (clientInfo == nullptr) {
         return false;
     }
-    return clientInfo->config.inputAttribute.IsSecurityImeFlag() ? false : clientInfo->config.isSimpleKeyboardEnabled;
+    return (clientInfo->config.inputAttribute.IsSecurityImeFlag() ||
+               clientInfo->config.inputAttribute.IsOneTimeCodeFlag()) ?
+        false :
+        clientInfo->config.isSimpleKeyboardEnabled;
 }
 
 std::pair<std::string, std::string> PerUserSession::GetImeUsedBeforeScreenLocked()
@@ -2401,19 +2444,27 @@ void PerUserSession::SetImeUsedBeforeScreenLocked(const std::pair<std::string, s
     imeUsedBeforeScreenLocked_ = ime;
 }
 
-bool PerUserSession::AllowSwitchImeByCombinationKey()
+bool PerUserSession::IsImeSwitchForbidden()
 {
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
     if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
-        return false;
+        return true;
     }
 #endif
     auto clientInfo = GetCurrentClientInfo();
     if (clientInfo == nullptr) {
-        return true;
+        return false;
     }
-    return !IsPreconfiguredDefaultImeSpecified(*clientInfo);
+
+    bool isSimpleKeyboard = (clientInfo->config.inputAttribute.IsSecurityImeFlag() ||
+                                clientInfo->config.inputAttribute.IsOneTimeCodeFlag()) ?
+        false :
+        clientInfo->config.isSimpleKeyboardEnabled;
+
+    auto callingWindowInfo = GetCallingWindowInfo(*clientInfo);
+    return ImeInfoInquirer::GetInstance().IsRestrictedDefaultImeByDisplay(callingWindowInfo.displayId) ||
+        clientInfo->config.inputAttribute.IsSecurityImeFlag() || isSimpleKeyboard;
 }
 
 std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredDefaultIme(
@@ -2440,6 +2491,32 @@ std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredD
 void PerUserSession::NotifyOnInputStopFinished()
 {
     isNotifyFinished_.SetValue(true);
+}
+
+void PerUserSession::IncreaseAttachCount()
+{
+    std::lock_guard<std::mutex> lock(attachCountMtx_);
+    if (attachingCount_ >= MAX_ATTACH_COUNT) {
+        IMSA_HILOGE("attach count over:%{public}u", MAX_ATTACH_COUNT);
+        return;
+    }
+    attachingCount_++;
+}
+
+void PerUserSession::DecreaseAttachCount()
+{
+    std::lock_guard<std::mutex> lock(attachCountMtx_);
+    if (attachingCount_ == 0) {
+        IMSA_HILOGE("attachingCount_ is 0");
+        return;
+    }
+    attachingCount_--;
+}
+
+uint32_t PerUserSession::GetAttachCount()
+{
+    std::lock_guard<std::mutex> lock(attachCountMtx_);
+    return attachingCount_;
 }
 } // namespace MiscServices
 } // namespace OHOS

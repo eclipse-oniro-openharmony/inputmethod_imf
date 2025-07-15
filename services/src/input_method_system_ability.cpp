@@ -597,11 +597,35 @@ ErrCode InputMethodSystemAbility::ReleaseInput(const sptr<IInputClient>& client,
     return session->OnReleaseInput(client, sessionId);
 }
 
+void InputMethodSystemAbility::IncreaseAttachCount()
+{
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("get session failed:%{public}d", userId);
+        return;
+    }
+
+    session->IncreaseAttachCount();
+}
+
+void InputMethodSystemAbility::DecreaseAttachCount()
+{
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("get session failed:%{public}d", userId);
+        return;
+    }
+
+    session->DecreaseAttachCount();
+}
+
 ErrCode InputMethodSystemAbility::StartInput(
     const InputClientInfoInner &inputClientInfoInner, sptr<IRemoteObject> &agent, int64_t &pid, std::string &bundleName)
 {
-    InputClientInfo inputClientInfo =
-        InputMethodTools::GetInstance().InnerToInputClientInfo(inputClientInfoInner);
+    AttachStateGuard guard(*this);
+    InputClientInfo inputClientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(inputClientInfoInner);
     agent = nullptr;
     pid = 0;
     bundleName = "";
@@ -705,9 +729,9 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
     return session->StartUserSpecifiedIme(DEFAULT_DISPLAY_ID);
 }
 
-ErrCode InputMethodSystemAbility::IsDefaultImeScreen(uint64_t displayId, bool &resultValue)
+ErrCode InputMethodSystemAbility::IsRestrictedDefaultImeByDisplay(uint64_t displayId, bool &resultValue)
 {
-    resultValue = ImeInfoInquirer::GetInstance().IsDefaultImeScreen(displayId);
+    resultValue = ImeInfoInquirer::GetInstance().IsRestrictedDefaultImeByDisplay(displayId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -786,22 +810,6 @@ ErrCode InputMethodSystemAbility::RequestHideInput(bool isFocusTriggered)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnRequestHideInput(pid, GetCallingDisplayId());
-}
-
-ErrCode InputMethodSystemAbility::UpdateLargeMemorySceneState(const int32_t memoryState)
-{
-    IMSA_HILOGD("UpdateLargeMemorySceneState start %{public}d.", memoryState);
-    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
-        IMSA_HILOGE("not native sa!");
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
-    auto userId = GetCallingUserId();
-    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
-    if (session == nullptr) {
-        IMSA_HILOGE("%{public}d session is nullptr", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return session->UpdateLargeMemorySceneState(memoryState);
 }
 
 ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
@@ -1131,8 +1139,8 @@ ErrCode InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         IMSA_HILOGW("ime %{public}s not enable, stopped!", bundleName.c_str());
         return ErrorCode::ERROR_ENABLE_IME;
     }
-    if (identityChecker_->IsFormShell(IPCSkeleton::GetCallingFullTokenID()) && session->IsScreenLockOrSecurityFlag()) {
-        IMSA_HILOGE("Screen is locked or current input is securityFlag, can not need switch input method!");
+    if (identityChecker_->IsFormShell(IPCSkeleton::GetCallingFullTokenID()) && session->IsImeSwitchForbidden()) {
+        IMSA_HILOGE("ime switch is forbidden, can not switch input method");
         return ErrorCode::ERROR_SWITCH_IME;
     }
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
@@ -1164,33 +1172,6 @@ int32_t InputMethodSystemAbility::EnableIme(
         userId, bundleName, extensionName, static_cast<EnabledStatus>(status));
 }
 
-bool InputMethodSystemAbility::IsOneTimeCodeSwitchSubtype(std::shared_ptr<PerUserSession> session,
-    const SwitchInfo &switchInfo)
-{
-    if (session == nullptr) {
-        IMSA_HILOGE("session is nullptr!");
-        return false;
-    }
-
-    auto [ret, inputPattern] = session->GetCurrentInputPattern();
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("get current input pattern is failed!");
-        return false;
-    }
-    auto data = session->GetReadyImeData(ImeType::IME);
-    if (data == nullptr) {
-        IMSA_HILOGE("get ready ime data is failed!");
-        return false;
-    }
-
-    if (inputPattern == static_cast<int32_t>(InputType::ONE_TIME_CODE) && switchInfo.bundleName == data->ime.first) {
-        IMSA_HILOGI("onetimecode switch subtype");
-        return true;
-    }
-    IMSA_HILOGI("not onetimecode switch subtype");
-    return false;
-}
-
 int32_t InputMethodSystemAbility::StartSwitch(int32_t userId, const SwitchInfo &switchInfo,
     const std::shared_ptr<PerUserSession> &session)
 {
@@ -1203,9 +1184,7 @@ int32_t InputMethodSystemAbility::StartSwitch(int32_t userId, const SwitchInfo &
     if (info == nullptr) {
         return ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED;
     }
-    if (!IsOneTimeCodeSwitchSubtype(session, switchInfo)) {
-        InputTypeManager::GetInstance().Set(false);
-    }
+    InputTypeManager::GetInstance().Set(false);
     int32_t ret = 0;
     {
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
@@ -1541,6 +1520,13 @@ void InputMethodSystemAbility::WorkThread()
                 FullImeInfoManager::GetInstance().RegularInit();
                 break;
             }
+            case MSG_ID_UPDATE_LARGE_MEMORY_STATE: {
+                int32_t ret = HandleUpdateLargeMemoryState(msg);
+                if (ret != ErrorCode::NO_ERROR) {
+                    IMSA_HILOGE("update large memory state failed %{public}d", ret);
+                }
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -1611,6 +1597,32 @@ int32_t InputMethodSystemAbility::OnHideKeyboardSelf(const Message *msg)
     }
     session->OnHideSoftKeyBoardSelf();
     return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::HandleUpdateLargeMemoryState(const Message *msg)
+{
+    IMSA_HILOGD("called");
+    if (msg == nullptr || msg->msgContent_ == nullptr) {
+        IMSA_HILOGE("Aborted! Message is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    MessageParcel *data = msg->msgContent_;
+    int32_t uid = 0;
+    int32_t memoryState = 0;
+    if (!ITypesUtil::Unmarshal(*data, uid, memoryState) ||
+        (memoryState != LargeMemoryState::LARGE_MEMORY_NEED &&
+        memoryState != LargeMemoryState::LARGE_MEMORY_NOT_NEED)) {
+        IMSA_HILOGE("Failed to read message parcel or invaild param %{public}d!", memoryState);
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    IMSA_HILOGI("memory state %{public}d.", memoryState);
+    auto userId = GetUserId(uid);
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->UpdateLargeMemorySceneState(memoryState);
 }
 
 int32_t InputMethodSystemAbility::HandlePackageEvent(const Message *msg)
@@ -1738,7 +1750,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
         IMSA_HILOGI("switch language.");
         return SwitchLanguage();
     }
-    if (!session->AllowSwitchImeByCombinationKey()) {
+    if (session->IsImeSwitchForbidden()) {
         return ErrorCode::NO_ERROR;
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
@@ -2202,6 +2214,7 @@ void InputMethodSystemAbility::HandleScbStarted(int32_t userId, int32_t screenId
     }
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     if (!ImeStateManagerFactory::GetInstance().GetDynamicStartIme()) {
+        session->IncreaseScbStartCount();
         session->AddRestartIme();
     }
 #endif
@@ -2374,7 +2387,7 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("not find input type: %{public}d.", type);
         // add for not adapter for SECURITY_INPUT
-        if (type == InputType::SECURITY_INPUT || type == InputType::ONE_TIME_CODE) {
+        if (type == InputType::SECURITY_INPUT) {
             return session->StartUserSpecifiedIme(DEFAULT_DISPLAY_ID);
         }
         return ret;
@@ -2382,7 +2395,7 @@ int32_t InputMethodSystemAbility::StartInputType(int32_t userId, InputType type)
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), ime.bundleName, ime.subName };
     session->GetSwitchQueue().Push(switchInfo);
     IMSA_HILOGI("start input type: %{public}d.", type);
-    return (type == InputType::SECURITY_INPUT || type == InputType::ONE_TIME_CODE) ?
+    return (type == InputType::SECURITY_INPUT) ?
         OnStartInputType(userId, switchInfo, false) : OnStartInputType(userId, switchInfo, true);
 }
 
@@ -2643,9 +2656,7 @@ int32_t InputMethodSystemAbility::SendPrivateData(
 
 InputType InputMethodSystemAbility::GetSecurityInputType(const InputClientInfo &inputClientInfo)
 {
-    if (inputClientInfo.config.inputAttribute.IsOneTimeCodeFlag()) {
-        return InputType::ONE_TIME_CODE;
-    } else if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
+    if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
         return InputType::SECURITY_INPUT;
     } else {
         return InputType::NONE;

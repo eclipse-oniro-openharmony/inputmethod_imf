@@ -341,6 +341,7 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, cons
                             .SetClientType(type)
                             .Build();
         ImcHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::CLIENT_ATTACH, *evenInfo);
+        SetTextListener(nullptr);
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;
@@ -826,7 +827,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         textConfig_.range.start = start;
         textConfig_.range.end = end;
     }
-    if (isTextNotified_.exchange(true) && textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
+    if (isTextNotified_.exchange(true) && textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) { // zll
         IMSA_HILOGD("same to last update.");
         return ErrorCode::NO_ERROR;
     }
@@ -1647,17 +1648,6 @@ int32_t InputMethodController::FinishTextPreview()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodController::UpdateLargeMemorySceneState(const int32_t memoryState)
-{
-    IMSA_HILOGI("UpdateLargeMemorySceneState %{public}d.", memoryState);
-    auto proxy = GetSystemAbilityProxy();
-    if (proxy == nullptr) {
-        IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return proxy->UpdateLargeMemorySceneState(memoryState);
-}
-
 int32_t InputMethodController::SendMessage(const ArrayBuffer &arrayBuffer)
 {
     if (!IsBound()) {
@@ -1828,13 +1818,14 @@ void InputMethodController::GetWindowScaleCoordinate(int32_t& x, int32_t& y, uin
     handler(x, y, windowId);
 }
 
-int32_t InputMethodController::ResponseDataChannel(uint64_t msgId, int32_t code, const ResponseData &data)
+int32_t InputMethodController::ResponseDataChannel(
+    const sptr<IRemoteObject> &agentObject, uint64_t msgId, int32_t code, const ResponseData &data)
 {
-    auto agent = GetAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGD("agent is nullptr!");
+    if (agentObject == nullptr) {
+        IMSA_HILOGE("agentObject is nullptr!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
+    auto agent = std::make_shared<InputMethodAgentProxy>(agentObject);
     ResponseDataInner inner;
     inner.rspData = data;
     return agent->ResponseDataChannel(msgId, code, inner);

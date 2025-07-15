@@ -75,6 +75,7 @@ public:
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
+    void SetPanelHeightCallback(CallbackFunc heightCallback);
     int32_t IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayoutParams &params);
     int32_t SetImmersiveMode(ImmersiveMode mode);
     ImmersiveMode GetImmersiveMode();
@@ -171,6 +172,7 @@ private:
     void SetHotAreas(const HotAreas &hotAreas);
     HotAreas GetHotAreas();
     sptr<Rosen::Display> GetCurDisplay();
+    uint64_t GetCurDisplayId();
     void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
     std::vector<int32_t> GetIgnoreAdjustInputTypes();
     bool IsNeedConfig();
@@ -186,7 +188,6 @@ private:
     bool IsValidGradientHeight(uint32_t gradientHeight);
 
     CallbackFunc GetPanelHeightCallback();
-    void SetPanelHeightCallback(CallbackFunc heightCallback);
     Rosen::KeyboardLayoutParams GetKeyboardLayoutParams();
     void SetKeyboardLayoutParams(Rosen::KeyboardLayoutParams params);
     EnhancedLayoutParams GetEnhancedLayoutParams();
@@ -210,6 +211,7 @@ private:
     std::mutex panelAdjustLock_;
     std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
     std::mutex adjustInfoInitLock_;
+    uint64_t adjustInfoDisplayId_ = 0;
     std::atomic<bool> isAdjustInfoInitialized_{ false };
     std::atomic<bool> isIgnorePanelAdjustInitialized_{ false };
     std::mutex ignoreAdjustInputTypeLock_;

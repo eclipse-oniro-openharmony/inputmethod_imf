@@ -57,7 +57,6 @@ interface OHOS.MiscServices.IInputMethodSystemAbility {
     void GetSecurityMode([out] int security);
     void IsDefaultIme();
     void IsDefaultImeSet([out] boolean resultValue);
-    void UpdateLargeMemorySceneState([in] int memoryState);
     void EnableIme([in] String bundleName, [in] String extensionName, [in] int status);
     void ConnectSystemCmd([in] IRemoteObject channel, [out] IRemoteObject agent);
     void GetInputMethodState([out] int state);
@@ -70,6 +69,6 @@ interface OHOS.MiscServices.IInputMethodSystemAbility {
     void RegisterProxyIme([in] unsigned long displayId, [in] IInputMethodCore core, [in] IRemoteObject agent);
     void UnregisterProxyIme([in] unsigned long displayId);
     void SendPrivateData([in] Value value);
-    void IsDefaultImeScreen([in] unsigned long displayId, [out] boolean resultValue);
+    void IsRestrictedDefaultImeByDisplay([in] unsigned long displayId, [out] boolean resultValue);
     void IsCapacitySupport([in] int capacity, [out] boolean isSupport);
 }
