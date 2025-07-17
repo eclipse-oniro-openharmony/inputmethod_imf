@@ -726,9 +726,12 @@ void InputMethodController::RestoreClientInfoInSaDied()
         {
             std::lock_guard<std::mutex> lock(textConfigLock_);
             tempConfig = textConfig_;
-            tempConfig.cursorInfo = cursorInfo_;
             tempConfig.range.start = selectNewBegin_;
             tempConfig.range.end = selectNewEnd_;
+        }
+        {
+            std::lock_guard<std::mutex> lock(cursorInfoMutex_);
+            tempConfig.cursorInfo = cursorInfo_;
         }
         auto listener = GetTextListener();
         bool isShowKeyboard = false;
@@ -827,15 +830,18 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         textConfig_.range.start = start;
         textConfig_.range.end = end;
     }
-    if (isTextNotified_.exchange(true) && textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
-        IMSA_HILOGD("same to last update.");
-        return ErrorCode::NO_ERROR;
+    {
+        std::lock_guard<std::mutex> lock(editorContentLock_);
+        if (isTextNotified_.exchange(true) && textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
+            IMSA_HILOGD("same to last update.");
+            return ErrorCode::NO_ERROR;
+        }
+        textString_ = text;
+        selectOldBegin_ = selectNewBegin_;
+        selectOldEnd_ = selectNewEnd_;
+        selectNewBegin_ = start;
+        selectNewEnd_ = end;
     }
-    textString_ = text;
-    selectOldBegin_ = selectNewBegin_;
-    selectOldEnd_ = selectNewEnd_;
-    selectNewBegin_ = start;
-    selectNewEnd_ = end;
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr!");
@@ -843,7 +849,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
     }
     IMSA_HILOGI("IMC size: %{public}zu, range: %{public}d/%{public}d/%{public}d/%{public}d.", text.size(),
         selectOldBegin_, selectOldEnd_, start, end);
-    std::string testString = Str16ToStr8(textString_);
+    std::string testString = Str16ToStr8(text);
     agent->OnSelectionChange(testString, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
     return ErrorCode::NO_ERROR;
 }
@@ -1196,9 +1202,9 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
     isBound_.store(false);
     isEditable_.store(false);
     isTextNotified_.store(false);
-    textString_ = Str8ToStr16("");
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
+        textString_ = Str8ToStr16("");
         selectOldBegin_ = INVALID_VALUE;
         selectOldEnd_ = INVALID_VALUE;
         selectNewBegin_ = INVALID_VALUE;
