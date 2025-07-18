@@ -33,6 +33,7 @@
 #include <csignal>
 #include <cstdint>
 #include <functional>
+#include <gtest/hwext/gtest-multithread.h>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -66,6 +67,7 @@
 #include "text_listener.h"
 using namespace testing;
 using namespace testing::ext;
+using namespace testing::mt;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t RETRY_TIME = 200 * 1000;
@@ -130,6 +132,7 @@ public:
     static bool WaitKeyEventCallback();
     static void CheckTextConfig(const TextConfig &config);
     static void ResetKeyboardListenerTextConfig();
+    static void EditorContentMultiTest();
     static sptr<InputMethodController> inputMethodController_;
     static InputMethodAbility &inputMethodAbility_;
     static sptr<InputMethodSystemAbility> imsa_;
@@ -161,6 +164,9 @@ public:
     static constexpr uint32_t DELAY_TIME = 1;
     static constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     static constexpr int32_t TASK_DELAY_TIME = 10;
+    static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 100;
+    static constexpr int32_t THREAD_NUM = 5;
+    static int32_t multiThreadExecTotalNum_;
 
     class KeyboardListenerImpl : public KeyboardListener {
     public:
@@ -270,6 +276,7 @@ std::condition_variable InputMethodControllerTest::keyEventCv_;
 std::mutex InputMethodControllerTest::keyEventLock_;
 bool InputMethodControllerTest::consumeResult_ { false };
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodControllerTest::textConfigHandler_ { nullptr };
+int32_t InputMethodControllerTest::multiThreadExecTotalNum_{ 0 };
 
 void InputMethodControllerTest::SetUpTestCase(void)
 {
@@ -524,6 +531,20 @@ void InputMethodControllerTest::ResetKeyboardListenerTextConfig()
     newEnd_ = INVALID_VALUE;
     text_ = "";
     inputAttribute_ = {};
+}
+
+void InputMethodControllerTest::EditorContentMultiTest()
+{
+    for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; i++) {
+        InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+        inputMethodController_->Attach(textListener_, false, inputAttribute);
+        std::u16string text = Str8ToStr16("testSelect");
+        int start = 1;
+        int end = 2;
+        inputMethodController_->OnSelectionChange(text, start, end);
+        inputMethodController_->OnInputStop();
+        multiThreadExecTotalNum_++;
+    }
 }
 
 /**
@@ -2112,6 +2133,20 @@ HWTEST_F(InputMethodControllerTest, TestResponseDataChannel, TestSize.Level0)
     ResponseData data = std::monostate{};
     auto ret = inputMethodController_->ResponseDataChannel(nullptr, msgId, code, data);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestEditorContentLock
+ * @tc.desc: Test editorContentLock_
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestEditorContentLock, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodControllerTest::TestEditorContentLock START");
+    multiThreadExecTotalNum_ = 0;
+    SET_THREAD_NUM(InputMethodControllerTest::THREAD_NUM);
+    GTEST_RUN_TASK(InputMethodControllerTest::EditorContentMultiTest);
+    EXPECT_EQ(multiThreadExecTotalNum_, THREAD_NUM * EACH_THREAD_CIRCULATION_TIME);
 }
 } // namespace MiscServices
 } // namespace OHOS

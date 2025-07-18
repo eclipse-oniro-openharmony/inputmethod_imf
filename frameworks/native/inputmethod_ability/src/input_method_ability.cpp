@@ -252,8 +252,9 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     IMSA_HILOGI("IMA showKeyboard:%{public}d,bindFromClient:%{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
+    auto attribute = GetInputAttribute();
     if ((clientInfo.needHide && !isProxyIme_.load()) ||
-        IsDisplayChanged(inputAttribute_.callingDisplayId, clientInfo.config.inputAttribute.callingDisplayId)) {
+        IsDisplayChanged(attribute.callingDisplayId, clientInfo.config.inputAttribute.callingDisplayId)) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
         auto panel = GetSoftKeyboardPanel();
         if (panel != nullptr) {
