@@ -64,6 +64,7 @@ ohos_unittest("InputMethodControllerTest") {
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -199,6 +200,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -253,6 +255,7 @@ ohos_unittest("InputMethodServiceTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -310,6 +313,8 @@ ohos_unittest("InputMethodDfxTest") {
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/extImfBundle:extImf",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -373,6 +378,8 @@ ohos_unittest("InputMethodPanelTest") {
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/extImfBundle:extImf",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -499,6 +506,9 @@ ohos_unittest("InputMethodSwitchTest") {
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/extImfBundle:extImf",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -567,6 +577,8 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -628,6 +640,7 @@ ohos_unittest("InputMethodEditorTest") {
     "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -687,6 +700,8 @@ ohos_unittest("NewImeSwitchTest") {
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -1365,6 +1380,7 @@ ohos_unittest("ImfHisysEventReporterTest") {
   deps = [
     "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
     "${inputmethod_path}/services/json:imf_json_static",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [
@@ -1435,7 +1451,10 @@ ohos_unittest("InputMethodManagerCommandTest") {
 
   deps = [
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client" ]
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
+  ]
 
   external_deps = [
     "bundle_framework:appexecfwk_core",
@@ -1470,6 +1489,8 @@ ohos_unittest("ImeEnabledInfoManagerTest") {
     "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
 
   external_deps = [

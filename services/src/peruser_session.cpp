@@ -1125,9 +1125,25 @@ std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needMinGuar
             }
         }
         if (IsPreconfiguredDefaultImeSpecified(*clientInfo)) {
-            return ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+            auto preconfiguredIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+            auto defaultIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+            if (preconfiguredIme != nullptr && defaultIme != nullptr && defaultIme->imeId == preconfiguredIme->imeId) {
+                return defaultIme;
+            }
+            if (preconfiguredIme != nullptr) {
+                return preconfiguredIme;
+            }
         }
     }
+#ifdef IMF_SCREENLOCK_MGR_ENABLE
+    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+        auto preconfiguredIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
+        auto defaultIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+        if (preconfiguredIme != nullptr && (defaultIme == nullptr || defaultIme->imeId != preconfiguredIme->imeId)) {
+            ImeCfgManager::GetInstance().ModifyTempScreenLockImeCfg(userId_, preconfiguredIme->imeId);
+        }
+    }
+#endif
     return needMinGuarantee ? ImeInfoInquirer::GetInstance().GetImeToStart(userId_)
                                 : ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
 }
@@ -1197,24 +1213,6 @@ int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
     auto subName = readyIme->ime.first != imeToStart->bundleName ? "" : imeToStart->subName;
     NotifySubTypeChangedToIme(readyIme->ime.first, subName);
     return ErrorCode::NO_ERROR;
-}
-
-bool PerUserSession::GetCurrentUsingImeId(ImeIdentification &imeId)
-{
-    if (InputTypeManager::GetInstance().IsStarted()) {
-        IMSA_HILOGI("get right click on state current ime.");
-        auto currentIme = InputTypeManager::GetInstance().GetCurrentIme();
-        imeId = currentIme;
-        return true;
-    }
-    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    if (currentImeCfg == nullptr) {
-        IMSA_HILOGE("currentImeCfg is nullptr!");
-        return false;
-    }
-    imeId.bundleName = currentImeCfg->bundleName;
-    imeId.subName = currentImeCfg->extName;
-    return true;
 }
 
 bool PerUserSession::CanStartIme()
@@ -1504,25 +1502,25 @@ int32_t PerUserSession::RestoreCurrentImeSubType(uint64_t callingDisplayId)
         return ErrorCode::NO_ERROR;
     }
     auto typeIme = InputTypeManager::GetInstance().GetCurrentIme();
-    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    if (cfgIme->bundleName != typeIme.bundleName) {
-        IMSA_HILOGD("diff ime, not deal, restore ime when attach.");
-        return ErrorCode::NO_ERROR;
-    }
-    auto imeData = GetReadyImeData(ImeType::IME);
     InputTypeManager::GetInstance().Set(false);
-    if (imeData == nullptr || imeData->ime.first != cfgIme->bundleName || imeData->ime.second != cfgIme->extName) {
+    auto imeData = GetReadyImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        IMSA_HILOGD("has no ready ime, not deal.");
         return ErrorCode::NO_ERROR;
     }
-    SubProperty subProp;
-    subProp.name = cfgIme->bundleName;
-    subProp.id = cfgIme->subName;
-    auto subPropTemp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
-    if (subPropTemp != nullptr) {
-        subProp = *subPropTemp;
+    if (imeData->ime.first != typeIme.bundleName) {
+        IMSA_HILOGD("ready ime:%{public}s is not input type ime:%{public}s, not deal.", imeData->ime.first.c_str(),
+            typeIme.bundleName.c_str());
+        return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGD("same ime, restore subtype: %{public}s.", cfgIme->subName.c_str());
-    return SwitchSubtype(subProp);
+    auto defaultIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    std::string subName;
+    if (defaultIme != nullptr && imeData->ime.first == defaultIme->bundleName) {
+        IMSA_HILOGD("readyIme is input type ime, same to default ime:%{public}s.", typeIme.bundleName.c_str());
+        subName = defaultIme->subName;
+    }
+    IMSA_HILOGD("restore subtype: %{public}s/%{public}s.", imeData->ime.first.c_str(), subName.c_str());
+    return NotifySubTypeChangedToIme(imeData->ime.first, subName);
 }
 
 bool PerUserSession::IsCurrentImeByPid(int32_t pid)
@@ -2419,19 +2417,6 @@ bool PerUserSession::IsPreconfiguredDefaultImeSpecified(const InputClientInfo &i
         inputClientInfo.config.isSimpleKeyboardEnabled || inputClientInfo.config.inputAttribute.IsOneTimeCodeFlag();
 }
 
-bool PerUserSession::IsSimpleKeyboardEnabled()
-{
-    auto clientGroup = GetClientGroup(ImeType::IME);
-    auto clientInfo = clientGroup != nullptr ? clientGroup->GetCurrentClientInfo() : nullptr;
-    if (clientInfo == nullptr) {
-        return false;
-    }
-    return (clientInfo->config.inputAttribute.IsSecurityImeFlag() ||
-               clientInfo->config.inputAttribute.IsOneTimeCodeFlag()) ?
-        false :
-        clientInfo->config.isSimpleKeyboardEnabled;
-}
-
 std::pair<std::string, std::string> PerUserSession::GetImeUsedBeforeScreenLocked()
 {
     std::lock_guard<std::mutex> lock(imeUsedLock_);
@@ -2484,8 +2469,16 @@ std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredD
     auto ret = StartIme(std::make_shared<ImeNativeCfg>(preDefaultIme), isStopCurrentIme);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start ime failed, ret: %{public}d!", ret);
+        return std::make_pair(ret, StartPreDefaultImeStatus::TO_START);
     }
-    return std::make_pair(ret, StartPreDefaultImeStatus::TO_START);
+    std::string subName;
+    auto defaultIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (defaultIme != nullptr && defaultIme->imeId == preDefaultIme.imeId) {
+        NotifyImeChangedToClients();
+        subName = defaultIme->subName;
+    }
+    NotifySubTypeChangedToIme(preDefaultIme.bundleName, subName);
+    return std::make_pair(ErrorCode::NO_ERROR, StartPreDefaultImeStatus::TO_START);
 }
 
 void PerUserSession::NotifyOnInputStopFinished()
