@@ -1136,7 +1136,8 @@ std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needMinGuar
         }
     }
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
-    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+    auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
+    if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
         auto preconfiguredIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
         auto defaultIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
         if (preconfiguredIme != nullptr && (defaultIme == nullptr || defaultIme->imeId != preconfiguredIme->imeId)) {
