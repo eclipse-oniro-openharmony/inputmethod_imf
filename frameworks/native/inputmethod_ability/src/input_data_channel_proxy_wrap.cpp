@@ -21,6 +21,7 @@
 #include "input_method_tools.h"
 #include "string_ex.h"
 #include "variant_util.h"
+#include "input_method_ability.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -46,7 +47,8 @@ int32_t InputDataChannelProxyWrap::InsertText(const std::string &text, const Asy
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->InsertText(text, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_INSERT_TEXT));
 }
 
 int32_t InputDataChannelProxyWrap::DeleteForward(int32_t length, const AsyncIpcCallBack &callback)
@@ -55,7 +57,8 @@ int32_t InputDataChannelProxyWrap::DeleteForward(int32_t length, const AsyncIpcC
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->DeleteForward(length, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_FORWARD));
 }
 
 int32_t InputDataChannelProxyWrap::DeleteBackward(int32_t length, const AsyncIpcCallBack &callback)
@@ -64,7 +67,8 @@ int32_t InputDataChannelProxyWrap::DeleteBackward(int32_t length, const AsyncIpc
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->DeleteBackward(length, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_BACKWARD));
 }
 
 int32_t InputDataChannelProxyWrap::GetTextBeforeCursor(
@@ -78,7 +82,8 @@ int32_t InputDataChannelProxyWrap::GetTextBeforeCursor(
     if (callback == nullptr) {
         output = [&text](const ResponseData &data) -> void { VariantUtil::GetValue(data, text); };
     }
-    return Request(callback, work, callback == nullptr, output);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_BEFORE_CURSOR), output);
 }
 
 int32_t InputDataChannelProxyWrap::GetTextAfterCursor(
@@ -92,7 +97,8 @@ int32_t InputDataChannelProxyWrap::GetTextAfterCursor(
     if (callback == nullptr) {
         output = [&text](const ResponseData &data) -> void { VariantUtil::GetValue(data, text); };
     }
-    return Request(callback, work, callback == nullptr, output);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_AFTER_CURSOR), output);
 }
 
 int32_t InputDataChannelProxyWrap::SendFunctionKey(int32_t funcKey, const AsyncIpcCallBack &callback)
@@ -101,7 +107,8 @@ int32_t InputDataChannelProxyWrap::SendFunctionKey(int32_t funcKey, const AsyncI
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->SendFunctionKey(funcKey, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_SEND_FUNCTION_KEY));
 }
 
 int32_t InputDataChannelProxyWrap::MoveCursor(int32_t keyCode, const AsyncIpcCallBack &callback)
@@ -110,7 +117,8 @@ int32_t InputDataChannelProxyWrap::MoveCursor(int32_t keyCode, const AsyncIpcCal
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->MoveCursor(keyCode, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_MOVE_CURSOR));
 }
 
 int32_t InputDataChannelProxyWrap::SelectByRange(int32_t start, int32_t end, const AsyncIpcCallBack &callback)
@@ -119,7 +127,8 @@ int32_t InputDataChannelProxyWrap::SelectByRange(int32_t start, int32_t end, con
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->SelectByRange(start, end, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_SELECT_BY_RANGE));
 }
 
 int32_t InputDataChannelProxyWrap::SelectByMovement(
@@ -129,7 +138,8 @@ int32_t InputDataChannelProxyWrap::SelectByMovement(
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->SelectByMovement(direction, cursorMoveSkip, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_SELECT_BY_MOVEMENT));
 }
 
 int32_t InputDataChannelProxyWrap::HandleExtendAction(int32_t action, const AsyncIpcCallBack &callback)
@@ -138,7 +148,8 @@ int32_t InputDataChannelProxyWrap::HandleExtendAction(int32_t action, const Asyn
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->HandleExtendAction(action, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_HANDLE_EXTEND_ACTION));
 }
 
 int32_t InputDataChannelProxyWrap::GetTextIndexAtCursor(int32_t &index, const AsyncIpcCallBack &callback)
@@ -151,7 +162,8 @@ int32_t InputDataChannelProxyWrap::GetTextIndexAtCursor(int32_t &index, const As
     if (callback == nullptr) {
         output = [&index](const ResponseData &data) -> void { VariantUtil::GetValue(data, index); };
     }
-    return Request(callback, work, callback == nullptr, output);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_INDEX_AT_CURSOR), output);
 }
 
 int32_t InputDataChannelProxyWrap::SetPreviewText(
@@ -161,7 +173,8 @@ int32_t InputDataChannelProxyWrap::SetPreviewText(
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->SetPreviewText(text, range, msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_SET_PREVIEW_TEXT));
 }
 
 int32_t InputDataChannelProxyWrap::FinishTextPreview(const AsyncIpcCallBack &callback)
@@ -170,28 +183,32 @@ int32_t InputDataChannelProxyWrap::FinishTextPreview(const AsyncIpcCallBack &cal
                     uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel) -> int32_t {
         return channel->FinishTextPreview(msgId, agentObject);
     };
-    return Request(callback, work, callback == nullptr);
+    return Request(callback, work, callback == nullptr,
+        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_FINISH_TEXT_PREVIEW));
 }
 
-int32_t InputDataChannelProxyWrap::Request(
-    const AsyncIpcCallBack &callback, const ChannelWork &work, bool isSync, const SyncOutput &output)
+int32_t InputDataChannelProxyWrap::Request(const AsyncIpcCallBack &callback, const ChannelWork &work,
+    bool isSync, int32_t eventCode, const SyncOutput &output)
 {
     auto channel = GetDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("data channel is nullptr!");
         return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
-    auto handler = AddRspHandler(callback, isSync);
+    auto handler = AddRspHandler(callback, isSync, eventCode);
     if (handler == nullptr) {
-        IMSA_HILOGE("add rsp handler failed.");
+        IMSA_HILOGE("add rsp handler failed. sync: %{public}d event code: %{public}d", isSync, eventCode);
         return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
     auto ret = work(handler->msgId_, channel);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("work error: %{public}d.", ret);
+        IMSA_HILOGE("work error id: %{public}" PRIu64 " sync: %{public}d event code: %{public}d ret: %{public}d.",
+            handler->msgId_, isSync, eventCode, ret);
         DeleteRspHandler(handler->msgId_);
         return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
+    IMSA_HILOGD("Request info id: %{public}" PRIu64 " sync: %{public}d event code: %{public}d ret: %{public}d.",
+        handler->msgId_, isSync, eventCode, ret);
     if (handler->syncBlockData_ != nullptr) {
         return WaitResponse(handler, output);
     }
@@ -209,15 +226,19 @@ uint64_t InputDataChannelProxyWrap::GenerateMsgId()
     return ++msgId_ ? msgId_ : ++msgId_;
 }
 
-std::shared_ptr<ResponseHandler> InputDataChannelProxyWrap::AddRspHandler(const AsyncIpcCallBack &callback, bool isSync)
+std::shared_ptr<ResponseHandler> InputDataChannelProxyWrap::AddRspHandler(const AsyncIpcCallBack &callback,
+    bool isSync, int32_t eventCode)
 {
     std::lock_guard<std::mutex> lock(rspMutex_);
     if (rspHandlers_.size() >= MESSAGE_UNANSWERED_MAX_NUMBER) {
-        IMSA_HILOGW("too many unanswered, data channel abnormal");
-        return nullptr;
+        auto it = rspHandlers_.begin();
+        IMSA_HILOGW("too many unanswered id: %{public}" PRIu64 " event code: %{public}d sync: %{public}d",
+            it->first, eventCode, isSync);
+        ResponseInfo rspInfo = { ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL, std::monostate{} };
+        HandleMsg(it->first, rspInfo);
     }
     auto msgId = GenerateMsgId();
-    auto handler = std::make_shared<ResponseHandler>(msgId, isSync, callback);
+    auto handler = std::make_shared<ResponseHandler>(msgId, isSync, callback, eventCode);
     rspHandlers_.insert({ msgId, handler });
     return handler;
 }
@@ -245,20 +266,31 @@ int32_t InputDataChannelProxyWrap::ClearRspHandlers()
 int32_t InputDataChannelProxyWrap::HandleResponse(uint64_t msgId, const ResponseInfo &rspInfo)
 {
     std::lock_guard<std::mutex> lock(rspMutex_);
+    return HandleMsg(msgId, rspInfo);
+}
+
+int32_t InputDataChannelProxyWrap::HandleMsg(uint64_t msgId, const ResponseInfo &rspInfo)
+{
     auto it = rspHandlers_.find(msgId);
     if (it == rspHandlers_.end()) {
+        IMSA_HILOGE("not found id: %{public}" PRIu64 "", msgId);
         return ErrorCode::NO_ERROR;
     }
     if (it->second == nullptr) {
         rspHandlers_.erase(it);
         return ErrorCode::NO_ERROR;
     }
+    IMSA_HILOGD("msg info id: %{public}" PRIu64 " event code: %{public}d sync: %{public}d code: %{public}d",
+         msgId, it->second->eventCode_, it->second->syncBlockData_ != nullptr, rspInfo.dealRet_);
     if (it->second->syncBlockData_ != nullptr) {
         it->second->syncBlockData_->SetValue(rspInfo);
     }
     if (it->second->asyncCallback_ != nullptr) {
         it->second->asyncCallback_(rspInfo.dealRet_, rspInfo.data_);
     }
+    int64_t now = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    InputMethodAbility::GetInstance().ReportBaseTextOperation(it->second->eventCode_, rspInfo.dealRet_,
+        now - it->second->reportStartTime_);
     rspHandlers_.erase(it);
     return ErrorCode::NO_ERROR;
 }

@@ -127,6 +127,7 @@ public:
     void OnAttributeChange(InputAttribute attribute);
 
     int32_t OnStopInputService(bool isTerminateIme);
+    void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
 private:
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
@@ -187,21 +188,11 @@ private:
     void ClearInputType();
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
     int32_t StartInputInner(const InputClientInfo &clientInfo, bool isBindFromClient);
-    int32_t InsertTextInner(const std::string &text, const AsyncIpcCallBack &callback = nullptr);
-    int32_t SetPreviewTextInner(
-        const std::string &text, const Range &range, const AsyncIpcCallBack &callback = nullptr);
-    int32_t DeleteForwardInner(int32_t length, const AsyncIpcCallBack &callback = nullptr);
-    int32_t DeleteBackwardInner(int32_t length, const AsyncIpcCallBack &callback = nullptr);
-    int32_t FinishTextPreviewInner(const AsyncIpcCallBack &callback = nullptr);
-    int32_t GetTextBeforeCursorInner(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback = nullptr);
-    int32_t GetTextAfterCursorInner(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback = nullptr);
-    int32_t GetTextIndexAtCursorInner(int32_t &index, const AsyncIpcCallBack &callback = nullptr);
     bool NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig);
     void SetBindClientInfo(const InputClientInfo &clientInfo);
     HiSysEventClientInfo GetBindClientInfo();
     void ClearBindClientInfo();
     void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);
-    void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
     void ClearBindInfo(const sptr<IRemoteObject> &channel);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_ {};

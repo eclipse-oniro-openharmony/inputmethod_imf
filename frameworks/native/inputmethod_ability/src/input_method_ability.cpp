@@ -657,7 +657,7 @@ AttachOptions InputMethodAbility::GetAttachOptions()
     return attachOptions_;
 }
 
-int32_t InputMethodAbility::InsertTextInner(const std::string &text, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::InsertText(const std::string &text, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_InsertText");
     IMSA_HILOGD("InputMethodAbility start.");
@@ -670,7 +670,7 @@ int32_t InputMethodAbility::InsertTextInner(const std::string &text, const Async
     return channel->InsertText(text, callback);
 }
 
-int32_t InputMethodAbility::DeleteForwardInner(int32_t length, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::DeleteForward(int32_t length, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_DeleteForward");
     IMSA_HILOGD("InputMethodAbility start, length: %{public}d.", length);
@@ -682,7 +682,7 @@ int32_t InputMethodAbility::DeleteForwardInner(int32_t length, const AsyncIpcCal
     return channel->DeleteForward(length, callback);
 }
 
-int32_t InputMethodAbility::DeleteBackwardInner(int32_t length, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::DeleteBackward(int32_t length, const AsyncIpcCallBack &callback)
 {
     IMSA_HILOGD("InputMethodAbility start, length: %{public}d.", length);
     auto channel = GetInputDataChannelProxyWrap();
@@ -729,8 +729,7 @@ int32_t InputMethodAbility::SendExtendAction(int32_t action, const AsyncIpcCallB
     return channel->HandleExtendAction(action, callback);
 }
 
-int32_t InputMethodAbility::GetTextBeforeCursorInner(
-    int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_GetForward");
     IMSA_HILOGD("InputMethodAbility, number: %{public}d.", number);
@@ -745,7 +744,7 @@ int32_t InputMethodAbility::GetTextBeforeCursorInner(
     return ret;
 }
 
-int32_t InputMethodAbility::GetTextAfterCursorInner(
+int32_t InputMethodAbility::GetTextAfterCursor(
     int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_GetTextAfterCursor");
@@ -820,7 +819,7 @@ int32_t InputMethodAbility::GetInputPattern(int32_t &inputPattern)
     return channel->GetInputPattern(inputPattern);
 }
 
-int32_t InputMethodAbility::GetTextIndexAtCursorInner(int32_t &index, const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index, const AsyncIpcCallBack &callback)
 {
     IMSA_HILOGD("InputMethodAbility start.");
     auto channel = GetInputDataChannelProxyWrap();
@@ -1505,7 +1504,7 @@ int32_t InputMethodAbility::ReceivePrivateCommand(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::SetPreviewTextInner(
+int32_t InputMethodAbility::SetPreviewText(
     const std::string &text, const Range &range, const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_SetPreviewText");
@@ -1518,7 +1517,7 @@ int32_t InputMethodAbility::SetPreviewTextInner(
     return dataChannel->SetPreviewText(text, rangeInner, callback);
 }
 
-int32_t InputMethodAbility::FinishTextPreviewInner(const AsyncIpcCallBack &callback)
+int32_t InputMethodAbility::FinishTextPreview(const AsyncIpcCallBack &callback)
 {
     InputMethodSyncTrace tracer("IMA_FinishTextPreview");
     auto dataChannel = GetInputDataChannelProxyWrap();
@@ -1652,81 +1651,6 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     }
     ReportImeStartInput(
         static_cast<int32_t>(IInputMethodCoreIpcCode::COMMAND_START_INPUT), ret, clientInfo.isShowKeyboard);
-    return ret;
-}
-
-int32_t InputMethodAbility::InsertText(const std::string &text, const AsyncIpcCallBack &callback)
-{
-    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = InsertTextInner(text, callback);
-    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_INSERT_TEXT), ret, end - start);
-    return ret;
-}
-
-int32_t InputMethodAbility::DeleteForward(int32_t length, const AsyncIpcCallBack &callback)
-{
-    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = DeleteForwardInner(length, callback);
-    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_FORWARD), ret, end - start);
-    return ret;
-}
-
-int32_t InputMethodAbility::DeleteBackward(int32_t length, const AsyncIpcCallBack &callback)
-{
-    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = DeleteBackwardInner(length, callback);
-    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_DELETE_BACKWARD), ret, end - start);
-    return ret;
-}
-
-int32_t InputMethodAbility::SetPreviewText(
-    const std::string &text, const Range &range, const AsyncIpcCallBack &callback)
-{
-    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = SetPreviewTextInner(text, range, callback);
-    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_SET_PREVIEW_TEXT), ret, end - start);
-    return ret;
-}
-
-int32_t InputMethodAbility::FinishTextPreview(const AsyncIpcCallBack &callback)
-{
-    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = FinishTextPreviewInner(callback);
-    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(
-        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_FINISH_TEXT_PREVIEW), ret, end - start);
-    return ret;
-}
-
-int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
-{
-    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = GetTextBeforeCursorInner(number, text, callback);
-    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(
-        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_BEFORE_CURSOR), ret, end - start);
-    return ret;
-}
-int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &text, const AsyncIpcCallBack &callback)
-{
-    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = GetTextAfterCursorInner(number, text, callback);
-    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(
-        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_AFTER_CURSOR), ret, end - start);
-    return ret;
-}
-int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index, const AsyncIpcCallBack &callback)
-{
-    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    auto ret = GetTextIndexAtCursorInner(index, callback);
-    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(
-        static_cast<int32_t>(IInputDataChannelIpcCode::COMMAND_GET_TEXT_INDEX_AT_CURSOR), ret, end - start);
     return ret;
 }
 
