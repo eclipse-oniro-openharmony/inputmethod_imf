@@ -50,27 +50,28 @@ public:
     void RemoveDeathRecipient();
 
 private:
-    void Init();
-    RequestId GetNextRequestId();
-    int32_t SendRequestInner(const RequestFunc &request, ServiceResponseData &responseData, int64_t timeout);
-
-    void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy(bool ifRetry = true);
-
-    void AddRequest(RequestId id, PendingRequest pendingRequest);
-    void RemoveRequest(RequestId requestId);
-
+    void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
     std::atomic<bool> hasRegistered_{ false };
     std::mutex abilityLock_{};
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
     sptr<InputDeathRecipient> deathRecipient_;
+
+private:
+    void Init();
+    RequestId GetNextRequestId();
+    int32_t SendRequestInner(const RequestFunc &request, ServiceResponseData &responseData, int64_t timeout);
+
+    void AddRequest(RequestId id, PendingRequest pendingRequest);
+    void RemoveRequest(RequestId requestId);
+    void RemoveUnresponsiveRequest(RequestId requestId);
+    void ClearRequest();
 
     std::atomic<RequestId> currentRequestId_{ 0 };
     std::atomic<bool> isInterrupted_{ false };
 
     std::mutex requestsMutex_{};
     std::unordered_map<RequestId, PendingRequest> pendingRequests_;
-    std::atomic<uint32_t> lastId_{ 0 };
 
     sptr<IImaResponseChannel> responseChannelStub_{ nullptr };
 };

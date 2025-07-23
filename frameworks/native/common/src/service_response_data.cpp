@@ -62,12 +62,6 @@ const std::unordered_map<int32_t, UnmarshalFunc> ServiceResponseDataInner::UNMAR
             value.ReadFromParcel(in);
             out = value;
         } },
-    { static_cast<int32_t>(TYPE_AMS_ELEMENT_NAME),
-        [](Parcel &in, ServiceResponseData &out) {
-            AppExecFwk::ElementName value;
-            value.ReadFromParcel(in);
-            out = value;
-        } },
 };
 bool ServiceResponseDataInner::ReadFromParcel(Parcel &in)
 {
@@ -75,8 +69,8 @@ bool ServiceResponseDataInner::ReadFromParcel(Parcel &in)
     if (!in.ReadInt32(valueType)) {
         return false;
     }
-    if (valueType < static_cast<int32_t>(ServiceDataType::TYPE_MONOSTATE)
-        || valueType >= static_cast<int32_t>(ServiceDataType::TYPE_END)) {
+    if (valueType < static_cast<int32_t>(ServiceDataType::TYPE_MONOSTATE) ||
+        valueType >= static_cast<int32_t>(ServiceDataType::TYPE_END)) {
         IMSA_HILOGE("invalid value type");
         return false;
     }
@@ -95,8 +89,8 @@ bool ServiceResponseDataInner::ReadFromParcel(Parcel &in)
 bool ServiceResponseDataInner::Marshalling(Parcel &out) const
 {
     int32_t valueType = static_cast<int32_t>(data.index());
-    if (valueType < static_cast<int32_t>(ServiceDataType::TYPE_MONOSTATE)
-        || valueType >= static_cast<int32_t>(ServiceDataType::TYPE_END)) {
+    if (valueType < static_cast<int32_t>(ServiceDataType::TYPE_MONOSTATE) ||
+        valueType >= static_cast<int32_t>(ServiceDataType::TYPE_END)) {
         IMSA_HILOGE("invalid value type");
         return false;
     }
@@ -119,7 +113,10 @@ bool ServiceResponseDataInner::Marshalling(Parcel &out) const
 ServiceResponseDataInner *ServiceResponseDataInner::Unmarshalling(Parcel &in)
 {
     auto data = new (std::nothrow) ServiceResponseDataInner();
-    if (data && !data->ReadFromParcel(in)) {
+    if (data == nullptr) {
+        return nullptr;
+    }
+    if (!data->ReadFromParcel(in)) {
         delete data;
         data = nullptr;
     }
@@ -135,7 +132,7 @@ void StartInputResponse::Set(sptr<IRemoteObject> imeAgent, int64_t imePid, const
 
 bool StartInputResponse::ReadFromParcel(Parcel &in)
 {
-    agent = static_cast<MessageParcel *>(&in)->ReadRemoteObject();
+    agent = (static_cast<MessageParcel *>(&in))->ReadRemoteObject();
     if (agent == nullptr) {
         return false;
     }
@@ -150,7 +147,7 @@ bool StartInputResponse::ReadFromParcel(Parcel &in)
 
 bool StartInputResponse::Marshalling(Parcel &out) const
 {
-    if (!static_cast<MessageParcel *>(&out)->WriteRemoteObject(agent)) {
+    if (!(static_cast<MessageParcel *>(&out))->WriteRemoteObject(agent)) {
         return false;
     }
     if (!out.WriteInt64(pid)) {

@@ -1580,6 +1580,66 @@ ohos_unittest("NumKeyAppsManagerTest") {
   ]
 }
 
+ohos_unittest("SaTaskManagerTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+  include_dirs = [
+    "${inputmethod_path}/common/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/include/actions",
+    "${inputmethod_path}/services/task_manager/include",
+    "${inputmethod_path}/services/task_manager/include/actions",
+    "${inputmethod_path}/services/task_manager/include/tasks",
+  ]
+  sources = [
+    "src/sa_task_manager_test.cpp",
+    "${inputmethod_path}/frameworks/native/common/src/service_response_data.cpp",
+    "${inputmethod_path}/services/task_manager/src/requester_manager.cpp",
+    "${inputmethod_path}/services/task_manager/src/sa_task_manager.cpp",
+    "${inputmethod_path}/services/task_manager/src/actions/sa_action.cpp",
+    "${inputmethod_path}/services/task_manager/src/actions/sa_action_wait.cpp",
+    "${inputmethod_path}/services/task_manager/src/tasks/sa_task.cpp",
+  ]
+
+  configs = [ ":module_private_config" ]
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
+    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_proxy",
+
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "googletest:gtest_main",
+    "hicollie:libhicollie",
+    "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "input:libmmi-client",
+    "resource_management:global_resmgr",
+  ]
+}
+
 ohos_unittest("ImaTextEditTest") {
   branch_protector_ret = "pac_ret"
   sanitize = {

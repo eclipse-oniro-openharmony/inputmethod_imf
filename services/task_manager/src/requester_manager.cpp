@@ -51,7 +51,6 @@ int32_t RequesterManager::AddImaChannel(int32_t pid, sptr<IImaResponseChannel> c
     int32_t ret = AddChannel(pid, channel, nullptr);
     IMSA_HILOGI("pid[%{public}d], register result: %{public}d", pid, ret);
     return ret;
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t RequesterManager::AddImcChannel(int32_t pid, sptr<IImcResponseChannel> channel)

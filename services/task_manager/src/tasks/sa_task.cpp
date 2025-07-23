@@ -14,9 +14,10 @@
  */
 
 #include "sa_task.h"
-#include "requester_manager.h"
 
 #include <utility>
+
+#include "requester_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -212,31 +213,29 @@ void SaTask::InvokeResponse()
             retCode_ = failRet_;
         }
     }
-
     if (hiSysReporter_ != nullptr) {
         hiSysReporter_->Execute(retCode_, responseData_);
     }
 
+    action_ = nullptr;
+
+    if (imaResponseChannel_ == nullptr && imcResponseChannel_ == nullptr) {
+        IMSA_HILOGD("no need response");
+        return;
+    }
+
+    ServiceResponseDataInner inner;
+    if (responseData_.valueless_by_exception()) {
+        inner.data = std::monostate();
+    } else {
+        inner.data = responseData_;
+    }
     if (imaResponseChannel_ != nullptr) {
-        ServiceResponseDataInner inner;
-        if (responseData_.valueless_by_exception()) {
-            inner.data = std::monostate();
-        } else {
-            inner.data = responseData_;
-        }
         imaResponseChannel_->OnResponse(callerInfo_.requestId, retCode_, inner);
     }
     if (imcResponseChannel_ != nullptr) {
-        ServiceResponseDataInner inner;
-        if (responseData_.valueless_by_exception()) {
-            inner.data = std::monostate();
-        } else {
-            inner.data = responseData_;
-        }
         imcResponseChannel_->OnResponse(callerInfo_.requestId, retCode_, inner);
     }
-
-    action_ = nullptr;
 }
 
 PauseInfo SaTask::GetPauseInfo()

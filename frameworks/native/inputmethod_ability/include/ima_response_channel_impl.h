@@ -24,8 +24,7 @@
 namespace OHOS {
 namespace MiscServices {
 class ImaResponseChannelImpl final
-    : public ImaResponseChannelStub
-    , public std::enable_shared_from_this<ImaResponseChannelImpl> {
+    : public ImaResponseChannelStub, public std::enable_shared_from_this<ImaResponseChannelImpl> {
     DISALLOW_COPY_AND_MOVE(ImaResponseChannelImpl);
 
 public:

@@ -54,7 +54,6 @@ RunningState SaActionWait::Resume(
         state_ = RUNNING_STATE_COMPLETED;
         return state_;
     }
-
     if (resumedId == timeoutId_) {
         if (onTimeout_ != nullptr) {
             state_ = RUNNING_STATE_RUNNING;

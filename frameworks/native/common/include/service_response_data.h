@@ -21,7 +21,6 @@
 #include <unordered_map>
 #include <variant>
 
-#include "element_name.h"
 #include "input_method_property.h"
 #include "input_method_utils.h"
 #include "response_data_util.h"
@@ -70,15 +69,12 @@ enum ServiceDataType : int32_t {
     TYPE_START_INPUT_RESPONSE = 11,
     TYPE_INPUT_START_INFO = 12,
 
-    // external types
-    TYPE_AMS_ELEMENT_NAME = 13,
-
     TYPE_END,
 };
 
-using ServiceResponseData = std::variant<std::monostate, bool, int32_t, uint32_t, int64_t, uint64_t,
-    sptr<IRemoteObject>, Property, std::vector<Property>, SubProperty, std::vector<SubProperty>, StartInputResponse,
-    InputStartInfo, AppExecFwk::ElementName>;
+using ServiceResponseData =
+    std::variant<std::monostate, bool, int32_t, uint32_t, int64_t, uint64_t, sptr<IRemoteObject>, Property,
+        std::vector<Property>, SubProperty, std::vector<SubProperty>, StartInputResponse, InputStartInfo>;
 
 struct ServiceResponse {
     int32_t result{ 0 };
@@ -159,10 +155,6 @@ struct ServiceResponseWriter {
         result = val.Marshalling(out);
     }
     void operator()(const InputStartInfo &val)
-    {
-        result = val.Marshalling(out);
-    }
-    void operator()(const AppExecFwk::ElementName &val)
     {
         result = val.Marshalling(out);
     }

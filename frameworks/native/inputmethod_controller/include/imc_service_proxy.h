@@ -70,15 +70,16 @@ private:
 
     void AddRequest(RequestId id, PendingRequest pendingRequest);
     void RemoveRequest(RequestId requestId);
+    void RemoveUnresponsiveRequest(RequestId requestId);
     void ClearRequest();
+
+    std::atomic<RequestId> currentRequestId_{ 0 };
+    std::atomic<bool> isInterrupted_{ false };
 
     std::mutex requestsMutex_{};
     std::unordered_map<RequestId, PendingRequest> pendingRequests_;
-    std::atomic<uint32_t> lastId_{ 0 };
 
     sptr<IImcResponseChannel> responseChannelStub_{ nullptr };
-    std::atomic<RequestId> currentRequestId_{ 0 };
-    std::atomic<bool> isInterrupted_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

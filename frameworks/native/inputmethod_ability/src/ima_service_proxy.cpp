@@ -120,29 +120,30 @@ int32_t ImaServiceProxy::SendRequest(const RequestFunc &request, int64_t timeout
     int32_t ret = request(id);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("request failed, ret: %{public}d", ret);
-        RemoveRequest(id);
+        RemoveUnresponsiveRequest(id);
         return ret;
     }
 
     if (isInterrupted_.load()) {
         IMSA_HILOGW("request is interrupted");
+        RemoveUnresponsiveRequest(id);
         return ErrorCode::ERROR_REQUEST_INTERRUPTED;
     }
     // wait till timeout
     if (future.wait_for(std::chrono::milliseconds(timeout)) != std::future_status::ready) {
         IMSA_HILOGE("service handle timeout");
-        RemoveRequest(id);
+        RemoveUnresponsiveRequest(id);
         return ErrorCode::ERROR_IMC_SERVICE_RESPONSE_TIMEOUT;
     }
 
     // handle response
     ServiceResponse response = future.get();
     ret = response.result;
+    RemoveRequest(id);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("task failed");
-        return ret;
     }
-    return ErrorCode::NO_ERROR;
+    return ret;
 }
 
 int32_t ImaServiceProxy::SendRequestInner(
@@ -166,18 +167,19 @@ int32_t ImaServiceProxy::SendRequestInner(
     int32_t ret = request(id);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("request failed, ret: %{public}d", ret);
-        RemoveRequest(id);
+        RemoveUnresponsiveRequest(id);
         return ret;
     }
 
     if (isInterrupted_.load()) {
         IMSA_HILOGW("request is interrupted");
+        RemoveUnresponsiveRequest(id);
         return ErrorCode::ERROR_REQUEST_INTERRUPTED;
     }
     // wait till timeout
     if (future.wait_for(std::chrono::milliseconds(timeout)) != std::future_status::ready) {
         IMSA_HILOGE("service handle timeout");
-        RemoveRequest(id);
+        RemoveUnresponsiveRequest(id);
         return ErrorCode::ERROR_IMC_SERVICE_RESPONSE_TIMEOUT;
     }
 
@@ -211,6 +213,7 @@ int32_t ImaServiceProxy::SendRequest(const RequestFunc &request, ResultType &res
 void ImaServiceProxy::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 {
     hasRegistered_.store(false);
+    ClearRequest();
     {
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
@@ -222,6 +225,7 @@ void ImaServiceProxy::AddRequest(RequestId id, PendingRequest pendingRequest)
     std::lock_guard<std::mutex> lock(requestsMutex_);
     pendingRequests_[id] = std::move(pendingRequest);
     currentRequestId_.store(id);
+    IMSA_HILOGD("ima request[%{public}u] added", static_cast<uint32_t>(id));
 }
 
 void ImaServiceProxy::RemoveRequest(RequestId requestId)
@@ -229,6 +233,27 @@ void ImaServiceProxy::RemoveRequest(RequestId requestId)
     std::lock_guard<std::mutex> lock(requestsMutex_);
     pendingRequests_.erase(requestId);
     currentRequestId_.store(0);
+    IMSA_HILOGD("ima request[%{public}u] removed", static_cast<uint32_t>(requestId));
+}
+
+void ImaServiceProxy::RemoveUnresponsiveRequest(RequestId requestId)
+{
+    std::lock_guard<std::mutex> lock(requestsMutex_);
+    auto iter = pendingRequests_.find(requestId);
+    if (iter == pendingRequests_.end()) {
+        IMSA_HILOGD("ima request[%{public}u] already removed", static_cast<uint32_t>(requestId));
+        return;
+    }
+    ServiceResponse response = { .result = ErrorCode::ERROR_IMC_SERVICE_RESPONSE_TIMEOUT };
+    iter->second.promise.set_value(response);
+    pendingRequests_.erase(iter);
+    IMSA_HILOGD("ima request[%{public}u] removed", static_cast<uint32_t>(requestId));
+}
+
+void ImaServiceProxy::ClearRequest()
+{
+    std::lock_guard<std::mutex> lock(requestsMutex_);
+    pendingRequests_.clear();
 }
 } // namespace MiscServices
 } // namespace OHOS

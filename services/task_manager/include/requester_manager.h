@@ -34,13 +34,13 @@ struct RequesterInfo {
     sptr<IImaResponseChannel> imaResponseChannel{ nullptr };
     sptr<IImcResponseChannel> imcResponseChannel{ nullptr };
     sptr<InputDeathRecipient> deathRecipient{ nullptr };
-    void AddChannel(sptr<IImaResponseChannel> imaChannel, sptr<IImaResponseChannel> imcChannel)
+    void AddChannel(sptr<IImaResponseChannel> imaChannel, sptr<IImcResponseChannel> imcChannel)
     {
         if (imaChannel != nullptr) {
             imaResponseChannel = imaChannel;
         }
         if (imcChannel != nullptr) {
-            imaResponseChannel = imaChannel;
+            imcResponseChannel = imcChannel;
         }
     }
 };

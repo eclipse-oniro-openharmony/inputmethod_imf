@@ -25,19 +25,8 @@ namespace OHOS {
 namespace MiscServices {
 class VariantUtil {
 public:
-    template<typename T>
-    static bool GetValue(
-        const std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType> &input, T &output)
-    {
-        if (!std::holds_alternative<T>(input)) {
-            return false;
-        }
-        output = std::get<T>(input);
-        return true;
-    }
-
-    template<typename T>
-    static bool GetValue(const ResponseData &input, T &output)
+    template<typename T, typename... Types>
+    static bool GetValue(const std::variant<Types...> &input, T &output)
     {
         if (!std::holds_alternative<T>(input)) {
             return false;

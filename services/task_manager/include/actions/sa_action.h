@@ -46,7 +46,7 @@ struct PauseInfo {
     }
 };
 
-using ActionInnerData = std::variant<std::monostate, ImeLaunchType, InputClientInfo>;
+using ActionInnerData = std::variant<std::monostate, InputClientInfo>;
 using ResultHandler = std::function<void(int32_t)>;
 using SaActionFunc = std::function<int32_t(ServiceResponseData &data, ActionInnerData &innerData)>;
 class SaAction {

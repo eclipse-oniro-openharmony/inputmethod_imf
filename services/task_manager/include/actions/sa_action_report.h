@@ -36,7 +36,7 @@ public:
         }
 
         state_ = RUNNING_STATE_RUNNING;
-        if (func_) {
+        if (func_ != nullptr) {
             func_(ret, responseData);
         }
         state_ = RUNNING_STATE_COMPLETED;

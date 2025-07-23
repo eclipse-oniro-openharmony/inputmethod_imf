@@ -29,25 +29,6 @@ using CallBack = std::function<void()>;
 
 using SaTaskPtr = std::shared_ptr<SaTask>;
 using SaActionPtr = std::unique_ptr<SaAction>;
-
-#define GET_SHARED_THIS(weakThis, sharedThis, retVal) \
-    do {                                              \
-        sharedThis = weakThis.lock();                 \
-        if (sharedThis == nullptr) {                  \
-            IMSA_HILOGE("sharedThis is nullptr");     \
-            return retVal;                            \
-        }                                             \
-    } while (0)
-
-#define GET_SHARED_THIS_RETURN_VOID(weakThis, sharedThis) \
-    do {                                                  \
-        sharedThis = weakThis.lock();                     \
-        if (sharedThis == nullptr) {                      \
-            IMSA_HILOGE("sharedThis is nullptr");         \
-            return;                                       \
-        }                                                 \
-    } while (0)
-
 class SaTaskManager final {
 private:
     SaTaskManager();

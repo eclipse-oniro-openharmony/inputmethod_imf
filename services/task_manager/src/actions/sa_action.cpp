@@ -140,12 +140,10 @@ RunningState SaAction::ExecuteInner(int32_t &ret, ServiceResponseData &responseD
     if (state_ == RUNNING_STATE_PAUSED) {
         return state_;
     }
-
     // state error
     if (state_ == RUNNING_STATE_ERROR) {
         return state_;
     }
-
     // state is RUNNING_STATE_COMPLETED
     ResultHandler handler = nullptr;
     if (retCode_ != ErrorCode::NO_ERROR) {
@@ -185,13 +183,11 @@ RunningState SaAction::ExecuteImpl(ServiceResponseData &responseData)
         if (state == RUNNING_STATE_PAUSED) {
             return RUNNING_STATE_PAUSED;
         }
-
         // no need to handle current sub action's result.
         if (!curSubAction_->isResultAffectParent_) {
             curSubAction_.reset();
             continue;
         }
-
         // handle current sub action's result.
         retCode_ = ret;
         curSubAction_.reset();

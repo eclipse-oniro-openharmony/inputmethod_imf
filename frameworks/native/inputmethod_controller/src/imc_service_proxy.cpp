@@ -85,29 +85,30 @@ int32_t ImcServiceProxy::SendRequest(const RequestFunc &request, int64_t timeout
     int32_t ret = request(id);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("request failed, ret: %{public}d", ret);
-        RemoveRequest(id);
+        RemoveUnresponsiveRequest(id);
         return ret;
     }
 
     if (isInterrupted_.load()) {
         IMSA_HILOGW("request is interrupted");
+        RemoveUnresponsiveRequest(id);
         return ErrorCode::ERROR_REQUEST_INTERRUPTED;
     }
     // wait till timeout
     if (future.wait_for(std::chrono::milliseconds(timeout)) != std::future_status::ready) {
         IMSA_HILOGE("service handle timeout");
-        RemoveRequest(id);
+        RemoveUnresponsiveRequest(id);
         return ErrorCode::ERROR_IMC_SERVICE_RESPONSE_TIMEOUT;
     }
 
     // handle response
     ServiceResponse response = future.get();
     ret = response.result;
+    RemoveRequest(id);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("task failed");
-        return ret;
     }
-    return ErrorCode::NO_ERROR;
+    return ret;
 }
 
 int32_t ImcServiceProxy::SendRequestInner(
@@ -131,18 +132,19 @@ int32_t ImcServiceProxy::SendRequestInner(
     int32_t ret = request(id);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("request failed, ret: %{public}d", ret);
-        RemoveRequest(id);
+        RemoveUnresponsiveRequest(id);
         return ret;
     }
 
     if (isInterrupted_.load()) {
         IMSA_HILOGW("request is interrupted");
+        RemoveUnresponsiveRequest(id);
         return ErrorCode::ERROR_REQUEST_INTERRUPTED;
     }
     // wait till timeout
     if (future.wait_for(std::chrono::milliseconds(timeout)) != std::future_status::ready) {
         IMSA_HILOGE("service handle timeout");
-        RemoveRequest(id);
+        RemoveUnresponsiveRequest(id);
         return ErrorCode::ERROR_IMC_SERVICE_RESPONSE_TIMEOUT;
     }
 
@@ -203,11 +205,7 @@ void ImcServiceProxy::Resume()
 
 sptr<IInputMethodSystemAbility> ImcServiceProxy::TryGetSystemAbilityProxy()
 {
-#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     return GetSystemAbilityProxy(false);
-#else
-    return GetSystemAbilityProxy(true);
-#endif
 }
 
 sptr<IInputMethodSystemAbility> ImcServiceProxy::GetSystemAbilityProxy(bool ifRetry)
@@ -254,18 +252,29 @@ void ImcServiceProxy::AddRequest(RequestId id, PendingRequest pendingRequest)
     std::lock_guard<std::mutex> lock(requestsMutex_);
     pendingRequests_[id] = std::move(pendingRequest);
     currentRequestId_.store(id);
+    IMSA_HILOGD("imc request[%{public}u] added", static_cast<uint32_t>(id));
 }
 
 void ImcServiceProxy::RemoveRequest(RequestId requestId)
 {
     std::lock_guard<std::mutex> lock(requestsMutex_);
+    pendingRequests_.erase(requestId);
     currentRequestId_.store(0);
+    IMSA_HILOGD("imc request[%{public}u] removed", static_cast<uint32_t>(requestId));
+}
+
+void ImcServiceProxy::RemoveUnresponsiveRequest(RequestId requestId)
+{
+    std::lock_guard<std::mutex> lock(requestsMutex_);
     auto iter = pendingRequests_.find(requestId);
     if (iter == pendingRequests_.end()) {
-        IMSA_HILOGI("already removed");
+        IMSA_HILOGD("imc request[%{public}u] already removed", static_cast<uint32_t>(requestId));
         return;
     }
+    ServiceResponse response = { .result = ErrorCode::ERROR_IMC_SERVICE_RESPONSE_TIMEOUT };
+    iter->second.promise.set_value(response);
     pendingRequests_.erase(iter);
+    IMSA_HILOGD("imc request[%{public}u] removed", static_cast<uint32_t>(requestId));
 }
 
 void ImcServiceProxy::ClearRequest()

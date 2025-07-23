@@ -33,12 +33,15 @@ public:
         if (!in.ReadInt32(len)) {
             return false;
         }
+        if (len < 0) {
+            return false;
+        }
         auto size = static_cast<size_t>(len);
-        if (size < 0 || size > MAX_SIZE) {
+        if (size > MAX_SIZE) {
             return false;
         }
         out.clear();
-        for (int32_t i = 0; i < size; ++i) {
+        for (size_t i = 0; i < size; ++i) {
             T value;
             if (!value.ReadFromParcel(in)) {
                 return false;
