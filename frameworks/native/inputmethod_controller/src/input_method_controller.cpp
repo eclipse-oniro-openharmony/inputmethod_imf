@@ -231,16 +231,14 @@ void InputMethodController::CalibrateImmersiveParam(InputAttribute &inputAttribu
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
 {
     IMSA_HILOGD("textConfig: %{public}s.", textConfig.ToString().c_str());
-    int32_t x = textConfig.cursorInfo.left;
-    int32_t y = textConfig.cursorInfo.top;
+    CursorInfo cursorInfo = textConfig.cursorInfo;
     uint32_t windowId = textConfig.windowId;
-    GetWindowScaleCoordinate(x, y, windowId);
+    GetWindowScaleCoordinate(windowId, cursorInfo);
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_ = textConfig;
         CalibrateImmersiveParam(textConfig_.inputAttribute);
-        textConfig_.cursorInfo.left = x;
-        textConfig_.cursorInfo.top = y;
+        textConfig_.cursorInfo = cursorInfo;
         StringUtils::TruncateUtf16String(textConfig_.inputAttribute.placeholder, MAX_PLACEHOLDER_SIZE);
         StringUtils::TruncateUtf16String(textConfig_.inputAttribute.abilityName, MAX_ABILITY_NAME_SIZE);
     }
@@ -782,16 +780,12 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         IMSA_HILOGD("not editable.");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    int32_t x = cursorInfo.left;
-    int32_t y = cursorInfo.top;
     uint32_t windowId = 0;
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         windowId = textConfig_.windowId;
     }
-    GetWindowScaleCoordinate(x, y, windowId);
-    cursorInfo.left = x;
-    cursorInfo.top = y;
+    GetWindowScaleCoordinate(windowId, cursorInfo);
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_.cursorInfo = cursorInfo;
@@ -1810,7 +1804,7 @@ int32_t InputMethodController::RegisterWindowScaleCallbackHandler(WindowScaleCal
     return static_cast<int32_t>(ErrorCode::NO_ERROR);
 }
 
-void InputMethodController::GetWindowScaleCoordinate(int32_t& x, int32_t& y, uint32_t windowId)
+void InputMethodController::GetWindowScaleCoordinate(uint32_t windowId, CursorInfo &cursorInfo)
 {
     WindowScaleCallback handler = nullptr;
     {
@@ -1821,7 +1815,7 @@ void InputMethodController::GetWindowScaleCoordinate(int32_t& x, int32_t& y, uin
         IMSA_HILOGD("handler is nullptr");
         return;
     }
-    handler(x, y, windowId);
+    handler(windowId, cursorInfo);
 }
 
 int32_t InputMethodController::ResponseDataChannel(

@@ -2035,7 +2035,7 @@ HWTEST_F(InputMethodControllerTest, RegisterWindowScaleCallbackHandler, TestSize
     IMSA_HILOGI("IMC RegisterWindowScaleCallbackHandler Test START");
     ASSERT_NE(inputMethodController_, nullptr);
     EXPECT_EQ(inputMethodController_->windowScaleCallback_, nullptr);
-    auto callback = [] (int32_t& x, int32_t& y, uint32_t windowId) {
+    auto callback = [] (uint32_t windowId, CursorInfo &cursorInfo) {
         return 0;
     };
     auto res = inputMethodController_->RegisterWindowScaleCallbackHandler(std::move(callback));
@@ -2053,22 +2053,31 @@ HWTEST_F(InputMethodControllerTest, GetWindowScaleCoordinate, TestSize.Level0)
 {
     IMSA_HILOGI("IMC GetWindowScaleCoordinate Test START");
     ASSERT_NE(inputMethodController_, nullptr);
-    int32_t x = 100;
-    int32_t y = 100;
+    CursorInfo cursorInfo;
+    cursorInfo.left = 100;
+    cursorInfo.top = 100;
+    cursorInfo.width = 100;
+    cursorInfo.height = 100;
     uint32_t windowId = 100;
-    inputMethodController_->GetWindowScaleCoordinate(x, y, windowId);
-    EXPECT_EQ(x, 100);
-    EXPECT_EQ(y, 100);
-    auto callback = [] (int32_t& x, int32_t& y, uint32_t windowId) {
-        x++;
-        y++;
+    inputMethodController_->GetWindowScaleCoordinate(windowId, cursorInfo);
+    EXPECT_NEAR(cursorInfo.left, 100, 0.00001f);
+    EXPECT_NEAR(cursorInfo.top, 100, 0.00001f);
+    EXPECT_NEAR(cursorInfo.width, 100, 0.00001f);
+    EXPECT_NEAR(cursorInfo.height, 100, 0.00001f);
+    auto callback = [] (uint32_t windowId, CursorInfo &cursorInfo) {
+        cursorInfo.left++;
+        cursorInfo.top++;
+        cursorInfo.width++;
+        cursorInfo.height++;
         return 0;
     };
     auto res = inputMethodController_->RegisterWindowScaleCallbackHandler(std::move(callback));
     EXPECT_EQ(res, 0);
-    inputMethodController_->GetWindowScaleCoordinate(x, y, windowId);
-    EXPECT_EQ(x, 101);
-    EXPECT_EQ(y, 101);
+    inputMethodController_->GetWindowScaleCoordinate(windowId, cursorInfo);
+    EXPECT_NEAR(cursorInfo.left, 101, 0.00001f);
+    EXPECT_NEAR(cursorInfo.top, 101, 0.00001f);
+    EXPECT_NEAR(cursorInfo.width, 101, 0.00001f);
+    EXPECT_NEAR(cursorInfo.height, 101, 0.00001f);
 }
 
 /**
