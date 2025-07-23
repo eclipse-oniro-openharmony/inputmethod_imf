@@ -512,7 +512,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleMsg, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_HandleResponse");
     auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
-    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy);
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy, nullptr);
 
     ResponseInfo rspInfo = { ErrorCode::NO_ERROR, std::monostate{} };
     std::shared_ptr<ResponseHandler> handler = nullptr;
