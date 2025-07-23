@@ -13,28 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_VARIANT_UTIL_H
-#define OHOS_VARIANT_UTIL_H
-#include <cstdint>
-#include <variant>
+#ifndef IMF_CALLER_INFO_H
+#define IMF_CALLER_INFO_H
 
-#include "global.h"
-#include "input_client_info.h"
-#include "input_method_utils.h"
+#include <cinttypes>
+#include <string>
+
 namespace OHOS {
 namespace MiscServices {
-class VariantUtil {
-public:
-    template<typename T, typename... Types>
-    static bool GetValue(const std::variant<Types...> &input, T &output)
-    {
-        if (!std::holds_alternative<T>(input)) {
-            return false;
-        }
-        output = std::get<T>(input);
-        return true;
-    }
+static constexpr int32_t MAIN_USER_ID = 100;
+struct CallerInfo {
+    uint32_t requestId = 0;
+    int32_t pid = 0;
+    int32_t uid = 0;
+    int32_t userId{ MAIN_USER_ID };
+    uint32_t tokenId = 0;
+    uint64_t fullTokenId = 0;
+    std::string bundleName;
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // OHOS_VARIANT_UTIL_H
+#endif // IMF_CALLER_INFO_H

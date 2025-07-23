@@ -13,28 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_VARIANT_UTIL_H
-#define OHOS_VARIANT_UTIL_H
-#include <cstdint>
-#include <variant>
+#ifndef IMF_IMC_RESPONSE_CHANNEL_IMPL_H
+#define IMF_IMC_RESPONSE_CHANNEL_IMPL_H
 
-#include "global.h"
-#include "input_client_info.h"
-#include "input_method_utils.h"
+#include "iimc_response_channel.h"
+#include "imc_response_channel_stub.h"
+#include "iremote_object.h"
+#include "service_response_data.h"
+
 namespace OHOS {
 namespace MiscServices {
-class VariantUtil {
+class ImcResponseChannelImpl final
+    : public ImcResponseChannelStub, public std::enable_shared_from_this<ImcResponseChannelImpl> {
+    DISALLOW_COPY_AND_MOVE(ImcResponseChannelImpl);
+
 public:
-    template<typename T, typename... Types>
-    static bool GetValue(const std::variant<Types...> &input, T &output)
-    {
-        if (!std::holds_alternative<T>(input)) {
-            return false;
-        }
-        output = std::get<T>(input);
-        return true;
-    }
+    ImcResponseChannelImpl();
+    ~ImcResponseChannelImpl();
+    ErrCode OnResponse(uint32_t requestId, int32_t resultErrCode, const ServiceResponseDataInner &response) override;
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // OHOS_VARIANT_UTIL_H
+#endif // IMF_IMC_RESPONSE_CHANNEL_IMPL_H
