@@ -38,6 +38,7 @@ ohos_executable("ime") {
     "c_utils:utils",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 
   install_enable = true
