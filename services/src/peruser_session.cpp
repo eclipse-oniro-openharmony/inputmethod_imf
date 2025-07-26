@@ -1083,6 +1083,8 @@ void PerUserSession::OnScreenLock()
     auto imeData = GetImeData(ImeType::IME);
     if (imeData == nullptr) {
         IMSA_HILOGD("imeData is nullptr");
+        std::pair<std::string, std::string> ime{ "", "" };
+        SetImeUsedBeforeScreenLocked(ime);
         return;
     }
     SetImeUsedBeforeScreenLocked(imeData->ime);
@@ -1121,10 +1123,13 @@ std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needMinGuar
             InputTypeManager::GetInstance().GetImeByInputType(type, inputTypeIme);
             currentIme = GetImeNativeCfg(userId_, inputTypeIme.bundleName, inputTypeIme.subName);
             if (currentIme != nullptr) {
+                IMSA_HILOGD("get inputType ime:%{public}d!", type);
                 return currentIme;
             }
         }
         if (IsPreconfiguredDefaultImeSpecified(*clientInfo)) {
+            IMSA_HILOGD("get preconfigured default ime:%{public}d/%{public}d!",
+                clientInfo->config.isSimpleKeyboardEnabled, clientInfo->config.inputAttribute.IsOneTimeCodeFlag());
             auto preconfiguredIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
             auto defaultIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
             if (preconfiguredIme != nullptr && defaultIme != nullptr && defaultIme->imeId == preconfiguredIme->imeId) {
@@ -1138,6 +1143,7 @@ std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needMinGuar
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
     auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
     if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
+        IMSA_HILOGD("get screen locked ime!");
         auto preconfiguredIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfg();
         auto defaultIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
         if (preconfiguredIme != nullptr && (defaultIme == nullptr || defaultIme->imeId != preconfiguredIme->imeId)) {
@@ -1145,6 +1151,7 @@ std::shared_ptr<ImeNativeCfg> PerUserSession::GetRealCurrentIme(bool needMinGuar
         }
     }
 #endif
+    IMSA_HILOGD("get user set ime:%{public}d!", needMinGuarantee);
     return needMinGuarantee ? ImeInfoInquirer::GetInstance().GetImeToStart(userId_)
                                 : ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
 }
@@ -1199,6 +1206,7 @@ int32_t PerUserSession::StartCurrentIme(bool isStopCurrentIme)
         IMSA_HILOGE("imeToStart is nullptr!");
         return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
     }
+    IMSA_HILOGI("ime info:%{public}s/%{public}s.", imeToStart->bundleName.c_str(), imeToStart->subName.c_str());
     auto ret = StartIme(imeToStart, isStopCurrentIme);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ime!");
@@ -1847,6 +1855,7 @@ int32_t PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool 
         }
         return StartCurrentIme(ime);
     }
+    IMSA_HILOGD("%{public}s switch to %{public}s!", imeData->ime.first, ime->bundleName);
     return StartNewIme(ime);
 }
 
@@ -1889,8 +1898,12 @@ int32_t PerUserSession::StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime
                 imeData->ime.second.c_str());
             return HandleStartImeTimeout(ime);
         }
+        IMSA_HILOGW(
+            "%{public}s/%{public}s start timeout, retry!", imeData->ime.first.c_str(), imeData->ime.second.c_str());
         return StartInputService(ime);
     }
+    IMSA_HILOGW("%{public}s/%{public}s start in exiting, force stop firstly!", imeData->ime.first.c_str(),
+        imeData->ime.second.c_str());
     auto ret = ForceStopCurrentIme();
     if (ret != ErrorCode::NO_ERROR) {
         return ret;

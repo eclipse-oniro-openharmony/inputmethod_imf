@@ -34,7 +34,7 @@ public:
     void ModifyImeCfg(const ImePersistInfo &cfg);
     void ModifyTempScreenLockImeCfg(int32_t userId, const std::string &ime);
     void DeleteImeCfg(int32_t userId);
-    std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId);
+    std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId); // must not return nullptr
     bool IsDefaultImeSet(int32_t userId);
     void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
 
