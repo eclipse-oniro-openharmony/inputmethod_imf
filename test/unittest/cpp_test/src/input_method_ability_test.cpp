@@ -2162,5 +2162,39 @@ HWTEST_F(InputMethodAbilityTest, testClearBindInfo, TestSize.Level0)
     EXPECT_TRUE(inputMethodAbility_.dataChannelObject_ == nullptr);
     InputMethodAbilityTest::GetIMCDetachIMA();
 }
+
+/**
+ * @tc.name: testServiceHandler_
+ * @tc.desc: testServiceHandler_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, TestServiceHandler_, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testServiceHandler_ START");
+    int32_t userId = 100;
+    string subName = "";
+    auto temp = imsa_->serviceHandler_;
+    imsa_->serviceHandler_ = nullptr;
+
+    imsa_->SubscribeCommonEvent();
+
+    imsa_->GetValidSubtype(subName, nullptr);
+    auto info = std::make_shared<ImeInfo>();
+    EXPECT_NE(info, nullptr);
+    imsa_->GetValidSubtype(subName, info);
+
+    EXPECT_EQ(imsa_->serviceHandler_, nullptr);
+    auto ret = imsa_->SwitchExtension(userId, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = imsa_->SwitchExtension(userId, info);
+    MessageParcel *parcel1 = new (std::nothrow) MessageParcel();
+    auto msg = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel1);
+    ret = imsa_->OnUserStarted(msg.get());
+    msg.reset();
+    ret = imsa_->OnUserStarted(msg.get());
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    imsa_->serviceHandler_ = temp;
+}
+
 } // namespace MiscServices
 } // namespace OHOS

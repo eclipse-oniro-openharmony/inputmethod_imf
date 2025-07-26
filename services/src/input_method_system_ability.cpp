@@ -85,8 +85,13 @@ InputMethodSystemAbility::InputMethodSystemAbility() : state_(ServiceRunningStat
 InputMethodSystemAbility::~InputMethodSystemAbility()
 {
     stop_ = true;
-    Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
-    MessageHandler::Instance()->SendMessage(msg);
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
+    auto handler = MessageHandler::Instance();
+    if (handler == nullptr) {
+        IMSA_HILOGE("handler is nullptr");
+        return;
+    }
+    handler->SendMessage(msg);
     if (workThreadHandler.joinable()) {
         workThreadHandler.join();
     }
@@ -198,7 +203,11 @@ void InputMethodSystemAbility::OnStart()
     if (ret != ErrorCode::NO_ERROR) {
         InputMethodSysEvent::GetInstance().ServiceFaultReporter("imf", ret);
         auto callback = [=]() { Init(); };
-        serviceHandler_->PostTask(callback, INIT_INTERVAL);
+        if (serviceHandler_ == nullptr) {
+            IMSA_HILOGE("serviceHandler_ is nullptr!");
+        } else {
+            serviceHandler_->PostTask(callback, INIT_INTERVAL);
+        }
         IMSA_HILOGE("init failed. try again 10s later!");
     }
     InitHiTrace();
@@ -501,6 +510,10 @@ int32_t InputMethodSystemAbility::PrepareForOperateKeyboard(std::shared_ptr<PerU
 int32_t InputMethodSystemAbility::SwitchByCondition(const Condition &condition,
     const std::shared_ptr<ImeInfo> &info)
 {
+    if (info == nullptr) {
+        IMSA_HILOGE("info is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto target = ImeInfoInquirer::GetInstance().FindTargetSubtypeByCondition(info->subProps, condition);
     if (target == nullptr) {
         IMSA_HILOGE("target is empty!");
@@ -712,7 +725,8 @@ int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClie
         session->RestoreCurrentImeSubType(DEFAULT_DISPLAY_ID);
     }
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
-    if (ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+    auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
+    if (screenLockMgr != nullptr && screenLockMgr->IsScreenLocked()) {
         std::string ime;
         if (GetScreenLockIme(userId, ime) != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("not ime screenlocked");
@@ -930,7 +944,7 @@ ErrCode InputMethodSystemAbility::PanelStatusChange(uint32_t status, const ImeWi
     }
     auto commonEventManager = ImCommonEventManager::GetInstance();
     if (commonEventManager != nullptr) {
-        auto ret = ImCommonEventManager::GetInstance()->PublishPanelStatusChangeEvent(
+        auto ret = commonEventManager->PublishPanelStatusChangeEvent(
             userId, static_cast<InputWindowStatus>(status), info);
         IMSA_HILOGD("public panel status change event: %{public}d", ret);
     }
@@ -1237,6 +1251,10 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Swit
 
 void InputMethodSystemAbility::GetValidSubtype(const std::string &subName, const std::shared_ptr<ImeInfo> &info)
 {
+    if (info == nullptr) {
+        IMSA_HILOGE("info is nullptr!");
+        return;
+    }
     if (subName.empty()) {
         IMSA_HILOGW("undefined subtype");
         info->subProp.id = UNDEFINED;
@@ -1310,6 +1328,10 @@ int32_t InputMethodSystemAbility::Switch(int32_t userId, const std::string &bund
 // Switch the current InputMethodExtension to the new InputMethodExtension
 int32_t InputMethodSystemAbility::SwitchExtension(int32_t userId, const std::shared_ptr<ImeInfo> &info)
 {
+    if (info == nullptr) {
+        IMSA_HILOGE("info is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
@@ -1431,7 +1453,7 @@ ErrCode InputMethodSystemAbility::GetDefaultInputMethod(Property &prop, bool isB
 {
     std::shared_ptr<Property> property = std::make_shared<Property>(prop);
     auto ret = ImeInfoInquirer::GetInstance().GetDefaultInputMethod(GetCallingUserId(), property, isBrief);
-    if (ret == ErrorCode::NO_ERROR) {
+    if (property != nullptr && ret == ErrorCode::NO_ERROR) {
         prop = *property;
     }
     return ret;
@@ -1468,6 +1490,10 @@ void InputMethodSystemAbility::WorkThread()
     pthread_setname_np(pthread_self(), "OS_IMSAWorkThread");
     while (!stop_) {
         Message *msg = MessageHandler::Instance()->GetMessage();
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr!");
+            break;
+        }
         switch (msg->msgId_) {
             case MSG_ID_USER_START: {
                 OnUserStarted(msg);
@@ -1544,6 +1570,10 @@ void InputMethodSystemAbility::WorkThread()
  */
 int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 {
+    if (msg == nullptr) {
+        IMSA_HILOGE("msg is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     if (msg->msgContent_ == nullptr) {
         IMSA_HILOGE("msgContent_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -1897,7 +1927,12 @@ void InputMethodSystemAbility::HandleDataShareReady()
 int32_t InputMethodSystemAbility::InitAccountMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor start.");
-    return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() { HandleOsAccountStarted(); });
+    auto imCommonEventManager = ImCommonEventManager::GetInstance();
+    if (imCommonEventManager == nullptr) {
+        IMSA_HILOGE("imCommonEventManager is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return imCommonEventManager->SubscribeAccountManagerService([this]() { HandleOsAccountStarted(); });
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
@@ -1913,18 +1948,33 @@ int32_t InputMethodSystemAbility::InitKeyEventMonitor()
         // Check device capslock status and ime cfg corrent, when device power-up.
         HandleImeCfgCapsState();
     };
-    bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(handler);
+    auto imCommonEventManager = ImCommonEventManager::GetInstance();
+    if (imCommonEventManager == nullptr) {
+        IMSA_HILOGE("imCommonEventManager is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    bool ret = imCommonEventManager->SubscribeKeyboardEvent(handler);
     return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
 }
 
 bool InputMethodSystemAbility::InitWmsMonitor()
 {
-    return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService([this]() { HandleWmsStarted(); });
+    auto imCommonEventManager = ImCommonEventManager::GetInstance();
+    if (imCommonEventManager == nullptr) {
+        IMSA_HILOGE("imCommonEventManager is nullptr!");
+        return false;
+    }
+    return imCommonEventManager->SubscribeWindowManagerService([this]() { HandleWmsStarted(); });
 }
 // LCOV_EXCL_STOP
 bool InputMethodSystemAbility::InitMemMgrMonitor()
 {
-    return ImCommonEventManager::GetInstance()->SubscribeMemMgrService([this]() { HandleMemStarted(); });
+    auto imCommonEventManager = ImCommonEventManager::GetInstance();
+    if (imCommonEventManager == nullptr) {
+        IMSA_HILOGE("imCommonEventManager is nullptr!");
+        return false;
+    }
+    return imCommonEventManager->SubscribeMemMgrService([this]() { HandleMemStarted(); });
 }
 
 void InputMethodSystemAbility::InitWmsConnectionMonitor()
@@ -2309,7 +2359,12 @@ void InputMethodSystemAbility::HandleOsAccountStarted()
     if (msg == nullptr) {
         return;
     }
-    MessageHandler::Instance()->SendMessage(msg);
+    auto handler = MessageHandler::Instance();
+    if (handler == nullptr) {
+        IMSA_HILOGE("handler is nullptr");
+        return;
+    }
+    handler->SendMessage(msg);
 }
 
 void InputMethodSystemAbility::StopImeInBackground()

@@ -25,6 +25,10 @@ const std::map<int32_t, uint8_t> MASK_MAP{
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
 {
+    if (keyEvent == nullptr) {
+        IMSA_HILOGE("keyEvent is nullptr!");
+        return;
+    }
     auto keyCode = keyEvent->GetKeyCode();
     auto keyAction = keyEvent->GetKeyAction();
     auto currKey = MASK_MAP.find(keyCode);

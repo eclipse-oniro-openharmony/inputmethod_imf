@@ -39,52 +39,103 @@ sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::G
 
 void JsGetInputMethodTextChangedListener::InsertText(const std::u16string &text)
 {
-    JsGetInputMethodController::GetInstance()->InsertText(text);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->InsertText(text);
 }
 
 void JsGetInputMethodTextChangedListener::DeleteForward(int32_t length)
 {
-    JsGetInputMethodController::GetInstance()->DeleteRight(length);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->DeleteRight(length);
 }
 
 void JsGetInputMethodTextChangedListener::DeleteBackward(int32_t length)
 {
-    JsGetInputMethodController::GetInstance()->DeleteLeft(length);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->DeleteLeft(length);
 }
 
 void JsGetInputMethodTextChangedListener::SendKeyboardStatus(const KeyboardStatus &status)
 {
-    JsGetInputMethodController::GetInstance()->SendKeyboardStatus(status);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->SendKeyboardStatus(status);
 }
 
 void JsGetInputMethodTextChangedListener::SendFunctionKey(const FunctionKey &functionKey)
 {
-    JsGetInputMethodController::GetInstance()->SendFunctionKey(functionKey);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->SendFunctionKey(functionKey);
 }
 
 void JsGetInputMethodTextChangedListener::MoveCursor(const Direction direction)
 {
-    JsGetInputMethodController::GetInstance()->MoveCursor(direction);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->MoveCursor(direction);
 }
 
 void JsGetInputMethodTextChangedListener::HandleExtendAction(int32_t action)
 {
-    JsGetInputMethodController::GetInstance()->HandleExtendAction(action);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->HandleExtendAction(action);
 }
 
 std::u16string JsGetInputMethodTextChangedListener::GetLeftTextOfCursor(int32_t number)
 {
-    return JsGetInputMethodController::GetInstance()->GetText("getLeftTextOfCursor", number);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return std::u16string();
+    }
+    return controller->GetText("getLeftTextOfCursor", number);
 }
 
 std::u16string JsGetInputMethodTextChangedListener::GetRightTextOfCursor(int32_t number)
 {
-    return JsGetInputMethodController::GetInstance()->GetText("getRightTextOfCursor", number);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return std::u16string();
+    }
+    return controller->GetText("getRightTextOfCursor", number);
 }
 
 int32_t JsGetInputMethodTextChangedListener::GetTextIndexAtCursor()
 {
-    return JsGetInputMethodController::GetInstance()->GetTextIndexAtCursor();
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        int32_t index = -1;
+        return index;
+    }
+    return controller->GetTextIndexAtCursor();
 }
 
 int32_t JsGetInputMethodTextChangedListener::ReceivePrivateCommand(
@@ -100,12 +151,22 @@ bool JsGetInputMethodTextChangedListener::IsFromTs()
 
 int32_t JsGetInputMethodTextChangedListener::SetPreviewText(const std::u16string &text, const Range &range)
 {
-    return JsGetInputMethodController::GetInstance()->SetPreviewText(text, range);
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return controller->SetPreviewText(text, range);
 }
 
 void JsGetInputMethodTextChangedListener::FinishTextPreview()
 {
-    return JsGetInputMethodController::GetInstance()->FinishTextPreview();
+    auto controller = JsGetInputMethodController::GetInstance();
+    if (controller == nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    return controller->FinishTextPreview();
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodTextChangedListener::GetEventHandler()

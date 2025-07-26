@@ -1232,7 +1232,8 @@ int32_t PerUserSession::ChangeToDefaultImeIfNeed(
     IMSA_HILOGD("no need");
     return ErrorCode::NO_ERROR;
 #endif
-    if (!ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
+    auto screenLockMgr = ScreenLock::ScreenLockManager::GetInstance();
+    if (screenLockMgr != nullptr && !screenLockMgr->IsScreenLocked()) {
         IMSA_HILOGD("no need");
         imeToStart = targetIme;
         return ErrorCode::NO_ERROR;
@@ -1257,6 +1258,11 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     bool isolatedSandBox = true;
     EnabledStatus status = EnabledStatus::BASIC_MODE;
+    AAFwk::Want want;
+    if (ime == nullptr) {
+        IMSA_HILOGE("ime is null");
+        return want;
+    }
     if (ImeEnabledInfoManager::GetInstance().IsDefaultFullMode(userId_, ime->bundleName)) {
         status = EnabledStatus::FULL_EXPERIENCE_MODE;
         isolatedSandBox = false;
@@ -1266,7 +1272,6 @@ AAFwk::Want PerUserSession::GetWant(const std::shared_ptr<ImeNativeCfg> &ime)
             IMSA_HILOGE("%{public}d/%{public}s GetEnabledState failed.", userId_, ime->imeId.c_str());
         }
     }
-    AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     want.SetParam(STRICT_MODE, !(status == EnabledStatus::FULL_EXPERIENCE_MODE));
     want.SetParam(ISOLATED_SANDBOX, isolatedSandBox);
@@ -1284,6 +1289,9 @@ int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &i
     IMSA_HILOGI("run in %{public}s", ime->imeId.c_str());
     auto imeToStart = std::make_shared<ImeNativeCfg>();
     auto ret = ChangeToDefaultImeIfNeed(ime, imeToStart);
+    if (imeToStart == nullptr) {
+        return ErrorCode::ERROR_IMSA_IME_TO_START_NULLPTR;
+    }
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
@@ -1343,6 +1351,10 @@ int32_t PerUserSession::OnPanelStatusChange(
 
 int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInfo)
 {
+    if (clientInfo.client == nullptr) {
+        IMSA_HILOGE("clientInfo is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     auto remoteClient = clientInfo.client->AsObject();
     auto ret = AddClientInfo(remoteClient, clientInfo, START_LISTENING);
     if (ret != ErrorCode::NO_ERROR) {
@@ -2114,6 +2126,10 @@ void PerUserSession::HandleImeBindTypeChanged(
     /* isClientInactive: true: represent the oldClientInfo is inactiveClient's
                          false: represent the oldClientInfo is currentClient's */
     std::shared_ptr<InputClientInfo> oldClientInfo = nullptr;
+    if (clientGroup == nullptr) {
+        IMSA_HILOGE("clientGroup is nullptr!");
+        return;
+    }
     bool isClientInactive = false;
     {
         std::lock_guard<std::mutex> lock(focusedClientLock_);
@@ -2403,6 +2419,10 @@ bool PerUserSession::IsDefaultDisplayGroup(uint64_t displayId)
 
 void PerUserSession::ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo)
 {
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("clientGroup is nullptr!");
+        return;
+    }
     clientInfo->requestKeyboardReason = RequestKeyboardReason::NONE;
 }
 

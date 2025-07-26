@@ -30,7 +30,11 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     IMSA_HILOGI("KeyboardEvent::AddKeyEventMonitor start.");
     std::shared_ptr<InputEventCallback> callback = std::make_shared<InputEventCallback>();
     callback->SetKeyHandle(handle);
-    int32_t monitorId = InputManager::GetInstance()->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
+    auto manager = InputManager::GetInstance();
+    if (manager == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    int32_t monitorId = manager->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
         if (callback == nullptr) {
             IMSA_HILOGE("callback is nullptr!");
             return;
@@ -87,7 +91,12 @@ void KeyboardEvent::SubscribeCombinationKey(
     keyOption->SetFinalKeyDown(setFinalKeyDown);
     // 0 means press delay 0 ms
     keyOption->SetFinalKeyDownDuration(0);
-    int32_t subscribeId = InputManager::GetInstance()->SubscribeKeyEvent(keyOption, callback);
+    auto manager = InputManager::GetInstance();
+    if (manager == nullptr) {
+        IMSA_HILOGE("manager is nullptr");
+        return;
+    }
+    int32_t subscribeId = manager->SubscribeKeyEvent(keyOption, callback);
     if (subscribeId < 0) {
         IMSA_HILOGE("failed to SubscribeKeyEvent, id: %{public}d preKey: %{public}d.", subscribeId, preKey);
     }

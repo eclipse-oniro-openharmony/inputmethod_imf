@@ -121,7 +121,12 @@ bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId, sptr<IRe
     }
 
     bool isFocused = false;
-    auto ret = AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
+    auto client = AbilityManagerClient::GetInstance();
+    if (client == nullptr) {
+        IMSA_HILOGE("AbilityManagerClient is nullptr");
+        return false;
+    }
+    auto ret = client->CheckUIExtensionIsFocused(callingTokenId, isFocused);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to CheckUIExtensionIsFocused, ret: %{public}d", ret);
         return false;

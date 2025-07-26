@@ -33,12 +33,20 @@ ErrCode SystemCmdChannelServiceImpl::SendPrivateCommand(const Value &value)
 {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     privateCommand = value.valueMap;
-    return ImeSystemCmdChannel::GetInstance()->ReceivePrivateCommand(privateCommand);
+    auto channel = ImeSystemCmdChannel::GetInstance();
+    if (channel == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return channel->ReceivePrivateCommand(privateCommand);
 }
 
 ErrCode SystemCmdChannelServiceImpl::NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
 {
-    return ImeSystemCmdChannel::GetInstance()->NotifyPanelStatus(sysPanelStatus);
+    auto channel = ImeSystemCmdChannel::GetInstance();
+    if (channel == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return channel->NotifyPanelStatus(sysPanelStatus);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -103,6 +103,10 @@ char* Utils::MallocCString(const std::string &origin)
 
 void Utils::InputMethodProperty2C(CInputMethodProperty *props, const Property &property)
 {
+    if (props == nullptr) {
+        IMSA_HILOGE("props is nullptr.");
+        return;
+    }
     props->name = Utils::MallocCString(property.name);
     props->id = Utils::MallocCString(property.id);
     props->label = Utils::MallocCString(property.label);
@@ -125,6 +129,10 @@ Property Utils::C2InputMethodProperty(CInputMethodProperty props)
 
 void Utils::InputMethodSubProperty2C(CInputMethodSubtype *props, const SubProperty &property)
 {
+    if (props == nullptr) {
+        IMSA_HILOGE("props is nullptr.");
+        return;
+    }
     props->name = Utils::MallocCString(property.name);
     props->id = Utils::MallocCString(property.id);
     props->label = Utils::MallocCString(property.label);
