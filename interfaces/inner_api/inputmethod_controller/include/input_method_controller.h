@@ -145,7 +145,7 @@ private:
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
-using WindowScaleCallback = std::function<int32_t(int32_t& x, int32_t& y, uint32_t windowId)>;
+using WindowScaleCallback = std::function<int32_t(uint32_t windowId, CursorInfo &cursorInfo)>;
 class InputMethodController : public RefBase, public PrivateCommandInterface {
 public:
     /**
@@ -1016,7 +1016,7 @@ private:
     int32_t ShowTextInputInner(const AttachOptions &attachOptions, ClientType type);
     int32_t ShowSoftKeyboardInner(ClientType type);
     void ReportClientShow(int32_t eventCode, int32_t errCode, ClientType type);
-    void GetWindowScaleCoordinate(int32_t& x, int32_t& y, uint32_t windowId);
+    void GetWindowScaleCoordinate(uint32_t windowId, CursorInfo &cursorInfo);
     int32_t ResponseDataChannel(
         const sptr<IRemoteObject> &agentObject, uint64_t msgId, int32_t code, const ResponseData &data);
     void CalibrateImmersiveParam(InputAttribute &inputAttribute);
