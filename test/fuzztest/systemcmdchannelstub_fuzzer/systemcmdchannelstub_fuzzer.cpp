@@ -18,8 +18,9 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "system_cmd_channel_service_impl.h"
+#include "fuzzer/FuzzedDataProvider.h"
 #include "message_parcel.h"
+#include "system_cmd_channel_service_impl.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -37,8 +38,9 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 }
 bool FuzzSystemCmdChannelStub(const uint8_t *rawData, size_t size)
 {
+    FuzzedDataProvider provider(rawData, size);
     InputType fuzzedBool = static_cast<InputType>(rawData[0] % 2);
-    auto fuzzedUint32 = static_cast<uint32_t>(size);
+    auto fuzzedUint32 = provider.ConsumeIntegral<uint32_t>();
 
     uint32_t code = ConvertToUint32(rawData);
     rawData = rawData + OFFSET;

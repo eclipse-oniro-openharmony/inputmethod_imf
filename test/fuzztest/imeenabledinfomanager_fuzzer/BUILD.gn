@@ -22,9 +22,11 @@ import("//build/test.gni")
 ohos_fuzztest("ImeEnabledInfoManagerFuzzTest") {
   module_out_path = "imf/imf"
 
-  fuzz_config_file = "${inputmethod_path}/test/fuzztest/imeenabledinfomanager_fuzzer"
+  fuzz_config_file =
+      "${inputmethod_path}/test/fuzztest/imeenabledinfomanager_fuzzer"
 
-  include_dirs = [ "${inputmethod_path}/services/adapter/settings_data_provider/include" ]
+  include_dirs =
+      [ "${inputmethod_path}/services/adapter/settings_data_provider/include" ]
 
   cflags = [
     "-g",

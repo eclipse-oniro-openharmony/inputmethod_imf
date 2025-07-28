@@ -31,13 +31,14 @@
 #include <cstdint>
 #include <string>
 
-#include "imfhisyseventreport_fuzzer.h"
+#include "fuzzer/FuzzedDataProvider.h"
 #include "global.h"
 #include "hisysevent_base_manager.h"
 #include "hisysevent_listener.h"
 #include "hisysevent_manager.h"
 #include "hisysevent_query_callback.h"
 #include "hisysevent_record.h"
+#include "imfhisyseventreport_fuzzer.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -59,12 +60,13 @@ void TestClientAttach01(const uint8_t *data, size_t size)
 
 void TestClientAttach02(const uint8_t *data, size_t size)
 {
+    FuzzedDataProvider provider(data, size);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     auto paramPeerName = fuzzedString;
-    auto paramPeerUserId = static_cast<int32_t>(size);
-    auto paramPeerPid = static_cast<int64_t>(size);
-    auto errCode = static_cast<int32_t>(size);
-    auto paramIsShowkeyboard = static_cast<bool>(data[0] % 2);
+    auto paramPeerUserId = provider.ConsumeIntegral<int32_t>();
+    auto paramPeerPid = provider.ConsumeIntegral<int64_t>();
+    auto errCode = provider.ConsumeIntegral<int32_t>();
+    auto paramIsShowkeyboard = provider.ConsumeBool();
     auto paramImeName = fuzzedString;
     auto info = HiSysOriginalInfo::Builder()
                     .SetPeerName(paramPeerName)
@@ -81,12 +83,13 @@ void TestClientAttach02(const uint8_t *data, size_t size)
 
 void TestClientShow(const uint8_t *data, size_t size)
 {
+    FuzzedDataProvider provider(data, size);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     auto paramPeerName = fuzzedString;
-    auto paramPeerUserId = static_cast<int32_t>(size);
-    auto paramPeerPid = static_cast<int64_t>(size);
-    auto errCode = static_cast<int32_t>(size);
-    auto paramIEventCode = static_cast<int32_t>(size);
+    auto paramPeerUserId = provider.ConsumeIntegral<int32_t>();
+    auto paramPeerPid = provider.ConsumeIntegral<int64_t>();
+    auto errCode = provider.ConsumeIntegral<int32_t>();
+    auto paramIEventCode = provider.ConsumeIntegral<int32_t>();
     auto paramImeName = fuzzedString;
     auto info = HiSysOriginalInfo::Builder()
                     .SetPeerName(paramPeerName)
@@ -102,12 +105,13 @@ void TestClientShow(const uint8_t *data, size_t size)
 
 void TestStartInput(const uint8_t *data, size_t size)
 {
+    FuzzedDataProvider provider(data, size);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     auto paramPeerName = fuzzedString;
-    auto paramPeerPid = static_cast<int64_t>(size);
-    auto errCode = static_cast<int32_t>(size);
-    auto paramIsShowkeyboard = static_cast<bool>(data[0] % 2);
-    auto paramIEventCode = static_cast<int32_t>(size);
+    auto paramPeerPid = provider.ConsumeIntegral<int64_t>();
+    auto errCode = provider.ConsumeIntegral<int32_t>();
+    auto paramIsShowkeyboard = provider.ConsumeBool();
+    auto paramIEventCode = provider.ConsumeIntegral<int32_t>();
     auto info = HiSysOriginalInfo::Builder()
                     .SetPeerName(paramPeerName)
                     .SetPeerPid(paramPeerPid)
@@ -120,11 +124,12 @@ void TestStartInput(const uint8_t *data, size_t size)
 
 void TestBaseTextOperation(const uint8_t *data, size_t size)
 {
+    FuzzedDataProvider provider(data, size);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     auto paramPeerName = fuzzedString;
-    auto paramPeerPid = static_cast<int64_t>(size);
-    auto errCode = static_cast<int32_t>(size);
-    auto paramIEventCode = static_cast<int32_t>(size);
+    auto paramPeerPid = provider.ConsumeIntegral<int64_t>();
+    auto errCode = provider.ConsumeIntegral<int32_t>();
+    auto paramIEventCode = provider.ConsumeIntegral<int32_t>();
     auto info = HiSysOriginalInfo::Builder()
                     .SetPeerName(paramPeerName)
                     .SetPeerPid(paramPeerPid)
@@ -137,7 +142,8 @@ void TestBaseTextOperation(const uint8_t *data, size_t size)
 
 void TestRecordBaseTextOperationStatistics(const uint8_t *data, size_t size)
 {
-    auto code = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto code = provider.ConsumeIntegral<int32_t>();
     auto info = HiSysOriginalInfo::Builder()
                     .SetErrCode(code)
                     .Build();
@@ -147,7 +153,8 @@ void TestRecordBaseTextOperationStatistics(const uint8_t *data, size_t size)
 
 void TestIntervalIndex(const uint8_t *data, size_t size)
 {
-    auto fuzzInt32 = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto fuzzInt32 = provider.ConsumeIntegral<int32_t>();
     ImaHiSysEventReporter::GetInstance().GetBaseTextOperationSucceedIntervalIndex(fuzzInt32);
     ImaHiSysEventReporter::GetInstance().ReportStatisticsEvent();
     ImaHiSysEventReporter::GetInstance().ModImeCbTimeConsumeInfo(fuzzInt32);
@@ -155,8 +162,9 @@ void TestIntervalIndex(const uint8_t *data, size_t size)
 
 void TestInputMethodSysEvent(const uint8_t *data, size_t size)
 {
-    auto fuzzInt32 = static_cast<int32_t>(size);
-    auto fuzzUint32 = static_cast<uint32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto fuzzInt32 = provider.ConsumeIntegral<int32_t>();
+    auto fuzzUint32 = provider.ConsumeIntegral<uint32_t>();
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     using TimerCallback = std::function<void()>;
     TimerCallback tc;
@@ -170,8 +178,9 @@ void TestInputMethodSysEvent(const uint8_t *data, size_t size)
 
 void TestOnDemandStartStopSa(const uint8_t *data, size_t size)
 {
-    auto fuzzInt32 = static_cast<int32_t>(size);
-    auto fuzzUint32 = static_cast<uint32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto fuzzInt32 = provider.ConsumeIntegral<int32_t>();
+    auto fuzzUint32 = provider.ConsumeIntegral<uint32_t>();
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
     using TimerCallback = std::function<void()>;
     TimerCallback tc;

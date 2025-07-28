@@ -14,7 +14,7 @@
  */
 
 #include "imeeventmonitormanager_fuzzer.h"
-
+#include "fuzzer/FuzzedDataProvider.h"
 #include "ime_event_monitor_manager.h"
 #include "ime_setting_listener_test_impl.h"
 
@@ -23,16 +23,18 @@ namespace OHOS {
 constexpr size_t THRESHOLD = 10;
 void FuzzRegisterImeEventListener(const uint8_t *rawData, size_t size)
 {
+    FuzzedDataProvider provider(rawData, size);
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(static_cast<uint32_t>(size), nullptr);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(static_cast<uint32_t>(size), listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(provider.ConsumeIntegral<uint32_t>(), nullptr);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(provider.ConsumeIntegral<uint32_t>(), listener);
 }
 
 void FuzzUnRegisterImeEventListener(const uint8_t *rawData, size_t size)
 {
+    FuzzedDataProvider provider(rawData, size);
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(static_cast<uint32_t>(size), nullptr);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(static_cast<uint32_t>(size), listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(provider.ConsumeIntegral<uint32_t>(), nullptr);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(provider.ConsumeIntegral<uint32_t>(), listener);
 }
 
 /* Fuzzer entry point */

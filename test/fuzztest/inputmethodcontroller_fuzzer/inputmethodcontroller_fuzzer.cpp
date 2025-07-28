@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "fuzzer/FuzzedDataProvider.h"
 #include "global.h"
 #include "input_attribute.h"
 #include "key_event.h"
@@ -415,16 +416,17 @@ void FUZZOnTextChangedListener(const uint8_t *data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
+    FuzzedDataProvider provider(data, size);
     std::string fuzzedString(data, data + size);
     std::u16string fuzzedU16String = u"insert text";
 
-    auto fuzzedInt = static_cast<int>(size);
-    auto fuzzedInt32 = static_cast<int32_t>(size);
-    auto fuzzedUint32 = static_cast<uint32_t>(size);
-    auto fuzzedint64 = static_cast<int64_t>(size);
+    auto fuzzedInt = provider.ConsumeIntegral<int>();
+    auto fuzzedInt32 = provider.ConsumeIntegral<int32_t>();
+    auto fuzzedUint32 = provider.ConsumeIntegral<uint32_t>();
+    auto fuzzedint64 = provider.ConsumeIntegral<int64_t>();
     auto fuzzedDouble = static_cast<double>(size);
     auto fuzzedTrigger = static_cast<SwitchTrigger>(size);
-    auto fuzzedBool = static_cast<bool>(data[0] % 2);
+    auto fuzzedBool = provider.ConsumeBool();
 
     OHOS::sptr<InputMethodController> imc = InputMethodController::GetInstance();
 

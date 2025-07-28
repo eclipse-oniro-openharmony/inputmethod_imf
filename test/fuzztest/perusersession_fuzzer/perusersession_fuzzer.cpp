@@ -25,6 +25,7 @@
 #include <memory>
 #include <string_ex.h>
 
+#include "fuzzer/FuzzedDataProvider.h"
 #include "global.h"
 #include "iinput_method_agent.h"
 #include "iinput_method_core.h"
@@ -93,7 +94,8 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     static std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
 
     userSessions->OnRegisterProxyIme(core, agent->AsObject());
-    int32_t type = 4;
+    FuzzedDataProvider provider(rawData, size);
+    int32_t type = provider.ConsumeIntegral<int32_t>();
     userSessions->OnUnRegisteredProxyIme(static_cast<UnRegisteredType>(type), core);
     userSessions->IsProxyImeEnable();
 
@@ -101,10 +103,8 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     userSessions->OnSetCoreAndAgent(core, agent->AsObject());
     userSessions->OnShowCurrentInput(DEFAULT_DISPLAY_ID);
     sptr<IRemoteObject> agentObject = nullptr;
-    clientInfo.isShowKeyboard = false;
+    clientInfo.isShowKeyboard = provider.ConsumeBool();
     std::pair<int64_t, std::string> imeInfo;
-    userSessions->OnStartInput(clientInfo, agentObject, imeInfo);
-    clientInfo.isShowKeyboard = true;
     userSessions->OnStartInput(clientInfo, agentObject, imeInfo);
     userSessions->NotifyImeChangeToClients(property, subProperty);
     userSessions->OnHideCurrentInput(DEFAULT_DISPLAY_ID);
