@@ -159,7 +159,6 @@ public:
     bool IsNumkeyAutoInputApp(const std::string &bundleName);
     std::pair<int32_t, int32_t> GetCurrentInputPattern();
     bool IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo);
-    bool IsSimpleKeyboardEnabled();
     bool IsImeSwitchForbidden();
     std::pair<int32_t, StartPreDefaultImeStatus> StartPreconfiguredDefaultIme(
         uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo = {}, bool isStopCurrentIme = false);
@@ -239,7 +238,6 @@ private:
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
-    bool GetCurrentUsingImeId(ImeIdentification &imeId);
     bool CanStartIme();
     int32_t ChangeToDefaultImeIfNeed(
         const std::shared_ptr<ImeNativeCfg> &ime, std::shared_ptr<ImeNativeCfg> &imeToStart);

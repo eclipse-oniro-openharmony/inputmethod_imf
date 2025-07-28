@@ -1833,47 +1833,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SpecialScenarioCheck, TestSize.Level0)
 }
 
 /**
- * @tc.name: SA_IsSimpleKeyboardEnabled
- * @tc.desc: SA_IsSimpleKeyboardEnabled
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(InputMethodPrivateMemberTest, SA_IsSimpleKeyboardEnabled, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_IsSimpleKeyboardEnabled start.");
-    PerUserSession session(MAIN_USER_ID);
-    // has current client info
-    auto group = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
-    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
-    group->currentClient_ = client;
-    auto info = std::make_shared<InputClientInfo>();
-    info->config.isSimpleKeyboardEnabled = false;
-    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
-    group->mapClients_.insert_or_assign(client->AsObject(), info);
-    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
-    auto ret = session.IsSimpleKeyboardEnabled();
-    EXPECT_FALSE(ret);
-
-    info->config.isSimpleKeyboardEnabled = true;
-    group->mapClients_.insert_or_assign(client->AsObject(), info);
-    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
-    ret = session.IsSimpleKeyboardEnabled();
-    EXPECT_TRUE(ret);
-
-    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
-    group->mapClients_.insert_or_assign(client->AsObject(), info);
-    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
-    ret = session.IsSimpleKeyboardEnabled();
-    EXPECT_FALSE(ret);
-
-    info->config.inputAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
-    group->mapClients_.insert_or_assign(client->AsObject(), info);
-    session.clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
-    ret = session.IsSimpleKeyboardEnabled();
-    EXPECT_FALSE(ret);
-}
-
-/**
  * @tc.name: SA_IsScreenLockOrSecurityFlag
  * @tc.desc: SA_IsScreenLockOrSecurityFlag
  * @tc.type: FUNC
@@ -2057,7 +2016,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetRealCurrentIme_002, TestSize.Level0
     ASSERT_NE(realPreIme, nullptr);
     InputTypeManager::GetInstance().isTypeCfgReady_ = true;
     ImeIdentification inputTypeIme{ realPreIme->name, "" };
-    InputTypeManager::GetInstance().inputTypes_.insert_or_assign(InputType::ONE_TIME_CODE, inputTypeIme);
     InputTypeManager::GetInstance().inputTypes_.insert_or_assign(InputType::SECURITY_INPUT, inputTypeIme);
 
     std::string bundleName1 = "bundleName1";
@@ -2097,49 +2055,50 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetRealCurrentIme_002, TestSize.Level0
 HWTEST_F(InputMethodPrivateMemberTest, SA_GetRealCurrentIme_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SA_GetRealCurrentIme_003 start.");
-    ImeInfoInquirer::GetInstance().systemConfig_.defaultImeScreenList.clear();
-    std::shared_ptr<Property> realPreIme = nullptr;
-    InputMethodController::GetInstance()->GetDefaultInputMethod(realPreIme);
-    ASSERT_NE(realPreIme, nullptr);
-    InputTypeManager::GetInstance().isTypeCfgReady_ = true;
-    ImeIdentification inputTypeIme{ realPreIme->name, "" };
-    InputTypeManager::GetInstance().inputTypes_.insert_or_assign(InputType::ONE_TIME_CODE, inputTypeIme);
-    InputTypeManager::GetInstance().inputTypes_.insert_or_assign(InputType::SECURITY_INPUT, inputTypeIme);
-
+    // input type not start, has current client, input type is NONE, isSimpleKeyboardEnabled is true
+    InputTypeManager::GetInstance().isStarted_ = false;
     std::string bundleName1 = "bundleName1";
     std::string extName1 = "extName1";
+    std::string subName1 = "subName1";
     ImeEnabledCfg cfg;
     ImeEnabledInfo enabledInfo{ bundleName1, extName1, EnabledStatus::BASIC_MODE };
     enabledInfo.extraInfo.isDefaultIme = true;
+    enabledInfo.extraInfo.currentSubName = subName1;
     cfg.enabledInfos.push_back(enabledInfo);
     ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
 
-    std::string bundleName2 = "bundleName2";
-    std::string extName2 = "extName2";
-    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName2 + "/" + extName2;
-
-    InputTypeManager::GetInstance().isStarted_ = false;
     auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
     auto group = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
     sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
     group->currentClient_ = client;
     auto info = std::make_shared<InputClientInfo>();
-    // has current client, input type is NONE, isSimpleKeyboardEnabled is true
     info->config.inputAttribute.inputPattern = 0;
     info->config.isSimpleKeyboardEnabled = true;
     group->mapClients_.insert_or_assign(client->AsObject(), info);
     session->clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
-    auto ime = session->GetRealCurrentIme(true);
-    ASSERT_NE(ime, nullptr);
-    EXPECT_EQ(ime->bundleName, bundleName2);
 
-    // has current client, input type is NONE, default ime not specified, needMinGuarantee is true
-    info->config.isSimpleKeyboardEnabled = false;
-    group->mapClients_.insert_or_assign(client->AsObject(), info);
-    session->clientGroupMap_.insert_or_assign(DEFAULT_DISPLAY_ID, group);
+    // preconfigured is nullptr
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = "abnormal";
+    auto ime = session->GetRealCurrentIme(false);
+    ASSERT_NE(ime, nullptr);
+    EXPECT_EQ(ime->bundleName, bundleName1);
+    EXPECT_EQ(ime->subName, subName1);
+
+    // preconfigured is not nullptr,  preconfigured ime same with default ime
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName1 + "/" + extName1;
+    ime = session->GetRealCurrentIme(true);
+    ASSERT_NE(ime, nullptr);
+    EXPECT_EQ(ime->bundleName, bundleName1);
+    EXPECT_EQ(ime->subName, subName1);
+
+    // preconfigured is not nullptr,  preconfigured ime not same with default ime
+    std::string bundleName2 = "bundleName2";
+    std::string extName2 = "extName2";
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName2 + "/" + extName2;
     ime = session->GetRealCurrentIme(true);
     ASSERT_NE(ime, nullptr);
     EXPECT_EQ(ime->bundleName, bundleName2);
+    EXPECT_TRUE(ime->subName.empty());
 }
 
 /**
@@ -2482,6 +2441,117 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme003, TestSize.Level0)
     session->AddRestartIme();
     usleep(WAIT_FOR_THREAD_SCHEDULE * MS_TO_US);
     EXPECT_EQ(session->restartTasks_, 0);
+}
+
+/**
+ * @tc.name: SA_RestoreCurrentImeSubType
+ * @tc.desc: SA_RestoreCurrentImeSubType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_RestoreCurrentImeSubType, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_RestoreCurrentImeSubType start.");
+    InputTypeManager::GetInstance().isStarted_ = true;
+    std::string bundleName = "bundleName";
+    std::string extName = "extName";
+    std::string subName = "subName";
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo enabledInfo{ bundleName, extName, EnabledStatus::BASIC_MODE };
+    enabledInfo.extraInfo.isDefaultIme = true;
+    enabledInfo.extraInfo.currentSubName = subName;
+    cfg.enabledInfos.push_back(enabledInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
+
+    auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    // has no ready ime
+    session->imeData_.clear();
+    auto ret = session->RestoreCurrentImeSubType(0);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(InputTypeManager::GetInstance().isStarted_);
+
+    // has ready ime, ready ime not same with inputType ime
+    InputTypeManager::GetInstance().isStarted_ = true;
+    std::string bundleName1 = "bundleName1";
+    std::string extName1 = "extName1";
+    InputTypeManager::GetInstance().currentTypeIme_.bundleName = bundleName1;
+    auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 10);
+    imeData->imeStatus = ImeStatus::READY;
+    imeData->ime = std::make_pair(bundleName, extName);
+    session->imeData_.insert_or_assign(ImeType::IME, imeData);
+    ret = session->RestoreCurrentImeSubType(0);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(InputTypeManager::GetInstance().isStarted_);
+
+    // has ready ime, ready ime same with inputType ime, ready ime same with default ime
+    InputTypeManager::GetInstance().isStarted_ = true;
+    InputTypeManager::GetInstance().currentTypeIme_.bundleName = bundleName;
+    ret = session->RestoreCurrentImeSubType(0);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
+    EXPECT_FALSE(InputTypeManager::GetInstance().isStarted_);
+
+    // has ready ime, ready ime same with inputType ime, ready ime not same with default ime
+    InputTypeManager::GetInstance().isStarted_ = true;
+    InputTypeManager::GetInstance().currentTypeIme_.bundleName = bundleName1;
+    imeData->ime = std::make_pair(bundleName1, extName1);
+    session->imeData_.insert_or_assign(ImeType::IME, imeData);
+    ret = session->RestoreCurrentImeSubType(0);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
+    EXPECT_FALSE(InputTypeManager::GetInstance().isStarted_);
+}
+
+/**
+ * @tc.name: SA_GetRealCurrentIme_004
+ * @tc.desc: SA_GetRealCurrentIme_004
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_GetRealCurrentIme_004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_GetRealCurrentIme_004 start.");
+    // input type not start, has no current client, screen locked
+    std::string cmdResult;
+    std::string cmd = "power-shell suspend";
+    TddUtil::ExecuteCmd(cmd, cmdResult);
+    sleep(1);
+    InputTypeManager::GetInstance().isStarted_ = false;
+    auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    session->clientGroupMap_.clear();
+
+    std::string bundleName1 = "bundleName1";
+    std::string extName1 = "extName1";
+    std::string subName1 = "subName1";
+    std::string bundleName2 = "bundleName2";
+    std::string extName2 = "extName2";
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo enabledInfo{ bundleName1, extName1, EnabledStatus::BASIC_MODE };
+    ImeEnabledInfo enabledInfo1{ bundleName2, extName2, EnabledStatus::BASIC_MODE };
+    enabledInfo.extraInfo.isDefaultIme = true;
+    enabledInfo.extraInfo.currentSubName = subName1;
+    cfg.enabledInfos.push_back(enabledInfo);
+    cfg.enabledInfos.push_back(enabledInfo1);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
+
+    // preconfigured ime nullptr
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = "abnormal";
+    auto ime = session->GetRealCurrentIme(false);
+    ASSERT_NE(ime, nullptr);
+    EXPECT_EQ(ime->bundleName, bundleName1);
+    EXPECT_EQ(ime->subName, subName1);
+
+    // preconfigured ime exist, default ime exist, preconfigured ime same with default ime
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName1 + "/" + extName1;
+    ime = session->GetRealCurrentIme(false);
+    ASSERT_NE(ime, nullptr);
+    EXPECT_EQ(ime->bundleName, bundleName1);
+    EXPECT_EQ(ime->subName, subName1);
+
+    // preconfigured ime exist, default ime exist, preconfigured ime not same with default ime
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName2 + "/" + extName2;
+    ime = session->GetRealCurrentIme(false);
+    ASSERT_NE(ime, nullptr);
+    EXPECT_EQ(ime->bundleName, bundleName2);
+    EXPECT_TRUE(ime->subName.empty());
 }
 } // namespace MiscServices
 } // namespace OHOS

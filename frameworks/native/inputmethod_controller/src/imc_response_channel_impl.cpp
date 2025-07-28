@@ -13,28 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_VARIANT_UTIL_H
-#define OHOS_VARIANT_UTIL_H
-#include <cstdint>
-#include <variant>
+#include "imc_response_channel_impl.h"
 
-#include "global.h"
-#include "input_client_info.h"
-#include "input_method_utils.h"
+#include "imc_service_proxy.h"
+
 namespace OHOS {
 namespace MiscServices {
-class VariantUtil {
-public:
-    template<typename T, typename... Types>
-    static bool GetValue(const std::variant<Types...> &input, T &output)
-    {
-        if (!std::holds_alternative<T>(input)) {
-            return false;
-        }
-        output = std::get<T>(input);
-        return true;
-    }
-};
+
+ImcResponseChannelImpl::ImcResponseChannelImpl()
+{
+}
+
+ImcResponseChannelImpl::~ImcResponseChannelImpl()
+{
+}
+
+ErrCode ImcResponseChannelImpl::OnResponse(
+    uint32_t requestId, int32_t resultErrCode, const ServiceResponseDataInner &response)
+{
+    ServiceResponse serviceResponse = { .result = resultErrCode, .responseData = response.data };
+    ImcServiceProxy::GetInstance().OnResponse(requestId, serviceResponse);
+    return ERR_OK;
+}
 } // namespace MiscServices
 } // namespace OHOS
-#endif // OHOS_VARIANT_UTIL_H

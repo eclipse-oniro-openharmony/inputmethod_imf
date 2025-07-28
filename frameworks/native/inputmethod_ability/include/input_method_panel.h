@@ -74,6 +74,7 @@ public:
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
+    bool IsDisplayPortrait();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
     void SetPanelHeightCallback(CallbackFunc heightCallback);
     int32_t IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayoutParams &params);
@@ -127,7 +128,7 @@ private:
         const PanelAdjustInfo &adjustInfo);
 
     int32_t ParseParams(PanelFlag panelFlag, const LayoutParams &input, Rosen::KeyboardLayoutParams &output);
-    int32_t ParseParam(PanelFlag panelFlag, const PanelAdjustInfo &adjustInfo, const WindowSize &displaySize,
+    void ParseParam(PanelFlag panelFlag, const PanelAdjustInfo &adjustInfo, const WindowSize &displaySize,
         const Rosen::Rect &inputRect, EnhancedLayoutParam &outputParam);
 
     void CalculateHotAreas(const EnhancedLayoutParams &enhancedParams, const Rosen::KeyboardLayoutParams &params,
@@ -151,7 +152,6 @@ private:
     int32_t MovePanelRect(int32_t x, int32_t y);
     int32_t MoveEnhancedPanelRect(int32_t x, int32_t y);
 
-    bool IsDisplayPortrait();
     bool IsDisplayUnfolded();
     int32_t GetDisplaySize(DisplaySize &size);
     int32_t GetDensityDpi(float &densityDpi);
@@ -169,29 +169,37 @@ private:
     int32_t GetKeyboardArea(PanelFlag panelFlag, const WindowSize &size, PanelAdjustInfo &keyboardArea);
     int32_t GetWindowOrientation(PanelFlag panelFlag, uint32_t windowWidth, bool &isPortrait);
 
-    void SetHotAreas(const HotAreas &hotAreas);
-    HotAreas GetHotAreas();
     sptr<Rosen::Display> GetCurDisplay();
     uint64_t GetCurDisplayId();
-    void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
-    std::vector<int32_t> GetIgnoreAdjustInputTypes();
     bool IsNeedConfig();
     int32_t IsValidParam(const ImmersiveEffect &effect, const Rosen::KeyboardLayoutParams &layoutParams);
     int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param);
-    int32_t FullScreenPrepare(Rosen::KeyboardLayoutParams &param);
-    int32_t NormalImePrepare(Rosen::KeyboardLayoutParams &param);
-    int32_t PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param);
+    int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
+    int32_t FullScreenPrepare(Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
+    int32_t NormalImePrepare(Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
+    int32_t PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
     bool IsImmersiveEffectSupported();
     Rosen::KeyboardEffectOption ConvertToWmEffect(ImmersiveMode mode, const ImmersiveEffect &effect);
     void SetImmersiveEffectToNone();
     void UpdateImmersiveHotArea();
     bool IsValidGradientHeight(uint32_t gradientHeight);
 
-    CallbackFunc GetPanelHeightCallback();
+    // Locked read and write functions for concurrent protection
     Rosen::KeyboardLayoutParams GetKeyboardLayoutParams();
     void SetKeyboardLayoutParams(Rosen::KeyboardLayoutParams params);
     EnhancedLayoutParams GetEnhancedLayoutParams();
     void SetEnhancedLayoutParams(EnhancedLayoutParams params);
+    std::vector<int32_t> GetIgnoreAdjustInputTypes();
+    void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
+    ImmersiveEffect LoadImmersiveEffect();
+    void StoreImmersiveEffect(ImmersiveEffect effect);
+    HotAreas GetHotAreas();
+    void SetHotAreas(const HotAreas &hotAreas);
+    ChangeY GetChangeY();
+    void SetChangeY(ChangeY changeY);
+
+    void StoreImmersiveMode(ImmersiveMode mode);
+    CallbackFunc GetPanelHeightCallback();
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
@@ -244,10 +252,13 @@ private:
     };
     std::atomic<bool> isWaitSetUiContent_ { true };
     std::atomic<bool> isInEnhancedAdjust_{ false };
+
+    std::mutex immersiveModeMutex_;
     ImmersiveMode immersiveMode_ { ImmersiveMode::NONE_IMMERSIVE };
+    std::mutex immersiveEffectMutex_;
     ImmersiveEffect immersiveEffect_ { 0, GradientMode::NONE, FluidLightMode::NONE };
-    uint32_t portraitChangeY_ = 0;
-    uint32_t landscapeChangeY_ = 0;
+    std::mutex changeYMutex_;
+    ChangeY changeY_;
 };
 } // namespace MiscServices
 } // namespace OHOS

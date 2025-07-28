@@ -27,6 +27,11 @@ struct WindowSize {
     uint32_t height = 0;
 };
 
+struct ChangeY {
+    uint32_t portrait = 0;
+    uint32_t landscape = 0;
+};
+
 struct LayoutParams {
     Rosen::Rect landscapeRect{ 0, 0, 0, 0 };
     Rosen::Rect portraitRect{ 0, 0, 0, 0 };

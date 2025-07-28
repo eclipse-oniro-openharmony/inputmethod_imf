@@ -252,8 +252,9 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
     }
     IMSA_HILOGI("IMA showKeyboard:%{public}d,bindFromClient:%{public}d.", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
+    auto attribute = GetInputAttribute();
     if ((clientInfo.needHide && !isProxyIme_.load()) ||
-        IsDisplayChanged(inputAttribute_.callingDisplayId, clientInfo.config.inputAttribute.callingDisplayId)) {
+        IsDisplayChanged(attribute.callingDisplayId, clientInfo.config.inputAttribute.callingDisplayId)) {
         IMSA_HILOGD("pwd or normal input pattern changed, need hide panel first.");
         auto panel = GetSoftKeyboardPanel();
         if (panel != nullptr) {
@@ -588,10 +589,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     AttachOptions options;
     options.requestKeyboardReason = textConfig.requestKeyboardReason;
-    options.isSimpleKeyboardEnabled = (textConfig.inputAttribute.IsSecurityImeFlag() ||
-                                          textConfig.inputAttribute.IsOneTimeCodeFlag() || !IsDefaultIme()) ?
-        false :
-        textConfig.isSimpleKeyboardEnabled;
+    options.isSimpleKeyboardEnabled = IsDefaultIme() ? textConfig.isSimpleKeyboardEnabled : false;
     InvokeAttachOptionsCallback(options, isNotifyInputStart || !isNotify_);
     if (isNotifyInputStart || !isNotify_) {
         isNotify_ = true;
@@ -999,21 +997,22 @@ sptr<SystemCmdChannelProxy> InputMethodAbility::GetSystemCmdChannelProxy()
 int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("InputMethodAbility start.");
-    {
-        std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
-        systemCmdChannelProxy_ = new (std::nothrow) SystemCmdChannelProxy(channel);
-        if (systemCmdChannelProxy_ == nullptr) {
-            IMSA_HILOGE("failed to create channel proxy!");
-            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-        }
-    }
-    systemAgentStub_ = new (std::nothrow) InputMethodAgentServiceImpl();
-    if (systemAgentStub_ == nullptr) {
+    sptr<InputMethodAgentServiceImpl> agentImpl = new (std::nothrow) InputMethodAgentServiceImpl();
+    if (agentImpl == nullptr) {
         IMSA_HILOGE("failed to create agent!");
-        systemCmdChannelProxy_ = nullptr;
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    agent = systemAgentStub_->AsObject();
+    sptr<SystemCmdChannelProxy> cmdChannel = new (std::nothrow) SystemCmdChannelProxy(channel);
+    if (cmdChannel == nullptr) {
+        IMSA_HILOGE("failed to create channel proxy!");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    {
+        std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
+        systemCmdChannelProxy_ = cmdChannel;
+        systemAgentStub_ = agentImpl;
+    }
+    agent = agentImpl->AsObject();
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
         auto flag = panel->GetPanelFlag();
@@ -1195,7 +1194,7 @@ int32_t InputMethodAbility::NotifyPanelStatus(bool isUseParameterFlag, PanelFlag
         sysPanelStatus.isPanelRaised = false;
         sysPanelStatus.needFuncButton = false;
     }
-    if (GetAttachOptions().isSimpleKeyboardEnabled) {
+    if (GetAttachOptions().isSimpleKeyboardEnabled && !GetInputAttribute().IsOneTimeCodeFlag()) {
         sysPanelStatus.needFuncButton = false;
     }
     auto systemChannel = GetSystemCmdChannelProxy();

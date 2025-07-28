@@ -425,13 +425,37 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatus2, TestSize.Level0)
  
     ret = inputMethodAbility_.NotifyPanelStatus(false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
- 
+
     ret = inputMethodAbility_.NotifyPanelStatus(true, FLG_FIXED);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
     AttachOptions options;
     options.isSimpleKeyboardEnabled = true;
     inputMethodAbility_.SetAttachOptions(options);
+    InputAttribute inputAttribute;
+    inputAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
+    inputMethodAbility_.SetInputAttribute(inputAttribute);
+    ret = inputMethodAbility_.NotifyPanelStatus(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+
+    options.isSimpleKeyboardEnabled = true;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputAttribute.inputPattern = InputAttribute::PATTERN_NEWPASSWORD;
+    inputMethodAbility_.SetInputAttribute(inputAttribute);
+    ret = inputMethodAbility_.NotifyPanelStatus(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+
+    options.isSimpleKeyboardEnabled = false;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputAttribute.inputPattern = InputAttribute::PATTERN_ONE_TIME_CODE;
+    inputMethodAbility_.SetInputAttribute(inputAttribute);
+    ret = inputMethodAbility_.NotifyPanelStatus(false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+
+    options.isSimpleKeyboardEnabled = false;
+    inputMethodAbility_.SetAttachOptions(options);
+    inputAttribute.inputPattern = InputAttribute::PATTERN_NEWPASSWORD;
+    inputMethodAbility_.SetInputAttribute(inputAttribute);
     ret = inputMethodAbility_.NotifyPanelStatus(false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
