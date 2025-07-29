@@ -39,7 +39,7 @@
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
 #include "screenlock_manager.h"
 #endif
-#include "system_language_observer.h"
+#include "system_param_adapter.h"
 #include "wms_connection_observer.h"
 #include "xcollie/xcollie.h"
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
@@ -1527,6 +1527,10 @@ void InputMethodSystemAbility::WorkThread()
                 }
                 break;
             }
+            case MSG_ID_SYS_MEMORY_CHANGED: {
+                OnSysMemChanged();
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -1973,7 +1977,7 @@ bool InputMethodSystemAbility::InitPasteboardMonitor()
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()
 {
-    SystemLanguageObserver::GetInstance().Watch();
+    SystemParamAdapter::GetInstance().WatchParam(SystemParamAdapter::SYSTEM_LANGUAGE_KEY);
 }
 
 void InputMethodSystemAbility::InitFocusChangedMonitor()
@@ -2294,6 +2298,7 @@ void InputMethodSystemAbility::HandleMemStarted()
     // singleton
     IMSA_HILOGI("MemMgr start.");
     Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 1, INPUT_METHOD_SYSTEM_ABILITY_ID);
+    SystemParamAdapter::GetInstance().WatchParam(SystemParamAdapter::MEMORY_WATERMARK_KEY);
     auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
     RestartSessionIme(session);
 }
@@ -2679,6 +2684,19 @@ int32_t InputMethodSystemAbility::StartSecurityIme(int32_t &userId, InputClientI
         return StartInputType(userId, type);
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodSystemAbility::OnSysMemChanged()
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId_);
+    if (session == nullptr) {
+        return;
+    }
+    if (SystemParamAdapter::GetInstance().GetBoolParam(SystemParamAdapter::MEMORY_WATERMARK_KEY)) {
+        session->TryDisconnectIme();
+        return;
+    }
+    session->TryStartIme();
 }
 } // namespace MiscServices
 } // namespace OHOS

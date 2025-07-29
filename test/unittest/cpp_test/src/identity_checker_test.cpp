@@ -87,6 +87,7 @@ public:
     static const constexpr char *CURRENT_IME = "testBundleName/testExtname";
     static const constexpr char *CURRENT_SUBNAME = "testSubName";
     static const constexpr char *CURRENT_BUNDLENAME = "testBundleName";
+    static const constexpr char *CURRENT_EXTNAME = "testExtName";
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp();
@@ -681,6 +682,11 @@ HWTEST_F(IdentityCheckerTest, testDisplayOptionalInputMethod_001, TestSize.Level
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_001 start");
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo enabledInfo{ CURRENT_BUNDLENAME, CURRENT_EXTNAME, EnabledStatus::BASIC_MODE };
+    enabledInfo.extraInfo.isDefaultIme = true;
+    cfg.enabledInfos.push_back(enabledInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
     service_->identityChecker_ = identityCheckerImpl_;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
         CURRENT_BUNDLENAME, CURRENT_SUBNAME, static_cast<uint32_t>(SwitchTrigger::CURRENT_IME));
@@ -697,6 +703,11 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level1)
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_002 start");
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo enabledInfo{ CURRENT_BUNDLENAME, CURRENT_EXTNAME, EnabledStatus::BASIC_MODE };
+    enabledInfo.extraInfo.isDefaultIme = true;
+    cfg.enabledInfos.push_back(enabledInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
     IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
@@ -714,6 +725,11 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level1)
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_003 start");
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo enabledInfo{ CURRENT_BUNDLENAME, CURRENT_EXTNAME, EnabledStatus::BASIC_MODE };
+    enabledInfo.extraInfo.isDefaultIme = true;
+    cfg.enabledInfos.push_back(enabledInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
     IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
@@ -731,6 +747,11 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level1)
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_004, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_004 start");
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo enabledInfo{ CURRENT_BUNDLENAME, CURRENT_EXTNAME, EnabledStatus::BASIC_MODE };
+    enabledInfo.extraInfo.isDefaultIme = true;
+    cfg.enabledInfos.push_back(enabledInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
     service_->identityChecker_ = identityCheckerImpl_;
     IdentityCheckerTest::IdentityCheckerMock::isFromShell_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;

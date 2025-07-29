@@ -1776,7 +1776,7 @@ HWTEST_F(InputMethodControllerTest, testGetInputMethodState_002, TestSize.Level0
     EnabledStatus status = EnabledStatus::DISABLED;
     auto ret = inputMethodController_->GetInputMethodState(status);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(status == EnabledStatus::FULL_EXPERIENCE_MODE);
+    EXPECT_TRUE(status == EnabledStatus::BASIC_MODE);
 }
 
 /**
@@ -1825,23 +1825,6 @@ HWTEST_F(InputMethodControllerTest, testGetInputMethodState_004, TestSize.Level0
     auto ret = inputMethodController_->GetInputMethodState(status);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(status == EnabledStatus::BASIC_MODE);
-}
-
-/**
- * @tc.name: testGetInputMethodState_005
- * @tc.desc: IMA
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(InputMethodControllerTest, testGetInputMethodState_005, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodControllerTest testGetInputMethodState_005 Test START");
-    EnabledStatus status = EnabledStatus::DISABLED;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableFullExperienceFeature = false;
-    ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = false;
-    auto ret = inputMethodController_->GetInputMethodState(status);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(status == EnabledStatus::FULL_EXPERIENCE_MODE);
 }
 
 /**

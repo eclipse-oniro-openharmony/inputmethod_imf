@@ -24,7 +24,6 @@
 #include "full_ime_info_manager.h"
 #include "identity_checker_impl.h"
 #include "im_common_event_manager.h"
-#include "ime_connection.h"
 #include "ime_enabled_info_manager.h"
 #include "ime_info_inquirer.h"
 #include "input_control_channel_service_impl.h"
@@ -36,6 +35,7 @@
 #include "os_account_adapter.h"
 #include "scene_board_judgement.h"
 #include "system_ability_definition.h"
+#include "system_param_adapter.h"
 #include "wms_connection_observer.h"
 #include "dm_common.h"
 #include "display_manager.h"
@@ -243,7 +243,8 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
         IMSA_HILOGE("defaultImeInfo is nullptr!");
         return;
     }
-    if (type == ImeType::IME && currentImeInfo->bundleName == defaultImeInfo->name) {
+    if (type == ImeType::IME && currentImeInfo->bundleName == defaultImeInfo->name &&
+        !SystemParamAdapter::GetInstance().GetBoolParam(SystemParamAdapter::MEMORY_WATERMARK_KEY)) {
         StartImeInImeDied();
     }
 }
@@ -1302,6 +1303,7 @@ int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &i
         IMSA_HILOGE("failed to create connection!");
         return ErrorCode::ERROR_IMSA_MALLOC_FAILED;
     }
+    SetImeConnection(connection);
     auto want = GetWant(imeToStart);
     IMSA_HILOGI("connect %{public}s start!", imeToStart->imeId.c_str());
     ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
@@ -1309,6 +1311,7 @@ int32_t PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &i
         IMSA_HILOGE("connect %{public}s failed, ret: %{public}d!", imeToStart->imeId.c_str(), ret);
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
             ErrorCode::ERROR_IMSA_IME_CONNECT_FAILED, imeToStart->imeId, "failed to start ability.");
+        SetImeConnection(nullptr);
         return ErrorCode::ERROR_IMSA_IME_CONNECT_FAILED;
     }
     if (!isImeStarted_.GetValue()) {
@@ -1855,7 +1858,7 @@ int32_t PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool 
         }
         return StartCurrentIme(ime);
     }
-    IMSA_HILOGD("%{public}s switch to %{public}s!", imeData->ime.first, ime->bundleName);
+    IMSA_HILOGD("%{public}s switch to %{public}s!", imeData->ime.first.c_str(), ime->bundleName.c_str());
     return StartNewIme(ime);
 }
 
@@ -1898,8 +1901,7 @@ int32_t PerUserSession::StartCurrentIme(const std::shared_ptr<ImeNativeCfg> &ime
                 imeData->ime.second.c_str());
             return HandleStartImeTimeout(ime);
         }
-        IMSA_HILOGW(
-            "%{public}s/%{public}s start timeout, retry!", imeData->ime.first.c_str(), imeData->ime.second.c_str());
+        IMSA_HILOGW("%{public}s/%{public}s start retry!", imeData->ime.first.c_str(), imeData->ime.second.c_str());
         return StartInputService(ime);
     }
     IMSA_HILOGW("%{public}s/%{public}s start in exiting, force stop firstly!", imeData->ime.first.c_str(),
@@ -2524,6 +2526,81 @@ uint32_t PerUserSession::GetAttachCount()
 {
     std::lock_guard<std::mutex> lock(attachCountMtx_);
     return attachingCount_;
+}
+
+int32_t PerUserSession::TryStartIme()
+{
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData != nullptr) {
+        IMSA_HILOGI("has running ime:%{public}s, no need to deal.", imeData->ime.first.c_str());
+        return ErrorCode::ERROR_IME_HAS_STARTED;
+    }
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (cfgIme == nullptr || ImeInfoInquirer::GetInstance().GetDefaultIme().bundleName != cfgIme->bundleName) {
+        IMSA_HILOGI("has no cfgIme or cfg ime is not sys preconfigured ime, can not start.");
+        return ErrorCode::ERROR_OPERATION_NOT_ALLOWED;
+    }
+#ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
+    if (!ImeStateManagerFactory::GetInstance().GetDynamicStartIme()) {
+        AddRestartIme();
+    }
+#endif
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::TryDisconnectIme()
+{
+    auto imeData = GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    if (GetAttachCount() != 0) {
+        IMSA_HILOGI("attaching, can not disconnect.");
+        return ErrorCode::ERROR_OPERATION_NOT_ALLOWED;
+    }
+    auto clientInfo = GetCurrentClientInfo();
+    if (clientInfo != nullptr) {
+        IMSA_HILOGI("has current client, can not disconnect.");
+        return ErrorCode::ERROR_OPERATION_NOT_ALLOWED;
+    }
+    auto abilityMgr = AAFwk::AbilityManagerClient::GetInstance();
+    if (abilityMgr == nullptr) {
+        return ErrorCode::ERROR_IMSA_NULLPTR;
+    }
+    auto imeConnection = GetImeConnection();
+    if (imeConnection == nullptr) {
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    auto ret = abilityMgr->DisconnectAbility(imeConnection);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("disConnect %{public}s/%{public}s failed, ret:%{public}d.", imeData->ime.first.c_str(),
+            imeData->ime.second.c_str(), ret);
+        return ErrorCode::ERROR_IMSA_IME_DISCONNECT_FAILED;
+    }
+    ClearImeConnection(imeConnection);
+    return ErrorCode::NO_ERROR;
+}
+
+void PerUserSession::SetImeConnection(const sptr<AAFwk::IAbilityConnection> &connection)
+{
+    std::lock_guard<std::mutex> lock(connectionLock_);
+    connection_ = connection;
+}
+
+sptr<AAFwk::IAbilityConnection> PerUserSession::GetImeConnection()
+{
+    std::lock_guard<std::mutex> lock(connectionLock_);
+    return connection_;
+}
+
+void PerUserSession::ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &connection)
+{
+    std::lock_guard<std::mutex> lock(connectionLock_);
+    if (connection == nullptr || connection_ == nullptr || connection->AsObject() != connection_->AsObject()) {
+        return;
+    }
+    IMSA_HILOGI("clear imeConnection.");
+    connection_ = nullptr;
 }
 } // namespace MiscServices
 } // namespace OHOS
