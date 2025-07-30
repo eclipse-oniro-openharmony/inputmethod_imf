@@ -26,12 +26,12 @@
 #include "on_demand_start_stop_sa.h"
 #include "input_method_system_ability.h"
 #undef private
-#include "iremote_object.h"
-#include "inputmethod_message_handler.h"
+#include "fuzzer/FuzzedDataProvider.h"
 #include "input_method_controller.h"
 #include "input_method_core_service_impl.h"
+#include "inputmethod_message_handler.h"
+#include "iremote_object.h"
 #include "system_cmd_channel_service_impl.h"
-
 using namespace OHOS::MiscServices;
 using namespace MessageID;
 namespace OHOS {
@@ -61,7 +61,8 @@ void FuzzOnDemandStartStopSa(const uint8_t *data, size_t size)
     sptr<OnDemandStartStopSa::SaLoadCallback> callback =
         new (std::nothrow) OnDemandStartStopSa::SaLoadCallback(onDemandStartStopSa);
     sptr<IRemoteObject> object {nullptr};
-    auto fuzzedInt32 = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    int32_t fuzzedInt32 = provider.ConsumeIntegral<int32_t>();
     callback->OnLoadSystemAbilitySuccess(fuzzedInt32, object);
     callback->OnLoadSystemAbilityFail(fuzzedInt32);
     OnDemandStartStopSa::IncreaseProcessingIpcCnt();
@@ -71,9 +72,10 @@ void FuzzOnDemandStartStopSa(const uint8_t *data, size_t size)
 
 void FuzzSwitchOperation(const uint8_t *data, size_t size)
 {
-    auto fuzzedUint64 = static_cast<uint64_t>(size);
-    auto fuzzedUint32 = static_cast<uint32_t>(size);
-    auto fuzzedInt32 = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto fuzzedUint64 = provider.ConsumeIntegral<uint64_t>();
+    auto fuzzedUint32 = provider.ConsumeIntegral<uint32_t>();
+    auto fuzzedInt32 = provider.ConsumeIntegral<int32_t>();
     sptr<IInputMethodCore> core = new InputMethodCoreServiceImpl();
     sptr<SystemCmdChannelStub> stub = new SystemCmdChannelServiceImpl();
     auto info = std::make_shared<ImeInfo>();
@@ -99,7 +101,8 @@ void FuzzSwitchOperation(const uint8_t *data, size_t size)
 
 void FuzzHandleOperation(const uint8_t *data, size_t size)
 {
-    auto fuzzedInt32 = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto fuzzedInt32 = provider.ConsumeIntegral<int32_t>();
     InputType inputType = static_cast<InputType>(size);
     InputClientInfo clientInfo {};
 

@@ -22,6 +22,7 @@
 #include "input_method_ability.h"
 #undef private
 
+#include "fuzzer/FuzzedDataProvider.h"
 #include "input_client_service_impl.h"
 #include "input_method_engine_listener_impl.h"
 
@@ -198,10 +199,11 @@ void TestInterfaceCoverage(int32_t dataInt32, bool dataBool, std::u16string &tex
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     /* Run your code on data */
+    FuzzedDataProvider provider(data, size);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
-    auto fuzzedInt32 = static_cast<int32_t>(size);
-    auto fuzzedUint64 = static_cast<uint64_t>(size);
-    auto fuzzedInt64 = static_cast<int64_t>(size);
+    auto fuzzedInt32 = provider.ConsumeIntegral<int32_t>();
+    auto fuzzedUint64 = provider.ConsumeIntegral<uint64_t>();
+    auto fuzzedInt64 = provider.ConsumeIntegral<int64_t>();
     InputClientInfo clientInfo;
     if (!OHOS::InitializeClientInfo(clientInfo)) {
         return false;

@@ -19,6 +19,7 @@
 #define protected public
 #include "ime_enabled_info_manager.h"
 #undef private
+#include "fuzzer/FuzzedDataProvider.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -33,7 +34,8 @@ std::string GetString(const uint8_t *data, size_t size)
 
 void FuzzInit(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     std::map<int32_t, std::vector<FullImeInfo>> fullImeInfos;
     std::vector<FullImeInfo> imeInfos;
@@ -49,7 +51,8 @@ void FuzzInit(const uint8_t *data, size_t size)
 
 void FuzzSwitch(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     std::vector<FullImeInfo> imeInfos;
     for (size_t i = 0; i < size; i++) {
@@ -63,13 +66,15 @@ void FuzzSwitch(const uint8_t *data, size_t size)
 
 void FuzzDelete(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     ImeEnabledInfoManager::GetInstance().Delete(userId);
 }
 
 void FuzzAddPackage(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     FullImeInfo imeInfo;
     imeInfo.prop.name = fuzzedString;
@@ -79,14 +84,16 @@ void FuzzAddPackage(const uint8_t *data, size_t size)
 
 void FuzzDeletePackage(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     ImeEnabledInfoManager::GetInstance().Delete(userId, fuzzedString);
 }
 
 void FuzzUpdateEnabledStatus(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto enabledStatus = static_cast<EnabledStatus>(size);
     auto fuzzedString = GetString(data, size);
     ImeEnabledInfoManager::GetInstance().Update(userId, fuzzedString, fuzzedString + "ext", enabledStatus);
@@ -94,7 +101,8 @@ void FuzzUpdateEnabledStatus(const uint8_t *data, size_t size)
 
 void FuzzGetEnabledState(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     auto enabledStatus = EnabledStatus::DISABLED;
     ImeEnabledInfoManager::GetInstance().GetEnabledState(userId, fuzzedString, enabledStatus);
@@ -102,7 +110,8 @@ void FuzzGetEnabledState(const uint8_t *data, size_t size)
 
 void FuzzGetEnabledStates(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     std::vector<Property> props;
     for (size_t i = 0; i < size; i++) {
@@ -116,14 +125,16 @@ void FuzzGetEnabledStates(const uint8_t *data, size_t size)
 
 void FuzzIsDefaultFullMode(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     ImeEnabledInfoManager::GetInstance().IsDefaultFullMode(userId, fuzzedString);
 }
 
 void FuzzSetCurrentIme(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     std::string imeId = fuzzedString;
     if (size % EVEN_CHECK_NUMBER == 0) {
@@ -138,7 +149,8 @@ void FuzzSetCurrentIme(const uint8_t *data, size_t size)
 
 void FuzzSetTmpIme(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedString = GetString(data, size);
     std::string imeId = fuzzedString;
     if (size % EVEN_CHECK_NUMBER == 0) {
@@ -149,24 +161,28 @@ void FuzzSetTmpIme(const uint8_t *data, size_t size)
 
 void FuzzGetCurrentImeCfg(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     ImeEnabledInfoManager::GetInstance().GetCurrentImeCfg(userId);
 }
 
 void FuzzIsDefaultImeSet(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     ImeEnabledInfoManager::GetInstance().IsDefaultImeSet(userId);
 }
 
 void FuzzOnFullExperienceTableChanged(const uint8_t *data, size_t size)
 {
-    auto userId = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(data, size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     ImeEnabledInfoManager::GetInstance().OnFullExperienceTableChanged(userId);
 }
 
 void FuzzGetEnabledStateInner(const uint8_t *data, size_t size)
 {
+    FuzzedDataProvider provider(data, size);
     static std::vector<Property> props;
     static std::vector<FullImeInfo> imeInfos;
     static std::vector<ImeEnabledInfo> enabledInfos;
@@ -177,10 +193,10 @@ void FuzzGetEnabledStateInner(const uint8_t *data, size_t size)
         prop.id = std::to_string(i) + fuzzedString;
         props.push_back(prop);
     }
-    auto userId = static_cast<int32_t>(size);
+    auto userId = provider.ConsumeIntegral<int32_t>();
     auto fuzzedBool = static_cast<bool>(data[0] % 2);
-    auto fuzzUint32 = static_cast<uint32_t>(size);
-    auto fuzzInt32 = static_cast<int32_t>(size);
+    auto fuzzUint32 = provider.ConsumeIntegral<uint32_t>();
+    auto fuzzInt32 = provider.ConsumeIntegral<int32_t>();
     EnabledStatus status = static_cast<EnabledStatus>(fuzzInt32);
     FullImeInfo imeInfo = { .isNewIme = fuzzedBool, .tokenId = fuzzUint32, .appId = fuzzedString,
         .versionCode = fuzzUint32 };

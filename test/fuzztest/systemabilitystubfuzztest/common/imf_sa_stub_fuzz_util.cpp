@@ -16,17 +16,18 @@
 #include "imf_sa_stub_fuzz_util.h"
 
 #include "accesstoken_kit.h"
+#include "fuzzer/FuzzedDataProvider.h"
 #include "global.h"
 #include "ime_cfg_manager.h"
+#include "input_client_service_impl.h"
+#include "input_method_agent_service_impl.h"
+#include "input_method_core_service_impl.h"
 #include "iservice_registry.h"
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
 #include "system_ability_definition.h"
 #include "text_listener.h"
 #include "token_setproc.h"
-#include "input_client_service_impl.h"
-#include "input_method_agent_service_impl.h"
-#include "input_method_core_service_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -67,12 +68,14 @@ bool ImfSaStubFuzzUtil::SwitchIpcCode(IInputMethodSystemAbilityIpcCode code, Mes
             if (!datas.WriteParcelable(&clientInfoInner)) {
                 return false;
             }
+            break;
         }
         case IInputMethodSystemAbilityIpcCode::COMMAND_SHOW_INPUT: {
             sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
             if (client == nullptr || !datas.WriteRemoteObject(client->AsObject())) {
                 return false;
             }
+            break;
         }
         case IInputMethodSystemAbilityIpcCode::COMMAND_SET_CORE_AND_AGENT: {
             sptr<IInputMethodCore> core = new InputMethodCoreServiceImpl();
@@ -81,28 +84,33 @@ bool ImfSaStubFuzzUtil::SwitchIpcCode(IInputMethodSystemAbilityIpcCode code, Mes
                 || !datas.WriteRemoteObject(agent->AsObject())) {
                 return false;
             }
+            break;
         }
         case IInputMethodSystemAbilityIpcCode::COMMAND_UN_REGISTERED_PROXY_IME: {
             sptr<IInputMethodCore> core = new InputMethodCoreServiceImpl();
             if (core == nullptr || !datas.WriteInt32(fuzzedInt32) || !datas.WriteRemoteObject(core->AsObject())) {
                 return false;
             }
+            break;
         }
         case IInputMethodSystemAbilityIpcCode::COMMAND_RELEASE_INPUT: {
             sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
             if (client == nullptr || !datas.WriteRemoteObject(client->AsObject())) {
                 return false;
             }
+            break;
         }
         case IInputMethodSystemAbilityIpcCode::COMMAND_HIDE_INPUT: {
             sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
             if (client == nullptr || !datas.WriteRemoteObject(client->AsObject())) {
                 return false;
             }
+            break;
         }
         default:
             return true;
     }
+    return true;
 }
 
 bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size,
@@ -111,7 +119,8 @@ bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, siz
     if (!isInitialize_) {
         Initialize();
     }
-    auto fuzzedInt32 = static_cast<int32_t>(size);
+    FuzzedDataProvider provider(rawData, size);
+    auto fuzzedInt32 = provider.ConsumeIntegral<int32_t>();
     GrantNativePermission();
 
     MessageParcel datas;
