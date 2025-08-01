@@ -322,6 +322,7 @@ private:
     uint32_t scbStartCount_ { 0 };
     std::mutex connectionLock_{};
     sptr<AAFwk::IAbilityConnection> connection_ = nullptr;
+    std::atomic<bool> isBlockStartedByLowMem_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

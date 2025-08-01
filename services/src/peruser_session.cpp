@@ -243,9 +243,12 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
         IMSA_HILOGE("defaultImeInfo is nullptr!");
         return;
     }
-    if (type == ImeType::IME && currentImeInfo->bundleName == defaultImeInfo->name &&
-        !SystemParamAdapter::GetInstance().GetBoolParam(SystemParamAdapter::MEMORY_WATERMARK_KEY)) {
-        StartImeInImeDied();
+    if (type == ImeType::IME && currentImeInfo->bundleName == defaultImeInfo->name) {
+        if (!SystemParamAdapter::GetInstance().GetBoolParam(SystemParamAdapter::MEMORY_WATERMARK_KEY)) {
+            StartImeInImeDied();
+        } else {
+            isBlockStartedByLowMem_.store(true);
+        }
     }
 }
 
@@ -2530,6 +2533,11 @@ uint32_t PerUserSession::GetAttachCount()
 
 int32_t PerUserSession::TryStartIme()
 {
+    if (!isBlockStartedByLowMem_.load()) {
+        IMSA_HILOGI("ime is not blocked in starting by low mem, no need to deal.");
+        return ErrorCode::ERROR_OPERATION_NOT_ALLOWED;
+    }
+    isBlockStartedByLowMem_.store(false);
     auto imeData = GetImeData(ImeType::IME);
     if (imeData != nullptr) {
         IMSA_HILOGI("has running ime:%{public}s, no need to deal.", imeData->ime.first.c_str());
@@ -2542,7 +2550,7 @@ int32_t PerUserSession::TryStartIme()
     }
 #ifndef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     if (!ImeStateManagerFactory::GetInstance().GetDynamicStartIme()) {
-        AddRestartIme();
+        StartImeIfInstalled();
     }
 #endif
     return ErrorCode::NO_ERROR;

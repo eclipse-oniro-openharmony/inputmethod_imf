@@ -28,6 +28,7 @@
 #include "input_type_manager.h"
 #include "user_session_manager.h"
 #include "system_param_adapter.h"
+#include "ime_state_manager_factory.h"
 #undef private
 #include <gtest/gtest.h>
 #include <gtest/hwext/gtest-multithread.h>
@@ -2591,9 +2592,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TryStartIme_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TryStartIme_001 start.");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->isBlockStartedByLowMem_ = false;
+    auto ret = userSession->TryStartIme();
+    EXPECT_EQ(ret, ErrorCode::ERROR_OPERATION_NOT_ALLOWED);
+
+    userSession->isBlockStartedByLowMem_ = true;
     auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 10);
     userSession->imeData_.insert_or_assign(ImeType::IME, imeData);
-    auto ret = userSession->TryStartIme();
+    ret = userSession->TryStartIme();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_HAS_STARTED);
 
     userSession->imeData_.clear();
@@ -2608,10 +2614,17 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TryStartIme_001, TestSize.Level0)
     std::string bundleName2 = "bundleName2";
     std::string extName2 = "extName2";
     ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName2 + "/" + extName2;
+    userSession->isBlockStartedByLowMem_ = true;
     ret = userSession->TryStartIme();
     EXPECT_EQ(ret, ErrorCode::ERROR_OPERATION_NOT_ALLOWED);
 
     ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName1 + "/" + extName1;
+    userSession->isBlockStartedByLowMem_ = true;
+    ImeStateManagerFactory::GetInstance().ifDynamicStartIme_ = false;
+    ret = userSession->TryStartIme();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    userSession->isBlockStartedByLowMem_ = true;
+    ImeStateManagerFactory::GetInstance().ifDynamicStartIme_ = true;
     ret = userSession->TryStartIme();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -2682,7 +2695,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestClearImeConnection_001, TestSize.L
     userSession->SetImeConnection(nullptr);
     EXPECT_EQ(userSession->GetImeConnection(), nullptr);
     userSession->ClearImeConnection(connection);
-    EXPECT_EQ(userSession->GetImeConnection, nullptr);
+    EXPECT_EQ(userSession->GetImeConnection(), nullptr);
 
     userSession->SetImeConnection(connection);
     EXPECT_EQ(userSession->GetImeConnection(), connection);

@@ -20,7 +20,7 @@
 #include "parameters.h"
 namespace OHOS {
 namespace MiscServices {
-const std::unordered_map<std::string, SystemParamAdapter::cbHandler> SystemParamAdapter::PARAM_CB_HANDLERS = {
+const std::unordered_map<std::string, SystemParamAdapter::CbHandler> SystemParamAdapter::PARAM_CB_HANDLERS = {
     { SystemParamAdapter::SYSTEM_LANGUAGE_KEY, SystemParamAdapter::OnLanguageChange },
     { SystemParamAdapter::MEMORY_WATERMARK_KEY, SystemParamAdapter::OnMemoryChange },
 };

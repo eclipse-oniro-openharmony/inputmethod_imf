@@ -29,8 +29,8 @@ public:
 
 private:
     SystemParamAdapter() = default;
-    using cbHandler = void (*)(const char *key, const char *value, void *context);
-    static const std::unordered_map<std::string, cbHandler> PARAM_CB_HANDLERS;
+    using CbHandler = void (*)(const char *key, const char *value, void *context);
+    static const std::unordered_map<std::string, CbHandler> PARAM_CB_HANDLERS;
     static void OnLanguageChange(const char *key, const char *value, void *context);
     static void OnMemoryChange(const char *key, const char *value, void *context);
     static void HandleSysParamChanged(const char *key, const char *value, const char *expectedKey, int32_t messageId);
