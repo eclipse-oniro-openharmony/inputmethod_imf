@@ -50,6 +50,7 @@
 #include "input_client_stub.h"
 #include "input_client_service_impl.h"
 #include "input_death_recipient.h"
+#include "input_event_callback.h"
 #include "input_method_ability.h"
 #include "input_method_engine_listener_impl.h"
 #include "input_data_channel_service_impl.h"
@@ -2156,6 +2157,45 @@ HWTEST_F(InputMethodControllerTest, TestEditorContentLock, TestSize.Level0)
     SET_THREAD_NUM(InputMethodControllerTest::THREAD_NUM);
     GTEST_RUN_TASK(InputMethodControllerTest::EditorContentMultiTest);
     EXPECT_EQ(multiThreadExecTotalNum_, THREAD_NUM * EACH_THREAD_CIRCULATION_TIME);
+}
+
+/**
+ * @tc.name: TestClientNullptr
+ * @tc.desc: Test clientInfo.client is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestClientNullptr, TestSize.Level0)
+{
+    IMSA_HILOGI("TestClientNullptr START");
+    auto sessionTemp = std::make_shared<PerUserSession>(0, nullptr);
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+    InputClientInfo clientInfo = { .client = nullptr };
+
+    sessionTemp->GetWant(nullptr);
+    auto ret = sessionTemp->OnUpdateListenEventFlag(clientInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    sessionTemp->HandleImeBindTypeChanged(clientInfo, nullptr);
+    std::shared_ptr<InputClientInfo> ptr = nullptr;
+    sessionTemp->ClearRequestKeyboardReason(ptr);
+    auto info = std::make_shared<InputClientInfo>();
+    EXPECT_NE(info, nullptr);
+    sessionTemp->ClearRequestKeyboardReason(info);
+}
+
+/**
+ * @tc.name: TestEventCallback
+ * @tc.desc: Test TestEventCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestEventCallback, TestSize.Level0)
+{
+    IMSA_HILOGI("TestEventCallback START");
+    auto eventcallback = std::make_shared<InputEventCallback>();
+    std::shared_ptr<MMI::KeyEvent> keyevent = nullptr;
+    eventcallback->OnInputEvent(keyevent);
+    EXPECT_EQ(keyevent, nullptr);
+    eventcallback->OnInputEvent(keyEvent_);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -51,6 +51,9 @@ public:
     {
         InputMethodSyncTrace tracer("Traverse callback with output");
         for (const auto &object : objects) {
+            if (object == nullptr) {
+                continue;
+            }
             JsUtil::ScopeGuard scopeGuard(object->env_);
             napi_value jsOutput = nullptr;
             Execute(object, argContainer, jsOutput);

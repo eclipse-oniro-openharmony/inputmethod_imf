@@ -56,6 +56,10 @@ napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
     }
     napi_value result = nullptr;
     napi_get_named_property(env, argv, "name", &result);
+    if (ctxt == nullptr) {
+        IMSA_HILOGE("ctxt is nullptr!");
+        return status;
+    }
     status = JsUtils::GetValue(env, result, ctxt->packageName);
     CHECK_RETURN(status == napi_ok, "get name failed!", status);
     result = nullptr;
@@ -89,6 +93,10 @@ napi_status JsInputMethod::GetInputMethodSubProperty(napi_env env, napi_value ar
         napi_value result = nullptr;
         status = napi_get_named_property(env, argv, "name", &result);
         PARAM_CHECK_RETURN(env, status == napi_ok, " name ", TYPE_STRING, status);
+        if (ctxt == nullptr) {
+            IMSA_HILOGE("ctxt is nullptr!");
+            return status;
+        }
         status = JsUtils::GetValue(env, result, ctxt->name);
         CHECK_RETURN(status == napi_ok, "get name failed!", status);
         result = nullptr;

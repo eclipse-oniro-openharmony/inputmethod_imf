@@ -23,6 +23,10 @@ constexpr size_t MAX_ARGV_COUNT = 10;
 void JsCallbackHandler::Execute(const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer,
     napi_value &output)
 {
+    if (object == nullptr) {
+        IMSA_HILOGE("object is nullptr!");
+        return;
+    }
     if (object->threadId_ != std::this_thread::get_id()) {
         IMSA_HILOGW("threadId not same!");
         return;

@@ -47,6 +47,10 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
             argc = argc - 1;
         }
     }
+    if (context == nullptr) {
+        IMSA_HILOGE("context is nullptr!");
+        return;
+    }
     NAPI_CALL_RETURN_VOID(env, (*context)(env, argc, argv, self));
     context_->ctx = std::move(context);
     napi_create_reference(env, self, 1, &context_->self);
@@ -203,6 +207,10 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
 
 void AsyncCall::DeleteContext(napi_env env, AsyncContext *context)
 {
+    if (context == nullptr) {
+        IMSA_HILOGE("context is nullptr!");
+        return;
+    }
     if (env != nullptr) {
         napi_delete_reference(env, context->callback);
         napi_delete_reference(env, context->self);

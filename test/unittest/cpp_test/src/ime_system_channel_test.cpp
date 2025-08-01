@@ -16,6 +16,7 @@
 #define private public
 #define protected public
 #include "ime_system_channel.h"
+#include "system_cmd_channel_service_impl.h"
 #undef private
 #include <gtest/gtest.h>
 
@@ -36,17 +37,20 @@ public:
     void SetUp();
     void TearDown();
     static sptr<ImeSystemCmdChannel> imeSystemChannel_;
+    static sptr<SystemCmdChannelServiceImpl> systemCmdChannelServiceImpl_;
     static sptr<OnSystemCmdListener> sysCmdListener_;
     static uint64_t permissionTokenId_;
 };
 sptr<ImeSystemCmdChannel> ImeSystemChannelTest::imeSystemChannel_;
 sptr<OnSystemCmdListener> ImeSystemChannelTest::sysCmdListener_;
+sptr<SystemCmdChannelServiceImpl> ImeSystemChannelTest::systemCmdChannelServiceImpl_;
 uint64_t ImeSystemChannelTest::permissionTokenId_ = 0;
 
 void ImeSystemChannelTest::SetUpTestCase(void)
 {
     TddUtil::StorageSelfTokenID();
     imeSystemChannel_ = ImeSystemCmdChannel::GetInstance();
+    systemCmdChannelServiceImpl_ = new (std::nothrow) SystemCmdChannelServiceImpl();
     sysCmdListener_ = new (std::nothrow) OnSystemCmdListenerImpl();
     permissionTokenId_ =
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" });
@@ -130,6 +134,24 @@ HWTEST_F(ImeSystemChannelTest, testImeSystemChannel_nullptr, TestSize.Level1)
     int32_t ret = imeSystemChannel_->ReceivePrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
     ret = imeSystemChannel_->NotifyPanelStatus({ InputType::NONE, 0, 0, 0 });
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testSystemCmdChannelServiceImpl
+ * @tc.desc: SystemCmdChannel test SystemCmdChannelServiceImpl is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ImeSystemChannelTest, testSystemCmdChannelServiceImpl_nullptr, TestSize.Level1)
+{
+    IMSA_HILOGI("ImeSystemChannelTest testSystemCmdChannelServiceImpl_nullptr Test START");
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = std::string("stringValue");
+    privateCommand.emplace("value1", privateDataValue1);
+    int32_t ret = systemCmdChannelServiceImpl_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
+    ret = systemCmdChannelServiceImpl_->NotifyPanelStatus({ InputType::NONE, 0, 0, 0 });
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 } // namespace MiscServices

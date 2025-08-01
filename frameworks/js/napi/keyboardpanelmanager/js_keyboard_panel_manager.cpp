@@ -76,8 +76,19 @@ napi_value JsKeyboardPanelManager::ConnectSystemCmd(napi_env env, napi_callback_
 {
     auto ctxt = std::make_shared<PanelManagerContext>();
     auto manager = JsKeyboardPanelManager::GetInstance();
+    if (manager == nullptr) {
+        IMSA_HILOGE("manager is nullptr!");
+        return nullptr;
+    }
     auto exec = [ctxt, env, manager](AsyncCall::Context *ctx) {
-        auto ret = ImeSystemCmdChannel::GetInstance()->ConnectSystemCmd(manager);
+        auto channel = ImeSystemCmdChannel::GetInstance();
+        if (channel == nullptr) {
+            ctxt->SetErrorCode(ErrorCode::ERROR_NULL_POINTER);
+            ctxt->SetState(napi_generic_failure);
+            IMSA_HILOGE("channel is nullptr!");
+            return;
+        }
+        auto ret = channel->ConnectSystemCmd(manager);
         ctxt->SetErrorCode(ret);
         CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "ConnectSystemCmd return error!");
         ctxt->SetState(napi_ok);
@@ -103,6 +114,10 @@ napi_value JsKeyboardPanelManager::Subscribe(napi_env env, napi_callback_info in
         return nullptr;
     }
     auto manager = JsKeyboardPanelManager::GetInstance();
+    if (manager == nullptr) {
+        IMSA_HILOGE("manager is nullptr!");
+        return nullptr;
+    }
     IMSA_HILOGD("subscribe type: %{public}s.", type.c_str());
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id(),
@@ -126,6 +141,10 @@ napi_value JsKeyboardPanelManager::UnSubscribe(napi_env env, napi_callback_info 
         return nullptr;
     }
     auto manager = JsKeyboardPanelManager::GetInstance();
+    if (manager == nullptr) {
+        IMSA_HILOGE("manager is nullptr!");
+        return nullptr;
+    }
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
@@ -149,6 +168,9 @@ void JsKeyboardPanelManager::RegisterListener(napi_value callback, std::string t
     }
     auto callbacks = jsCbMap_[type];
     bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
+        if (cb == nullptr) {
+            return false;
+        }
         return JsUtils::Equals(cb->env_, callback, cb->callback_, cb->threadId_);
     });
     if (ret) {
@@ -195,7 +217,14 @@ napi_value JsKeyboardPanelManager::GetSmartMenuCfg(napi_env env, napi_callback_i
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->smartMenu = ImeSystemCmdChannel::GetInstance()->GetSmartMenuCfg();
+        auto channel = ImeSystemCmdChannel::GetInstance();
+        if (channel == nullptr) {
+            ctxt->SetState(napi_generic_failure);
+            ctxt->smartMenu = {};
+            ctxt->SetErrorCode(ErrorCode::ERROR_NULL_POINTER);
+            return;
+        }
+        ctxt->smartMenu = channel->GetSmartMenuCfg();
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(nullptr, std::move(output));
@@ -222,7 +251,12 @@ napi_value JsKeyboardPanelManager::SendPrivateCommand(napi_env env, napi_callbac
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         privateCommandQueue_.Wait(ctxt->info);
-        int32_t code = ImeSystemCmdChannel::GetInstance()->SendPrivateCommand(ctxt->privateCommand);
+        auto channel = ImeSystemCmdChannel::GetInstance();
+        if (channel == nullptr) {
+            ctxt->SetState(napi_generic_failure);
+            return;
+        }
+        int32_t code = channel->SendPrivateCommand(ctxt->privateCommand);
         privateCommandQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
@@ -239,7 +273,11 @@ napi_value JsKeyboardPanelManager::SendPrivateCommand(napi_env env, napi_callbac
 napi_value JsKeyboardPanelManager::GetDefaultInputMethod(napi_env env, napi_callback_info info)
 {
     std::shared_ptr<Property> property;
-    int32_t ret = ImeSystemCmdChannel::GetInstance()->GetDefaultImeCfg(property);
+    auto channel = ImeSystemCmdChannel::GetInstance();
+    if (channel == nullptr) {
+        return nullptr;
+    }
+    int32_t ret = channel->GetDefaultImeCfg(property);
     if (ret != ErrorCode::NO_ERROR || property == nullptr) {
         IMSA_HILOGE("GetDefaultImeCfg failed or property is nullptr ret: %{public}d!", ret);
         return nullptr;

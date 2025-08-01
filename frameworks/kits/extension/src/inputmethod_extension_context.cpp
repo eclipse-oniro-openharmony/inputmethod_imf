@@ -27,7 +27,12 @@ int InputMethodExtensionContext::ILLEGAL_REQUEST_CODE(-1);
 ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want) const
 {
     IMSA_HILOGD("%{public}s begin.", __func__);
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, ILLEGAL_REQUEST_CODE);
+    auto client = AAFwk::AbilityManagerClient::GetInstance();
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ERR_NO_INIT;
+    }
+    ErrCode err = client->StartAbility(want, token_, ILLEGAL_REQUEST_CODE);
     IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
     if (err != ERR_OK) {
         IMSA_HILOGE("InputMethodExtensionContext::StartAbility failed: %{public}d", err);
@@ -39,8 +44,12 @@ ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want,
     const AAFwk::StartOptions &startOptions) const
 {
     IMSA_HILOGD("%{public}s start.", __func__);
-    ErrCode err =
-        AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, ILLEGAL_REQUEST_CODE);
+    auto client = AAFwk::AbilityManagerClient::GetInstance();
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ERR_NO_INIT;
+    }
+    ErrCode err = client->StartAbility(want, startOptions, token_, ILLEGAL_REQUEST_CODE);
     IMSA_HILOGD("%{public}s ret: %{public}d.", __func__, err);
     if (err != ERR_OK) {
         IMSA_HILOGE("InputMethodExtensionContext::StartAbility failed: %{public}d", err);
@@ -60,8 +69,12 @@ bool InputMethodExtensionContext::ConnectAbility(const AAFwk::Want &want,
 ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &want, int accountId) const
 {
     IMSA_HILOGI("%{public}s start, accountId: %{public}d.", __func__, accountId);
-    ErrCode err =
-        AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, ILLEGAL_REQUEST_CODE, accountId);
+    auto client = AAFwk::AbilityManagerClient::GetInstance();
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ERR_NO_INIT;
+    }
+    ErrCode err = client->StartAbility(want, token_, ILLEGAL_REQUEST_CODE, accountId);
     IMSA_HILOGD("%{public}s ret: %{public}d.", __func__, err);
     if (err != ERR_OK) {
         IMSA_HILOGE("InputMethodExtensionContext::StartAbilityWithAccount failed: %{public}d!", err);
@@ -73,7 +86,12 @@ ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &
     const AAFwk::StartOptions &startOptions) const
 {
     IMSA_HILOGD("%{public}s start.", __func__);
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_,
+    auto client = AAFwk::AbilityManagerClient::GetInstance();
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ERR_NO_INIT;
+    }
+    ErrCode err = client->StartAbility(want, startOptions, token_,
         ILLEGAL_REQUEST_CODE, accountId);
     IMSA_HILOGD("%{public}s ret: %{public}d", __func__, err);
     if (err != ERR_OK) {
@@ -106,7 +124,12 @@ ErrCode InputMethodExtensionContext::DisconnectAbility(const AAFwk::Want &want,
 ErrCode InputMethodExtensionContext::TerminateAbility()
 {
     IMSA_HILOGI("%{public}s start.", __func__);
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, -1, nullptr);
+    auto client = AAFwk::AbilityManagerClient::GetInstance();
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr.");
+        return ERR_NO_INIT;
+    }
+    ErrCode err = client->TerminateAbility(token_, -1, nullptr);
     if (err != ERR_OK) {
         IMSA_HILOGE("InputMethodExtensionContext::TerminateAbility failed: %{public}d!", err);
     }

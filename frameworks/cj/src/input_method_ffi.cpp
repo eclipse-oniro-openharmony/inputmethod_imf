@@ -125,7 +125,7 @@ int32_t FfiInputMethodGetSystemInputMethodConfigAbility(CElementName *elem)
         return ERR_NO_MEMORY;
     }
     int32_t ret = ctrl->GetInputMethodConfig(inputMethodConfig);
-    if (ret == ErrorCode::NO_ERROR) {
+    if (ret == ErrorCode::NO_ERROR && elem != nullptr) {
         elem->deviceId = Utils::MallocCString(inputMethodConfig.GetDeviceID());
         elem->bundleName = Utils::MallocCString(inputMethodConfig.GetBundleName());
         elem->abilityName = Utils::MallocCString(inputMethodConfig.GetAbilityName());

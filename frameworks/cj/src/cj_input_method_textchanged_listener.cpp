@@ -32,52 +32,103 @@ sptr<CjInputMethodTextChangedListener> CjInputMethodTextChangedListener::GetInst
 
 void CjInputMethodTextChangedListener::InsertText(const std::u16string &text)
 {
-    CjInputMethodController::GetInstance()->InsertText(text);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->InsertText(text);
 }
 
 void CjInputMethodTextChangedListener::DeleteForward(int32_t length)
 {
-    CjInputMethodController::GetInstance()->DeleteRight(length);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->DeleteRight(length);
 }
 
 void CjInputMethodTextChangedListener::DeleteBackward(int32_t length)
 {
-    CjInputMethodController::GetInstance()->DeleteLeft(length);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->DeleteLeft(length);
 }
 
 void CjInputMethodTextChangedListener::SendKeyboardStatus(const KeyboardStatus &status)
 {
-    CjInputMethodController::GetInstance()->SendKeyboardStatus(status);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->SendKeyboardStatus(status);
 }
 
 void CjInputMethodTextChangedListener::SendFunctionKey(const FunctionKey &functionKey)
 {
-    CjInputMethodController::GetInstance()->SendFunctionKey(functionKey);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->SendFunctionKey(functionKey);
 }
 
 void CjInputMethodTextChangedListener::MoveCursor(const Direction direction)
 {
-    CjInputMethodController::GetInstance()->MoveCursor(direction);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->MoveCursor(direction);
 }
 
 void CjInputMethodTextChangedListener::HandleExtendAction(int32_t action)
 {
-    CjInputMethodController::GetInstance()->HandleExtendAction(action);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return;
+    }
+    controller->HandleExtendAction(action);
 }
 
 std::u16string CjInputMethodTextChangedListener::GetLeftTextOfCursor(int32_t number)
 {
-    return CjInputMethodController::GetInstance()->GetLeftText(number);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return std::u16string();
+    }
+    return controller->GetLeftText(number);
 }
 
 std::u16string CjInputMethodTextChangedListener::GetRightTextOfCursor(int32_t number)
 {
-    return CjInputMethodController::GetInstance()->GetRightText(number);
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        return std::u16string();
+    }
+    return controller->GetRightText(number);
 }
 
 int32_t CjInputMethodTextChangedListener::GetTextIndexAtCursor()
 {
-    return CjInputMethodController::GetInstance()->GetTextIndexAtCursor();
+    auto controller = CjInputMethodController::GetInstance();
+    if (controller ==  nullptr) {
+        IMSA_HILOGE("controller is nullptr!");
+        int32_t index = -1;
+        return index;
+    }
+    return controller->GetTextIndexAtCursor();
 }
 
 int32_t CjInputMethodTextChangedListener::ReceivePrivateCommand(

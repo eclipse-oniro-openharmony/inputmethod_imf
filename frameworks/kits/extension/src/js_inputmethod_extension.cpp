@@ -89,6 +89,10 @@ napi_value AttachInputMethodExtensionContext(napi_env env, void *value, void *)
 JsInputMethodExtension *JsInputMethodExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
     IMSA_HILOGI("JsInputMethodExtension Create.");
+    if (runtime == nullptr) {
+        IMSA_HILOGE("runtime is nullptr.");
+        return nullptr;
+    }
     jsInputMethodExtension = new JsInputMethodExtension(static_cast<JsRuntime &>(*runtime));
     return jsInputMethodExtension;
 }
@@ -115,6 +119,10 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
         return;
     }
 
+    if (abilityInfo_ == nullptr) {
+        IMSA_HILOGE("abilityInfo_ is nullptr!");
+        return;
+    }
     std::string moduleName(Extension::abilityInfo_->moduleName);
     moduleName.append("::").append(abilityInfo_->name);
     IMSA_HILOGI("JsInputMethodExtension, module: %{public}s, srcPath:%{public}s.", moduleName.c_str(), srcPath.c_str());
@@ -279,7 +287,12 @@ void JsInputMethodExtension::OnStop()
     InputMethodExtension::OnStop();
     IMSA_HILOGI("JsInputMethodExtension OnStop start.");
     CallObjectMethod("onDestroy");
-    bool ret = ConnectionManager::GetInstance().DisconnectCaller(GetContext()->GetToken());
+    auto context = GetContext();
+    if (context == nullptr) {
+        IMSA_HILOGE("context is nullptr.");
+        return;
+    }
+    bool ret = ConnectionManager::GetInstance().DisconnectCaller(context->GetToken());
     if (ret) {
         IMSA_HILOGI("the input method extension connection is not disconnected.");
     }
@@ -380,6 +393,10 @@ napi_value JsInputMethodExtension::CallObjectMethod(const char *name, const napi
 void JsInputMethodExtension::GetSrcPath(std::string &srcPath)
 {
     IMSA_HILOGD("JsInputMethodExtension GetSrcPath start.");
+    if (abilityInfo_ == nullptr) {
+        IMSA_HILOGE("abilityInfo_ is nullptr!");
+        return;
+    }
     if (!Extension::abilityInfo_->isModuleJson) {
         /* temporary compatibility api8 + config.json */
         srcPath.append(Extension::abilityInfo_->package);
