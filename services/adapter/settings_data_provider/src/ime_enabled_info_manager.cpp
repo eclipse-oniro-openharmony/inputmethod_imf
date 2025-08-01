@@ -194,10 +194,6 @@ int32_t ImeEnabledInfoManager::Update(
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    if (!HasEnabledSwitch()) {
-        IMSA_HILOGD("has no enabled switch.");
-        return ErrorCode::NO_ERROR;
-    }
     ImeEnabledCfg enabledCfg;
     ret = GetEnabledCacheWithCorrect(userId, bundleName, extensionName, enabledCfg);
     if (ret != ErrorCode::NO_ERROR) {
@@ -238,10 +234,6 @@ int32_t ImeEnabledInfoManager::GetEnabledState(int32_t userId, const std::string
         IMSA_HILOGW("%{public}d bundleName is empty.", userId);
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    if (!HasEnabledSwitch()) {
-        status = EnabledStatus::FULL_EXPERIENCE_MODE;
-        return ErrorCode::NO_ERROR;
-    }
     if (bundleName == ImeInfoInquirer::GetInstance().GetSystemSpecialIme()) {
         status = EnabledStatus::FULL_EXPERIENCE_MODE;
         return ErrorCode::NO_ERROR;
@@ -264,12 +256,6 @@ int32_t ImeEnabledInfoManager::GetEnabledStates(int32_t userId, std::vector<Prop
     std::lock_guard<std::mutex> lock(operateLock_);
     if (props.empty()) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    if (!HasEnabledSwitch()) {
-        for (auto &prop : props) {
-            prop.status = EnabledStatus::FULL_EXPERIENCE_MODE;
-        }
-        return ErrorCode::NO_ERROR;
     }
     auto ret = GetEnabledStatesInner(userId, props);
     for (auto &prop : props) {

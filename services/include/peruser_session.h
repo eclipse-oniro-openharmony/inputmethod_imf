@@ -23,6 +23,7 @@
 #include "event_status_manager.h"
 #include "iinput_method_core.h"
 #include "ime_cfg_manager.h"
+#include "ime_connection.h"
 #include "input_method_types.h"
 #include "input_type_manager.h"
 #include "inputmethod_message_handler.h"
@@ -167,6 +168,8 @@ public:
     void DecreaseAttachCount();
     uint32_t GetAttachCount();
     void IncreaseScbStartCount();
+    int32_t TryStartIme();
+    int32_t TryDisconnectIme();
 
 private:
     struct ResetManager {
@@ -265,6 +268,9 @@ private:
     bool IsAttachFinished();
     uint32_t GetScbStartCount();
     void ResetRestartTasks();
+    void SetImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
+    sptr<AAFwk::IAbilityConnection> GetImeConnection();
+    void ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
 
     std::mutex imeStartLock_;
 
@@ -314,6 +320,9 @@ private:
     uint32_t attachingCount_ { 0 };
     std::mutex scbStartCountMtx_{};
     uint32_t scbStartCount_ { 0 };
+    std::mutex connectionLock_{};
+    sptr<AAFwk::IAbilityConnection> connection_ = nullptr;
+    std::atomic<bool> isBlockStartedByLowMem_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

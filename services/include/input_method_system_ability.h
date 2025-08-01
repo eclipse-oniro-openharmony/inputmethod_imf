@@ -119,6 +119,7 @@ private:
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnUserStop(const Message *msg);
     int32_t OnHideKeyboardSelf(const Message *msg);
+    void OnSysMemChanged();
     bool IsNeedSwitch(int32_t userId, const std::string &bundleName, const std::string &subName);
     int32_t CheckEnableAndSwitchPermission();
     int32_t CheckSwitchPermission(int32_t userId, const SwitchInfo &switchInfo, SwitchTrigger trigger);
