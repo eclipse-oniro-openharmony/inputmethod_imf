@@ -60,13 +60,6 @@ public:
     int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams, bool needUpdateRegion = true);
     int32_t AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutParams params, HotAreas hotAreas);
     int32_t UpdateRegion(std::vector<Rosen::Rect> region);
-    int32_t ParsePanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
-    int32_t GetSysPanelAdjust(const PanelFlag panelFlag,
-        std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, const LayoutParams &layoutParams);
-    int32_t CalculatePanelRect(const PanelFlag panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
-        const LayoutParams &layoutParams);
-    int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, const LayoutParams &layoutParams,
-        PanelAdjustInfo &lanIterValue);
     std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(const PanelFlag panelFlag);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
@@ -81,6 +74,7 @@ public:
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
+    bool IsDisplayPortrait();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
     void SetPanelHeightCallback(CallbackFunc heightCallback);
     int32_t IsEnhancedParamValid(PanelFlag panelFlag, EnhancedLayoutParams &params);
@@ -123,11 +117,7 @@ private:
     bool IsSizeValid(uint32_t width, uint32_t height);
     bool IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height, int32_t displayWidth, int32_t displayHeight);
     bool IsRectValid(const Rosen::Rect &rect, const WindowSize &displaySize);
-    bool CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t height, bool isDataPortrait);
-    bool GetDisplaySize(bool isPortrait, WindowSize &size);
-    int32_t CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
-        PanelAdjustInfo &porIterValue);
-    int32_t CalculateNoConfigRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
+    bool IsRectValid(PanelFlag panelFlag, const Rosen::Rect &rect, const WindowSize &displaySize);
     int32_t GetResizeParams(Rosen::Rect &portrait, Rosen::Rect &landscape, uint32_t width, uint32_t height);
 
     int32_t ParseEnhancedParams(
@@ -137,6 +127,10 @@ private:
     int32_t CalculateAvoidHeight(EnhancedLayoutParam &layoutParam, const WindowSize &displaySize, PanelFlag panelFlag,
         const PanelAdjustInfo &adjustInfo);
 
+    int32_t ParseParams(PanelFlag panelFlag, const LayoutParams &input, Rosen::KeyboardLayoutParams &output);
+    void ParseParam(PanelFlag panelFlag, const PanelAdjustInfo &adjustInfo, const WindowSize &displaySize,
+        const Rosen::Rect &inputRect, EnhancedLayoutParam &outputParam);
+
     void CalculateHotAreas(const EnhancedLayoutParams &enhancedParams, const Rosen::KeyboardLayoutParams &params,
         const FullPanelAdjustInfo &adjustInfo, HotAreas &hotAreas);
     void CalculateDefaultHotArea(const Rosen::Rect &keyboard, const Rosen::Rect &panel,
@@ -145,7 +139,7 @@ private:
         HotArea &hotArea, uint32_t changeY);
     void CalculateEnhancedHotArea(
         const EnhancedLayoutParam &layout, const PanelAdjustInfo &adjustInfo, HotArea &hotArea, uint32_t changeY);
-    void RectifyAreas(const std::vector<Rosen::Rect> availableAreas, std::vector<Rosen::Rect> &areas);
+    void RectifyAreas(const std::vector<Rosen::Rect> &availableAreas, std::vector<Rosen::Rect> &areas);
     Rosen::Rect GetRectIntersection(Rosen::Rect a, Rosen::Rect b);
     uint32_t SafeSubtract(uint32_t minuend, uint32_t subtrahend);
 
@@ -158,7 +152,6 @@ private:
     int32_t MovePanelRect(int32_t x, int32_t y);
     int32_t MoveEnhancedPanelRect(int32_t x, int32_t y);
 
-    bool IsDisplayPortrait();
     bool IsDisplayUnfolded();
     int32_t GetDisplaySize(DisplaySize &size);
     int32_t GetDensityDpi(float &densityDpi);
@@ -176,23 +169,38 @@ private:
     int32_t GetKeyboardArea(PanelFlag panelFlag, const WindowSize &size, PanelAdjustInfo &keyboardArea);
     int32_t GetWindowOrientation(PanelFlag panelFlag, uint32_t windowWidth, bool &isPortrait);
 
-    void SetHotAreas(const HotAreas &hotAreas);
-    HotAreas GetHotAreas();
     sptr<Rosen::Display> GetCurDisplay();
     uint64_t GetCurDisplayId();
-    void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
-    std::vector<int32_t> GetIgnoreAdjustInputTypes();
     bool IsNeedConfig();
-    int32_t IsValidParam(const ImmersiveEffect &effect);
+    int32_t IsValidParam(const ImmersiveEffect &effect, const Rosen::KeyboardLayoutParams &layoutParams);
     int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param);
-    int32_t FullScreenPrepare(Rosen::KeyboardLayoutParams &param);
-    int32_t NormalImePrepare(Rosen::KeyboardLayoutParams &param);
-    int32_t PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param);
+    int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
+    int32_t FullScreenPrepare(Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
+    int32_t NormalImePrepare(Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
+    int32_t PrepareAdjustLayout(Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
     bool IsImmersiveEffectSupported();
     Rosen::KeyboardEffectOption ConvertToWmEffect(ImmersiveMode mode, const ImmersiveEffect &effect);
     void SetImmersiveEffectToNone();
     void UpdateImmersiveHotArea();
     bool IsValidGradientHeight(uint32_t gradientHeight);
+
+    // Locked read and write functions for concurrent protection
+    Rosen::KeyboardLayoutParams GetKeyboardLayoutParams();
+    void SetKeyboardLayoutParams(Rosen::KeyboardLayoutParams params);
+    EnhancedLayoutParams GetEnhancedLayoutParams();
+    void SetEnhancedLayoutParams(EnhancedLayoutParams params);
+    std::vector<int32_t> GetIgnoreAdjustInputTypes();
+    void SetIgnoreAdjustInputTypes(const std::vector<int32_t> &inputTypes);
+    ImmersiveEffect LoadImmersiveEffect();
+    void StoreImmersiveEffect(ImmersiveEffect effect);
+    HotAreas GetHotAreas();
+    void SetHotAreas(const HotAreas &hotAreas);
+    ChangeY GetChangeY();
+    void SetChangeY(ChangeY changeY);
+
+    void StoreImmersiveMode(ImmersiveMode mode);
+    CallbackFunc GetPanelHeightCallback();
+
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
@@ -219,30 +227,38 @@ private:
 
     std::mutex hotAreasLock_;
     HotAreas hotAreas_;
+    std::mutex enhancedLayoutParamMutex_;
     EnhancedLayoutParams enhancedLayoutParams_;
+    std::mutex keyboardLayoutParamsMutex_;
     Rosen::KeyboardLayoutParams keyboardLayoutParams_;
 
     std::mutex keyboardSizeLock_;
     WindowSize keyboardSize_ { 0, 0 };
     std::mutex windowListenerLock_;
     sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
+    std::mutex heightCallbackMutex_;
     CallbackFunc panelHeightCallback_ = nullptr;
 
+    std::mutex foldResizeParamMutex_;
     LayoutParams resizePanelFoldParams_ { // FoldDefaultValue
         { FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, FOLD_BOTTOM },
         { FOLD_TOP, FOLD_LEFT, FOLD_RIGHT, COMMON_BOTTOM }
     };
 
+    std::mutex unfoldResizeParamMutex_;
     LayoutParams resizePanelUnfoldParams_ { // UnfoldDefaultValue
         { UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, UNFOLD_BOTTOM },
         { UNFOLD_TOP, UNFOLD_LEFT, UNFOLD_RIGHT, COMMON_BOTTOM }
     };
     std::atomic<bool> isWaitSetUiContent_ { true };
     std::atomic<bool> isInEnhancedAdjust_{ false };
+
+    std::mutex immersiveModeMutex_;
     ImmersiveMode immersiveMode_ { ImmersiveMode::NONE_IMMERSIVE };
+    std::mutex immersiveEffectMutex_;
     ImmersiveEffect immersiveEffect_ { 0, GradientMode::NONE, FluidLightMode::NONE };
-    uint32_t portraitChangeY_ = 0;
-    uint32_t landscapeChangeY_ = 0;
+    std::mutex changeYMutex_;
+    ChangeY changeY_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -102,6 +102,7 @@ public:
     static void TestHidePanel(const std::shared_ptr<InputMethodPanel> &panel);
     static void TestIsPanelShown(const PanelInfo &info, bool expectedResult);
     static void TriggerPanelStatusChangeToImc(const std::shared_ptr<InputMethodPanel> &panel, InputWindowStatus status);
+    static int32_t GetDisplaySize(DisplaySize &size);
     class PanelStatusListenerImpl : public PanelStatusListener {
     public:
         PanelStatusListenerImpl()
@@ -462,6 +463,25 @@ void InputMethodPanelTest::TriggerPanelStatusChangeToImc(
         panel->PanelStatusChangeToImc(status, { 0, 0, 0, 0 });
         IdentityCheckerMock::SetBundleNameValid(false);
     }
+}
+
+int32_t InputMethodPanelTest::GetDisplaySize(DisplaySize &size)
+{
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    if (defaultDisplay == nullptr) {
+        IMSA_HILOGE("GetDefaultDisplay failed!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    auto width = defaultDisplay->GetWidth();
+    auto height = defaultDisplay->GetHeight();
+    if (width < height) {
+        size.portrait = { .width = width, .height = height };
+        size.landscape = { .width = height, .height = width };
+    } else {
+        size.portrait = { .width = height, .height = width };
+        size.landscape = { .width = width, .height = height };
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 /**
@@ -1234,6 +1254,7 @@ HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_002, 
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_001, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_001 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1258,6 +1279,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_001, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_002, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_002 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1282,6 +1304,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_002, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_003, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_003 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1306,6 +1329,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_003, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_004, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_004 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1330,6 +1354,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_004, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_005, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_005 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1354,20 +1379,19 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_005, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_006, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_006 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowHeight_, 0 };
-    layoutParams.portraitRect = { 0, 0, windowWidth_, 0 };
+    layoutParams.landscapeRect = { 0, 0, displaySize.landscape.width, 0 };
+    layoutParams.portraitRect = { 0, 0, displaySize.portrait.width, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1382,20 +1406,19 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_006, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_007, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_007 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowHeight_ + 1, 0 };
-    layoutParams.portraitRect = { 0, 0, windowWidth_ + 1, 0 };
+    layoutParams.landscapeRect = { 0, 0, displaySize.landscape.width + 1, 0 };
+    layoutParams.portraitRect = { 0, 0, displaySize.portrait.width + 1, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1410,20 +1433,21 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_007, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_008, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_008 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ * 0.7 + 1 };
-    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ * 0.7 + 1 };
+    layoutParams.landscapeRect = { 0, 0, displaySize.landscape.width,
+        static_cast<uint32_t>(static_cast<float>(displaySize.landscape.height) * 0.7) + 1 };
+    layoutParams.portraitRect = { 0, 0, displaySize.portrait.width,
+        static_cast<uint32_t>(static_cast<float>(displaySize.portrait.height) * 0.7) + 1 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1438,20 +1462,21 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_008, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_009, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_009 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FIXED;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FIXED;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ * 0.7 };
-    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ * 0.7 };
+    layoutParams.landscapeRect = { 0, 0, displaySize.landscape.width,
+        static_cast<uint32_t>(static_cast<float>(displaySize.landscape.height) * 0.7) };
+    layoutParams.portraitRect = { 0, 0, displaySize.portrait.width,
+        static_cast<uint32_t>(static_cast<float>(displaySize.portrait.height) * 0.7) };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1466,6 +1491,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_009, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_010, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_010 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1490,6 +1516,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_010, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_011, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_011 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1514,6 +1541,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_011, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_012, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_012 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1538,6 +1566,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_012, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_013, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_013 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -1562,20 +1591,19 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_013, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_014, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_014 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowWidth_, 0 };
-    layoutParams.portraitRect = { 0, 0, windowWidth_, 0 };
+    layoutParams.landscapeRect = { 0, 0, displaySize.landscape.width, 0 };
+    layoutParams.portraitRect = { 0, 0, displaySize.portrait.width, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1590,20 +1618,19 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_014, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_015, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_015 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowHeight_ + 1, 0 };
-    layoutParams.portraitRect = { 0, 0, windowWidth_ + 1, 0 };
+    layoutParams.landscapeRect = { 0, 0, displaySize.landscape.width + 1, 0 };
+    layoutParams.portraitRect = { 0, 0, displaySize.portrait.width + 1, 0 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1618,20 +1645,21 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_015, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_016, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_016 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ * 0.7 + 1 };
-    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ * 0.7 + 1 };
+    layoutParams.landscapeRect = { 0, 0, displaySize.landscape.width,
+        static_cast<uint32_t>(static_cast<float>(displaySize.landscape.height) * 0.7) + 1 };
+    layoutParams.portraitRect = { 0, 0, displaySize.portrait.width,
+        static_cast<uint32_t>(static_cast<float>(displaySize.portrait.height) * 0.7) + 1 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1646,20 +1674,18 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_016, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_017, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_017 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
-    LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ };
-    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ };
+    LayoutParams layoutParams = { .landscapeRect = { 0, 0, displaySize.landscape.width, displaySize.landscape.height },
+        .portraitRect = { 0, 0, displaySize.portrait.width, displaySize.portrait.height } };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1674,20 +1700,19 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_017, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustPanelRect_018 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;
     panelInfo.panelFlag = FLG_FLOATING;
     InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth();
-    windowHeight_ = defaultDisplay->GetHeight();
+    DisplaySize displaySize;
+    ASSERT_EQ(InputMethodPanelTest::GetDisplaySize(displaySize), ErrorCode::NO_ERROR);
     PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
     LayoutParams layoutParams;
-    layoutParams.landscapeRect = { 0, 0, windowHeight_, windowWidth_ + 1 };
-    layoutParams.portraitRect = { 0, 0, windowWidth_, windowHeight_ + 1 };
+    layoutParams.landscapeRect = { 0, 0, displaySize.landscape.width, displaySize.landscape.height + 1 };
+    layoutParams.portraitRect = { 0, 0, displaySize.portrait.width, displaySize.portrait.height + 1 };
     auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
@@ -1702,6 +1727,7 @@ HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
  */
 HWTEST_F(InputMethodPanelTest, testAdjustKeyboard_001, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodPanelTest::testAdjustKeyboard_001 start.");
     InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo;
@@ -2148,7 +2174,6 @@ HWTEST_F(InputMethodPanelTest, testGetImmersiveMode, TestSize.Level0)
     EXPECT_EQ(ErrorCode::NO_ERROR, ret);
 }
 
-
 /**
  * @tc.name: testParameterValidationInterface
  * @tc.desc: Test Parameter validation interface
@@ -2212,8 +2237,8 @@ HWTEST_F(InputMethodPanelTest, testParameterValidationInterface, TestSize.Level0
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ErrorCode::ERROR_NULL_POINTER, ret);
 }
- 
- /**
+
+/**
   * @tc.name: testMoveEnhancedPanelRect
   * @tc.desc: Test Move Enhanced Panel Rect
   * @tc.type: FUNC
@@ -2334,22 +2359,22 @@ HWTEST_F(InputMethodPanelTest, testInvalidParams, TestSize.Level0)
     inputMethodPanel->immersiveEffect_.gradientHeight = GRADIENT_HEIGHT; // Configure gradient
     KeyboardLayoutParams param;
     param.portraitAvoidHeight_ = -1; // Set invalid negative value
-    auto ret = inputMethodPanel->FullScreenPrepare(param);
+    auto ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
 
     param.portraitAvoidHeight_ = PORTRAIT_AVOID_HEIGHT;
     param.landscapeAvoidHeight_ = -1; // Set invalid negative value
-    ret = inputMethodPanel->FullScreenPrepare(param);
+    ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
 
     param.landscapeAvoidHeight_ = LANDSCAPE_AVOID_HEIGHT;
     param.PortraitPanelRect_.posY_ = -1; // Set invalid negative value
-    ret = inputMethodPanel->FullScreenPrepare(param);
+    ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
 
     param.PortraitPanelRect_.posY_ = VALID_POS_Y;
     param.LandscapePanelRect_.posY_ = -1; // Set invalid negative value
-    ret = inputMethodPanel->FullScreenPrepare(param);
+    ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
 }
 
@@ -2369,7 +2394,7 @@ HWTEST_F(InputMethodPanelTest, testPortraitAdjustmentNeeded, TestSize.Level0)
     param.PortraitPanelRect_.height_ = INITIAL_PORTRAIT_HEIGHT; // 25 < 20+10=30 → needs adjustment
     param.PortraitPanelRect_.posY_ = INITIAL_PORTRAIT_POS_Y;
 
-    auto ret = inputMethodPanel->FullScreenPrepare(param);
+    auto ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // Calculate expected values
@@ -2377,7 +2402,7 @@ HWTEST_F(InputMethodPanelTest, testPortraitAdjustmentNeeded, TestSize.Level0)
     const uint32_t expectedChangeY = expectedHeight - INITIAL_PORTRAIT_HEIGHT;
     const int32_t expectedPosY = INITIAL_PORTRAIT_POS_Y - static_cast<int32_t>(expectedChangeY);
 
-    EXPECT_EQ(inputMethodPanel->portraitChangeY_, expectedChangeY);
+    EXPECT_EQ(inputMethodPanel->changeY_.portrait, expectedChangeY);
     EXPECT_EQ(param.PortraitPanelRect_.height_, expectedHeight);
     EXPECT_EQ(param.PortraitPanelRect_.posY_, expectedPosY);
 }
@@ -2398,11 +2423,11 @@ HWTEST_F(InputMethodPanelTest, testLargegradientHeight, TestSize.Level0)
     param.PortraitPanelRect_.posY_ = INITIAL_PORTRAIT_POS_Y;
 
     inputMethodPanel->immersiveEffect_.gradientHeight = static_cast<uint32_t>(INT32_MAX);
-    auto ret = inputMethodPanel->FullScreenPrepare(param);
+    auto ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
 
     inputMethodPanel->immersiveEffect_.gradientHeight = static_cast<uint32_t>(INT32_MAX - LANDSCAPE_AVOID_HEIGHT - 1);
-    ret = inputMethodPanel->FullScreenPrepare(param);
+    ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
 }
 /**
@@ -2420,7 +2445,7 @@ HWTEST_F(InputMethodPanelTest, testLandscapeAdjustmentNeeded, TestSize.Level0)
     param.LandscapePanelRect_.height_ = INITIAL_LANDSCAPE_HEIGHT; // 20 < 15+10=25 → needs adjustment
     param.LandscapePanelRect_.posY_ = INITIAL_LANDSCAPE_POS_Y;
 
-    auto ret = inputMethodPanel->FullScreenPrepare(param);
+    auto ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // Calculate expected values
@@ -2428,7 +2453,7 @@ HWTEST_F(InputMethodPanelTest, testLandscapeAdjustmentNeeded, TestSize.Level0)
     const uint32_t expectedChangeY = expectedHeight - INITIAL_LANDSCAPE_HEIGHT;
     const int32_t expectedPosY = INITIAL_LANDSCAPE_POS_Y - static_cast<int32_t>(expectedChangeY);
 
-    EXPECT_EQ(inputMethodPanel->landscapeChangeY_, expectedChangeY);
+    EXPECT_EQ(inputMethodPanel->changeY_.landscape, expectedChangeY);
     EXPECT_EQ(param.LandscapePanelRect_.height_, expectedHeight);
     EXPECT_EQ(param.LandscapePanelRect_.posY_, expectedPosY);
 }
@@ -2450,7 +2475,7 @@ HWTEST_F(InputMethodPanelTest, ShouldRejectNegativePortraitPosition, TestSize.Le
     param.LandscapePanelRect_ = { 0, VALID_POS_Y, LANDSCAPE_WIDTH, LANDSCAPE_HEIGHT };
 
     // Verify error handling
-    ASSERT_EQ(panel->NormalImePrepare(param), ErrorCode::ERROR_INVALID_RANGE);
+    ASSERT_EQ(panel->NormalImePrepare(param, panel->immersiveEffect_), ErrorCode::ERROR_INVALID_RANGE);
 }
 
 /**
@@ -2467,7 +2492,7 @@ HWTEST_F(InputMethodPanelTest, ShouldRejectNegativeLandscapePosition, TestSize.L
     param.PortraitPanelRect_ = { 0, VALID_POS_Y, DEFAULT_WIDTH, DEFAULT_HEIGHT };
     param.LandscapePanelRect_ = { 0, INVALID_POS_Y, LANDSCAPE_WIDTH, LANDSCAPE_HEIGHT };
 
-    ASSERT_EQ(panel->NormalImePrepare(param), ErrorCode::ERROR_INVALID_RANGE);
+    ASSERT_EQ(panel->NormalImePrepare(param, panel->immersiveEffect_), ErrorCode::ERROR_INVALID_RANGE);
 }
 
 /**
@@ -2488,7 +2513,7 @@ HWTEST_F(InputMethodPanelTest, ShouldAdjustValidParametersCorrectly, TestSize.Le
     param.LandscapePanelRect_ = { 0, VALID_POS_Y, LANDSCAPE_WIDTH, originalLandscapeHeight };
 
     // Execute operation
-    ASSERT_EQ(panel->NormalImePrepare(param), ErrorCode::NO_ERROR);
+    ASSERT_EQ(panel->NormalImePrepare(param, panel->immersiveEffect_), ErrorCode::NO_ERROR);
 
     // Verify height adjustments
     EXPECT_EQ(param.PortraitPanelRect_.height_, originalPortraitHeight + GRADIENT_HEIGHT);
@@ -2499,8 +2524,8 @@ HWTEST_F(InputMethodPanelTest, ShouldAdjustValidParametersCorrectly, TestSize.Le
     EXPECT_EQ(param.LandscapePanelRect_.posY_, 0);
 
     // Verify member variables
-    EXPECT_EQ(panel->portraitChangeY_, GRADIENT_HEIGHT);
-    EXPECT_EQ(panel->landscapeChangeY_, GRADIENT_HEIGHT);
+    EXPECT_EQ(panel->changeY_.portrait, GRADIENT_HEIGHT);
+    EXPECT_EQ(panel->changeY_.landscape, GRADIENT_HEIGHT);
 }
 
 /**

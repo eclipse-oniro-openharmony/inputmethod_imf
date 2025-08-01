@@ -27,6 +27,11 @@ struct WindowSize {
     uint32_t height = 0;
 };
 
+struct ChangeY {
+    uint32_t portrait = 0;
+    uint32_t landscape = 0;
+};
+
 struct LayoutParams {
     Rosen::Rect landscapeRect{ 0, 0, 0, 0 };
     Rosen::Rect portraitRect{ 0, 0, 0, 0 };
@@ -53,7 +58,8 @@ struct HotAreas {
 };
 
 struct EnhancedLayoutParam {
-    Rosen::Rect rect{ 0, 0, 0, 0 };
+    Rosen::Rect rect{ 0, 0, 0, 0 };      // rect of keyboard panel
+    Rosen::Rect panelRect{ 0, 0, 0, 0 }; // rect of system panel
     int32_t avoidY{ 0 };
     uint32_t avoidHeight{ 0 };
     inline std::string ToString() const
@@ -82,8 +88,8 @@ struct PanelAdjustInfo {
     int32_t bottom{ 0 };
     bool operator==(const PanelAdjustInfo &panelAdjust) const
     {
-        return (top == panelAdjust.top && left == panelAdjust.left && right == panelAdjust.right
-                && bottom == panelAdjust.bottom);
+        return (top == panelAdjust.top && left == panelAdjust.left && right == panelAdjust.right &&
+                bottom == panelAdjust.bottom);
     }
     inline std::string ToString() const
     {
