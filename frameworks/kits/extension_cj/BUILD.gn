@@ -80,6 +80,7 @@ ohos_shared_library("cj_inputmethod_extension_ffi") {
     "ability_runtime:ability_manager",
     "ability_runtime:ability_start_options",
     "ability_runtime:abilitykit_native",
+    "ability_runtime:abilitykit_utils",
     "ability_runtime:app_context",
     "ability_runtime:extensionkit_native",
     "ability_runtime:runtime",
