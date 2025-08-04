@@ -22,10 +22,12 @@
 #include "string_ex.h"
 #include "variant_util.h"
 #include "input_method_ability.h"
+#include "ima_hisysevent_reporter.h"
 
 namespace OHOS {
 namespace MiscServices {
 constexpr std::size_t MESSAGE_UNANSWERED_MAX_NUMBER = 1000;
+constexpr uint32_t BASE_TEXT_OPERATION_TIMEOUT = 200;
 InputDataChannelProxyWrap::InputDataChannelProxyWrap(
     const std::shared_ptr<InputDataChannelProxy> &channel, const sptr<IRemoteObject> &agentObject)
 {
@@ -289,8 +291,7 @@ int32_t InputDataChannelProxyWrap::HandleMsg(uint64_t msgId, const ResponseInfo 
         it->second->asyncCallback_(rspInfo.dealRet_, rspInfo.data_);
     }
     int64_t now = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    InputMethodAbility::GetInstance().ReportBaseTextOperation(it->second->eventCode_, rspInfo.dealRet_,
-        now - it->second->reportStartTime_);
+    ReportBaseTextOperation(it->second->eventCode_, rspInfo.dealRet_, now - it->second->reportStartTime_);
     rspHandlers_.erase(it);
     return ErrorCode::NO_ERROR;
 }
@@ -320,6 +321,25 @@ int32_t InputDataChannelProxyWrap::DeleteRspHandler(uint64_t msgId)
         rspHandlers_.erase(it);
     }
     return ErrorCode::NO_ERROR;
+}
+
+void InputDataChannelProxyWrap::ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime)
+{
+    IMSA_HILOGD("HiSysEvent report start:[%{public}d, %{public}d]!", eventCode, errCode);
+    auto clientInfo = InputMethodAbility::GetInstance().GetBindClientInfo();
+    if (errCode == ErrorCode::NO_ERROR && consumeTime > BASE_TEXT_OPERATION_TIMEOUT) {
+        errCode = ErrorCode::ERROR_DEAL_TIMEOUT;
+    }
+    auto evenInfo = HiSysOriginalInfo::Builder()
+                        .SetPeerName(clientInfo.name)
+                        .SetPeerPid(clientInfo.pid)
+                        .SetClientType(clientInfo.type)
+                        .SetEventCode(eventCode)
+                        .SetErrCode(errCode)
+                        .SetBaseTextOperatorTime(consumeTime)
+                        .Build();
+    ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *evenInfo);
+    IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
 }
 } // namespace MiscServices
 } // namespace OHOS

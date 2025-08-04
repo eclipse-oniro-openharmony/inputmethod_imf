@@ -521,5 +521,22 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleMsg, TestSize.Level0)
     std::lock_guard<std::mutex> lock(channelWrap->rspMutex_);
     EXPECT_EQ(channelWrap->HandleMsg(handler->msgId_, rspInfo), ErrorCode::NO_ERROR);
 }
+
+/**
+ * @tc.name: ImaTextEditTest_Report
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImaTextEditTest, ImaTextEditTest_Report, TestSize.Level0)
+{
+    const int64_t timeout = 200 + 1;
+    IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_Report");
+    auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
+    auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy, nullptr);
+
+    channelWrap->ReportBaseTextOperation(1, ErrorCode::NO_ERROR, 1);
+    channelWrap->ReportBaseTextOperation(1, ErrorCode::ERROR_NULL_POINTER, 1);
+    channelWrap->ReportBaseTextOperation(1, ErrorCode::NO_ERROR, timeout);
+}
 } // namespace MiscServices
 } // namespace OHOS

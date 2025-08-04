@@ -127,7 +127,7 @@ public:
     void OnAttributeChange(InputAttribute attribute);
 
     int32_t OnStopInputService(bool isTerminateIme);
-    void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
+    HiSysEventClientInfo GetBindClientInfo();
 private:
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
@@ -190,7 +190,6 @@ private:
     int32_t StartInputInner(const InputClientInfo &clientInfo, bool isBindFromClient);
     bool NotifyInfoToWmsInStartInput(const TextTotalConfig &textConfig);
     void SetBindClientInfo(const InputClientInfo &clientInfo);
-    HiSysEventClientInfo GetBindClientInfo();
     void ClearBindClientInfo();
     void ReportImeStartInput(int32_t eventCode, int32_t errCode, bool isShowKeyboard, int64_t consumeTime = -1);
     void ClearBindInfo(const sptr<IRemoteObject> &channel);

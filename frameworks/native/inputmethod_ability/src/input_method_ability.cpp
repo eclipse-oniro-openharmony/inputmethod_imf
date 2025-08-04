@@ -49,7 +49,6 @@ constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
 constexpr uint32_t START_INPUT_CALLBACK_TIMEOUT_MS = 1000;
 constexpr uint32_t INVALID_SECURITY_MODE = -1;
-constexpr uint32_t BASE_TEXT_OPERATION_TIMEOUT = 200;
 
 InputMethodAbility::InputMethodAbility()
 {
@@ -1686,25 +1685,6 @@ void InputMethodAbility::ReportImeStartInput(
                         .SetImeCbTime(consumeTime)
                         .Build();
     ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::IME_START_INPUT, *evenInfo);
-    IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
-}
-
-void InputMethodAbility::ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime)
-{
-    IMSA_HILOGD("HiSysEvent report start:[%{public}d, %{public}d]!", eventCode, errCode);
-    auto clientInfo = GetBindClientInfo();
-    if (errCode == ErrorCode::NO_ERROR && consumeTime > BASE_TEXT_OPERATION_TIMEOUT) {
-        errCode = ErrorCode::ERROR_DEAL_TIMEOUT;
-    }
-    auto evenInfo = HiSysOriginalInfo::Builder()
-                        .SetPeerName(clientInfo.name)
-                        .SetPeerPid(clientInfo.pid)
-                        .SetClientType(clientInfo.type)
-                        .SetEventCode(eventCode)
-                        .SetErrCode(errCode)
-                        .SetBaseTextOperatorTime(consumeTime)
-                        .Build();
-    ImaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *evenInfo);
     IMSA_HILOGD("HiSysEvent report end:[%{public}d, %{public}d]!", eventCode, errCode);
 }
 

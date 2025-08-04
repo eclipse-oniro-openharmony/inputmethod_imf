@@ -81,6 +81,7 @@ public:
     std::shared_ptr<InputDataChannelProxy> GetDataChannel();
 
 private:
+    void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
     std::shared_ptr<ResponseHandler> AddRspHandler(const AsyncIpcCallBack &callback, bool isSync, int32_t eventCode);
     int32_t WaitResponse(const std::shared_ptr<ResponseHandler> &rspHandler, const SyncOutput &output);
     int32_t DeleteRspHandler(uint64_t msgId);
