@@ -192,6 +192,10 @@ int32_t InputDataChannelProxyWrap::FinishTextPreview(const AsyncIpcCallBack &cal
 int32_t InputDataChannelProxyWrap::Request(const AsyncIpcCallBack &callback, const ChannelWork &work,
     bool isSync, int32_t eventCode, const SyncOutput &output)
 {
+    if (work == nullptr) {
+        IMSA_HILOGE("work is nullptr. sync: %{public}d event code: %{public}d", isSync, eventCode);
+        return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
+    }
     auto channel = GetDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("data channel is nullptr!");
