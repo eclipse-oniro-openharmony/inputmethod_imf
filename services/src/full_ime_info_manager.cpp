@@ -40,9 +40,16 @@ FullImeInfoManager::FullImeInfoManager()
     timerId_ = timer_.Register(
         []() {
             Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_REGULAR_UPDATE_IME_INFO, nullptr);
-            if (msg != nullptr) {
-                MessageHandler::Instance()->SendMessage(msg);
+            if (msg == nullptr) {
+                IMSA_HILOGE("failed to create message!");
+                return;
             }
+            auto instance = MessageHandler::Instance();
+            if (instance == nullptr) {
+                delete msg;
+                return;
+            }
+            instance->SendMessage(msg);
         },
         TIMER_TASK_INTERNAL, false);
 }
