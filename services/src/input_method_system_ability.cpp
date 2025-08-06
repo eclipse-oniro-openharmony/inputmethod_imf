@@ -829,6 +829,7 @@ ErrCode InputMethodSystemAbility::RequestHideInput(bool isFocusTriggered)
 ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility start.");
+    auto pid = IPCSkeleton::GetCallingPid();
     auto userId = GetCallingUserId();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
@@ -836,7 +837,7 @@ ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
-        return session->OnRegisterProxyIme(core, agent);
+        return session->OnRegisterProxyIme(core, agent, pid);
     }
     if (!IsCurrentIme(userId)) {
         IMSA_HILOGE("not current ime, userId:%{public}d", userId);
@@ -2124,6 +2125,7 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
 
 ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<IInputMethodCore> &core)
 {
+    pid_t pid = IPCSkeleton::GetCallingPid();
     if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
         IMSA_HILOGE("not native sa!");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
@@ -2134,14 +2136,7 @@ ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (static_cast<UnRegisteredType>(type) == UnRegisteredType::SWITCH_PROXY_IME_TO_IME) {
-        int32_t ret = ErrorCode::NO_ERROR;
-        ret = session->StartCurrentIme();
-        if (ret != ErrorCode::NO_ERROR) {
-            return ret;
-        }
-    }
-    return session->OnUnRegisteredProxyIme(static_cast<UnRegisteredType>(type), core);
+    return session->OnUnRegisteredProxyIme(static_cast<UnRegisteredType>(type), core, pid);
 }
 
 int32_t InputMethodSystemAbility::CheckEnableAndSwitchPermission()

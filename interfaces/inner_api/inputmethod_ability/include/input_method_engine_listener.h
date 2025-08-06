@@ -53,6 +53,8 @@ public:
         return false;
     }
     virtual void OnCallingDisplayIdChanged(uint64_t callingDisplayId) {};
+
+    virtual void NotifyPreemption() {};
 };
 } // namespace MiscServices
 } // namespace OHOS

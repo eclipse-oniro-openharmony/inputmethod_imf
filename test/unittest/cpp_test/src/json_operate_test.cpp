@@ -411,5 +411,28 @@ HWTEST_F(JsonOperateTest, testIsDynamicStartIme, TestSize.Level1)
     instance.systemConfig_.dynamicStartImeValue = "";
     instance.systemConfig_.dynamicStartImeSysParam = "";
 }
+
+/**
+ * @tc.name: testImedataUidListParse
+ * @tc.desc: ImedataUidList Parse
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(JsonOperateTest, testImedataUidListParse, TestSize.Level1)
+{
+    IMSA_HILOGI("JsonOperateTest ImedataUidListParse START");
+    ImeInfoInquirer::GetInstance().systemConfig_.proxyImeUidList.clear();
+    ASSERT_EQ(ImeInfoInquirer::GetInstance().systemConfig_.proxyImeUidList.size(), 0);
+    auto ret = ImeInfoInquirer::GetInstance().IsVirtualProxyIme(0);
+    if (ImeInfoInquirer::GetInstance().systemConfig_.proxyImeUidList.size() != 0) {
+        ret = ImeInfoInquirer::GetInstance().IsVirtualProxyIme(0);
+        ASSERT_FALSE(ret);
+        ret = ImeInfoInquirer::GetInstance().IsVirtualProxyIme(5521);
+        ASSERT_TRUE(ret);
+        ret = ImeInfoInquirer::GetInstance().IsVirtualProxyIme(7101);
+        ASSERT_TRUE(ret);
+    }
+}
 } // namespace MiscServices
 } // namespace OHOS

@@ -196,6 +196,18 @@ public:
     }
     ~TaskImsaSetCoreAndAgent() = default;
 };
+
+class TaskImsaNotifyPreemption : public Task {
+public:
+    explicit TaskImsaNotifyPreemption() : Task(TASK_TYPE_IMSA_NOTIFY_PREEMPTION)
+    {
+        auto func = []() {
+            InputMethodAbility::GetInstance().OnNotifyPreemption();
+        };
+        actions_.emplace_back(std::make_unique<Action>(func));
+    }
+    ~TaskImsaNotifyPreemption() = default;
+};
 } // namespace MiscServices
 } // namespace OHOS
 

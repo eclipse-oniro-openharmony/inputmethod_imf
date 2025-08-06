@@ -43,7 +43,7 @@ public:
     void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
     void UpdateClientInfo(const sptr<IRemoteObject> &client,
         const std::unordered_map<UpdateFlag,
-            std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>> &updateInfos);
+            std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType, pid_t>> &updateInfos);
 
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);

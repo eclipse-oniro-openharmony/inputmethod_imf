@@ -93,10 +93,10 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     auto agent = iface_cast<IInputMethodAgent>(agentStub);
     static std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
 
-    userSessions->OnRegisterProxyIme(core, agent->AsObject());
+    userSessions->OnRegisterProxyIme(core, agent->AsObject(), -1);
     FuzzedDataProvider provider(rawData, size);
     int32_t type = provider.ConsumeIntegral<int32_t>();
-    userSessions->OnUnRegisteredProxyIme(static_cast<UnRegisteredType>(type), core);
+    userSessions->OnUnRegisteredProxyIme(static_cast<UnRegisteredType>(type), core, -1);
     userSessions->IsProxyImeEnable();
 
     userSessions->OnPrepareInput(clientInfo);

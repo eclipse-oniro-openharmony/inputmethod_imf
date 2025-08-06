@@ -369,10 +369,10 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSi
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
     userSession->OnClientDied(nullptr);
-    userSession->OnImeDied(nullptr, ImeType::IME);
+    userSession->OnImeDied(nullptr, ImeType::IME, IPCSkeleton::GetCallingPid());
     bool isShowKeyboard = false;
     clientGroup->UpdateClientInfo(nullptr, { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
-    int32_t ret = userSession->RemoveIme(nullptr, ImeType::IME);
+    int32_t ret = userSession->RemoveIme(ImeType::IME, IPCSkeleton::GetCallingPid());
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 
@@ -1173,11 +1173,8 @@ HWTEST_F(InputMethodPrivateMemberTest, TestOnUnRegisteredProxyIme, TestSize.Leve
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     UnRegisteredType type = UnRegisteredType::REMOVE_PROXY_IME;
     const sptr<IInputMethodCore> core;
-    auto ret = userSession->OnUnRegisteredProxyIme(type, core);
+    auto ret = userSession->OnUnRegisteredProxyIme(type, core, IPCSkeleton::GetCallingPid());
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    type = UnRegisteredType::SWITCH_PROXY_IME_TO_IME;
-    ret = userSession->OnUnRegisteredProxyIme(type, core);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     userSession->clientGroupMap_.clear();
     ret = userSession->RemoveAllCurrentClient();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
@@ -1748,7 +1745,9 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_StartPreconfiguredDefaultIme, TestSize
     auto imeData1 = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 100);
     imeData1->imeStatus = ImeStatus::READY;
     imeData1->ime = std::make_pair(bundleName, extName);
-    session.imeData_.insert_or_assign(ImeType::IME, imeData1);
+    std::vector<std::shared_ptr<ImeData>> imeDataList;
+    imeDataList.push_back(imeData1);
+    session.imeData_.insert_or_assign(ImeType::IME, imeDataList);
     ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName + "/" + extName;
     auto [ret2, status2] = session.StartPreconfiguredDefaultIme(DEFAULT_DISPLAY_ID);
     EXPECT_EQ(status2, StartPreDefaultImeStatus::HAS_STARTED);
@@ -1893,7 +1892,9 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SpecialSendPrivateData, TestSize.Level
     auto imeData1 = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 100);
     imeData1->imeStatus = ImeStatus::READY;
     imeData1->ime = std::make_pair(bundleName, extName);
-    session.imeData_.insert_or_assign(ImeType::IME, imeData1);
+    std::vector<std::shared_ptr<ImeData>> imeDataList;
+    imeDataList.push_back(imeData1);
+    session.imeData_.insert_or_assign(ImeType::IME, imeDataList);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     // running ime same with pre default ime, send directly
     ImeInfoInquirer::GetInstance().systemConfig_.defaultInputMethod = bundleName + "/" + extName;
@@ -1921,7 +1922,9 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_CheckInputTypeOption, TestSize.Level0)
     auto imeData1 = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 100);
     imeData1->imeStatus = ImeStatus::READY;
     imeData1->ime = std::make_pair(bundleName, extName);
-    session->imeData_.insert_or_assign(ImeType::IME, imeData1);
+    std::vector<std::shared_ptr<ImeData>> imeDataList;
+    imeDataList.push_back(imeData1);
+    session->imeData_.insert_or_assign(ImeType::IME, imeDataList);
     UserSessionManager::GetInstance().userSessions_.insert_or_assign(MAIN_USER_ID, session);
     InputClientInfo info;
     // same textField, input type started
@@ -2482,7 +2485,9 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_RestoreCurrentImeSubType, TestSize.Lev
     auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 10);
     imeData->imeStatus = ImeStatus::READY;
     imeData->ime = std::make_pair(bundleName, extName);
-    session->imeData_.insert_or_assign(ImeType::IME, imeData);
+    std::vector<std::shared_ptr<ImeData>> imeDataList;
+    imeDataList.push_back(imeData);
+    session->imeData_.insert_or_assign(ImeType::IME, imeDataList);
     ret = session->RestoreCurrentImeSubType(0);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(InputTypeManager::GetInstance().isStarted_);
@@ -2498,7 +2503,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_RestoreCurrentImeSubType, TestSize.Lev
     InputTypeManager::GetInstance().isStarted_ = true;
     InputTypeManager::GetInstance().currentTypeIme_.bundleName = bundleName1;
     imeData->ime = std::make_pair(bundleName1, extName1);
-    session->imeData_.insert_or_assign(ImeType::IME, imeData);
+    imeDataList.push_back(imeData);
+    session->imeData_.insert_or_assign(ImeType::IME, imeDataList);
     ret = session->RestoreCurrentImeSubType(0);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
     EXPECT_FALSE(InputTypeManager::GetInstance().isStarted_);
@@ -2598,7 +2604,9 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TryStartIme_001, TestSize.Level0)
 
     userSession->isBlockStartedByLowMem_ = true;
     auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 10);
-    userSession->imeData_.insert_or_assign(ImeType::IME, imeData);
+    std::vector<std::shared_ptr<ImeData>> imeDataList;
+    imeDataList.push_back(imeData);
+    userSession->imeData_.insert_or_assign(ImeType::IME, imeDataList);
     ret = userSession->TryStartIme();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_HAS_STARTED);
 
@@ -2643,7 +2651,9 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TryDisconnectIme_001, TestSize.Level0)
     auto ret = userSession->TryDisconnectIme();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
     auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 10);
-    userSession->imeData_.insert_or_assign(ImeType::IME, imeData);
+    std::vector<std::shared_ptr<ImeData>> imeDataList;
+    imeDataList.push_back(imeData);
+    userSession->imeData_.insert_or_assign(ImeType::IME, imeDataList);
 
     userSession->attachingCount_ = 1;
     ret = userSession->TryDisconnectIme();

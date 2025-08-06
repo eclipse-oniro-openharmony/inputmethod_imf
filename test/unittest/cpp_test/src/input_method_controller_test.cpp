@@ -2158,7 +2158,7 @@ HWTEST_F(InputMethodControllerTest, TestClientNullptr, TestSize.Level0)
     auto ret = sessionTemp->OnUpdateListenEventFlag(clientInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
-    sessionTemp->HandleImeBindTypeChanged(clientInfo, nullptr);
+    sessionTemp->HandleBindImeChanged(clientInfo, nullptr);
     std::shared_ptr<InputClientInfo> ptr = nullptr;
     sessionTemp->ClearRequestKeyboardReason(ptr);
     auto info = std::make_shared<InputClientInfo>();

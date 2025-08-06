@@ -139,6 +139,7 @@ int32_t InputMethodAbility::InitConnect()
 
 int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
 {
+    IMSA_HILOGD("type %{public}d", type);
     isBound_.store(false);
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {
@@ -1883,6 +1884,20 @@ int32_t InputMethodAbility::IsCapacitySupport(int32_t capacity, bool &isSupport)
     }
 
     return proxy->IsCapacitySupport(capacity, isSupport);
+}
+
+int32_t InputMethodAbility::OnNotifyPreemption()
+{
+    IMSA_HILOGD("start.");
+    StopInput(dataChannelObject_, 0);
+    isBound_.store(false);
+    auto imeListener = GetImeListener();
+    if (imeListener == nullptr) {
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    IMSA_HILOGD("notify begin.");
+    imeListener->NotifyPreemption();
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

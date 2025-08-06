@@ -132,6 +132,10 @@ ErrCode InputMethodCoreServiceImpl::OnSendPrivateData(const Value &Value)
     privateCommand = Value.valueMap;
     return InputMethodAbility::GetInstance().OnSendPrivateData(privateCommand);
 }
-
+ErrCode InputMethodCoreServiceImpl::NotifyPreemption()
+{
+    TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaNotifyPreemption>());
+    return ERR_OK;
+}
 } // namespace MiscServices
 } // namespace OHOS

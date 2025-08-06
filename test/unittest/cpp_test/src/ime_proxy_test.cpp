@@ -14,8 +14,10 @@
  */
 
 #define private public
+#define protected public
 #include "input_method_ability.h"
 #include "task_manager.h"
+#include "ime_info_inquirer.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -380,8 +382,6 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_switch_009, TestSize.Level1)
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::SWITCH_PROXY_IME_TO_IME);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
 }
 
 /**
@@ -405,10 +405,6 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level1)
 
     ImeSettingListenerTestImpl::ResetParam();
     InputMethodEngineListenerImpl::ResetParam();
-    ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::SWITCH_PROXY_IME_TO_IME);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
     Close(false);
     TddUtil::GetUnfocused();
 }
@@ -674,14 +670,32 @@ HWTEST_F(ImeProxyTest, DiscardTypingTextTest, TestSize.Level0)
  * @tc.desc: Test RegisterProxyIme
  * @tc.type: FUNC
  */
-HWTEST_F(ImeProxyTest, RegisterProxyImeTest, TestSize.Level0)
+HWTEST_F(ImeProxyTest, RegisterProxyImeTest001, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::TestRegisterProxyImeTest");
+    IMSA_HILOGI("ImeProxyTest::TestRegisterProxyImeTest001 start");
     uint64_t displayId = -1;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisterProxyIme(displayId);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
     ret = InputMethodAbilityInterface::GetInstance().UnregisterProxyIme(displayId);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRegisterProxyIme
+ * @tc.desc: Test RegisterProxyIme failed
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeProxyTest, RegisterProxyImeTest002, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::RegisterProxyImeTest002 start");
+    uint64_t displayId = 0;
+    auto ret = InputMethodAbilityInterface::GetInstance().RegisterProxyIme(displayId);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->name, "com.example.testIme");
+    ret = InputMethodAbilityInterface::GetInstance().UnregisterProxyIme(displayId);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

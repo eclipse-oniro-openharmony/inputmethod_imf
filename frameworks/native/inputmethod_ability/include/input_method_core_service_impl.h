@@ -47,6 +47,7 @@ public:
     ErrCode OnSetInputType(int32_t inputType) override;
     ErrCode OnCallingDisplayIdChanged(uint64_t dispalyId) override;
     ErrCode OnSendPrivateData(const Value &Value) override;
+    ErrCode NotifyPreemption() override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS
