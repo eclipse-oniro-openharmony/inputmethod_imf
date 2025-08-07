@@ -474,7 +474,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteRspHandler, TestSize.Level0)
     }
     ASSERT_NE(firstHandler, nullptr);
     ASSERT_EQ(lastHandler, nullptr);
-    EXPECT_EQ(channelWrap->DeleteRspHandler(firstHandler->msgId_), ErrorCode::NO_ERROR);
+    EXPECT_EQ(channelWrap->DeleteRspHandler(firstHandler->msgId), ErrorCode::NO_ERROR);
     EXPECT_EQ(channelWrap->DeleteRspHandler(0), ErrorCode::NO_ERROR);
 }
 
@@ -493,14 +493,14 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleResponse, TestSize.Level0)
     handler = channelWrap->AddRspHandler(CommonRsp, false, 0);
     ASSERT_NE(handler, nullptr);
     ResponseInfo rspInfo = { ErrorCode::NO_ERROR, std::monostate{} };
-    channelWrap->HandleResponse(handler->msgId_, rspInfo);
+    channelWrap->HandleResponse(handler->msgId, rspInfo);
     EXPECT_TRUE(WaitCommonRsp());
 
     std::shared_ptr<ResponseHandler> handler1 = nullptr;
     handler1 = channelWrap->AddRspHandler(nullptr, false, 0);
     ASSERT_NE(handler1, nullptr);
-    EXPECT_EQ(channelWrap->HandleResponse(handler1->msgId_ - 1, rspInfo), ErrorCode::NO_ERROR);
-    EXPECT_EQ(channelWrap->HandleResponse(handler1->msgId_, rspInfo), ErrorCode::NO_ERROR);
+    EXPECT_EQ(channelWrap->HandleResponse(handler1->msgId - 1, rspInfo), ErrorCode::NO_ERROR);
+    EXPECT_EQ(channelWrap->HandleResponse(handler1->msgId, rspInfo), ErrorCode::NO_ERROR);
 }
 
 /**
@@ -519,7 +519,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleMsg, TestSize.Level0)
     handler = channelWrap->AddRspHandler(nullptr, false, 0);
     ASSERT_NE(handler, nullptr);
     std::lock_guard<std::mutex> lock(channelWrap->rspMutex_);
-    EXPECT_EQ(channelWrap->HandleMsg(handler->msgId_, rspInfo), ErrorCode::NO_ERROR);
+    EXPECT_EQ(channelWrap->HandleMsg(handler->msgId, rspInfo), ErrorCode::NO_ERROR);
 }
 
 /**
