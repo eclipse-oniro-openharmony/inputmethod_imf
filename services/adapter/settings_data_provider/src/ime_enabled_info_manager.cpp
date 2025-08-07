@@ -485,7 +485,6 @@ int32_t ImeEnabledInfoManager::UpdateEnabledCfgCache(int32_t userId, const ImeEn
         return ErrorCode::ERROR_ENABLE_IME;
     }
     SetEnabledCache(userId, cfg);
-    UpdateGlobalEnabledTable(userId, cfg);
     return ErrorCode::NO_ERROR;
 }
 
