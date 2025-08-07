@@ -206,16 +206,16 @@ int32_t InputDataChannelProxyWrap::Request(const AsyncIpcCallBack &callback, con
         IMSA_HILOGE("add rsp handler failed. sync: %{public}d event code: %{public}d", isSync, eventCode);
         return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
-    auto ret = work(handler->msgId_, channel);
+    auto ret = work(handler->msgId, channel);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("work error id: %{public}" PRIu64 " sync: %{public}d event code: %{public}d ret: %{public}d.",
-            handler->msgId_, isSync, eventCode, ret);
-        DeleteRspHandler(handler->msgId_);
+            handler->msgId, isSync, eventCode, ret);
+        DeleteRspHandler(handler->msgId);
         return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
     IMSA_HILOGD("Request info id: %{public}" PRIu64 " sync: %{public}d event code: %{public}d ret: %{public}d.",
-        handler->msgId_, isSync, eventCode, ret);
-    if (handler->syncBlockData_ != nullptr) {
+        handler->msgId, isSync, eventCode, ret);
+    if (handler->syncBlockData != nullptr) {
         return WaitResponse(handler, output);
     }
     return ErrorCode::NO_ERROR;
@@ -257,12 +257,12 @@ int32_t InputDataChannelProxyWrap::ClearRspHandlers()
         if (handler.second == nullptr) {
             continue;
         }
-        if (handler.second->syncBlockData_ != nullptr) {
-            handler.second->syncBlockData_->SetValue(rspInfo);
+        if (handler.second->syncBlockData != nullptr) {
+            handler.second->syncBlockData->SetValue(rspInfo);
             continue;
         }
-        if (handler.second->asyncCallback_ != nullptr) {
-            handler.second->asyncCallback_(rspInfo.dealRet_, rspInfo.data_);
+        if (handler.second->asyncCallback != nullptr) {
+            handler.second->asyncCallback(rspInfo.dealRet_, rspInfo.data_);
         }
     }
     rspHandlers_.clear();
@@ -287,15 +287,15 @@ int32_t InputDataChannelProxyWrap::HandleMsg(uint64_t msgId, const ResponseInfo 
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGD("msg info id: %{public}" PRIu64 " event code: %{public}d sync: %{public}d code: %{public}d",
-         msgId, it->second->eventCode_, it->second->syncBlockData_ != nullptr, rspInfo.dealRet_);
-    if (it->second->syncBlockData_ != nullptr) {
-        it->second->syncBlockData_->SetValue(rspInfo);
+         msgId, it->second->eventCode, it->second->syncBlockData != nullptr, rspInfo.dealRet_);
+    if (it->second->syncBlockData != nullptr) {
+        it->second->syncBlockData->SetValue(rspInfo);
     }
-    if (it->second->asyncCallback_ != nullptr) {
-        it->second->asyncCallback_(rspInfo.dealRet_, rspInfo.data_);
+    if (it->second->asyncCallback != nullptr) {
+        it->second->asyncCallback(rspInfo.dealRet_, rspInfo.data_);
     }
     int64_t now = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    ReportBaseTextOperation(it->second->eventCode_, rspInfo.dealRet_, now - it->second->reportStartTime_);
+    ReportBaseTextOperation(it->second->eventCode, rspInfo.dealRet_, now - it->second->reportStartTime);
     rspHandlers_.erase(it);
     return ErrorCode::NO_ERROR;
 }
@@ -303,11 +303,11 @@ int32_t InputDataChannelProxyWrap::HandleMsg(uint64_t msgId, const ResponseInfo 
 int32_t InputDataChannelProxyWrap::WaitResponse(
     const std::shared_ptr<ResponseHandler> &handler, const SyncOutput &output)
 {
-    if (handler == nullptr || handler->syncBlockData_ == nullptr) {
+    if (handler == nullptr || handler->syncBlockData == nullptr) {
         return ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL;
     }
-    ResponseInfo rspInfo = handler->syncBlockData_->GetValueWithoutTimeout();
-    IMSA_HILOGD("rsp info id: %{public}" PRIu64 " ret: %{public}d", handler->msgId_, rspInfo.dealRet_);
+    ResponseInfo rspInfo = handler->syncBlockData->GetValueWithoutTimeout();
+    IMSA_HILOGD("rsp info id: %{public}" PRIu64 " ret: %{public}d", handler->msgId, rspInfo.dealRet_);
     if (rspInfo.dealRet_ != ErrorCode::NO_ERROR) {
         return rspInfo.dealRet_;
     }

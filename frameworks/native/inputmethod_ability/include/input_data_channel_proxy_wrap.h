@@ -38,19 +38,19 @@ struct ResponseInfo {
 };
 struct ResponseHandler {
     static constexpr uint32_t SYNC_REPLY_TIMEOUT = 3000; // unit ms
-    int32_t eventCode_ = 0;
-    uint64_t msgId_ = 0;
-    int64_t reportStartTime_ =
+    int32_t eventCode = 0;
+    uint64_t msgId = 0;
+    int64_t reportStartTime =
         duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-    AsyncIpcCallBack asyncCallback_ = nullptr;
-    std::shared_ptr<BlockData<ResponseInfo>> syncBlockData_ = nullptr;
+    AsyncIpcCallBack asyncCallback = nullptr;
+    std::shared_ptr<BlockData<ResponseInfo>> syncBlockData = nullptr;
     ResponseHandler(uint64_t msgId, bool isSync, const AsyncIpcCallBack &callback, int32_t eventCode)
     {
-        msgId_ = msgId;
-        asyncCallback_ = callback;
-        eventCode_ = eventCode;
+        this->msgId = msgId;
+        asyncCallback = callback;
+        this->eventCode = eventCode;
         if (isSync) {
-            syncBlockData_ = std::make_shared<BlockData<ResponseInfo>>(SYNC_REPLY_TIMEOUT);
+            syncBlockData = std::make_shared<BlockData<ResponseInfo>>(SYNC_REPLY_TIMEOUT);
         }
     }
 };
