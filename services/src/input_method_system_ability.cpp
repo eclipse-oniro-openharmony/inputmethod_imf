@@ -86,9 +86,14 @@ InputMethodSystemAbility::~InputMethodSystemAbility()
 {
     stop_ = true;
     Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
+    if (msg == nullptr) {
+        IMSA_HILOGE("new Message failed");
+        return;
+    }
     auto handler = MessageHandler::Instance();
     if (handler == nullptr) {
         IMSA_HILOGE("handler is nullptr");
+        delete msg;
         return;
     }
     handler->SendMessage(msg);

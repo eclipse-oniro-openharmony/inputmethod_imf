@@ -1538,6 +1538,9 @@ std::shared_ptr<IInputMethodAgent> InputMethodController::GetAgent()
 void InputMethodController::PrintLogIfAceTimeout(int64_t start)
 {
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    if (end < start || start < 0) {
+        return;
+    }
     if (end - start > ACE_DEAL_TIME_OUT) {
         IMSA_HILOGW("timeout: [%{public}" PRId64 ", %{public}" PRId64 "].", start, end);
     }
