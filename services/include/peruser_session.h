@@ -30,14 +30,16 @@
 #include "inputmethod_sysevent.h"
 #include "want.h"
 #include "ime_state_manager.h"
+#include "input_method_client_types.h"
 
 namespace OHOS {
 namespace Rosen {
-    struct CallingWindowInfo;
+struct CallingWindowInfo;
 }
 }
 namespace OHOS {
 namespace MiscServices {
+const std::string IME_MIRROR_NAME = "proxyIme_IME_MIRROR";
 enum class ImeStatus : uint32_t { STARTING, READY, EXITING };
 enum class ImeEvent : uint32_t {
     START_IME,
@@ -74,6 +76,11 @@ struct ImeData {
         : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient)), pid(imePid)
     {
     }
+
+    bool IsImeMirror() const
+    {
+        return ime.first == IME_MIRROR_NAME;
+    }
     ImeExtendInfo imeExtendInfo;
 };
 
@@ -91,8 +98,8 @@ public:
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
-    int32_t OnStartInput(
-        const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
+    int32_t OnStartInput(const InputClientInfo &inputClientInfo, std::vector<sptr<IRemoteObject>> &agents,
+        std::vector<BindImeInfo> &imeInfos);
     int32_t OnReleaseInput(const sptr<IInputClient> &client, uint32_t sessionId);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnHideCurrentInput(uint64_t displayId);
@@ -116,6 +123,8 @@ public:
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
+    int32_t OnBindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
+    int32_t OnUnBindImeMirror();
     int32_t UpdateLargeMemorySceneState(const int32_t memoryState);
     int32_t OnRegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
@@ -176,6 +185,8 @@ private:
         uint32_t num{ 0 };
         time_t last{};
     };
+    using CoreMethod = std::function<int32_t(const sptr<IInputMethodCore> &)>;
+
     int32_t userId_; // the id of the user to whom the object is linking
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     static const int MAX_IME_START_TIME = 2000;
@@ -214,7 +225,6 @@ private:
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     void RemoveImeData(ImeType type, bool isImeDied);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
-    std::shared_ptr<ImeData> GetValidIme(ImeType type);
 
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
         bool isBindFromClient = false, uint64_t displayId = DEFAULT_DISPLAY_ID);
@@ -238,6 +248,8 @@ private:
     bool IsProxyImeStartInImeBind(ImeType bindImeType, ImeType startImeType);
     bool IsImeBindTypeChanged(ImeType bindImeType);
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
+    int32_t RequestAllIme(const std::shared_ptr<ImeData> data, RequestType reqType, const CoreMethod &method);
+    std::vector<std::shared_ptr<ImeData>> GetAllReadyImeData(ImeType type);
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();
@@ -268,6 +280,8 @@ private:
     bool IsAttachFinished();
     uint32_t GetScbStartCount();
     void ResetRestartTasks();
+    int32_t SendAllReadyImeToClient(
+        std::shared_ptr<ImeData> ImeDatas, const std::shared_ptr<InputClientInfo> &clientInfo);
     void SetImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
     sptr<AAFwk::IAbilityConnection> GetImeConnection();
     void ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);

@@ -51,6 +51,8 @@ public:
      * @since 18
      */
     int32_t UnregisterProxyIme(uint64_t displayId);
+    int32_t BindImeMirror();
+    int32_t UnBindImeMirror();
     int32_t InsertText(const std::string &text);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);

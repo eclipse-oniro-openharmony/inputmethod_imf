@@ -63,6 +63,14 @@ bool ImeInfoInquirer::IsEnableAppAgent()
     return systemConfig_.enableAppAgentFeature;
 }
 
+bool ImeInfoInquirer::IsCapacitySupport(const std::string &capacityName)
+{
+    if (systemConfig_.supportedCapacityList.find(capacityName) != systemConfig_.supportedCapacityList.end()) {
+        return true;
+    }
+    return false;
+}
+
 bool ImeInfoInquirer::IsEnableNumKey()
 {
     return systemConfig_.enableNumKeyFeature;

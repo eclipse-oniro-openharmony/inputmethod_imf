@@ -45,6 +45,16 @@ int32_t InputMethodAbilityInterface::UnregisterProxyIme(uint64_t displayId)
     return InputMethodAbility::GetInstance().UnregisterProxyIme(displayId);
 }
 
+int32_t InputMethodAbilityInterface::BindImeMirror()
+{
+    return InputMethodAbility::GetInstance().BindImeMirror();
+}
+
+int32_t InputMethodAbilityInterface::UnBindImeMirror()
+{
+    return InputMethodAbility::GetInstance().UnBindImeMirror();
+}
+
 int32_t InputMethodAbilityInterface::InsertText(const std::string &text)
 {
     return InputMethodAbility::GetInstance().InsertText(text);

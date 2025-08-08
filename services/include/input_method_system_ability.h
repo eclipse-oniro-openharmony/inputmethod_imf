@@ -39,8 +39,8 @@ public:
     ~InputMethodSystemAbility();
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    ErrCode StartInput(const InputClientInfoInner &inputClientInfoInner, sptr<IRemoteObject> &agent,
-        int64_t &pid, std::string &bundleName) override;
+    ErrCode StartInput(const InputClientInfoInner &inputClientInfoInner, std::vector<sptr<IRemoteObject>> &agents,
+        std::vector<BindImeInfo> &imeInfos) override;
     ErrCode ShowCurrentInput(uint32_t type = static_cast<uint32_t>(ClientType::INNER_KIT)) override;
     ErrCode HideCurrentInput() override;
     ErrCode ShowInput(const sptr<IInputClient>& client, uint32_t type = static_cast<uint32_t>(ClientType::INNER_KIT),
@@ -92,6 +92,8 @@ public:
     int32_t UnregisterProxyIme(uint64_t displayId) override;
     ErrCode IsRestrictedDefaultImeByDisplay(uint64_t displayId, bool &resultValue) override;
     ErrCode IsCapacitySupport(int32_t capacity, bool &isSupport) override;
+    ErrCode BindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
+    ErrCode UnBindImeMirror() override;
     int32_t GetCallingUserId();
 
 protected:
@@ -184,8 +186,8 @@ private:
     bool GetDeviceFunctionKeyState(int32_t functionKey, bool &isEnable);
     bool ModifyImeCfgWithWrongCaps();
     void HandleBundleScanFinished();
-    int32_t StartInputInner(
-        InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
+    int32_t StartInputInner(InputClientInfo &inputClientInfo, std::vector<sptr<IRemoteObject>> &agents,
+        std::vector<BindImeInfo> &imeInfos);
     int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t ShowCurrentInputInner();
     std::pair<int64_t, std::string> GetCurrentImeInfoForHiSysEvent(int32_t userId);

@@ -18,8 +18,9 @@ sequenceable input_method_property..OHOS.MiscServices.SubProperty;
 sequenceable input_window_info..OHOS.MiscServices.InputWindowStatus;
 sequenceable input_window_info..OHOS.MiscServices.ImeWindowInfo;
 sequenceable OHOS.IRemoteObject;
+import InputMethodClientTypes;
 interface OHOS.MiscServices.IInputClient {
-    void OnInputReady([in] IRemoteObject agent, [in] long pid, [in] String bundleName);
+    void OnInputReady([in] IRemoteObject agent, [in] BindImeInfo imeInfo);
     [oneway] void OnInputStop([in] boolean isStopInactiveClient, [in] IRemoteObject object);
     [oneway] void OnInputStopAsync([in] boolean isStopInactiveClient);
     void OnSwitchInput([in] Property property, [in] SubProperty subProperty);
@@ -27,4 +28,5 @@ interface OHOS.MiscServices.IInputClient {
     void NotifyInputStart([in] unsigned int callingWndId, [in] int requestKeyboardReason);
     void NotifyInputStop();
     [oneway] void DeactivateClient();
+    void OnImeMirrorStop([in] IRemoteObject object);
 }

@@ -1451,8 +1451,8 @@ ohos_unittest("InputMethodManagerCommandTest") {
   ]
 
   deps = [
-    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
     "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
   ]
@@ -1597,19 +1597,21 @@ ohos_unittest("SaTaskManagerTest") {
     "${inputmethod_path}/services/task_manager/include/tasks",
   ]
   sources = [
-    "src/sa_task_manager_test.cpp",
     "${inputmethod_path}/frameworks/native/common/src/service_response_data.cpp",
-    "${inputmethod_path}/services/task_manager/src/requester_manager.cpp",
-    "${inputmethod_path}/services/task_manager/src/sa_task_manager.cpp",
     "${inputmethod_path}/services/task_manager/src/actions/sa_action.cpp",
     "${inputmethod_path}/services/task_manager/src/actions/sa_action_wait.cpp",
+    "${inputmethod_path}/services/task_manager/src/requester_manager.cpp",
+    "${inputmethod_path}/services/task_manager/src/sa_task_manager.cpp",
     "${inputmethod_path}/services/task_manager/src/tasks/sa_task.cpp",
+    "src/sa_task_manager_test.cpp",
   ]
 
   configs = [ ":module_private_config" ]
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
@@ -1618,9 +1620,6 @@ ohos_unittest("SaTaskManagerTest") {
     "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_proxy",
-
   ]
 
   external_deps = [
@@ -1703,4 +1702,109 @@ ohos_unittest("ImaTextEditTest") {
     external_deps += [ "selinux_adapter:librestorecon" ]
     cflags = [ "-DWITH_SELINUX" ]
   }
+}
+
+ohos_unittest("ImeMirrorTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
+    "${inputmethod_path}/services/src/sys_cfg_parser.cpp",
+    "${inputmethod_path}/test/common/src/keyboard_listener_test_impl.cpp",
+    "src/ime_mirror_test.cpp",
+  ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/editorBox:editorBox",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/extImfBundle:extImf",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "googletest:gtest_main",
+    "graphic_2d:librender_service_client",
+    "graphic_2d:window_animation",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+    "samgr:samgr_proxy",
+    "window_manager:libdm",
+  ]
+
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
+
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags = [ "-DWITH_SELINUX" ]
+  }
+}
+
+ohos_executable("ImeMirrorDemo") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  sources = [
+    "${inputmethod_path}/services/src/sys_cfg_parser.cpp",
+    "src/ime_mirror_demo.cpp",
+  ]
+  include_dirs =
+      [ "${inputmethod_path}/interfaces/inner_api/inputmethod_ability/include" ]
+
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+  ]
+
+  configs = [ ":module_private_config" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+  ]
+
+  install_enable = false
+  subsystem_name = "inputmethod"
+  part_name = "imf"
 }

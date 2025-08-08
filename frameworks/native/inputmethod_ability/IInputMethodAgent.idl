@@ -29,4 +29,5 @@ interface OHOS.MiscServices.IInputMethodAgent {
     void SendMessage([in] ArrayBuffer arraybuffer);
     void DiscardTypingText();
     void ResponseDataChannel([in] unsigned long msgId, [in] int code, [in] ResponseDataInner msg);
+    void OnFunctionKey([in] int funcKey);
 }

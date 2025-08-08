@@ -49,6 +49,7 @@ ohos_shared_library("imf_hisysevent") {
   ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_client_types",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
     "${inputmethod_path}/services/json:imf_json_static",
   ]

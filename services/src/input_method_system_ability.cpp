@@ -421,6 +421,7 @@ void InputMethodSystemAbility::OnStop()
     serviceHandler_ = nullptr;
     state_ = ServiceRunningState::STATE_NOT_START;
     Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 0, INPUT_METHOD_SYSTEM_ABILITY_ID);
+    SettingsDataUtils::GetInstance().Release();
 }
 // LCOV_EXCL_STOP
 void InputMethodSystemAbility::InitServiceHandler()
@@ -639,16 +640,18 @@ void InputMethodSystemAbility::DecreaseAttachCount()
     session->DecreaseAttachCount();
 }
 
-ErrCode InputMethodSystemAbility::StartInput(
-    const InputClientInfoInner &inputClientInfoInner, sptr<IRemoteObject> &agent, int64_t &pid, std::string &bundleName)
+ErrCode InputMethodSystemAbility::StartInput(const InputClientInfoInner &inputClientInfoInner,
+    std::vector<sptr<IRemoteObject>> &agents, std::vector<BindImeInfo> &imeInfos)
 {
     AttachStateGuard guard(*this);
     InputClientInfo inputClientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(inputClientInfoInner);
-    agent = nullptr;
-    pid = 0;
-    bundleName = "";
-    std::pair<int64_t, std::string> imeInfo{ pid, bundleName };
-    auto ret = StartInputInner(const_cast<InputClientInfo &>(inputClientInfo), agent, imeInfo);
+    auto ret = StartInputInner(const_cast<InputClientInfo &>(inputClientInfo), agents, imeInfos);
+    std::string bundleName = "";
+    if (imeInfos.size() > 0) {
+        bundleName = imeInfos[0].bundleName;
+    } else {
+        bundleName = GetCurrentImeInfoForHiSysEvent(GetCallingUserId()).second;
+    }
     IMSA_HILOGD("HiSysEvent report start!");
     auto evenInfo = HiSysOriginalInfo::Builder()
                         .SetPeerName(ImfHiSysEventUtil::GetAppName(IPCSkeleton::GetCallingTokenID()))
@@ -657,7 +660,7 @@ ErrCode InputMethodSystemAbility::StartInput(
                         .SetClientType(inputClientInfo.type)
                         .SetInputPattern(inputClientInfo.attribute.inputPattern)
                         .SetIsShowKeyboard(inputClientInfo.isShowKeyboard)
-                        .SetImeName(imeInfo.second)
+                        .SetImeName(bundleName)
                         .SetErrCode(ret)
                         .Build();
     ImsaHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::CLIENT_ATTACH, *evenInfo);
@@ -666,10 +669,9 @@ ErrCode InputMethodSystemAbility::StartInput(
 }
 
 int32_t InputMethodSystemAbility::StartInputInner(
-    InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo)
+    InputClientInfo &inputClientInfo, std::vector<sptr<IRemoteObject>> &agents, std::vector<BindImeInfo> &imeInfos)
 {
     auto userId = GetCallingUserId();
-    imeInfo = GetCurrentImeInfoForHiSysEvent(userId);
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId) && !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId,
             IdentityChecker::INVALID_PID, true, inputClientInfo.config.abilityToken)) {
@@ -704,7 +706,7 @@ int32_t InputMethodSystemAbility::StartInputInner(
         return ret;
     }
     session->SetInputType();
-    return session->OnStartInput(inputClientInfo, agent, imeInfo);
+    return session->OnStartInput(inputClientInfo, agents, imeInfos);
 }
 
 int32_t InputMethodSystemAbility::CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo)
@@ -887,6 +889,54 @@ int32_t InputMethodSystemAbility::UnregisterProxyIme(uint64_t displayId)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return session->OnUnregisterProxyIme(displayId);
+}
+
+ErrCode InputMethodSystemAbility::BindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
+{
+    if (identityChecker_ == nullptr) {
+        IMSA_HILOGE("identityChecker_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+
+    if (!ImeInfoInquirer::GetInstance().IsCapacitySupport("ime_mirror")) {
+        IMSA_HILOGE("ime_mirror is not supported");
+        return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
+    }
+
+    if (!identityChecker_->IsValidVirtualIme(IPCSkeleton::GetCallingUid())) {
+        IMSA_HILOGE("not agent sa");
+        return ErrorCode::ERROR_NOT_AI_APP_IME;
+    }
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->OnBindImeMirror(core, agent);
+}
+
+ErrCode InputMethodSystemAbility::UnBindImeMirror()
+{
+    if (identityChecker_ == nullptr) {
+        IMSA_HILOGE("identityChecker_ is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (!ImeInfoInquirer::GetInstance().IsCapacitySupport("ime_mirror")) {
+        IMSA_HILOGE("ime_mirror is not supported");
+        return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
+    }
+    if (!identityChecker_->IsValidVirtualIme(IPCSkeleton::GetCallingUid())) {
+        IMSA_HILOGE("not agent sa");
+        return ErrorCode::ERROR_NOT_AI_APP_IME;
+    }
+    auto userId = GetCallingUserId();
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("%{public}d session is nullptr!", userId);
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return session->OnUnBindImeMirror();
 }
 
 ErrCode InputMethodSystemAbility::InitConnect()
@@ -1076,10 +1126,7 @@ ErrCode InputMethodSystemAbility::IsCapacitySupport(int32_t capacity, bool &isSu
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
 
-    const auto &supportedCapacityList = ImeInfoInquirer::GetInstance().GetSystemConfig().supportedCapacityList;
-    if (supportedCapacityList.find("immersive_effect") != supportedCapacityList.end()) {
-        isSupport = true;
-    }
+    isSupport = ImeInfoInquirer::GetInstance().IsCapacitySupport("immersive_effect");
     return ERR_OK;
 }
 
