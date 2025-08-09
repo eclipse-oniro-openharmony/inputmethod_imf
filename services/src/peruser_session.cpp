@@ -569,7 +569,7 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, std
     }
     auto allData = GetAllReadyImeData(imeType);
     if (allData.empty()) {
-        IMSA_HILOGE("allData or agent is nullptr!");
+        IMSA_HILOGE("allData is empty!");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
 
@@ -644,7 +644,7 @@ int32_t PerUserSession::BindClientWithIme(
         }
     }
     InputClientInfoInner inputClientInfoInner =
-        InputMethodTools::GetInstance().InputClientInfoToInner(const_cast<InputClientInfo &>(*clientInfo));
+        InputMethodTools::GetInstance().InputClientInfoToInner(*clientInfo);
     auto ret = RequestAllIme(
         data, RequestType::START_INPUT, [&inputClientInfoInner, isBindFromClient](const sptr<IInputMethodCore> &core) {
             return core->StartInput(inputClientInfoInner, isBindFromClient);
@@ -1569,7 +1569,7 @@ bool PerUserSession::IsImeBindTypeChanged(ImeType bindImeType)
 int32_t PerUserSession::SwitchSubtype(const SubProperty &subProperty)
 {
     auto data = GetReadyImeData(ImeType::IME);
-    if (data == nullptr) {
+    if (data == nullptr || data->core == nullptr) {
         IMSA_HILOGE("ime: %{public}d is not exist!", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }

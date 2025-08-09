@@ -51,8 +51,32 @@ public:
      * @since 18
      */
     int32_t UnregisterProxyIme(uint64_t displayId);
+    /**
+     * @brief Bind the input method mirror to the current input session.
+     *
+     * After binding the input method mirror (ime mirror), it can perceive content changes in the current edit box,
+     * but **cannot actively input content into the edit box**.
+     * Once bound successfully, the mirror function will start receiving status information such as text updates
+     * and cursor position changes from the edit box.
+     * This interface can only be called successfully when the relevant feature is enabled.
+     *
+     * @return Returns 0 for success, other values for failure.
+     * @note The input method mirror only has content perception capability and does not support active input operations
+     * such as inserting or deleting text.
+     */
     int32_t BindImeMirror();
-    int32_t UnBindImeMirror();
+
+    /**
+     * @brief Unbind the input method mirror from the current input session.
+     *
+     * After unbinding, the input method mirror will stop perceiving content changes in the edit box and
+     * will no longer receive any status information from the edit box.
+     * This interface can only be called successfully when the relevant feature is enabled.
+     *
+     * @return Returns 0 for success, other values for failure.
+     * @note If you need to re-perceive the edit box content after unbinding, you must call {@link BindImeMirror} again.
+     */
+    int32_t UnbindImeMirror();
     int32_t InsertText(const std::string &text);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);

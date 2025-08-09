@@ -204,7 +204,7 @@ void TestImeMirrorManager(FuzzedDataProvider &provider)
     mgr.UnSubscribeSaStart(provider.ConsumeIntegral<int32_t>());
 
     InputMethodAbility::GetInstance().BindImeMirror();
-    InputMethodAbility::GetInstance().UnBindImeMirror();
+    InputMethodAbility::GetInstance().UnbindImeMirror();
 }
 } // namespace OHOS
 

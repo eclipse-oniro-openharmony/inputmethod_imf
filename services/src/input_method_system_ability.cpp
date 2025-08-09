@@ -67,6 +67,7 @@ constexpr uint32_t START_SA_TIMEOUT = 6; // 6s
 constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
 constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
 constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
+constexpr const char *IME_MIRROR_CAP_NAME = "ime_mirror";
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
 constexpr const char *UNLOAD_SA_TASK = "unloadInputMethodSaTask";
 constexpr int64_t DELAY_UNLOAD_SA_TIME = 20000; // 20s
@@ -647,7 +648,7 @@ ErrCode InputMethodSystemAbility::StartInput(const InputClientInfoInner &inputCl
     InputClientInfo inputClientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(inputClientInfoInner);
     auto ret = StartInputInner(const_cast<InputClientInfo &>(inputClientInfo), agents, imeInfos);
     std::string bundleName = "";
-    if (imeInfos.size() > 0) {
+    if (!imeInfos.empty()) {
         bundleName = imeInfos[0].bundleName;
     } else {
         bundleName = GetCurrentImeInfoForHiSysEvent(GetCallingUserId()).second;
@@ -898,7 +899,7 @@ ErrCode InputMethodSystemAbility::BindImeMirror(const sptr<IInputMethodCore> &co
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    if (!ImeInfoInquirer::GetInstance().IsCapacitySupport("ime_mirror")) {
+    if (!ImeInfoInquirer::GetInstance().IsCapacitySupport(IME_MIRROR_CAP_NAME)) {
         IMSA_HILOGE("ime_mirror is not supported");
         return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
     }
@@ -916,13 +917,13 @@ ErrCode InputMethodSystemAbility::BindImeMirror(const sptr<IInputMethodCore> &co
     return session->OnBindImeMirror(core, agent);
 }
 
-ErrCode InputMethodSystemAbility::UnBindImeMirror()
+ErrCode InputMethodSystemAbility::UnbindImeMirror()
 {
     if (identityChecker_ == nullptr) {
         IMSA_HILOGE("identityChecker_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (!ImeInfoInquirer::GetInstance().IsCapacitySupport("ime_mirror")) {
+    if (!ImeInfoInquirer::GetInstance().IsCapacitySupport(IME_MIRROR_CAP_NAME)) {
         IMSA_HILOGE("ime_mirror is not supported");
         return ErrorCode::ERROR_DEVICE_UNSUPPORTED;
     }

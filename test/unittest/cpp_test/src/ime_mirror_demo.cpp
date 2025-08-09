@@ -124,8 +124,8 @@ int main()
                 IMSA_HILOGI("[ImeMirrorLog] BindImeMirror finish ret = %{public}d", ret);
                 break;
             case 'u':
-                ret = instance.UnBindImeMirror();
-                IMSA_HILOGI("[ImeMirrorLog] UnBindImeMirror finish ret = %{public}d", ret);
+                ret = instance.UnbindImeMirror();
+                IMSA_HILOGI("[ImeMirrorLog] UnbindImeMirror finish ret = %{public}d", ret);
                 break;
             case 'i':
                 ret = instance.InsertText("ime mirror demo");

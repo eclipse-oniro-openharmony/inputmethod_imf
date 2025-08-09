@@ -65,10 +65,7 @@ bool ImeInfoInquirer::IsEnableAppAgent()
 
 bool ImeInfoInquirer::IsCapacitySupport(const std::string &capacityName)
 {
-    if (systemConfig_.supportedCapacityList.find(capacityName) != systemConfig_.supportedCapacityList.end()) {
-        return true;
-    }
-    return false;
+    return systemConfig_.supportedCapacityList.find(capacityName) != systemConfig_.supportedCapacityList.end();
 }
 
 bool ImeInfoInquirer::IsEnableNumKey()

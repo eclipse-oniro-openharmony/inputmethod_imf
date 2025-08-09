@@ -34,7 +34,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(
         data, size, IInputMethodSystemAbilityIpcCode::COMMAND_BIND_IME_MIRROR);
     ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(
-        data, size, IInputMethodSystemAbilityIpcCode::COMMAND_UN_BIND_IME_MIRROR);
+        data, size, IInputMethodSystemAbilityIpcCode::COMMAND_UNBIND_IME_MIRROR);
     setuid(0);
     return 0;
 }

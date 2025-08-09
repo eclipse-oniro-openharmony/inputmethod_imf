@@ -72,5 +72,5 @@ interface OHOS.MiscServices.IInputMethodSystemAbility {
     void IsRestrictedDefaultImeByDisplay([in] unsigned long displayId, [out] boolean resultValue);
     void IsCapacitySupport([in] int capacity, [out] boolean isSupport);
     void BindImeMirror([in] IInputMethodCore core, [in] IRemoteObject agent);
-    void UnBindImeMirror();
+    void UnbindImeMirror();
 }

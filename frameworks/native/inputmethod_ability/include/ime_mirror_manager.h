@@ -19,7 +19,6 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "ability_manager_client.h"
 #include "iservice_registry.h"
 #include "system_ability_status_change_stub.h"
 

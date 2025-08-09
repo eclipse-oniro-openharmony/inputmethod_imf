@@ -93,7 +93,7 @@ public:
     ErrCode IsRestrictedDefaultImeByDisplay(uint64_t displayId, bool &resultValue) override;
     ErrCode IsCapacitySupport(int32_t capacity, bool &isSupport) override;
     ErrCode BindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
-    ErrCode UnBindImeMirror() override;
+    ErrCode UnbindImeMirror() override;
     int32_t GetCallingUserId();
 
 protected:

@@ -50,9 +50,9 @@ int32_t InputMethodAbilityInterface::BindImeMirror()
     return InputMethodAbility::GetInstance().BindImeMirror();
 }
 
-int32_t InputMethodAbilityInterface::UnBindImeMirror()
+int32_t InputMethodAbilityInterface::UnbindImeMirror()
 {
-    return InputMethodAbility::GetInstance().UnBindImeMirror();
+    return InputMethodAbility::GetInstance().UnbindImeMirror();
 }
 
 int32_t InputMethodAbilityInterface::InsertText(const std::string &text)

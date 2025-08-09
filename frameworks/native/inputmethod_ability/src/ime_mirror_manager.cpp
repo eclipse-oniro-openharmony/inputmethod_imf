@@ -72,8 +72,8 @@ bool ImeMirrorManager::UnSubscribeSaStart(int32_t saId)
         std::lock_guard<std::mutex> lockGuard(listenerMapMutex_);
         auto itr = saMgrListenerMap_.find(saId);
         if (itr == saMgrListenerMap_.end()) {
-            IMSA_HILOGW("[ImeMirrorTag]saId:%{public}d is not registered", saId);
-            return true;
+            IMSA_HILOGE("[ImeMirrorTag]saId:%{public}d is not registered", saId);
+            return false;
         }
 
         listener = itr->second;
@@ -94,7 +94,7 @@ bool ImeMirrorManager::UnSubscribeSaStart(int32_t saId)
         auto itr = saMgrListenerMap_.find(saId);
         if (itr == saMgrListenerMap_.end()) {
             IMSA_HILOGW("[ImeMirrorTag]saId:%{public}d is not found", saId);
-            return false;
+            return true;
         }
         saMgrListenerMap_.erase(itr);
     }

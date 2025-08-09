@@ -1031,15 +1031,15 @@ private:
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
     sptr<InputDeathRecipient> deathRecipient_;
-    std::mutex agentLock_;
 
     struct AgentInfo {
         sptr<IRemoteObject> agentObject = nullptr;
         std::shared_ptr<IInputMethodAgent> agent = nullptr;
         ImeType imeType = ImeType::NONE;
     };
-
+    std::mutex agentLock_;
     std::vector<AgentInfo> agentInfoList_;
+
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener_ = nullptr;
     std::atomic_bool isDiedAttached_{ false };

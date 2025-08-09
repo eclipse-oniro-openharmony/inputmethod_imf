@@ -231,7 +231,7 @@ int32_t InputMethodAbility::BindImeMirror()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::UnBindImeMirror()
+int32_t InputMethodAbility::UnbindImeMirror()
 {
     isBound_.store(false);
     imeMirrorMgr_.SetImeMirrorEnable(false);
@@ -241,7 +241,7 @@ int32_t InputMethodAbility::UnBindImeMirror()
         IMSA_HILOGE("[ImeMirrorTag]imsa proxy is nullptr!");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->UnBindImeMirror();
+    return proxy->UnbindImeMirror();
 }
 
 void InputMethodAbility::Initialize()

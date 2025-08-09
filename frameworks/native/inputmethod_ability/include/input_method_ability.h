@@ -55,7 +55,7 @@ public:
     int32_t RegisterProxyIme(uint64_t displayId = DEFAULT_DISPLAY_ID);
     int32_t UnregisterProxyIme(uint64_t displayId);
     int32_t BindImeMirror();
-    int32_t UnBindImeMirror();
+    int32_t UnbindImeMirror();
     int32_t InsertText(const std::string &text, const AsyncIpcCallBack &callback = nullptr);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     std::shared_ptr<InputMethodEngineListener> GetImeListener();

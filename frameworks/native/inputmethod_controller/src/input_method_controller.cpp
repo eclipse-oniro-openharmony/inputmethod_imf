@@ -800,8 +800,9 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     }
     IMSA_HILOGI("left: %{public}d, top: %{public}d, height: %{public}d.", static_cast<int32_t>(cursorInfo.left),
         static_cast<int32_t>(cursorInfo.top), static_cast<int32_t>(cursorInfo.height));
-    SendRequestToAllAgents([&cursorInfo](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
-        return agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
+    return SendRequestToAllAgents([cursorInfo](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
+        agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
+        return ErrorCode::NO_ERROR;
     });
     return ErrorCode::NO_ERROR;
 }
@@ -836,11 +837,12 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
     IMSA_HILOGI("IMC size: %{public}zu, range: %{public}d/%{public}d/%{public}d/%{public}d.", text.size(),
         selectOldBegin_, selectOldEnd_, start, end);
     std::string testString = Str16ToStr8(text);
-    SendRequestToAllAgents([&testString, &selectOldBegin = selectOldBegin_, &selectOldEnd = selectOldEnd_,
-                     &selectNewBegin = selectNewBegin_,
-                     &selectNewEnd = selectNewEnd_](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
-        return agent->OnSelectionChange(testString, selectOldBegin, selectOldEnd, selectNewBegin, selectNewEnd);
-    });
+    return SendRequestToAllAgents(
+        [testString, selectOldBegin = selectOldBegin_, selectOldEnd = selectOldEnd_, selectNewBegin = selectNewBegin_,
+            selectNewEnd = selectNewEnd_](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
+            agent->OnSelectionChange(testString, selectOldBegin, selectOldEnd, selectNewBegin, selectNewEnd);
+            return ErrorCode::NO_ERROR;
+        });
     return ErrorCode::NO_ERROR;
 }
 
@@ -876,8 +878,9 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     }
 
     InputAttributeInner inner = InputMethodTools::GetInstance().AttributeToInner(attribute);
-    SendRequestToAllAgents([&inner](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
-        return agent->OnAttributeChange(inner);
+    return SendRequestToAllAgents([&inner](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
+        agent->OnAttributeChange(inner);
+        return ErrorCode::NO_ERROR;
     });
     return ErrorCode::NO_ERROR;
 }

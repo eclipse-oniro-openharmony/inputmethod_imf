@@ -115,7 +115,7 @@ public:
         EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
         {
             UidScope uidScope(ImeMirrorTest::agentUid_);
-            auto ret = InputMethodAbilityInterface::GetInstance().UnBindImeMirror();
+            auto ret = InputMethodAbilityInterface::GetInstance().UnbindImeMirror();
             EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         }
     }
@@ -134,7 +134,7 @@ HWTEST_F(ImeMirrorTest, RegisterUnbindImeMirrorWithoutPermission_fail, TestSize.
     IMSA_HILOGI("ImeMirrorTest::RegisterUnbindImeMirrorWithoutPermission_fail start");
     auto ret = InputMethodAbilityInterface::GetInstance().BindImeMirror();
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_AI_APP_IME);
-    ret = InputMethodAbilityInterface::GetInstance().UnBindImeMirror();
+    ret = InputMethodAbilityInterface::GetInstance().UnbindImeMirror();
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_AI_APP_IME);
 }
 
@@ -233,7 +233,7 @@ HWTEST_F(ImeMirrorTest, RegisterAndUnbindImeMirrorImmediately_VerifyInputListene
         UidScope uidScope(ImeMirrorTest::agentUid_);
         auto ret = InputMethodAbilityInterface::GetInstance().BindImeMirror();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        ret = InputMethodAbilityInterface::GetInstance().UnBindImeMirror();
+        ret = InputMethodAbilityInterface::GetInstance().UnbindImeMirror();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 
@@ -262,7 +262,7 @@ HWTEST_F(ImeMirrorTest, UnregisterProxyDuringTextInput_success, TestSize.Level1)
     // Unregister proxy
     {
         UidScope uidScope(agentUid_);
-        ret = InputMethodAbilityInterface::GetInstance().UnBindImeMirror();
+        ret = InputMethodAbilityInterface::GetInstance().UnbindImeMirror();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 
@@ -292,10 +292,10 @@ HWTEST_F(ImeMirrorTest, RepeatBindImeMirror_success, TestSize.Level1)
         ret = InputMethodAbilityInterface::GetInstance().BindImeMirror();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         // Unregister once
-        ret = InputMethodAbilityInterface::GetInstance().UnBindImeMirror();
+        ret = InputMethodAbilityInterface::GetInstance().UnbindImeMirror();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         // Unregister again
-        ret = InputMethodAbilityInterface::GetInstance().UnBindImeMirror();
+        ret = InputMethodAbilityInterface::GetInstance().UnbindImeMirror();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 }
@@ -330,7 +330,7 @@ HWTEST_F(ImeMirrorTest, RegisterAfterAttach_success, TestSize.Level1)
     // Cleanup
     {
         UidScope uidScope(ImeMirrorTest::agentUid_);
-        auto ret = InputMethodAbilityInterface::GetInstance().UnBindImeMirror();
+        auto ret = InputMethodAbilityInterface::GetInstance().UnbindImeMirror();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     }
@@ -361,7 +361,7 @@ HWTEST_F(ImeMirrorTest, multiThreadAttachRegisterTest_001, TestSize.Level1)
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
         EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange("1234567890"));
-        ret = InputMethodAbilityInterface::GetInstance().UnBindImeMirror();
+        ret = InputMethodAbilityInterface::GetInstance().UnbindImeMirror();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     };

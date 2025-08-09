@@ -437,7 +437,6 @@ ohos_shared_library("inputmethod_ability") {
     "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:ability_context_native",
-    "ability_runtime:app_manager",
     "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "cJSON:cjson",
