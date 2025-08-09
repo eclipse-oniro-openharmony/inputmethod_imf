@@ -40,6 +40,7 @@ public:
     ErrCode SendMessage(const ArrayBuffer &arraybuffer) override;
     ErrCode DiscardTypingText() override;
     ErrCode ResponseDataChannel(uint64_t msgId, int code, const ResponseDataInner &msg) override;
+    ErrCode OnFunctionKey(int32_t funcKey) override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS

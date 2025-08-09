@@ -61,7 +61,10 @@ ohos_shared_library("inputmethod_common") {
 
   configs = [ ":inputmethod_common_native_config" ]
 
-  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub" ]
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_client_types",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
+  ]
 
   public_configs = [
     ":inputmethod_common_native_config",

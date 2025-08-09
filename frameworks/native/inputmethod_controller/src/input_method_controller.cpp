@@ -60,6 +60,8 @@ constexpr int32_t ACE_DEAL_TIME_OUT = 200;
 constexpr int32_t MAX_PLACEHOLDER_SIZE = 255; // 256 utf16 char
 constexpr int32_t MAX_ABILITY_NAME_SIZE = 127; // 127 utf16 char
 static constexpr int32_t MAX_TIMEOUT = 2500;
+constexpr size_t MAX_AGENT_NUMBER = 2;
+const std::string IME_MIRROR_NAME = "proxyIme_IME_MIRROR";
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure.");
@@ -327,10 +329,9 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, cons
     GetTextConfig(clientInfo_.config);
     clientInfo_.requestKeyboardReason = attachOptions.requestKeyboardReason;
     clientInfo_.type = type;
-
-    sptr<IRemoteObject> agent = nullptr;
-    std::pair<int64_t, std::string> imeInfo{ 0, "" };
-    int32_t ret = StartInput(clientInfo_, agent, imeInfo);
+    std::vector<sptr<IRemoteObject>> agents;
+    std::vector<BindImeInfo> imeInfos;
+    int32_t ret = StartInput(clientInfo_, agents, imeInfos);
     if (ret != ErrorCode::NO_ERROR) {
         auto evenInfo = HiSysOriginalInfo::Builder()
                             .SetErrCode(ret)
@@ -343,7 +344,7 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, cons
         return ret;
     }
     clientInfo_.state = ClientState::ACTIVE;
-    OnInputReady(agent, imeInfo);
+    SetInputReady(agents, imeInfos);
     if (attachOptions.isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
     }
@@ -615,7 +616,7 @@ int32_t InputMethodController::EnableIme(
 }
 
 int32_t InputMethodController::StartInput(
-    InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo)
+    InputClientInfo &inputClientInfo, std::vector<sptr<IRemoteObject>> &agents, std::vector<BindImeInfo> &imeInfos)
 {
     IMSA_HILOGD("InputMethodController::StartInput start.");
     auto proxy = GetSystemAbilityProxy();
@@ -624,7 +625,7 @@ int32_t InputMethodController::StartInput(
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     InputClientInfoInner inner = InputMethodTools::GetInstance().InputClientInfoToInner(inputClientInfo);
-    int32_t ret = proxy->StartInput(inner, agent, imeInfo.first, imeInfo.second);
+    int32_t ret = proxy->StartInput(inner, agents, imeInfos);
     return ret;
 }
 
@@ -680,6 +681,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
     }
+    ClearAgentInfo();
     if (handler_ == nullptr) {
         IMSA_HILOGE("handler_ is nullptr!");
         return;
@@ -762,12 +764,10 @@ int32_t InputMethodController::DiscardTypingText()
         IMSA_HILOGE("not bound.");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
-    auto agent = GetAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGE("agent is nullptr!");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    return agent->DiscardTypingText();
+
+    return SendRequestToAllAgents([](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
+        return agent->DiscardTypingText();
+    });
 }
 
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
@@ -798,14 +798,12 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         }
         cursorInfo_ = cursorInfo;
     }
-    auto agent = GetAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGE("agent is nullptr!");
-        return ErrorCode::ERROR_IME_NOT_STARTED;
-    }
     IMSA_HILOGI("left: %{public}d, top: %{public}d, height: %{public}d.", static_cast<int32_t>(cursorInfo.left),
         static_cast<int32_t>(cursorInfo.top), static_cast<int32_t>(cursorInfo.height));
-    agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
+    return SendRequestToAllAgents([cursorInfo](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
+        agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
+        return ErrorCode::NO_ERROR;
+    });
     return ErrorCode::NO_ERROR;
 }
 
@@ -836,15 +834,15 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         selectNewBegin_ = start;
         selectNewEnd_ = end;
     }
-    auto agent = GetAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGE("agent is nullptr!");
-        return ErrorCode::ERROR_IME_NOT_STARTED;
-    }
     IMSA_HILOGI("IMC size: %{public}zu, range: %{public}d/%{public}d/%{public}d/%{public}d.", text.size(),
         selectOldBegin_, selectOldEnd_, start, end);
     std::string testString = Str16ToStr8(text);
-    agent->OnSelectionChange(testString, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
+    return SendRequestToAllAgents(
+        [testString, selectOldBegin = selectOldBegin_, selectOldEnd = selectOldEnd_, selectNewBegin = selectNewBegin_,
+            selectNewEnd = selectNewEnd_](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
+            agent->OnSelectionChange(testString, selectOldBegin, selectOldEnd, selectNewBegin, selectNewEnd);
+            return ErrorCode::NO_ERROR;
+        });
     return ErrorCode::NO_ERROR;
 }
 
@@ -870,21 +868,20 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         "IMC enterKeyType: %{public}d, textInputType: %{public}d.", attribute.enterKeyType, attribute.inputPattern);
     if (oldSecurityFlag != attribute.GetSecurityFlag()) {
         GetTextConfig(clientInfo_.config);
-        sptr<IRemoteObject> agent = nullptr;
-        std::pair<int64_t, std::string> imeInfo{ 0, "" };
-        int32_t ret = StartInput(clientInfo_, agent, imeInfo);
+        std::vector<sptr<IRemoteObject>> agents;
+        std::vector<BindImeInfo> imeInfos;
+        int32_t ret = StartInput(clientInfo_, agents, imeInfos);
         if (ret != ErrorCode::NO_ERROR) {
             return ret;
         }
-        OnInputReady(agent, imeInfo);
+        SetInputReady(agents, imeInfos);
     }
-    auto agent = GetAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGE("agent is nullptr!");
-        return ErrorCode::ERROR_IME_NOT_STARTED;
-    }
+
     InputAttributeInner inner = InputMethodTools::GetInstance().AttributeToInner(attribute);
-    agent->OnAttributeChange(inner);
+    return SendRequestToAllAgents([&inner](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
+        agent->OnAttributeChange(inner);
+        return ErrorCode::NO_ERROR;
+    });
     return ErrorCode::NO_ERROR;
 }
 
@@ -1161,27 +1158,39 @@ int32_t InputMethodController::SetSimpleKeyboardEnabled(bool enable)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::OnInputReady(
-    sptr<IRemoteObject> agentObject, const std::pair<int64_t, std::string> &imeInfo)
+void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject, const BindImeInfo &imeInfo)
 {
     IMSA_HILOGD("InputMethodController start.");
-    SetBindImeInfo(imeInfo);
-    isBound_.store(true);
-    isEditable_.store(true);
+    if (imeInfo.bundleName != IME_MIRROR_NAME) {
+        SetBindImeInfo(std::make_pair(imeInfo.pid, imeInfo.bundleName));
+        isBound_.store(true);
+        isEditable_.store(true);
+    } else {
+        IMSA_HILOGD("[ImeMirrorTag] proxyIme_IME_MIRROR no need to set bindImeInfo");
+    }
+
     if (agentObject == nullptr) {
         IMSA_HILOGE("agentObject is nullptr!");
         return;
     }
-    SetAgent(agentObject);
+    SetAgent(agentObject, imeInfo.bundleName);
+}
+
+void InputMethodController::SetInputReady(
+    const std::vector<sptr<IRemoteObject>> &agentObjects, const std::vector<BindImeInfo> &imeInfos)
+{
+    if (agentObjects.size() != imeInfos.size()) {
+        IMSA_HILOGE("[ImeMirrorTag]agentObjects.size() != imeInfos.size()!");
+        return;
+    }
+    for (size_t i = 0; i < agentObjects.size(); i++) {
+        OnInputReady(agentObjects[i], imeInfos[i]);
+    }
 }
 
 void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteObject> proxy)
 {
-    {
-        std::lock_guard<std::mutex> autoLock(agentLock_);
-        agent_ = nullptr;
-        agentObject_ = nullptr;
-    }
+    ClearAgentInfo();
     auto listener = GetTextListener();
     if (listener != nullptr) {
         IMSA_HILOGD("listener is not nullptr!");
@@ -1210,6 +1219,22 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
     }
     auto channelProxy = std::make_shared<OnInputStopNotifyProxy>(proxy);
     channelProxy->NotifyOnInputStopFinished();
+}
+
+void InputMethodController::OnImeMirrorStop(sptr<IRemoteObject> object)
+{
+    std::lock_guard guard(agentLock_);
+    auto pos = find_if(agentInfoList_.begin(), agentInfoList_.end(), [object](const AgentInfo &agentInfo) {
+        return agentInfo.agentObject == object;
+    });
+    if (pos == agentInfoList_.end()) {
+        IMSA_HILOGE("[ImeMirrorTag] object is not in agentInfoList.");
+        return;
+    }
+    pos->agentObject = nullptr;
+    pos->agent = nullptr;
+    agentInfoList_.erase(pos);
+    IMSA_HILOGI("[ImeMirrorTag]remove agent");
 }
 
 void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChangedListener> lastListener)
@@ -1467,6 +1492,9 @@ int32_t InputMethodController::SendFunctionKey(int32_t functionKey)
     FunctionKey funcKey;
     funcKey.SetEnterKeyType(static_cast<EnterKeyType>(functionKey));
     listener->SendFunctionKeyV2(funcKey);
+    SendRequestToImeMirrorAgent([&functionKey](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
+        return agent->OnFunctionKey(functionKey);
+    });
     return ErrorCode::NO_ERROR;
 }
 
@@ -1518,21 +1546,36 @@ int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &is
     return proxy->IsPanelShown(panelInfo, isShown);
 }
 
-void InputMethodController::SetAgent(const sptr<IRemoteObject> &agentObject)
+void InputMethodController::SetAgent(const sptr<IRemoteObject> &agentObject, const std::string &bundleName)
 {
     std::lock_guard<std::mutex> autoLock(agentLock_);
-    if (agent_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
-        IMSA_HILOGD("agent has already been set.");
-        return;
+    for (auto &agentInfo : agentInfoList_) {
+        if (agentInfo.agent != nullptr && agentInfo.agentObject.GetRefPtr() == agentObject.GetRefPtr()) {
+            IMSA_HILOGD("[ImeMirrorTag]agent has already been set.");
+            return;
+        }
     }
-    agent_ = std::make_shared<InputMethodAgentProxy>(agentObject);
-    agentObject_ = agentObject;
+
+    if (agentInfoList_.size() >= MAX_AGENT_NUMBER) {
+        IMSA_HILOGW("[ImeMirrorTag]agent num is too many");
+    }
+    AgentInfo agentInfo;
+    agentInfo.agent = std::make_shared<InputMethodAgentProxy>(agentObject);
+    agentInfo.agentObject = agentObject;
+    agentInfo.imeType = (bundleName == IME_MIRROR_NAME) ? ImeType::IME_MIRROR : ImeType::NONE;
+    agentInfoList_.push_back(agentInfo);
 }
 
 std::shared_ptr<IInputMethodAgent> InputMethodController::GetAgent()
 {
     std::lock_guard<std::mutex> autoLock(agentLock_);
-    return agent_;
+    for (auto &agentInfo : agentInfoList_) {
+        if (agentInfo.agent != nullptr && agentInfo.imeType != ImeType::IME_MIRROR) {
+            return agentInfo.agent;
+        }
+    }
+    IMSA_HILOGE("no agent found!");
+    return nullptr;
 }
 
 void InputMethodController::PrintLogIfAceTimeout(int64_t start)
@@ -1832,6 +1875,65 @@ int32_t InputMethodController::ResponseDataChannel(
     ResponseDataInner inner;
     inner.rspData = data;
     return agent->ResponseDataChannel(msgId, code, inner);
+}
+
+void InputMethodController::ClearAgentInfo()
+{
+    std::lock_guard guard(agentLock_);
+    for (auto &agentInfo : agentInfoList_) {
+        agentInfo.agent = nullptr;
+        agentInfo.agentObject = nullptr;
+    }
+
+    IMSA_HILOGD("Clear all agent info");
+    agentInfoList_.clear();
+}
+
+int32_t InputMethodController::SendRequestToAllAgents(std::function<int32_t(std::shared_ptr<IInputMethodAgent>)> task)
+{
+    std::lock_guard guard(agentLock_);
+    int32_t finalRet = ErrorCode::NO_ERROR;
+    for (auto &agentInfo : agentInfoList_) {
+        if (agentInfo.imeType == ImeType::IME_MIRROR && textConfig_.inputAttribute.IsSecurityImeFlag()) {
+            IMSA_HILOGW("password not allow send to ime mirror");
+            continue;
+        }
+        if (agentInfo.agent == nullptr) {
+            IMSA_HILOGE("agent is null");
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        }
+        auto ret = task(agentInfo.agent);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed, ret = %{public}d", ret);
+        }
+        // Only update final return code for non-imeMirror IMEs
+        // ImeMirror IME errors don't affect the overall result
+        if (agentInfo.imeType != ImeType::IME_MIRROR) {
+            finalRet = ret;
+        }
+    }
+    IMSA_HILOGD("end, finalRet = %{public}d", finalRet);
+    return finalRet;
+}
+
+int32_t InputMethodController::SendRequestToImeMirrorAgent(
+    std::function<int32_t(std::shared_ptr<IInputMethodAgent>)> task)
+{
+    std::lock_guard guard(agentLock_);
+    auto itr = std::find_if(agentInfoList_.begin(), agentInfoList_.end(), [](const AgentInfo &info) {
+        return info.imeType == ImeType::IME_MIRROR;
+    });
+    if (itr == agentInfoList_.end()) {
+        IMSA_HILOGD("ime mirror agent is not exist");
+        return ErrorCode::ERROR_IME_NOT_FOUND;
+    }
+
+    if (textConfig_.inputAttribute.IsSecurityImeFlag()) {
+        IMSA_HILOGE("text type is security, can not send function key");
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+
+    return task(itr->agent);
 }
 
 void OnTextChangedListener::InsertTextV2(const std::u16string &text)

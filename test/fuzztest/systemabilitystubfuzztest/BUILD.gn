@@ -20,6 +20,18 @@ import("//build/test.gni")
 group("system_ability_stub_fuzztest") {
   testonly = true
   deps = [
+    ":BindImeMirrorFuzzTest",
+    ":CommandEnableImeFuzzTest",
+    ":CommandGetInputMethodStateFuzzTest",
+    ":CommandGetInputStartInfoFuzzTest",
+    ":CommandHideCurrentInputDeprecatedFuzzTest",
+    ":CommandInitConnectFuzzTest",
+    ":CommandIsCurrentImeByPidFuzzTest",
+    ":CommandIsDefaultImeSetFuzzTest",
+    ":CommandIsSystemAppSetFuzzTest",
+    ":CommandRegisterProxyImeFuzzTest",
+    ":CommandSetCallingWindowFuzzTest",
+    ":CommandUnregisterProxyImeFuzzTest",
     ":ConnectSystemCmdFuzzTest",
     ":DisplayOptionalInputMethodFuzzTest",
     ":ExitCurrentInputTypeFuzzTest",
@@ -52,17 +64,6 @@ group("system_ability_stub_fuzztest") {
     ":SwitchInputMethodFuzzTest",
     ":UnRegisteredProxyImeFuzzTest",
     ":UpdateListenEventFlagFuzzTest",
-    ":CommandIsCurrentImeByPidFuzzTest",
-    ":CommandIsDefaultImeSetFuzzTest",
-    ":CommandIsSystemAppSetFuzzTest",
-    ":CommandGetInputMethodStateFuzzTest",
-    ":CommandHideCurrentInputDeprecatedFuzzTest",
-    ":CommandInitConnectFuzzTest",
-    ":CommandSetCallingWindowFuzzTest",
-    ":CommandGetInputStartInfoFuzzTest",
-    ":CommandRegisterProxyImeFuzzTest",
-    ":CommandUnregisterProxyImeFuzzTest",
-    ":CommandEnableImeFuzzTest",
   ]
 }
 
@@ -85,7 +86,7 @@ if (build_selinux) {
 }
 
 common_deps = [
-  "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
+  "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_fuzz_static",
   "${inputmethod_path}/services:inputmethod_service_static",
   "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
   "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static",
@@ -670,7 +671,8 @@ ohos_fuzztest("CommandIsCurrentImeByPidFuzzTest") {
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
   ]
 
-  sources = [ "commandiscurrentimebypid_fuzzer/commandiscurrentimebypid_fuzzer.cpp" ]
+  sources =
+      [ "commandiscurrentimebypid_fuzzer/commandiscurrentimebypid_fuzzer.cpp" ]
 
   deps = common_deps
 
@@ -687,7 +689,8 @@ ohos_fuzztest("CommandIsDefaultImeSetFuzzTest") {
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
   ]
 
-  sources = [ "commandisdefaultimeset_fuzzer/commandisdefaultimeset_fuzzer.cpp" ]
+  sources =
+      [ "commandisdefaultimeset_fuzzer/commandisdefaultimeset_fuzzer.cpp" ]
 
   deps = common_deps
 
@@ -721,7 +724,9 @@ ohos_fuzztest("CommandGetInputMethodStateFuzzTest") {
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
   ]
 
-  sources = [ "commandgetinputmethodstate_fuzzer/commandgetinputmethodstate_fuzzer.cpp" ]
+  sources = [
+    "commandgetinputmethodstate_fuzzer/commandgetinputmethodstate_fuzzer.cpp",
+  ]
 
   deps = common_deps
 
@@ -772,7 +777,8 @@ ohos_fuzztest("CommandSetCallingWindowFuzzTest") {
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
   ]
 
-  sources = [ "commandsetcallingwindow_fuzzer/commandsetcallingwindow_fuzzer.cpp" ]
+  sources =
+      [ "commandsetcallingwindow_fuzzer/commandsetcallingwindow_fuzzer.cpp" ]
 
   deps = common_deps
 
@@ -789,7 +795,8 @@ ohos_fuzztest("CommandGetInputStartInfoFuzzTest") {
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
   ]
 
-  sources = [ "commandgetinputstartinfo_fuzzer/commandgetinputstartinfo_fuzzer.cpp" ]
+  sources =
+      [ "commandgetinputstartinfo_fuzzer/commandgetinputstartinfo_fuzzer.cpp" ]
 
   deps = common_deps
 
@@ -806,7 +813,8 @@ ohos_fuzztest("CommandRegisterProxyImeFuzzTest") {
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
   ]
 
-  sources = [ "commandregisterproxyime_fuzzer/commandregisterproxyime_fuzzer.cpp" ]
+  sources =
+      [ "commandregisterproxyime_fuzzer/commandregisterproxyime_fuzzer.cpp" ]
 
   deps = common_deps
 
@@ -823,7 +831,9 @@ ohos_fuzztest("CommandUnregisterProxyImeFuzzTest") {
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
   ]
 
-  sources = [ "commandunregisterproxyime_fuzzer/commandunregisterproxyime_fuzzer.cpp" ]
+  sources = [
+    "commandunregisterproxyime_fuzzer/commandunregisterproxyime_fuzzer.cpp",
+  ]
 
   deps = common_deps
 
@@ -845,4 +855,29 @@ ohos_fuzztest("CommandEnableImeFuzzTest") {
   deps = common_deps
 
   external_deps = common_external_deps
+}
+
+ohos_fuzztest("BindImeMirrorFuzzTest") {
+  module_out_path = "imf/imf"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/bindimemirror_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/bindimemirror_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [
+    "bindimemirror_fuzzer/bindimemirror_fuzzer.cpp",
+    "${inputmethod_path}/services/src/sys_cfg_parser.cpp",
+  ]
+
+  deps = common_deps
+
+  external_deps = common_external_deps
+
+  external_deps += [
+    "access_token:libtoken_setproc",
+    "config_policy:configpolicy_util",
+  ]
 }

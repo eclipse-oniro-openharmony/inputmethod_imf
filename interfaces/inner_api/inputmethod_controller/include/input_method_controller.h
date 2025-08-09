@@ -620,7 +620,7 @@ public:
      *
      * @since 10
      */
-    void OnInputReady(sptr<IRemoteObject> agentObject, const std::pair<int64_t, std::string> &imeInfo = {});
+    void OnInputReady(sptr<IRemoteObject> agentObject, const BindImeInfo &imeInfo);
 
     /**
      * @brief Unbind IMC with Service.
@@ -630,6 +630,7 @@ public:
      * @since 10
      */
     void OnInputStop(bool isStopInactiveClient = false, sptr<IRemoteObject> proxy = nullptr);
+    void OnImeMirrorStop(sptr<IRemoteObject> object);
 
     /**
      * @brief Insert text.
@@ -988,7 +989,7 @@ private:
     sptr<IInputMethodSystemAbility> TryGetSystemAbilityProxy();
     void RemoveDeathRecipient();
     int32_t StartInput(
-        InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent, std::pair<int64_t, std::string> &imeInfo);
+        InputClientInfo &inputClientInfo, std::vector<sptr<IRemoteObject>> &agents, std::vector<BindImeInfo> &imeInfos);
     int32_t ShowInput(
         sptr<IInputClient> &client, ClientType type = ClientType::INNER_KIT, int32_t requestKeyboardReason = 0);
     int32_t HideInput(sptr<IInputClient> &client);
@@ -1004,7 +1005,7 @@ private:
     void SetTextListener(sptr<OnTextChangedListener> listener);
     bool IsEditable();
     bool IsBound();
-    void SetAgent(const sptr<IRemoteObject> &agentObject);
+    void SetAgent(const sptr<IRemoteObject> &agentObject, const std::string &bundleName);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
     void PrintKeyEventLog();
@@ -1020,15 +1021,25 @@ private:
     int32_t ResponseDataChannel(
         const sptr<IRemoteObject> &agentObject, uint64_t msgId, int32_t code, const ResponseData &data);
     void CalibrateImmersiveParam(InputAttribute &inputAttribute);
+    void ClearAgentInfo();
+    int32_t SendRequestToAllAgents(std::function<int32_t(std::shared_ptr<IInputMethodAgent>)> task);
+    int32_t SendRequestToImeMirrorAgent(std::function<int32_t(std::shared_ptr<IInputMethodAgent>)> task);
+    void SetInputReady(const std::vector<sptr<IRemoteObject>> &agentObjects, const std::vector<BindImeInfo> &imeInfos);
 
     friend class InputDataChannelServiceImpl;
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
     sptr<InputDeathRecipient> deathRecipient_;
+
+    struct AgentInfo {
+        sptr<IRemoteObject> agentObject = nullptr;
+        std::shared_ptr<IInputMethodAgent> agent = nullptr;
+        ImeType imeType = ImeType::NONE;
+    };
     std::mutex agentLock_;
-    sptr<IRemoteObject> agentObject_ = nullptr;
-    std::shared_ptr<IInputMethodAgent> agent_ = nullptr;
+    std::vector<AgentInfo> agentInfoList_;
+
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener_ = nullptr;
     std::atomic_bool isDiedAttached_{ false };

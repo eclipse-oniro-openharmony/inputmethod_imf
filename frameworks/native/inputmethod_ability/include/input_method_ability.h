@@ -42,6 +42,7 @@
 #include "system_cmd_channel_proxy.h"
 #include "inputmethod_message_handler.h"
 #include "input_data_channel_proxy_wrap.h"
+#include "ime_mirror_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -53,6 +54,8 @@ public:
     int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t RegisterProxyIme(uint64_t displayId = DEFAULT_DISPLAY_ID);
     int32_t UnregisterProxyIme(uint64_t displayId);
+    int32_t BindImeMirror();
+    int32_t UnbindImeMirror();
     int32_t InsertText(const std::string &text, const AsyncIpcCallBack &callback = nullptr);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     std::shared_ptr<InputMethodEngineListener> GetImeListener();
@@ -125,6 +128,7 @@ public:
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height);
     void OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEndg);
     void OnAttributeChange(InputAttribute attribute);
+    void OnFunctionKey(int32_t funcKey);
 
     int32_t OnStopInputService(bool isTerminateIme);
 private:
@@ -240,6 +244,7 @@ private:
     std::mutex bindClientInfoLock_;
     HiSysEventClientInfo bindClientInfo_;
     bool isNotify_ = false;
+    ImeMirrorManager imeMirrorMgr_;
 
     bool IsDisplayChanged(uint64_t oldDisplayId, uint64_t newDisplayId);
 };

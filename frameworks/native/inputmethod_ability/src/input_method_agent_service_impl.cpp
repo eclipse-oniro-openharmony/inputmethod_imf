@@ -101,6 +101,13 @@ ErrCode InputMethodAgentServiceImpl::DiscardTypingText()
     return ErrorCode::NO_ERROR;
 }
 
+ErrCode InputMethodAgentServiceImpl::OnFunctionKey(int32_t funcKey)
+{
+    auto task = std::make_shared<TaskImsaOnFunctionKey>(funcKey);
+    TaskManager::GetInstance().PostTask(task);
+    return ERR_OK;
+}
+
 ErrCode InputMethodAgentServiceImpl::ResponseDataChannel(uint64_t msgId, int code, const ResponseDataInner &msg)
 {
     return InputMethodAbility::GetInstance().OnResponse(msgId, code, msg.rspData);

@@ -306,6 +306,7 @@ ohos_shared_library("inputmethod_client") {
     "${inputmethod_path}/common/imf_hisysevent:imf_hisysevent",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_data_channel_stub",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_client_types",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_system_ability_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:keyevent_consumer_stub",
@@ -328,10 +329,7 @@ ohos_shared_library("inputmethod_client") {
 
   oninputstop_notify_output_values =
       get_target_outputs(":oninputstop_notify_interface")
-  sources += filter_include(oninputstop_notify_output_values,
-                            [
-                              "*_proxy.cpp",
-                            ])
+  sources += filter_include(oninputstop_notify_output_values, [ "*_proxy.cpp" ])
 
   external_deps = [
     "bundle_framework:appexecfwk_base",
@@ -434,10 +432,7 @@ ohos_static_library("inputmethod_client_static") {
 
   oninputstop_notify_output_values =
       get_target_outputs(":oninputstop_notify_interface")
-  sources += filter_include(oninputstop_notify_output_values,
-                            [
-                              "*_proxy.cpp",
-                            ])
+  sources += filter_include(oninputstop_notify_output_values, [ "*_proxy.cpp" ])
 
   public_external_deps = [ "ability_base:want" ]
 

@@ -343,11 +343,11 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr001 TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    sptr<IRemoteObject> agent = nullptr;
     InputClientInfo clientInfo;
     clientInfo.client = nullptr;
-    std::pair<int64_t, std::string> imeInfo;
-    int32_t ret = userSession->OnStartInput(clientInfo, agent, imeInfo);
+    std::vector<sptr<IRemoteObject>> agents;
+    std::vector<BindImeInfo> imeInfos;
+    int32_t ret = userSession->OnStartInput(clientInfo, agents, imeInfos);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->OnReleaseInput(nullptr, 0);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
@@ -884,15 +884,16 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest IMC_testDeactivateClient Test START");
     auto imc = InputMethodController::GetInstance();
-    imc->agent_ = std::make_shared<InputMethodAgentServiceImpl>();
-    MessageParcel data;
-    data.WriteRemoteObject(imc->agent_->AsObject());
-    imc->agentObject_ = data.ReadRemoteObject();
+    imc->ClearAgentInfo();
+    sptr<IInputMethodAgent> agent = new (std::nothrow) InputMethodAgentServiceImpl();
+    imc->SetAgent(agent->AsObject(), "");
     imc->clientInfo_.state = ClientState::ACTIVE;
     imc->DeactivateClient();
     EXPECT_EQ(imc->clientInfo_.state, ClientState::INACTIVE);
-    EXPECT_NE(imc->agent_, nullptr);
-    EXPECT_NE(imc->agentObject_, nullptr);
+    EXPECT_GE(imc->agentInfoList_.size(), 1);
+    EXPECT_NE(imc->agentInfoList_[0].agent, nullptr);
+    EXPECT_NE(imc->agentInfoList_[0].agentObject, nullptr);
+    imc->ClearAgentInfo();
 }
 
 /**

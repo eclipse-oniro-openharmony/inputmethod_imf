@@ -32,6 +32,7 @@ public:
     virtual void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
     virtual void OnTextChange(const std::string &text) = 0;
     virtual void OnEditorAttributeChange(const InputAttribute &inputAttribute) = 0;
+    virtual void OnFunctionKey(int32_t funcKey) {};
 };
 } // namespace MiscServices
 } // namespace OHOS

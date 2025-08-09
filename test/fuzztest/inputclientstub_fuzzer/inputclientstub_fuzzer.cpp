@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "fuzzer/FuzzedDataProvider.h"
 #include "global.h"
 #include "input_client_service_impl.h"
 #include "input_method_agent_service_impl.h"
@@ -62,9 +63,10 @@ void TextOnInputReady()
     MessageParcel data;
     data.WriteRemoteObject(mInputMethodAgentStub->AsObject());
     auto remoteObject = data.ReadRemoteObject();
-    int64_t pid = 0;
-    std::string bundleName = "bundleName";
-    mClient->OnInputReady(remoteObject, pid, bundleName);
+    BindImeInfo imeInfo;
+    imeInfo.pid = 0;
+    imeInfo.bundleName = "bundleName";
+    mClient->OnInputReady(remoteObject, imeInfo);
 }
 
 void TestOnSwitchInput()
@@ -75,6 +77,18 @@ void TestOnSwitchInput()
 
     mClient->OnSwitchInput(property, subProperty);
 }
+
+void TestOnImeMirrorStop()
+{
+    sptr<InputClientStub> mClient = new InputClientServiceImpl();
+    Property property = {};
+    SubProperty subProperty = {};
+    sptr<InputMethodAgentStub> mInputMethodAgentStub = new InputMethodAgentServiceImpl();
+    MessageParcel data;
+    data.WriteRemoteObject(mInputMethodAgentStub->AsObject());
+    auto remoteObject = data.ReadRemoteObject();
+    mClient->OnImeMirrorStop(remoteObject);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -84,9 +98,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         return 0;
     }
     /* Run your code on data */
-
+    FuzzedDataProvider provider(data, size);
     OHOS::FuzzInputClientStub(data, size);
     OHOS::TextOnInputReady();
     OHOS::TestOnSwitchInput();
+    OHOS::TestOnImeMirrorStop();
     return 0;
 }

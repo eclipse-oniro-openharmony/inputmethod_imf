@@ -191,7 +191,7 @@ public:
         imc_->isBound_.store(true);
         imc_->isEditable_.store(true);
         auto agent = inputMethodAbility_.agentStub_->AsObject();
-        imc_->SetAgent(agent);
+        imc_->SetAgent(agent, "");
 
         sptr<IInputDataChannel> channel = iface_cast<IInputDataChannel>(imc_->clientInfo_.channel);
         inputMethodAbility_.SetInputDataChannel(channel->AsObject());
