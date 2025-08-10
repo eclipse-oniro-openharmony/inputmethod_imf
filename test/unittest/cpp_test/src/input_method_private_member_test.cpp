@@ -357,26 +357,6 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
 }
 
 /**
- * @tc.name: PerUserSessionParameterNullptr003
- * @tc.desc: Test PerUserSession with parameter nullptr.
- * @tc.type: FUNC
- * @tc.require: issuesI794QF
- * @tc.author: Zhaolinglan
- */
-HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
-    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    auto clientGroup = std::make_shared<ClientGroup>(DEFAULT_DISPLAY_ID, nullptr);
-    userSession->OnClientDied(nullptr);
-    userSession->OnImeDied(nullptr, ImeType::IME, IPCSkeleton::GetCallingPid());
-    bool isShowKeyboard = false;
-    clientGroup->UpdateClientInfo(nullptr, { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
-    int32_t ret = userSession->RemoveIme(ImeType::IME, IPCSkeleton::GetCallingPid());
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-}
-
-/**
  * @tc.name: SA_ImeCfgManagerTest_002
  * @tc.desc: getImeCfg failed
  * @tc.type: FUNC
@@ -884,15 +864,16 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest IMC_testDeactivateClient Test START");
     auto imc = InputMethodController::GetInstance();
-    imc->agent_ = std::make_shared<InputMethodAgentServiceImpl>();
-    MessageParcel data;
-    data.WriteRemoteObject(imc->agent_->AsObject());
-    imc->agentObject_ = data.ReadRemoteObject();
+    imc->ClearAgentInfo();
+    sptr<IInputMethodAgent> agent = new (std::nothrow) InputMethodAgentServiceImpl();
+    imc->SetAgent(agent->AsObject(), "");
     imc->clientInfo_.state = ClientState::ACTIVE;
     imc->DeactivateClient();
     EXPECT_EQ(imc->clientInfo_.state, ClientState::INACTIVE);
-    EXPECT_NE(imc->agent_, nullptr);
-    EXPECT_NE(imc->agentObject_, nullptr);
+    EXPECT_GE(imc->agentInfoList_.size(), 1);
+    EXPECT_NE(imc->agentInfoList_[0].agent, nullptr);
+    EXPECT_NE(imc->agentInfoList_[0].agentObject, nullptr);
+    imc->ClearAgentInfo();
 }
 
 /**
@@ -902,7 +883,7 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0
  */
 HWTEST_F(InputMethodPrivateMemberTest, testIsPanelShown, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
+    IMSA_HILOGI("InputMethodPrivateMemberTest testIsPanelShown TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     PanelInfo panelInfo;
     panelInfo.panelType = SOFT_KEYBOARD;

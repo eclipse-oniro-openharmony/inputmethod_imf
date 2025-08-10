@@ -409,6 +409,10 @@ std::u16string CjInputMethodController::GetLeftText(int32_t number)
     }
     IMSA_HILOGD("getLeftText runs");
     char *text = getLeftText(number);
+    if (text == nullptr) {
+        IMSA_HILOGD("text is nullptr");
+        return u"";
+    }
     auto ret = Str8ToStr16(std::string(text));
     free(text);
     return ret;
@@ -422,6 +426,10 @@ std::u16string CjInputMethodController::GetRightText(int32_t number)
     }
     IMSA_HILOGD("getRightText runs");
     char *text = getRightText(number);
+    if (text == nullptr) {
+        IMSA_HILOGD("text is nullptr");
+        return u"";
+    }
     auto ret = Str8ToStr16(std::string(text));
     free(text);
     return ret;

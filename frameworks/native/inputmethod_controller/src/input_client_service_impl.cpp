@@ -26,13 +26,9 @@ InputClientServiceImpl::InputClientServiceImpl() {}
 
 InputClientServiceImpl::~InputClientServiceImpl() {}
 
-ErrCode InputClientServiceImpl::OnInputReady(
-    const sptr<IRemoteObject>& agent, const int64_t pid, const std::string& bundleName)
+ErrCode InputClientServiceImpl::OnInputReady(const sptr<IRemoteObject> &agent, const BindImeInfo &imeInfo)
 {
     IMSA_HILOGI("ClientStub start.");
-    std::pair<int64_t, std::string> imeInfo{ 0, "" };
-    imeInfo.first = pid;
-    imeInfo.second = bundleName;
     auto instance = InputMethodController::GetInstance();
     if (instance != nullptr) {
         instance->OnInputReady(agent, imeInfo);
@@ -64,7 +60,18 @@ ErrCode InputClientServiceImpl::OnInputStopAsync(bool isStopInactiveClient)
     return ERR_OK;
 }
 
-ErrCode InputClientServiceImpl::OnSwitchInput(const Property& property, const SubProperty& subProperty)
+ErrCode InputClientServiceImpl::OnImeMirrorStop(const sptr<IRemoteObject> &object)
+{
+    auto instance = InputMethodController::GetInstance();
+    if (instance != nullptr) {
+        instance->OnImeMirrorStop(object);
+    } else {
+        IMSA_HILOGW("[ImeMirrorTag]failed to get InputMethodController instance!");
+    }
+    return ERR_OK;
+}
+
+ErrCode InputClientServiceImpl::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
     return ImeEventMonitorManagerImpl::GetInstance().OnImeChange(property, subProperty);
 }

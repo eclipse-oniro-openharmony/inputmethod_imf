@@ -192,6 +192,59 @@ int32_t InputMethodAbility::UnregisterProxyIme(uint64_t displayId)
     return proxy->UnregisterProxyIme(displayId);
 }
 
+int32_t InputMethodAbility::BindImeMirror()
+{
+    TaskManager::GetInstance().SetInited(true);
+
+    if (isBound_.load()) {
+        IMSA_HILOGD("[ImeMirrorTag]already bound.");
+        return ErrorCode::NO_ERROR;
+    }
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("[ImeMirrorTag]imsa proxy is nullptr!");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    if (agentStub_ == nullptr) {
+        IMSA_HILOGE("[ImeMirrorTag]agent nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+
+    auto ret = proxy->BindImeMirror(coreStub_, agentStub_->AsObject());
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("[ImeMirrorTag]failed, ret: %{public}d!", ret);
+        return ret;
+    }
+    IMSA_HILOGD("[ImeMirrorTag]register imsa start event");
+    imeMirrorMgr_.SubscribeSaStart(
+        [this]() {
+            if (!imeMirrorMgr_.IsImeMirrorEnable()) {
+                IMSA_HILOGI("[ImeMirrorTag]imsa started, no need resume ime mirror");
+                return;
+            }
+            IMSA_HILOGI("[ImeMirrorTag]imsa started, resume ime mirror");
+            BindImeMirror();
+        },
+        INPUT_METHOD_SYSTEM_ABILITY_ID);
+    isBound_.store(true);
+    imeMirrorMgr_.SetImeMirrorEnable(true);
+    IMSA_HILOGI("[ImeMirrorTag]set successfully");
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodAbility::UnbindImeMirror()
+{
+    isBound_.store(false);
+    imeMirrorMgr_.SetImeMirrorEnable(false);
+    imeMirrorMgr_.UnSubscribeSaStart(INPUT_METHOD_SYSTEM_ABILITY_ID);
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("[ImeMirrorTag]imsa proxy is nullptr!");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    return proxy->UnbindImeMirror();
+}
+
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGD("IMA init.");
@@ -452,6 +505,15 @@ void InputMethodAbility::OnAttributeChange(InputAttribute attribute)
     // add for mod inputPattern when panel show
     NotifyPanelStatus(false);
     kdListener_->OnEditorAttributeChange(attribute);
+}
+
+void InputMethodAbility::OnFunctionKey(int32_t funcKey)
+{
+    if (kdListener_ == nullptr) {
+        IMSA_HILOGE("kdListener_ is nullptr!");
+        return;
+    }
+    kdListener_->OnFunctionKey(funcKey);
 }
 
 int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
@@ -905,6 +967,10 @@ bool InputMethodAbility::NotifyInfoToWmsInStartInput(const TextTotalConfig &text
 
 std::shared_ptr<InputDataChannelProxyWrap> InputMethodAbility::GetInputDataChannelProxyWrap()
 {
+    if (imeMirrorMgr_.IsImeMirrorEnable()) {
+        IMSA_HILOGW("[ImeMirrorTag] not allow send to data channel");
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lock(dataChannelLock_);
     return dataChannelProxyWrap_;
 }

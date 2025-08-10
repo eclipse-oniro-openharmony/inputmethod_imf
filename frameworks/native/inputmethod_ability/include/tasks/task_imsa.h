@@ -161,6 +161,18 @@ public:
     ~TaskImsaAttributeChange() = default;
 };
 
+class TaskImsaOnFunctionKey : public Task {
+public:
+    explicit TaskImsaOnFunctionKey(int32_t funcKey) : Task(TASK_TYPE_IMSA_ON_FUNCTION_KEY)
+    {
+        auto func = [funcKey]() {
+            InputMethodAbility::GetInstance().OnFunctionKey(funcKey);
+        };
+        actions_.emplace_back(std::make_unique<Action>(func));
+    }
+    ~TaskImsaOnFunctionKey() = default;
+};
+
 class TaskImsaStopInputService : public Task {
 public:
     explicit TaskImsaStopInputService(bool isTerminateIme) : Task(TASK_TYPE_IMSA_STOP_INPUT_SERVICE)

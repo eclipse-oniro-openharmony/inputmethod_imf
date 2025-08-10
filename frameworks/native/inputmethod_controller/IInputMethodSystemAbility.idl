@@ -21,11 +21,11 @@ sequenceable input_method_utils..OHOS.MiscServices.Value;
 sequenceable panel_info..OHOS.MiscServices.PanelInfo;
 sequenceable element_name..OHOS.AppExecFwk.ElementName;
 sequenceable OHOS.IRemoteObject;
+import InputMethodClientTypes;
 interface OHOS.MiscServices.IInputClient;
 interface OHOS.MiscServices.IInputMethodCore;
 interface OHOS.MiscServices.IInputMethodSystemAbility {
-    void StartInput([in] InputClientInfoInner inputClientInfoInner,
-        [out] IRemoteObject agent, [out] long pid, [out] String bundleName);
+    void StartInput([in] InputClientInfoInner inputClientInfoInner, [out] IRemoteObject[] agents, [out] BindImeInfo[] imeInfos);
     void ShowCurrentInput([in] unsigned int type);
     void HideCurrentInput();
     void StopInputSession();
@@ -71,4 +71,6 @@ interface OHOS.MiscServices.IInputMethodSystemAbility {
     void SendPrivateData([in] Value value);
     void IsRestrictedDefaultImeByDisplay([in] unsigned long displayId, [out] boolean resultValue);
     void IsCapacitySupport([in] int capacity, [out] boolean isSupport);
+    void BindImeMirror([in] IInputMethodCore core, [in] IRemoteObject agent);
+    void UnbindImeMirror();
 }

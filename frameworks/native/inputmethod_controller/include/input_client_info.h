@@ -37,6 +37,7 @@ enum class ImeType : int32_t {
     IME = 0,
     PROXY_IME,
     PROXY_AGENT_IME,
+    IME_MIRROR,
     NONE
 };
 enum class ClientState : uint32_t {

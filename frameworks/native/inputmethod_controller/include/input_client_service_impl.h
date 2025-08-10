@@ -31,7 +31,7 @@ class InputClientServiceImpl final : public InputClientStub,
 public:
     InputClientServiceImpl();
     ~InputClientServiceImpl();
-    ErrCode OnInputReady(const sptr<IRemoteObject>& agent, const int64_t pid, const std::string& bundleName) override;
+    ErrCode OnInputReady(const sptr<IRemoteObject> &agent, const BindImeInfo &imeInfo) override;
     ErrCode OnInputStop(bool isStopInactiveClient, const sptr<IRemoteObject> &object) override;
     ErrCode OnInputStopAsync(bool isStopInactiveClient) override;
     ErrCode OnSwitchInput(const Property& property, const SubProperty& subProperty) override;
@@ -39,6 +39,7 @@ public:
     ErrCode NotifyInputStart(uint32_t callingWndId, int32_t requestKeyboardReason) override;
     ErrCode NotifyInputStop() override;
     ErrCode DeactivateClient() override;
+    ErrCode OnImeMirrorStop(const sptr<IRemoteObject> &object) override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS

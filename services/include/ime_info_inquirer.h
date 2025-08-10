@@ -107,6 +107,7 @@ public:
     bool IsRestrictedDefaultImeByDisplay(uint64_t displayId);
     bool IsDynamicStartIme();
     std::unordered_set<std::string> GetDisableNumKeyAppDeviceTypes();
+    bool IsCapacitySupport(const std::string &capacityName);
     bool GetCompatibleDeviceType(const std::string &bundleName, std::string &compatibleDeviceType);
 
 private:

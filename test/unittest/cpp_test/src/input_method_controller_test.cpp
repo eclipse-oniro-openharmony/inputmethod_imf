@@ -1644,7 +1644,10 @@ HWTEST_F(InputMethodControllerTest, testOnInputReady, TestSize.Level0)
     InputAttribute inputAttribute = { .isTextPreviewSupported = true };
     inputMethodController_->Attach(textListener_, false, inputAttribute);
     sptr<IRemoteObject> agentObject = nullptr;
-    inputMethodController_->OnInputReady(agentObject);
+    BindImeInfo imeInfo;
+    imeInfo.pid = 0;
+    imeInfo.bundleName = "";
+    inputMethodController_->OnInputReady(agentObject, imeInfo);
     TextListener::ResetParam();
     inputMethodController_->DeactivateClient();
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);

@@ -153,11 +153,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_001, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    sptr<IRemoteObject> agent = nullptr;
     InputClientInfoInner inputClientInfo;
-    int64_t pid = 0;
-    std::string bundleName;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, pid, bundleName);
+    std::vector<sptr<IRemoteObject>> agents;
+    std::vector<BindImeInfo> imeInfos;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agents, imeInfos);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
 
@@ -173,11 +172,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level1)
     IMSA_HILOGI("IdentityCheckerTest testStartInput_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
-    sptr<IRemoteObject> agent = nullptr;
     InputClientInfoInner inputClientInfo;
-    int64_t pid = 0;
-    std::string bundleName;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, pid, bundleName);
+    std::vector<sptr<IRemoteObject>> agents;
+    std::vector<BindImeInfo> imeInfos;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agents, imeInfos);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
@@ -193,11 +191,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level1)
     IMSA_HILOGI("IdentityCheckerTest testStartInput_003 start");
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
-    sptr<IRemoteObject> agent = nullptr;
     InputClientInfoInner inputClientInfo;
-    int64_t pid = 0;
-    std::string bundleName;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, pid, bundleName);
+    std::vector<sptr<IRemoteObject>> agents;
+    std::vector<BindImeInfo> imeInfos;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agents, imeInfos);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 
@@ -213,11 +210,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level1)
     IMSA_HILOGI("IdentityCheckerTest testStartInput_004 start");
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
-    sptr<IRemoteObject> agent = nullptr;
     InputClientInfoInner inputClientInfo;
-    int64_t pid = 0;
-    std::string bundleName;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent, pid, bundleName);
+    std::vector<sptr<IRemoteObject>> agents;
+    std::vector<BindImeInfo> imeInfos;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agents, imeInfos);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
 }
 

@@ -26,6 +26,7 @@ int32_t KeyboardListenerTestImpl::cursorHeight_ { -1 };
 int32_t KeyboardListenerTestImpl::newBegin_{ -1 };
 std::string KeyboardListenerTestImpl::text_{ "-1" };
 InputAttribute KeyboardListenerTestImpl::inputAttribute_ { 0, 0, 0 };
+int32_t KeyboardListenerTestImpl::funcKey_ { -1 };
 bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
 {
     keyCode_ = keyCode;
@@ -64,6 +65,12 @@ void KeyboardListenerTestImpl::OnTextChange(const std::string &text)
 void KeyboardListenerTestImpl::OnEditorAttributeChange(const InputAttribute &inputAttribute)
 {
     inputAttribute_ = inputAttribute;
+    kdListenerCv_.notify_one();
+}
+
+void KeyboardListenerTestImpl::OnFunctionKey(int32_t funcKey)
+{
+    funcKey_ = funcKey;
     kdListenerCv_.notify_one();
 }
 
@@ -121,6 +128,15 @@ bool KeyboardListenerTestImpl::WaitEditorAttributeChange(const InputAttribute &i
         return inputAttribute == inputAttribute_;
     });
     return inputAttribute == inputAttribute_;
+}
+
+bool KeyboardListenerTestImpl::WaitFunctionKey(int32_t funcKey)
+{
+    std::unique_lock<std::mutex> lock(kdListenerLock_);
+    kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&funcKey]() {
+        return funcKey == funcKey_;
+    });
+    return funcKey == funcKey_;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -49,6 +49,7 @@ public:
     Uri GenerateTargetUri(const std::string &uriProxy, const std::string &key);
     void NotifyDataShareReady();
     bool IsDataShareReady();
+    void Release();
 
 private:
     SettingsDataUtils() = default;
