@@ -121,8 +121,8 @@ public:
     int64_t GetInactiveClientPid(uint64_t displayId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info, uint64_t displayId);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
-    int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
-    int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
+    int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent, int32_t pid);
+    int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core, pid_t pid);
     int32_t OnBindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnBindImeMirror();
     int32_t UpdateLargeMemorySceneState(const int32_t memoryState);
@@ -147,6 +147,7 @@ public:
     int32_t RemoveAllCurrentClient();
     std::shared_ptr<ImeData> GetReadyImeData(ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
+    std::shared_ptr<ImeData> GetImeData(pid_t pid);
     BlockQueue<SwitchInfo>& GetSwitchQueue();
     bool IsWmsReady();
     bool CheckPwdInputPatternConv(InputClientInfo &clientInfo, uint64_t displayId);
@@ -185,6 +186,10 @@ private:
         uint32_t num{ 0 };
         time_t last{};
     };
+    enum TimeLimitType : uint32_t {
+        IME_LIMIT,
+        PROXY_IME_LIMIT,
+    };
     using CoreMethod = std::function<int32_t(const sptr<IInputMethodCore> &)>;
 
     int32_t userId_; // the id of the user to whom the object is linking
@@ -195,7 +200,7 @@ private:
 #endif
     static const int MAX_NOTIFY_TIME = 20;
     std::mutex resetLock;
-    ResetManager manager;
+    std::map<TimeLimitType, ResetManager> managers_;
     using IpcExec = std::function<int32_t()>;
 
     PerUserSession(const PerUserSession &);
@@ -207,7 +212,7 @@ private:
     BlockQueue<SwitchInfo> switchQueue_{ MAX_WAIT_TIME };
 
     void OnClientDied(sptr<IInputClient> remote);
-    void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
+    void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type, pid_t pid);
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     int32_t RemoveClient(const sptr<IInputClient> &client, const std::shared_ptr<ClientGroup> &clientGroup,
@@ -223,8 +228,9 @@ private:
         const std::shared_ptr<ImeNativeCfg> &imeNativeCfg = nullptr);
     int32_t UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
-    void RemoveImeData(ImeType type, bool isImeDied);
-    int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
+    void RemoveImeData(ImeType type);
+    void RemoveImeData(pid_t pid);
+    int32_t RemoveIme(ImeType type, pid_t pid);
 
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
         bool isBindFromClient = false, uint64_t displayId = DEFAULT_DISPLAY_ID);
@@ -265,7 +271,7 @@ private:
     int32_t HandleFirstStart(const std::shared_ptr<ImeNativeCfg> &ime, bool isStopCurrentIme);
     int32_t HandleStartImeTimeout(const std::shared_ptr<ImeNativeCfg> &ime);
     bool GetInputTypeToStart(std::shared_ptr<ImeNativeCfg> &imeToStart);
-    void HandleImeBindTypeChanged(InputClientInfo &newClientInfo, const std::shared_ptr<ClientGroup> &clientGroup);
+    void HandleBindImeChanged(InputClientInfo &newClientInfo, const std::shared_ptr<ClientGroup> &clientGroup);
     int32_t NotifyCallingDisplayChanged(uint64_t displayId);
     bool GetCallingWindowInfo(const InputClientInfo &clientInfo, Rosen::CallingWindowInfo &callingWindowInfo);
     int32_t SendPrivateData(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
@@ -285,12 +291,15 @@ private:
     void SetImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
     sptr<AAFwk::IAbilityConnection> GetImeConnection();
     void ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
+    int32_t IsRequestOverLimit(TimeLimitType timeLimit, int32_t resetTimeOut, int32_t restartNum);
+    int32_t PrepareImeInfos(ImeType type, std::vector<sptr<IRemoteObject>> &agents,
+        std::vector<BindImeInfo> &imeInfos);
 
     std::mutex imeStartLock_;
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;
-    std::unordered_map<ImeType, std::shared_ptr<ImeData>> imeData_;
+    std::unordered_map<ImeType, std::vector<std::shared_ptr<ImeData>>> imeData_;
     std::mutex focusedClientLock_;
 
     std::atomic<bool> isSwitching_ = false;

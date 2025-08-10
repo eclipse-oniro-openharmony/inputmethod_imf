@@ -85,6 +85,7 @@ public:
     int32_t SendFunctionKey(int32_t funcKey);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
+    int32_t SelectByRange(int32_t start, int32_t end);
 
 private:
     InputMethodAbilityInterface() = default;

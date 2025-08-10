@@ -122,6 +122,7 @@ public:
     int32_t ShowKeyboard(int32_t requestKeyboardReason);
     int32_t HideKeyboard();
     int32_t OnDiscardTypingText();
+    int32_t OnNotifyPreemption();
 
     void OnInitInputControlChannel(sptr<IRemoteObject> channelObj);
     void OnSetSubtype(SubProperty subProperty);

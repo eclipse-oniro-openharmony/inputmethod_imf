@@ -35,4 +35,5 @@ interface OHOS.MiscServices.IInputMethodCore {
     [oneway] void OnSetInputType([in] int inputType);
     void OnCallingDisplayIdChanged([in] unsigned long dispalyId);
     void OnSendPrivateData([in] Value value);
+    void NotifyPreemption();
 }

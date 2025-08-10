@@ -99,7 +99,7 @@ void ClientGroup::RemoveClientInfo(const sptr<IRemoteObject> &client, bool isCli
 }
 
 void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client, const std::unordered_map<UpdateFlag,
-    std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType>> &updateInfos)
+    std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType, pid_t>> &updateInfos)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr!");
@@ -139,6 +139,10 @@ void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client, const std:
             }
             case UpdateFlag::CLIENT_TYPE: {
                 VariantUtil::GetValue(updateInfo.second, it->second->type);
+                break;
+            }
+            case UpdateFlag::BIND_IME_PID: {
+                VariantUtil::GetValue(updateInfo.second, it->second->bindImePid);
                 break;
             }
             default:

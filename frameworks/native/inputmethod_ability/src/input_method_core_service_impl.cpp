@@ -132,6 +132,9 @@ ErrCode InputMethodCoreServiceImpl::OnSendPrivateData(const Value &Value)
     privateCommand = Value.valueMap;
     return InputMethodAbility::GetInstance().OnSendPrivateData(privateCommand);
 }
-
+ErrCode InputMethodCoreServiceImpl::NotifyPreemption()
+{
+    return InputMethodAbility::GetInstance().OnNotifyPreemption();
+}
 } // namespace MiscServices
 } // namespace OHOS
