@@ -134,8 +134,7 @@ ErrCode InputMethodCoreServiceImpl::OnSendPrivateData(const Value &Value)
 }
 ErrCode InputMethodCoreServiceImpl::NotifyPreemption()
 {
-    TaskManager::GetInstance().PostTask(std::make_shared<TaskImsaNotifyPreemption>());
-    return ERR_OK;
+    return InputMethodAbility::GetInstance().OnNotifyPreemption();
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -526,8 +526,8 @@ bool PerUserSession::IsProxyImeEnable()
     return ret;
 }
 
-int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, std::vector<sptr<IRemoteObject>> &agents,
-    std::vector<BindImeInfo> &imeInfos)
+int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo,
+    std::vector<sptr<IRemoteObject>> &agents, std::vector<BindImeInfo> &imeInfos)
 {
     const sptr<IInputClient> &client = inputClientInfo.client;
     if (client == nullptr) {
@@ -568,22 +568,7 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, std
         IMSA_HILOGE("bind failed, ret: %{public}d!", ret);
         return ret;
     }
-    auto allData = GetAllReadyImeData(imeType);
-    if (allData.empty()) {
-        IMSA_HILOGE("allData is empty!");
-        return ErrorCode::ERROR_IME_NOT_STARTED;
-    }
-
-    for (auto &data : allData) {
-        if (data->agent == nullptr) {
-            IMSA_HILOGE("agent is nullptr!");
-            return ErrorCode::ERROR_IME_NOT_STARTED;
-        }
-        agents.emplace_back(data->agent);
-        BindImeInfo imeInfo = { data->pid, data->ime.first };
-        imeInfos.emplace_back(imeInfo);
-    }
-    return ErrorCode::NO_ERROR;
+    return PrepareImeInfos(imeType, agents, imeInfos);
 }
 
 int32_t PerUserSession::SendAllReadyImeToClient(
@@ -782,14 +767,15 @@ int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, c
     int32_t pid)
 {
     IMSA_HILOGD("start.");
-    auto result = IsRequestOverLimit(TimeLimitType::PROXY_IME_LIMIT, PROXY_REGISTERATION_TIME_INTERVAL, MAX_REGISTRATIONS_NUM);
+    auto result = IsRequestOverLimit(TimeLimitType::PROXY_IME_LIMIT, PROXY_REGISTERATION_TIME_INTERVAL,
+        MAX_REGISTRATIONS_NUM);
     if (result != ErrorCode::NO_ERROR) {
         IMSA_HILOGI("frequent calls, service is busy.");
         return result;
     }
     auto imeType = ImeType::PROXY_IME;
     auto lastImeData = GetImeData(imeType);
-    if (lastImeData != nullptr && lastImeData->core!=nullptr && lastImeData->core->AsObject() != core->AsObject()) {
+    if (lastImeData != nullptr && lastImeData->core != nullptr && lastImeData->core->AsObject() != core->AsObject()) {
         lastImeData->core->NotifyPreemption();
     }
     auto ret = AddImeData(imeType, core, agent, pid);
@@ -953,7 +939,6 @@ void PerUserSession::StartImeInImeDied()
 {
     IMSA_HILOGD("StartImeInImeDied.");
     {
-        std::lock_guard<std::mutex> lock(resetLock);
         auto result = IsRequestOverLimit(TimeLimitType::IME_LIMIT, IME_RESET_TIME_OUT, MAX_RESTART_NUM);
         if (result != ErrorCode::NO_ERROR) {
             return;
@@ -1066,6 +1051,8 @@ int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sp
         imeData->ime.first.append(GET_NAME(_PROXY_IME));
     } else if (type == ImeType::PROXY_AGENT_IME) {
         imeData->ime.first.append(GET_NAME(_PROXY_AGENT_IME));
+    } else if (type == ImeType::IME_MIRROR) {
+        imeData->ime.first.append(GET_NAME(_IME_MIRROR));
     }
     imeDataList.push_back(imeData);
     IMSA_HILOGI("add imeData with type: %{public}d name: %{public}s end", type, imeData->ime.first.c_str());
@@ -1105,17 +1092,19 @@ void PerUserSession::RemoveImeData(pid_t pid)
     std::lock_guard<std::mutex> lock(imeDataLock_);
     for (auto itType = imeData_.begin(); itType != imeData_.end(); ++itType) {
         auto &imeDataList = itType->second;
-        auto iter = std::find_if(imeDataList.begin(), imeDataList.end(), [pid](const std::shared_ptr<ImeData>& imeDataTmp) {
-            return imeDataTmp != nullptr && imeDataTmp->pid == pid;
-        });
+        auto iter =
+            std::find_if(imeDataList.begin(), imeDataList.end(), [pid](const std::shared_ptr<ImeData> &imeDataTmp) {
+                return imeDataTmp != nullptr && imeDataTmp->pid == pid;
+            });
         if (iter != imeDataList.end()) {
-            if ((*iter)->core != nullptr && (*iter)->core->AsObject() != nullptr) {
-                (*iter)->core->AsObject()->RemoveDeathRecipient((*iter)->deathRecipient);
+            auto imeData = *iter;
+            if (imeData != nullptr && imeData->core != nullptr && imeData->core->AsObject() != nullptr) {
+                    imeData->core->AsObject()->RemoveDeathRecipient(imeData->deathRecipient);
             }
             imeDataList.erase(iter);
-        }
-        if (imeDataList.empty()) {
-            imeData_.erase(itType);
+            if (imeDataList.empty()) {
+                imeData_.erase(itType);
+            }
             break;
         }
     }
@@ -1129,13 +1118,10 @@ void PerUserSession::RemoveImeData(ImeType type)
         IMSA_HILOGD("imeData not found.");
         return;
     }
-    auto& dataList = it->second;
-    if (dataList.empty() || dataList.back() == nullptr) {
-        return;
-    }
-    for (auto iter = dataList.begin(); iter != dataList.end(); ++iter) {
-        const auto& data = *iter;
-        data->core->AsObject()->RemoveDeathRecipient(data->deathRecipient);
+    for (auto imeData : it->second) {
+        if (imeData != nullptr && imeData->core != nullptr && imeData->core->AsObject() != nullptr) {
+            imeData->core->AsObject()->RemoveDeathRecipient(imeData->deathRecipient);
+        }
     }
     imeData_.erase(type);
 }
@@ -1970,7 +1956,7 @@ int32_t PerUserSession::UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteO
     if (it == imeData_.end()) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto& dataList = it->second;
+    auto &dataList = it->second;
     if (dataList.empty() || dataList.back() == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
@@ -2004,7 +1990,7 @@ int32_t PerUserSession::InitConnect(pid_t pid)
     if (it == imeData_.end()) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto& dataList = it->second;
+    auto &dataList = it->second;
     if (dataList.empty() || dataList.back() == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
@@ -2019,7 +2005,7 @@ std::shared_ptr<ImeData> PerUserSession::GetImeData(ImeType type)
     if (it == imeData_.end()) {
         return nullptr;
     }
-    auto& dataList = it->second;
+    auto &dataList = it->second;
     if (dataList.empty() || dataList.back() == nullptr) {
         return nullptr;
     }
@@ -2030,9 +2016,10 @@ std::shared_ptr<ImeData> PerUserSession::GetImeData(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(imeDataLock_);
     for (const auto &[imeType, imeDataList] : imeData_) {
-        auto iter = std::find_if(imeDataList.begin(), imeDataList.end(), [pid](const std::shared_ptr<ImeData>& imeDataTmp) {
-            return imeDataTmp != nullptr && imeDataTmp->pid == pid;
-        });
+        auto iter =
+            std::find_if(imeDataList.begin(), imeDataList.end(), [pid](const std::shared_ptr<ImeData> &imeDataTmp) {
+                return imeDataTmp != nullptr && imeDataTmp->pid == pid;
+            });
         if (iter != imeDataList.end()) {
             return *iter;
         }
@@ -2071,7 +2058,7 @@ ImeAction PerUserSession::GetImeAction(ImeEvent action)
     if (it == imeData_.end()) {
         return ImeAction::DO_ACTION_IN_NULL_IME_DATA;
     }
-    auto& dataList = it->second;
+    auto &dataList = it->second;
     if (dataList.empty() || dataList.back() == nullptr) {
         return ImeAction::DO_ACTION_IN_NULL_IME_DATA;
     }
@@ -2353,7 +2340,8 @@ void PerUserSession::HandleBindImeChanged(
         if (oldClientInfo == nullptr) {
             return;
         }
-        if (IsSameClient(newClientInfo.client, oldClientInfo->client) && newClientInfo.pid != oldClientInfo->pid) {
+        if (IsSameClient(newClientInfo.client, oldClientInfo->client) &&
+            newClientInfo.bindImePid != oldClientInfo->bindImePid) {
             newClientInfo.isNotifyInputStart = true;
         }
         if (!IsImeBindTypeChanged(oldClientInfo->bindImeType)) {
@@ -2832,6 +2820,27 @@ int32_t PerUserSession::IsRequestOverLimit(TimeLimitType timeLimitType, int32_t 
     ++manager.num;
     if (manager.num > restartNum) {
         return ErrorCode::ERROR_REQUEST_RATE_EXCEEDED;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::PrepareImeInfos(ImeType type, std::vector<sptr<IRemoteObject>> &agents,
+    std::vector<BindImeInfo> &imeInfos)
+{
+    auto allData = GetAllReadyImeData(type);
+    if (allData.empty()) {
+        IMSA_HILOGE("allData is empty!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+
+    for (auto &data : allData) {
+        if (data->agent == nullptr) {
+            IMSA_HILOGE("agent is nullptr!");
+            return ErrorCode::ERROR_IME_NOT_STARTED;
+        }
+        agents.emplace_back(data->agent);
+        BindImeInfo imeInfo = { data->pid, data->ime.first };
+        imeInfos.emplace_back(imeInfo);
     }
     return ErrorCode::NO_ERROR;
 }

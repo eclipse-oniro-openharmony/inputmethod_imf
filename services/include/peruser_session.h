@@ -292,6 +292,8 @@ private:
     sptr<AAFwk::IAbilityConnection> GetImeConnection();
     void ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
     int32_t IsRequestOverLimit(TimeLimitType timeLimit, int32_t resetTimeOut, int32_t restartNum);
+    int32_t PrepareImeInfos(ImeType type, std::vector<sptr<IRemoteObject>> &agents,
+        std::vector<BindImeInfo> &imeInfos);
 
     std::mutex imeStartLock_;
 

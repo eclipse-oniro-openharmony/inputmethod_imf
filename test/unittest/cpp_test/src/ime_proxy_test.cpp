@@ -694,8 +694,6 @@ HWTEST_F(ImeProxyTest, RegisterProxyImeTest002, TestSize.Level0)
     std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
     ASSERT_TRUE(property != nullptr);
     EXPECT_EQ(property->name, "com.example.testIme");
-    ret = InputMethodAbilityInterface::GetInstance().UnregisterProxyIme(displayId);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

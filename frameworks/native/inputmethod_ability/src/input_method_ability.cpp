@@ -594,6 +594,7 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     InvokeAttachOptionsCallback(options, isNotifyInputStart || !isNotify_);
     if (isNotifyInputStart || !isNotify_) {
         isNotify_ = true;
+        IMSA_HILOGD("OnInputStart begin");
         imeListener_->OnInputStart();
     }
     if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
@@ -1895,7 +1896,7 @@ int32_t InputMethodAbility::OnNotifyPreemption()
     if (imeListener == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    IMSA_HILOGD("notify begin.");
+    IMSA_HILOGD("notifyPreemption begin.");
     imeListener->NotifyPreemption();
     return ErrorCode::NO_ERROR;
 }

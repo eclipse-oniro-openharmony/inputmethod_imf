@@ -343,11 +343,11 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr001 TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    sptr<IRemoteObject> agent = nullptr;
+    std::vector<sptr<IRemoteObject>> agents;
     InputClientInfo clientInfo;
     clientInfo.client = nullptr;
-    std::pair<int64_t, std::string> imeInfo;
-    int32_t ret = userSession->OnStartInput(clientInfo, agent, imeInfo);
+    std::vector<BindImeInfo> imeInfo;
+    int32_t ret = userSession->OnStartInput(clientInfo, agents, imeInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->OnReleaseInput(nullptr, 0);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
@@ -2712,5 +2712,186 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestClearImeConnection_001, TestSize.L
     userSession->ClearImeConnection(connection1);
     EXPECT_EQ(userSession->GetImeConnection(), connection);
 }
+
+/**
+ * @tc.name: PerUserSession_AddImeData_001
+ * @tc.desc: PerUserSession_AddImeData_001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::PerUserSession_AddImeData_001 start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->imeData_.clear();
+    pid_t pid1 = 100;
+    sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    auto ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 1);
+
+    pid_t pid2 = 101;
+    sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 2);
+
+    ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    ASSERT_EQ(it->second.size(), 2);
+    EXPECT_EQ(it->second[1]->pid, pid1);
+}
+
+/**
+ * @tc.name: PerUserSession_GetImeData_001
+ * @tc.desc: imeData_ info abnormal
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_GetImeData_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::PerUserSession_GetImeData_001 start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->imeData_.clear();
+    auto imeData = userSession->GetImeData(ImeType::PROXY_IME);
+    EXPECT_EQ(imeData, nullptr);
+    pid_t pid1 = 101;
+    imeData = userSession->GetImeData(pid1);
+    EXPECT_EQ(imeData, nullptr);
+
+    userSession->imeData_.insert_or_assign(ImeType::IME, std::vector<std::shared_ptr<ImeData>>{});
+    imeData = userSession->GetImeData(ImeType::PROXY_IME);
+    EXPECT_EQ(imeData, nullptr);
+    imeData = userSession->GetImeData(pid1);
+    EXPECT_EQ(imeData, nullptr);
+
+    userSession->imeData_.insert_or_assign(ImeType::PROXY_IME, std::vector<std::shared_ptr<ImeData>>{});
+    imeData = userSession->GetImeData(ImeType::PROXY_IME);
+    EXPECT_EQ(imeData, nullptr);
+    imeData = userSession->GetImeData(pid1);
+    EXPECT_EQ(imeData, nullptr);
+}
+
+/**
+ * @tc.name: PerUserSession_GetImeData_002
+ * @tc.desc: imeData_ normal
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_GetImeData_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::PerUserSession_GetImeData_002 start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->imeData_.clear();
+    pid_t pid1 = 101;
+    sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+
+    pid_t pid2 = 102;
+    sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
+    auto it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 2);
+
+    auto imeData = userSession->GetImeData(ImeType::IME_MIRROR);
+    EXPECT_EQ(imeData, nullptr);
+    imeData = userSession->GetImeData(ImeType::PROXY_IME);
+    ASSERT_NE(imeData, nullptr);
+    EXPECT_EQ(imeData->pid, pid2);
+
+    pid_t pid3 = 103;
+    imeData = userSession->GetImeData(pid3);
+    EXPECT_EQ(imeData, nullptr);
+    imeData = userSession->GetImeData(pid1);
+    ASSERT_NE(imeData, nullptr);
+    EXPECT_EQ(imeData->pid, pid1);
+}
+
+/**
+ * @tc.name: PerUserSession_RemoveImeData_001
+ * @tc.desc: Remove imeData by pid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_RemoveImeData_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::PerUserSession_RemoveImeData_001 start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->imeData_.clear();
+    pid_t pid1 = 101;
+    sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+
+    pid_t pid2 = 102;
+    sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
+    auto it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 2);
+
+    pid_t pid3 = 103;
+    userSession->RemoveImeData(pid3);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 2);
+
+    userSession->RemoveImeData(pid2);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    ASSERT_EQ(it->second.size(), 1);
+    EXPECT_EQ(it->second[0]->pid, pid1);
+
+    userSession->RemoveImeData(pid1);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    EXPECT_EQ(it, userSession->imeData_.end());
+}
+
+/**
+ * @tc.name: PerUserSession_RemoveImeData_002
+ * @tc.desc: Remove imeData by imeType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_RemoveImeData_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::PerUserSession_RemoveImeData_002 start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->imeData_.clear();
+    pid_t pid1 = 101;
+    sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+
+    pid_t pid2 = 102;
+    sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
+    auto it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 2);
+
+    userSession->RemoveImeData(ImeType::IME_MIRROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 2);
+
+    userSession->RemoveImeData(ImeType::PROXY_IME);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    EXPECT_EQ(it, userSession->imeData_.end());
+}
+
 } // namespace MiscServices
 } // namespace OHOS
