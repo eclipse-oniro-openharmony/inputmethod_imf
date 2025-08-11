@@ -938,7 +938,7 @@ ErrCode InputMethodSystemAbility::UnbindImeMirror()
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnUnBindImeMirror();
+    return session->OnUnbindImeMirror();
 }
 
 ErrCode InputMethodSystemAbility::InitConnect()

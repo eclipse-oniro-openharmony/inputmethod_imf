@@ -804,7 +804,6 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
         return ErrorCode::NO_ERROR;
     });
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
@@ -843,7 +842,6 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
             agent->OnSelectionChange(testString, selectOldBegin, selectOldEnd, selectNewBegin, selectNewEnd);
             return ErrorCode::NO_ERROR;
         });
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
@@ -882,7 +880,6 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         agent->OnAttributeChange(inner);
         return ErrorCode::NO_ERROR;
     });
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::GetLeft(int32_t length, std::u16string &text)

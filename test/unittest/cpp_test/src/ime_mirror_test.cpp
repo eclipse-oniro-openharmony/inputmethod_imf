@@ -193,6 +193,10 @@ HWTEST_F(ImeMirrorTest, BindImeMirrorAndVerifyPasswordTextHandling_fail, TestSiz
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         // Secure text should not be received by proxy
         EXPECT_FALSE(KeyboardListenerTestImpl::WaitTextChange("secure123"));
+
+        ret = ImeMirrorTest::imc_->SendFunctionKey(static_cast<int32_t>(EnterKeyType::NEW_LINE));
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_FALSE(KeyboardListenerTestImpl::WaitFunctionKey(static_cast<int32_t>(EnterKeyType::NEW_LINE)));
     }
 
     CloseAndUnregisterProxy();

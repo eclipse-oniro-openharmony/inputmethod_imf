@@ -885,7 +885,7 @@ int32_t PerUserSession::OnBindImeMirror(const sptr<IInputMethodCore> &core, cons
     }
     return ErrorCode::NO_ERROR;
 }
-int32_t PerUserSession::OnUnBindImeMirror()
+int32_t PerUserSession::OnUnbindImeMirror()
 {
     IMSA_HILOGD("[ImeMirrorTag]start");
     auto clientInfo = GetCurrentClientInfo();

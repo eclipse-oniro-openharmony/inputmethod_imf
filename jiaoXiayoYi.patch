@@ -1,0 +1,94 @@
+diff --git a/frameworks/native/inputmethod_controller/src/input_method_controller.cpp b/frameworks/native/inputmethod_controller/src/input_method_controller.cpp
+index d0986b2e..3cd4db18 100644
+--- a/frameworks/native/inputmethod_controller/src/input_method_controller.cpp
++++ b/frameworks/native/inputmethod_controller/src/input_method_controller.cpp
+@@ -804,7 +804,6 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
+         agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
+         return ErrorCode::NO_ERROR;
+     });
+-    return ErrorCode::NO_ERROR;
+ }
+ 
+ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
+@@ -843,7 +842,6 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
+             agent->OnSelectionChange(testString, selectOldBegin, selectOldEnd, selectNewBegin, selectNewEnd);
+             return ErrorCode::NO_ERROR;
+         });
+-    return ErrorCode::NO_ERROR;
+ }
+ 
+ int32_t InputMethodController::OnConfigurationChange(Configuration info)
+@@ -882,7 +880,6 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
+         agent->OnAttributeChange(inner);
+         return ErrorCode::NO_ERROR;
+     });
+-    return ErrorCode::NO_ERROR;
+ }
+ 
+ int32_t InputMethodController::GetLeft(int32_t length, std::u16string &text)
+diff --git a/services/include/peruser_session.h b/services/include/peruser_session.h
+index 0ec86386..e9a3d720 100644
+--- a/services/include/peruser_session.h
++++ b/services/include/peruser_session.h
+@@ -124,7 +124,7 @@ public:
+     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent, int32_t pid);
+     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core, pid_t pid);
+     int32_t OnBindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
+-    int32_t OnUnBindImeMirror();
++    int32_t OnUnbindImeMirror();
+     int32_t UpdateLargeMemorySceneState(const int32_t memoryState);
+     int32_t OnRegisterProxyIme(
+         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
+diff --git a/services/src/input_method_system_ability.cpp b/services/src/input_method_system_ability.cpp
+index 5b6e6a3f..f937d77b 100644
+--- a/services/src/input_method_system_ability.cpp
++++ b/services/src/input_method_system_ability.cpp
+@@ -938,7 +938,7 @@ ErrCode InputMethodSystemAbility::UnbindImeMirror()
+         IMSA_HILOGE("%{public}d session is nullptr!", userId);
+         return ErrorCode::ERROR_NULL_POINTER;
+     }
+-    return session->OnUnBindImeMirror();
++    return session->OnUnbindImeMirror();
+ }
+ 
+ ErrCode InputMethodSystemAbility::InitConnect()
+diff --git a/services/src/peruser_session.cpp b/services/src/peruser_session.cpp
+index fa470129..94743863 100644
+--- a/services/src/peruser_session.cpp
++++ b/services/src/peruser_session.cpp
+@@ -885,7 +885,7 @@ int32_t PerUserSession::OnBindImeMirror(const sptr<IInputMethodCore> &core, cons
+     }
+     return ErrorCode::NO_ERROR;
+ }
+-int32_t PerUserSession::OnUnBindImeMirror()
++int32_t PerUserSession::OnUnbindImeMirror()
+ {
+     IMSA_HILOGD("[ImeMirrorTag]start");
+     auto clientInfo = GetCurrentClientInfo();
+diff --git a/test/common/src/keyboard_listener_test_impl.cpp b/test/common/src/keyboard_listener_test_impl.cpp
+index 1690e2f2..b1896dd2 100644
+--- a/test/common/src/keyboard_listener_test_impl.cpp
++++ b/test/common/src/keyboard_listener_test_impl.cpp
+@@ -83,6 +83,7 @@ void KeyboardListenerTestImpl::ResetParam()
+     inputAttribute_.inputPattern = 0;
+     inputAttribute_.enterKeyType = 0;
+     inputAttribute_.inputOption = 0;
++    funcKey_ = -1;
+ }
+ 
+ bool KeyboardListenerTestImpl::WaitKeyEvent(int32_t keyCode)
+diff --git a/test/unittest/cpp_test/src/ime_mirror_test.cpp b/test/unittest/cpp_test/src/ime_mirror_test.cpp
+index 57b5074d..ead99fbb 100644
+--- a/test/unittest/cpp_test/src/ime_mirror_test.cpp
++++ b/test/unittest/cpp_test/src/ime_mirror_test.cpp
+@@ -193,6 +193,10 @@ HWTEST_F(ImeMirrorTest, BindImeMirrorAndVerifyPasswordTextHandling_fail, TestSiz
+         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+         // Secure text should not be received by proxy
+         EXPECT_FALSE(KeyboardListenerTestImpl::WaitTextChange("secure123"));
++
++        ret = ImeMirrorTest::imc_->SendFunctionKey(static_cast<int32_t>(EnterKeyType::NEW_LINE));
++        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
++        EXPECT_FALSE(KeyboardListenerTestImpl::WaitFunctionKey(static_cast<int32_t>(EnterKeyType::NEW_LINE)));
+     }
+ 
+     CloseAndUnregisterProxy();
