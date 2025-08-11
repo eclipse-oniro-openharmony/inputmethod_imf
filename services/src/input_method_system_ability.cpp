@@ -839,15 +839,16 @@ ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
     IMSA_HILOGD("InputMethodSystemAbility start.");
     auto pid = IPCSkeleton::GetCallingPid();
     auto userId = GetCallingUserId();
+    auto tokenId = GetCallingTokenID();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+    if (identityChecker_->IsNativeSa(tokenId)) {
         return session->OnRegisterProxyIme(core, agent, pid);
     }
-    if (!IsCurrentIme(userId)) {
+    if (!IsCurrentIme(userId, tokenId)) {
         IMSA_HILOGE("not current ime, userId:%{public}d", userId);
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
@@ -945,15 +946,17 @@ ErrCode InputMethodSystemAbility::InitConnect()
 {
     IMSA_HILOGD("InputMethodSystemAbility init connect.");
     auto userId = GetCallingUserId();
+    auto tokenId = GetCallingTokenID();
+    auto pid = IPCSkeleton::GetCallingPid();
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (!IsCurrentIme(userId)) {
+    if (!IsCurrentIme(userId, tokenId)) {
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
-    return session->InitConnect(IPCSkeleton::GetCallingPid());
+    return session->InitConnect(pid);
 }
 
 ErrCode InputMethodSystemAbility::HideCurrentInput()
@@ -995,7 +998,8 @@ ErrCode InputMethodSystemAbility::ShowCurrentInputInner()
 ErrCode InputMethodSystemAbility::PanelStatusChange(uint32_t status, const ImeWindowInfo &info)
 {
     auto userId = GetCallingUserId();
-    if (!IsCurrentIme(userId)) {
+    auto tokenId = GetCallingTokenID();
+    if (!IsCurrentIme(userId, tokenId)) {
         IMSA_HILOGE("not current ime!");
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
@@ -1077,7 +1081,9 @@ ErrCode InputMethodSystemAbility::GetInputStartInfo(bool& isInputStart,
 
 ErrCode InputMethodSystemAbility::IsCurrentIme(bool& resultValue)
 {
-    resultValue = IsCurrentIme(GetCallingUserId());
+    auto userId = GetCallingUserId();
+    auto tokenId = GetCallingTokenID();
+    resultValue = IsCurrentIme(userId, tokenId);
     return ERR_OK;
 }
 
@@ -1194,8 +1200,9 @@ ErrCode InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         IMSA_HILOGW("caller counterfeit!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, subName };
     int32_t userId = GetCallingUserId();
+    auto tokenId = GetCallingTokenID();
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, subName };
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
@@ -1216,6 +1223,7 @@ ErrCode InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         switchInfo.subName = currentImeCfg->subName;
     }
     switchInfo.timestamp = std::chrono::system_clock::now();
+    switchInfo.isTmpImeSwitchSubtype = IsTmpImeSwitchSubtype(userId, tokenId, switchInfo);
     session->GetSwitchQueue().Push(switchInfo);
     return InputTypeManager::GetInstance().IsInputType({ bundleName, subName })
                ? OnStartInputType(userId, switchInfo, true)
@@ -1257,7 +1265,9 @@ int32_t InputMethodSystemAbility::StartSwitch(int32_t userId, const SwitchInfo &
     {
         InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
         std::string targetImeName = info->prop.name + "/" + info->prop.id;
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, switchInfo.subName, true });
+        if (!switchInfo.isTmpImeSwitchSubtype) {
+            ImeCfgManager::GetInstance().ModifyImeCfg({ userId, targetImeName, switchInfo.subName, true });
+        }
         auto targetIme = std::make_shared<ImeNativeCfg>(
             ImeNativeCfg{ targetImeName, info->prop.name, switchInfo.subName, info->prop.id });
         ret = session->StartIme(targetIme);
@@ -1267,7 +1277,9 @@ int32_t InputMethodSystemAbility::StartSwitch(int32_t userId, const SwitchInfo &
             return ret;
         }
         GetValidSubtype(switchInfo.subName, info);
-        session->NotifyImeChangeToClients(info->prop, info->subProp);
+        if (!switchInfo.isTmpImeSwitchSubtype) {
+            session->NotifyImeChangeToClients(info->prop, info->subProp);
+        }
         ret = session->SwitchSubtype(info->subProp);
     }
     ret = info->isSpecificSubName ? ret : ErrorCode::NO_ERROR;
@@ -1275,6 +1287,48 @@ int32_t InputMethodSystemAbility::StartSwitch(int32_t userId, const SwitchInfo &
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
             ret, switchInfo.bundleName, "switch input method subtype failed!");
     }
+    return ret;
+}
+
+bool InputMethodSystemAbility::IsTmpIme(int32_t userId, uint32_t tokenId)
+{
+    auto session = UserSessionManager::GetInstance().GetUserSession(userId);
+    if (session == nullptr) {
+        IMSA_HILOGE("user:%{public}d session is nullptr!", userId);
+        return false;
+    }
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    if (currentImeCfg == nullptr) {
+        IMSA_HILOGE("user:%{public}d has no default ime.", userId);
+        return false;
+    }
+    auto imeData = session->GetImeData(ImeType::IME);
+    if (imeData == nullptr) {
+        IMSA_HILOGE("user:%{public}d has no running ime.", userId);
+        return false;
+    }
+    auto bundleName = FullImeInfoManager::GetInstance().Get(userId, tokenId);
+    if (bundleName.empty()) {
+        bundleName = identityChecker_->GetBundleNameByToken(tokenId);
+        IMSA_HILOGW("%{public}d/%{public}d/%{public}s not find in cache.", userId, tokenId, bundleName.c_str());
+    }
+    return !currentImeCfg->bundleName.empty() && !bundleName.empty() &&
+           imeData->ime.first != currentImeCfg->bundleName && imeData->ime.first == bundleName;
+}
+
+bool InputMethodSystemAbility::IsTmpImeSwitchSubtype(int32_t userId, uint32_t tokenId, const SwitchInfo &switchInfo)
+{
+    if (!IsTmpIme(userId, tokenId)) {
+        IMSA_HILOGD("user:%{public}d tokenId:%{public}d not tmp ime.", userId, tokenId);
+        return false;
+    }
+    auto bundleName = FullImeInfoManager::GetInstance().Get(userId, tokenId);
+    if (bundleName.empty()) {
+        bundleName = identityChecker_->GetBundleNameByToken(tokenId);
+        IMSA_HILOGW("%{public}d/%{public}d/%{public}s not find in cache.", userId, tokenId, bundleName.c_str());
+    }
+    bool ret = !bundleName.empty() && bundleName == switchInfo.bundleName;
+    IMSA_HILOGD("%{public}s/%{public}d switch.", switchInfo.bundleName.c_str(), ret);
     return ret;
 }
 
@@ -2215,6 +2269,7 @@ int32_t InputMethodSystemAbility::CheckSwitchPermission(int32_t userId, const Sw
     SwitchTrigger trigger)
 {
     IMSA_HILOGD("trigger: %{public}d.", static_cast<int32_t>(trigger));
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
     if (trigger == SwitchTrigger::IMSA) {
         return ErrorCode::NO_ERROR;
     }
@@ -2226,8 +2281,7 @@ int32_t InputMethodSystemAbility::CheckSwitchPermission(int32_t userId, const Sw
             IMSA_HILOGE("not system app!");
             return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
         }
-        if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(),
-            std::string(PERMISSION_CONNECT_IME_ABILITY))) {
+        if (!identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
             IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY!");
             return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
         }
@@ -2235,14 +2289,12 @@ int32_t InputMethodSystemAbility::CheckSwitchPermission(int32_t userId, const Sw
     }
     if (trigger == SwitchTrigger::CURRENT_IME) {
         // PERMISSION_CONNECT_IME_ABILITY check temporarily reserved for application adaptation, will be deleted soon
-        if (identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(),
-            std::string(PERMISSION_CONNECT_IME_ABILITY))) {
+        if (identityChecker_->HasPermission(tokenId, std::string(PERMISSION_CONNECT_IME_ABILITY))) {
             return ErrorCode::NO_ERROR;
         }
         IMSA_HILOGE("have not PERMISSION_CONNECT_IME_ABILITY!");
         // switchInfo.subName.empty() check temporarily reserved for application adaptation, will be deleted soon
-        auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
-        if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)) {
+        if (IsCurrentIme(userId, tokenId)) {
             return ErrorCode::NO_ERROR;
         }
         IMSA_HILOGE("not current ime!");
@@ -2459,17 +2511,17 @@ uint64_t InputMethodSystemAbility::GetCallingDisplayId(sptr<IRemoteObject> abili
     return identityChecker_->GetDisplayIdByPid(IPCSkeleton::GetCallingPid(), abilityToken);
 }
 
-bool InputMethodSystemAbility::IsCurrentIme(int32_t userId)
+bool InputMethodSystemAbility::IsCurrentIme(int32_t userId, uint32_t tokenId)
 {
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return false;
     }
-    auto bundleName = FullImeInfoManager::GetInstance().Get(userId, IPCSkeleton::GetCallingTokenID());
+    auto bundleName = FullImeInfoManager::GetInstance().Get(userId, tokenId);
     if (bundleName.empty()) {
-        IMSA_HILOGW("user:%{public}d tokenId:%{public}d not find.", userId, IPCSkeleton::GetCallingTokenID());
-        bundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
+        IMSA_HILOGW("user:%{public}d tokenId:%{public}d not find.", userId, tokenId);
+        bundleName = identityChecker_->GetBundleNameByToken(tokenId);
     }
     auto imeData = session->GetImeData(ImeType::IME);
     return imeData != nullptr && bundleName == imeData->ime.first;

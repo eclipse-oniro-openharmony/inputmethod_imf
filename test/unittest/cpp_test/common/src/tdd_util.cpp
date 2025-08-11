@@ -138,10 +138,9 @@ uint64_t TddUtil::AllocTestTokenID(
 
 uint64_t TddUtil::GetTestTokenID(const std::string &bundleName)
 {
-    HapInfoParams infoParams = { .userID = GetUserIdByBundleName(bundleName, GetCurrentUserId()),
-        .bundleName = bundleName,
-        .instIndex = 0,
-        .appIDDesc = "ohos.inputmethod_test.demo" };
+    HapInfoParams infoParams = { .userID = GetCurrentUserId(), .bundleName = bundleName,
+        .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+    };
     return AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
 }
 

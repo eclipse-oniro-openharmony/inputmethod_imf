@@ -166,6 +166,9 @@ struct SwitchInfo {
     std::chrono::system_clock::time_point timestamp{};
     std::string bundleName;
     std::string subName;
+    /* isTmpImeSwitchSubtype:true -- switch subtype of self, switch trigger is current running ime,
+       but not default ime set by user */
+    bool isTmpImeSwitchSubtype{ false };
     bool operator==(const SwitchInfo &info) const
     {
         return (timestamp == info.timestamp && bundleName == info.bundleName && subName == info.subName);

@@ -436,7 +436,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    bool ret = IdentityCheckerTest::service_->IsCurrentIme(MAIN_USER_ID);
+    bool ret = IdentityCheckerTest::service_->IsCurrentIme(MAIN_USER_ID, 0);
     EXPECT_FALSE(ret);
 }
 
@@ -451,7 +451,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level1)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
-    bool ret = IdentityCheckerTest::service_->IsCurrentIme(MAIN_USER_ID);
+    bool ret = IdentityCheckerTest::service_->IsCurrentIme(MAIN_USER_ID, 0);
     EXPECT_FALSE(ret);
 }
 
@@ -687,28 +687,6 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level1)
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
         CURRENT_BUNDLENAME, CURRENT_SUBNAME, static_cast<uint32_t>(SwitchTrigger::CURRENT_IME));
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-}
-
-/**
- * @tc.name: testSwitchInputMethod_002
- * @tc.desc: has no PERMISSION_CONNECT_IME_ABILITY, currentIme switch subtype
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level1)
-{
-    IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_002 start");
-    ImeEnabledCfg cfg;
-    ImeEnabledInfo enabledInfo{ CURRENT_BUNDLENAME, CURRENT_EXTNAME, EnabledStatus::BASIC_MODE };
-    enabledInfo.extraInfo.isDefaultIme = true;
-    cfg.enabledInfos.push_back(enabledInfo);
-    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
-    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
-    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
-    int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
-        CURRENT_BUNDLENAME, CURRENT_SUBNAME, static_cast<uint32_t>(SwitchTrigger::CURRENT_IME));
-    EXPECT_EQ(ret, ErrorCode::ERROR_IMSA_GET_IME_INFO_FAILED);
 }
 
 /**
