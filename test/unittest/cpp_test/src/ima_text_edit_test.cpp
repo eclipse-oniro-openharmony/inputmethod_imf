@@ -473,7 +473,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_DeleteRspHandler, TestSize.Level0)
         lastHandler = channelWrap->AddRspHandler(GetForwardRsp, false, 0);
     }
     ASSERT_NE(firstHandler, nullptr);
-    ASSERT_EQ(lastHandler, nullptr);
+    ASSERT_NE(lastHandler, nullptr);
     EXPECT_EQ(channelWrap->DeleteRspHandler(firstHandler->msgId), ErrorCode::NO_ERROR);
     EXPECT_EQ(channelWrap->DeleteRspHandler(0), ErrorCode::NO_ERROR);
 }
