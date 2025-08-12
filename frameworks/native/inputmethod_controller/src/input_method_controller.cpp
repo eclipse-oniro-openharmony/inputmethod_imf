@@ -68,6 +68,13 @@ InputMethodController::InputMethodController()
 }
 
 InputMethodController::~InputMethodController() { }
+#ifdef OHOS_IMF_TEST
+void InputMethodController::SetImsaProxyForTest(sptr<IInputMethodSystemAbility> proxy)
+{
+    std::lock_guard<std::mutex> autoLock(abilityLock_);
+    abilityManager_ = proxy;
+}
+#endif // OHOS_IMF_TEST
 
 sptr<InputMethodController> InputMethodController::GetInstance()
 {

@@ -16,7 +16,6 @@
 #define protected public
 #include "input_method_controller.h"
 #undef private
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <gtest/hwext/gtest-multithread.h>
 #include <string_ex.h>

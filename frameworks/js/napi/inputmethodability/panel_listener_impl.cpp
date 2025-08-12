@@ -22,6 +22,7 @@ namespace OHOS {
 namespace MiscServices {
 std::shared_ptr<PanelListenerImpl> PanelListenerImpl::instance_{ nullptr };
 std::mutex PanelListenerImpl::listenerMutex_;
+constexpr uint8_t SIE_CHANGE_PARAM_COUNT = 2;
 std::shared_ptr<PanelListenerImpl> PanelListenerImpl::GetInstance()
 {
     if (instance_ == nullptr) {
@@ -134,7 +135,7 @@ void PanelListenerImpl::OnSizeChange(
         keyboardArea.right);
     auto task = [entry]() {
         auto getWindowSizeParams = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-            if (argc == 0) {
+            if (argc < SIE_CHANGE_PARAM_COUNT) {
                 return false;
             }
             napi_value windowSize = JsWindowSize::Write(env, entry->size);
@@ -144,7 +145,7 @@ void PanelListenerImpl::OnSizeChange(
             return true;
         };
         // 2 means 'sizeChange' has 2 params
-        JsCallbackHandler::Traverse({ entry->cbCopy }, { 2, getWindowSizeParams });
+        JsCallbackHandler::Traverse({ entry->cbCopy }, { SIE_CHANGE_PARAM_COUNT, getWindowSizeParams });
     };
     eventHandler->PostTask(task, event, 0, AppExecFwk::EventQueue::Priority::VIP);
 }

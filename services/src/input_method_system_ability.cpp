@@ -318,7 +318,10 @@ int32_t InputMethodSystemAbility::OnExtension(const std::string &extension, Mess
 {
     IMSA_HILOGI("extension=%{public}s", extension.c_str());
     if (extension == "restore") {
-        (void)data.ReadFileDescriptor();
+        int32_t fd = data.ReadFileDescriptor();
+        if (fd >= 0) {
+            close(fd);
+        }
         std::string bundleName = GetRestoreBundleName(data);
         if (!IsValidBundleName(bundleName)) {
             IMSA_HILOGE("bundleName=%{public}s is invalid", bundleName.c_str());

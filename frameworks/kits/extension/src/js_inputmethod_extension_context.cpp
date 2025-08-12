@@ -110,12 +110,14 @@ private:
             want.GetElement().GetAbilityName().c_str());
         unwrapArgc++;
         AAFwk::StartOptions startOptions;
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[INDEX_ONE], &valueType);
-        if (argc > ARGC_ONE && valueType == napi_object) {
-            IMSA_HILOGI("OnStartAbility start options is used.");
-            AppExecFwk::UnwrapStartOptions(env, argv[INDEX_ONE], startOptions);
-            unwrapArgc++;
+        if (argc > ARGC_ONE) {
+            napi_valuetype valueType = napi_undefined;
+            napi_typeof(env, argv[INDEX_ONE], &valueType);
+            if (valueType == napi_object) {
+                IMSA_HILOGI("OnStartAbility start options is used.");
+                AppExecFwk::UnwrapStartOptions(env, argv[INDEX_ONE], startOptions);
+                unwrapArgc++;
+            }
         }
         napi_value lastParam = argc > unwrapArgc ? argv[unwrapArgc] : nullptr;
         napi_value result = nullptr;
