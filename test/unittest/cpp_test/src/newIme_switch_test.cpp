@@ -64,6 +64,7 @@ void NewImeSwitchTest::SetUpTestCase(void)
     imc_ = InputMethodController::GetInstance();
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
+    TddUtil::InitWindow(false);
 }
 
 void NewImeSwitchTest::TearDownTestCase(void)
@@ -71,6 +72,7 @@ void NewImeSwitchTest::TearDownTestCase(void)
     IMSA_HILOGI("NewImeSwitchTest::TearDownTestCase");
     TddUtil::GrantNativePermission();
     InputMethodController::GetInstance()->Close();
+    TddUtil::DestroyWindow();
     TddUtil::RestoreSelfTokenID();
 }
 
@@ -249,7 +251,7 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Level0)
 
 /**
  * @tc.name: testSwitchToCurrentImeWithEmptySubName
- * @tc.desc: switch to currentIme witch empty subName.
+ * @tc.desc: switch to currentIme with empty subName.
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu

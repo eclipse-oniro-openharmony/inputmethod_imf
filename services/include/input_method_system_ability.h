@@ -179,7 +179,7 @@ private:
     int32_t CheckInputTypeOption(int32_t userId, InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(int32_t userId, uint32_t tokenId);
     void DealSwitchRequest();
-    bool IsCurrentIme(int32_t userId);
+    bool IsCurrentIme(int32_t userId, uint32_t tokenId);
     int32_t StartInputType(int32_t userId, InputType type);
     // if switch input type need to switch ime, then no need to hide panel first.
     void NeedHideWhenSwitchInputType(int32_t userId, InputType type, bool &needHide);
@@ -210,6 +210,8 @@ private:
     int32_t RestoreInputmethod(std::string &bundleName);
     void IncreaseAttachCount();
     void DecreaseAttachCount();
+    bool IsTmpIme(int32_t userId, uint32_t tokenId);
+    bool IsTmpImeSwitchSubtype(int32_t userId, uint32_t tokenId, const SwitchInfo &switchInfo);
 
     class AttachStateGuard {
     public:

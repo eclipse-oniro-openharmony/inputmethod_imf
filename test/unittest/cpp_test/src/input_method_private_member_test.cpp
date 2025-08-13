@@ -1394,7 +1394,7 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage002, TestSize.Level0)
 
     bool needHide = false;
     InputType type = InputType::NONE;
-    auto ret3 = service_->IsCurrentIme(INVALID_USER_ID);
+    auto ret3 = service_->IsCurrentIme(INVALID_USER_ID, 0);
     service_->NeedHideWhenSwitchInputType(INVALID_USER_ID, type, needHide);
     EXPECT_FALSE(ret3);
 }
@@ -2874,5 +2874,61 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_RemoveImeData_002, TestSiz
     EXPECT_EQ(it, userSession->imeData_.end());
 }
 
+/**
+ * @tc.name: IMSA_IsTmpIme
+ * @tc.desc: IMSA_IsTmpIme
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, IMSA_IsTmpIme, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::IMSA_IsTmpIme start.");
+    InputMethodSystemAbility systemAbility;
+    UserSessionManager::GetInstance().userSessions_.clear();
+    uint32_t tokenId = 345;
+    // not has MAIN_USER_ID userSession
+    auto ret = systemAbility.IsTmpIme(MAIN_USER_ID, tokenId);
+    EXPECT_FALSE(ret);
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    UserSessionManager::GetInstance().userSessions_.insert_or_assign(MAIN_USER_ID, userSession);
+    ImeEnabledCfg cfg;
+    ImeEnabledInfo enabledInfo{ "", "extName1", EnabledStatus::BASIC_MODE };
+    enabledInfo.extraInfo.isDefaultIme = true;
+    cfg.enabledInfos.push_back(enabledInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
+    // has no running ime
+    userSession->imeData_.clear();
+    ret = systemAbility.IsTmpIme(MAIN_USER_ID, tokenId);
+    EXPECT_FALSE(ret);
+    auto imeData = std::make_shared<ImeData>(nullptr, nullptr, nullptr, 10);
+    std::string bundleName2 = "bundleName2";
+    imeData->ime.first = bundleName2;
+    userSession->imeData_.insert_or_assign(ImeType::IME, std::vector<std::shared_ptr<ImeData>>{ imeData });
+    FullImeInfo info;
+    info.tokenId = tokenId;
+    info.prop.name = bundleName2;
+    FullImeInfoManager::GetInstance().fullImeInfos_.insert({ MAIN_USER_ID, { info } });
+    // caller is same with running ime, but the bundleName of default ime is empty
+    ret = systemAbility.IsTmpIme(MAIN_USER_ID, tokenId);
+    EXPECT_FALSE(ret);
+    enabledInfo.bundleName = bundleName2;
+    cfg.enabledInfos.clear();
+    cfg.enabledInfos.push_back(enabledInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
+    // caller is same with running ime, the bundleName of default ime is also same with
+    ret = systemAbility.IsTmpIme(MAIN_USER_ID, tokenId);
+    EXPECT_FALSE(ret);
+    enabledInfo.bundleName = "diffBundleName";
+    cfg.enabledInfos.clear();
+    cfg.enabledInfos.push_back(enabledInfo);
+    ImeEnabledInfoManager::GetInstance().imeEnabledCfg_.insert_or_assign(MAIN_USER_ID, cfg);
+    // caller is same with running ime, but the bundleName of default ime is not same with
+    ret = systemAbility.IsTmpIme(MAIN_USER_ID, tokenId);
+    EXPECT_TRUE(ret);
+    SwitchInfo switchInfo;
+    switchInfo.bundleName = bundleName2;
+    ret = systemAbility.IsTmpImeSwitchSubtype(MAIN_USER_ID, tokenId, switchInfo);
+    EXPECT_TRUE(ret);
+}
 } // namespace MiscServices
 } // namespace OHOS
