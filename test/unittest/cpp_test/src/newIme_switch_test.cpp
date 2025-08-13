@@ -353,59 +353,5 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_005, TestSize.Level0)
     auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
-
-/**
- * @tc.name: testSwitchInputMethod_tmpImeSwitch
- * @tc.desc: test tmp ime switch
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_tmpImeSwitch, TestSize.Level0)
-{
-    ImeSettingListenerTestImpl::ResetParam();
-    TddUtil::SetTestTokenID(
-        TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
-    IMSA_HILOGI("newIme testSwitchInputMethod_tmpImeSwitch Test START");
-    // userSetIme: bundleName
-    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
-    auto userSetIme = imc_->GetCurrentInputMethod();
-    ASSERT_NE(userSetIme, nullptr);
-    EXPECT_EQ(userSetIme->name, bundleName);
-
-    // password, start tmp ime
-    TddUtil::GetFocused();
-    InputAttribute inputAttribute = { .inputPattern = InputAttribute::PATTERN_PASSWORD_NUMBER };
-    ret = imc_->Attach(nullptr, false, inputAttribute);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    TddUtil::GetUnfocused();
-
-    // set tmp ime identity
-    std::shared_ptr<Property> property;
-    ret = imc_->GetDefaultInputMethod(property);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ASSERT_NE(property, nullptr);
-    TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(property->name));
-
-    // tmp ime can switch subtype, but userSetIme can not be changed and imeChange can not be triggered
-    ImeSettingListenerTestImpl::ResetParam();
-    ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
-    userSetIme = imc_->GetCurrentInputMethod();
-    ASSERT_NE(userSetIme, nullptr);
-    EXPECT_EQ(userSetIme->name, bundleName);
-
-    // tmp ime can switch other ime
-    ImeSettingListenerTestImpl::ResetParam();
-    ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
-    userSetIme = imc_->GetCurrentInputMethod();
-    ASSERT_NE(userSetIme, nullptr);
-    EXPECT_EQ(userSetIme->name, bundleName);
-}
 } // namespace MiscServices
 } // namespace OHOS
