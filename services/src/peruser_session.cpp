@@ -60,7 +60,7 @@ constexpr const char *STRICT_MODE = "strictMode";
 constexpr const char *ISOLATED_SANDBOX = "isolatedSandbox";
 constexpr uint32_t CHECK_IME_RUNNING_RETRY_INTERVAL = 60;
 constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
-constexpr int32_t MAX_RESTART_NUM = 3;
+constexpr uint32_t MAX_RESTART_NUM = 3;
 constexpr int32_t IME_RESET_TIME_OUT = 3;
 constexpr int32_t MAX_RESTART_TASKS = 2;
 constexpr uint32_t MAX_ATTACH_COUNT = 100000;
@@ -68,7 +68,7 @@ constexpr const char *UNDEFINED = "undefined";
 constexpr int32_t WAIT_ATTACH_FINISH_DELAY = 50;
 constexpr int32_t WAIT_ATTACH_FINISH_MAX_TIMES = 20;
 constexpr uint32_t MAX_SCB_START_COUNT = 2;
-constexpr uint32_t PROXY_REGISTERATION_TIME_INTERVAL = 1; // 1s
+constexpr int32_t PROXY_REGISTERATION_TIME_INTERVAL = 1; // 1s
 constexpr uint32_t MAX_REGISTRATIONS_NUM = 3;
 PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 
@@ -2809,7 +2809,7 @@ void PerUserSession::ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &c
     connection_ = nullptr;
 }
 
-int32_t PerUserSession::IsRequestOverLimit(TimeLimitType timeLimitType, int32_t resetTimeOut, int32_t restartNum)
+int32_t PerUserSession::IsRequestOverLimit(TimeLimitType timeLimitType, int32_t resetTimeOut, uint32_t restartNum)
 {
     std::lock_guard<std::mutex> lock(resetLock);
     auto now = time(nullptr);
