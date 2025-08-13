@@ -23,6 +23,7 @@
 #undef private
 
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 #include <string_ex.h>
 #include <unistd.h>
 
@@ -52,6 +53,7 @@
 #include "text_listener.h"
 
 using namespace testing::ext;
+using namespace testing::mt;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
@@ -70,6 +72,10 @@ public:
     static int32_t currentImeUid_;
     static sptr<InputMethodSystemAbility> imsa_;
     static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
+    static constexpr int MAXRUNCOUNT = 100;
+    static constexpr int THREAD_NUM = 5;
+    static void TestOnConnectSystemCmd();
+    static int32_t multiThreadExecTotalNum_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -288,6 +294,22 @@ uint64_t InputMethodAbilityTest::currentImeTokenId_ = 0;
 int32_t InputMethodAbilityTest::currentImeUid_ = 0;
 sptr<InputMethodSystemAbility> InputMethodAbilityTest::imsa_;
 sptr<InputMethodSystemAbilityProxy> InputMethodAbilityTest::imsaProxy_;
+int32_t InputMethodAbilityTest::multiThreadExecTotalNum_{ 0 };
+
+void InputMethodAbilityTest::TestOnConnectSystemCmd()
+{
+    IMSA_HILOGI("TestOnConnectSystemCmd start!");
+    for (int32_t count = 0; count < MAXRUNCOUNT; count++) {
+        IMSA_HILOGI("TestOnConnectSystemCmd start %{public}d", count);
+        sptr<IInputDataChannel> channel = new (std::nothrow) InputDataChannelServiceImpl();
+        ASSERT_NE(channel, nullptr);
+        sptr<IRemoteObject> agent = nullptr;
+        auto ret = inputMethodAbility_.OnConnectSystemCmd(channel->AsObject(), agent);
+        multiThreadExecTotalNum_++;
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    }
+    IMSA_HILOGI("TestOnConnectSystemCmd finished!");
+}
 
 /**
  * @tc.name: testSerializedInputAttribute
@@ -2194,6 +2216,20 @@ HWTEST_F(InputMethodAbilityTest, TestServiceHandler_, TestSize.Level0)
     ret = imsa_->OnUserStarted(msg.get());
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     imsa_->serviceHandler_ = temp;
+}
+
+/**
+ * @tc.name: TestOnConnectSystemCmd
+ * @tc.desc: TestOnConnectSystemCmd in Multithreading
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, TestOnConnectSystemCmd_001, TestSize.Level0)
+{
+    IMSA_HILOGI("TestOnConnectSystemCmd_001 start.");
+    multiThreadExecTotalNum_ = 0;
+    SET_THREAD_NUM(THREAD_NUM);
+    GTEST_RUN_TASK(TestOnConnectSystemCmd);
+    EXPECT_EQ(multiThreadExecTotalNum_, THREAD_NUM * MAXRUNCOUNT);
 }
 
 } // namespace MiscServices
