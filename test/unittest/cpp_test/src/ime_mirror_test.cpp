@@ -27,6 +27,8 @@
 #include "scope_utils.h"
 #include "sys_cfg_parser.h"
 #include "text_listener.h"
+#include "ime_setting_listener_test_impl.h"
+#include "ime_event_monitor_manager_impl.h"
 
 using namespace testing::ext;
 using namespace testing::mt;
@@ -44,6 +46,24 @@ public:
         TddUtil::StorageSelfTokenID();
         TddUtil::InitWindow(true);
         imc_ = InputMethodController::GetInstance();
+
+        TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ImeProxyTest"));
+        auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+        ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(
+            EVENT_IME_HIDE_MASK | EVENT_IME_SHOW_MASK | EVENT_IME_CHANGE_MASK, listener);
+
+        ImeSettingListenerTestImpl::ResetParam();
+        TddUtil::SetTestTokenID(
+            TddUtil::AllocTestTokenID(true, "ImeProxyTest", { "ohos.permission.CONNECT_IME_ABILITY" }));
+        TddUtil::EnabledAllIme();
+        SubProperty subProp;
+        subProp.name = "com.example.testIme";
+        subProp.id = "InputMethodExtAbility";
+        auto ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, subProp.name, subProp.id);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange(subProp));
+        TddUtil::RestoreSelfTokenID();
+
         // native sa permission
         TddUtil::GrantNativePermission();
         SystemConfig systemConfig;

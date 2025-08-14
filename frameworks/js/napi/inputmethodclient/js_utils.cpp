@@ -554,7 +554,7 @@ napi_status JsUtils::GetMessageHandlerCallbackParam(napi_value *argv,
         return napi_generic_failure;
     }
     if (size <= ARGC_ONE) {
-        IMSA_HILOGE("argv size is less than 1!.");
+        IMSA_HILOGE("argv size is less than 2!.");
         return napi_generic_failure;
     }
     if (jsMessageHandler == nullptr) {

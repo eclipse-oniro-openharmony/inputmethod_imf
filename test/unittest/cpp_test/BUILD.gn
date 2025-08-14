@@ -1235,7 +1235,7 @@ ohos_unittest("ImeControllerCpaiTest") {
 
   external_deps = [
     "googletest:gtest_main",
-    "googletest:gmock_main",
+    "googletest:gmock",
     "hilog:libhilog",
     "input:libmmi-client",
   ]

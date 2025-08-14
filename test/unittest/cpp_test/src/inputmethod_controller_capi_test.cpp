@@ -1479,7 +1479,8 @@ HWTEST_F(InputMethodControllerCapiTest, SendPrivateCommandWithInvalidCommand, Te
     EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
 
     InputMethod_PrivateCommand *privateCommand[MAX_SYS_PRIVATE_COMMAND_COUNT + 1] = { nullptr };
-    auto ret = OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, privateCommand, MAX_SYS_PRIVATE_COMMAND_COUNT + 1);
+    auto ret =
+        OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, privateCommand, MAX_SYS_PRIVATE_COMMAND_COUNT + 1);
     EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
 
     size_t size = 1;
