@@ -1567,11 +1567,13 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag_ == PanelFlag::FLG_FIXED ?
         FIXED_SOFT_KEYBOARD_PANEL_RATIO :
         NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
-    if (static_cast<float>(height) > defaultDisplay->GetHeight() * ratio ||
-        static_cast<int32_t>(width) > defaultDisplay->GetWidth()) {
+    auto defaultDisplayHeight = defaultDisplay->GetHeight();
+    auto defaultDisplayWidth = defaultDisplay->GetWidth();
+    if (static_cast<float>(height) > defaultDisplayHeight * ratio ||
+        static_cast<int32_t>(width) > defaultDisplayWidth) {
         IMSA_HILOGE("param is invalid, defaultDisplay height: %{public}d, defaultDisplay width %{public}d, target "
                     "height: %{public}u, target width: %{public}u!",
-            defaultDisplay->GetHeight(), defaultDisplay->GetWidth(), height, width);
+            defaultDisplayHeight, defaultDisplayWidth, height, width);
         return false;
     }
     return true;
