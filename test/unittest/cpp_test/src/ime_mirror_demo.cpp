@@ -121,7 +121,7 @@ public:
     void PrintCount()
     {
         IMSA_HILOGI("[ImeMirrorLog] selectionChangeCount_:%{public}u, textChangeCount_:%{public}u, "
-                    "cursorUpdateCount_:%{public}u,",
+                    "cursorUpdateCount_:%{public}u",
             selectionChangeCount_.load(), textChangeCount_.load(), cursorUpdateCount_.load());
         for (size_t index = 0; index <= static_cast<size_t>(EnterKeyType::NEW_LINE); index++) {
             IMSA_HILOGI("[ImeMirrorLog] funcKey:%{public}zu, count:%{public}u", index, functionKeyCount_[index].load());

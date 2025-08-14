@@ -1462,7 +1462,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_SendPrivateCommand_0
  * @tc.desc: input parameters is invalid
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodControllerCapiTest, SendPrivateCommandWithInvalidCommandCount, TestSize.Level0)
+HWTEST_F(InputMethodControllerCapiTest, SendPrivateCommandWithInvalidCommand, TestSize.Level0)
 {
     auto textEditorProxy = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditorProxy);
@@ -1478,8 +1478,7 @@ HWTEST_F(InputMethodControllerCapiTest, SendPrivateCommandWithInvalidCommandCoun
     ON_CALL(*ability, ReleaseInput(_, _)).WillByDefault(Return(ErrorCode::NO_ERROR));
     EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
 
-
-    InputMethod_PrivateCommand *privateCommand[] = { nullptr };
+    InputMethod_PrivateCommand *privateCommand[MAX_SYS_PRIVATE_COMMAND_COUNT + 1] = { nullptr };
     auto ret = OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, privateCommand, MAX_SYS_PRIVATE_COMMAND_COUNT + 1);
     EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
 
