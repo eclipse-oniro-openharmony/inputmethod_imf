@@ -2231,6 +2231,5 @@ HWTEST_F(InputMethodAbilityTest, TestOnConnectSystemCmd_001, TestSize.Level0)
     GTEST_RUN_TASK(TestOnConnectSystemCmd);
     EXPECT_EQ(multiThreadExecTotalNum_, THREAD_NUM * MAXRUNCOUNT);
 }
-
 } // namespace MiscServices
 } // namespace OHOS

@@ -78,7 +78,7 @@ std::unordered_set<std::string> ImeInfoInquirer::GetDisableNumKeyAppDeviceTypes(
     return systemConfig_.disableNumKeyAppDeviceTypes;
 }
 
-bool ImeInfoInquirer::IsVirtualProxyIme(int32_t callingUid)
+bool ImeInfoInquirer::IsProxyIme(int32_t callingUid)
 {
     return systemConfig_.proxyImeUidList.find(callingUid) != systemConfig_.proxyImeUidList.end();
 }
