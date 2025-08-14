@@ -651,6 +651,11 @@ int32_t PerUserSession::BindClientWithIme(
             return ErrorCode::ERROR_IMSA_CLIENT_INPUT_READY_FAILED;
         }
     }
+
+    if (type == ImeType::IME_MIRROR) {
+        return ErrorCode::NO_ERROR;
+    }
+
     clientGroup->UpdateClientInfo(clientInfo->client->AsObject(), { { UpdateFlag::BINDIMETYPE, type },
         { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard }, { UpdateFlag::STATE, ClientState::ACTIVE },
         { UpdateFlag::BIND_IME_PID, data->pid} });
@@ -1704,7 +1709,7 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
         IMSA_HILOGD("proxy enable.");
         return exec();
     }
-    if (data == nullptr || data->imeStateManager == nullptr) {
+    if (data == nullptr || data->core == nullptr || data->imeStateManager == nullptr) {
         IMSA_HILOGE("data is nullptr!");
         return ErrorCode::NO_ERROR;
     }

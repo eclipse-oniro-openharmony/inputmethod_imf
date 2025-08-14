@@ -882,11 +882,14 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         SetInputReady(agents, imeInfos);
     }
 
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
     InputAttributeInner inner = InputMethodTools::GetInstance().AttributeToInner(attribute);
-    return SendRequestToAllAgents([&inner](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
-        agent->OnAttributeChange(inner);
-        return ErrorCode::NO_ERROR;
-    });
+    agent->OnAttributeChange(inner);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::GetLeft(int32_t length, std::u16string &text)
@@ -1903,6 +1906,10 @@ int32_t InputMethodController::SendRequestToAllAgents(std::function<int32_t(std:
             continue;
         }
         if (agentInfo.agent == nullptr) {
+            if (agentInfo.imeType == ImeType::IME_MIRROR) {
+                IMSA_HILOGW("ime mirror agent is null");
+                continue;
+            }
             IMSA_HILOGE("agent is null");
             return ErrorCode::ERROR_CLIENT_NULL_POINTER;
         }

@@ -287,7 +287,7 @@ private:
     uint32_t GetScbStartCount();
     void ResetRestartTasks();
     int32_t SendAllReadyImeToClient(
-        std::shared_ptr<ImeData> ImeDatas, const std::shared_ptr<InputClientInfo> &clientInfo);
+        std::shared_ptr<ImeData> data, const std::shared_ptr<InputClientInfo> &clientInfo);
     void SetImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
     sptr<AAFwk::IAbilityConnection> GetImeConnection();
     void ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);

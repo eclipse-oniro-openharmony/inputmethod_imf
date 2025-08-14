@@ -754,8 +754,8 @@ bool JsImmersiveEffect::Read(napi_env env, napi_value object, ImmersiveEffect &e
 {
     int32_t gradientHeight = 0;
     auto ret = JsUtil::Object::ReadProperty(env, object, "gradientHeight", gradientHeight);
-    if (gradientHeight < 0) {
-        IMSA_HILOGE("gradientHeight is invalid, gradientHeight:%{public}d", gradientHeight);
+    if (!ret || gradientHeight < 0) {
+        IMSA_HILOGE("ret is false or gradientHeight is invalid, gradientHeight:%{public}d", gradientHeight);
         return false;
     }
 
