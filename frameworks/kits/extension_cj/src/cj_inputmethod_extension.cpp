@@ -186,26 +186,29 @@ void CjInputMethodExtension::OnDestroy(Rosen::DisplayId displayId)
 
 void CjInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
 {
-    if (displayId != Rosen::DisplayManager::GetInstance().GetDefaultDisplayId()) {
-        return;
-    }
-    auto foldStatus = Rosen::DisplayManager::GetInstance().GetFoldStatus();
     auto displayPtr = Rosen::DisplayManager::GetInstance().GetDefaultDisplaySync();
     if (displayPtr == nullptr) {
         return;
     }
+    auto defaultDisplayId = displayPtr->GetId();
+    if (displayId != defaultDisplayId) {
+        return;
+    }
+    auto foldStatus = Rosen::DisplayManager::GetInstance().GetFoldStatus();
+    auto width = displayPtr->GetWidth();
+    auto height = displayPtr->GetHeight();
+    auto rotation = displayPtr->GetRotation();
     IMSA_HILOGD("display width: %{public}d, height: %{public}d, rotation: %{public}d, foldStatus: %{public}d",
-        displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation(), foldStatus);
+        width, height, rotation, foldStatus);
     if (!cacheDisplay_.IsEmpty()) {
-        if ((cacheDisplay_.displayWidth != displayPtr->GetWidth() ||
-                cacheDisplay_.displayHeight != displayPtr->GetHeight()) &&
+        if ((cacheDisplay_.displayWidth != width ||
+                cacheDisplay_.displayHeight != height) &&
             cacheDisplay_.displayFoldStatus == foldStatus &&
-            cacheDisplay_.displayRotation == displayPtr->GetRotation()) {
+            cacheDisplay_.displayRotation == rotation) {
             InputMethodAbility::GetInstance().AdjustKeyboard();
         }
     }
-    cacheDisplay_.SetCacheDisplay(
-        displayPtr->GetWidth(), displayPtr->GetHeight(), displayPtr->GetRotation(), foldStatus);
+    cacheDisplay_.SetCacheDisplay(width, height, rotation, foldStatus);
 }
 
 void CjInputMethodExtension::OnChange(Rosen::DisplayId displayId)
