@@ -202,7 +202,7 @@ public:
             return true;
         }
         bool OnDealKeyEvent(
-            const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
+            const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel) override
         {
             IMSA_HILOGI("KeyboardListenerImpl run in");
             bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);

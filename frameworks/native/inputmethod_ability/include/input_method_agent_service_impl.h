@@ -30,7 +30,7 @@ public:
     InputMethodAgentServiceImpl();
     ~InputMethodAgentServiceImpl();
     ErrCode DispatchKeyEvent(
-        const MiscServices::KeyEventValue &keyEvent, const sptr<IKeyEventConsumer> &consumer) override;
+        const MiscServices::KeyEventValue &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel) override;
     ErrCode OnCursorUpdate(int32_t positionX, int32_t positionY, int height) override;
     ErrCode OnSelectionChange(
         const std::string& text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;

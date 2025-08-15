@@ -146,6 +146,10 @@ private:
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
 using WindowScaleCallback = std::function<int32_t(uint32_t windowId, CursorInfo &cursorInfo)>;
+struct KeyEventCbInfo {
+    std::shared_ptr<MMI::KeyEvent> keyEvent{ nullptr };
+    KeyEventCallback callback{ nullptr };
+};
 class InputMethodController : public RefBase, public PrivateCommandInterface {
 public:
     /**
@@ -980,6 +984,8 @@ public:
      */
     IMF_API int32_t RegisterWindowScaleCallbackHandler(WindowScaleCallback&& callback);
 
+    void HandleKeyEventResult(uint64_t cbId, bool consumeResult);
+
 private:
     InputMethodController();
     ~InputMethodController();
@@ -1095,6 +1101,14 @@ private:
 
     std::mutex windowScaleCallbackMutex_;
     WindowScaleCallback windowScaleCallback_ = nullptr;
+
+    std::mutex keyEventCbHandlersMutex_;
+    std::map<uint64_t, KeyEventCbInfo> keyEventCbHandlers_;
+    uint64_t keyEventCbId_{ 0 };
+    KeyEventCbInfo GetKeyEventCbInfo(uint64_t cbId);
+    void RemoveKeyEventCbInfo(uint64_t cbId);
+    uint64_t AddKeyEventCbInfo(const KeyEventCbInfo &cbInfo);
+    uint64_t GenerateKeyEventCbId();
 };
 } // namespace MiscServices
 } // namespace OHOS

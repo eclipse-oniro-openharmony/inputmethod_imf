@@ -46,7 +46,7 @@ public:
     KeyboardListenerImpl() = default;
     ~KeyboardListenerImpl() = default;
     bool OnDealKeyEvent(
-        const std::shared_ptr<OHOS::MMI::KeyEvent> &keyEvent, OHOS::sptr<KeyEventConsumerProxy> &consumer) override
+        const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel) override
     {
         return false;
     }

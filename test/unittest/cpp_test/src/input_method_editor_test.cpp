@@ -58,7 +58,8 @@ public:
     static int32_t keyCode_;
     static int32_t keyStatus_;
     static CursorInfo cursorInfo_;
-    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
+    bool OnDealKeyEvent(
+        const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel) override;
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override;
     bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
@@ -82,7 +83,7 @@ bool KeyboardListenerImpl::OnKeyEvent(
     return true;
 }
 bool KeyboardListenerImpl::OnDealKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel)
 {
     bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
     bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);

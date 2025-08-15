@@ -39,7 +39,8 @@ class KeyboardListenerImpl : public KeyboardListener {
     {
         return true;
     }
-    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+    bool OnDealKeyEvent(
+        const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel)
     {
         return true;
     }

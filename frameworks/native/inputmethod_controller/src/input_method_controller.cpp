@@ -974,20 +974,72 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     IMSA_HILOGD("start.");
-    sptr<IKeyEventConsumer> consumer = new (std::nothrow) KeyEventConsumerServiceImpl(callback, keyEvent);
-    if (consumer == nullptr) {
-        IMSA_HILOGE("consumer is nullptr!");
+    auto channel = clientInfo_.channel;
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr!");
         keyEventQueue_.Pop();
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    auto cbId = AddKeyEventCbInfo({ keyEvent, callback });
     KeyEventValue keyEventValue;
     keyEventValue.event = keyEvent;
-    auto ret = agent->DispatchKeyEvent(keyEventValue, consumer);
+    auto ret = agent->DispatchKeyEvent(keyEventValue, cbId, channel);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to DispatchKeyEvent: %{public}d", ret);
+        RemoveKeyEventCbInfo(cbId);
     }
     keyEventQueue_.Pop();
     return ret;
+}
+
+KeyEventCbInfo InputMethodController::GetKeyEventCbInfo(uint64_t cbId)
+{
+    std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
+    auto iter = keyEventCbHandlers_.find(cbId);
+    if (iter != keyEventCbHandlers_.end()) {
+        return iter->second;
+    }
+    return {};
+}
+
+void InputMethodController::RemoveKeyEventCbInfo(uint64_t cbId)
+{
+    std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
+    auto iter = keyEventCbHandlers_.find(cbId);
+    if (iter == keyEventCbHandlers_.end()) {
+        return;
+    }
+    keyEventCbHandlers_.erase(cbId);
+}
+
+uint64_t InputMethodController::AddKeyEventCbInfo(const KeyEventCbInfo &cbInfo)
+{
+    std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
+    auto cbId = GenerateKeyEventCbId();
+    IMSA_HILOGD("%{public}" PRIu64 "add.", cbId);
+    keyEventCbHandlers_.insert({ cbId, cbInfo });
+    return cbId;
+}
+
+uint64_t InputMethodController::GenerateKeyEventCbId()
+{
+    uint32_t cbId = ++keyEventCbId_;
+    if (cbId == std::numeric_limits<uint32_t>::max()) {
+        return ++keyEventCbId_;
+    }
+    return cbId;
+}
+
+void InputMethodController::HandleKeyEventResult(uint64_t cbId, bool consumeResult)
+{
+    IMSA_HILOGD("result:%{public}" PRIu64 "/%{public}d.", cbId, consumeResult);
+    auto cbInfo = GetKeyEventCbInfo(cbId);
+    if (cbInfo.callback == nullptr) {
+        IMSA_HILOGE("%{public}" PRIu64 "callback is nullptr.", cbId);
+        return;
+    }
+    cbInfo.callback(cbInfo.keyEvent, consumeResult);
+    RemoveKeyEventCbInfo(cbId);
 }
 
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)

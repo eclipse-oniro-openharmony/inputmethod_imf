@@ -301,5 +301,16 @@ ErrCode InputDataChannelServiceImpl::SendMessage(const ArrayBuffer &arraybuffer)
     }
     return instance->RecvMessage(arraybuffer);
 }
+
+ErrCode InputDataChannelServiceImpl::HandleKeyEventResult(uint64_t cbId, bool consumeResult)
+{
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    instance->HandleKeyEventResult(cbId, consumeResult);
+    return ERR_OK;
+}
 } // namespace MiscServices
 } // namespace OHOS

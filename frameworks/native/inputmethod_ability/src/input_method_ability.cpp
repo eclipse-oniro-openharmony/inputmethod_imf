@@ -433,7 +433,7 @@ void InputMethodAbility::ClearBindInfo(const sptr<IRemoteObject> &channel)
 }
 
 int32_t InputMethodAbility::DispatchKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr!");
@@ -445,7 +445,7 @@ int32_t InputMethodAbility::DispatchKeyEvent(
     }
     IMSA_HILOGD("InputMethodAbility, start.");
 
-    if (!kdListener_->OnDealKeyEvent(keyEvent, consumer)) {
+    if (!kdListener_->OnDealKeyEvent(keyEvent, cbId, channel)) {
         IMSA_HILOGE("keyEvent not deal!");
         return ErrorCode::ERROR_DISPATCH_KEY_EVENT;
     }
@@ -1965,6 +1965,17 @@ int32_t InputMethodAbility::OnNotifyPreemption()
     IMSA_HILOGD("notifyPreemption begin.");
     imeListener->NotifyPreemption();
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::HandleKeyEventResult(uint64_t cbId, bool consumeResult, const sptr<IRemoteObject> &channelObject)
+{
+    IMSA_HILOGD("run in:%{public}" PRIu64 ".", cbId);
+    if (channelObject == nullptr) {
+        IMSA_HILOGE("channelObject is nullptr:%{public}" PRIu64 ".", cbId);
+        return;
+    }
+    auto channel = std::make_shared<InputDataChannelProxy>(channelObject);
+    channel->HandleKeyEventResult(cbId, consumeResult);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -31,10 +31,9 @@ InputMethodAgentServiceImpl::InputMethodAgentServiceImpl() {}
 InputMethodAgentServiceImpl::~InputMethodAgentServiceImpl() {}
 
 ErrCode InputMethodAgentServiceImpl::DispatchKeyEvent(
-    const MiscServices::KeyEventValue &keyEvent, const sptr<IKeyEventConsumer> &consumer)
+    const MiscServices::KeyEventValue &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel)
 {
-    sptr<KeyEventConsumerProxy> proxyConsumer = new (std::nothrow) KeyEventConsumerProxy(consumer->AsObject());
-    return InputMethodAbility::GetInstance().DispatchKeyEvent(keyEvent.event, proxyConsumer);
+    return InputMethodAbility::GetInstance().DispatchKeyEvent(keyEvent.event, cbId, channel);
 }
 
 ErrCode InputMethodAgentServiceImpl::SetCallingWindow(uint32_t windowId)
