@@ -17,8 +17,6 @@
 #define protected public
 #include "input_method_controller.h"
 #undef private
-
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <sys/time.h>
 #include <unistd.h>

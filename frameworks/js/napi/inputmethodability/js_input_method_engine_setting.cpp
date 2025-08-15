@@ -334,9 +334,6 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
         IMSA_HILOGE("JsInputMethodEngineSetting napi_wrap failed: %{public}d", status);
         return nullptr;
     }
-    if (setting->loop_ == nullptr) {
-        napi_get_uv_event_loop(env, &setting->loop_);
-    }
     return thisVar;
 };
 
@@ -885,36 +882,6 @@ void JsInputMethodEngineSetting::ReceivePrivateCommand(
     eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
 }
 
-uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
-{
-    IMSA_HILOGD("run in, type: %{public}s.", type.c_str());
-    UvEntry *entry = nullptr;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGD("%{public}s cb-vector is empty.", type.c_str());
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry is nullptr!");
-            return nullptr;
-        }
-        if (entrySetter != nullptr) {
-            entrySetter(*entry);
-        }
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("work is nullptr!");
-        delete entry;
-        return nullptr;
-    }
-    work->data = entry;
-    return work;
-}
-
 std::shared_ptr<AppExecFwk::EventHandler> JsInputMethodEngineSetting::GetEventHandler()
 {
     std::lock_guard<std::mutex> lock(eventHandlerMutex_);
@@ -949,18 +916,6 @@ bool JsInputMethodEngineSetting::IsCallbackRegistered(const std::string &type)
         return false;
     }
     return true;
-}
-
-void JsInputMethodEngineSetting::FreeWorkIfFail(int ret, uv_work_t *work)
-{
-    if (ret == 0 || work == nullptr) {
-        return;
-    }
-
-    UvEntry *data = static_cast<UvEntry *>(work->data);
-    delete data;
-    delete work;
-    IMSA_HILOGE("uv_queue_work failed retCode: %{public}d!", ret);
 }
 
 bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)

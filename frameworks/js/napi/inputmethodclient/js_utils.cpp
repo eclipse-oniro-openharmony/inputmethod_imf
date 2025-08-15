@@ -289,6 +289,11 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
     if (maxLen <= 0) {
         return status;
     }
+
+    if (maxLen > STR_MAX_LENGTH) {
+        IMSA_HILOGE("string length is too long.");
+        return napi_generic_failure;
+    }
     IMSA_HILOGD("napi_value -> std::string get length %{public}zu", maxLen);
     char *buf = new (std::nothrow) char[maxLen + STR_TAIL_LENGTH];
     if (buf != nullptr) {
@@ -548,8 +553,8 @@ napi_status JsUtils::GetMessageHandlerCallbackParam(napi_value *argv,
         IMSA_HILOGE("argv is nullptr!.");
         return napi_generic_failure;
     }
-    if (size < ARGC_ONE) {
-        IMSA_HILOGE("argv size is less than 1!.");
+    if (size <= ARGC_ONE) {
+        IMSA_HILOGE("argv size is less than 2!.");
         return napi_generic_failure;
     }
     if (jsMessageHandler == nullptr) {

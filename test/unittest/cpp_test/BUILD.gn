@@ -1134,6 +1134,7 @@ ohos_unittest("VirtualListenerTest") {
     external_deps += [ "window_manager:libwm" ]
   }
 }
+
 ohos_unittest("ImeSystemChannelTest") {
   branch_protector_ret = "pac_ret"
   sanitize = {
@@ -1220,15 +1221,21 @@ ohos_unittest("ImeControllerCpaiTest") {
   include_dirs = [
     "${inputmethod_path}/interfaces/kits/c",
     "${inputmethod_path}/frameworks/ndk/include",
+    "${inputmethod_path}/test/unittest/cpp_test/mock",
+  ]
+
+  defines = [
+    "OHOS_IMF_TEST"
   ]
 
   deps = [
-    "${inputmethod_path}/frameworks/ndk:ohinputmethod",
+    "${inputmethod_path}/frameworks/ndk:ohinputmethod_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
   ]
 
   external_deps = [
     "googletest:gtest_main",
+    "googletest:gmock",
     "hilog:libhilog",
     "input:libmmi-client",
   ]

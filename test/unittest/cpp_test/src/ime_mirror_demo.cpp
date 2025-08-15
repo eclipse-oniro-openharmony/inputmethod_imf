@@ -26,20 +26,41 @@ public:
     void OnKeyboardStatus(bool isShow) override { };
     void OnInputStart() override
     {
-        IMSA_HILOGI("[ImeMirrorLog] OnInputStart");
+        inputStartCount_++;
+        IMSA_HILOGI("[ImeMirrorLog] OnInputStart count, inputStartCount_:%{public}u", inputStartCount_.load());
     }
     int32_t OnInputStop() override
     {
-        IMSA_HILOGI("[ImeMirrorLog] OnInputStop");
+        inputStopCount_++;
+        IMSA_HILOGI("[ImeMirrorLog] OnInputStop, inputStopCount_:%{public}u", inputStopCount_.load());
         return 0;
     }
     void OnInputFinish() override
     {
-        IMSA_HILOGI("[ImeMirrorLog] OnInputFinish");
-    }
+        inputFinishCount_++;
+        IMSA_HILOGI("[ImeMirrorLog] OnInputFinish inputFinishCount_:%{public}u", inputFinishCount_.load());
+        }
     void OnSetCallingWindow(uint32_t windowId) override { }
     void OnSetSubtype(const SubProperty &property) override { }
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override { }
+    void PrintCount()
+    {
+        IMSA_HILOGI(
+            "[ImeMirrorLog] inputStartCount_:%{public}u, inputFinishCount_:%{public}u, inputStopCount_:%{public}u",
+            inputStartCount_.load(), inputFinishCount_.load(), inputStopCount_.load());
+    };
+
+    void ResetCount()
+    {
+        inputStartCount_ = 0;
+        inputFinishCount_ = 0;
+        inputStopCount_ = 0;
+    }
+
+private:
+    std::atomic<uint32_t> inputStartCount_ = 0;
+    std::atomic<uint32_t> inputFinishCount_ = 0;
+    std::atomic<uint32_t> inputStopCount_ = 0;
 };
 class KeyboardListenerImpl : public KeyboardListener {
 public:
@@ -61,18 +82,24 @@ public:
     }
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
     {
-        IMSA_HILOGI("[ImeMirrorLog] OnCursorUpdate positionX:%{public}d,positionY:%{public}d,height:%{public}d",
-            positionX, positionY, height);
-    }
+        cursorUpdateCount_++;
+        IMSA_HILOGI("[ImeMirrorLog] OnCursorUpdate positionX:%{public}d,positionY:%{public}d,height:%{public}d, "
+                    "cursorUpdateCount_:%{public}u",
+            positionX, positionY, height, cursorUpdateCount_.load());
+        }
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override
     {
+        selectionChangeCount_++;
         IMSA_HILOGI("[ImeMirrorLog] OnSelectionChange "
-                    "oldBegin:%{public}d,oldEnd:%{public}d,newBegin:%{public}d,newEnd:%{public}d",
-            oldBegin, oldEnd, newBegin, newEnd);
+                    "oldBegin:%{public}d,oldEnd:%{public}d,newBegin:%{public}d,newEnd:%{public}d, "
+                    "selectionChangeCount_:%{public}u",
+            oldBegin, oldEnd, newBegin, newEnd, selectionChangeCount_.load());
     }
     void OnTextChange(const std::string &text) override
     {
-        IMSA_HILOGI("[ImeMirrorLog] OnTextChange text:%{public}s", text.c_str());
+        textChangeCount_++;
+        IMSA_HILOGI("[ImeMirrorLog] OnTextChange text:%{public}s, textChangeCount_:%{public}u", text.c_str(),
+            textChangeCount_.load());
     }
     void OnEditorAttributeChange(const InputAttribute &inputAttribute) override
     {
@@ -82,8 +109,40 @@ public:
 
     void OnFunctionKey(int32_t funcKey) override
     {
-        IMSA_HILOGI("[ImeMirrorLog] OnFunctionKey funcKey:%{public}d", funcKey);
+        if (funcKey < 0 || funcKey > static_cast<int32_t>(EnterKeyType::NEW_LINE)) {
+            IMSA_HILOGE("[ImeMirrorLog] invalid funcKey:%{public}d", funcKey);
+            return;
+        }
+        functionKeyCount_[funcKey]++;
+        IMSA_HILOGI("[ImeMirrorLog] OnFunctionKey funcKey:%{public}d, functionKeyCount_:%{public}u", funcKey,
+            functionKeyCount_[funcKey].load());
     }
+
+    void PrintCount()
+    {
+        IMSA_HILOGI("[ImeMirrorLog] selectionChangeCount_:%{public}u, textChangeCount_:%{public}u, "
+                    "cursorUpdateCount_:%{public}u",
+            selectionChangeCount_.load(), textChangeCount_.load(), cursorUpdateCount_.load());
+        for (size_t index = 0; index <= static_cast<size_t>(EnterKeyType::NEW_LINE); index++) {
+            IMSA_HILOGI("[ImeMirrorLog] funcKey:%{public}zu, count:%{public}u", index, functionKeyCount_[index].load());
+        }
+    }
+
+    void ResetCount()
+    {
+        selectionChangeCount_ = 0;
+        textChangeCount_ = 0;
+        cursorUpdateCount_ = 0;
+        for (size_t index = 0; index <= static_cast<size_t>(EnterKeyType::NEW_LINE); index++) {
+            functionKeyCount_[index] = 0;
+        }
+    }
+
+private:
+    std::atomic<uint32_t> selectionChangeCount_ = 0;
+    std::atomic<uint32_t> textChangeCount_ = 0;
+    std::atomic<uint32_t> functionKeyCount_[static_cast<size_t>(EnterKeyType::NEW_LINE) + 1] = { 0 };
+    std::atomic<uint32_t> cursorUpdateCount_ = 0;
 };
 
 int32_t GetAgentUid()
@@ -101,12 +160,13 @@ int32_t GetAgentUid()
     }
     return *systemConfig.proxyImeUidList.begin();
 }
+
 int main()
 {
-    std::shared_ptr<InputMethodEngineListener> imeListener = make_shared<InputMethodEngineListenerImpl>();
+    std::shared_ptr<InputMethodEngineListenerImpl> imeListener = make_shared<InputMethodEngineListenerImpl>();
     auto instance = InputMethodAbilityInterface::GetInstance();
     instance.SetImeListener(imeListener);
-    std::shared_ptr<KeyboardListener> kdListener = make_shared<KeyboardListenerImpl>();
+    std::shared_ptr<KeyboardListenerImpl> kdListener = make_shared<KeyboardListenerImpl>();
     instance.SetKdListener(kdListener);
     char input = '0';
     int32_t ret = 0;
@@ -130,6 +190,15 @@ int main()
             case 'i':
                 ret = instance.InsertText("ime mirror demo");
                 IMSA_HILOGI("[ImeMirrorLog] InsertText finish ret = %{public}d", ret);
+                break;
+            case 'c':
+                imeListener->PrintCount();
+                kdListener->PrintCount();
+                break;
+            case 'r':
+                imeListener->ResetCount();
+                kdListener->ResetCount();
+                IMSA_HILOGI("[ImeMirrorLog] retset count success");
                 break;
             default:
                 IMSA_HILOGE("[ImeMirrorLog] input error");

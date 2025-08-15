@@ -845,6 +845,7 @@ TEST_F(IdentityCheckerTest, OnExtension_dataIsEmpty_ReturnsBadParam)
 TEST_F(IdentityCheckerTest, OnExtension_BundleNameIsInvalid_ReturnsBadParam)
 {
     MessageParcel data;
+    data.WriteFileDescriptor(1);
     data.WriteString("[{\"type\":\"default_input_method\",\"detail\":\"com.invalid.bundleName\"}]");
     MessageParcel reply;
     EXPECT_EQ(service_->OnExtension("restore", data, reply), ErrorCode::ERROR_BAD_PARAMETERS);

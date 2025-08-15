@@ -83,6 +83,7 @@ void KeyboardListenerTestImpl::ResetParam()
     inputAttribute_.inputPattern = 0;
     inputAttribute_.enterKeyType = 0;
     inputAttribute_.inputOption = 0;
+    funcKey_ = -1;
 }
 
 bool KeyboardListenerTestImpl::WaitKeyEvent(int32_t keyCode)

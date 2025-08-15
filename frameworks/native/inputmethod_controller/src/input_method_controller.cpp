@@ -68,6 +68,13 @@ InputMethodController::InputMethodController()
 }
 
 InputMethodController::~InputMethodController() { }
+#ifdef OHOS_IMF_TEST
+void InputMethodController::SetImsaProxyForTest(sptr<IInputMethodSystemAbility> proxy)
+{
+    std::lock_guard<std::mutex> autoLock(abilityLock_);
+    abilityManager_ = proxy;
+}
+#endif // OHOS_IMF_TEST
 
 sptr<InputMethodController> InputMethodController::GetInstance()
 {
@@ -804,7 +811,6 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
         return ErrorCode::NO_ERROR;
     });
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
@@ -843,7 +849,6 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
             agent->OnSelectionChange(testString, selectOldBegin, selectOldEnd, selectNewBegin, selectNewEnd);
             return ErrorCode::NO_ERROR;
         });
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
@@ -877,11 +882,13 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         SetInputReady(agents, imeInfos);
     }
 
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
     InputAttributeInner inner = InputMethodTools::GetInstance().AttributeToInner(attribute);
-    return SendRequestToAllAgents([&inner](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
-        agent->OnAttributeChange(inner);
-        return ErrorCode::NO_ERROR;
-    });
+    agent->OnAttributeChange(inner);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1899,6 +1906,10 @@ int32_t InputMethodController::SendRequestToAllAgents(std::function<int32_t(std:
             continue;
         }
         if (agentInfo.agent == nullptr) {
+            if (agentInfo.imeType == ImeType::IME_MIRROR) {
+                IMSA_HILOGW("ime mirror agent is null");
+                continue;
+            }
             IMSA_HILOGE("agent is null");
             return ErrorCode::ERROR_CLIENT_NULL_POINTER;
         }
