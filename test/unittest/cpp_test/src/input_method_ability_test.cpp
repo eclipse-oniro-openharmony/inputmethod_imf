@@ -2232,5 +2232,25 @@ HWTEST_F(InputMethodAbilityTest, TestOnConnectSystemCmd_001, TestSize.Level0)
     EXPECT_EQ(multiThreadExecTotalNum_, THREAD_NUM * MAXRUNCOUNT);
 }
 
+/**
+ * @tc.name: testSelectByRange
+ * @tc.desc: InputMethodAbility SelectByRange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testSelectByRange, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility SelectByRangeTest START");
+    int32_t start = 1;
+    int32_t end = 1;
+
+    auto ret = InputMethodAbilityInterface::GetInstance().SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+
+    start = -1;
+    end = -1;
+    ret = InputMethodAbilityInterface::GetInstance().SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+}
 } // namespace MiscServices
 } // namespace OHOS
