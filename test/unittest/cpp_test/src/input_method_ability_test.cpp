@@ -75,7 +75,7 @@ public:
     static constexpr int MAXRUNCOUNT = 100;
     static constexpr int THREAD_NUM = 5;
     static void TestOnConnectSystemCmd();
-    static int32_t multiThreadExecTotalNum_;
+    static std::atomic<int32_t> multiThreadExecTotalNum_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -294,7 +294,7 @@ uint64_t InputMethodAbilityTest::currentImeTokenId_ = 0;
 int32_t InputMethodAbilityTest::currentImeUid_ = 0;
 sptr<InputMethodSystemAbility> InputMethodAbilityTest::imsa_;
 sptr<InputMethodSystemAbilityProxy> InputMethodAbilityTest::imsaProxy_;
-int32_t InputMethodAbilityTest::multiThreadExecTotalNum_{ 0 };
+std::atomic<int32_t> InputMethodAbilityTest::multiThreadExecTotalNum_{ 0 };
 
 void InputMethodAbilityTest::TestOnConnectSystemCmd()
 {
@@ -2226,10 +2226,10 @@ HWTEST_F(InputMethodAbilityTest, TestServiceHandler_, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, TestOnConnectSystemCmd_001, TestSize.Level0)
 {
     IMSA_HILOGI("TestOnConnectSystemCmd_001 start.");
-    multiThreadExecTotalNum_ = 0;
+    multiThreadExecTotalNum_.store(0);
     SET_THREAD_NUM(THREAD_NUM);
     GTEST_RUN_TASK(TestOnConnectSystemCmd);
-    EXPECT_EQ(multiThreadExecTotalNum_, THREAD_NUM * MAXRUNCOUNT);
+    EXPECT_EQ(multiThreadExecTotalNum_.load(), THREAD_NUM * MAXRUNCOUNT);
 }
 
 /**
