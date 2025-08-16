@@ -848,7 +848,7 @@ ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (identityChecker_->IsNativeSa(tokenId)) {
+    if (identityChecker_->IsValidVirtualIme(IPCSkeleton::GetCallingUid())) {
         return session->OnRegisterProxyIme(core, agent, pid);
     }
     if (!IsCurrentIme(userId, tokenId)) {
@@ -2236,7 +2236,8 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
 ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<IInputMethodCore> &core)
 {
     pid_t pid = IPCSkeleton::GetCallingPid();
-    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+    pid_t uid = IPCSkeleton::GetCallingUid();
+    if (!identityChecker_->IsValidVirtualIme(uid)) {
         IMSA_HILOGE("not native sa!");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }

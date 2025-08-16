@@ -173,7 +173,7 @@ uint64_t IdentityCheckerImpl::GetDisplayIdByPid(int64_t callingPid, sptr<IRemote
 
 bool IdentityCheckerImpl::IsValidVirtualIme(int32_t callingUid)
 {
-    return ImeInfoInquirer::GetInstance().IsVirtualProxyIme(callingUid);
+    return ImeInfoInquirer::GetInstance().IsProxyIme(callingUid);
 }
 
 bool IdentityCheckerImpl::IsSpecialSaUid()
