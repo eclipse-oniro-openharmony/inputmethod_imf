@@ -124,7 +124,7 @@ public:
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent, int32_t pid);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core, pid_t pid);
     int32_t OnBindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
-    int32_t OnUnBindImeMirror();
+    int32_t OnUnbindImeMirror();
     int32_t UpdateLargeMemorySceneState(const int32_t memoryState);
     int32_t OnRegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
@@ -287,7 +287,7 @@ private:
     uint32_t GetScbStartCount();
     void ResetRestartTasks();
     int32_t SendAllReadyImeToClient(
-        std::shared_ptr<ImeData> ImeDatas, const std::shared_ptr<InputClientInfo> &clientInfo);
+        std::shared_ptr<ImeData> data, const std::shared_ptr<InputClientInfo> &clientInfo);
     void SetImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
     sptr<AAFwk::IAbilityConnection> GetImeConnection();
     void ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);

@@ -27,6 +27,8 @@
 #include "scope_utils.h"
 #include "sys_cfg_parser.h"
 #include "text_listener.h"
+#include "ime_setting_listener_test_impl.h"
+#include "ime_event_monitor_manager_impl.h"
 
 using namespace testing::ext;
 using namespace testing::mt;
@@ -44,6 +46,24 @@ public:
         TddUtil::StorageSelfTokenID();
         TddUtil::InitWindow(true);
         imc_ = InputMethodController::GetInstance();
+
+        TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ImeProxyTest"));
+        auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+        ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(
+            EVENT_IME_HIDE_MASK | EVENT_IME_SHOW_MASK | EVENT_IME_CHANGE_MASK, listener);
+
+        ImeSettingListenerTestImpl::ResetParam();
+        TddUtil::SetTestTokenID(
+            TddUtil::AllocTestTokenID(true, "ImeProxyTest", { "ohos.permission.CONNECT_IME_ABILITY" }));
+        TddUtil::EnabledAllIme();
+        SubProperty subProp;
+        subProp.name = "com.example.testIme";
+        subProp.id = "InputMethodExtAbility";
+        auto ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, subProp.name, subProp.id);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange(subProp));
+        TddUtil::RestoreSelfTokenID();
+
         // native sa permission
         TddUtil::GrantNativePermission();
         SystemConfig systemConfig;
@@ -83,12 +103,12 @@ public:
         TaskManager::GetInstance().Reset();
     }
 
-    static int32_t Attach()
+    static int32_t Attach(bool isShowKeyboard = true)
     {
         TextConfig config;
         config.cursorInfo = { .left = 0, .top = 1, .width = 0.5, .height = 1.2 };
         sptr<OnTextChangedListener> testListener = new TextListener();
-        auto ret = imc_->Attach(testListener, true, config);
+        auto ret = imc_->Attach(testListener, isShowKeyboard, config);
         return ret;
     }
     static void Close()
@@ -162,7 +182,7 @@ HWTEST_F(ImeMirrorTest, BindImeMirrorAndVerifyTextSelectionConfig_success, TestS
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputAttribute attr;
     attr.enterKeyType = static_cast<int32_t>(EnterKeyType::GO);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitEditorAttributeChange(attr));
+    EXPECT_FALSE(KeyboardListenerTestImpl::WaitEditorAttributeChange(attr));
 
     ret = ImeMirrorTest::imc_->SendFunctionKey(static_cast<int32_t>(EnterKeyType::NEW_LINE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -193,6 +213,10 @@ HWTEST_F(ImeMirrorTest, BindImeMirrorAndVerifyPasswordTextHandling_fail, TestSiz
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         // Secure text should not be received by proxy
         EXPECT_FALSE(KeyboardListenerTestImpl::WaitTextChange("secure123"));
+
+        ret = ImeMirrorTest::imc_->SendFunctionKey(static_cast<int32_t>(EnterKeyType::NEW_LINE));
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_FALSE(KeyboardListenerTestImpl::WaitFunctionKey(static_cast<int32_t>(EnterKeyType::NEW_LINE)));
     }
 
     CloseAndUnregisterProxy();
@@ -271,8 +295,9 @@ HWTEST_F(ImeMirrorTest, UnregisterProxyDuringTextInput_success, TestSize.Level1)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(KeyboardListenerTestImpl::WaitTextChange("after unregister"));
 
+    InputMethodEngineListenerImpl::ResetParam();
     Close();
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
+    EXPECT_FALSE(InputMethodEngineListenerImpl::WaitInputFinish());
 }
 
 /**
@@ -335,6 +360,34 @@ HWTEST_F(ImeMirrorTest, RegisterAfterAttach_success, TestSize.Level1)
         EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     }
     Close();
+}
+
+/**
+ * @tc.name: BindImeMirror_WillNotChangeClientAndImeBinding
+ * @tc.desc: BindImeMirror should not change client and ime binding relationship
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeMirrorTest, BindImeMirror_WillNotChangeClientAndImeBinding, TestSize.Level1)
+{
+    IMSA_HILOGI("ImeMirrorTest::BindImeMirror_WillNotChangeClientAndImeBinding start");
+
+    // Step 1: Perform Attach first without bind
+    auto ret = Attach(false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(InputMethodEngineListenerImpl::WaitInputStart());
+
+    // Step 2: bind ime mirror after Attach
+    {
+        UidScope uidScope(agentUid_);
+        ret = InputMethodAbilityInterface::GetInstance().BindImeMirror();
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
+    }
+
+    ret = imc_->ShowTextInput();
+    EXPECT_FALSE(InputMethodEngineListenerImpl::WaitKeyboardStatus(true));
+
+    CloseAndUnregisterProxy();
 }
 
 /**

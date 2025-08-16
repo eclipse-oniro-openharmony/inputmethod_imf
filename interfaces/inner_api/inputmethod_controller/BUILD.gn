@@ -262,7 +262,6 @@ ohos_source_set("imc_response_channel_stub") {
 
 ohos_shared_library("inputmethod_client") {
   branch_protector_ret = "pac_ret"
-
   sanitize = {
     boundary_sanitize = true
     cfi = true
@@ -416,6 +415,12 @@ ohos_static_library("inputmethod_client_static") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (testonly) {
+    defines = [
+      "OHOS_IMF_TEST"
+    ]
+  }
 
   client_output_values = get_target_outputs(":input_client_interface")
   sources += filter_include(client_output_values,

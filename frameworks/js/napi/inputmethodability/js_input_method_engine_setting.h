@@ -120,9 +120,6 @@ private:
     using EntrySetter = std::function<void(UvEntry &)>;
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
-    uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
-    void FreeWorkIfFail(int ret, uv_work_t *work);
-    uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex engineMutex_;

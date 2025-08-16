@@ -315,10 +315,6 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
         return nullptr;
     }
 
-    if (controllerObject->loop_ == nullptr) {
-        napi_get_uv_event_loop(env, &controllerObject->loop_);
-    }
-
     return thisVar;
 }
 

@@ -185,7 +185,6 @@ private:
     static thread_local napi_ref IMSRef_;
     static std::mutex eventHandlerMutex_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
-    uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex msMutex_;

@@ -63,7 +63,7 @@ bool FileOperator::IsValidPath(const std::string &filePath)
         IMSA_HILOGE("FilePath contains './'");
         return false;
     }
-    if (filePath[0] != '/') {
+    if (!filePath.empty() && filePath[0] != '/') {
         IMSA_HILOGE("FilePath is not an absolute path");
         return false;
     }

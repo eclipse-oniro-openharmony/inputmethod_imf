@@ -318,7 +318,10 @@ int32_t InputMethodSystemAbility::OnExtension(const std::string &extension, Mess
 {
     IMSA_HILOGI("extension=%{public}s", extension.c_str());
     if (extension == "restore") {
-        (void)data.ReadFileDescriptor();
+        int32_t fd = data.ReadFileDescriptor();
+        if (fd >= 0) {
+            close(fd);
+        }
         std::string bundleName = GetRestoreBundleName(data);
         if (!IsValidBundleName(bundleName)) {
             IMSA_HILOGE("bundleName=%{public}s is invalid", bundleName.c_str());
@@ -646,7 +649,7 @@ ErrCode InputMethodSystemAbility::StartInput(const InputClientInfoInner &inputCl
 {
     AttachStateGuard guard(*this);
     InputClientInfo inputClientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(inputClientInfoInner);
-    auto ret = StartInputInner(const_cast<InputClientInfo &>(inputClientInfo), agents, imeInfos);
+    auto ret = StartInputInner(inputClientInfo, agents, imeInfos);
     std::string bundleName = "";
     if (!imeInfos.empty()) {
         bundleName = imeInfos[0].bundleName;
@@ -914,7 +917,7 @@ ErrCode InputMethodSystemAbility::BindImeMirror(const sptr<IInputMethodCore> &co
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
     return session->OnBindImeMirror(core, agent);
 }
@@ -939,7 +942,7 @@ ErrCode InputMethodSystemAbility::UnbindImeMirror()
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnUnBindImeMirror();
+    return session->OnUnbindImeMirror();
 }
 
 ErrCode InputMethodSystemAbility::InitConnect()
