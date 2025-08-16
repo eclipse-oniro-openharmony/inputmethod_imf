@@ -433,7 +433,7 @@ void InputMethodAbility::ClearBindInfo(const sptr<IRemoteObject> &channel)
 }
 
 int32_t InputMethodAbility::DispatchKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channelObject)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr!");
@@ -445,7 +445,7 @@ int32_t InputMethodAbility::DispatchKeyEvent(
     }
     IMSA_HILOGD("InputMethodAbility, start.");
 
-    if (!kdListener_->OnDealKeyEvent(keyEvent, cbId, channel)) {
+    if (!kdListener_->OnDealKeyEvent(keyEvent, cbId, channelObject)) {
         IMSA_HILOGE("keyEvent not deal!");
         return ErrorCode::ERROR_DISPATCH_KEY_EVENT;
     }
@@ -1240,9 +1240,7 @@ int32_t InputMethodAbility::HidePanel(
     info.sessionId = sessionId;
     NotifyPanelStatusInfo(info);
     if (trigger == Trigger::IMF && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-        AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {
-            ;
-        };
+        AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {};
         FinishTextPreview(callback);
     }
     return ErrorCode::NO_ERROR;
@@ -1505,9 +1503,7 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         NotifyPanelStatusInfo(info, channelProxy);
         // finish previewing text when soft keyboard hides
         if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
-            AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {
-                ;
-            };
+            AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {};
             FinishTextPreview(callback);
         }
         return false;
@@ -1912,9 +1908,7 @@ bool InputMethodAbility::HandleUnconsumedKey(const std::shared_ptr<MMI::KeyEvent
     }
     int32_t keyCode = keyEvent->GetKeyCode();
     std::string inputNumber;
-    AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {
-        ;
-    };
+    AsyncIpcCallBack callback = [](int32_t code, const ResponseData &data) {};
     if (MMI::KeyEvent::KEYCODE_0 <= keyCode && keyCode <= MMI::KeyEvent::KEYCODE_9) {
         IMSA_HILOGI("auto input a number");
         channel->InsertText(std::to_string(keyCode - MMI::KeyEvent::KEYCODE_0), callback);
@@ -1967,15 +1961,16 @@ int32_t InputMethodAbility::OnNotifyPreemption()
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodAbility::HandleKeyEventResult(uint64_t cbId, bool consumeResult, const sptr<IRemoteObject> &channelObject)
+int32_t InputMethodAbility::HandleKeyEventResult(
+    uint64_t cbId, bool consumeResult, const sptr<IRemoteObject> &channelObject)
 {
-    IMSA_HILOGD("run in:%{public}" PRIu64 ".", cbId);
+    IMSA_HILOGD("run in:%{public}" PRIu64 "/%{public}d.", cbId, consumeResult);
     if (channelObject == nullptr) {
         IMSA_HILOGE("channelObject is nullptr:%{public}" PRIu64 ".", cbId);
-        return;
+        return ErrorCode::ERROR_IMA_CHANNEL_NULLPTR;
     }
     auto channel = std::make_shared<InputDataChannelProxy>(channelObject);
-    channel->HandleKeyEventResult(cbId, consumeResult);
+    return channel->HandleKeyEventResult(cbId, consumeResult);
 }
 } // namespace MiscServices
 } // namespace OHOS

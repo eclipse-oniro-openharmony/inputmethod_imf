@@ -136,9 +136,6 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
         IMSA_HILOGE("failed to wrap: %{public}d!", status);
         return nullptr;
     }
-    if (delegate->loop_ == nullptr) {
-        napi_get_uv_event_loop(env, &delegate->loop_);
-    }
     return thisVar;
 };
 
@@ -299,7 +296,7 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 }
 
 bool JsKeyboardDelegateSetting::OnDealKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channelObject)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
@@ -321,8 +318,8 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(
         return false;
     }
     IMSA_HILOGD("run in.");
-    auto task = [keyEvent, keyEventEntry, keyCodeEntry, cbId, channel]() {
-        DealKeyEvent(keyEvent, keyEventEntry, keyCodeEntry, cbId, channel);
+    auto task = [keyEvent, keyEventEntry, keyCodeEntry, cbId, channelObject]() {
+        DealKeyEvent(keyEvent, keyEventEntry, keyCodeEntry, cbId, channelObject);
     };
     eventHandler->PostTask(task, "OnDealKeyEvent", 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
@@ -330,7 +327,7 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(
 
 void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
     const std::shared_ptr<UvEntry> &keyEventEntry, const std::shared_ptr<UvEntry> &keyCodeEntry, uint64_t cbId,
-    const sptr<IRemoteObject> &channel)
+    const sptr<IRemoteObject> &channelObject)
 {
     bool isKeyEventConsumed = false;
     bool isKeyCodeConsumed = false;
@@ -372,13 +369,15 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<MMI::KeyEvent
     }
     bool consumeResult = isKeyEventConsumed || isKeyCodeConsumed;
     if (!consumeResult) {
-        IMSA_HILOGW("%{public}" PRIu64 " is not consumed.", cbId);
         if (keyEvent != nullptr && keyEvent->GetKeyAction() == MMI::KeyEvent::KEY_ACTION_DOWN) {
             IMSA_HILOGW("keyEvent is not consumed by ime");
         }
         consumeResult = InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent);
     }
-    InputMethodAbility::GetInstance().HandleKeyEventResult(cbId, consumeResult, channel);
+    auto ret = InputMethodAbility::GetInstance().HandleKeyEventResult(cbId, consumeResult, channelObject);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("handle keyEvent failed:%{public}d", ret);
+    }
 }
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
@@ -643,36 +642,6 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
     eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::VIP);
-}
-
-uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
-{
-    IMSA_HILOGD("start, type: %{public}s", type.c_str());
-    UvEntry *entry = nullptr;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGD("%{public}s cb-vector is empty.", type.c_str());
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry is nullptr!");
-            return nullptr;
-        }
-        if (entrySetter != nullptr) {
-            entrySetter(*entry);
-        }
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("work is nullptr!");
-        delete entry;
-        return nullptr;
-    }
-    work->data = entry;
-    return work;
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardDelegateSetting::GetEventHandler()

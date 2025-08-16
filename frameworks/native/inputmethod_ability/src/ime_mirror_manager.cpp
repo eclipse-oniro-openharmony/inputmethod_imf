@@ -30,6 +30,10 @@ void ImeMirrorManager::SetImeMirrorEnable(bool isRegistered)
 
 bool ImeMirrorManager::SubscribeSaStart(std::function<void()> handler, int32_t saId)
 {
+    if (handler == nullptr) {
+        IMSA_HILOGE("handler is nullptr");
+        return false;
+    }
     {
         std::lock_guard<std::mutex> lockGuard(listenerMapMutex_);
         if (saMgrListenerMap_.find(saId) != saMgrListenerMap_.end()) {

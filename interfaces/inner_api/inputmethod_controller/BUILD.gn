@@ -262,7 +262,6 @@ ohos_source_set("imc_response_channel_stub") {
 
 ohos_shared_library("inputmethod_client") {
   branch_protector_ret = "pac_ret"
-
   sanitize = {
     boundary_sanitize = true
     cfi = true
@@ -282,6 +281,7 @@ ohos_shared_library("inputmethod_client") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/key_event_result_handler.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/system_cmd_channel_service_impl.cpp",
   ]
 
@@ -386,6 +386,7 @@ ohos_static_library("inputmethod_client_static") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/key_event_result_handler.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/system_cmd_channel_service_impl.cpp",
   ]
 
@@ -416,6 +417,12 @@ ohos_static_library("inputmethod_client_static") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (testonly) {
+    defines = [
+      "OHOS_IMF_TEST"
+    ]
+  }
 
   client_output_values = get_target_outputs(":input_client_interface")
   sources += filter_include(client_output_values,
@@ -459,6 +466,7 @@ ohos_static_library("inputmethod_client_fuzz_static") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_service_impl.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/key_event_result_handler.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/system_cmd_channel_service_impl.cpp",
   ]
 

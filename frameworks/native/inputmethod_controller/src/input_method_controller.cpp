@@ -68,6 +68,13 @@ InputMethodController::InputMethodController()
 }
 
 InputMethodController::~InputMethodController() { }
+#ifdef OHOS_IMF_TEST
+void InputMethodController::SetImsaProxyForTest(sptr<IInputMethodSystemAbility> proxy)
+{
+    std::lock_guard<std::mutex> autoLock(abilityLock_);
+    abilityManager_ = proxy;
+}
+#endif // OHOS_IMF_TEST
 
 sptr<InputMethodController> InputMethodController::GetInstance()
 {
@@ -804,7 +811,6 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
         return ErrorCode::NO_ERROR;
     });
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
@@ -843,7 +849,6 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
             agent->OnSelectionChange(testString, selectOldBegin, selectOldEnd, selectNewBegin, selectNewEnd);
             return ErrorCode::NO_ERROR;
         });
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
@@ -877,11 +882,13 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         SetInputReady(agents, imeInfos);
     }
 
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
     InputAttributeInner inner = InputMethodTools::GetInstance().AttributeToInner(attribute);
-    return SendRequestToAllAgents([&inner](std::shared_ptr<IInputMethodAgent> agent) -> int32_t {
-        agent->OnAttributeChange(inner);
-        return ErrorCode::NO_ERROR;
-    });
+    agent->OnAttributeChange(inner);
     return ErrorCode::NO_ERROR;
 }
 
@@ -974,72 +981,31 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     IMSA_HILOGD("start.");
-    auto channel = clientInfo_.channel;
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr!");
+    sptr<IRemoteObject> channelObject = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        channelObject = clientInfo_.channel;
+    }
+    if (channelObject == nullptr) {
+        IMSA_HILOGE("channelObject is nullptr!");
         keyEventQueue_.Pop();
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    auto cbId = AddKeyEventCbInfo({ keyEvent, callback });
+    auto cbId = keyEventRetHandler_.AddKeyEventCbInfo({ keyEvent, callback });
     KeyEventValue keyEventValue;
     keyEventValue.event = keyEvent;
-    auto ret = agent->DispatchKeyEvent(keyEventValue, cbId, channel);
+    auto ret = agent->DispatchKeyEvent(keyEventValue, cbId, channelObject);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to DispatchKeyEvent: %{public}d", ret);
-        RemoveKeyEventCbInfo(cbId);
+        keyEventRetHandler_.RemoveKeyEventCbInfo(cbId);
     }
     keyEventQueue_.Pop();
     return ret;
 }
 
-KeyEventCbInfo InputMethodController::GetKeyEventCbInfo(uint64_t cbId)
-{
-    std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
-    auto iter = keyEventCbHandlers_.find(cbId);
-    if (iter != keyEventCbHandlers_.end()) {
-        return iter->second;
-    }
-    return {};
-}
-
-void InputMethodController::RemoveKeyEventCbInfo(uint64_t cbId)
-{
-    std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
-    auto iter = keyEventCbHandlers_.find(cbId);
-    if (iter == keyEventCbHandlers_.end()) {
-        return;
-    }
-    keyEventCbHandlers_.erase(cbId);
-}
-
-uint64_t InputMethodController::AddKeyEventCbInfo(const KeyEventCbInfo &cbInfo)
-{
-    std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
-    auto cbId = GenerateKeyEventCbId();
-    IMSA_HILOGD("%{public}" PRIu64 "add.", cbId);
-    keyEventCbHandlers_.insert({ cbId, cbInfo });
-    return cbId;
-}
-
-uint64_t InputMethodController::GenerateKeyEventCbId()
-{
-    uint32_t cbId = ++keyEventCbId_;
-    if (cbId == std::numeric_limits<uint32_t>::max()) {
-        return ++keyEventCbId_;
-    }
-    return cbId;
-}
-
 void InputMethodController::HandleKeyEventResult(uint64_t cbId, bool consumeResult)
 {
-    IMSA_HILOGD("result:%{public}" PRIu64 "/%{public}d.", cbId, consumeResult);
-    auto cbInfo = GetKeyEventCbInfo(cbId);
-    if (cbInfo.callback == nullptr) {
-        IMSA_HILOGE("%{public}" PRIu64 "callback is nullptr.", cbId);
-        return;
-    }
-    cbInfo.callback(cbInfo.keyEvent, consumeResult);
-    RemoveKeyEventCbInfo(cbId);
+    keyEventRetHandler_.HandleKeyEventResult(cbId, consumeResult);
 }
 
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
@@ -1257,6 +1223,7 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
     isBound_.store(false);
     isEditable_.store(false);
     isTextNotified_.store(false);
+    keyEventRetHandler_.ClearKeyEventCbInfo();
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
         textString_ = Str8ToStr16("");
@@ -1951,6 +1918,10 @@ int32_t InputMethodController::SendRequestToAllAgents(std::function<int32_t(std:
             continue;
         }
         if (agentInfo.agent == nullptr) {
+            if (agentInfo.imeType == ImeType::IME_MIRROR) {
+                IMSA_HILOGW("ime mirror agent is null");
+                continue;
+            }
             IMSA_HILOGE("agent is null");
             return ErrorCode::ERROR_CLIENT_NULL_POINTER;
         }

@@ -101,9 +101,6 @@ napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_in
         IMSA_HILOGE("failed to wrap: %{public}d", status);
         return nullptr;
     }
-    if (delegate->loop_ == nullptr) {
-        napi_get_uv_event_loop(env, &delegate->loop_);
-    }
     return thisVar;
 }
 

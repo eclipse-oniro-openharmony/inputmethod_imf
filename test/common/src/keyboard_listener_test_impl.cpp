@@ -34,13 +34,11 @@ bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sp
 }
 
 bool KeyboardListenerTestImpl::OnDealKeyEvent(
-        const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channelObject)
 {
-    bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
-    bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
-    if (consumer != nullptr) {
-        consumer->OnKeyEventResult(isKeyEventConsume || isKeyCodeConsume);
-    }
+    sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(nullptr);
+    OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+    OnKeyEvent(keyEvent, consumer);
     return true;
 }
 
@@ -83,6 +81,7 @@ void KeyboardListenerTestImpl::ResetParam()
     inputAttribute_.inputPattern = 0;
     inputAttribute_.enterKeyType = 0;
     inputAttribute_.inputOption = 0;
+    funcKey_ = -1;
 }
 
 bool KeyboardListenerTestImpl::WaitKeyEvent(int32_t keyCode)

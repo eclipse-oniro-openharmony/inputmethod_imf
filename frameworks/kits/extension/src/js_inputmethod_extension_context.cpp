@@ -101,21 +101,23 @@ private:
         // only support one or two or three params
         PARAM_CHECK_RETURN(env, argc == ARGC_ONE || argc == ARGC_TWO || argc == ARGC_THREE,
             "number of param should in [1,3]", TYPE_NONE, CreateJsUndefined(env));
-        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "param want type must be Want",
-            TYPE_NONE, JsUtil::Const::Null(env));
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "param want type must be Want", TYPE_NONE,
+            JsUtil::Const::Null(env));
         decltype(argc) unwrapArgc = 0;
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
-        IMSA_HILOGI("%{public}s bundleName: %{public}s abilityName: %{public}s.", __func__, want.GetBundle().c_str(),
+        IMSA_HILOGI("bundleName:%{public}s abilityName:%{public}s", want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
         unwrapArgc++;
         AAFwk::StartOptions startOptions;
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[INDEX_ONE], &valueType);
-        if (argc > ARGC_ONE && valueType == napi_object) {
-            IMSA_HILOGI("OnStartAbility start options is used.");
-            AppExecFwk::UnwrapStartOptions(env, argv[INDEX_ONE], startOptions);
-            unwrapArgc++;
+        if (argc > ARGC_ONE) {
+            napi_valuetype valueType = napi_undefined;
+            napi_typeof(env, argv[INDEX_ONE], &valueType);
+            if (valueType == napi_object) {
+                IMSA_HILOGI("OnStartAbility start options is used.");
+                AppExecFwk::UnwrapStartOptions(env, argv[INDEX_ONE], startOptions);
+                unwrapArgc++;
+            }
         }
         napi_value lastParam = argc > unwrapArgc ? argv[unwrapArgc] : nullptr;
         napi_value result = nullptr;

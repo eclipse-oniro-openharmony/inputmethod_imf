@@ -31,9 +31,9 @@ InputMethodAgentServiceImpl::InputMethodAgentServiceImpl() {}
 InputMethodAgentServiceImpl::~InputMethodAgentServiceImpl() {}
 
 ErrCode InputMethodAgentServiceImpl::DispatchKeyEvent(
-    const MiscServices::KeyEventValue &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel)
+    const MiscServices::KeyEventValue &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channelObject)
 {
-    return InputMethodAbility::GetInstance().DispatchKeyEvent(keyEvent.event, cbId, channel);
+    return InputMethodAbility::GetInstance().DispatchKeyEvent(keyEvent.event, cbId, channelObject);
 }
 
 ErrCode InputMethodAgentServiceImpl::SetCallingWindow(uint32_t windowId)

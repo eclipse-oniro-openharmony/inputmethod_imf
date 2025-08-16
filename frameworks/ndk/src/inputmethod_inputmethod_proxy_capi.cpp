@@ -171,8 +171,12 @@ InputMethod_ErrorCode OH_InputMethodProxy_SendPrivateCommand(
         return IME_ERR_NULL_POINTER;
     }
 
-    std::unordered_map<std::string, PrivateDataValue> command;
+    if (size > MAX_SYS_PRIVATE_COMMAND_COUNT) {
+        IMSA_HILOGE("privateCommand size is too large: %{public}zu", size);
+        return IME_ERR_PARAMCHECK;
+    }
 
+    std::unordered_map<std::string, PrivateDataValue> command;
     for (size_t i = 0; i < size; i++) {
         if (privateCommand[i] == nullptr) {
             IMSA_HILOGE("privateCommand[%zu] is nullptr", i);

@@ -46,8 +46,8 @@ public:
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(const std::string &text) override;
     void OnEditorAttributeChange(const InputAttribute &inputAttribute) override;
-    bool OnDealKeyEvent(
-        const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel);
+    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId,
+        const sptr<IRemoteObject> &channelObject) override;
     void OnKeyEventConsumeResult(bool isConsumed, sptr<KeyEventConsumerProxy> consumer);
     void OnKeyCodeConsumeResult(bool isConsumed, sptr<KeyEventConsumerProxy> consumer);
 
@@ -97,11 +97,9 @@ private:
     using EntrySetter = std::function<void(UvEntry &)>;
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
-    uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
     static void DealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
         const std::shared_ptr<UvEntry> &keyEventEntry, const std::shared_ptr<UvEntry> &keyCodeEntry, uint64_t cbId,
-        const sptr<IRemoteObject> &channel);
-    uv_loop_s *loop_ = nullptr;
+        const sptr<IRemoteObject> &channelObject);
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex keyboardMutex_;

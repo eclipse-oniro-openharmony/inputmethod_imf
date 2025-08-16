@@ -18,8 +18,8 @@
 
 #include <atomic>
 #include <chrono>
-#include <ctime>
 #include <condition_variable>
+#include <ctime>
 #include <mutex>
 #include <thread>
 #include <variant>
@@ -36,11 +36,12 @@
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "input_method_utils.h"
+#include "inputmethod_message_handler.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
+#include "key_event_result_handler.h"
 #include "msg_handler_callback_interface.h"
-#include "inputmethod_message_handler.h"
 #include "panel_info.h"
 #include "private_command_interface.h"
 #include "visibility.h"
@@ -146,10 +147,6 @@ private:
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
 using WindowScaleCallback = std::function<int32_t(uint32_t windowId, CursorInfo &cursorInfo)>;
-struct KeyEventCbInfo {
-    std::shared_ptr<MMI::KeyEvent> keyEvent{ nullptr };
-    KeyEventCallback callback{ nullptr };
-};
 class InputMethodController : public RefBase, public PrivateCommandInterface {
 public:
     /**
@@ -986,6 +983,9 @@ public:
 
     void HandleKeyEventResult(uint64_t cbId, bool consumeResult);
 
+#ifdef OHOS_IMF_TEST
+    void SetImsaProxyForTest(sptr<IInputMethodSystemAbility> proxy);
+#endif // OHOS_IMF_TEST
 private:
     InputMethodController();
     ~InputMethodController();
@@ -1101,14 +1101,7 @@ private:
 
     std::mutex windowScaleCallbackMutex_;
     WindowScaleCallback windowScaleCallback_ = nullptr;
-
-    std::mutex keyEventCbHandlersMutex_;
-    std::map<uint64_t, KeyEventCbInfo> keyEventCbHandlers_;
-    uint64_t keyEventCbId_{ 0 };
-    KeyEventCbInfo GetKeyEventCbInfo(uint64_t cbId);
-    void RemoveKeyEventCbInfo(uint64_t cbId);
-    uint64_t AddKeyEventCbInfo(const KeyEventCbInfo &cbInfo);
-    uint64_t GenerateKeyEventCbId();
+    KeyEventResultHandler keyEventRetHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

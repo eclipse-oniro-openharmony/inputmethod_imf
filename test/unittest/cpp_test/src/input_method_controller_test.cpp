@@ -21,6 +21,7 @@
 #include "input_data_channel_stub.h"
 #include "input_method_ability.h"
 #include "input_method_system_ability.h"
+#include "key_event_result_handler.h"
 #include "task_manager.h"
 #undef private
 
@@ -201,15 +202,15 @@ public:
             blockFullKeyEvent_.SetValue(fullKey);
             return true;
         }
-        bool OnDealKeyEvent(
-            const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channel) override
+        bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId,
+            const sptr<IRemoteObject> &channelObject) override
         {
             IMSA_HILOGI("KeyboardListenerImpl run in");
+            sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(nullptr);
             bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
             bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
-            if (consumer != nullptr) {
-                consumer->OnKeyEventResult(isKeyEventConsume | isKeyCodeConsume);
-            }
+            InputMethodAbility::GetInstance().HandleKeyEventResult(
+                cbId, isKeyEventConsume | isKeyCodeConsume, channelObject);
             return true;
         }
         void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
@@ -2182,6 +2183,108 @@ HWTEST_F(InputMethodControllerTest, TestEventCallback, TestSize.Level0)
     eventcallback->OnInputEvent(keyevent);
     EXPECT_EQ(keyevent, nullptr);
     eventcallback->OnInputEvent(keyEvent_);
+}
+
+/**
+ * @tc.name: TestGetKeyEventCbInfo
+ * @tc.desc: Test GetKeyEventCbInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestGetKeyEventCbInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("TestGetKeyEventCbInfo START");
+    KeyEventResultHandler keyEventRetHandler;
+    keyEventRetHandler.keyEventCbHandlers_.clear();
+    uint64_t cbId = 13;
+    KeyEventCbInfo info;
+    auto ret = keyEventRetHandler.GetKeyEventCbInfo(cbId, info);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+
+    KeyEventCbInfo cbInfo;
+    keyEventRetHandler.keyEventCbHandlers_.insert_or_assign(cbId, cbInfo);
+    ret = keyEventRetHandler.GetKeyEventCbInfo(cbId, info);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(info.callback, nullptr);
+
+    auto cb = [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {};
+    cbInfo.callback = cb;
+    keyEventRetHandler.keyEventCbHandlers_.insert_or_assign(cbId, cbInfo);
+    ret = keyEventRetHandler.GetKeyEventCbInfo(cbId, info);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_NE(info.callback, nullptr);
+}
+
+/**
+ * @tc.name: TestRemoveKeyEventCbInfo
+ * @tc.desc: Test RemoveKeyEventCbInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestRemoveKeyEventCbInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("TestRemoveKeyEventCbInfo START");
+    KeyEventResultHandler keyEventRetHandler;
+    keyEventRetHandler.keyEventCbHandlers_.clear();
+    uint64_t cbId = 13;
+    auto cb = [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {};
+    KeyEventCbInfo cbInfo{ nullptr, cb };
+    keyEventRetHandler.keyEventCbHandlers_.insert_or_assign(cbId, cbInfo);
+    EXPECT_EQ(keyEventRetHandler.keyEventCbHandlers_.size(), 1);
+
+    uint64_t cbId1 = 14;
+    keyEventRetHandler.RemoveKeyEventCbInfo(cbId1);
+    EXPECT_EQ(keyEventRetHandler.keyEventCbHandlers_.size(), 1);
+
+    keyEventRetHandler.RemoveKeyEventCbInfo(cbId);
+    EXPECT_TRUE(keyEventRetHandler.keyEventCbHandlers_.empty());
+}
+
+/**
+ * @tc.name: TestHandleKeyEventResult
+ * @tc.desc: Test HandleKeyEventResult
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestHandleKeyEventResult, TestSize.Level0)
+{
+    IMSA_HILOGI("TestHandleKeyEventResult START");
+    KeyEventResultHandler keyEventRetHandler;
+    keyEventRetHandler.keyEventCbHandlers_.clear();
+    uint64_t cbId = 13;
+    KeyEventCbInfo cbInfo;
+    keyEventRetHandler.keyEventCbHandlers_.insert_or_assign(cbId, cbInfo);
+
+    uint64_t cbId1 = 15;
+    keyEventRetHandler.HandleKeyEventResult(cbId1, true);
+    EXPECT_EQ(keyEventRetHandler.keyEventCbHandlers_.size(), 1);
+
+    keyEventRetHandler.HandleKeyEventResult(cbId, true);
+    EXPECT_TRUE(keyEventRetHandler.keyEventCbHandlers_.empty());
+
+    auto cb = [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {};
+    cbInfo.callback = cb;
+    keyEventRetHandler.keyEventCbHandlers_.insert_or_assign(cbId, cbInfo);
+    keyEventRetHandler.HandleKeyEventResult(cbId, true);
+    EXPECT_TRUE(keyEventRetHandler.keyEventCbHandlers_.empty());
+}
+
+/**
+ * @tc.name: TestClearKeyEventCbInfo
+ * @tc.desc: Test ClearKeyEventCbInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestClearKeyEventCbInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("TestClearKeyEventCbInfo START");
+    KeyEventResultHandler keyEventRetHandler;
+    keyEventRetHandler.keyEventCbHandlers_.clear();
+    uint64_t cbId = 13;
+    KeyEventCbInfo cbInfo;
+    keyEventRetHandler.keyEventCbHandlers_.insert_or_assign(cbId, cbInfo);
+    uint64_t cbId1 = 15;
+    auto cb = [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {};
+    cbInfo.callback = cb;
+    keyEventRetHandler.keyEventCbHandlers_.insert_or_assign(cbId1, cbInfo);
+    keyEventRetHandler.ClearKeyEventCbInfo();
+    EXPECT_TRUE(keyEventRetHandler.keyEventCbHandlers_.empty());
 }
 } // namespace MiscServices
 } // namespace OHOS

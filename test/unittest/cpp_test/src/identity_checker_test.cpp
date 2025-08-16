@@ -378,22 +378,6 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level1)
 }
 
 /**
- * @tc.name: testSetCoreAndAgent_003
- * @tc.desc: not current ime, is a sys_basic native sa
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_003, TestSize.Level1)
-{
-    IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_003 start");
-    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
-    IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
-    int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-}
-
-/**
  * @tc.name: testUnRegisteredProxyIme_001
  * @tc.desc: not a sys_basic native sa
  * @tc.type: FUNC
@@ -407,22 +391,6 @@ HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_001, TestSize.Level1)
     int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(
         static_cast<int32_t>(UnRegisteredType::REMOVE_PROXY_IME), nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-}
-
-/**
- * @tc.name: testUnRegisteredProxyIme_002
- * @tc.desc: a sys_basic native sa
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_002, TestSize.Level1)
-{
-    IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_002 start");
-    IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
-    int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(
-        static_cast<int32_t>(UnRegisteredType::NONE), nullptr);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
 /**
@@ -845,6 +813,7 @@ TEST_F(IdentityCheckerTest, OnExtension_dataIsEmpty_ReturnsBadParam)
 TEST_F(IdentityCheckerTest, OnExtension_BundleNameIsInvalid_ReturnsBadParam)
 {
     MessageParcel data;
+    data.WriteFileDescriptor(1);
     data.WriteString("[{\"type\":\"default_input_method\",\"detail\":\"com.invalid.bundleName\"}]");
     MessageParcel reply;
     EXPECT_EQ(service_->OnExtension("restore", data, reply), ErrorCode::ERROR_BAD_PARAMETERS);

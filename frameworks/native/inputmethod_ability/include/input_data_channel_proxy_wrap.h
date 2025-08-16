@@ -70,7 +70,6 @@ public:
         const std::string &text, const RangeInner &range, const AsyncIpcCallBack &callback = nullptr);
     int32_t FinishTextPreview(const AsyncIpcCallBack &callback = nullptr);
     int32_t ClearRspHandlers();
-    void HandleKeyEventResult(uint64_t cbId, const sptr<IRemoteObject> &channel, bool consumeResult);
 
 public:
     int32_t HandleResponse(uint64_t msgId, const ResponseInfo &rspInfo);

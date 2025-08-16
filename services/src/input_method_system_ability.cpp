@@ -318,7 +318,10 @@ int32_t InputMethodSystemAbility::OnExtension(const std::string &extension, Mess
 {
     IMSA_HILOGI("extension=%{public}s", extension.c_str());
     if (extension == "restore") {
-        (void)data.ReadFileDescriptor();
+        int32_t fd = data.ReadFileDescriptor();
+        if (fd >= 0) {
+            close(fd);
+        }
         std::string bundleName = GetRestoreBundleName(data);
         if (!IsValidBundleName(bundleName)) {
             IMSA_HILOGE("bundleName=%{public}s is invalid", bundleName.c_str());
@@ -646,7 +649,7 @@ ErrCode InputMethodSystemAbility::StartInput(const InputClientInfoInner &inputCl
 {
     AttachStateGuard guard(*this);
     InputClientInfo inputClientInfo = InputMethodTools::GetInstance().InnerToInputClientInfo(inputClientInfoInner);
-    auto ret = StartInputInner(const_cast<InputClientInfo &>(inputClientInfo), agents, imeInfos);
+    auto ret = StartInputInner(inputClientInfo, agents, imeInfos);
     std::string bundleName = "";
     if (!imeInfos.empty()) {
         bundleName = imeInfos[0].bundleName;
@@ -845,7 +848,7 @@ ErrCode InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (identityChecker_->IsNativeSa(tokenId)) {
+    if (identityChecker_->IsValidVirtualIme(IPCSkeleton::GetCallingUid())) {
         return session->OnRegisterProxyIme(core, agent, pid);
     }
     if (!IsCurrentIme(userId, tokenId)) {
@@ -914,7 +917,7 @@ ErrCode InputMethodSystemAbility::BindImeMirror(const sptr<IInputMethodCore> &co
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IMSA_USER_SESSION_NOT_FOUND;
     }
     return session->OnBindImeMirror(core, agent);
 }
@@ -939,7 +942,7 @@ ErrCode InputMethodSystemAbility::UnbindImeMirror()
         IMSA_HILOGE("%{public}d session is nullptr!", userId);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return session->OnUnBindImeMirror();
+    return session->OnUnbindImeMirror();
 }
 
 ErrCode InputMethodSystemAbility::InitConnect()
@@ -2233,7 +2236,8 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
 ErrCode InputMethodSystemAbility::UnRegisteredProxyIme(int32_t type, const sptr<IInputMethodCore> &core)
 {
     pid_t pid = IPCSkeleton::GetCallingPid();
-    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+    pid_t uid = IPCSkeleton::GetCallingUid();
+    if (!identityChecker_->IsValidVirtualIme(uid)) {
         IMSA_HILOGE("not native sa!");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
