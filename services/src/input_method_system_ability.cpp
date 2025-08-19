@@ -1101,6 +1101,11 @@ ErrCode InputMethodSystemAbility::StartInputType(int32_t type)
     return StartInputType(GetCallingUserId(), static_cast<InputType>(type));
 }
 
+ErrCode InputMethodSystemAbility::StartInputTypeAsync(int32_t type)
+{
+    return StartInputType(GetCallingUserId(), static_cast<InputType>(type));
+}
+
 ErrCode InputMethodSystemAbility::ExitCurrentInputType()
 {
     auto userId = GetCallingUserId();

@@ -1541,6 +1541,17 @@ int32_t InputMethodController::StartInputType(InputType type)
     return proxy->StartInputType(static_cast<int32_t>(type));
 }
 
+int32_t InputMethodController::StartInputTypeAsync(InputType type)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    IMSA_HILOGI("type: %{public}d.", static_cast<int32_t>(type));
+    return proxy->StartInputTypeAsync(static_cast<int32_t>(type));
+}
+
 int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     auto proxy = GetSystemAbilityProxy();

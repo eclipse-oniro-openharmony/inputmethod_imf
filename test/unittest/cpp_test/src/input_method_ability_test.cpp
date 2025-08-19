@@ -1317,6 +1317,42 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testNotifyPanelStatusInfo_006
+ * @tc.desc: HideKeyboardSelf
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_006, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_006 START");
+    imc_->Attach(textListener_);
+    PanelInfo info;
+    info.panelType = SOFT_KEYBOARD;
+    info.panelFlag = FLG_CANDIDATE_COLUMN;
+    auto panel = std::make_shared<InputMethodPanel>();
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto ret = inputMethodAbility_.CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    PanelStatusInfo statusInfo;
+    statusInfo.panelInfo = info;
+    statusInfo.visible = true;
+    statusInfo.trigger = Trigger::IME_APP;
+    // ShowPanel
+    CheckPanelStatusInfo(panel, statusInfo);
+    PanelStatusInfo statusInfo1;
+    statusInfo1.panelInfo = info;
+    statusInfo1.visible = false;
+    statusInfo1.trigger = Trigger::IME_APP;
+    InputMethodAbilityTest::inputMethodAbility_.isImeTerminating_ = false;
+    // HidePanel
+    CheckPanelStatusInfo(panel, statusInfo1);
+
+    ret = inputMethodAbility_.DestroyPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: testNotifyKeyboardHeight_001
  * @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_FIXED
  * @tc.type: FUNC
@@ -2251,6 +2287,66 @@ HWTEST_F(InputMethodAbilityTest, testSelectByRange, TestSize.Level0)
     end = -1;
     ret = InputMethodAbilityInterface::GetInstance().SelectByRange(start, end);
     EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+}
+
+/**
+ *@tc.name: testOnStopInputService_001
+ *@tc.desc: IMA
+ *@tc.type: FUNC
+ *@tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testOnStopInputService_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest OnStopInputService_001 Test START");
+    InputMethodAbilityTest::inputMethodAbility_.isImeTerminating_ = false;
+    inputMethodAbility_.SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    auto ret = InputMethodAbilityTest::inputMethodAbility_.OnStopInputService(false);
+    EXPECT_NE(true, InputMethodAbilityTest::inputMethodAbility_.isImeTerminating_);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = InputMethodAbilityTest::inputMethodAbility_.OnStopInputService(true);
+    EXPECT_EQ(true, InputMethodAbilityTest::inputMethodAbility_.isImeTerminating_);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testHideKeyboardSelf_001
+ * @tc.desc: InputMethodAbility HideKeyboardSelf
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Hollokin
+ */
+HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf_001 START");
+    InputMethodAbilityTest::inputMethodAbility_.isImeTerminating_ = true;
+    auto ret = InputMethodAbilityTest::inputMethodAbility_.HideKeyboardSelf();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testHidePanel
+ * @tc.desc: InputMethodAbility HidePanel
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodAbilityTest, testHidePanel, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testHidePanel START");
+    imc_->Attach(textListener_);
+    PanelInfo info1;
+    info1.panelType = SOFT_KEYBOARD;
+    info1.panelFlag = FLG_FLOATING;
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto panel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodAbility_.CreatePanel(nullptr, info1, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodAbilityTest::inputMethodAbility_.HidePanel(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    InputMethodAbilityTest::inputMethodAbility_.isImeTerminating_ = true;
+    ret = InputMethodAbilityTest::inputMethodAbility_.HidePanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

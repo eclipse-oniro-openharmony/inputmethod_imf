@@ -1193,6 +1193,22 @@ HWTEST_F(InputMethodPrivateMemberTest, TestStartInputType, TestSize.Level0)
 }
 
 /**
+ * @tc.name: TestStartInputTypeAsync
+ * @tc.desc: Test StartInputTypeAsync
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestStartInputTypeAsync, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestStartInputTypeAsync TEST START");
+    InputType type = InputType::NONE;
+    auto ret = service_->StartInputTypeAsync(static_cast<int32_t>(type));
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    ret = service_->StartInputTypeAsync(static_cast<int32_t>(InputType::VOICEKB_INPUT));
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: TestFullImeInfoManager_Update001
  * @tc.desc: Test FullImeInfoManager_Update
  * @tc.type: FUNC

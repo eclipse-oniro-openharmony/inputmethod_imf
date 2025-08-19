@@ -331,7 +331,7 @@ int32_t InputMethodAbility::StartInputInner(const InputClientInfo &clientInfo, b
         }
         ReportImeStartInput(
             static_cast<int32_t>(IInputMethodCoreIpcCode::COMMAND_START_INPUT), ret, needShow, endTime - startTime);
-        isImeTerminating.store(false);
+        isImeTerminating_.store(false);
     };
     uint64_t seqId = Task::GetNextSeqId();
     if (imeListener_ == nullptr ||
@@ -525,7 +525,7 @@ int32_t InputMethodAbility::OnStopInputService(bool isTerminateIme)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     if (isTerminateIme) {
-        isImeTerminating.store(true);
+        isImeTerminating_.store(true);
         return imeListener->OnInputStop();
     }
     return ErrorCode::NO_ERROR;
@@ -770,7 +770,7 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey, const AsyncIpcCallB
 int32_t InputMethodAbility::HideKeyboardSelf()
 {
     // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
-    if (isImeTerminating.load()) {
+    if (isImeTerminating_.load()) {
         IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
         return ErrorCode::NO_ERROR;
     }
@@ -1180,7 +1180,7 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     // Current Ime is exiting, hide softkeyboard will cause the TextFiled to lose focus.
-    if (isImeTerminating.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
+    if (isImeTerminating_.load() && inputMethodPanel->GetPanelType() == PanelType::SOFT_KEYBOARD) {
         IMSA_HILOGI("Current Ime is terminating, no need to hide keyboard.");
         return ErrorCode::NO_ERROR;
     }
@@ -1641,7 +1641,7 @@ void InputMethodAbility::NotifyPanelStatusInfo(
     }
 
     auto controlChannel = GetInputControlChannel();
-    if (controlChannel != nullptr && info.trigger == Trigger::IME_APP && !info.visible) {
+    if (controlChannel != nullptr && info.trigger == Trigger::IME_APP && !info.visible && !isImeTerminating_.load()) {
         controlChannel->HideKeyboardSelf();
     }
 }

@@ -73,6 +73,7 @@ public:
     ErrCode IsInputTypeSupported(int32_t type, bool& resultValue) override;
     ErrCode IsCurrentImeByPid(int32_t pid, bool& resultValue) override;
     ErrCode StartInputType(int32_t type) override;
+    ErrCode StartInputTypeAsync(int32_t type) override;
     ErrCode ExitCurrentInputType() override;
     ErrCode IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     ErrCode GetSecurityMode(int32_t &security) override;

@@ -233,7 +233,7 @@ private:
 
     std::mutex inputTypeLock_;
     InputType inputType_ = InputType::NONE;
-    std::atomic<bool> isImeTerminating = false;
+    std::atomic<bool> isImeTerminating_ = false;
     std::atomic_bool isShowAfterCreate_ { false };
     std::atomic<int32_t> securityMode_ = -1;
     std::mutex msgHandlerMutex_;
