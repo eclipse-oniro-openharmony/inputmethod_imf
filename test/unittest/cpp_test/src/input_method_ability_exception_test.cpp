@@ -229,13 +229,13 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSiz
     IMSA_HILOGI("InputMethodAbilityExceptionTest DispatchKeyEvent START");
     // keyEvent == nullptr;
     std::shared_ptr<MMI::KeyEvent> keyEvent = nullptr;
-    sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(nullptr);
-    auto ret = inputMethodAbility_.DispatchKeyEvent(keyEvent, consumer);
+    uint64_t cbId = 12;
+    auto ret = inputMethodAbility_.DispatchKeyEvent(keyEvent, cbId, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
     // kdListener_ == nullptr
     keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
-    ret = inputMethodAbility_.DispatchKeyEvent(keyEvent, consumer);
+    ret = inputMethodAbility_.DispatchKeyEvent(keyEvent, cbId, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -390,6 +390,22 @@ HWTEST_F(InputMethodAbilityExceptionTest, OnClientInactive_001, TestSize.Level1)
     inputMethodAbility_.dataChannelObject_ = stub->AsObject();
     inputMethodAbility_.OnClientInactive(inputMethodAbility_.dataChannelObject_);
     EXPECT_EQ(inputMethodAbility_.dataChannelObject_, nullptr);
+}
+
+/**
+ * @tc.name: HandleKeyEventResult_001
+ * @tc.desc: HandleKeyEventResult Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, HandleKeyEventResult_001, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest HandleKeyEventResult_001 START");
+    uint64_t cbId = 9;
+    bool consumeResult = true;
+    auto ret = inputMethodAbility_.HandleKeyEventResult(cbId, consumeResult, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IMA_CHANNEL_NULLPTR);
 }
 } // namespace MiscServices
 } // namespace OHOS

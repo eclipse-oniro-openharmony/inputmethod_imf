@@ -18,6 +18,7 @@
 #include "sys_cfg_parser.h"
 
 using namespace std;
+using namespace OHOS;
 using namespace OHOS::MiscServices;
 class InputMethodEngineListenerImpl : public InputMethodEngineListener {
 public:
@@ -66,8 +67,8 @@ class KeyboardListenerImpl : public KeyboardListener {
 public:
     KeyboardListenerImpl() = default;
     ~KeyboardListenerImpl() = default;
-    bool OnDealKeyEvent(
-        const std::shared_ptr<OHOS::MMI::KeyEvent> &keyEvent, OHOS::sptr<KeyEventConsumerProxy> &consumer) override
+    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId,
+        const sptr<IRemoteObject> &channelObject) override
     {
         return false;
     }

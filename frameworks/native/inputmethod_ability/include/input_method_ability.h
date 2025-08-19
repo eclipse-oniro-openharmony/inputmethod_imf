@@ -72,7 +72,8 @@ public:
     int32_t MoveCursor(int32_t keyCode, const AsyncIpcCallBack &callback = nullptr);
     int32_t SelectByRange(int32_t start, int32_t end, const AsyncIpcCallBack &callback = nullptr);
     int32_t SelectByMovement(int32_t direction, const AsyncIpcCallBack &callback = nullptr);
-    int32_t DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer);
+    int32_t DispatchKeyEvent(
+        const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channelObject);
     void SetCallingWindow(uint32_t windowId);
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);
@@ -114,6 +115,7 @@ public:
     int32_t OnResponse(uint64_t msgId, int32_t code, const ResponseData &data);
     int32_t IsCapacitySupport(int32_t capacity, bool &isSupport);
     AttachOptions GetAttachOptions();
+    int32_t HandleKeyEventResult(uint64_t cbId, bool consumeResult, const sptr<IRemoteObject> &channelObject);
 
 public:
     /* called from TaskManager worker thread */

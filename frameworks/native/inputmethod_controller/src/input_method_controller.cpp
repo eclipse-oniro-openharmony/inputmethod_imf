@@ -981,20 +981,31 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     IMSA_HILOGD("start.");
-    sptr<IKeyEventConsumer> consumer = new (std::nothrow) KeyEventConsumerServiceImpl(callback, keyEvent);
-    if (consumer == nullptr) {
-        IMSA_HILOGE("consumer is nullptr!");
+    sptr<IRemoteObject> channelObject = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        channelObject = clientInfo_.channel;
+    }
+    if (channelObject == nullptr) {
+        IMSA_HILOGE("channelObject is nullptr!");
         keyEventQueue_.Pop();
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    auto cbId = keyEventRetHandler_.AddKeyEventCbInfo({ keyEvent, callback });
     KeyEventValue keyEventValue;
     keyEventValue.event = keyEvent;
-    auto ret = agent->DispatchKeyEvent(keyEventValue, consumer);
+    auto ret = agent->DispatchKeyEvent(keyEventValue, cbId, channelObject);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to DispatchKeyEvent: %{public}d", ret);
+        keyEventRetHandler_.RemoveKeyEventCbInfo(cbId);
     }
     keyEventQueue_.Pop();
     return ret;
+}
+
+void InputMethodController::HandleKeyEventResult(uint64_t cbId, bool consumeResult)
+{
+    keyEventRetHandler_.HandleKeyEventResult(cbId, consumeResult);
 }
 
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
@@ -1212,6 +1223,7 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
     isBound_.store(false);
     isEditable_.store(false);
     isTextNotified_.store(false);
+    keyEventRetHandler_.ClearKeyEventCbInfo();
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
         textString_ = Str8ToStr16("");

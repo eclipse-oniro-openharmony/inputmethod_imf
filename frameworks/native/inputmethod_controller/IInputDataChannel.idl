@@ -43,4 +43,5 @@ interface OHOS.MiscServices.IInputDataChannel {
     [oneway] void SetPreviewText([in] String text, [in] RangeInner rangeInner, [in] unsigned long msgId, [in] IRemoteObject agent);
     [oneway] void FinishTextPreview([in] unsigned long msgId, [in] IRemoteObject agent);
     void SendMessage([in] ArrayBuffer arraybuffer);
+    [oneway] void HandleKeyEventResult([in] unsigned long cbId, [in] boolean consumeResult);
 }

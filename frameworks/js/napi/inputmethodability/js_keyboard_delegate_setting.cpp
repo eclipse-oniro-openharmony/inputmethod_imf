@@ -295,8 +295,8 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
     return KeyboardDelegate;
 }
 
-bool JsKeyboardDelegateSetting::OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-    sptr<KeyEventConsumerProxy> &consumer)
+bool JsKeyboardDelegateSetting::OnDealKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channelObject)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
@@ -318,16 +318,16 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(const std::shared_ptr<MMI::KeyEve
         return false;
     }
     IMSA_HILOGD("run in.");
-    auto task = [keyEvent, keyEventEntry, keyCodeEntry, consumer]() {
-        DealKeyEvent(keyEvent, keyEventEntry, keyCodeEntry, consumer);
+    auto task = [keyEvent, keyEventEntry, keyCodeEntry, cbId, channelObject]() {
+        DealKeyEvent(keyEvent, keyEventEntry, keyCodeEntry, cbId, channelObject);
     };
     eventHandler->PostTask(task, "OnDealKeyEvent", 0, AppExecFwk::EventQueue::Priority::VIP);
     return true;
 }
 
 void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
-    const std::shared_ptr<UvEntry> &keyEventEntry, const std::shared_ptr<UvEntry> &keyCodeEntry,
-    const sptr<KeyEventConsumerProxy> &consumer)
+    const std::shared_ptr<UvEntry> &keyEventEntry, const std::shared_ptr<UvEntry> &keyCodeEntry, uint64_t cbId,
+    const sptr<IRemoteObject> &channelObject)
 {
     bool isKeyEventConsumed = false;
     bool isKeyCodeConsumed = false;
@@ -368,15 +368,15 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<MMI::KeyEvent
         JsCallbackHandler::Traverse(keyCodeEntry->vecCopy, { 1, getKeyEventProperty }, isKeyCodeConsumed);
     }
     bool consumeResult = isKeyEventConsumed || isKeyCodeConsumed;
-    if (consumer != nullptr) {
-        if (!consumeResult) {
-            if (keyEvent != nullptr && keyEvent->GetKeyAction() == MMI::KeyEvent::KEY_ACTION_DOWN) {
-                IMSA_HILOGW("keyEvent is not consumed by ime");
-            }
-            consumeResult = InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent);
+    if (!consumeResult) {
+        if (keyEvent != nullptr && keyEvent->GetKeyAction() == MMI::KeyEvent::KEY_ACTION_DOWN) {
+            IMSA_HILOGW("keyEvent is not consumed by ime");
         }
-        IMSA_HILOGD("final consumed result: %{public}d.", consumeResult);
-        consumer->OnKeyEventResult(consumeResult);
+        consumeResult = InputMethodAbility::GetInstance().HandleUnconsumedKey(keyEvent);
+    }
+    auto ret = InputMethodAbility::GetInstance().HandleKeyEventResult(cbId, consumeResult, channelObject);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("handle keyEvent failed:%{public}d", ret);
     }
 }
 
