@@ -65,6 +65,7 @@ ohos_static_library("imf_sa_stub_fuzztest_common_static") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
     "window_manager:libdm_lite",
   ]
 

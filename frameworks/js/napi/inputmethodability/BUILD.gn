@@ -95,6 +95,7 @@ ohos_shared_library("inputmethodengine") {
     "napi:ace_napi",
     "window_manager:libwm_lite",
     "resource_management:global_resmgr",
+    "samgr:samgr_proxy",
     "ability_runtime:app_context",
   ]
 
