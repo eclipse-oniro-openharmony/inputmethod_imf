@@ -821,6 +821,17 @@ public:
     IMF_API int32_t StartInputType(InputType type);
 
     /**
+     * @brief Start the input method which provides the specific input type.
+     *
+     * This function is used to start the input method which provides the specific input type.
+     *
+     * @param type Indicates the input type being specified.
+     * @return Returns 0 for success, others for failure.
+     * @since 21
+     */
+    IMF_API int32_t StartInputTypeAsync(InputType type);
+
+    /**
      * @brief Query whether the specific type panel is shown.
      *
      * This function is used to query whether the specific type panel is shown.

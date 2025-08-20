@@ -1385,6 +1385,20 @@ HWTEST_F(InputMethodControllerTest, testStartInputType, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testStartInputTypeAsync
+ * @tc.desc: StartInputTypeAsync
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodControllerTest, testStartInputTypeAsync, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testStartInputTypeAsync Test START");
+    auto ret = inputMethodController_->StartInputTypeAsync(InputType::NONE);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: testSendPrivateCommand_001
  * @tc.desc: IMC SendPrivateCommand without default ime
  * @tc.type: FUNC
