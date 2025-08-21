@@ -34,6 +34,7 @@ struct SystemConfig : public Serializable {
     std::unordered_set<int32_t> proxyImeUidList;
     std::unordered_set<int32_t> specialSaUidList;
     std::unordered_set<std::string> defaultImeScreenList;
+    std::unordered_set<std::string> defaultMainDisplayIdScreenList;
     std::unordered_set<std::string> supportedCapacityList;
     std::string dynamicStartImeSysParam;
     std::string dynamicStartImeValue;
@@ -53,6 +54,7 @@ struct SystemConfig : public Serializable {
         GetValue(node, GET_NAME(proxyImeUidList), proxyImeUidList);
         GetValue(node, GET_NAME(specialSaUidList), specialSaUidList);
         GetValue(node, GET_NAME(defaultImeScreenList), defaultImeScreenList);
+        GetValue(node, GET_NAME(defaultMainDisplayIdScreenList), defaultMainDisplayIdScreenList);
         GetValue(node, GET_NAME(supportedCapacityList), supportedCapacityList);
         GetValue(node, GET_NAME(dynamicStartImeSysParam), dynamicStartImeSysParam);
         GetValue(node, GET_NAME(dynamicStartImeValue), dynamicStartImeValue);
