@@ -138,6 +138,7 @@ public:
     void AddRestartIme();
 
     bool IsProxyImeEnable();
+    bool IsEnable(const std::shared_ptr<ImeData> &data);
     bool IsBoundToClient(uint64_t displayId);
     bool IsCurrentImeByPid(int32_t pid);
     int32_t RestoreCurrentImeSubType(uint64_t callingDisplayId);
@@ -228,6 +229,7 @@ private:
         const std::shared_ptr<ImeNativeCfg> &imeNativeCfg = nullptr);
     int32_t UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
+    void AddImeData(std::vector<std::shared_ptr<ImeData>> &imeDataList, const std::shared_ptr<ImeData> &imeData);
     void RemoveImeData(ImeType type);
     void RemoveImeData(pid_t pid);
     int32_t RemoveIme(ImeType type, pid_t pid);
@@ -346,6 +348,7 @@ private:
     std::mutex connectionLock_{};
     sptr<AAFwk::IAbilityConnection> connection_ = nullptr;
     std::atomic<bool> isBlockStartedByLowMem_ = false;
+    bool isFirstPreemption_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

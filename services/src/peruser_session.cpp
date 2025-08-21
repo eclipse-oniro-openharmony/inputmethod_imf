@@ -518,12 +518,7 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
 bool PerUserSession::IsProxyImeEnable()
 {
     auto data = GetReadyImeData(ImeType::PROXY_IME);
-    bool ret = false;
-    if (data == nullptr || data->core == nullptr) {
-        return false;
-    }
-    data->core->IsEnable(ret);
-    return ret;
+    return IsEnable(data);
 }
 
 int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo,
@@ -1059,9 +1054,27 @@ int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sp
     } else if (type == ImeType::IME_MIRROR) {
         imeData->ime.first.append(GET_NAME(_IME_MIRROR));
     }
-    imeDataList.push_back(imeData);
+    AddImeData(imeDataList, imeData);
     IMSA_HILOGI("add imeData with type: %{public}d name: %{public}s end", type, imeData->ime.first.c_str());
     return ErrorCode::NO_ERROR;
+}
+
+void PerUserSession::AddImeData(std::vector<std::shared_ptr<ImeData>> &imeDataList,
+    const std::shared_ptr<ImeData> &imeData)
+{
+    if (imeDataList.empty()) {
+        imeDataList.push_back(imeData);
+        return;
+    }
+    if (!isFirstPreemption_) {
+        isFirstPreemption_ = true;
+        const auto &lastImeData = imeDataList.back();
+        if (IsEnable(lastImeData) && !IsEnable(imeData)) {
+            imeDataList.insert(imeDataList.begin(), imeData);
+            return;
+        }
+    }
+    imeDataList.push_back(imeData);
 }
 
 std::shared_ptr<ImeData> PerUserSession::GetReadyImeData(ImeType type)
@@ -2848,6 +2861,16 @@ int32_t PerUserSession::PrepareImeInfos(ImeType type, std::vector<sptr<IRemoteOb
         imeInfos.emplace_back(imeInfo);
     }
     return ErrorCode::NO_ERROR;
+}
+
+bool PerUserSession::IsEnable(const std::shared_ptr<ImeData> &data)
+{
+    bool ret = false;
+    if (data == nullptr || data->core == nullptr) {
+        return false;
+    }
+    data->core->IsEnable(ret);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

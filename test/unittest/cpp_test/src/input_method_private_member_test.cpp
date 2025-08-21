@@ -2724,6 +2724,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_001, TestSize.L
     pid_t pid1 = 100;
     sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
     auto ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto it = userSession->imeData_.find(ImeType::PROXY_IME);
@@ -2733,6 +2734,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_001, TestSize.L
     pid_t pid2 = 101;
     sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub2, nullptr);
     ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     it = userSession->imeData_.find(ImeType::PROXY_IME);
@@ -2745,6 +2747,61 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_001, TestSize.L
     ASSERT_NE(it, userSession->imeData_.end());
     ASSERT_EQ(it->second.size(), 2);
     EXPECT_EQ(it->second[1]->pid, pid1);
+}
+
+/**
+ * @tc.name: PerUserSession_AddImeData_002
+ * @tc.desc: PerUserSession_AddImeData_002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::PerUserSession_AddImeData_002 start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->imeData_.clear();
+    pid_t pid1 = 100;
+    sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
+    userSession->isFirstPreemption_= true;
+    auto ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 1);
+
+    userSession->isFirstPreemption_= false;
+    pid_t pid2 = 101;
+    sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    auto imeData = std::make_shared<ImeData>(coreStub2, agentStub2, nullptr, pid2);
+    ASSERT_NE(agentStub2, nullptr);
+    ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 2);
+
+    userSession->isFirstPreemption_= false;
+    ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    ASSERT_EQ(it->second.size(), 2);
+    EXPECT_EQ(it->second[1]->pid, pid1);
+
+    sptr<InputMethodCoreStub> coreStub4 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub4 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub4, nullptr);
+    userSession->isFirstPreemption_= true;
+    pid_t pid4 = 104;
+    ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub4, agentStub4->AsObject(), pid4);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    ASSERT_EQ(it->second.size(), 3);
+    EXPECT_EQ(it->second[2]->pid, pid4);
 }
 
 /**
@@ -2791,11 +2848,13 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_GetImeData_002, TestSize.L
     pid_t pid1 = 101;
     sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
 
     pid_t pid2 = 102;
     sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub2, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
     auto it = userSession->imeData_.find(ImeType::PROXY_IME);
     ASSERT_NE(it, userSession->imeData_.end());
@@ -2829,11 +2888,13 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_RemoveImeData_001, TestSiz
     pid_t pid1 = 101;
     sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
 
     pid_t pid2 = 102;
     sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub2, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
     auto it = userSession->imeData_.find(ImeType::PROXY_IME);
     ASSERT_NE(it, userSession->imeData_.end());
@@ -2870,11 +2931,13 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_RemoveImeData_002, TestSiz
     pid_t pid1 = 101;
     sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
 
     pid_t pid2 = 102;
     sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub2, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
     auto it = userSession->imeData_.find(ImeType::PROXY_IME);
     ASSERT_NE(it, userSession->imeData_.end());
