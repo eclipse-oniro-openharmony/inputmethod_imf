@@ -24,6 +24,7 @@ config("inputmethod_services_native_config") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
+    "${inputmethod_path}/services/adapter/display_adapter/include",
     "${inputmethod_path}/services/adapter/focus_monitor/include",
     "${inputmethod_path}/services/adapter/ime_connection_manager/include",
     "${inputmethod_path}/services/adapter/keyboard/include",
@@ -58,6 +59,7 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
+    "${inputmethod_path}/services/adapter/display_adapter/src/display_adapter.cpp",
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_change_listener.cpp",
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_monitor_manager.cpp",
     "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
@@ -171,6 +173,7 @@ ohos_static_library("inputmethod_service_static") {
     "-Oz",
   ]
   sources = [
+    "adapter/display_adapter/src/display_adapter.cpp",
     "adapter/focus_monitor/src/focus_change_listener.cpp",
     "adapter/focus_monitor/src/focus_monitor_manager.cpp",
     "adapter/ime_connection_manager/src/ime_connection.cpp",
