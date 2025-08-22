@@ -40,7 +40,6 @@ namespace MiscServices {
 class ImaTextEditTest : public testing::Test {
 public:
     static constexpr const char *NORMAL_EDITOR_BOX_BUNDLE_NAME = "com.example.editorbox";
-    static constexpr const char *CLICK_CMD = "uinput -T -d 200 200 -u 200 200";
     static const std::string INSERT_TEXT;
     static constexpr int32_t GET_LENGTH = 2;
     static constexpr int32_t DEL_LENGTH = 1;
@@ -60,7 +59,7 @@ public:
         InputMethodAbility::GetInstance().SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         InputMethodAbility::GetInstance().SetKdListener(std::make_shared<KeyboardListenerTestImpl>());
         TddUtil::StartApp(NORMAL_EDITOR_BOX_BUNDLE_NAME);
-        TddUtil::ClickApp(CLICK_CMD);
+        TddUtil::ClickApp();
         EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
         EXPECT_TRUE(TddUtil::WaitTaskEmpty());
     }

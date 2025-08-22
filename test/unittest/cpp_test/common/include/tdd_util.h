@@ -74,7 +74,7 @@ public:
     static void DisabledAllIme();
     static void StartApp(const std::string &bundleName);
     static void StopApp(const std::string &bundleName);
-    static void ClickApp(const std::string &cmd);
+    static void ClickApp();
     static bool WaitTaskEmpty();
     static std::string currentBundleNameMock_;
     class WindowManager {
