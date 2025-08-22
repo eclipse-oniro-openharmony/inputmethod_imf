@@ -1233,8 +1233,8 @@ bool ImeInfoInquirer::IsRestrictedDefaultImeByDisplay(uint64_t displayId)
 bool ImeInfoInquirer::IsRestrictedMainDisplayId(uint64_t displayId)
 {
     auto screenName = DisplayAdapter::GetDisplayName(displayId);
-    return systemConfig_.defaultMainDisplayIdScreenList.find(screenName)
-           != systemConfig_.defaultMainDisplayIdScreenList.end();
+    return systemConfig_.defaultMainDisplayScreenList.find(screenName) !=
+           systemConfig_.defaultMainDisplayScreenList.end();
 }
 
 bool ImeInfoInquirer::IsDynamicStartIme()
