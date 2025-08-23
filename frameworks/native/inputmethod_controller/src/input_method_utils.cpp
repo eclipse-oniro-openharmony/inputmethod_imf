@@ -239,7 +239,7 @@ bool Value::Marshalling(Parcel &out) const
     return false;
     }
     if (valueMap.size() == 0) {
-        IMSA_HILOGE("valueMap size is zero!");
+        IMSA_HILOGD("valueMap size is zero!");
         return true;
     }
     for (auto& it : valueMap) {

@@ -53,13 +53,19 @@ std::mutex InputMethodController::instanceLock_;
 std::mutex InputMethodController::logLock_;
 int InputMethodController::keyEventCountInPeriod_ = 0;
 std::chrono::system_clock::time_point InputMethodController::startLogTime_ = system_clock::now();
+std::mutex InputMethodController::printTextChangeMutex_;
+int32_t InputMethodController::textChangeCountInPeriod_ = 0;
+std::chrono::steady_clock::time_point InputMethodController::textChangeStartLogTime_ = steady_clock::now();
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t LOG_MAX_TIME = 20;
+constexpr int32_t LOG_INSERT_MAX_TIME = 20; // 20s
+constexpr int32_t LOG_INSERT_MIN_TIME = 5; // 5s
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
 constexpr int32_t MAX_PLACEHOLDER_SIZE = 255; // 256 utf16 char
 constexpr int32_t MAX_ABILITY_NAME_SIZE = 127; // 127 utf16 char
 static constexpr int32_t MAX_TIMEOUT = 2500;
+constexpr int64_t DISPATCH_KEYBOARD_TIME_OUT = 5; // 5ms
 constexpr size_t MAX_AGENT_NUMBER = 2;
 const std::string IME_MIRROR_NAME = "proxyIme_IME_MIRROR";
 InputMethodController::InputMethodController()
@@ -959,6 +965,7 @@ void InputMethodController::PrintKeyEventLog()
 
 int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback)
 {
+    int64_t startTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     PrintKeyEventLog();
     KeyEventInfo keyEventInfo = { std::chrono::system_clock::now(), keyEvent };
     keyEventQueue_.Push(keyEventInfo);
@@ -1000,6 +1007,10 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
         keyEventRetHandler_.RemoveKeyEventCbInfo(cbId);
     }
     keyEventQueue_.Pop();
+    int64_t endTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    if (endTime - startTime > DISPATCH_KEYBOARD_TIME_OUT) {
+        IMSA_HILOGW("DispatchKeyEvent timeout: [%{public}" PRId64 ", %{public}" PRId64 "].", startTime, endTime);
+    }
     return ret;
 }
 
@@ -1232,6 +1243,11 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
         selectNewBegin_ = INVALID_VALUE;
         selectNewEnd_ = INVALID_VALUE;
     }
+    auto now = steady_clock::now();
+    if (LOG_INSERT_MIN_TIME < std::chrono::duration_cast<seconds>(now - textChangeStartLogTime_).count() &&
+        std::chrono::duration_cast<seconds>(now - textChangeStartLogTime_).count() < LOG_INSERT_MAX_TIME) {
+        IMSA_HILOGW("unbind before insertText PrintTextChangeLogCount: %{public}d !", textChangeCountInPeriod_);
+    }
     if (proxy == nullptr) {
         IMSA_HILOGD("proxy is nullptr.");
         return;
@@ -1396,7 +1412,7 @@ int32_t InputMethodController::InsertText(const std::u16string &text)
         IMSA_HILOGD("ACE InsertText.");
         listener->InsertTextV2(text);
     }
-
+    PrintTextChangeLog();
     PrintLogIfAceTimeout(start);
     return ErrorCode::NO_ERROR;
 }
@@ -1619,6 +1635,20 @@ void InputMethodController::PrintLogIfAceTimeout(int64_t start)
     }
 }
 
+void InputMethodController::PrintTextChangeLog()
+{
+    std::lock_guard<std::mutex> lock(printTextChangeMutex_);
+    auto now = steady_clock::now();
+    if (textChangeCountInPeriod_ == 0) {
+        textChangeStartLogTime_ = now;
+    }
+    textChangeCountInPeriod_++;
+    if (std::chrono::duration_cast<seconds>(now - textChangeStartLogTime_).count() >= LOG_INSERT_MAX_TIME) {
+        IMSA_HILOGW("PrintTextChangeLogCount: %{public}d, ACE_InsertText success!", textChangeCountInPeriod_);
+        textChangeCountInPeriod_ = 0;
+    }
+}
+
 int32_t InputMethodController::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
@@ -1692,6 +1722,7 @@ int32_t InputMethodController::SetPreviewTextInner(const std::string &text, cons
         InputMethodSyncTrace aceTracer("ACE_SetPreviewText");
         ret = listener->SetPreviewTextV2(Str8ToStr16(text), range);
     }
+    PrintTextChangeLog();
     PrintLogIfAceTimeout(start);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to SetPreviewText: %{public}d!", ret);

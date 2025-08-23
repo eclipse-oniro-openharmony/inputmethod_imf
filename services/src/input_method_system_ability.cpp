@@ -677,9 +677,12 @@ int32_t InputMethodSystemAbility::StartInputInner(
 {
     auto userId = GetCallingUserId();
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsBroker(tokenId) && !identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId,
-            IdentityChecker::INVALID_PID, true, inputClientInfo.config.abilityToken)) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, IdentityChecker::INVALID_PID, true,
+            inputClientInfo.config.abilityToken)) {
+        if (!identityChecker_->IsBroker(tokenId)) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
+        IMSA_HILOGW("is broker attach!");
     }
     auto session = UserSessionManager::GetInstance().GetUserSession(userId);
     if (session == nullptr) {

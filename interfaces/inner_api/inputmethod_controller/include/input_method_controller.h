@@ -1025,6 +1025,7 @@ private:
     void SetAgent(const sptr<IRemoteObject> &agentObject, const std::string &bundleName);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
+    void PrintTextChangeLog();
     void PrintKeyEventLog();
     std::shared_ptr<MsgHandlerCallbackInterface> GetMsgHandlerCallback();
     int32_t IsValidTextConfig(const TextConfig &textConfig);
@@ -1079,6 +1080,9 @@ private:
     static std::mutex logLock_;
     static int keyEventCountInPeriod_;
     static std::chrono::system_clock::time_point startLogTime_;
+    static std::mutex printTextChangeMutex_;
+    static int32_t textChangeCountInPeriod_;
+    static std::chrono::steady_clock::time_point textChangeStartLogTime_;
 
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };
