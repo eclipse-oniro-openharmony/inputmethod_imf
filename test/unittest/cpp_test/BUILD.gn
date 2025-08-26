@@ -151,6 +151,7 @@ ohos_unittest("InputMethodAttachTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "window_manager:libdm",
@@ -522,6 +523,7 @@ ohos_unittest("InputMethodSwitchTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "safwk:system_ability_fwk",
   ]
 
@@ -716,6 +718,7 @@ ohos_unittest("NewImeSwitchTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "safwk:system_ability_fwk",
   ]
 
@@ -1238,6 +1241,7 @@ ohos_unittest("ImeControllerCpaiTest") {
     "googletest:gmock",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 }
 
@@ -1474,6 +1478,7 @@ ohos_unittest("InputMethodManagerCommandTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 
   if (window_manager_use_sceneboard) {
@@ -1518,6 +1523,7 @@ ohos_unittest("ImeEnabledInfoManagerTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "resource_management:global_resmgr",
   ]
   if (window_manager_use_sceneboard) {
@@ -1589,6 +1595,7 @@ ohos_unittest("NumKeyAppsManagerTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "resource_management:global_resmgr",
   ]
 }

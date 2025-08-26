@@ -56,6 +56,7 @@ ohos_fuzztest("ImeEnabledInfoManagerFuzzTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "resource_management:global_resmgr",
   ]
 }
