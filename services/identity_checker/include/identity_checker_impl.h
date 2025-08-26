@@ -28,8 +28,8 @@ public:
     bool IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName) override;
     bool HasPermission(uint32_t tokenId, const std::string &permission) override;
     bool IsBroker(Security::AccessToken::AccessTokenID tokenId) override;
-    bool IsFormShell(Security::AccessToken::AccessTokenID tokenId) override;
     bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override;
+    bool IsFormShell(Security::AccessToken::AccessTokenID tokenId) override;
     std::string GetBundleNameByToken(uint32_t tokenId) override;
     bool IsFocusedUIExtension(uint32_t callingTokenId, sptr<IRemoteObject> abilityToken = nullptr) override;
     uint64_t GetDisplayIdByWindowId(int32_t callingWindowId) override;

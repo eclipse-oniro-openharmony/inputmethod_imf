@@ -685,7 +685,7 @@ void PerUserSession::StopClientInput(
     if (isAsync == true) {
         ret = clientInfo->client->OnInputStopAsync(isStopInactiveClient);
     } else {
-        auto onInputStopObject = new (std::nothrow) OnInputStopNotifyServiceImpl();
+        auto onInputStopObject = new (std::nothrow) OnInputStopNotifyServiceImpl(clientInfo->pid);
         if (onInputStopObject == nullptr) {
             IMSA_HILOGE("Failed to create onInputStopObject.");
             return;

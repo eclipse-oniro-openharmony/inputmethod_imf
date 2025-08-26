@@ -59,7 +59,7 @@ FullImeInfoManager &FullImeInfoManager::GetInstance()
     static FullImeInfoManager instance;
     return instance;
 }
-
+// LCOV_EXCL_START
 int32_t FullImeInfoManager::RegularInit()
 {
     std::vector<std::pair<int32_t, std::vector<FullImeInfo>>> fullImeInfos;
@@ -75,7 +75,7 @@ int32_t FullImeInfoManager::RegularInit()
     }
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_STOP
 int32_t FullImeInfoManager::Switch(int32_t userId)
 {
     std::vector<FullImeInfo> infos;

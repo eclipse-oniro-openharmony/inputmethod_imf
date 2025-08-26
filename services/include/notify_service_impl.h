@@ -24,14 +24,16 @@
 namespace OHOS {
 namespace MiscServices {
 
-class OnInputStopNotifyServiceImpl final : public OnInputStopNotifyStub,
-    public std::enable_shared_from_this<OnInputStopNotifyServiceImpl> {
+class OnInputStopNotifyServiceImpl final : public OnInputStopNotifyStub {
     DISALLOW_COPY_AND_MOVE(OnInputStopNotifyServiceImpl);
 
 public:
-    OnInputStopNotifyServiceImpl();
-    virtual ~OnInputStopNotifyServiceImpl();
+    explicit OnInputStopNotifyServiceImpl(pid_t pid) : pid_(pid) { }
+    virtual ~OnInputStopNotifyServiceImpl() = default;
     ErrCode NotifyOnInputStopFinished() override;
+
+private:
+    pid_t pid_;
 };
 } // namespace MiscServices
 } // namespace OHOS

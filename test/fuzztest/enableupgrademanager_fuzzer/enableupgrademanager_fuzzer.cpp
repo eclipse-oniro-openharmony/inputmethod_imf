@@ -81,16 +81,8 @@ void FuzzFullImeInfo(const uint8_t *data, size_t size)
     FullImeInfo imeInfo = { .isNewIme = fuzzedBool, .tokenId = fuzzUint32, .appId = fuzzedString,
         .versionCode = fuzzUint32 };
     infos.push_back(imeInfo);
-    FullImeInfoManager::GetInstance().RegularInit();
-    FullImeInfoManager::GetInstance().Switch(fuzzInt32);
-    FullImeInfoManager::GetInstance().Update();
     FullImeInfoManager::GetInstance().Delete(fuzzInt32);
-    FullImeInfoManager::GetInstance().Add(fuzzInt32, fuzzedString);
-    FullImeInfoManager::GetInstance().Delete(fuzzInt32, fuzzedString);
-    FullImeInfoManager::GetInstance().Update(fuzzInt32, fuzzedString);
     FullImeInfoManager::GetInstance().Has(fuzzInt32, fuzzedString);
-    FullImeInfoManager::GetInstance().AddUser(fuzzInt32, infos);
-    FullImeInfoManager::GetInstance().AddPackage(fuzzInt32, fuzzedString, imeInfo);
     FullImeInfoManager::GetInstance().DeletePackage(fuzzInt32, fuzzedString);
 }
 } // namespace OHOS

@@ -20,9 +20,10 @@
 
 #include "input_method_utils.h"
 #include "serializable.h"
+#include "event_handler.h"
 #include "ime_enabled_info_manager.h"
 #include "enable_upgrade_manager.h"
-#include "event_handler.h"
+
 namespace OHOS {
 namespace MiscServices {
 
