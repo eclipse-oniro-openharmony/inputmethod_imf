@@ -1244,7 +1244,7 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
         selectNewEnd_ = INVALID_VALUE;
     }
     auto now = steady_clock::now();
-    if (LOG_INSERT_MIN_TIME < std::chrono::duration_cast<seconds>(now - textChangeStartLogTime_).count() &&
+    if (std::chrono::duration_cast<seconds>(now - textChangeStartLogTime_).count() > LOG_INSERT_MIN_TIME &&
         std::chrono::duration_cast<seconds>(now - textChangeStartLogTime_).count() < LOG_INSERT_MAX_TIME) {
         IMSA_HILOGW("unbind before insertText PrintTextChangeLogCount: %{public}d !", textChangeCountInPeriod_);
     }

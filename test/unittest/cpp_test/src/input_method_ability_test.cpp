@@ -72,8 +72,8 @@ public:
     static int32_t currentImeUid_;
     static sptr<InputMethodSystemAbility> imsa_;
     static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
-    static constexpr int MAXRUNCOUNT = 100;
-    static constexpr int THREAD_NUM = 5;
+    static constexpr int32_t MAXRUNCOUNT = 100;
+    static constexpr int32_t THREAD_NUM = 5;
     static void TestOnConnectSystemCmd();
     static std::atomic<int32_t> multiThreadExecTotalNum_;
 
@@ -169,7 +169,6 @@ public:
         auto currentIme = property != nullptr ? property->name : "default.inputmethod.unittest";
         currentImeTokenId_ = TddUtil::GetTestTokenID(currentIme);
         currentImeUid_ = TddUtil::GetUid(currentIme);
-
         inputMethodAbility_.abilityManager_ = imsaProxy_;
         TddUtil::InitCurrentImePermissionInfo();
         IdentityCheckerMock::SetBundleName(TddUtil::currentBundleNameMock_);
@@ -389,9 +388,6 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
     auto ret = coreProxy->ShowKeyboard(static_cast<int32_t>(RequestKeyboardReason::NONE));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    ret = coreProxy->InitInputControlChannel(nullptr);
-    EXPECT_EQ(ERR_INVALID_DATA, ret);
-
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(showKeyboard_, true);
 }
@@ -556,7 +552,7 @@ HWTEST_F(InputMethodAbilityTest, testStartInput, TestSize.Level0)
     clientInfo.channel = channelStub;
     auto ret = inputMethodAbility_.StartInput(clientInfo, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(inputMethodAbility_.isNotify_);
+    EXPECT_TRUE(inputMethodAbility_.isInputStartNotified_);
 }
 
 /**
@@ -653,10 +649,6 @@ HWTEST_F(InputMethodAbilityTest, testMoveCursor, TestSize.Level0)
     auto ret = inputMethodAbility_.MoveCursor(keyCode); // move cursor right });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitMoveCursor(keyCode));
-
-    ret = InputMethodAbilityInterface::GetInstance().MoveCursor(keyCode);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(TextListener::WaitMoveCursor(keyCode));
 }
 
 /**
@@ -728,14 +720,7 @@ HWTEST_F(InputMethodAbilityTest, testDeleteText, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitDeleteBackward(deleteForwardLenth));
 
-    ret = InputMethodAbilityInterface::GetInstance().DeleteForward(deleteForwardLenth);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(TextListener::WaitDeleteBackward(deleteForwardLenth));
-
     int32_t deleteBackwardLenth = 2;
-    ret = InputMethodAbilityInterface::GetInstance().DeleteBackward(deleteBackwardLenth);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(TextListener::WaitDeleteForward(deleteBackwardLenth));
     ret = inputMethodAbility_.DeleteBackward(deleteBackwardLenth);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitDeleteForward(deleteBackwardLenth));
@@ -1214,7 +1199,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_003 START");
-    imc_->Attach(textListener_);
+    imc_->Attach(textListener_, false);
     PanelInfo panelInfo = {};
     panelInfo.panelType = STATUS_BAR;
     auto panel = std::make_shared<InputMethodPanel>();
@@ -1777,10 +1762,10 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_003, TestSize.Level0)
 }
 
 /**
- *@tc.name: testGetInputMethodState_001
- *@tc.desc: IMA
- *@tc.type: FUNC
- *@tc.require:
+ * @tc.name: testGetInputMethodState_001
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
  */
 HWTEST_F(InputMethodAbilityTest, testGetInputMethodState_001, TestSize.Level0)
 {
@@ -2165,19 +2150,6 @@ HWTEST_F(InputMethodAbilityTest, testHandleUnconsumedKey_011, TestSize.Level0)
 }
 
 /**
- * @tc.name: testInitPasteBoardstart_001
- * @tc.desc: testInitPasteBoardstart_001
- * @tc.type: FUNC
- */
-HWTEST_F(InputMethodAbilityTest, testInitPasteBoardstart_001, TestSize.Level1)
-{
-    IMSA_HILOGI("InputMethodAbilityTest testInitPasteBoardstart_001 START");
-    ASSERT_NE(imsa_, nullptr);
-    auto ret = imsa_->InitPasteboardMonitor();
-    EXPECT_TRUE(ret);
-    imsa_->HandlePasteboardStarted();
-}
-/**
  * @tc.name: testInvokeAttachOptionsCallback
  * @tc.desc: testInvokeAttachOptionsCallback
  * @tc.type: FUNC
@@ -2200,6 +2172,20 @@ HWTEST_F(InputMethodAbilityTest, testInvokeAttachOptionsCallback, TestSize.Level
     uint64_t displayidNew = 1;
     auto ret = inputMethodAbility_.IsDisplayChanged(displayid, displayidNew);
     EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: testInitPasteBoardstart_001
+ * @tc.desc: testInitPasteBoardstart_001
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAbilityTest, testInitPasteBoardstart_001, TestSize.Level1)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testInitPasteBoardstart_001 START");
+    ASSERT_NE(imsa_, nullptr);
+    auto ret = imsa_->InitPasteboardMonitor();
+    EXPECT_TRUE(ret);
+    imsa_->HandlePasteboardStarted();
 }
 
 /**

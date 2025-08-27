@@ -15,8 +15,6 @@
 
 #include "ime_setting_listener_test_impl.h"
 
-#include "global.h"
-
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t SWITCH_IME_WAIT_TIME = 3;
@@ -57,36 +55,32 @@ bool ImeSettingListenerTestImpl::WaitPanelShow()
 bool ImeSettingListenerTestImpl::WaitImeChange()
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), []() {
-        return isImeChange_;
-    });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isImeChange_; });
     return isImeChange_;
 }
 
 bool ImeSettingListenerTestImpl::WaitTargetImeChange(const std::string &bundleName)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), [&bundleName]() {
-        return bundleName == property_.name;
-    });
+    do {
+        // 3 means 3 seconds.
+        imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME),
+            [&bundleName]() { return bundleName == property_.name; });
+    } while (bundleName != property_.name);
     return isImeChange_ && bundleName == property_.name;
 }
 
 bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), [&subProperty]() {
-        return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name;
-    });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1),
+        [&subProperty]() { return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name; });
     return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name;
 }
 
 void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    IMSA_HILOGI("ImeSettingListenerTestImpl, property name: %{public}s, property id: %{public}s, subProp id: "
-                "%{public}s",
-        property.name.c_str(), property.id.c_str(), subProperty.id.c_str());
     isImeChange_ = true;
     subProperty_ = subProperty;
     property_ = property;
@@ -96,7 +90,6 @@ void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const Sub
 void ImeSettingListenerTestImpl::OnImeShow(const ImeWindowInfo &info)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    IMSA_HILOGI("ImeSettingListenerTestImpl");
     status_ = InputWindowStatus::SHOW;
     imeSettingListenerCv_.notify_one();
 }
@@ -104,7 +97,6 @@ void ImeSettingListenerTestImpl::OnImeShow(const ImeWindowInfo &info)
 void ImeSettingListenerTestImpl::OnImeHide(const ImeWindowInfo &info)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    IMSA_HILOGI("ImeSettingListenerTestImpl");
     status_ = InputWindowStatus::HIDE;
     imeSettingListenerCv_.notify_one();
 }

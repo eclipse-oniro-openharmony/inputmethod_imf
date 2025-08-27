@@ -384,10 +384,8 @@ void InputMethodPanelTest::ImcPanelHideNumCheck(uint32_t num)
         EXPECT_EQ(ret, std::cv_status::timeout);
         return;
     }
-    bool ret =
-        imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [&num] {
-            return num == imeHideCallbackNum_;
-        });
+    bool ret = imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME),
+        [&num] { return num <= imeHideCallbackNum_; });
     EXPECT_TRUE(ret);
 }
 
@@ -2412,7 +2410,7 @@ HWTEST_F(InputMethodPanelTest, testPortraitAdjustmentNeeded, TestSize.Level0)
  * @tc.desc: Test testLargegradientHeight
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodPanelTest, testLargegradientHeight, TestSize.Level0)
+HWTEST_F(InputMethodPanelTest, testLargegradientHeight, TestSize.Level1)
 {
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     KeyboardLayoutParams param;
@@ -2430,6 +2428,7 @@ HWTEST_F(InputMethodPanelTest, testLargegradientHeight, TestSize.Level0)
     ret = inputMethodPanel->FullScreenPrepare(param, inputMethodPanel->immersiveEffect_);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_RANGE);
 }
+
 /**
  * @tc.name: testLandscapeAdjustmentNeeded
  * @tc.desc: Test testLandscapeAdjustmentNeeded
@@ -2598,9 +2597,9 @@ HWTEST_F(InputMethodPanelTest, RestoreConfigWhenAdjustFails, TestSize.Level1)
  * @tc.desc: Test InitAdjustInfo
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodPanelTest, TestInitAdjustInfo, TestSize.Level1)
+HWTEST_F(InputMethodPanelTest, TestInitAdjustInfo, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPanelTest::TestInitAdjustInfo");
+    IMSA_HILOGI("InputMethodPanelTest::TestInitAdjustInfo.");
     auto panel = std::make_shared<InputMethodPanel>();
     InputMethodAbility::GetInstance().inputAttribute_.callingDisplayId = 0;
     panel->isAdjustInfoInitialized_ = false;

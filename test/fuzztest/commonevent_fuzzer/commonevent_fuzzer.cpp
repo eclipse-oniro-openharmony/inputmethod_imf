@@ -74,53 +74,40 @@ void FuzzSwitchOperation(const uint8_t *data, size_t size)
 {
     FuzzedDataProvider provider(data, size);
     auto fuzzedUint64 = provider.ConsumeIntegral<uint64_t>();
-    auto fuzzedUint32 = provider.ConsumeIntegral<uint32_t>();
     auto fuzzedInt32 = provider.ConsumeIntegral<int32_t>();
     sptr<IInputMethodCore> core = new InputMethodCoreServiceImpl();
     sptr<SystemCmdChannelStub> stub = new SystemCmdChannelServiceImpl();
     auto info = std::make_shared<ImeInfo>();
-
+ 
     MessageParcel messData;
     messData.WriteRemoteObject(stub->AsObject());
     sptr<IRemoteObject> remoteObject = messData.ReadRemoteObject();
     auto fuzzedBool = static_cast<bool>(data[0] % 2);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
 
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->InitMemMgrMonitor();
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleUserSwitched(fuzzedInt32);
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->InitFocusChangedMonitor();
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->InitWmsConnectionMonitor();
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->IsValidBundleName(fuzzedString);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->UpdateUserInfo(fuzzedInt32);
-
+ 
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->RegisterProxyIme(fuzzedUint64, core, remoteObject);
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->SwitchByCombinationKey(fuzzedUint32);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->SwitchExtension(fuzzedInt32, info);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->SwitchSubType(fuzzedInt32, info);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleFocusChanged(fuzzedBool,
         fuzzedUint64, fuzzedInt32, fuzzedInt32);
 }
-
+ 
 void FuzzHandleOperation(const uint8_t *data, size_t size)
 {
     FuzzedDataProvider provider(data, size);
     auto fuzzedInt32 = provider.ConsumeIntegral<int32_t>();
     InputType inputType = static_cast<InputType>(size);
     InputClientInfo clientInfo {};
-
+ 
     auto fuzzedBool = static_cast<bool>(data[0] % 2);
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
-
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleUserSwitched(fuzzedInt32);
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->StopImeInBackground();
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleOsAccountStarted();
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleMemStarted();
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleWmsStarted();
-
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleWmsConnected(fuzzedInt32, fuzzedInt32);
+ 
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleScbStarted(fuzzedInt32, fuzzedInt32);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->HandleWmsDisconnected(fuzzedInt32, fuzzedInt32);
     DelayedSingleton<InputMethodSystemAbility>::GetInstance()->NeedHideWhenSwitchInputType(fuzzedInt32, inputType,
         fuzzedBool);
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->GetAlternativeIme(fuzzedInt32, fuzzedString);
 }
 } // namespace OHOS
 /* Fuzzer entry point */

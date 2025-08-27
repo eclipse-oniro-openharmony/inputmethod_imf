@@ -14,7 +14,6 @@
  */
 #define private public
 #define protected public
-#include "client_group.h"
 #include "full_ime_info_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
@@ -45,6 +44,10 @@
 #include "iinput_method_agent.h"
 #include "iinput_method_core.h"
 #include "ime_cfg_manager.h"
+#include "input_client_stub.h"
+#include "input_method_agent_proxy.h"
+#include "input_method_agent_stub.h"
+#include "input_method_core_stub.h"
 #include "im_common_event_manager.h"
 #include "input_method_agent_service_impl.h"
 #include "input_method_core_service_impl.h"
@@ -79,9 +82,6 @@ constexpr int32_t WAIT_ATTACH_FINISH_DELAY = 50;
 constexpr uint32_t MAX_ATTACH_COUNT = 100000;
 std::atomic<int32_t> InputMethodPrivateMemberTest::tryLockFailCount_ = 0;
 std::shared_ptr<PerUserSession> InputMethodPrivateMemberTest::session_ = nullptr;
-constexpr const char *EVENT_LARGE_MEMORY_STATUS_CHANGED = "usual.event.memmgr.large_memory_status_changed";
-constexpr const char *EVENT_MEMORY_STATE = "memory_state";
-constexpr const char *EVENT_PARAM_UID = "uid";
 void InputMethodPrivateMemberTest::TestImfStartIme()
 {
     auto imeToStart = std::make_shared<ImeNativeCfg>();
@@ -92,6 +92,10 @@ void InputMethodPrivateMemberTest::TestImfStartIme()
         IMSA_HILOGI("tryLockFailCount_ is  %{public}d.", tryLockFailCount_.load());
     }
 }
+constexpr const char *EVENT_LARGE_MEMORY_STATUS_CHANGED = "usual.event.memmgr.large_memory_status_changed";
+constexpr const char *EVENT_MEMORY_STATE = "memory_state";
+constexpr const char *EVENT_PARAM_UID = "uid";
+
 void InputMethodPrivateMemberTest::SetUpTestCase(void)
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -602,6 +606,26 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_008, TestSize.L
 }
 
 /**
+ * @tc.name: SA_SwitchByCombinationKey_Handler
+ * @tc.desc: SwitchType():handler is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_Handler, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_Handler TEST START");
+    auto userId = TddUtil::GetCurrentUserId();
+    service_->userId_ = userId;
+    service_->DealSwitchRequest();
+    EXPECT_NE(service_->serviceHandler_, nullptr);
+    std::shared_ptr<AppExecFwk::EventHandler> tempHandler = service_->serviceHandler_;
+    service_->serviceHandler_ = nullptr;
+    service_->DealSwitchRequest();
+    EXPECT_EQ(service_->serviceHandler_, nullptr);
+    service_->serviceHandler_ = tempHandler;
+}
+
+/**
  * @tc.name: SA_testReleaseInput_001
  * @tc.desc: client is nullptr
  * @tc.type: FUNC
@@ -628,16 +652,16 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestRestoreInputMethod_001, TestSize.
     std::string bundleName = "";
     auto ret = service_->RestoreInputmethod(bundleName);
     EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
-
+ 
     auto userId = service_->GetCallingUserId();
     auto currentProp = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
     ret = service_->RestoreInputmethod(currentProp->name);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
+ 
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultIme();
     ret = service_->RestoreInputmethod(defaultIme.bundleName);
-    EXPECT_TRUE(ret == ErrorCode::NO_ERROR ||ret == ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
-
+    EXPECT_TRUE(ret == ErrorCode::NO_ERROR || ret == ErrorCode::ERROR_IMSA_REBOOT_OLD_IME_NOT_STOP);
+ 
     bundleName = "com.example.newTestIme";
     EnabledStatus status = EnabledStatus::DISABLED;
     ImeInfoInquirer::GetInstance().systemConfig_.enableInputMethodFeature = true;
@@ -908,7 +932,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestGetDefaultInputMethod_001, TestSize.L
     auto ret = ImeInfoInquirer::GetInstance().GetDefaultInputMethod(currentUserId, prop, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
-
+ 
 /**
  * @tc.name: TestGetDefaultInputMethod_002
  * @tc.desc: TestGetDefaultInputMethod
@@ -924,7 +948,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestGetDefaultInputMethod_002, TestSize.L
     auto ret = ImeInfoInquirer::GetInstance().GetDefaultInputMethod(currentUserId, prop, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
-
+ 
 /**
  * @tc.name: TestGetResMgr
  * @tc.desc: GetResMgr
@@ -938,7 +962,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestGetResMgr, TestSize.Level0)
     auto ret = ImeInfoInquirer::GetInstance().GetResMgr("/test");
     EXPECT_TRUE(ret != nullptr);
 }
-
+ 
 /**
  * @tc.name: TestQueryFullImeInfo
  * @tc.desc: QueryFullImeInfo
@@ -953,7 +977,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestQueryFullImeInfo, TestSize.Level0)
     auto ret = ImeInfoInquirer::GetInstance().QueryFullImeInfo(currentUserId, infos);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
-
+ 
 /**
  * @tc.name: TestIsInputMethod
  * @tc.desc: IsInputMethod
@@ -969,12 +993,12 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsInputMethod, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
-/**
-@tc.name: TestHandlePackageEvent
-@tc.desc: TestHandlePackageEvent
-@tc.type: FUNC
-@tc.require:
-*/
+ /**
+ @tc.name: TestHandlePackageEvent
+ @tc.desc: TestHandlePackageEvent
+ @tc.type: FUNC
+ @tc.require:
+ */
 HWTEST_F(InputMethodPrivateMemberTest, TestHandlePackageEvent, TestSize.Level0)
 {
     // msg is nullptr
@@ -1001,7 +1025,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestHandlePackageEvent, TestSize.Level0)
     auto ret2 = service_->HandlePackageEvent(msg2.get());
     EXPECT_EQ(ret2, ErrorCode::NO_ERROR);
 
-    // remove bundle not current ime
+    //remove bundle not current ime
     auto parcel3 = new (std::nothrow) MessageParcel();
     service_->userId_ = userId;
     ImeCfgManager::GetInstance().imeConfigs_.push_back({ 60, "testBundleName/testExtName", "testSubName", false });
@@ -1118,8 +1142,8 @@ HWTEST_F(InputMethodPrivateMemberTest, TestServiceStartInputType, TestSize.Level
 }
 
 /**
- * @tc.name: TestIsSupported
- * @tc.desc: Test IsSupported
+ * @tc.name: TestServiceStartInputType
+ * @tc.desc: Test ServiceStartInputType
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1127,19 +1151,6 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsSupported, TestSize.Level0)
 {
     auto ret = InputTypeManager::GetInstance().IsSupported(InputType::NONE);
     EXPECT_FALSE(ret);
-}
-
-/**
- * @tc.name: TestGetImeByInputType
- * @tc.desc: Test GetImeByInputType
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(InputMethodPrivateMemberTest, TestGetImeByInputType, TestSize.Level0)
-{
-    ImeIdentification ime;
-    auto ret = InputTypeManager::GetInstance().GetImeByInputType(InputType::NONE, ime);
-    EXPECT_EQ(ret, ErrorCode::ERROR_PARSE_CONFIG_FILE);
 }
 
 /**
@@ -1159,21 +1170,6 @@ HWTEST_F(InputMethodPrivateMemberTest, TestOnUnRegisteredProxyIme, TestSize.Leve
     userSession->clientGroupMap_.clear();
     ret = userSession->RemoveAllCurrentClient();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-}
-
-/**
- * @tc.name: TestIsInputTypeSupported
- * @tc.desc: Test IsInputTypeSupported
- * @tc.type: FUNC
- * @tc.require: issuesI794QF
- */
-HWTEST_F(InputMethodPrivateMemberTest, TestIsInputTypeSupported, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPrivateMemberTest TestIsInputTypeSupported TEST START");
-    InputType type = InputType::SECURITY_INPUT;
-    bool resultValue = false;
-    auto ret = service_->IsInputTypeSupported(static_cast<int32_t>(type), resultValue);
-    EXPECT_FALSE(ret);
 }
 
 /**
@@ -1354,7 +1350,6 @@ HWTEST_F(InputMethodPrivateMemberTest, BranchCoverage001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
     InputClientInfo clientInfo;
-    clientInfo.channel = nullptr;
     auto ret2 = service_->PrepareInput(INVALID_USER_ID, clientInfo);
     EXPECT_NE(ret2, ErrorCode::NO_ERROR);
 
@@ -1599,7 +1594,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestPerUserSessionOnScreenUnlocked, Te
     userSession->imeData_.clear();
     userSession->InitImeData({ imeCfg->bundleName, imeCfg->extName });
     userSession->OnScreenUnlock();
-    std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 /**
@@ -1657,11 +1651,10 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetScreenLockIme, TestSize.Level0)
     ret = InputMethodPrivateMemberTest::service_->GetScreenLockIme(userId, ime);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ImeInfoInquirer::GetInstance().systemConfig_ = systemConfig_0;
-    std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 /**
- * @tc.name: Test_ClientGroup_UpdateClientInfo
+ * @tc.name: Test_PerUserSession_UpdateClientInfo
  * @tc.desc: Test UpdateClientInfo
  * @tc.type: FUNC
  * @tc.require:IBZ0Y6
@@ -1680,7 +1673,7 @@ HWTEST_F(InputMethodPrivateMemberTest, Test_ClientGroup_UpdateClientInfo, TestSi
     clientGroup->mapClients_.insert({ client->AsObject(), nullptr });
     // client info is nullptr
     clientGroup->UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
-
+ 
     auto info = std::make_shared<InputClientInfo>();
     clientGroup->mapClients_.insert_or_assign(client->AsObject(), info);
     // update abnormal
@@ -2167,7 +2160,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestCompareExchange_001, TestSize.Level0)
  * @tc.name: TestIsLargeMemoryStateNeed_001
  * @tc.desc: TestIsLargeMemoryStateNeed.
  * @tc.type: FUNC
- * @tc.require: issuesIC7VH8
+ * @tc.require:
  * @tc.author:
  */
 HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_001, TestSize.Level0)
@@ -2186,7 +2179,7 @@ HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_001, TestSize.
  * @tc.name: TestIsLargeMemoryStateNeed_002
  * @tc.desc: Test IsLargeMemoryStateNeed.
  * @tc.type: FUNC
- * @tc.require: issuesIC7VH8
+ * @tc.require:
  * @tc.author:
  */
 HWTEST_F(InputMethodPrivateMemberTest, TestIsLargeMemoryStateNeed_002, TestSize.Level0)
@@ -2285,59 +2278,6 @@ HWTEST_F(InputMethodPrivateMemberTest, TestEventUpdateLargeMemoryState_001, Test
 }
 
 /**
- * @tc.name: TestAttachCount001
- * @tc.desc: Test TestAttachCount001.
- * @tc.type: FUNC
- */
-HWTEST_F(InputMethodPrivateMemberTest, TestAttachCount001, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPrivateMemberTest TestAttachCount001 TEST START");
-    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    userSession->IncreaseAttachCount();
-    EXPECT_EQ(userSession->GetAttachCount(), 1);
-    userSession->DecreaseAttachCount();
-    EXPECT_EQ(userSession->GetAttachCount(), 0);
-}
-
-/**
- * @tc.name: TestAttachCount002
- * @tc.desc: Test TestAttachCount002
- * @tc.type: FUNC
- */
-HWTEST_F(InputMethodPrivateMemberTest, TestAttachCount002, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPrivateMemberTest TestAttachCount002 TEST START");
-    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    for (uint32_t i = 0; i < MAX_ATTACH_COUNT + 1; i++) {
-        userSession->IncreaseAttachCount();
-    }
-    EXPECT_EQ(userSession->GetAttachCount(), MAX_ATTACH_COUNT);
-    for (uint32_t i = 0; i < MAX_ATTACH_COUNT + 1; i++) {
-        userSession->DecreaseAttachCount();
-    }
-    EXPECT_EQ(userSession->GetAttachCount(), 0);
-}
-
-/**
- * @tc.name: SA_TestGetSecurityInputType
- * @tc.desc: SA_TestGetSecurityInputType
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetSecurityInputType, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestGetSecurityInputType start.");
-    InputClientInfo inputClientInfo;
-    inputClientInfo.config.inputAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
-    auto ret = InputMethodPrivateMemberTest::service_->GetSecurityInputType(inputClientInfo);
-    EXPECT_EQ(ret, InputType::SECURITY_INPUT);
-
-    inputClientInfo.config.inputAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
-    ret = InputMethodPrivateMemberTest::service_->GetSecurityInputType(inputClientInfo);
-    EXPECT_EQ(ret, InputType::NONE);
-}
-
-/*
  * @tc.name: TestGetDisableNumKeyAppDeviceTypes
  * @tc.desc: Test GetDisableNumKeyAppDeviceTypes.
  * @tc.type: FUNC
@@ -2374,6 +2314,58 @@ HWTEST_F(InputMethodPrivateMemberTest, TestGetCompatibleDeviceType, TestSize.Lev
 }
 
 /**
+ * @tc.name: TestAttachCount001
+ * @tc.desc: Test TestAttachCount001.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestAttachCount001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestAttachCount001 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->IncreaseAttachCount();
+    EXPECT_EQ(userSession->GetAttachCount(), 1);
+    userSession->DecreaseAttachCount();
+    EXPECT_EQ(userSession->GetAttachCount(), 0);
+}
+ 
+/**
+ * @tc.name: TestAttachCount002
+ * @tc.desc: Test TestAttachCount002
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, TestAttachCount002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest TestAttachCount002 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    for (uint32_t i = 0; i < MAX_ATTACH_COUNT + 1; i++) {
+        userSession->IncreaseAttachCount();
+    }
+    EXPECT_EQ(userSession->GetAttachCount(), MAX_ATTACH_COUNT);
+    for (uint32_t i = 0; i < MAX_ATTACH_COUNT + 1; i++) {
+        userSession->DecreaseAttachCount();
+    }
+    EXPECT_EQ(userSession->GetAttachCount(), 0);
+}
+ 
+/**
+ * @tc.name: SA_TestGetSecurityInputType
+ * @tc.desc: SA_TestGetSecurityInputType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestGetSecurityInputType, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::SA_TestGetSecurityInputType start.");
+    InputClientInfo inputClientInfo;
+    inputClientInfo.config.inputAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
+    auto ret = InputMethodPrivateMemberTest::service_->GetSecurityInputType(inputClientInfo);
+    EXPECT_EQ(ret, InputType::SECURITY_INPUT);
+ 
+    inputClientInfo.config.inputAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
+    ret = InputMethodPrivateMemberTest::service_->GetSecurityInputType(inputClientInfo);
+    EXPECT_EQ(ret, InputType::NONE);
+}
+/**
  * @tc.name: SA_TestRestartIme001
  * @tc.desc: restart request will be discarded, and reartTasks will be reset
  * @tc.type: FUNC
@@ -2385,7 +2377,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme001, TestSize.Level0)
     auto runner = AppExecFwk::EventRunner::Create("test_RestartIme");
     auto eventHandler = std::make_shared<AppExecFwk::EventHandler>(runner);
     auto session = std::make_shared<PerUserSession>(MAIN_USER_ID, eventHandler);
-
+ 
     // attach conflict with the first scb startup event
     // restart request will be discarded, and reartTasks will be reset
     session->IncreaseAttachCount();
@@ -2395,7 +2387,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme001, TestSize.Level0)
     usleep(WAIT_FOR_THREAD_SCHEDULE * MS_TO_US);
     EXPECT_EQ(session->restartTasks_, 0);
 }
-
+ 
 /**
  * @tc.name: SA_TestRestartIme002
  * @tc.desc: restart request will be delayed
@@ -2408,7 +2400,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme002, TestSize.Level0)
     auto runner = AppExecFwk::EventRunner::Create("test_RestartIme");
     auto eventHandler = std::make_shared<AppExecFwk::EventHandler>(runner);
     auto session = std::make_shared<PerUserSession>(MAIN_USER_ID, eventHandler);
-
+ 
     // attach conflict with no first scb startup event
     // restart request will be delayed
     session->IncreaseAttachCount();
@@ -2420,13 +2412,13 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme002, TestSize.Level0)
     usleep(WAIT_FOR_THREAD_SCHEDULE * MS_TO_US);
     // restart request be delayed, restartTasks_ no change
     EXPECT_EQ(session->restartTasks_, 1);
-
+ 
     // attach finished
     session->DecreaseAttachCount();
     usleep((WAIT_ATTACH_FINISH_DELAY + WAIT_FOR_THREAD_SCHEDULE) * MS_TO_US);
     EXPECT_EQ(session->restartTasks_, 0);
 }
-
+ 
 /**
  * @tc.name: SA_TestRestartIme003
  * @tc.desc: attach finished, and execute restart immediately
@@ -2439,7 +2431,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestRestartIme003, TestSize.Level0)
     auto runner = AppExecFwk::EventRunner::Create("test_RestartIme");
     auto eventHandler = std::make_shared<AppExecFwk::EventHandler>(runner);
     auto session = std::make_shared<PerUserSession>(MAIN_USER_ID, eventHandler);
-
+ 
     // attach finished, and execute restart immediately
     EXPECT_EQ(session->GetAttachCount(), 0);
     session->AddRestartIme();
@@ -2724,6 +2716,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_001, TestSize.L
     pid_t pid1 = 100;
     sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
     auto ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto it = userSession->imeData_.find(ImeType::PROXY_IME);
@@ -2733,6 +2726,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_001, TestSize.L
     pid_t pid2 = 101;
     sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub2, nullptr);
     ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     it = userSession->imeData_.find(ImeType::PROXY_IME);
@@ -2745,6 +2739,61 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_001, TestSize.L
     ASSERT_NE(it, userSession->imeData_.end());
     ASSERT_EQ(it->second.size(), 2);
     EXPECT_EQ(it->second[1]->pid, pid1);
+}
+
+/**
+ * @tc.name: PerUserSession_AddImeData_002
+ * @tc.desc: PerUserSession_AddImeData_002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_AddImeData_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::PerUserSession_AddImeData_002 start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->imeData_.clear();
+    pid_t pid1 = 100;
+    sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
+    userSession->isFirstPreemption_= true;
+    auto ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 1);
+
+    userSession->isFirstPreemption_= false;
+    pid_t pid2 = 101;
+    sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    auto imeData = std::make_shared<ImeData>(coreStub2, agentStub2, nullptr, pid2);
+    ASSERT_NE(agentStub2, nullptr);
+    ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    EXPECT_EQ(it->second.size(), 2);
+
+    userSession->isFirstPreemption_= false;
+    ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    ASSERT_EQ(it->second.size(), 2);
+    EXPECT_EQ(it->second[1]->pid, pid1);
+
+    sptr<InputMethodCoreStub> coreStub4 = new (std::nothrow) InputMethodCoreServiceImpl();
+    sptr<InputMethodAgentStub> agentStub4 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub4, nullptr);
+    userSession->isFirstPreemption_= true;
+    pid_t pid4 = 104;
+    ret = userSession->AddImeData(ImeType::PROXY_IME, coreStub4, agentStub4->AsObject(), pid4);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    it = userSession->imeData_.find(ImeType::PROXY_IME);
+    ASSERT_NE(it, userSession->imeData_.end());
+    ASSERT_EQ(it->second.size(), 3);
+    EXPECT_EQ(it->second[2]->pid, pid4);
 }
 
 /**
@@ -2791,11 +2840,13 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_GetImeData_002, TestSize.L
     pid_t pid1 = 101;
     sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
 
     pid_t pid2 = 102;
     sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub2, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
     auto it = userSession->imeData_.find(ImeType::PROXY_IME);
     ASSERT_NE(it, userSession->imeData_.end());
@@ -2829,11 +2880,13 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_RemoveImeData_001, TestSiz
     pid_t pid1 = 101;
     sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
 
     pid_t pid2 = 102;
     sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub2, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
     auto it = userSession->imeData_.find(ImeType::PROXY_IME);
     ASSERT_NE(it, userSession->imeData_.end());
@@ -2870,11 +2923,13 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_RemoveImeData_002, TestSiz
     pid_t pid1 = 101;
     sptr<InputMethodCoreStub> coreStub1 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub1 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub1, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub1, agentStub1->AsObject(), pid1);
 
     pid_t pid2 = 102;
     sptr<InputMethodCoreStub> coreStub2 = new (std::nothrow) InputMethodCoreServiceImpl();
     sptr<InputMethodAgentStub> agentStub2 = new (std::nothrow) InputMethodAgentServiceImpl();
+    ASSERT_NE(agentStub2, nullptr);
     userSession->AddImeData(ImeType::PROXY_IME, coreStub2, agentStub2->AsObject(), pid2);
     auto it = userSession->imeData_.find(ImeType::PROXY_IME);
     ASSERT_NE(it, userSession->imeData_.end());

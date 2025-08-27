@@ -51,7 +51,7 @@ public:
     }
     bool IsFormShell(Security::AccessToken::AccessTokenID tokenId) override
     {
-        return IsFormShell_;
+        return isFormShell_;
     }
     std::string GetBundleNameByToken(uint32_t tokenId) override
         {
@@ -72,8 +72,8 @@ public:
         isBundleNameValid_ = false;
         hasPermission_ = false;
         isBroker_ = false;
+        isFormShell_ = false;
         isNativeSa_ = false;
-        IsFormShell_ = false;
         isSpecialSaUid_ = false;
         bundleName_ = "";
     }
@@ -118,7 +118,7 @@ private:
     static bool hasPermission_;
     static bool isBroker_;
     static bool isNativeSa_;
-    static bool IsFormShell_;
+    static bool isFormShell_;
     static bool isSpecialSaUid_;
     static std::string bundleName_;
 };
@@ -128,7 +128,7 @@ bool IdentityCheckerMock::isBundleNameValid_ { false };
 bool IdentityCheckerMock::hasPermission_ { false };
 bool IdentityCheckerMock::isBroker_ { false };
 bool IdentityCheckerMock::isNativeSa_ { false };
-bool IdentityCheckerMock::IsFormShell_ { false };
+bool IdentityCheckerMock::isFormShell_ { false };
 bool IdentityCheckerMock::isSpecialSaUid_ { false };
 std::string IdentityCheckerMock::bundleName_;
 } // namespace MiscServices

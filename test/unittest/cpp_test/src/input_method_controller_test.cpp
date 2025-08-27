@@ -61,7 +61,6 @@
 #include "key_event_util.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
-#include "notify_service_impl.h"
 #include "scope_utils.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
@@ -135,6 +134,9 @@ public:
     static void CheckTextConfig(const TextConfig &config);
     static void ResetKeyboardListenerTextConfig();
     static void EditorContentMultiTest();
+    static sptr<InputMethodController> GetController();
+    static sptr<OnTextChangedListener> GetTextListener();
+    static std::mutex controllerMutex_;
     static sptr<InputMethodController> inputMethodController_;
     static InputMethodAbility &inputMethodAbility_;
     static sptr<InputMethodSystemAbility> imsa_;
@@ -142,11 +144,13 @@ public:
     static std::shared_ptr<MMI::KeyEvent> keyEvent_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static std::shared_ptr<SelectListenerMock> controllerListener_;
+    static std::mutex textListenerMutex_;
     static sptr<OnTextChangedListener> textListener_;
     static std::mutex keyboardListenerMutex_;
     static std::condition_variable keyboardListenerCv_;
     static BlockData<std::shared_ptr<MMI::KeyEvent>> blockKeyEvent_;
     static BlockData<std::shared_ptr<MMI::KeyEvent>> blockFullKeyEvent_;
+    static BlockData<bool> isNotifyFinished_;
     static std::mutex onRemoteSaDiedMutex_;
     static std::condition_variable onRemoteSaDiedCv_;
     static sptr<InputDeathRecipient> deathRecipient_;
@@ -168,7 +172,7 @@ public:
     static constexpr int32_t TASK_DELAY_TIME = 10;
     static constexpr int32_t EACH_THREAD_CIRCULATION_TIME = 100;
     static constexpr int32_t THREAD_NUM = 5;
-    static int32_t multiThreadExecTotalNum_;
+    static std::atomic<int32_t> multiThreadExecTotalNum_;
 
     class KeyboardListenerImpl : public KeyboardListener {
     public:
@@ -246,6 +250,7 @@ public:
         }
     };
 };
+std::mutex InputMethodControllerTest::controllerMutex_;
 sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
 InputMethodAbility &InputMethodControllerTest::inputMethodAbility_ = InputMethodAbility::GetInstance();
 sptr<InputMethodSystemAbility> InputMethodControllerTest::imsa_;
@@ -253,6 +258,7 @@ sptr<InputMethodSystemAbilityProxy> InputMethodControllerTest::imsaProxy_;
 std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
 std::shared_ptr<SelectListenerMock> InputMethodControllerTest::controllerListener_;
+std::mutex InputMethodControllerTest::textListenerMutex_;
 sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
 CursorInfo InputMethodControllerTest::cursorInfo_ = {};
 int32_t InputMethodControllerTest::oldBegin_ = 0;
@@ -272,13 +278,16 @@ BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockKeyEve
 BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockFullKeyEvent_ {
     InputMethodControllerTest::KEY_EVENT_DELAY_TIME, nullptr
 };
+BlockData<bool> InputMethodControllerTest::isNotifyFinished_ {
+    false, PerUserSession::MAX_NOTIFY_TIME
+};
 bool InputMethodControllerTest::doesKeyEventConsume_ { false };
 bool InputMethodControllerTest::doesFUllKeyEventConsume_ { false };
 std::condition_variable InputMethodControllerTest::keyEventCv_;
 std::mutex InputMethodControllerTest::keyEventLock_;
 bool InputMethodControllerTest::consumeResult_ { false };
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodControllerTest::textConfigHandler_ { nullptr };
-int32_t InputMethodControllerTest::multiThreadExecTotalNum_{ 0 };
+std::atomic<int32_t> InputMethodControllerTest::multiThreadExecTotalNum_{ 0 };
 
 void InputMethodControllerTest::SetUpTestCase(void)
 {
@@ -539,14 +548,30 @@ void InputMethodControllerTest::EditorContentMultiTest()
 {
     for (int32_t i = 0; i < EACH_THREAD_CIRCULATION_TIME; i++) {
         InputAttribute inputAttribute = { .isTextPreviewSupported = true };
-        inputMethodController_->Attach(textListener_, false, inputAttribute);
+        auto controller = GetController();
+        ASSERT_NE(controller, nullptr);
+        auto listener = GetTextListener();
+        ASSERT_NE(listener, nullptr);
+        controller->Attach(listener, false, inputAttribute);
         std::u16string text = Str8ToStr16("testSelect");
         int start = 1;
         int end = 2;
-        inputMethodController_->OnSelectionChange(text, start, end);
-        inputMethodController_->OnInputStop();
-        multiThreadExecTotalNum_++;
+        controller->OnSelectionChange(text, start, end);
+        controller->OnInputStop();
+        multiThreadExecTotalNum_.fetch_add(1, std::memory_order_relaxed);
     }
+}
+
+sptr<InputMethodController> InputMethodControllerTest::GetController()
+{
+    std::lock_guard<std::mutex> lock(controllerMutex_);
+    return inputMethodController_;
+}
+
+sptr<OnTextChangedListener> InputMethodControllerTest::GetTextListener()
+{
+    std::lock_guard<std::mutex> lock(textListenerMutex_);
+    return textListener_;
 }
 
 /**
@@ -2121,7 +2146,7 @@ HWTEST_F(InputMethodControllerTest, TestSetSimpleKeyboardEnabled, TestSize.Level
 HWTEST_F(InputMethodControllerTest, TestNotifyOnInputStopFinished001, TestSize.Level0)
 {
     IMSA_HILOGI("TestNotifyOnInputStopFinished001 START");
-    sptr<OnInputStopNotifyStub> proxy = new (std::nothrow) OnInputStopNotifyServiceImpl();
+    sptr<OnInputStopNotifyStub> proxy = new (std::nothrow) OnInputStopNotifyServiceImpl(getpid());
     ASSERT_NE(proxy, nullptr);
     std::shared_ptr<OnInputStopNotifyProxy> channelProxy = std::make_shared<OnInputStopNotifyProxy>(proxy);
     auto sessionTemp = std::make_shared<PerUserSession>(0, nullptr);
@@ -2130,10 +2155,29 @@ HWTEST_F(InputMethodControllerTest, TestNotifyOnInputStopFinished001, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     UserSessionManager::GetInstance().userSessions_.clear();
 }
+ 
+/**
+ * @tc.name: testOnInputStopAsync
+ * @tc.desc: Bind IMSA.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, TestOnInputStopAsync, TestSize.Level0)
+{
+    IMSA_HILOGI("TestOnInputStopAsync START");
+    auto sessionTemp = std::make_shared<PerUserSession>(0, nullptr);
+    sptr<IInputClient> client = new (std::nothrow) InputClientServiceImpl();
+    InputClientInfo clientInfo = { .client = client };
+    std::shared_ptr<InputClientInfo> sharedClientInfo = std::make_shared<InputClientInfo>(clientInfo);
+    isNotifyFinished_.SetValue(false);
+    sessionTemp->StopClientInput(sharedClientInfo, false, false);
+    isNotifyFinished_.SetValue(true);
+    sessionTemp->StopClientInput(sharedClientInfo, false, false);
+    EXPECT_TRUE(isNotifyFinished_.GetValue());
+}
 
 /**
  * @tc.name: TestResponseDataChannel
- * @tc.desc: Test ResponseDataChannel
+ * @tc.desc: Test ResponseDataChannel： agent channel isnullptr
  * @tc.type: FUNC
  */
 HWTEST_F(InputMethodControllerTest, TestResponseDataChannel, TestSize.Level0)
@@ -2154,10 +2198,10 @@ HWTEST_F(InputMethodControllerTest, TestResponseDataChannel, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, TestEditorContentLock, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodControllerTest::TestEditorContentLock START");
-    multiThreadExecTotalNum_ = 0;
+    multiThreadExecTotalNum_.store(0);
     SET_THREAD_NUM(InputMethodControllerTest::THREAD_NUM);
     GTEST_RUN_TASK(InputMethodControllerTest::EditorContentMultiTest);
-    EXPECT_EQ(multiThreadExecTotalNum_, THREAD_NUM * EACH_THREAD_CIRCULATION_TIME);
+    EXPECT_EQ(multiThreadExecTotalNum_.load(), THREAD_NUM * EACH_THREAD_CIRCULATION_TIME);
 }
 
 /**
