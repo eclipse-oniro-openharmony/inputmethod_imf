@@ -529,7 +529,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_HandleMsg, TestSize.Level0)
  */
 HWTEST_F(ImaTextEditTest, ImaTextEditTest_Report, TestSize.Level0)
 {
-    const int64_t REPORT_TIMEOUT = 200 + 1;
+    const int64_t REPORT_TIMEOUT = 200 + 1; // 200 is BASE_TEXT_OPERATION_TIMEOUT, unit ms
     IMSA_HILOGI("ImeProxyTest::ImaTextEditTest_Report");
     auto channelProxy = std::make_shared<InputDataChannelProxy>(nullptr);
     auto channelWrap = std::make_shared<InputDataChannelProxyWrap>(channelProxy, nullptr);

@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr std::size_t MESSAGE_UNANSWERED_MAX_NUMBER = 1000;
-constexpr uint32_t BASE_TEXT_OPERATION_TIMEOUT = 200;
+constexpr uint32_t BASE_TEXT_OPERATION_TIMEOUT = 200; // text operation timeout, unit ms
 InputDataChannelProxyWrap::InputDataChannelProxyWrap(
     const std::shared_ptr<InputDataChannelProxy> &channel, const sptr<IRemoteObject> &agentObject)
 {
@@ -294,7 +294,7 @@ int32_t InputDataChannelProxyWrap::HandleMsg(uint64_t msgId, const ResponseInfo 
     if (it->second->asyncCallback != nullptr) {
         it->second->asyncCallback(rspInfo.dealRet_, rspInfo.data_);
     }
-    int64_t now = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    int64_t now = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
     ReportBaseTextOperation(it->second->eventCode, rspInfo.dealRet_, now - it->second->reportStartTime);
     rspHandlers_.erase(it);
     return ErrorCode::NO_ERROR;

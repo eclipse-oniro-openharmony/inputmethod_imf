@@ -41,7 +41,7 @@ struct ResponseHandler {
     int32_t eventCode = 0;
     uint64_t msgId = 0;
     int64_t reportStartTime =
-        duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+        duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
     AsyncIpcCallBack asyncCallback = nullptr;
     std::shared_ptr<BlockData<ResponseInfo>> syncBlockData = nullptr;
     ResponseHandler(uint64_t msgId, bool isSync, const AsyncIpcCallBack &callback, int32_t eventCode)
