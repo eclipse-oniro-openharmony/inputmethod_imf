@@ -93,6 +93,7 @@ ohos_shared_library("cj_inputmethod_extension_ffi") {
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",
     "ipc:ipc_napi",
+    "ipc:ipc_single",
   ]
 
   innerapi_tags = [ "platformsdk" ]

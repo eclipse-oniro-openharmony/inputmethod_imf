@@ -435,6 +435,7 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_001, TestSize.Level0
     auto ret = TddUtil::ExecuteCmd(cmd, result);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
+    imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
 }
 
 /**
@@ -454,6 +455,7 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_002, TestSize.Level0
     auto ret = TddUtil::ExecuteCmd(cmd, result);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
+    imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
 }
 
 /**
@@ -469,7 +471,7 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_003, TestSize.Level0
     ImeSettingListenerTestImpl::ResetParam();
     std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
     std::vector<Property> props;
-    imc_->ListInputMethod(props);
+    imc_->ListInputMethod(true, props);
     std::string result;
     static std::string cmd = "uinput -K -d 2077 -d 2050 -u 2050 -u 2077";
     for (auto iter = 0; iter < props.size(); ++iter) {
@@ -479,6 +481,7 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_003, TestSize.Level0
     EXPECT_TRUE(ImeSettingListenerTestImpl::WaitTargetImeChange(property->name));
     std::shared_ptr<Property> curProperty = imc_->GetCurrentInputMethod();
     EXPECT_EQ(property->name, curProperty->name);
+    imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
 }
 } // namespace MiscServices
 } // namespace OHOS

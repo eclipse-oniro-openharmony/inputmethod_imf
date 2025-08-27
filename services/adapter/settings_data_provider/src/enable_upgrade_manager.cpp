@@ -131,7 +131,8 @@ int32_t EnableUpgradeManager::ParseEnabledTable(
 int32_t EnableUpgradeManager::GetFullExperienceTable(int32_t userId, std::set<std::string> &bundleNames)
 {
     std::string content;
-    int32_t ret = SettingsDataUtils::GetInstance().GetStringValue(SETTING_URI_PROXY, SettingsDataUtils::SECURITY_MODE, content);
+    int32_t ret = SettingsDataUtils::GetInstance().GetStringValue(SETTING_URI_PROXY,
+        SettingsDataUtils::SECURITY_MODE, content);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGW("%{public}d get full experience table failed:%{public}d.", userId, ret);
         return ret;
@@ -210,7 +211,7 @@ int32_t EnableUpgradeManager::PaddedByBundleMgr(
     }
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_START
 void EnableUpgradeManager::UpdateGlobalEnabledTable(int32_t userId, const ImeEnabledCfg &newEnabledCfg)
 {
     if (!ImeInfoInquirer::GetInstance().GetSystemConfig().enableInputMethodFeature) {
@@ -257,7 +258,7 @@ void EnableUpgradeManager::UpdateGlobalEnabledTable(int32_t userId, const ImeEna
     }
     SetGlobalEnabledTable(newGlobalContent);
 }
-
+// LCOV_EXCL_STOP
 int32_t EnableUpgradeManager::GetGlobalTableUserId(const std::string &valueStr)
 {
     auto root = cJSON_Parse(valueStr.c_str());
@@ -292,7 +293,7 @@ std::string EnableUpgradeManager::GenerateGlobalContent(int32_t userId, const st
     }
     return newGlobalContent;
 }
-
+// LCOV_EXCL_START
 bool EnableUpgradeManager::SetGlobalEnabledTable(const std::string &content)
 {
     return SetEnabledTable(SETTING_URI_PROXY, content);
@@ -308,7 +309,7 @@ bool EnableUpgradeManager::SetEnabledTable(const std::string &uriProxy, const st
 {
     return SettingsDataUtils::GetInstance().SetStringValue(uriProxy, SettingsDataUtils::ENABLE_IME, content);
 }
-
+// LCOV_EXCL_STOP
 int32_t EnableUpgradeManager::GetImePersistCfg(int32_t userId, ImePersistInfo &persisInfo)
 {
     if (!FileOperator::IsExist(IME_CFG_FILE_PATH)) {

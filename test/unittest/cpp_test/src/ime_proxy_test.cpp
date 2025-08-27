@@ -168,6 +168,21 @@ sptr<InputMethodController> ImeProxyTest::imc_;
 int32_t ImeProxyTest::uid_ { -1 };
 
 /**
+ * @tc.name: RegisteredProxyNotPermission
+ * @tc.desc: not in permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeProxyTest, RegisteredProxyNotPermission, TestSize.Level1)
+{
+    IMSA_HILOGI("ImeProxyTest::RegisteredProxyNotPermission");
+    // RegisteredProxy not in ima bind
+    InputMethodEngineListenerImpl::ResetParam();
+    InputMethodEngineListenerImpl::isEnable_ = true;
+    auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: RegisteredProxyNotInEditor_001
  * @tc.desc: not in editor
  * @tc.type: FUNC

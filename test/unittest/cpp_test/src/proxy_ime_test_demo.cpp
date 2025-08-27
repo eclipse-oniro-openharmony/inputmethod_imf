@@ -14,21 +14,18 @@
  */
 #include <iostream>
 
-#include "accesstoken_kit.h"
 #include "global.h"
 #include "input_method_ability_interface.h"
 #include "input_method_engine_listener.h"
-#include "nativetoken_kits.h"
 #include "sys_cfg_parser.h"
-#include "token_setproc.h"
 
 using namespace std;
-using namespace OHOS::Security::AccessToken;
 using namespace OHOS::MiscServices;
 const uint32_t INSERT_TEXT_MAX_NUM = 1000;
+const uint32_t REGISTER_MAX_NUM = 10;
 void InsertText()
 {
-    for (int32_t i = 0; i < INSERT_TEXT_MAX_NUM; i++) {
+    for (uint32_t i = 0; i < INSERT_TEXT_MAX_NUM; i++) {
         InputMethodAbilityInterface::GetInstance().InsertText("A");
     }
 }
@@ -39,11 +36,13 @@ public:
     }
     void OnInputStart() override
     {
+        printf("=====OnInputStart.=====\n");
         std::thread t(InsertText);
         t.detach();
     }
     int32_t OnInputStop() override
     {
+        printf("=====OnInputStop.=====\n");
         return 0;
     }
     void OnSetCallingWindow(uint32_t windowId) override
@@ -60,10 +59,12 @@ public:
     }
     bool IsEnable() override
     {
+        printf("=====IsEnable.=====\n");
         return true;
     }
     void NotifyPreemption() override
     {
+        printf("=====NotifyPreemption.=====\n");
     }
 };
 
@@ -72,20 +73,33 @@ void RegisterProxy()
     InputMethodAbilityInterface::GetInstance().SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("Register proxy ime failed:%{public}d.", ret);
+        printf("=====Register proxy ime failed:%d.=====\n", ret);
         return;
     }
-    IMSA_HILOGI("Register proxy ime succeed.");
+    printf("=====Register proxy ime succeed.=====\n");
+}
+
+void RegisterProxyLoop()
+{
+    for (uint32_t i = 0; i < REGISTER_MAX_NUM; i++) {
+        InputMethodAbilityInterface::GetInstance().SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+        auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
+        if (ret != ErrorCode::NO_ERROR) {
+            printf("=====RegisterProxyLoop::Register proxy ime failed:%d.=====\n", ret);
+            return;
+        }
+        printf("=====RegisterProxyLoop::Register proxy ime succeed.=====\n");
+    }
 }
 
 void UnRegisterProxy()
 {
     auto ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("UnRegister proxy ime failed:%{public}d.", ret);
+        printf("=====UnRegister proxy ime failed:%d.=====\n", ret);
         return;
     }
-    IMSA_HILOGI("UnRegister proxy ime succeed.");
+    printf("=====UnRegister proxy ime succeed.=====\n");
 }
 
 int32_t GetProxyImeUid()
@@ -101,24 +115,32 @@ int32_t GetProxyImeUid()
 int main()
 {
     setuid(GetProxyImeUid());
-    int32_t input = 1;
-    while (true) {
-        printf("=====1:RegisterProxy  2:UnRegisterProxy=====\n");
+    int32_t input = 0;
+    // 4: input 4
+    while (input != 4) {
+        printf("=====1:RegisterProxy  2:UnRegisterProxy  3:RegisterProxyLoop  4:exit=====\n");
         printf("input: ");
-        fflush(stdout);
-        scanf("%d", &input);
-        getchar();
-        printf("input:%d \n", input);
+        cin >> input;
         switch (input) {
+            // 1: input 1
             case 1:
                 RegisterProxy();
                 break;
+            // 2: input 2
             case 2:
                 UnRegisterProxy();
                 break;
+            // 3: input 3
+            case 3:
+                RegisterProxyLoop();
+                break;
+             // 4: input 4
+            case 4:
+                printf("=====EXIT=====\n");
+                break;
             default:
-                printf("input error!\n");
+                printf("=====input error!=====\n");
         }
-        printf("=======================END=========================");
     }
+    return 0;
 }

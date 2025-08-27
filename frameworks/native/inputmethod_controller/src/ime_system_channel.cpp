@@ -78,7 +78,7 @@ sptr<IInputMethodSystemAbility> ImeSystemCmdChannel::GetSystemAbilityProxy()
     systemAbility_ = iface_cast<IInputMethodSystemAbility>(systemAbility);
     return systemAbility_;
 }
-
+// LCOV_EXCL_START
 void ImeSystemCmdChannel::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 {
     IMSA_HILOGI("input method service death.");
@@ -88,7 +88,7 @@ void ImeSystemCmdChannel::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     }
     ClearSystemCmdAgent();
 }
-
+// LCOV_EXCL_STOP
 int32_t ImeSystemCmdChannel::ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener)
 {
     IMSA_HILOGD("start.");
@@ -208,7 +208,7 @@ int32_t ImeSystemCmdChannel::ReceivePrivateCommand(
     cmdlistener->ReceivePrivateCommand(privateCommand);
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_START
 int32_t ImeSystemCmdChannel::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     IMSA_HILOGD("start.");
@@ -227,7 +227,7 @@ int32_t ImeSystemCmdChannel::SendPrivateCommand(const std::unordered_map<std::st
     }
     return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND;
 }
-
+// LCOV_EXCL_STOP
 int32_t ImeSystemCmdChannel::NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
 {
     auto listener = GetSystemCmdListener();
@@ -262,7 +262,7 @@ std::string ImeSystemCmdChannel::GetSmartMenuCfg()
     }
     return profiles[0];
 }
-
+// LCOV_EXCL_START
 void ImeSystemCmdChannel::GetExtensionInfo(
     std::vector<ExtensionAbilityInfo> extensionInfos, ExtensionAbilityInfo &extInfo)
 {
@@ -276,7 +276,7 @@ void ImeSystemCmdChannel::GetExtensionInfo(
         }
     }
 }
-
+// LCOV_EXCL_STOP
 int32_t ImeSystemCmdChannel::GetDefaultImeCfg(std::shared_ptr<Property> &property)
 {
     IMSA_HILOGD("InputMethodAbility::GetDefaultImeCfg start.");

@@ -71,17 +71,19 @@ int32_t InputMethodPanel::CreatePanel(
         IMSA_HILOGE("create window failed: %{public}d!", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
     if (SetPanelProperties() != ErrorCode::NO_ERROR) {
         wmError = window_->Destroy();
         IMSA_HILOGI("destroy window end, wmError is %{public}d.", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     windowId_ = window_->GetWindowId();
-    IMSA_HILOGI("success, type/flag/windowId/isScbEnable_: %{public}d/%{public}d/%{public}u/%{public}d.",
-        static_cast<int32_t>(panelType_), static_cast<int32_t>(panelFlag_), windowId_, isScbEnable_);
-    if (panelInfo.panelType == SOFT_KEYBOARD && isScbEnable_) {
-        RegisterKeyboardPanelInfoChangeListener();
+    IMSA_HILOGI("success, type/flag/windowId: %{public}d/%{public}d/%{public}u.", static_cast<int32_t>(panelType_),
+        static_cast<int32_t>(panelFlag_), windowId_);
+    if (panelInfo.panelType == SOFT_KEYBOARD) {
+        isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+        if (isScbEnable_) {
+            RegisterKeyboardPanelInfoChangeListener();
+        }
     }
     return ErrorCode::NO_ERROR;
 }
@@ -320,11 +322,9 @@ void InputMethodPanel::RectifyResizeParams(LayoutParams &params, const DisplaySi
         std::min(static_cast<float>(displaySize.landscape.height) * FIXED_SOFT_KEYBOARD_PANEL_RATIO,
             static_cast<float>(params.landscapeRect.height_));
     params.portraitRect.width_ =
-        std::min(static_cast<float>(displaySize.portrait.width),
-            static_cast<float>(params.portraitRect.width_));
+        std::min(displaySize.portrait.width, params.portraitRect.width_);
     params.landscapeRect.width_ =
-        std::min(static_cast<float>(displaySize.landscape.width),
-            static_cast<float>(params.landscapeRect.width_));
+        std::min(displaySize.landscape.width, params.landscapeRect.width_);
 }
 
 void InputMethodPanel::UpdateRectParams(
@@ -403,7 +403,8 @@ int32_t InputMethodPanel::ResizePanel(uint32_t width, uint32_t height)
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto currentParams = GetEnhancedLayoutParams();
-    LayoutParams targetParams = { currentParams.landscape.rect, currentParams.portrait.rect };
+    LayoutParams targetParams = { .landscapeRect = currentParams.landscape.rect,
+        .portraitRect = currentParams.portrait.rect };
     auto ret = GetResizeParams(targetParams.portraitRect, targetParams.landscapeRect, width, height);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to GetResizeParams, ret: %{public}d", ret);
@@ -1882,7 +1883,7 @@ int32_t InputMethodPanel::SetImmersiveMode(ImmersiveMode mode)
         return ErrorCode::NO_ERROR;
     }
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("ChangeKeyboardViewMode failed, ret: %{public}d", ret);
+        IMSA_HILOGE("ChangeKeyboardEffectOption failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     StoreImmersiveMode(mode);

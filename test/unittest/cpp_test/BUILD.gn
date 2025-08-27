@@ -151,6 +151,7 @@ ohos_unittest("InputMethodAttachTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "window_manager:libdm",
@@ -522,6 +523,7 @@ ohos_unittest("InputMethodSwitchTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "safwk:system_ability_fwk",
   ]
 
@@ -582,9 +584,9 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   ]
 
   external_deps = [
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_manager",
     "ability_runtime:runtime",
-    "ability_runtime:ability_connect_callback_stub",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
@@ -716,6 +718,7 @@ ohos_unittest("NewImeSwitchTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
     "safwk:system_ability_fwk",
   ]
 
@@ -729,6 +732,44 @@ ohos_unittest("NewImeSwitchTest") {
     external_deps += [ "selinux_adapter:librestorecon" ]
     cflags = [ "-DWITH_SELINUX" ]
   }
+}
+
+ohos_unittest("NumKeyAppsManagerTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+  include_dirs = [ "${inputmethod_path}/common/include" ]
+  sources = [ "src/numkey_apps_manager_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
+    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "resource_management:global_resmgr",
+  ]
 }
 
 ohos_unittest("IdentityCheckerTest") {
@@ -846,23 +887,14 @@ ohos_unittest("ImeProxyAgentImeTest") {
   module_out_path = module_output_path
 
   sources = [
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_service_impl.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_service_impl.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_tools.cpp",
     "${inputmethod_path}/services/src/sys_cfg_parser.cpp",
-    "${inputmethod_path}/test/common/src/keyboard_listener_test_impl.cpp",
     "src/ime_proxy_agent_ime_test.cpp",
   ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_control_channel_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:input_method_core_stub",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_client_stub",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:input_method_agent_proxy",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/file:imf_file_static",
@@ -1238,6 +1270,7 @@ ohos_unittest("ImeControllerCpaiTest") {
     "googletest:gmock",
     "hilog:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 }
 
@@ -1441,217 +1474,6 @@ ohos_unittest("WindowAdapterTest") {
   }
 }
 
-ohos_unittest("InputMethodManagerCommandTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-
-  sources = [
-    "${inputmethod_path}/tools/ime/src/input_method_manager_command.cpp",
-    "src/input_method_manager_command_test.cpp",
-  ]
-
-  include_dirs = [
-    "include",
-    "${inputmethod_path}/tools/ime/include",
-    "${inputmethod_path}/common/include",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
-  ]
-
-  deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
-    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
-    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
-  ]
-
-  external_deps = [
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
-
-  if (window_manager_use_sceneboard) {
-    external_deps += [ "window_manager:libwm_lite" ]
-  } else {
-    external_deps += [ "window_manager:libwm" ]
-  }
-}
-
-ohos_unittest("ImeEnabledInfoManagerTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-  include_dirs = [ "${inputmethod_path}/common/include" ]
-  sources = [ "src/ime_enabled_info_manager_test.cpp" ]
-
-  configs = [ ":module_private_config" ]
-  deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service_static",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
-    "${inputmethod_path}/services/file:imf_file_static",
-    "${inputmethod_path}/services/json:imf_json_static",
-    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
-    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
-  ]
-
-  external_deps = [
-    "ability_base:want",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "config_policy:configpolicy_util",
-    "data_share:datashare_common",
-    "data_share:datashare_consumer",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "init:libbeget_proxy",
-    "init:libbegetutil",
-    "input:libmmi-client",
-    "resource_management:global_resmgr",
-  ]
-  if (window_manager_use_sceneboard) {
-    external_deps += [ "window_manager:libwm_lite" ]
-  } else {
-    external_deps += [ "window_manager:libwm" ]
-  }
-
-  if (build_selinux) {
-    external_deps += [ "selinux_adapter:librestorecon" ]
-    cflags = [ "-DWITH_SELINUX" ]
-  }
-}
-
-ohos_unittest("StringUtilsTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-
-  include_dirs = [ "${inputmethod_path}/common/include" ]
-
-  sources = [ "src/string_utils_test.cpp" ]
-
-  configs = [ ":module_private_config" ]
-
-  deps = [ "${inputmethod_path}/common:inputmethod_common" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-  ]
-}
-
-ohos_unittest("NumKeyAppsManagerTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-  include_dirs = [ "${inputmethod_path}/common/include" ]
-  sources = [ "src/numkey_apps_manager_test.cpp" ]
-
-  configs = [ ":module_private_config" ]
-  deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service_static",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
-    "${inputmethod_path}/services/file:imf_file_static",
-    "${inputmethod_path}/services/json:imf_json_static",
-    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-  ]
-
-  external_deps = [
-    "ability_base:want",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "config_policy:configpolicy_util",
-    "data_share:datashare_common",
-    "data_share:datashare_consumer",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "init:libbeget_proxy",
-    "init:libbegetutil",
-    "input:libmmi-client",
-    "resource_management:global_resmgr",
-  ]
-}
-
-ohos_unittest("SaTaskManagerTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-  include_dirs = [
-    "${inputmethod_path}/common/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/include/actions",
-    "${inputmethod_path}/services/task_manager/include",
-    "${inputmethod_path}/services/task_manager/include/actions",
-    "${inputmethod_path}/services/task_manager/include/tasks",
-  ]
-  sources = [
-    "${inputmethod_path}/frameworks/native/common/src/service_response_data.cpp",
-    "${inputmethod_path}/services/task_manager/src/actions/sa_action.cpp",
-    "${inputmethod_path}/services/task_manager/src/actions/sa_action_wait.cpp",
-    "${inputmethod_path}/services/task_manager/src/requester_manager.cpp",
-    "${inputmethod_path}/services/task_manager/src/sa_task_manager.cpp",
-    "${inputmethod_path}/services/task_manager/src/tasks/sa_task.cpp",
-    "src/sa_task_manager_test.cpp",
-  ]
-
-  configs = [ ":module_private_config" ]
-  deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:ima_response_channel_stub",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_proxy",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:imc_response_channel_stub",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service_static",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
-    "${inputmethod_path}/services/file:imf_file_static",
-    "${inputmethod_path}/services/json:imf_json_static",
-    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-  ]
-
-  external_deps = [
-    "ability_base:want",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "config_policy:configpolicy_util",
-    "data_share:datashare_common",
-    "data_share:datashare_consumer",
-    "googletest:gtest_main",
-    "hicollie:libhicollie",
-    "hilog:libhilog",
-    "init:libbeget_proxy",
-    "init:libbegetutil",
-    "input:libmmi-client",
-    "resource_management:global_resmgr",
-  ]
-}
-
 ohos_unittest("ImaTextEditTest") {
   branch_protector_ret = "pac_ret"
   sanitize = {
@@ -1705,6 +1527,122 @@ ohos_unittest("ImaTextEditTest") {
     "window_manager:libdm",
   ]
 
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
+  if (build_selinux) {
+    external_deps += [ "selinux_adapter:librestorecon" ]
+    cflags = [ "-DWITH_SELINUX" ]
+  }
+}
+
+ohos_unittest("StringUtilsTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  include_dirs = [ "${inputmethod_path}/common/include" ]
+
+  sources = [ "src/string_utils_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [ "${inputmethod_path}/common:inputmethod_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+ohos_unittest("InputMethodManagerCommandTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  sources = [
+    "${inputmethod_path}/tools/ime/src/input_method_manager_command.cpp",
+    "src/input_method_manager_command_test.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+    "${inputmethod_path}/tools/ime/include",
+    "${inputmethod_path}/common/include",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
+  ]
+
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
+  ]
+
+  external_deps = [
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+  ]
+
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
+}
+
+ohos_unittest("ImeEnabledInfoManagerTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+  include_dirs = [ "${inputmethod_path}/common/include" ]
+  sources = [ "src/ime_enabled_info_manager_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
+    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/newTestIme:newTestIme",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "resource_management:global_resmgr",
+  ]
   if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
   } else {
@@ -1829,21 +1767,20 @@ ohos_executable("InputStatusChangedCbDemo") {
     debug = false
   }
 
-  sources = [ "input_status_changed_cb_demo.cpp" ]
+  sources = [ "src/input_status_changed_cb_demo.cpp" ]
   include_dirs = [
     "${inputmethod_path}/common/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include"
   ]
 
-  deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
-    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-  ]
+  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client" ]
 
   configs = [ ":module_private_config" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
   ]
 
@@ -1860,7 +1797,10 @@ ohos_executable("ProxyImeTestDemo") {
     debug = false
   }
 
-  sources = [ "proxy_ime_test_demo.cpp" ]
+  sources = [
+    "${inputmethod_path}/services/src/sys_cfg_parser.cpp",
+    "src/proxy_ime_test_demo.cpp"
+  ]
   include_dirs = [
     "${inputmethod_path}/common/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability/include"
@@ -1868,13 +1808,18 @@ ohos_executable("ProxyImeTestDemo") {
 
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
   ]
 
   configs = [ ":module_private_config" ]
 
   external_deps = [
-    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 
   install_enable = false
