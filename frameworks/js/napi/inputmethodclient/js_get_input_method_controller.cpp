@@ -472,12 +472,12 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
         return nullptr;
     }
 
-    // if the second param is not napi_function/napi_null/napi_undefined, return.
+    // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
         return nullptr;
     }
-    // if the second param is napi_function, delete it, else delete all.
+    // if the second param is napi_function, delete it, else delete all
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
     IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());
@@ -645,11 +645,7 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
         }
         // requestKeyboardReason not must
         if (argc > 2) {
-            napi_valuetype valueType = napi_undefined;
-            napi_typeof(env, argv[2], &valueType);
-            if (valueType != napi_function) {
-                JsUtil::GetValue(env, argv[2], ctxt->requestKeyboardReason);
-            }
+            JsUtil::GetValue(env, argv[2], ctxt->requestKeyboardReason);
         }
         ctxt->info = { std::chrono::system_clock::now(), ctxt->attribute};
         attachQueue_.Push(ctxt->info);
@@ -723,15 +719,10 @@ napi_value JsGetInputMethodController::GetAttachOptionsValue(
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, &argc, argv, &thisVar, &data));
     int32_t requestKeyboardReason = 0;
     if (argc > 0) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_function) {
-            JsUtil::GetValue(env, argv[0], requestKeyboardReason);
-        }
+        JsUtil::GetValue(env, argv[0], requestKeyboardReason);
     }
     IMSA_HILOGI("run in. requestKeyboardReason=%{public}d", requestKeyboardReason);
     attachOptions.requestKeyboardReason = static_cast<OHOS::MiscServices::RequestKeyboardReason>(requestKeyboardReason);
-
     return result;
 }
 
@@ -755,8 +746,8 @@ napi_value JsGetInputMethodController::DiscardTypingText(napi_env env, napi_call
 {
     InputMethodSyncTrace tracer("JsGetInputMethodController_DiscardTypingText");
     return HandleSoftKeyboard(
-        env, info
-        , [] {
+        env, info,
+        [] {
             auto instance = InputMethodController::GetInstance();
             if (instance == nullptr) {
                 IMSA_HILOGE("GetInstance return nullptr!");

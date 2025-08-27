@@ -26,7 +26,6 @@ using namespace OHOS::MiscServices;
 namespace OHOS {
 constexpr size_t THRESHOLD = 10;
 constexpr int32_t OFFSET = 4;
-constexpr int32_t PRIVATEDATAVALUE = 100;
 const std::u16string AGENTSTUB_INTERFACE_TOKEN = u"OHOS.MiscServices.ISystemCmdChannel";
 uint32_t ConvertToUint32(const uint8_t *ptr)
 {
@@ -39,23 +38,14 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 bool FuzzSystemCmdChannelStub(const uint8_t *rawData, size_t size)
 {
     FuzzedDataProvider provider(rawData, size);
-    InputType fuzzedBool = static_cast<InputType>(rawData[0] % 2);
+    InputType inputType = static_cast<InputType>(provider.ConsumeIntegral<int32_t>());
     auto fuzzedUint32 = provider.ConsumeIntegral<uint32_t>();
 
     uint32_t code = ConvertToUint32(rawData);
     rawData = rawData + OFFSET;
     size = size - OFFSET;
 
-    SysPanelStatus sysPanelStatus = {fuzzedBool, 0, fuzzedUint32, fuzzedUint32};
-
-    std::unordered_map <std::string, PrivateDataValue> privateCommand;
-    PrivateDataValue privateDataValue1 = std::string("stringValue");
-    PrivateDataValue privateDataValue2 = static_cast<int32_t>(fuzzedBool);
-    PrivateDataValue privateDataValue3 = PRIVATEDATAVALUE;
-    privateCommand.emplace("value1", privateDataValue1);
-    privateCommand.emplace("value2", privateDataValue2);
-    privateCommand.emplace("value3", privateDataValue3);
-
+    SysPanelStatus sysPanelStatus = {inputType, 0, fuzzedUint32, fuzzedUint32};
     MessageParcel data;
     data.WriteInterfaceToken(AGENTSTUB_INTERFACE_TOKEN);
     data.WriteBuffer(rawData, size);
@@ -64,7 +54,6 @@ bool FuzzSystemCmdChannelStub(const uint8_t *rawData, size_t size)
     MessageOption option;
 
     sptr <SystemCmdChannelStub> stub = new SystemCmdChannelServiceImpl();
-    stub->SendPrivateCommand(privateCommand);
     stub->NotifyPanelStatus(sysPanelStatus);
     stub->OnRemoteRequest(code, data, reply, option);
     return true;

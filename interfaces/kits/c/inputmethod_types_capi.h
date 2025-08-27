@@ -321,7 +321,7 @@ typedef enum InputMethod_ErrorCode {
 /**
  * @brief The value type of request keyboard.
  *
- * @since 15
+ * @since 16
  */
 typedef enum InputMethod_RequestKeyboardReason {
     /**

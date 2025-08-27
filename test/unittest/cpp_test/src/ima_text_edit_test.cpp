@@ -444,7 +444,6 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_ClearRspHandlers, TestSize.Level0)
         channelWrap->ClearRspHandlers();
     };
     std::thread delayThread(delayTask);
-    delayThread.detach();
 
     channelWrap->AddRspHandler(GetForwardRsp, false);
     channelWrap->AddRspHandler(GetForwardRsp, false);
@@ -452,6 +451,7 @@ HWTEST_F(ImaTextEditTest, ImaTextEditTest_ClearRspHandlers, TestSize.Level0)
     auto ret = channelWrap->WaitResponse(handler, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL);
     EXPECT_TRUE(WaitGetForwardRspAbnormal(2));
+    delayThread.detach();
 }
 
 /**

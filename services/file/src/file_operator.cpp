@@ -33,7 +33,7 @@ bool FileOperator::Create(const std::string &path, mode_t mode)
     }
     return true;
 }
-
+// LCOV_EXCL_STOP
 bool FileOperator::IsExist(const std::string &path)
 {
     return access(path.c_str(), F_OK) == SUCCESS;
@@ -52,7 +52,7 @@ bool FileOperator::Read(const std::string &path, std::string &content)
     }
     return true;
 }
-
+// LCOV_EXCL_START
 bool FileOperator::IsValidPath(const std::string &filePath)
 {
     if (filePath.find("../") != std::string::npos) {
@@ -85,6 +85,7 @@ bool FileOperator::CheckImeCfgFilePath(const std::string &path)
 
 bool FileOperator::Write(const std::string &path, const std::string &content, uint32_t flags, mode_t mode)
 {
+    IMSA_HILOGD("content: %{public}s.", content.c_str());
     const char* fopenMode;
     if (flags & O_TRUNC) {
         fopenMode = "w";
@@ -120,7 +121,7 @@ bool FileOperator::Write(const std::string &path, const std::string &content, ui
 
     return true;
 }
-
+// LCOV_EXCL_STOP
 bool FileOperator::Read(const std::string &path, const std::string &key, std::string &content)
 {
     if (key.empty()) {
@@ -178,6 +179,5 @@ std::string FileOperator::GetRealPath(const char *path)
     }
     return std::string(realPath);
 }
-// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

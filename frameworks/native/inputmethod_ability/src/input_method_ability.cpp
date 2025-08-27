@@ -653,9 +653,9 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     AttachOptions options;
     options.requestKeyboardReason = textConfig.requestKeyboardReason;
     options.isSimpleKeyboardEnabled = textConfig.isSimpleKeyboardEnabled;
-    InvokeAttachOptionsCallback(options, isNotifyInputStart || !isNotify_);
-    if (isNotifyInputStart || !isNotify_) {
-        isNotify_ = true;
+    InvokeAttachOptionsCallback(options, isNotifyInputStart || !isInputStartNotified_);
+    if (isNotifyInputStart || !isInputStartNotified_) {
+        isInputStartNotified_ = true;
         IMSA_HILOGD("OnInputStart begin");
         imeListener_->OnInputStart();
     }

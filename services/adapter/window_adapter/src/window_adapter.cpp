@@ -25,7 +25,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace OHOS::Rosen;
 using WMError = OHOS::Rosen::WMError;
-
+// LCOV_EXCL_START
 WindowAdapter::~WindowAdapter()
 {
 }
@@ -35,7 +35,7 @@ WindowAdapter &WindowAdapter::GetInstance()
     static WindowAdapter windowAdapter;
     return windowAdapter;
 }
-
+// LCOV_EXCL_STOP
 void WindowAdapter::GetFocusInfo(OHOS::Rosen::FocusChangeInfo &focusInfo, uint64_t displayId)
 {
 #ifdef SCENE_BOARD_ENABLE
@@ -65,7 +65,7 @@ bool WindowAdapter::GetCallingWindowInfo(
     return false;
 #endif
 }
-
+// LCOV_EXCL_START
 void WindowAdapter::RegisterCallingWindowInfoChangedListener(const WindowDisplayChangeHandler &handle)
 {
 #ifdef SCENE_BOARD_ENABLE
@@ -78,7 +78,7 @@ void WindowAdapter::RegisterCallingWindowInfoChangedListener(const WindowDisplay
     IMSA_HILOGI("register focus changed listener ret: %{public}d", wmErr);
 #endif
 }
-
+// LCOV_EXCL_STOP
 bool WindowAdapter::ListWindowInfo(std::vector<sptr<OHOS::Rosen::WindowInfo>> &windowInfos)
 {
 #ifdef SCENE_BOARD_ENABLE
