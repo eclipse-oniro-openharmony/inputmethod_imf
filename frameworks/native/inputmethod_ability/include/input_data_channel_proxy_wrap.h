@@ -31,21 +31,26 @@ namespace MiscServices {
 using ChannelWork = std::function<int32_t(uint64_t msgId, const std::shared_ptr<InputDataChannelProxy> &channel)>;
 using SyncOutput = std::function<void(const ResponseData &)>;
 using AsyncIpcCallBack = std::function<void(int32_t, const ResponseData &)>;
+using namespace std::chrono;
 struct ResponseInfo {
     int32_t dealRet_{ ErrorCode::NO_ERROR };
     ResponseData data_{ std::monostate{} };
 };
 struct ResponseHandler {
     static constexpr uint32_t SYNC_REPLY_TIMEOUT = 3000; // unit ms
-    uint64_t msgId_ = 0;
-    AsyncIpcCallBack asyncCallback_ = nullptr;
-    std::shared_ptr<BlockData<ResponseInfo>> syncBlockData_ = nullptr;
-    ResponseHandler(uint64_t msgId, bool isSync, const AsyncIpcCallBack &callback)
+    int32_t eventCode = 0;
+    uint64_t msgId = 0;
+    int64_t reportStartTime =
+        duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+    AsyncIpcCallBack asyncCallback = nullptr;
+    std::shared_ptr<BlockData<ResponseInfo>> syncBlockData = nullptr;
+    ResponseHandler(uint64_t msgId, bool isSync, const AsyncIpcCallBack &callback, int32_t eventCode)
     {
-        msgId_ = msgId;
-        asyncCallback_ = callback;
+        this->msgId = msgId;
+        asyncCallback = callback;
+        this->eventCode = eventCode;
         if (isSync) {
-            syncBlockData_ = std::make_shared<BlockData<ResponseInfo>>(SYNC_REPLY_TIMEOUT);
+            syncBlockData = std::make_shared<BlockData<ResponseInfo>>(SYNC_REPLY_TIMEOUT);
         }
     }
 };
@@ -76,12 +81,14 @@ public:
     std::shared_ptr<InputDataChannelProxy> GetDataChannel();
 
 private:
-    std::shared_ptr<ResponseHandler> AddRspHandler(const AsyncIpcCallBack &callback, bool isSync);
+    void ReportBaseTextOperation(int32_t eventCode, int32_t errCode, int64_t consumeTime);
+    std::shared_ptr<ResponseHandler> AddRspHandler(const AsyncIpcCallBack &callback, bool isSync, int32_t eventCode);
     int32_t WaitResponse(const std::shared_ptr<ResponseHandler> &rspHandler, const SyncOutput &output);
     int32_t DeleteRspHandler(uint64_t msgId);
     uint64_t GenerateMsgId();
-    int32_t Request(
-        const AsyncIpcCallBack &callback, const ChannelWork &work, bool isSync, const SyncOutput &output = nullptr);
+    int32_t Request(const AsyncIpcCallBack &callback, const ChannelWork &work, bool isSync,
+        int32_t eventCode, const SyncOutput &output = nullptr);
+    int32_t HandleMsg(uint64_t msgId, const ResponseInfo &rspInfo);
 
 private:
     uint64_t msgId_{ 0 };
