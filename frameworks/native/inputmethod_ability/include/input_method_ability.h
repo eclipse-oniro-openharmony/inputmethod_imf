@@ -116,6 +116,7 @@ public:
     int32_t IsCapacitySupport(int32_t capacity, bool &isSupport);
     AttachOptions GetAttachOptions();
     int32_t HandleKeyEventResult(uint64_t cbId, bool consumeResult, const sptr<IRemoteObject> &channelObject);
+    void RemoveDeathRecipient();
 
 public:
     /* called from TaskManager worker thread */

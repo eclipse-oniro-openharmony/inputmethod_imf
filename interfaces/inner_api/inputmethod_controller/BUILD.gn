@@ -418,12 +418,6 @@ ohos_static_library("inputmethod_client_static") {
     "samgr:samgr_proxy",
   ]
 
-  if (testonly) {
-    defines = [
-      "OHOS_IMF_TEST"
-    ]
-  }
-
   client_output_values = get_target_outputs(":input_client_interface")
   sources += filter_include(client_output_values,
                             [

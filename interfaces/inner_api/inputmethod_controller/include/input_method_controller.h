@@ -993,11 +993,8 @@ public:
     IMF_API int32_t RegisterWindowScaleCallbackHandler(WindowScaleCallback&& callback);
 
     void HandleKeyEventResult(uint64_t cbId, bool consumeResult);
-
-#ifdef OHOS_IMF_TEST
-    void SetImsaProxyForTest(sptr<IInputMethodSystemAbility> proxy);
-#endif // OHOS_IMF_TEST
 private:
+    friend class MockInputMethodSystemAbilityProxy;
     InputMethodController();
     ~InputMethodController();
 

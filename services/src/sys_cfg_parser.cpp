@@ -46,6 +46,22 @@ bool SysCfgParser::ParseInputType(std::vector<InputTypeInfo> &inputType)
     return ret;
 }
 
+bool SysCfgParser::ParseDynamicStartImeCfg(std::vector<DynamicStartImeCfgItem> &dynamicStartImeCfgList)
+{
+    auto content = GetSysCfgContent(GET_NAME(dynamicStartImeCfgList));
+    if (content.empty()) {
+        IMSA_HILOGW("dynamic start ime cfg content is empty");
+        return false;
+    }
+
+    DynamicStartImeCfg dynamicStartImeCfg;
+    auto ret = dynamicStartImeCfg.Unmarshall(content);
+    if (ret) {
+        dynamicStartImeCfgList = dynamicStartImeCfg.dynamicStartImeCfgList;
+    }
+    return ret;
+}
+
 bool SysCfgParser::ParsePanelAdjust(std::vector<SysPanelAdjust> &sysPanelAdjust)
 {
     auto content = GetSysCfgContent(GET_NAME(sysPanelAdjust));

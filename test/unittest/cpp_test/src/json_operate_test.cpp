@@ -23,6 +23,8 @@
 #include <gtest/gtest.h>
 #include <unistd.h>
 
+#include "parameters.h"
+
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -77,7 +79,26 @@ public:
     static void SetUpTestCase() { }
     static void TearDownTestCase() { }
     void SetUp() { }
-    void TearDown() { }
+    void TearDown()
+    {
+        ClearTestParameters();
+    }
+    // Helper function: Set system parameter
+    void SetSystemParameter(const std::string &key, const std::string &value)
+    {
+        system::SetParameter(key, value);
+        testParameters_.push_back(key);
+    }
+
+    // Helper function: Clear test parameters
+    void ClearTestParameters()
+    {
+        for (const auto &param : testParameters_) {
+            system::SetParameter(param, "");
+        }
+        testParameters_.clear();
+    }
+    std::vector<std::string> testParameters_; // Tracks parameter keys set during testing
 };
 
 /**
@@ -386,31 +407,291 @@ HWTEST_F(JsonOperateTest, testGetResMgr, TestSize.Level1)
 }
 
 /**
- * @tc.name: testIsDynamicStartIme
- * @tc.desc: test IsDynamicStartIme
+ * @tc.name: IsDynamicStartIme_EmptyDynamicList_ReturnFalse
+ * @tc.desc: Verify IsDynamicStartIme() returns false when dynamic start list is empty
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(JsonOperateTest, testIsDynamicStartIme, TestSize.Level1)
+HWTEST_F(JsonOperateTest, IsDynamicStartIme_EmptyDynamicList_ReturnFalse, TestSize.Level0)
 {
-    IMSA_HILOGI("JsonOperateTest testIsDynamicStartIme START");
+    // Preparation: Set empty dynamic start configuration list
     auto instance = ImeInfoInquirer::GetInstance();
-    // dynamicStartImeSysParam is empty
-    auto ret = instance.IsDynamicStartIme();
-    EXPECT_FALSE(false);
+    instance.dynamicStartImeList_ = {};
 
-    // dynamicStartImeValue is empty
-    instance.systemConfig_.dynamicStartImeSysParam = "123";
-    ret = instance.IsDynamicStartIme();
+    // Execution
+    bool result = instance.IsDynamicStartIme();
+
+    // Verification
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsDynamicStartIme_NoMatchingParameter_ReturnFalse
+ * @tc.desc: Verify IsDynamicStartIme() returns false when no matching system parameter exists
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, IsDynamicStartIme_NoMatchingParameter_ReturnFalse, TestSize.Level0)
+{
+    // Preparation: Configuration list contains one rule
+    auto instance = ImeInfoInquirer::GetInstance();
+    instance.InitDynamicStartImeCfg();
+    std::vector<DynamicStartImeCfgItem> testList = {
+        { "ime.dynamic.start", "true" }
+    };
+    instance.dynamicStartImeList_ = testList;
+
+    // Set non-matching system parameter
+    SetSystemParameter("ime.dynamic.start", "false");
+
+    // Execution
+    bool result = instance.IsDynamicStartIme();
+
+    // Verification
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsDynamicStartIme_OneMatchingParameter_ReturnTrue
+ * @tc.desc: Verify IsDynamicStartIme() returns true when there's one matching parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, IsDynamicStartIme_OneMatchingParameter_ReturnTrue, TestSize.Level0)
+{
+    // Preparation: Configuration list contains one matching rule
+    auto instance = ImeInfoInquirer::GetInstance();
+    instance.dynamicStartImeList_ = {
+        { "ime.enable.dynamic", "1" }
+    };
+
+    // Set matching system parameter
+    SetSystemParameter("ime.enable.dynamic", "1");
+
+    // Execution
+    bool result = instance.IsDynamicStartIme();
+
+    // Verification
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsDynamicStartIme_MultiRulesOneMatching_ReturnTrue
+ * @tc.desc: Verify IsDynamicStartIme() returns true when one of multiple rules matches
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, IsDynamicStartIme_MultiRulesOneMatching_ReturnTrue, TestSize.Level0)
+{
+    // Preparation: Configuration list contains multiple rules
+    auto instance = ImeInfoInquirer::GetInstance();
+    instance.dynamicStartImeList_ = {
+        { "ime.condition1", "ok"  }, // No match
+        { "ime.condition2", "yes" }  // Match
+    };
+
+    // Set system parameters
+    SetSystemParameter("ime.condition1", "no");
+    SetSystemParameter("ime.condition2", "yes");
+
+    // Execution
+    bool result = instance.IsDynamicStartIme();
+
+    // Verification
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsDynamicStartIme_EmptyValueMatch_ReturnTrue
+ * @tc.desc: Verify IsDynamicStartIme() returns true when empty values match
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, IsDynamicStartIme_EmptyValueMatch_ReturnTrue, TestSize.Level0)
+{
+    // Preparation: Configuration rule contains empty value
+    auto instance = ImeInfoInquirer::GetInstance();
+    instance.dynamicStartImeList_ = {
+        { "ime.empty.value", "" }
+    };
+
+    // Set empty string system parameter (matching)
+    SetSystemParameter("ime.empty.value", "");
+
+    // Execution
+    bool result = instance.IsDynamicStartIme();
+
+    // Verification
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: DynamicStartImeUnmarshal_NormalCase_MultiEntries
+ * @tc.desc: DynamicStartImeUnmarshal_NormalCase_MultiEntries
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, DynamicStartImeUnmarshal_NormalCase_MultiEntries, TestSize.Level0)
+{
+    const std::string jsonStr = R"(
+        {
+            "dynamicStartImeCfgList": [
+                { "sysParam": "param1", "value": "value1" },
+                { "sysParam": "param2", "value": "value2" }
+            ]
+        }
+    )";
+    cJSON *node = cJSON_Parse(jsonStr.c_str());
+    ASSERT_NE(node, nullptr) << "JSON parse failed.";
+
+    DynamicStartImeCfg cfg;
+    bool ret = cfg.Unmarshal(node);
+
     EXPECT_TRUE(ret);
+    EXPECT_EQ(cfg.dynamicStartImeCfgList.size(), 2);
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[0].sysParam, "param1");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[0].value, "value1");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[1].sysParam, "param2");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[1].value, "value2");
+    cJSON_Delete(node);
+}
 
-    // dynamicStartImeValue is default
-    instance.systemConfig_.dynamicStartImeValue = "default";
-    ret = instance.IsDynamicStartIme();
+/**
+ * @tc.name: DynamicStartImeUnmarshal_NormalCase_EmptyList
+ * @tc.desc: DynamicStartImeUnmarshal_NormalCase_EmptyList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, DynamicStartImeUnmarshal_NormalCase_EmptyList, TestSize.Level0)
+{
+    const std::string jsonStr = R"(
+        {
+            "dynamicStartImeCfgList": []
+        }
+    )";
+    cJSON *node = cJSON_Parse(jsonStr.c_str());
+    ASSERT_NE(node, nullptr) << "JSON parse failed.";
+
+    DynamicStartImeCfg cfg;
+    bool ret = cfg.Unmarshal(node);
+
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(cfg.dynamicStartImeCfgList.empty());
+
+    cJSON_Delete(node);
+}
+
+/**
+ * @tc.name: DynamicStartImeUnmarshal_AbnormalCase_MissingField
+ * @tc.desc: DynamicStartImeUnmarshal_AbnormalCase_MissingField
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, DynamicStartImeUnmarshal_AbnormalCase_MissingField, TestSize.Level0)
+{
+    const std::string jsonStr = R"(
+        {
+            "otherField": "test"
+        }
+    )";
+    cJSON *node = cJSON_Parse(jsonStr.c_str());
+    ASSERT_NE(node, nullptr) << "JSON parse failed.";
+
+    DynamicStartImeCfg cfg;
+    bool ret = cfg.Unmarshal(node);
+
     EXPECT_FALSE(ret);
+    EXPECT_TRUE(cfg.dynamicStartImeCfgList.empty());
 
-    instance.systemConfig_.dynamicStartImeValue = "";
-    instance.systemConfig_.dynamicStartImeSysParam = "";
+    cJSON_Delete(node);
+}
+
+/**
+ * @tc.name: DynamicStartImeUnmarshal_AbnormalCase_InvalidType
+ * @tc.desc: DynamicStartImeUnmarshal_AbnormalCase_InvalidType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, DynamicStartImeUnmarshal_AbnormalCase_InvalidType, TestSize.Level0)
+{
+    const std::string jsonStr = R"(
+        {
+            "dynamicStartImeCfgList": "not an array"
+        }
+    )";
+    cJSON *node = cJSON_Parse(jsonStr.c_str());
+    ASSERT_NE(node, nullptr) << "JSON parse failed.";
+
+    DynamicStartImeCfg cfg;
+    bool ret = cfg.Unmarshal(node);
+
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(cfg.dynamicStartImeCfgList.empty());
+
+    cJSON_Delete(node);
+}
+
+/**
+ * @tc.name: DynamicStartImeUnmarshal_AbnormalCase_InvalidEntry
+ * @tc.desc: DynamicStartImeUnmarshal_AbnormalCase_InvalidEntry
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, DynamicStartImeUnmarshal_AbnormalCase_InvalidEntry, TestSize.Level0)
+{
+    const std::string jsonStr = R"(
+        {
+            "dynamicStartImeCfgList": [
+                { "sysParam": "param1", "value": "value1" },
+                { "sysParam": "param2" }
+            ]
+        }
+    )";
+    cJSON *node = cJSON_Parse(jsonStr.c_str());
+    ASSERT_NE(node, nullptr) << "JSON parse failed.";
+
+    DynamicStartImeCfg cfg;
+    bool ret = cfg.Unmarshal(node);
+
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(cfg.dynamicStartImeCfgList.size(), 2);
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[0].sysParam, "param1");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[0].value, "value1");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[1].sysParam, "param2");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[1].value, "");
+    cJSON_Delete(node);
+}
+
+/**
+ * @tc.name: DynamicStartImeUnmarshal_BoundaryCase_EmptyValues
+ * @tc.desc: DynamicStartImeUnmarshal_BoundaryCase_EmptyValues
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsonOperateTest, DynamicStartImeUnmarshal_BoundaryCase_EmptyValues, TestSize.Level0)
+{
+    const std::string jsonStr = R"(
+        {
+            "dynamicStartImeCfgList": [
+                { "sysParam": "", "value": "" },
+                { "sysParam": "", "value": "value2" }
+            ]
+        }
+    )";
+    cJSON *node = cJSON_Parse(jsonStr.c_str());
+    ASSERT_NE(node, nullptr) << "JSON parse failed.";
+
+    DynamicStartImeCfg cfg;
+    bool ret = cfg.Unmarshal(node);
+
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(cfg.dynamicStartImeCfgList.size(), 2);
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[0].sysParam, "");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[0].value, "");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[1].sysParam, "");
+    EXPECT_EQ(cfg.dynamicStartImeCfgList[1].value, "value2");
+
+    cJSON_Delete(node);
 }
 
 /**

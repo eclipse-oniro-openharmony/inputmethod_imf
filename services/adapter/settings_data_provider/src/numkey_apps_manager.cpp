@@ -34,7 +34,7 @@ NumkeyAppsManager &NumkeyAppsManager::GetInstance()
     return numkeyAppsManager;
 }
 // LCOV_EXCL_START
-NumkeyAppsManager::~NumkeyAppsManager()
+void NumkeyAppsManager::Release()
 {
     if (observers_.empty()) {
         return;
@@ -49,6 +49,8 @@ NumkeyAppsManager::~NumkeyAppsManager()
         SettingsDataUtils::GetInstance().UnregisterObserver(observer.second);
     }
 }
+
+NumkeyAppsManager::~NumkeyAppsManager() { }
 
 int32_t NumkeyAppsManager::Init(int32_t userId)
 {

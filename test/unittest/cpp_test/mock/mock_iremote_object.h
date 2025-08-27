@@ -15,68 +15,32 @@
 
 #ifndef IMF_MOCK_IREMOTE_OBJECT_H
 #define IMF_MOCK_IREMOTE_OBJECT_H
-#include "iremote_broker.h"
+#include <gmock/gmock.h>
+
 #include "iremote_object.h"
 
 namespace OHOS {
+namespace MiscServices {
 class MockIRemoteObject : public IRemoteObject {
 public:
     MockIRemoteObject() : IRemoteObject(u"mock_i_remote_object") { }
-
     ~MockIRemoteObject() { }
+    MOCK_METHOD(int, SendRequest, (uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option));
+    MOCK_METHOD(bool, IsProxyObject, (), (const, override));
+    MOCK_METHOD(bool, CheckObjectLegality, (), (const, override));
+    MOCK_METHOD(bool, AddDeathRecipient, (const sptr<DeathRecipient> &recipient), (override));
+    MOCK_METHOD(bool, RemoveDeathRecipient, (const sptr<DeathRecipient> &recipient), (override));
+    MOCK_METHOD(bool, Marshalling, (Parcel & parcel), (const, override));
+    MOCK_METHOD(sptr<IRemoteBroker>, AsInterface, (), (override));
+    MOCK_METHOD(int, Dump, (int fd, const std::vector<std::u16string> &args), (override));
+    MOCK_METHOD(int32_t, GetObjectRefCount, (), (override));
 
-    int32_t GetObjectRefCount() override
+    std::u16string GetObjectDescriptor() const
     {
-        return 0;
-    }
-
-    int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
-    {
-        (void)code;
-        (void)data;
-        (void)reply;
-        (void)option;
-        return 0;
-    }
-
-    bool IsProxyObject() const override
-    {
-        return true;
-    }
-
-    bool CheckObjectLegality() const override
-    {
-        return true;
-    }
-
-    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient) override
-    {
-        (void)recipient;
-        return true;
-    }
-
-    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient) override
-    {
-        (void)recipient;
-        return true;
-    }
-
-    bool Marshalling(Parcel &parcel) const override
-    {
-        (void)parcel;
-        return true;
-    }
-
-    sptr<IRemoteBroker> AsInterface() override
-    {
-        return nullptr;
-    }
-
-    int Dump(int fd, const std::vector<std::u16string> &args) override
-    {
-        (void)fd;
-        return 0;
+        std::u16string descriptor = std::u16string();
+        return descriptor;
     }
 };
+}
 } // namespace OHOS
 #endif // IMF_MOCK_IREMOTE_OBJECT_H

@@ -58,6 +58,14 @@ void ImeInfoInquirer::InitSystemConfig()
     }
 }
 
+void ImeInfoInquirer::InitDynamicStartImeCfg()
+{
+    if (!SysCfgParser::ParseDynamicStartImeCfg(dynamicStartImeList_)) {
+        IMSA_HILOGW("not found dynamic start ime cfg");
+        dynamicStartImeList_.clear();
+    }
+}
+
 bool ImeInfoInquirer::IsEnableAppAgent()
 {
     return systemConfig_.enableAppAgentFeature;
@@ -1239,11 +1247,20 @@ bool ImeInfoInquirer::IsRestrictedDefaultImeByDisplay(uint64_t displayId)
 
 bool ImeInfoInquirer::IsDynamicStartIme()
 {
-    if (systemConfig_.dynamicStartImeSysParam.empty()) {
+    if (dynamicStartImeList_.empty()) {
+        IMSA_HILOGI("dynamic start ime cfg is empty");
         return false;
     }
-    std::string value = system::GetParameter(systemConfig_.dynamicStartImeSysParam, "");
-    return value == systemConfig_.dynamicStartImeValue;
+
+    for (auto &dynamicStartIme : dynamicStartImeList_) {
+        std::string value = system::GetParameter(dynamicStartIme.sysParam, "");
+        if (value == dynamicStartIme.value) {
+            IMSA_HILOGI("dynamic start ime cfg is matched");
+            return true;
+        }
+    }
+    IMSA_HILOGI("dynamic start ime cfg is not matched");
+    return false;
 }
 
 bool ImeInfoInquirer::GetCompatibleDeviceType(

@@ -1453,6 +1453,7 @@ HWTEST_F(InputMethodMessageHandlerTest, testRecvMessageCapi_003, TestSize.Level1
     EXPECT_EQ(ret, IME_ERR_OK);
     auto messageHanlderProxy = OH_MessageHandlerProxy_Create();
     EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_SetOnTerminatedFunc(messageHanlderProxy, OnTerminatedFuncNew));
+    EXPECT_EQ(OH_InputMethodProxy_RecvMessage(imeProxy, messageHanlderProxy), IME_ERR_NULL_POINTER);
     EXPECT_EQ(IME_ERR_OK, OH_MessageHandlerProxy_SetOnMessageFunc(messageHanlderProxy, OnMessageFunc));
     ret = OH_InputMethodProxy_RecvMessage(imeProxy, messageHanlderProxy);
     EXPECT_EQ(ret, IME_ERR_OK);

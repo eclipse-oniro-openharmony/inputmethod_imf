@@ -356,6 +356,7 @@ HWTEST_F(NumKeyAppsManagerTest, testRegisterUserBlockListData_002, TestSize.Leve
     NumkeyAppsManager::GetInstance().observers_[MAIN_USER_ID] = observer;
     auto ret = NumkeyAppsManager::GetInstance().RegisterUserBlockListData(MAIN_USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    NumkeyAppsManager::GetInstance().Release();
     NumkeyAppsManager::GetInstance().observers_.clear();
 }
 
