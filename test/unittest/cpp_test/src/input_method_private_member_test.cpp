@@ -53,6 +53,8 @@
 #include "keyboard_event.h"
 #include "os_account_manager.h"
 #include "tdd_util.h"
+#include "window_adapter.h"
+#include "display_adapter.h"
 
 using namespace testing::ext;
 using namespace testing::mt;
@@ -2945,6 +2947,28 @@ HWTEST_F(InputMethodPrivateMemberTest, IMSA_IsTmpIme, TestSize.Level0)
     switchInfo.bundleName = bundleName2;
     ret = systemAbility.IsTmpImeSwitchSubtype(MAIN_USER_ID, tokenId, switchInfo);
     EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: PerUserSession_GetFinalCallingWindowInfo
+ * @tc.desc: PerUserSession_GetFinalCallingWindowInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_GetFinalCallingWindowInfo, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::PerUserSession_GetFinalCallingWindowInfo start.");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    Rosen::CallingWindowInfo callingWindowInfo;
+    Rosen::FocusChangeInfo focusInfo;
+    WindowAdapter::GetFocusInfo(focusInfo);
+    WindowAdapter::GetCallingWindowInfo(focusInfo.windowId_, userSession->userId_, callingWindowInfo);
+    auto screenName = DisplayAdapter::GetDisplayName(callingWindowInfo.displayId_);
+    ImeInfoInquirer.GetInstance().systemConfig_.defaultMainDisplayScreenList.insert(screenName);
+    InputClientInfo clientInfo;
+    clientInfo.config.windowId = focusInfo.windowId_;
+    ImfCallingWindowInfo windowInfo = userSession->GetFinalCallingWindowInfo(clientInfo);
+    EXPECT_TRUE(windowInfo.displayId == DisplayAdapter::GetDefaultDisplayId());
 }
 } // namespace MiscServices
 } // namespace OHOS
