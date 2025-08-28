@@ -51,11 +51,6 @@ idl_gen_interface("keyevent_consumer_interface") {
           "${inputmethod_path}/frameworks/native/inputmethod_controller/IKeyEventConsumer.idl")
 }
 
-idl_gen_interface("ima_response_channel_interface") {
-  src_idl = rebase_path(
-          "${inputmethod_path}/frameworks/native/inputmethod_ability/IImaResponseChannel.idl")
-}
-
 config("inputmethod_ability_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
@@ -82,31 +77,6 @@ config("inputmethod_ability_native_public_config") {
   include_dirs = [
     "include",
     "${inputmethod_path}/common/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
-    "${inputmethod_path}/frameworks/common",
-    "${inputmethod_path}/frameworks/services/json/include",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
-    "${inputmethod_path}/services/include",
-    "${target_gen_dir}",
-  ]
-}
-
-config("ima_response_channel_native_public_config") {
-  visibility = [
-    "${inputmethod_path}/common/*",
-    "${inputmethod_path}/frameworks/kits/extension/*",
-    "${inputmethod_path}/frameworks/ndk/*",
-    "${inputmethod_path}/test/fuzztest/*",
-    "${inputmethod_path}/test/unittest/*",
-    "../inputmethod_controller/*",
-    "./*",
-    "${inputmethod_path}/frameworks/kits/extension_cj/*",
-  ]
-  include_dirs = [
-    "include",
-    "${inputmethod_path}/common/include",
-    "${inputmethod_path}/frameworks/native/common/include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/frameworks/common",
@@ -347,48 +317,6 @@ ohos_source_set("keyevent_consumer_stub") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_single",
-    "samgr:samgr_proxy",
-  ]
-  subsystem_name = "inputmethod"
-  part_name = "imf"
-}
-
-ohos_source_set("ima_response_channel_proxy") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  public_configs = [ ":ima_response_channel_native_public_config" ]
-  output_values = get_target_outputs(":ima_response_channel_interface")
-  sources = filter_include(output_values, [ "*_proxy.cpp" ])
-  deps = [ ":ima_response_channel_interface" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "input:libmmi-client",
-    "ipc:ipc_single",
-    "samgr:samgr_proxy",
-  ]
-  subsystem_name = "inputmethod"
-  part_name = "imf"
-}
-
-ohos_source_set("ima_response_channel_stub") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  public_configs = [ ":ima_response_channel_native_public_config" ]
-  output_values = get_target_outputs(":ima_response_channel_interface")
-  sources = filter_include(output_values, [ "*_stub.cpp" ])
-  deps = [ ":ima_response_channel_interface" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "input:libmmi-client",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
