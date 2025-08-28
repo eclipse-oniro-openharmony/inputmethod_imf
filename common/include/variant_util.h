@@ -17,7 +17,6 @@
 #define OHOS_VARIANT_UTIL_H
 #include <cstdint>
 #include <variant>
-
 #include "global.h"
 #include "input_client_info.h"
 #include "input_method_utils.h"

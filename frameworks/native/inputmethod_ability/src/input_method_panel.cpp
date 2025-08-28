@@ -657,25 +657,28 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag panelFlag, EnhancedLayoutPar
     }
     // adjust rect
     auto lastWmsParam = GetKeyboardLayoutParams();
+    auto lastIsEnhanced = isInEnhancedAdjust_.load();
+    auto lastParams = GetEnhancedLayoutParams();
+    auto lastPanelFlag = panelFlag_;
     auto wmsParams = ConvertToWMSParam(panelFlag, params);
     ret = AdjustLayout(wmsParams);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("AdjustKeyboardLayout error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
+    UpdateLayoutInfo(panelFlag, {}, params, wmsParams, true);
     // set hot area
-    isInEnhancedAdjust_.store(true);
     CalculateHotAreas(params, wmsParams, adjustInfo, hotAreas);
     auto wmsHotAreas = ConvertToWMSHotArea(hotAreas);
     auto result = window_->SetKeyboardTouchHotAreas(wmsHotAreas);
     if (result != WMError::WM_OK) {
         IMSA_HILOGE("SetKeyboardTouchHotAreas error, err: %{public}d!", result);
         ret = AdjustLayout(lastWmsParam);
+        UpdateLayoutInfo(lastPanelFlag, {}, lastParams, lastWmsParam, lastIsEnhanced);
         IMSA_HILOGE("restore layout param, result: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     SetHotAreas(hotAreas);
-    UpdateLayoutInfo(panelFlag, {}, params, wmsParams, true);
     UpdateResizeParams();
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
