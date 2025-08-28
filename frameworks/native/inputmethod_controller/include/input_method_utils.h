@@ -193,7 +193,6 @@ enum Trigger : int32_t {
     IMF,
     END
 };
-
 struct PanelStatusInfo {
     PanelInfo panelInfo;
     bool visible { false };
@@ -306,6 +305,14 @@ enum PrivateDataValueType : int32_t {
     VALUE_TYPE_NUMBER
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
+
+enum class RequestKeyboardReason : int32_t {
+    NONE = 0,          // no event reason
+    MOUSE = 1,         // user triggered mouse event
+	TOUCH = 2,         // user triggered touch event
+    OTHER = 20         // other reason
+};
+
 using ValueMap = std::unordered_map<std::string, PrivateDataValue>;
 
 struct Value : public Parcelable {
@@ -325,14 +332,6 @@ struct KeyEventValue : public Parcelable {
 
     std::shared_ptr<MMI::KeyEvent> event;
 };
-
-enum class RequestKeyboardReason : int32_t {
-    NONE = 0,          // no event reason
-    MOUSE = 1,         // user triggered mouse event
-	TOUCH = 2,         // user triggered touch event
-    OTHER = 20         // other reason
-};
-
 struct TextTotalConfig {
 public:
     InputAttribute inputAttribute = {};
@@ -485,7 +484,6 @@ enum class InputType : int32_t {
     SECURITY_INPUT,
     VOICE_INPUT,
     VOICEKB_INPUT,
-    ONE_TIME_CODE = 13,
     END
 };
 
@@ -516,7 +514,6 @@ struct ArrayBuffer : public Parcelable {
     {
         return jsArgc == arrayBuffer.jsArgc && msgId == arrayBuffer.msgId && msgParam == arrayBuffer.msgParam;
     }
-
     bool ReadFromParcel(Parcel &in);
     bool Marshalling(Parcel &out) const;
     static ArrayBuffer *Unmarshalling(Parcel &in);

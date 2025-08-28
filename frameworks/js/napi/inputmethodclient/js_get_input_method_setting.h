@@ -189,7 +189,7 @@ private:
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex msMutex_;
     static std::shared_ptr<JsGetInputMethodSetting> inputMethod_;
-
+    
     PanelFlag softKbShowingFlag_{ FLG_CANDIDATE_COLUMN };
     PanelFlag GetSoftKbShowingFlag();
     void SetSoftKbShowingFlag(PanelFlag flag);

@@ -18,8 +18,8 @@
 
 #include <atomic>
 #include <chrono>
-#include <ctime>
 #include <condition_variable>
+#include <ctime>
 #include <mutex>
 #include <thread>
 #include <variant>
@@ -36,11 +36,12 @@
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "input_method_utils.h"
+#include "inputmethod_message_handler.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
+#include "key_event_result_handler.h"
 #include "msg_handler_callback_interface.h"
-#include "inputmethod_message_handler.h"
 #include "panel_info.h"
 #include "private_command_interface.h"
 #include "visibility.h"
@@ -232,7 +233,7 @@ public:
      *                                  text selection,windowId.
      * @param type                      Indicates the type of caller.
      * @return Returns 0 for success, others for failure.
-     * @since 15
+     * @since 16
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, const AttachOptions &attachOptions,
         const TextConfig &textConfig, ClientType type = ClientType::INNER_KIT);
@@ -253,7 +254,7 @@ public:
      *
      * @param attachOptions   Indicates the attachOptions, such as requestKeyboardReason
      * @return Returns 0 for success, others for failure.
-     * @since 15
+     * @since 16
      */
     IMF_API int32_t ShowTextInput(const AttachOptions &attachOptions, ClientType type = ClientType::INNER_KIT);
     /**
@@ -820,6 +821,17 @@ public:
     IMF_API int32_t StartInputType(InputType type);
 
     /**
+     * @brief Start the input method which provides the specific input type.
+     *
+     * This function is used to start the input method which provides the specific input type.
+     *
+     * @param type Indicates the input type being specified.
+     * @return Returns 0 for success, others for failure.
+     * @since 21
+     */
+    IMF_API int32_t StartInputTypeAsync(InputType type);
+
+    /**
      * @brief Query whether the specific type panel is shown.
      *
      * This function is used to query whether the specific type panel is shown.
@@ -979,6 +991,9 @@ public:
      * @since 18
      */
     IMF_API int32_t RegisterWindowScaleCallbackHandler(WindowScaleCallback&& callback);
+
+    void HandleKeyEventResult(uint64_t cbId, bool consumeResult);
+
 #ifdef OHOS_IMF_TEST
     void SetImsaProxyForTest(sptr<IInputMethodSystemAbility> proxy);
 #endif // OHOS_IMF_TEST
@@ -1097,6 +1112,7 @@ private:
 
     std::mutex windowScaleCallbackMutex_;
     WindowScaleCallback windowScaleCallback_ = nullptr;
+    KeyEventResultHandler keyEventRetHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

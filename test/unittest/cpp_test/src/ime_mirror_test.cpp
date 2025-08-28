@@ -78,6 +78,9 @@ public:
                 agentUid_ = id;
             }
         }
+        Attach();
+        InputMethodEngineListenerImpl::WaitInputStart();
+        Close();
     }
     static void TearDownTestCase(void)
     {
@@ -100,6 +103,8 @@ public:
     void TearDown()
     {
         IMSA_HILOGI("ImeMirrorTest::TearDown");
+        // wait ime stop
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         TaskManager::GetInstance().Reset();
     }
 

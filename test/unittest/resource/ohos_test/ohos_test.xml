@@ -16,8 +16,6 @@
 <configuration ver="2.0">
     <target name="InputMethodSwitchTest">
         <preparer>
-            <option name="shell" value="power-shell wakeup"/>
-            <option name="shell" value="power-shell setmode 602"/>
             <option name="push" value="extImfBundle/extImf.hap -> /data/test/resource/imf" src="res"/>
             <option name="shell" value="bm install -r -p /data/test/resource/imf/extImf.hap"/>
             <option name="push" value="newTestIme/newTestIme.hap -> /data/test/resource/imf" src="res"/>
@@ -133,6 +131,14 @@
         <cleaner>
             <option name="shell" value="bm uninstall -n com.example.editorbox"/>
             <option name="shell" value="bm uninstall -n com.example.testIme"/>
+        </cleaner>
+    </target>
+    <target name="ImfHisysEventReporterTest">
+        <cleaner>
+            <option name="shell" value="rm -rf /etc/hiview/event_threshold.json"/>
+            <option name="shell" value="rm -rf /data/log/hiview/sys_event_threshold/"/>
+			<option name="shell" value="service_control stop hiview"/>
+            <option name="shell" value="service_control start hiview"/>
         </cleaner>
     </target>
     <target name="ImeEnabledInfoManagerTest">

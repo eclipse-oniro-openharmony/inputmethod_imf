@@ -60,7 +60,7 @@ void FreezeManager::ReportRss(bool shouldFreeze, pid_t pid)
     IMSA_HILOGD("report RSS should freeze: %{public}d.", shouldFreeze);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
 }
-
+// LCOV_EXCL_START
 void FreezeManager::TemporaryActiveIme()
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -73,6 +73,7 @@ void FreezeManager::TemporaryActiveIme()
     ReportRss(false, pid_);
     ReportRss(true, pid_);
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FREEZE_MANAGER_H

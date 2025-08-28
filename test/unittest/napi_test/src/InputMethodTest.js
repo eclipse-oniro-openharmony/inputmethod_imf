@@ -1464,7 +1464,7 @@ describe('InputMethodTest', function () {
    */
   it('inputmethod_test_enableInputMethod_010', 0, async function (done) {
     console.info('************* inputmethod_test_enableInputMethod_010 Test start*************');
-    try {           
+    try {
       let inputMethodProperty = {
           name: bundleName1,
           id: extName1[0]

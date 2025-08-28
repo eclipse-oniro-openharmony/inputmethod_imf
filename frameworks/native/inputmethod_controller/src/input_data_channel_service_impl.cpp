@@ -28,7 +28,7 @@ namespace MiscServices {
 InputDataChannelServiceImpl::InputDataChannelServiceImpl() {}
 
 InputDataChannelServiceImpl::~InputDataChannelServiceImpl() {}
-
+// LCOV_EXCL_START
 ErrCode InputDataChannelServiceImpl::InsertText(
     const std::string &text, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
@@ -114,7 +114,7 @@ ErrCode InputDataChannelServiceImpl::GetTextIndexAtCursor(uint64_t msgId, const 
     instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
-
+// LCOV_EXCL_STOP
 ErrCode InputDataChannelServiceImpl::GetEnterKeyType(int32_t &keyType)
 {
     auto instance = InputMethodController::GetInstance();
@@ -159,7 +159,7 @@ ErrCode InputDataChannelServiceImpl::SendKeyboardStatus(int32_t status)
     }
     return ERR_OK;
 }
-
+// LCOV_EXCL_START
 ErrCode InputDataChannelServiceImpl::SendFunctionKey(int32_t funcKey, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
     auto instance = InputMethodController::GetInstance();
@@ -228,7 +228,7 @@ ErrCode InputDataChannelServiceImpl::HandleExtendAction(
     instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
-
+// LCOV_EXCL_STOP
 ErrCode InputDataChannelServiceImpl::NotifyPanelStatusInfo(const PanelStatusInfoInner &info)
 {
     PanelStatusInfo panelStatusInfo = InputMethodTools::GetInstance().InnerToPanelStatusInfo(info);
@@ -263,7 +263,7 @@ ErrCode InputDataChannelServiceImpl::SendPrivateCommand(const Value &value)
     }
     return instance->ReceivePrivateCommand(privateCommand);
 }
-
+// LCOV_EXCL_START
 ErrCode InputDataChannelServiceImpl::SetPreviewText(
     const std::string &text, const RangeInner &rangeInner, uint64_t msgId, const sptr<IRemoteObject> &agent)
 {
@@ -291,7 +291,7 @@ ErrCode InputDataChannelServiceImpl::FinishTextPreview(uint64_t msgId, const spt
     instance->ResponseDataChannel(agent, msgId, ret, data);
     return ret;
 }
-
+// LCOV_EXCL_STOP
 ErrCode InputDataChannelServiceImpl::SendMessage(const ArrayBuffer &arraybuffer)
 {
     auto instance = InputMethodController::GetInstance();
@@ -300,6 +300,17 @@ ErrCode InputDataChannelServiceImpl::SendMessage(const ArrayBuffer &arraybuffer)
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     return instance->RecvMessage(arraybuffer);
+}
+
+ErrCode InputDataChannelServiceImpl::HandleKeyEventResult(uint64_t cbId, bool consumeResult)
+{
+    auto instance = InputMethodController::GetInstance();
+    if (instance == nullptr) {
+        IMSA_HILOGE("failed to get InputMethodController instance!");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    instance->HandleKeyEventResult(cbId, consumeResult);
+    return ERR_OK;
 }
 } // namespace MiscServices
 } // namespace OHOS

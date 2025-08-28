@@ -99,6 +99,7 @@ public:
         inputMethodController_->Close();
         BlockRetry(WAIT_TASK_EMPTY_INTERVAL, WAIT_TASK_EMPTY_TIMES, IsTaskEmpty);
         TaskManager::GetInstance().Reset();
+        TaskManager::GetInstance().Reset();
     }
 
     static void TestImfMultiThreadAttach()

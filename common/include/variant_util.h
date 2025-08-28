@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 #ifndef OHOS_VARIANT_UTIL_H
 #define OHOS_VARIANT_UTIL_H
 #include <cstdint>
 #include <variant>
-
 #include "global.h"
 #include "input_client_info.h"
 #include "input_method_utils.h"
@@ -25,8 +24,19 @@ namespace OHOS {
 namespace MiscServices {
 class VariantUtil {
 public:
-    template<typename T, typename... Types>
-    static bool GetValue(const std::variant<Types...> &input, T &output)
+    template<typename T>
+    static bool GetValue(
+        const std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType, pid_t> &input, T &output)
+    {
+        if (!std::holds_alternative<T>(input)) {
+            return false;
+        }
+        output = std::get<T>(input);
+        return true;
+    }
+
+    template<typename T>
+    static bool GetValue(const ResponseData &input, T &output)
     {
         if (!std::holds_alternative<T>(input)) {
             return false;

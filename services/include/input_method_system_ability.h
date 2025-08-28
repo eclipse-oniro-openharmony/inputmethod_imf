@@ -16,6 +16,7 @@
 #ifndef SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 #define SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 
+#include "ability_manager_interface.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
 #include "input_method_system_ability_stub.h"
@@ -29,6 +30,7 @@
 namespace OHOS {
 namespace MiscServices {
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
+
 class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
 
@@ -73,6 +75,7 @@ public:
     ErrCode IsInputTypeSupported(int32_t type, bool& resultValue) override;
     ErrCode IsCurrentImeByPid(int32_t pid, bool& resultValue) override;
     ErrCode StartInputType(int32_t type) override;
+    ErrCode StartInputTypeAsync(int32_t type) override;
     ErrCode ExitCurrentInputType() override;
     ErrCode IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     ErrCode GetSecurityMode(int32_t &security) override;
@@ -87,9 +90,9 @@ public:
     ErrCode EnableIme(const std::string &bundleName, const std::string &extensionName, int32_t status) override;
     ErrCode GetInputMethodState(int32_t &status) override;
     ErrCode IsSystemApp(bool& resultValue) override;
-    int32_t RegisterProxyIme(
+    ErrCode RegisterProxyIme(
         uint64_t displayId, const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
-    int32_t UnregisterProxyIme(uint64_t displayId) override;
+    ErrCode UnregisterProxyIme(uint64_t displayId) override;
     ErrCode IsRestrictedDefaultImeByDisplay(uint64_t displayId, bool &resultValue) override;
     ErrCode IsCapacitySupport(int32_t capacity, bool &isSupport) override;
     ErrCode BindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
@@ -136,6 +139,7 @@ private:
     void OnScreenUnlock(const Message *msg);
     void OnScreenLock(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
+    static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     void SubscribeCommonEvent();
     int32_t Switch(int32_t userId, const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchExtension(int32_t userId, const std::shared_ptr<ImeInfo> &info);
@@ -191,10 +195,10 @@ private:
     int32_t ShowInputInner(sptr<IInputClient> client, int32_t requestKeyboardReason = 0);
     int32_t ShowCurrentInputInner();
     std::pair<int64_t, std::string> GetCurrentImeInfoForHiSysEvent(int32_t userId);
-    int32_t GetScreenLockIme(int32_t userId, std::string &ime);
-    int32_t GetAlternativeIme(int32_t userId, std::string &ime);
     static InputType GetSecurityInputType(const InputClientInfo &inputClientInfo);
     int32_t StartSecurityIme(int32_t &userId, InputClientInfo &inputClientInfo);
+    int32_t GetScreenLockIme(int32_t userId, std::string &ime);
+    int32_t GetAlternativeIme(int32_t userId, std::string &ime);
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     int64_t GetTickCount();
     void ResetDelayUnloadTask(uint32_t code = 0);

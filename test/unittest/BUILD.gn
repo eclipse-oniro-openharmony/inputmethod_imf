@@ -49,7 +49,6 @@ group("unittest") {
       "cpp_test:NewImeSwitchTest",
       "cpp_test:NumKeyAppsManagerTest",
       "cpp_test:OnDemandStartStopSaTest",
-      "cpp_test:SaTaskManagerTest",
       "cpp_test:StringUtilsTest",
       "cpp_test:TaskManagerTest",
       "cpp_test:TextListenerInnerApiTest",

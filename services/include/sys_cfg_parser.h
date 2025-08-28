@@ -37,6 +37,7 @@ struct SystemConfig : public Serializable {
     std::unordered_set<std::string> supportedCapacityList;
     std::string dynamicStartImeSysParam;
     std::string dynamicStartImeValue;
+
     bool Unmarshal(cJSON *node) override
     {
         GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);

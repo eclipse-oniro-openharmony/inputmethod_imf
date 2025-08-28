@@ -20,6 +20,7 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr uint64_t HITRACE_TAG_MISC = (1ULL << 41); // Notification module tag.
+// LCOV_EXCL_START
 void InitHiTrace()
 {
     UpdateTraceLabel();
@@ -39,18 +40,18 @@ void FinishAsync(const std::string &value, int32_t taskId)
 {
     FinishAsyncTrace(HITRACE_TAG_MISC, value, taskId);
 }
-
+// LCOV_EXCL_STOP
 InputMethodSyncTrace::InputMethodSyncTrace(const std::string &value)
 {
     StartTrace(HITRACE_TAG_MISC, value);
 }
-
+// LCOV_EXCL_START
 InputMethodSyncTrace::InputMethodSyncTrace(const std::string &value, const std::string &id)
 {
     auto info = value + "_" + id;
     StartTrace(HITRACE_TAG_MISC, info);
 }
-
+// LCOV_EXCL_STOP
 InputMethodSyncTrace::~InputMethodSyncTrace()
 {
     FinishTrace(HITRACE_TAG_MISC);

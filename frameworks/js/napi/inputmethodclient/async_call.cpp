@@ -27,7 +27,7 @@ constexpr size_t ARGC_MAX = 6;
 constexpr int32_t MAX_WAIT_TIME = 500; // ms
 static inline uint64_t GetTimeStamp()
 {
-    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
 AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount)
     : env_(env)

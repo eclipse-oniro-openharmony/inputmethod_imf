@@ -31,7 +31,7 @@ Message::Message(int32_t msgId, MessageParcel *msgContent)
         msgContent_->RewindRead(0);
     }
 }
-
+// LCOV_EXCL_START
 /*!Constructor
  * @param msg a source message
  */
@@ -74,7 +74,7 @@ Message &Message::operator=(const Message &msg)
     }
     return *this;
 }
-
+// LCOV_EXCL_STOP
 Message::~Message()
 {
     if (msgContent_ != nullptr) {

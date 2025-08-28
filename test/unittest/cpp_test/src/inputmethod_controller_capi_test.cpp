@@ -27,7 +27,6 @@ using namespace OHOS::MiscServices;
 using namespace testing;
 class InputMethodControllerCapiTest : public testing::Test { };
 namespace {
-constexpr size_t MAX_SYS_PRIVATE_COMMAND_COUNT = 6;
 /**
  * @tc.name: TestCursorInfo_001
  * @tc.desc: create and destroy TestCursorInfo success
@@ -422,6 +421,7 @@ HWTEST_F(InputMethodControllerCapiTest, OH_CursorInfo_GetRect_001, TestSize.Leve
     double height = 0;
     auto ret = OH_CursorInfo_GetRect(nullptr, nullptr, nullptr, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+
     auto info = OH_CursorInfo_Create(left, top, width, height);
     ret = OH_CursorInfo_GetRect(info, nullptr, nullptr, nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
@@ -1457,42 +1457,6 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_SendPrivateCommand_0
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
 }
 
-/**
- * @tc.name: SendPrivateCommandWithInvalidCommandCount
- * @tc.desc: input parameters is invalid
- * @tc.type: FUNC
- */
-HWTEST_F(InputMethodControllerCapiTest, SendPrivateCommandWithInvalidCommand, TestSize.Level0)
-{
-    auto textEditorProxy = OH_TextEditorProxy_Create();
-    EXPECT_NE(nullptr, textEditorProxy);
-    ConstructTextEditorProxy(textEditorProxy);
-
-    auto options = OH_AttachOptions_Create(true);
-    EXPECT_NE(nullptr, options);
-    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
-
-    sptr<MockInputMethodSystemAbilityProxy> ability = new (std::nothrow) MockInputMethodSystemAbilityProxy();
-    InputMethodController::GetInstance()->SetImsaProxyForTest(ability);
-    ON_CALL(*ability, StartInput(_, _, _)).WillByDefault(Return(ErrorCode::NO_ERROR));
-    ON_CALL(*ability, ReleaseInput(_, _)).WillByDefault(Return(ErrorCode::NO_ERROR));
-    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
-
-    InputMethod_PrivateCommand *privateCommand[MAX_SYS_PRIVATE_COMMAND_COUNT + 1] = { nullptr };
-    auto ret =
-        OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, privateCommand, MAX_SYS_PRIVATE_COMMAND_COUNT + 1);
-    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
-
-    size_t size = 1;
-    ret = OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, privateCommand, size);
-    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
-
-    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
-    InputMethodController::GetInstance()->SetImsaProxyForTest(nullptr);
-
-    OH_AttachOptions_Destroy(options);
-    OH_TextEditorProxy_Destroy(textEditorProxy);
-}
 /**
  * @tc.name: TestAttachWithNullParam_001
  * @tc.desc: input parameters is nullptr

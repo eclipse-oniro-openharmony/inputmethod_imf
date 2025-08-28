@@ -52,6 +52,7 @@ interface OHOS.MiscServices.IInputMethodSystemAbility {
     void IsInputTypeSupported([in] int type, [out] boolean resultValue);
     void IsCurrentImeByPid([in] int pid, [out] boolean resultValue);
     void StartInputType([in] int type);
+    [oneway] void StartInputTypeAsync([in] int type);
     void ExitCurrentInputType();
     void IsPanelShown([in] PanelInfo panelInfo, [out] boolean isShown);
     void GetSecurityMode([out] int security);

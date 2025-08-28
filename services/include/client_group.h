@@ -73,6 +73,7 @@ private:
     bool IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest);
     void OnClientDied(sptr<IInputClient> remote);
     uint64_t displayGroupId_{ DEFAULT_DISPLAY_ID };
+
     std::recursive_mutex mtx_;
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
 

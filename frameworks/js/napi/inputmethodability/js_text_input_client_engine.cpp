@@ -523,6 +523,7 @@ napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_i
         HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], text), "text covert failed!", TYPE_NONE,
         HandleParamCheckFailure(env));
+    IMSA_HILOGD("insert text, text: %{public}s.", text.c_str());
     int32_t ret = InputMethodAbility::GetInstance().InsertText(text);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to insert text!", TYPE_NONE);
@@ -608,7 +609,7 @@ napi_value JsTextInputClientEngine::GetBackwardSync(napi_env env, napi_callback_
     int32_t length = 0;
     // 1 means least param num.
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one parameter is required!", TYPE_NONE, HandleParamCheckFailure(env));
-    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "length must be number!", TYPE_NUMBER,
+    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "length must be string!", TYPE_NUMBER,
         HandleParamCheckFailure(env));
     PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], length), "length covert failed!", TYPE_NONE,
         HandleParamCheckFailure(env));
@@ -1408,12 +1409,12 @@ napi_value JsTextInputClientEngine::UnSubscribe(napi_env env, napi_callback_info
         IMSA_HILOGE("unsubscribe failed, type: %{public}s!", type.c_str());
         return nullptr;
     }
-    // if the second param is not napi_function/napi_null/napi_undefined, return.
+    // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
         return nullptr;
     }
-    // if the second param is napi_function, delete it, else delete all.
+    // if the second param is napi_function, delete it, else delete all
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
     IMSA_HILOGD("unsubscribe type: %{public}s.", type.c_str());

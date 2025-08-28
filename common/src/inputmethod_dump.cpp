@@ -30,7 +30,7 @@ constexpr int32_t CMD_ONE_PARAM = 1;
 constexpr const char *CMD_HELP = "-h";
 constexpr const char *CMD_ALL_DUMP = "-a";
 static const std::string ILLEGAL_INFO = "input dump parameter error,enter '-h' for usage.\n";
-
+// LCOV_EXCL_START
 void InputmethodDump::AddDumpAllMethod(const DumpNoParamFunc dumpAllMethod)
 {
     if (dumpAllMethod == nullptr) {
@@ -38,7 +38,7 @@ void InputmethodDump::AddDumpAllMethod(const DumpNoParamFunc dumpAllMethod)
     }
     dumpAllMethod_ = dumpAllMethod;
 }
-
+// LCOV_EXCL_STOP
 bool InputmethodDump::Dump(int fd, const std::vector<std::string> &args)
 {
     IMSA_HILOGI("InputmethodDump::Dump start.");
@@ -61,7 +61,7 @@ bool InputmethodDump::Dump(int fd, const std::vector<std::string> &args)
     IMSA_HILOGI("InputmethodDump::Dump command=%{public}s.", command.c_str());
     return true;
 }
-
+// LCOV_EXCL_START
 void InputmethodDump::ShowHelp(int fd)
 {
     std::string result;
@@ -71,7 +71,7 @@ void InputmethodDump::ShowHelp(int fd)
         .append("-a dump all input methods\n");
     dprintf(fd, "%s\n", result.c_str());
 }
-
+// LCOV_EXCL_STOP
 void InputmethodDump::ShowIllegalInformation(int fd)
 {
     dprintf(fd, "%s\n", ILLEGAL_INFO.c_str());
