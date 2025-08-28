@@ -2964,7 +2964,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_GetFinalCallingWindowInfo,
     WindowAdapter::GetFocusInfo(focusInfo);
     WindowAdapter::GetCallingWindowInfo(focusInfo.windowId_, userSession->userId_, callingWindowInfo);
     auto screenName = DisplayAdapter::GetDisplayName(callingWindowInfo.displayId_);
-    ImeInfoInquirer.GetInstance().systemConfig_.defaultMainDisplayScreenList.insert(screenName);
+    ImeInfoInquirer::GetInstance().systemConfig_.defaultMainDisplayScreenList.insert(screenName);
     InputClientInfo clientInfo;
     clientInfo.config.windowId = focusInfo.windowId_;
     ImfCallingWindowInfo windowInfo = userSession->GetFinalCallingWindowInfo(clientInfo);
