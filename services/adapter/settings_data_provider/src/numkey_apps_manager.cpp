@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-// LCOV_EXCL_START
 #define CHECK_FEATURE_DISABLED_RETURN(retVal)   \
     do {                                        \
         if (!isFeatureEnabled_) {               \
@@ -34,7 +33,7 @@ NumkeyAppsManager &NumkeyAppsManager::GetInstance()
     static NumkeyAppsManager numkeyAppsManager;
     return numkeyAppsManager;
 }
-
+// LCOV_EXCL_START
 NumkeyAppsManager::~NumkeyAppsManager()
 {
     if (observers_.empty()) {
@@ -168,7 +167,7 @@ int32_t NumkeyAppsManager::UpdateUserBlockList(int32_t userId)
         return ret;
     }
     std::lock_guard<std::mutex> lock(blockListLock_);
-    usersBlockList_[userId] = blockList;
+    usersBlockList_.insert_or_assign(userId, blockList);
     IMSA_HILOGI("success, list size: %{public}zu", blockList.size());
     return ErrorCode::NO_ERROR;
 }
@@ -244,7 +243,7 @@ int32_t NumkeyAppsManager::RegisterUserBlockListData(int32_t userId)
     }
     IMSA_HILOGI("end, userId: %{public}d ", userId);
     std::lock_guard<std::mutex> lock(observersLock_);
-    observers_[userId] = observer;
+    observers_.insert_or_assign(userId, observer);
     return ErrorCode::NO_ERROR;
 }
 

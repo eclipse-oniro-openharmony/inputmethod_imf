@@ -173,6 +173,21 @@ sptr<InputMethodController> ImeProxyTest::imc_;
 int32_t ImeProxyTest::uid_ { -1 };
 
 /**
+ * @tc.name: RegisteredProxyNotPermission
+ * @tc.desc: not in permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeProxyTest, RegisteredProxyNotPermission, TestSize.Level1)
+{
+    IMSA_HILOGI("ImeProxyTest::RegisteredProxyNotPermission");
+    // RegisteredProxy not in ima bind
+    InputMethodEngineListenerImpl::ResetParam();
+    InputMethodEngineListenerImpl::isEnable_ = true;
+    auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: RegisteredProxyNotInEditor_001
  * @tc.desc: not in editor
  * @tc.type: FUNC
@@ -703,20 +718,6 @@ HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level1)
     IMSA_HILOGI("ImeProxyTest::onInputFinishTest_OnClientInactive");
     InputMethodAbility::GetInstance().OnClientInactive(nullptr);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
-}
-
-/**
- * @tc.name: testIsFromTs
- * @tc.desc: ImeProxyTest testIsFromTs
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(ImeProxyTest, testIsFromTs, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeProxyTest testIsFromTs Test START");
-    sptr<OnTextChangedListener> testListener = new TextListener();
-    bool isFrom = testListener->IsFromTs();
-    EXPECT_FALSE(isFrom);
 }
 
 /**

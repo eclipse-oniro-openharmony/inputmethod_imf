@@ -37,17 +37,16 @@
 #include "system_ability_definition.h"
 #include "system_param_adapter.h"
 #include "wms_connection_observer.h"
-#include "dm_common.h"
-#include "display_manager.h"
-#include "parameters.h"
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
 #include "screenlock_manager.h"
 #endif
 #include "window_adapter.h"
+#include "variant_util.h"
 #include "input_method_tools.h"
 #include "ime_state_manager_factory.h"
 #include "inputmethod_trace.h"
 #include "notify_service_impl.h"
+
 
 namespace OHOS {
 namespace MiscServices {
@@ -60,7 +59,7 @@ constexpr const char *STRICT_MODE = "strictMode";
 constexpr const char *ISOLATED_SANDBOX = "isolatedSandbox";
 constexpr uint32_t CHECK_IME_RUNNING_RETRY_INTERVAL = 60;
 constexpr uint32_t CHECK_IME_RUNNING_RETRY_TIMES = 10;
-constexpr uint32_t MAX_RESTART_NUM = 3;
+constexpr int32_t MAX_RESTART_NUM = 3;
 constexpr int32_t IME_RESET_TIME_OUT = 3;
 constexpr int32_t MAX_RESTART_TASKS = 2;
 constexpr uint32_t MAX_ATTACH_COUNT = 100000;
@@ -68,7 +67,7 @@ constexpr const char *UNDEFINED = "undefined";
 constexpr int32_t WAIT_ATTACH_FINISH_DELAY = 50;
 constexpr int32_t WAIT_ATTACH_FINISH_MAX_TIMES = 20;
 constexpr uint32_t MAX_SCB_START_COUNT = 2;
-constexpr int32_t PROXY_REGISTERATION_TIME_INTERVAL = 1; // 1s
+constexpr uint32_t PROXY_REGISTERATION_TIME_INTERVAL = 1; // 1s
 constexpr uint32_t MAX_REGISTRATIONS_NUM = 3;
 PerUserSession::PerUserSession(int userId) : userId_(userId) { }
 
@@ -86,8 +85,8 @@ PerUserSession::PerUserSession(int32_t userId, const std::shared_ptr<AppExecFwk:
 
 PerUserSession::~PerUserSession() { }
 
-int PerUserSession::AddClientInfo(
-    sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
+int PerUserSession::AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo,
+    ClientAddEvent event)
 {
     IMSA_HILOGD("PerUserSession start.");
     auto clientGroup = GetClientGroup(clientInfo.displayId);
@@ -518,16 +517,33 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
 bool PerUserSession::IsProxyImeEnable()
 {
     auto data = GetReadyImeData(ImeType::PROXY_IME);
-    bool ret = false;
-    if (data == nullptr || data->core == nullptr) {
-        return false;
-    }
-    data->core->IsEnable(ret);
-    return ret;
+    return IsEnable(data);
 }
 
-int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo,
-    std::vector<sptr<IRemoteObject>> &agents, std::vector<BindImeInfo> &imeInfos)
+int32_t PerUserSession::FillBindImeInfo(ImeType imeType, std::vector<sptr<IRemoteObject>> &agents,
+    std::vector<BindImeInfo> &imeInfos)
+{
+    auto allData = GetAllReadyImeData(imeType);
+    if (allData.empty()) {
+        IMSA_HILOGE("allData is empty!");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+
+    for (auto &data : allData) {
+        if (data->agent == nullptr) {
+            IMSA_HILOGE("agent is nullptr!");
+            return ErrorCode::ERROR_IME_NOT_STARTED;
+        }
+        agents.emplace_back(data->agent);
+        BindImeInfo imeInfo = { data->pid, data->ime.first };
+        imeInfos.emplace_back(imeInfo);
+    }
+
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, std::vector<sptr<IRemoteObject>> &agents,
+    std::vector<BindImeInfo> &imeInfos)
 {
     const sptr<IInputClient> &client = inputClientInfo.client;
     if (client == nullptr) {
@@ -568,7 +584,8 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo,
         IMSA_HILOGE("bind failed, ret: %{public}d!", ret);
         return ret;
     }
-    return PrepareImeInfos(imeType, agents, imeInfos);
+
+    return FillBindImeInfo(imeType, agents, imeInfos);
 }
 
 int32_t PerUserSession::SendAllReadyImeToClient(
@@ -622,6 +639,7 @@ int32_t PerUserSession::BindClientWithIme(
     if (data == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
+
     if (!data->imeExtendInfo.privateCommand.empty()) {
         auto ret = SendPrivateData(data->imeExtendInfo.privateCommand);
         if (ret != ErrorCode::NO_ERROR) {
@@ -629,6 +647,7 @@ int32_t PerUserSession::BindClientWithIme(
             return ret;
         }
     }
+
     InputClientInfoInner inputClientInfoInner =
         InputMethodTools::GetInstance().InputClientInfoToInner(*clientInfo);
     auto ret = RequestAllIme(
@@ -690,14 +709,15 @@ void PerUserSession::StopClientInput(
     if (isAsync == true) {
         ret = clientInfo->client->OnInputStopAsync(isStopInactiveClient);
     } else {
-        auto onInputStopObject = new (std::nothrow) OnInputStopNotifyServiceImpl();
+        auto onInputStopObject = new (std::nothrow) OnInputStopNotifyServiceImpl(clientInfo->pid);
         if (onInputStopObject == nullptr) {
             IMSA_HILOGE("Failed to create onInputStopObject.");
             return;
         }
         std::lock_guard<std::mutex> lock(isNotifyFinishedLock_);
+        sptr<IRemoteObject> sptrObj(onInputStopObject);
         isNotifyFinished_.Clear(false);
-        ret = clientInfo->client->OnInputStop(isStopInactiveClient, onInputStopObject);
+        ret = clientInfo->client->OnInputStop(isStopInactiveClient, sptrObj);
         if (!isNotifyFinished_.GetValue()) {
             IMSA_HILOGE("OnInputStop is not finished!");
         }
@@ -769,7 +789,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
 }
 
 int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent,
-    int32_t pid)
+    pid_t pid)
 {
     IMSA_HILOGD("start.");
     auto result = IsRequestOverLimit(TimeLimitType::PROXY_IME_LIMIT, PROXY_REGISTERATION_TIME_INTERVAL,
@@ -810,7 +830,7 @@ bool PerUserSession::CompareExchange(const int32_t value)
     largeMemoryState_ = value;
     return false;
 }
-
+ 
 int32_t PerUserSession::UpdateLargeMemorySceneState(const int32_t memoryState)
 {
     if (CompareExchange(memoryState)) {
@@ -932,6 +952,7 @@ int32_t PerUserSession::InitInputControlChannel()
 
 bool PerUserSession::IsLargeMemoryStateNeed()
 {
+    IMSA_HILOGI(" IsLargeMemoryStateNeed called.");
     std::lock_guard<std::mutex> lock(largeMemoryStateMutex_);
     if (largeMemoryState_ == LargeMemoryState::LARGE_MEMORY_NEED) {
         IMSA_HILOGI("large memory state is True");
@@ -1059,9 +1080,28 @@ int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sp
     } else if (type == ImeType::IME_MIRROR) {
         imeData->ime.first.append(GET_NAME(_IME_MIRROR));
     }
-    imeDataList.push_back(imeData);
+    AddImeData(imeDataList, imeData);
     IMSA_HILOGI("add imeData with type: %{public}d name: %{public}s end", type, imeData->ime.first.c_str());
     return ErrorCode::NO_ERROR;
+}
+
+void PerUserSession::AddImeData(std::vector<std::shared_ptr<ImeData>> &imeDataList,
+    const std::shared_ptr<ImeData> &imeData)
+{
+    if (imeDataList.empty()) {
+        imeDataList.push_back(imeData);
+        return;
+    }
+    if (!isFirstPreemption_) {
+        isFirstPreemption_ = true;
+        const auto &lastImeData = imeDataList.back();
+        if (IsEnable(lastImeData) && !IsEnable(imeData)) {
+            imeDataList.insert(imeDataList.begin(), imeData);
+            return;
+        }
+    }
+    imeDataList.push_back(imeData);
+    return;
 }
 
 std::shared_ptr<ImeData> PerUserSession::GetReadyImeData(ImeType type)
@@ -1123,7 +1163,7 @@ void PerUserSession::RemoveImeData(ImeType type)
         IMSA_HILOGD("imeData not found.");
         return;
     }
-    for (auto imeData : it->second) {
+    for (auto &imeData : it->second) {
         if (imeData != nullptr && imeData->core != nullptr && imeData->core->AsObject() != nullptr) {
             imeData->core->AsObject()->RemoveDeathRecipient(imeData->deathRecipient);
         }
@@ -1343,9 +1383,9 @@ bool PerUserSession::CanStartIme()
 {
     return (IsSaReady(MEMORY_MANAGER_SA_ID) && IsWmsReady() &&
 #ifdef IMF_SCREENLOCK_MGR_ENABLE
-        IsSaReady(SCREENLOCK_SERVICE_ID) &&
+    IsSaReady(SCREENLOCK_SERVICE_ID) &&
 #endif
-        runningIme_.empty());
+    runningIme_.empty());
 }
 
 int32_t PerUserSession::ChangeToDefaultImeIfNeed(
@@ -1717,6 +1757,7 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
         IMSA_HILOGD("no need to request, type: %{public}d.", type);
         return ErrorCode::NO_ERROR;
     }
+
     data->imeStateManager->BeforeIpc(type);
     auto ret = exec();
     data->imeStateManager->AfterIpc(type, ret == ErrorCode::NO_ERROR);
@@ -2036,7 +2077,7 @@ int32_t PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool 
 {
     std::unique_lock<std::mutex> lock(imeStartLock_, std::defer_lock);
     if (!lock.try_lock()) {
-        IMSA_HILOGW("try_lock failed!");
+        IMSA_HILOGW("try failed");
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
     }
     if (ime == nullptr) {
@@ -2535,6 +2576,11 @@ bool PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo, Cal
     return WindowAdapter::GetCallingWindowInfo(windowId, userId_, callingWindowInfo);
 }
 
+bool PerUserSession::IsDefaultDisplayGroup(uint64_t displayId)
+{
+    return GetDisplayGroupId(displayId) == DEFAULT_DISPLAY_ID;
+}
+
 bool PerUserSession::SpecialScenarioCheck()
 {
     auto clientInfo = GetCurrentClientInfo();
@@ -2613,11 +2659,6 @@ int32_t PerUserSession::SendPrivateData(const std::unordered_map<std::string, Pr
     return ret;
 }
 
-bool PerUserSession::IsDefaultDisplayGroup(uint64_t displayId)
-{
-    return GetDisplayGroupId(displayId) == DEFAULT_DISPLAY_ID;
-}
-
 void PerUserSession::ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo> &clientInfo)
 {
     if (clientInfo == nullptr) {
@@ -2630,6 +2671,11 @@ void PerUserSession::ClearRequestKeyboardReason(std::shared_ptr<InputClientInfo>
 bool PerUserSession::IsNumkeyAutoInputApp(const std::string &bundleName)
 {
     return NumkeyAppsManager::GetInstance().NeedAutoNumKeyInput(userId_, bundleName);
+}
+
+void PerUserSession::NotifyOnInputStopFinished()
+{
+    isNotifyFinished_.SetValue(true);
 }
 
 bool PerUserSession::IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo)
@@ -2703,11 +2749,6 @@ std::pair<int32_t, StartPreDefaultImeStatus> PerUserSession::StartPreconfiguredD
     return std::make_pair(ErrorCode::NO_ERROR, StartPreDefaultImeStatus::TO_START);
 }
 
-void PerUserSession::NotifyOnInputStopFinished()
-{
-    isNotifyFinished_.SetValue(true);
-}
-
 void PerUserSession::IncreaseAttachCount()
 {
     std::lock_guard<std::mutex> lock(attachCountMtx_);
@@ -2717,7 +2758,7 @@ void PerUserSession::IncreaseAttachCount()
     }
     attachingCount_++;
 }
-
+ 
 void PerUserSession::DecreaseAttachCount()
 {
     std::lock_guard<std::mutex> lock(attachCountMtx_);
@@ -2727,7 +2768,7 @@ void PerUserSession::DecreaseAttachCount()
     }
     attachingCount_--;
 }
-
+ 
 uint32_t PerUserSession::GetAttachCount()
 {
     std::lock_guard<std::mutex> lock(attachCountMtx_);
@@ -2814,7 +2855,7 @@ void PerUserSession::ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &c
     connection_ = nullptr;
 }
 
-int32_t PerUserSession::IsRequestOverLimit(TimeLimitType timeLimitType, int32_t resetTimeOut, uint32_t restartNum)
+int32_t PerUserSession::IsRequestOverLimit(TimeLimitType timeLimitType, int32_t resetTimeOut, int32_t restartNum)
 {
     std::lock_guard<std::mutex> lock(resetLock);
     auto now = time(nullptr);
@@ -2829,25 +2870,14 @@ int32_t PerUserSession::IsRequestOverLimit(TimeLimitType timeLimitType, int32_t 
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::PrepareImeInfos(ImeType type, std::vector<sptr<IRemoteObject>> &agents,
-    std::vector<BindImeInfo> &imeInfos)
+bool PerUserSession::IsEnable(const std::shared_ptr<ImeData> &data)
 {
-    auto allData = GetAllReadyImeData(type);
-    if (allData.empty()) {
-        IMSA_HILOGE("allData is empty!");
-        return ErrorCode::ERROR_IME_NOT_STARTED;
+    bool ret = false;
+    if (data == nullptr || data->core == nullptr) {
+        return false;
     }
-
-    for (auto &data : allData) {
-        if (data->agent == nullptr) {
-            IMSA_HILOGE("agent is nullptr!");
-            return ErrorCode::ERROR_IME_NOT_STARTED;
-        }
-        agents.emplace_back(data->agent);
-        BindImeInfo imeInfo = { data->pid, data->ime.first };
-        imeInfos.emplace_back(imeInfo);
-    }
-    return ErrorCode::NO_ERROR;
+    data->core->IsEnable(ret);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

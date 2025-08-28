@@ -39,7 +39,8 @@ class KeyboardListenerImpl : public KeyboardListener {
     {
         return true;
     }
-    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+    bool OnDealKeyEvent(
+        const std::shared_ptr<MMI::KeyEvent> &keyEvent, uint64_t cbId, const sptr<IRemoteObject> &channelObject)
     {
         return true;
     }
@@ -128,8 +129,7 @@ void TestDispatchKeyEvent(int32_t fuzzedInt32)
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     keyEvent->SetKeyCode(fuzzedInt32);
     keyEvent->SetKeyAction(fuzzedInt32);
-    sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(nullptr);
-    InputMethodAbility::GetInstance().DispatchKeyEvent(keyEvent, consumer);
+    InputMethodAbility::GetInstance().DispatchKeyEvent(keyEvent, fuzzedInt32, nullptr);
 }
 
 void TestSetCallingWindow(int32_t fuzzedInt32)

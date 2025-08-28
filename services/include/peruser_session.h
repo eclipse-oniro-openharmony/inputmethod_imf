@@ -121,7 +121,7 @@ public:
     int64_t GetInactiveClientPid(uint64_t displayId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info, uint64_t displayId);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
-    int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent, int32_t pid);
+    int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent, pid_t pid);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core, pid_t pid);
     int32_t OnBindImeMirror(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnbindImeMirror();
@@ -138,6 +138,7 @@ public:
     void AddRestartIme();
 
     bool IsProxyImeEnable();
+    bool IsEnable(const std::shared_ptr<ImeData> &data);
     bool IsBoundToClient(uint64_t displayId);
     bool IsCurrentImeByPid(int32_t pid);
     int32_t RestoreCurrentImeSubType(uint64_t callingDisplayId);
@@ -169,11 +170,11 @@ public:
     bool IsDefaultDisplayGroup(uint64_t displayId);
     bool IsNumkeyAutoInputApp(const std::string &bundleName);
     std::pair<int32_t, int32_t> GetCurrentInputPattern();
+    void NotifyOnInputStopFinished();
     bool IsPreconfiguredDefaultImeSpecified(const InputClientInfo &inputClientInfo);
     bool IsImeSwitchForbidden();
     std::pair<int32_t, StartPreDefaultImeStatus> StartPreconfiguredDefaultIme(
         uint64_t callingDisplayId, const ImeExtendInfo &imeExtendInfo = {}, bool isStopCurrentIme = false);
-    void NotifyOnInputStopFinished();
     void IncreaseAttachCount();
     void DecreaseAttachCount();
     uint32_t GetAttachCount();
@@ -186,11 +187,11 @@ private:
         uint32_t num{ 0 };
         time_t last{};
     };
+    using CoreMethod = std::function<int32_t(const sptr<IInputMethodCore> &)>;
     enum TimeLimitType : uint32_t {
         IME_LIMIT,
         PROXY_IME_LIMIT,
     };
-    using CoreMethod = std::function<int32_t(const sptr<IInputMethodCore> &)>;
 
     int32_t userId_; // the id of the user to whom the object is linking
 #ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
@@ -223,11 +224,13 @@ private:
     std::shared_ptr<ClientGroup> GetClientGroup(sptr<IRemoteObject> client);
     std::shared_ptr<ClientGroup> GetClientGroup(ImeType type);
     ImeType GetImeType(uint64_t displayId);
+    std::shared_ptr<ImeData> GetValidIme(ImeType type);
 
     int32_t InitImeData(const std::pair<std::string, std::string> &ime,
         const std::shared_ptr<ImeNativeCfg> &imeNativeCfg = nullptr);
     int32_t UpdateImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
+    void AddImeData(std::vector<std::shared_ptr<ImeData>> &imeDataList, const std::shared_ptr<ImeData> &imeData);
     void RemoveImeData(ImeType type);
     void RemoveImeData(pid_t pid);
     int32_t RemoveIme(ImeType type, pid_t pid);
@@ -291,8 +294,8 @@ private:
     void SetImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
     sptr<AAFwk::IAbilityConnection> GetImeConnection();
     void ClearImeConnection(const sptr<AAFwk::IAbilityConnection> &connection);
-    int32_t IsRequestOverLimit(TimeLimitType timeLimit, int32_t resetTimeOut, uint32_t restartNum);
-    int32_t PrepareImeInfos(ImeType type, std::vector<sptr<IRemoteObject>> &agents,
+    int32_t IsRequestOverLimit(TimeLimitType timeLimit, int32_t resetTimeOut, int32_t restartNum);
+    int32_t FillBindImeInfo(ImeType imeType, std::vector<sptr<IRemoteObject>> &agents,
         std::vector<BindImeInfo> &imeInfos);
 
     std::mutex imeStartLock_;
@@ -328,6 +331,7 @@ private:
         { { ImeStatus::EXITING, ImeEvent::SET_CORE_AND_AGENT }, { ImeStatus::EXITING, ImeAction::DO_NOTHING } }
     };
     std::string runningIme_;
+    std::atomic<bool> isUserUnlocked_{ false };
     std::mutex imeUsedLock_;
     std::pair<std::string, std::string> imeUsedBeforeScreenLocked_;
     std::mutex virtualDisplayLock_{};
@@ -346,6 +350,7 @@ private:
     std::mutex connectionLock_{};
     sptr<AAFwk::IAbilityConnection> connection_ = nullptr;
     std::atomic<bool> isBlockStartedByLowMem_ = false;
+    bool isFirstPreemption_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

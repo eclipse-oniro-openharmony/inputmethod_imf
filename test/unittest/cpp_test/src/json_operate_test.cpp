@@ -63,8 +63,7 @@ public:
     static constexpr const char *INPUT_SYS_CGF = "{\"systemConfig\":{\"enableInputMethodFeature\":true,"
                                                  "\"enableFullExperienceFeature\":true,"
                                                  "\"systemInputMethodConfigAbility\":\"setAbility\","
-                                                 "\"defaultInputMethod\":\"bundleName/extName\","
-                                                 "\"systemSpecialInputMethod\":\"systemSpecialInputMethod\"}, "
+                                                 "\"defaultInputMethod\":\"bundleName/extName\"}, "
                                                  "\"supportedInputTypeList\":[{\"inputType\":0,\"bundleName\":"
                                                  "\"testBundleName\", "
                                                  "\"subtypeId\":\"testSubtypeId\"},{\"inputType\":1,\"bundleName\":"
@@ -159,7 +158,6 @@ HWTEST_F(JsonOperateTest, testParseSystemConfig001, TestSize.Level1)
     auto systemConfig = imeSystemConfig.systemConfig;
     EXPECT_EQ(systemConfig.systemInputMethodConfigAbility, "setAbility");
     EXPECT_EQ(systemConfig.defaultInputMethod, "bundleName/extName");
-    EXPECT_EQ(systemConfig.systemSpecialInputMethod, "systemSpecialInputMethod");
     EXPECT_TRUE(systemConfig.enableInputMethodFeature);
     EXPECT_TRUE(systemConfig.enableFullExperienceFeature);
 }
@@ -418,7 +416,6 @@ HWTEST_F(JsonOperateTest, testIsDynamicStartIme, TestSize.Level1)
  * @tc.desc: parse systemConfig
  * @tc.type: FUNC
  * @tc.require:
- * @tc.author: chenyu
  */
 HWTEST_F(JsonOperateTest, testParseSystemConfigUidList, TestSize.Level1)
 {

@@ -54,6 +54,7 @@ public:
         const sptr<IRemoteObject> &agent) override;
     ErrCode FinishTextPreview(uint64_t msgId, const sptr<IRemoteObject> &agent) override;
     ErrCode SendMessage(const ArrayBuffer &arraybuffer) override;
+    ErrCode HandleKeyEventResult(uint64_t cbId, bool consumeResult) override;
 };
 }  // namespace MiscServices
 }  // namespace OHOS

@@ -18,6 +18,7 @@
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "ime_info_inquirer.h"
 #include "ipc_skeleton.h"
 #include "global.h"
 #include "ime_info_inquirer.h"

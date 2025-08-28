@@ -107,7 +107,8 @@ bool TextTotalConfigInner::ReadFromParcel(Parcel &in)
             return false;
         }
     commandValue = *commandValueInfo;
-    requestKeyboardReason = static_cast<RequestKeyboardReason>(in.ReadInt32());
+    int32_t requestKeyboardReasonData = in.ReadInt32();
+    requestKeyboardReason = static_cast<RequestKeyboardReason>(requestKeyboardReasonData);
     abilityToken = (static_cast<MessageParcel*>(&in))->ReadRemoteObject();
     isSimpleKeyboardEnabled = in.ReadBool();
     return true;

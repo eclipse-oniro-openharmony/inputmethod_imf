@@ -24,7 +24,7 @@ namespace MiscServices {
 
 static std::string EnabledStatusToString(EnabledStatus status)
 {
-    switch(status) {
+    switch (status) {
         case EnabledStatus::DISABLED:
             return "DISABLED";
         case EnabledStatus::BASIC_MODE:
@@ -46,7 +46,7 @@ bool ValidateImeExists(const std::string& bundle)
     }
     controller->ListInputMethod(methods);
     for (const auto& m : methods) {
-        if(m.name == bundle){
+        if (m.name == bundle) {
             return true;
         }
     }
@@ -173,7 +173,7 @@ void HandleListIme(int32_t argc)
         return;
     }
     std::vector<Property> methods;
-    auto ret = controller->ListInputMethod(true, methods);
+    auto ret = controller->ListInputMethod(methods);
     if (ret != ErrorCode::NO_ERROR) {
         std::cout << "Error: list input method failed. Error code:" << ret << std::endl;
         return;
@@ -192,6 +192,7 @@ void HandleListIme(int32_t argc)
         std::cout << "bundle: " << m.name << ", status: " << EnabledStatusToString(m.status) << std::endl;
     }
 }
+
 int32_t InputMethodManagerCommand::ParseCommand(int32_t argc, char *argv[])
 {
     int32_t optCode = 0;

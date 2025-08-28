@@ -21,7 +21,7 @@ bool Serializable::Unmarshall(const std::string &content)
 {
     auto root = cJSON_Parse(content.c_str());
     if (root == NULL) {
-        IMSA_HILOGE("content parse failed!");
+        IMSA_HILOGE("%{public}s: parse failed!", content.c_str());
         return false;
     }
     auto ret = Unmarshal(root);
@@ -72,7 +72,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, int32_t &value
     value = subNode->valueint;
     return true;
 }
-
+// LCOV_EXCL_START
 bool Serializable::GetValue(cJSON *node, const std::string &name, uint32_t &value)
 {
     auto subNode = GetSubNode(node, name);
@@ -99,7 +99,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, bool &value)
     value = subNode->type == cJSON_True;
     return true;
 }
-
+// LCOV_EXCL_STOP
 bool Serializable::GetValue(cJSON *node, const std::string &name, Serializable &value)
 {
     auto object = GetSubNode(node, name);
@@ -109,7 +109,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, Serializable &
     }
     return value.Unmarshal(object);
 }
-
+// LCOV_EXCL_START
 bool Serializable::GetValue(cJSON *node, const std::string &name, std::vector<std::vector<std::string>> &values)
 {
     auto arrNode = GetSubNode(node, name);
@@ -136,7 +136,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, std::vector<st
     }
     return true;
 }
-
+// LCOV_EXCL_STOP
 bool Serializable::SetValue(cJSON *node, const std::string &name, const std::string &value)
 {
     auto item = cJSON_AddStringToObject(node, name.c_str(), value.c_str());

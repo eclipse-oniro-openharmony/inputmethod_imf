@@ -107,29 +107,21 @@ sptr<IRemoteObject> OnDemandStartStopSa::GetInputMethodSystemAbility(bool ifRetr
     }
 
     sptr<IRemoteObject> systemAbility = nullptr;
-    if (!ifRetry) {
-        systemAbility = systemAbilityManager->CheckSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID);
-        if (systemAbility == nullptr) {
-            IMSA_HILOGE("check system ability is nullptr!");
-            return nullptr;
-        }
+    systemAbility = systemAbilityManager->CheckSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID);
+    if (systemAbility != nullptr) {
         return systemAbility;
     }
+    if (!ifRetry) {
+        IMSA_HILOGE("check system ability is nullptr!");
+        return nullptr;
+    }
 
-#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     auto onDemandStartStopSa = std::make_shared<OnDemandStartStopSa>();
     systemAbility = onDemandStartStopSa->LoadInputMethodSystemAbility();
     if (systemAbility == nullptr) {
         IMSA_HILOGE("load system ability fail");
         return nullptr;
     }
-#else
-    systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID);
-    if (systemAbility == nullptr) {
-        IMSA_HILOGE("get system ability is nullptr!");
-        return nullptr;
-    }
-#endif
     return systemAbility;
 }
 

@@ -35,6 +35,8 @@ ohos_fuzztest("ControlChannelStubFuzzTest") {
   ]
 
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_info.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
     "${inputmethod_path}/services/src/input_control_channel_service_impl.cpp",
     "controlchannelstub_fuzzer.cpp",
   ]

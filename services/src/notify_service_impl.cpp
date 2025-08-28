@@ -21,12 +21,14 @@
 
 namespace OHOS {
 namespace MiscServices {
-OnInputStopNotifyServiceImpl::OnInputStopNotifyServiceImpl() {}
-OnInputStopNotifyServiceImpl::~OnInputStopNotifyServiceImpl() {}
 
 ErrCode OnInputStopNotifyServiceImpl::NotifyOnInputStopFinished()
 {
     IMSA_HILOGI("NotifyOnInputStopFinished is start!");
+    if (pid_ != IPCSkeleton::GetCallingPid()) {
+        IMSA_HILOGI("pid is invalid!");
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
     auto userId = OsAccountAdapter::GetOsAccountLocalIdFromUid(IPCSkeleton::GetCallingUid());
     if (userId == OsAccountAdapter::INVALID_USER_ID) {
         return ErrorCode::ERROR_EX_ILLEGAL_STATE;

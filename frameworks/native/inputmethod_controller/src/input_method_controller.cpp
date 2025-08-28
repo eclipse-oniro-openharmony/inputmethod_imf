@@ -159,11 +159,7 @@ int32_t InputMethodController::Initialize()
 
 sptr<IInputMethodSystemAbility> InputMethodController::TryGetSystemAbilityProxy()
 {
-#ifdef IMF_ON_DEMAND_START_STOP_SA_ENABLE
     return GetSystemAbilityProxy(false);
-#else
-    return GetSystemAbilityProxy(true);
-#endif
 }
 
 sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy(bool ifRetry)
@@ -322,7 +318,7 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, cons
     if (clientInfo_.isNotifyInputStart) {
         sessionId_++;
     }
-    IMSA_HILOGI("sessionId_ %{public}u", sessionId_.load());
+    IMSA_HILOGD("sessionId_ %{public}u", sessionId_.load());
     if (clientInfo_.isNotifyInputStart && lastListener != nullptr) {
         lastListener->OnDetachV2();
     }
@@ -472,7 +468,7 @@ int32_t InputMethodController::RequestShowInput()
         IMSA_HILOGE("proxy is nullptr!");
         return ErrorCode::ERROR_SERVICE_START_FAILED; // ERROR_EX_NULL_POINTER
     }
-    IMSA_HILOGI("InputMethodController start.");
+    IMSA_HILOGD("InputMethodController start.");
     return proxy->RequestShowInput();
 }
 
@@ -981,20 +977,31 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     IMSA_HILOGD("start.");
-    sptr<IKeyEventConsumer> consumer = new (std::nothrow) KeyEventConsumerServiceImpl(callback, keyEvent);
-    if (consumer == nullptr) {
-        IMSA_HILOGE("consumer is nullptr!");
+    sptr<IRemoteObject> channelObject = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        channelObject = clientInfo_.channel;
+    }
+    if (channelObject == nullptr) {
+        IMSA_HILOGE("channelObject is nullptr!");
         keyEventQueue_.Pop();
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    auto cbId = keyEventRetHandler_.AddKeyEventCbInfo({ keyEvent, callback });
     KeyEventValue keyEventValue;
     keyEventValue.event = keyEvent;
-    auto ret = agent->DispatchKeyEvent(keyEventValue, consumer);
+    auto ret = agent->DispatchKeyEvent(keyEventValue, cbId, channelObject);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to DispatchKeyEvent: %{public}d", ret);
+        keyEventRetHandler_.RemoveKeyEventCbInfo(cbId);
     }
     keyEventQueue_.Pop();
     return ret;
+}
+
+void InputMethodController::HandleKeyEventResult(uint64_t cbId, bool consumeResult)
+{
+    keyEventRetHandler_.HandleKeyEventResult(cbId, consumeResult);
 }
 
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
@@ -1167,13 +1174,13 @@ int32_t InputMethodController::SetSimpleKeyboardEnabled(bool enable)
 
 void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject, const BindImeInfo &imeInfo)
 {
-    IMSA_HILOGD("InputMethodController start.");
+    IMSA_HILOGI("InputMethodController start.");
     if (imeInfo.bundleName != IME_MIRROR_NAME) {
         SetBindImeInfo(std::make_pair(imeInfo.pid, imeInfo.bundleName));
         isBound_.store(true);
         isEditable_.store(true);
     } else {
-        IMSA_HILOGD("[ImeMirrorTag] proxyIme_IME_MIRROR no need to set bindImeInfo");
+        IMSA_HILOGI("[ImeMirrorTag] proxyIme_IME_MIRROR no need to set bindImeInfo");
     }
 
     if (agentObject == nullptr) {
@@ -1212,6 +1219,7 @@ void InputMethodController::OnInputStop(bool isStopInactiveClient, sptr<IRemoteO
     isBound_.store(false);
     isEditable_.store(false);
     isTextNotified_.store(false);
+    keyEventRetHandler_.ClearKeyEventCbInfo();
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
         textString_ = Str8ToStr16("");
@@ -1539,6 +1547,17 @@ int32_t InputMethodController::StartInputType(InputType type)
     }
     IMSA_HILOGI("type: %{public}d.", static_cast<int32_t>(type));
     return proxy->StartInputType(static_cast<int32_t>(type));
+}
+
+int32_t InputMethodController::StartInputTypeAsync(InputType type)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    IMSA_HILOGI("type: %{public}d.", static_cast<int32_t>(type));
+    return proxy->StartInputTypeAsync(static_cast<int32_t>(type));
 }
 
 int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
@@ -1911,6 +1930,9 @@ int32_t InputMethodController::SendRequestToAllAgents(std::function<int32_t(std:
                 continue;
             }
             IMSA_HILOGE("agent is null");
+            if (agentInfo.imeType == ImeType::IME_MIRROR) {
+                continue;
+            }
             return ErrorCode::ERROR_CLIENT_NULL_POINTER;
         }
         auto ret = task(agentInfo.agent);

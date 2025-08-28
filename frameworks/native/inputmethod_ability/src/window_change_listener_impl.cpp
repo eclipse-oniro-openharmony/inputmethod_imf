@@ -14,7 +14,6 @@
  */
 
 #include "window_change_listener_impl.h"
-
 #include "global.h"
 #include "input_method_panel.h"
 

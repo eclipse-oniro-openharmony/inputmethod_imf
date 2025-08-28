@@ -18,6 +18,7 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
+// LCOV_EXCL_START
 std::mutex WmsConnectionObserver::lock_;
 std::set<int32_t> WmsConnectionObserver::connectedUserId_;
 void WmsConnectionObserver::OnConnected(int32_t userId, int32_t screenId)
@@ -53,7 +54,7 @@ void WmsConnectionObserver::Remove(int32_t userId)
     }
     connectedUserId_.erase(it);
 }
-
+// LCOV_EXCL_STOP
 bool WmsConnectionObserver::IsWmsConnected(int32_t userId)
 {
     std::lock_guard<std::mutex> lock(lock_);

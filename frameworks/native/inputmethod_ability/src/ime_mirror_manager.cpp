@@ -31,7 +31,7 @@ void ImeMirrorManager::SetImeMirrorEnable(bool isRegistered)
 bool ImeMirrorManager::SubscribeSaStart(std::function<void()> handler, int32_t saId)
 {
     if (handler == nullptr) {
-        IMSA_HILOGE("handler is nullptr");
+        IMSA_HILOGE("[ImeMirrorTag] handler is nullptr, saId:%{public}d", saId);
         return false;
     }
     {

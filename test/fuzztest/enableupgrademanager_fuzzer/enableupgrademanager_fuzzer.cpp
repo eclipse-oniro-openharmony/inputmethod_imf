@@ -81,7 +81,6 @@ void FuzzFullImeInfo(const uint8_t *data, size_t size)
     FullImeInfo imeInfo = { .isNewIme = fuzzedBool, .tokenId = fuzzUint32, .appId = fuzzedString,
         .versionCode = fuzzUint32 };
     infos.push_back(imeInfo);
-    FullImeInfoManager::GetInstance().RegularInit();
     FullImeInfoManager::GetInstance().Switch(fuzzInt32);
     FullImeInfoManager::GetInstance().Update();
     FullImeInfoManager::GetInstance().Delete(fuzzInt32);

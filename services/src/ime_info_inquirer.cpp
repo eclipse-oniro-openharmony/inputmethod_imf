@@ -169,8 +169,8 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t user
     return info;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
-    const int32_t userId, const std::string &bundleName, const std::string &subName)
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(const int32_t userId, const std::string &bundleName,
+    const std::string &subName)
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s.", userId, bundleName.c_str(),
         subName.c_str());
@@ -578,10 +578,6 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
 int32_t ImeInfoInquirer::ParseSubtype(const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,
     std::vector<Subtype> &subtypes)
 {
-    if (extInfo.metadata.empty()) {
-        IMSA_HILOGE("metadata is empty!");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
     auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
         [](const Metadata &metadata) { return metadata.name == SUBTYPE_PROFILE_METADATA_NAME; });
     if (iter == extInfo.metadata.end()) {
@@ -1098,7 +1094,7 @@ bool ImeInfoInquirer::IsInputMethod(int32_t userId, const std::string &bundleNam
     }
     return false;
 }
- 
+
 bool ImeInfoInquirer::IsTempInputMethod(const ExtensionAbilityInfo &extInfo)
 {
     auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
