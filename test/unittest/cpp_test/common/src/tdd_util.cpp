@@ -30,6 +30,8 @@
 
 #include "accesstoken_kit.h"
 #include "datashare_helper.h"
+#include "display_info.h"
+#include "display_manager_lite.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
 #include "input_method_controller.h"
@@ -58,6 +60,7 @@ constexpr int32_t FOURTH_PARAM_INDEX = 3;
 constexpr int32_t FIFTH_PARAM_INDEX = 4;
 constexpr int32_t SIXTH_PARAM_INDEX = 5;
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
+constexpr int32_t WAIT_CLICK_COMPLETE = 100;
 uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
 std::string TddUtil::currentBundleNameMock_;
@@ -504,11 +507,33 @@ void TddUtil::StopApp(const std::string &bundleName)
     IMSA_HILOGI("ExecuteCmd ret = %{public}d", ret);
 }
 
-void TddUtil::ClickApp(const std::string &cmd)
+void TddUtil::ClickApp()
 {
+    auto displayInfo = Rosen::DisplayManagerLite::GetInstance().GetDefaultDisplay();
+    if (displayInfo == nullptr) {
+        return;
+    }
+    int32_t Height = displayInfo->GetHeight() / 2;
+    int32_t Width = displayInfo->GetWidth() / 2;
+    std::string cmd = "uinput";
+    cmd.append(" ")
+        .append("-T")
+        .append(" ")
+        .append("-d")
+        .append(" ")
+        .append(std::to_string(Width))
+        .append(" ")
+        .append(std::to_string(Height))
+        .append(" ")
+        .append("-u")
+        .append(" ")
+        .append(std::to_string(Width))
+        .append(" ")
+        .append(std::to_string(Height));
     std::string result;
     auto ret = TddUtil::ExecuteCmd(cmd, result);
     IMSA_HILOGI("ExecuteCmd ret = %{public}d", ret);
+    usleep(WAIT_CLICK_COMPLETE); // ensure click complete
 }
 
 bool TddUtil::WaitTaskEmpty()

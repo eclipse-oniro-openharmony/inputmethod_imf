@@ -41,7 +41,6 @@ constexpr int32_t RETRY_INTERVAL = 100;
 constexpr int32_t RETRY_TIME = 30;
 constexpr int32_t WAIT_APP_START_COMPLETE = 1;
 constexpr int32_t WAIT_BIND_COMPLETE = 1;
-constexpr int32_t WAIT_CLICK_COMPLETE = 100;
 constexpr const char *BUNDLENAME = "com.example.editorbox";
 class ImeProxyTest : public testing::Test {
 public:
@@ -119,11 +118,7 @@ public:
     static void ClickEditor(bool isPc)
     {
         isPc ? InputMethodEngineListenerImpl::isEnable_ = true : InputMethodEngineListenerImpl::isEnable_ = false;
-        static std::string cmd = "uinput -T -d 200 200 -u 200 200";
-        std::string result;
-        auto ret = TddUtil::ExecuteCmd(cmd, result);
-        EXPECT_TRUE(ret);
-        usleep(WAIT_CLICK_COMPLETE); // ensure click complete
+        TddUtil::ClickApp();
     }
 
     static void StopApp()

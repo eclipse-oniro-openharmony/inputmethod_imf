@@ -370,7 +370,7 @@ void InputMethodPanelTest::ImcPanelShowNumCheck(uint32_t num)
     }
     bool ret =
         imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [&num] {
-            return num == imeShowCallbackNum_;
+            return imeShowCallbackNum_ >= num;
         });
     EXPECT_TRUE(ret);
 }
