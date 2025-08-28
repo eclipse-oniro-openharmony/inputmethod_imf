@@ -105,6 +105,7 @@ public:
     bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
     bool IsInputMethodExtension(pid_t pid);
     bool IsRestrictedDefaultImeByDisplay(uint64_t displayId);
+    bool IsRestrictedMainDisplayId(uint64_t displayId);
     bool IsDynamicStartIme();
     std::unordered_set<std::string> GetDisableNumKeyAppDeviceTypes();
     bool IsCapacitySupport(const std::string &capacityName);

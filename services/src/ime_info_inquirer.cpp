@@ -27,8 +27,7 @@
 #include "parameters.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
-#include "display_manager_lite.h"
-#include "display_info.h"
+#include "display_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -1223,18 +1222,15 @@ bool ImeInfoInquirer::IsInputMethodExtension(pid_t pid)
 
 bool ImeInfoInquirer::IsRestrictedDefaultImeByDisplay(uint64_t displayId)
 {
-    sptr<Rosen::DisplayLite> display = Rosen::DisplayManagerLite::GetInstance().GetDisplayById(displayId);
-    if (display == nullptr) {
-        IMSA_HILOGE("display is null!");
-        return false;
-    }
-    sptr<Rosen::DisplayInfo> displayInfo = display->GetDisplayInfo();
-    if (displayInfo == nullptr) {
-        IMSA_HILOGE("displayInfo is null!");
-        return false;
-    }
-    auto screenName = displayInfo->GetName();
+    auto screenName = DisplayAdapter::GetDisplayName(displayId);
     return systemConfig_.defaultImeScreenList.find(screenName) != systemConfig_.defaultImeScreenList.end();
+}
+
+bool ImeInfoInquirer::IsRestrictedMainDisplayId(uint64_t displayId)
+{
+    auto screenName = DisplayAdapter::GetDisplayName(displayId);
+    return systemConfig_.defaultMainDisplayScreenList.find(screenName) !=
+           systemConfig_.defaultMainDisplayScreenList.end();
 }
 
 bool ImeInfoInquirer::IsDynamicStartIme()

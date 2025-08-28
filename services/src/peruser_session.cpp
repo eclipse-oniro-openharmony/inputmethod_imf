@@ -48,6 +48,7 @@
 #include "ime_state_manager_factory.h"
 #include "inputmethod_trace.h"
 #include "notify_service_impl.h"
+#include "display_adapter.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -1547,7 +1548,7 @@ int32_t PerUserSession::OnSetCallingWindow(uint32_t callingWindowId,
     clientGroup->NotifyInputStartToClients(callingWindowId, static_cast<int32_t>(clientInfo->requestKeyboardReason));
 
     if (callingWindowId != INVALID_WINDOW_ID) {
-        auto callingWindowInfo = GetCallingWindowInfo(*clientInfo);
+        auto callingWindowInfo = GetFinalCallingWindowInfo(*clientInfo);
         clientInfo->config.inputAttribute.windowId = callingWindowInfo.windowId;
         bool isNotifyDisplayChanged =
             clientInfo->config.inputAttribute.callingDisplayId != callingWindowInfo.displayId &&
@@ -2512,6 +2513,17 @@ int32_t PerUserSession::NotifyCallingDisplayChanged(uint64_t displayId)
         IMSA_HILOGE("notify calling window display changed failed, ret: %{public}d!", ret);
     }
     return ret;
+}
+
+ImfCallingWindowInfo PerUserSession::GetFinalCallingWindowInfo(const InputClientInfo &clientInfo)
+{
+    auto windowInfo = GetCallingWindowInfo(clientInfo);
+    if (SceneBoardJudgement::IsSceneBoardEnabled() &&
+        ImeInfoInquirer::GetInstance().IsRestrictedMainDisplayId(windowInfo.displayId)) {
+        IMSA_HILOGI("get default displayId");
+        windowInfo.displayId = DisplayAdapter::GetDefaultDisplayId();
+    }
+    return windowInfo;
 }
 
 ImfCallingWindowInfo PerUserSession::GetCallingWindowInfo(const InputClientInfo &clientInfo)
