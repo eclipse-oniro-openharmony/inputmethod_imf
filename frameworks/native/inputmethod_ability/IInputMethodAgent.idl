@@ -20,10 +20,10 @@ sequenceable input_method_utils..OHOS.MiscServices.ArrayBuffer;
 sequenceable input_method_utils..OHOS.MiscServices.ResponseDataInner;
 sequenceable OHOS.IRemoteObject;
 interface OHOS.MiscServices.IInputMethodAgent {
-    [ipccode 0] void DispatchKeyEvent([in] KeyEventValue keyEvent, [in] unsigned long cbId, [in] IRemoteObject channelObject);
-    void OnCursorUpdate([in] int positionX, [in] int positionY, [in] int height);
-    void OnSelectionChange([in] String text, [in] int oldBegin, [in] int oldEnd, [in] int newBegin, [in] int newEnd);
-    void SetCallingWindow([in] unsigned int windowId);
+    [ipccode 0, oneway] void DispatchKeyEvent([in] KeyEventValue keyEvent, [in] unsigned long cbId, [in] IRemoteObject channelObject);
+    [oneway] void OnCursorUpdate([in] int positionX, [in] int positionY, [in] int height);
+    [oneway] void OnSelectionChange([in] String text, [in] int oldBegin, [in] int oldEnd, [in] int newBegin, [in] int newEnd);
+    [oneway] void SetCallingWindow([in] unsigned int windowId);
     void OnAttributeChange([in] InputAttributeInner attributeInner);
     void SendPrivateCommand([in] Value value);
     void SendMessage([in] ArrayBuffer arraybuffer);

@@ -20,10 +20,10 @@ sequenceable panel_info..OHOS.MiscServices.PanelInfo;
 sequenceable OHOS.IRemoteObject;
 interface OHOS.MiscServices.IInputControlChannel;
 interface OHOS.MiscServices.IInputMethodCore {
-    [ipccode 0] void StartInput([in] InputClientInfoInner clientInfoInner, [in] boolean isBindFromClient);
-    void StopInput([in] IRemoteObject channel, [in] unsigned int sessionId);
+    [ipccode 0, oneway] void StartInput([in] InputClientInfoInner clientInfoInner, [in] boolean isBindFromClient);
+    [oneway] void StopInput([in] IRemoteObject channel, [in] unsigned int sessionId);
     void ShowKeyboard([in] int requestKeyboardReason);
-    void HideKeyboard();
+    [oneway] void HideKeyboard();
     void InitInputControlChannel([in] IInputControlChannel inputControlChannel);
     void StopInputService([in] boolean isTerminateIme);
     void SetSubtype([in] SubProperty property);
