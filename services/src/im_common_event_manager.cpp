@@ -33,6 +33,7 @@ constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf
 constexpr const char *COMMON_EVENT_PARAM_USER_ID = "userId";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_RECT = "panelRect";
+constexpr const char *COMMON_EVENT_PARAM_BUNDLE_RES_CHANGE_TYPE = "bundleResourceChangeType";
 constexpr const char *EVENT_LARGE_MEMORY_STATUS_CHANGED = "usual.event.memmgr.large_memory_status_changed";
 constexpr const char *EVENT_MEMORY_STATE = "memory_state";
 constexpr const char *EVENT_PARAM_UID = "uid";
@@ -71,6 +72,7 @@ bool ImCommonEventManager::SubscribeEvent()
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED);
     matchingSkills.AddEvent(EVENT_LARGE_MEMORY_STATUS_CHANGED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BUNDLE_RESOURCES_CHANGED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -151,53 +153,68 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
     : EventFwk::CommonEventSubscriber(subscribeInfo)
 {
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_SWITCHED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->StartUser(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->StartUser(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_STOPPED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->StopUser(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->StopUser(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_REMOVED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->RemoveUser(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->RemoveUser(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->RemovePackage(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->RemovePackage(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->OnBundleScanFinished(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->OnBundleScanFinished(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_DATA_SHARE_READY] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->OnDataShareReady(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->OnDataShareReady(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->AddPackage(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->AddPackage(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_CHANGED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->ChangePackage(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->ChangePackage(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->HandleBootCompleted(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->HandleBootCompleted(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->OnScreenUnlock(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->OnScreenUnlock(data); };
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->OnScreenLock(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->OnScreenLock(data); };
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_BUNDLE_RESOURCES_CHANGED] =
+        [](EventSubscriber *that, const CommonEventData &data) { return that->OnBundleResChanged(data); };
     EventManagerFunc_[EVENT_LARGE_MEMORY_STATUS_CHANGED] =
-        [] (EventSubscriber *that, const EventFwk::CommonEventData &data) {
-            return that->HandleLargeMemoryStateUpdate(data);
-        };
+        [](EventSubscriber *that, const CommonEventData &data) { return that->HandleLargeMemoryStateUpdate(data); };
+}
+
+void ImCommonEventManager::EventSubscriber::OnBundleResChanged(const CommonEventData &data)
+{
+    auto const &want = data.GetWant();
+    auto userId = want.GetIntParam(COMMON_EVENT_PARAM_USER_ID, OsAccountAdapter::INVALID_USER_ID);
+    if (userId == OsAccountAdapter::INVALID_USER_ID) {
+        IMSA_HILOGE("invalid user id.");
+        return;
+    }
+    // -1 represent invalid bundleResChangeType
+    auto resChangeType = want.GetIntParam(COMMON_EVENT_PARAM_BUNDLE_RES_CHANGE_TYPE, -1);
+    IMSA_HILOGD("%{public}d/%{public}d bundle res changed!", userId, resChangeType);
+    MessageParcel *parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("Parcel is nullptr!");
+        return;
+    }
+    if (!ITypesUtil::Marshal(*parcel, userId, resChangeType)) {
+        IMSA_HILOGE("Failed to write message parcel.");
+        delete parcel;
+        return;
+    }
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_BUNDLE_RESOURCES_CHANGED, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("Failed to create Message!");
+        delete parcel;
+        return;
+    }
+    MessageHandler *msgHandle = MessageHandler::Instance();
+    if (msgHandle == nullptr) {
+        IMSA_HILOGE("MessageHandler is nullptr!");
+        delete parcel;
+        delete msg;
+        return;
+    }
+    msgHandle->SendMessage(msg);
 }
 
 void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
