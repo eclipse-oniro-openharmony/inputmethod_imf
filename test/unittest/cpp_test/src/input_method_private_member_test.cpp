@@ -28,6 +28,7 @@
 #include "user_session_manager.h"
 #include "system_param_adapter.h"
 #include "ime_state_manager_factory.h"
+#include "inputmethod_message_handler.h"
 #undef private
 #include <gtest/gtest.h>
 #include <gtest/hwext/gtest-multithread.h>
@@ -82,6 +83,8 @@ constexpr int32_t MS_TO_US = 1000;
 constexpr int32_t WAIT_FOR_THREAD_SCHEDULE = 10;
 constexpr int32_t WAIT_ATTACH_FINISH_DELAY = 50;
 constexpr uint32_t MAX_ATTACH_COUNT = 100000;
+constexpr const char *COMMON_EVENT_PARAM_USER_ID = "userId";
+constexpr const char *COMMON_EVENT_PARAM_BUNDLE_RES_CHANGE_TYPE = "bundleResourceChangeType";
 std::atomic<int32_t> InputMethodPrivateMemberTest::tryLockFailCount_ = 0;
 std::shared_ptr<PerUserSession> InputMethodPrivateMemberTest::session_ = nullptr;
 void InputMethodPrivateMemberTest::TestImfStartIme()
@@ -3024,6 +3027,34 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSession_GetFinalCallingWindowInfo,
     clientInfo.config.windowId = focusInfo.windowId_;
     ImfCallingWindowInfo windowInfo = userSession->GetFinalCallingWindowInfo(clientInfo);
     EXPECT_TRUE(windowInfo.displayId == DisplayAdapter::GetDefaultDisplayId());
+}
+
+/**
+ * @tc.name: ImCommonEventManager_OnBundleResChanged
+ * @tc.desc: ImCommonEventManager_OnBundleResChanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodPrivateMemberTest, ImCommonEventManager_OnBundleResChanged, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest::ImCommonEventManager_OnBundleResChanged start.");
+    EventFwk::MatchingSkills matchingSkills;
+    EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
+    auto subscriber = std::make_shared<ImCommonEventManager::EventSubscriber>(subscriberInfo);
+    auto msgHandler = MessageHandler::Instance();
+    ASSERT_NE(msgHandler, nullptr);
+    while (!msgHandler->mQueue.empty()) {
+        msgHandler->mQueue.pop();
+    }
+    AAFwk::Want want;
+    int32_t type = 3;
+    // -1 represent invalid userId
+    want.SetParam(COMMON_EVENT_PARAM_USER_ID, -1);
+    want.SetParam(COMMON_EVENT_PARAM_BUNDLE_RES_CHANGE_TYPE, type);
+    EventFwk::CommonEventData data;
+    data.SetWant(want);
+    subscriber->OnBundleResChanged(data);
+    EXPECT_TRUE(msgHandler->mQueue.empty());
 }
 } // namespace MiscServices
 } // namespace OHOS

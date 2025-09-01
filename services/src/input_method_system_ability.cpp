@@ -1646,7 +1646,8 @@ void InputMethodSystemAbility::WorkThread()
                 HandlePackageEvent(msg);
                 break;
             }
-            case MSG_ID_SYS_LANGUAGE_CHANGED: {
+            case MSG_ID_SYS_LANGUAGE_CHANGED:
+            case MSG_ID_BUNDLE_RESOURCES_CHANGED: {
                 FullImeInfoManager::GetInstance().Update();
                 break;
             }
