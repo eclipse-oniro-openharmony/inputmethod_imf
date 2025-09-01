@@ -56,6 +56,7 @@ class NumkeyAppsManager {
 public:
     static NumkeyAppsManager &GetInstance();
     int32_t Init(int32_t userId);
+    void Release();
     bool NeedAutoNumKeyInput(int32_t userId, const std::string &bundleName);
     int32_t OnUserSwitched(int32_t userId);
     int32_t OnUserRemoved(int32_t userId);

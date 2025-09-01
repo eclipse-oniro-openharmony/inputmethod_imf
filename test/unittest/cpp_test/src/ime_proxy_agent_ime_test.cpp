@@ -46,6 +46,8 @@ public:
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("ImeProxyAgentImeTest::SetUpTestCase");
+        // To increase the coverage of abnormal branches
+        InputMethodAbility::GetInstance().RemoveDeathRecipient();
         TddUtil::StorageSelfTokenID();
         TddUtil::InitWindow(false);
         imc_ = InputMethodController::GetInstance();
@@ -69,6 +71,10 @@ public:
         IMSA_HILOGI("ImeProxyAgentImeTest::TearDownTestCase");
         TddUtil::DestroyWindow();
         TddUtil::RestoreSelfTokenID();
+        InputMethodAbility::GetInstance().RemoveDeathRecipient();
+        if (imc_ != nullptr) {
+            imc_->Reset();
+        }
         TddUtil::KillImsaProcess();
     }
     void SetUp()

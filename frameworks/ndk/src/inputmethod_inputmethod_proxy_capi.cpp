@@ -60,10 +60,16 @@ InputMethod_ErrorCode OH_InputMethodProxy_ShowTextInput(
     InputMethod_InputMethodProxy *inputMethodProxy, InputMethod_AttachOptions *options)
 {
     auto errCode = IsValidInputMethodProxy(inputMethodProxy);
-    if (errCode != IME_ERR_OK || options == nullptr) {
+    if (errCode != IME_ERR_OK) {
         IMSA_HILOGE("invalid state, errCode=%{public}d", errCode);
         return errCode;
     }
+
+    if (options == nullptr) {
+        IMSA_HILOGE("options is nullptr");
+        return IME_ERR_PARAMCHECK;
+    }
+
     AttachOptions attachOptions;
     attachOptions.isShowKeyboard = options->showKeyboard;
     attachOptions.requestKeyboardReason =

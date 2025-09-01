@@ -92,6 +92,7 @@ public:
     bool IsProxyIme(int32_t callingUid);
     bool IsSpecialSaUid(int32_t callingUid);
     void InitSystemConfig();
+    void InitDynamicStartImeCfg();
     SystemConfig GetSystemConfig();
     ImeNativeCfg GetDefaultIme();
     std::string GetSystemSpecialIme();
@@ -150,6 +151,7 @@ private:
         FullImeInfo &imeInfo, bool needBrief = false);
 
     SystemConfig systemConfig_;
+    std::vector<DynamicStartImeCfgItem> dynamicStartImeList_;
     bool IsTempInputMethod(const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo);
 };
 } // namespace MiscServices

@@ -17,16 +17,72 @@
 #include "string_ex.h"
 
 #include "global.h"
-#include "native_inputmethod_types.h"
-#include "mock_input_method_system_ability_proxy.h"
 #include "input_method_controller.h"
+#include "mock_input_method_system_ability_proxy.h"
+#include "mock_iremote_object.h"
+#include "native_inputmethod_types.h"
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::MiscServices;
 using namespace testing;
-class InputMethodControllerCapiTest : public testing::Test { };
-namespace {
+
+namespace OHOS {
+namespace MiscServices {
+class InputMethodControllerCapiTest : public testing::Test {
+public:
+    static void SetUpTestSuite()
+    {
+        systemAbilityProxyMock_ = new (std::nothrow) NiceMock<MockInputMethodSystemAbilityProxy>();
+        ASSERT_NE(systemAbilityProxyMock_, nullptr);
+        MockInputMethodSystemAbilityProxy::SetImsaProxyForTest(
+            InputMethodController::GetInstance(), systemAbilityProxyMock_);
+
+        textEditorProxy_ = OH_TextEditorProxy_Create();
+        ASSERT_NE(nullptr, textEditorProxy_);
+        ConstructTextEditorProxy(textEditorProxy_);
+
+        attachOptions_ = OH_AttachOptions_Create(true);
+        ASSERT_NE(nullptr, attachOptions_);
+
+        ON_CALL(*systemAbilityProxyMock_, StartInput(_, _, _))
+            .WillByDefault(Invoke([](const InputClientInfoInner &info, vector<sptr<IRemoteObject>> &agents,
+                                      vector<BindImeInfo> &imeInfos) {
+                sptr<MockIRemoteObject> iremoteObject = new (std::nothrow) NiceMock<MockIRemoteObject>();
+                EXPECT_NE(iremoteObject, nullptr);
+                agents.emplace_back(iremoteObject);
+                BindImeInfo imeinfo;
+                imeInfos.push_back(imeinfo);
+                return ErrorCode::NO_ERROR;
+            }));
+    }
+
+    static void TearDownTestSuite()
+    {
+        MockInputMethodSystemAbilityProxy::SetImsaProxyForTest(InputMethodController::GetInstance(), nullptr);
+        if (textEditorProxy_ != nullptr) {
+            OH_TextEditorProxy_Destroy(textEditorProxy_);
+            textEditorProxy_ = nullptr;
+        }
+
+        if (attachOptions_ != nullptr) {
+            OH_AttachOptions_Destroy(attachOptions_);
+            attachOptions_ = nullptr;
+        }
+
+        systemAbilityProxyMock_ = nullptr;
+    }
+
+    static void ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProxy);
+
+    static InputMethod_TextEditorProxy *textEditorProxy_;
+    static InputMethod_AttachOptions *attachOptions_;
+    static sptr<MockInputMethodSystemAbilityProxy> systemAbilityProxyMock_;
+};
+
+InputMethod_TextEditorProxy *InputMethodControllerCapiTest::textEditorProxy_ = nullptr;
+InputMethod_AttachOptions *InputMethodControllerCapiTest::attachOptions_ = nullptr;
+sptr<MockInputMethodSystemAbilityProxy> InputMethodControllerCapiTest::systemAbilityProxyMock_ = nullptr;
 /**
  * @tc.name: TestCursorInfo_001
  * @tc.desc: create and destroy TestCursorInfo success
@@ -199,7 +255,7 @@ int32_t SetPreviewTextFunc(
     return 0;
 }
 void FinishTextPreviewFunc(InputMethod_TextEditorProxy *proxy) { }
-static void ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProxy)
+void InputMethodControllerCapiTest::ConstructTextEditorProxy(InputMethod_TextEditorProxy *textEditorProxy)
 {
     EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetGetTextConfigFunc(textEditorProxy, GetTextConfigFunc));
     EXPECT_EQ(IME_ERR_OK, OH_TextEditorProxy_SetInsertTextFunc(textEditorProxy, InsertTextFunc));
@@ -308,6 +364,42 @@ HWTEST_F(InputMethodControllerCapiTest, AttachOptions_001, TestSize.Level0)
     bool showKeyboard = false;
     EXPECT_EQ(IME_ERR_OK, OH_AttachOptions_IsShowKeyboard(options, &showKeyboard));
     EXPECT_TRUE(showKeyboard);
+    OH_AttachOptions_Destroy(options);
+}
+
+/**
+ * @tc.name: CreateAndDestroyAttachOptionsWithRequestKeyboardReason_success
+ * @tc.desc: create and destroy AttachOptions success
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, CreateAndDestroyAttachOptionsWithRequestKeyboardReason_success, TestSize.Level0)
+{
+    auto options = OH_AttachOptions_CreateWithRequestKeyboardReason(
+        true, InputMethod_RequestKeyboardReason::IME_REQUEST_REASON_NONE);
+    ASSERT_NE(nullptr, options);
+
+    int32_t requestKeyboardReason = -1;
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_AttachOptions_GetRequestKeyboardReason(options, nullptr));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_AttachOptions_GetRequestKeyboardReason(nullptr, &requestKeyboardReason));
+
+    EXPECT_EQ(IME_ERR_OK, OH_AttachOptions_GetRequestKeyboardReason(options, &requestKeyboardReason));
+    EXPECT_EQ(requestKeyboardReason, InputMethod_RequestKeyboardReason::IME_REQUEST_REASON_NONE);
+    OH_AttachOptions_Destroy(options);
+}
+
+/**
+ * @tc.name: GetRequestKeyboardReasonWithNull_fail
+ * @tc.desc: get request keyboard reason with null fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, GetRequestKeyboardReasonWithNull_fail, TestSize.Level0)
+{
+    auto options = OH_AttachOptions_CreateWithRequestKeyboardReason(
+        true, InputMethod_RequestKeyboardReason::IME_REQUEST_REASON_NONE);
+    ASSERT_NE(nullptr, options);
+
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_AttachOptions_GetRequestKeyboardReason(options, nullptr));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_AttachOptions_GetRequestKeyboardReason(nullptr, nullptr));
     OH_AttachOptions_Destroy(options);
 }
 
@@ -1381,6 +1473,57 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_ShowKeyboard_001, Te
 }
 
 /**
+ * @tc.name: ShowKeyboardTest_SUCCESS
+ * @tc.desc: show keyboard success after attach
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, ShowKeyboardTest_SUCCESS, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    auto ret = OH_InputMethodProxy_ShowKeyboard(inputMethodProxy);
+    EXPECT_EQ(ret, IME_ERR_OK);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
+ * @tc.name: ShowTextInput_SUCCESS
+ * @tc.desc: show text input success after attach
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, ShowTextInput_SUCCESS, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    auto ret = OH_InputMethodProxy_ShowTextInput(inputMethodProxy, attachOptions_);
+    EXPECT_EQ(ret, IME_ERR_OK);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
+ * @tc.name: ShowTextInputWithNullOptions_fail
+ * @tc.desc: show text input with invalid param fail after attach
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, ShowTextInputWithNullOptions_fail, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    auto ret = OH_InputMethodProxy_ShowTextInput(inputMethodProxy, nullptr);
+    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
+
+    ret = OH_InputMethodProxy_ShowTextInput(nullptr, attachOptions_);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
  * @tc.name: OH_InputMethodProxy_HideKeyboard_001
  * @tc.desc: input parameters is nullptr
  * @tc.type: FUNC
@@ -1389,6 +1532,22 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_HideKeyboard_001, Te
 {
     auto ret = OH_InputMethodProxy_HideKeyboard(nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: HideKeyboard_SUCCESS
+ * @tc.desc: hide keyboard success
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, HideKeyboard_SUCCESS, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    auto ret = OH_InputMethodProxy_HideKeyboard(inputMethodProxy);
+    EXPECT_EQ(ret, IME_ERR_OK);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
 }
 
 /**
@@ -1406,6 +1565,56 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_NotifySelectionChang
 }
 
 /**
+ * @tc.name: NotifySelectionChangeWithNullText_FAIL
+ * @tc.desc: input parameters is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, NotifySelectionChangeWithNullText_FAIL, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+    size_t length = 0;
+    int start = 0;
+    int end = 0;
+    auto ret = OH_InputMethodProxy_NotifySelectionChange(inputMethodProxy, nullptr, length, start, end);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
+ * @tc.name: NotifySelectionChangeWithInvalidLength_FAIL
+ * @tc.desc: input parameters is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, NotifySelectionChangeWithInvalidLength_FAIL, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+    char16_t text[] = u"1234";
+    auto ret = OH_InputMethodProxy_NotifySelectionChange(inputMethodProxy, text, MAX_TEXT_LENGTH + 1, 0, 0);
+    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
+ * @tc.name: NotifySelectionChange_SUCCESS
+ * @tc.desc: NotifySelectionChange success
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, NotifySelectionChange_SUCCESS, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+    char16_t text[] = u"1234";
+    auto ret = OH_InputMethodProxy_NotifySelectionChange(inputMethodProxy, text, 4, 0, 0);
+    EXPECT_EQ(ret, IME_ERR_OK);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
  * @tc.name: OH_InputMethodProxy_NotifyConfigurationChange_001
  * @tc.desc: input parameters is nullptr
  * @tc.type: FUNC
@@ -1416,6 +1625,63 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_NotifyConfigurationC
     InputMethod_TextInputType expInput = IME_TEXT_INPUT_TYPE_NUMBER_DECIMAL;
     auto ret = OH_InputMethodProxy_NotifyConfigurationChange(nullptr, enterKey, expInput);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: NotifyConfigurationChange_SUCCESS
+ * @tc.desc: notify configuration change success
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, NotifyConfigurationChange_SUCCESS, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    InputMethod_EnterKeyType enterKey = IME_ENTER_KEY_UNSPECIFIED;
+    InputMethod_TextInputType expInput = IME_TEXT_INPUT_TYPE_NUMBER_DECIMAL;
+    auto ret = OH_InputMethodProxy_NotifyConfigurationChange(inputMethodProxy, enterKey, expInput);
+    EXPECT_EQ(ret, IME_ERR_OK);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
+ * @tc.name: NotifyCursorUpdate_SUCCESS
+ * @tc.desc: notify cursor update success
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, NotifyCursorUpdate_SUCCESS, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    double left = 0;
+    double top = 1.0;
+    double width = 2.0;
+    double height = 3.0;
+    InputMethod_CursorInfo *cursorInfo = OH_CursorInfo_Create(left, top, width, height);
+    EXPECT_NE(cursorInfo, nullptr);
+    auto ret = OH_InputMethodProxy_NotifyCursorUpdate(inputMethodProxy, cursorInfo);
+    EXPECT_EQ(ret, IME_ERR_OK);
+    OH_CursorInfo_Destroy(cursorInfo);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
+ * @tc.name: NotifyCursorUpdateWithNullCursorInfo_FAIL
+ * @tc.desc: notify cursor update with null cursorInfo fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, NotifyCursorUpdateWithNullCursorInfo_FAIL, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    auto ret = OH_InputMethodProxy_NotifyCursorUpdate(inputMethodProxy, nullptr);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
 }
 
 /**
@@ -1430,10 +1696,12 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_NotifyCursorUpdate_0
     double width = 2.0;
     double height = 3.0;
     InputMethod_CursorInfo *cursorInfo = OH_CursorInfo_Create(left, top, width, height);
+    EXPECT_NE(cursorInfo, nullptr);
     auto ret = OH_InputMethodProxy_NotifyCursorUpdate(nullptr, nullptr);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_InputMethodProxy_NotifyCursorUpdate(nullptr, cursorInfo);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+    OH_CursorInfo_Destroy(cursorInfo);
 }
 
 /**
@@ -1454,6 +1722,64 @@ HWTEST_F(InputMethodControllerCapiTest, OH_InputMethodProxy_SendPrivateCommand_0
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
     ret = OH_InputMethodProxy_SendPrivateCommand(nullptr, privateCommand, size);
     EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: SendPrivateCommandWithInvalidCommandCount_FAIL
+ * @tc.desc: input parameters is invalid
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, SendPrivateCommandWithInvalidCommandCount_FAIL, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    InputMethod_PrivateCommand *privateCommand[MAX_SYS_PRIVATE_COMMAND_COUNT + 1] = { nullptr };
+    auto ret =
+        OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, privateCommand, MAX_SYS_PRIVATE_COMMAND_COUNT + 1);
+    EXPECT_EQ(ret, IME_ERR_PARAMCHECK);
+
+    size_t size = 1;
+    ret = OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, privateCommand, size);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
+ * @tc.name: SendPrivateCommandWithNullCommand_FAIL
+ * @tc.desc: input parameters is invalid
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, SendPrivateCommandWithNullCommand_FAIL, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    auto ret = OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, nullptr, 0);
+    EXPECT_EQ(ret, IME_ERR_NULL_POINTER);
+
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
+}
+
+/**
+ * @tc.name: SendPrivateCommand_SUCCESS
+ * @tc.desc: send private command success
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerCapiTest, SendPrivateCommand_SUCCESS, TestSize.Level0)
+{
+    InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy_, attachOptions_, &inputMethodProxy));
+
+    char key[] = "example key";
+    size_t keyLength = strlen(key);
+    InputMethod_PrivateCommand *privateCommand[] = { OH_PrivateCommand_Create(key, keyLength) };
+    auto ret = OH_InputMethodProxy_SendPrivateCommand(inputMethodProxy, privateCommand, 1);
+    EXPECT_EQ(ret, IME_ERR_OK);
+
+    OH_PrivateCommand_Destroy(privateCommand[0]);
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Detach(inputMethodProxy));
 }
 
 /**
@@ -1530,15 +1856,16 @@ HWTEST_F(InputMethodControllerCapiTest, TestAttachWithNorrmalParam_001, TestSize
     auto options = OH_AttachOptions_Create(true);
     EXPECT_NE(nullptr, options);
     InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
-    EXPECT_EQ(IME_ERR_IMCLIENT, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
-    EXPECT_EQ(IME_ERR_IMCLIENT, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy, options, &inputMethodProxy));
 
     auto textEditorProxy2 = OH_TextEditorProxy_Create();
     EXPECT_NE(nullptr, textEditorProxy2);
     ConstructTextEditorProxy(textEditorProxy2);
-    EXPECT_EQ(IME_ERR_IMCLIENT, OH_InputMethodController_Attach(textEditorProxy2, options, &inputMethodProxy));
-    OH_TextEditorProxy_Destroy(textEditorProxy2);
+    EXPECT_EQ(IME_ERR_OK, OH_InputMethodController_Attach(textEditorProxy2, options, &inputMethodProxy));
 
+    OH_InputMethodController_Detach(inputMethodProxy);
+    OH_TextEditorProxy_Destroy(textEditorProxy2);
     OH_AttachOptions_Destroy(options);
     OH_TextEditorProxy_Destroy(textEditorProxy);
 }
@@ -1564,7 +1891,9 @@ HWTEST_F(InputMethodControllerCapiTest, TestAttachWithPlaceholderAndAbility_001,
     OH_TextEditorProxy_SetGetTextConfigFunc(textEditorProxy2, fnGetTextConfigFunc);
     InputMethod_InputMethodProxy *inputMethodProxy = nullptr;
     auto ret = OH_InputMethodController_Attach(textEditorProxy2, options, &inputMethodProxy);
-    EXPECT_NE(ret, IME_ERR_OK);
+    EXPECT_EQ(ret, IME_ERR_OK);
+
+    OH_InputMethodController_Detach(inputMethodProxy);
     OH_TextEditorProxy_Destroy(textEditorProxy2);
     OH_AttachOptions_Destroy(options);
 }
@@ -1806,4 +2135,75 @@ HWTEST_F(InputMethodControllerCapiTest, OH_TextConfig_SetAbilityName_004, TestSi
     IMSA_HILOGI("outLen:%{public}zu,out:%{public}s, utf8len:%{public}zu", outLen, utf8Out.c_str(), utf8Out.size());
     OH_TextConfig_Destroy(config);
 }
-} // namespace
+
+/**
+ * @tc.name: SetOnTerminatedFuncWithNull_FAIL
+ * @tc.desc: GetOnTerminatedFunc with null fail.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerCapiTest, SetOnTerminatedFuncWithNull_FAIL, TestSize.Level0)
+{
+    auto proxy = OH_MessageHandlerProxy_Create();
+    EXPECT_NE(proxy, nullptr);
+
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_MessageHandlerProxy_SetOnTerminatedFunc(nullptr, nullptr));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_MessageHandlerProxy_SetOnTerminatedFunc(proxy, nullptr));
+
+    OH_MessageHandlerProxy_Destroy(proxy);
+    OH_MessageHandlerProxy_Destroy(nullptr);
+}
+
+/**
+ * @tc.name: GetOnTerminatedFuncWithNull_FAIL
+ * @tc.desc: GetOnTerminatedFunc with null fail.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerCapiTest, GetOnTerminatedFuncWithNull_FAIL, TestSize.Level0)
+{
+    auto proxy = OH_MessageHandlerProxy_Create();
+    EXPECT_NE(proxy, nullptr);
+
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_MessageHandlerProxy_GetOnTerminatedFunc(nullptr, nullptr));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_MessageHandlerProxy_GetOnTerminatedFunc(proxy, nullptr));
+
+    OH_MessageHandlerProxy_Destroy(proxy);
+}
+
+/**
+ * @tc.name: SetOnMessageFuncWithNull_FAIL
+ * @tc.desc: GetOnTerminatedFunc with null fail.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerCapiTest, SetOnMessageFuncWithNull_FAIL, TestSize.Level0)
+{
+    auto proxy = OH_MessageHandlerProxy_Create();
+    EXPECT_NE(proxy, nullptr);
+
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_MessageHandlerProxy_SetOnMessageFunc(nullptr, nullptr));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_MessageHandlerProxy_SetOnMessageFunc(proxy, nullptr));
+
+    OH_MessageHandlerProxy_Destroy(proxy);
+    OH_MessageHandlerProxy_Destroy(nullptr);
+}
+
+/**
+ * @tc.name: GetOnMessageFuncWithNull_FAIL
+ * @tc.desc: GetOnTerminatedFunc with null fail.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerCapiTest, GetOnMessageFuncWithNull_FAIL, TestSize.Level0)
+{
+    auto proxy = OH_MessageHandlerProxy_Create();
+    EXPECT_NE(proxy, nullptr);
+
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_MessageHandlerProxy_GetOnMessageFunc(nullptr, nullptr));
+    EXPECT_EQ(IME_ERR_NULL_POINTER, OH_MessageHandlerProxy_GetOnMessageFunc(proxy, nullptr));
+
+    OH_MessageHandlerProxy_Destroy(proxy);
+}
+} // namespace MiscServices
+} // namespace OHOS

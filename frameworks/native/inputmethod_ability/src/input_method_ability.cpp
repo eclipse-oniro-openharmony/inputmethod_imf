@@ -1876,5 +1876,24 @@ int32_t InputMethodAbility::HandleKeyEventResult(
     auto channel = std::make_shared<InputDataChannelProxy>(channelObject);
     return channel->HandleKeyEventResult(cbId, consumeResult);
 }
+
+void InputMethodAbility::RemoveDeathRecipient()
+{
+    std::lock_guard<std::mutex> lock(abilityLock_);
+    if (abilityManager_ == nullptr || deathRecipient_ == nullptr) {
+        IMSA_HILOGE("abilityManager_ or deathRecipient_ is nullptr");
+        return;
+    }
+
+    auto remoteObject = abilityManager_->AsObject();
+    if (remoteObject == nullptr) {
+        IMSA_HILOGE("remoteObject is nullptr");
+        return;
+    }
+
+    if (!remoteObject->RemoveDeathRecipient(deathRecipient_)) {
+        IMSA_HILOGE("RemoveDeathRecipient failed");
+    }
+}
 } // namespace MiscServices
 } // namespace OHOS

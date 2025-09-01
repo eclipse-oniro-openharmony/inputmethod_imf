@@ -387,6 +387,7 @@ int32_t InputMethodSystemAbility::Init()
     IMSA_HILOGI("publish success");
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeInfoInquirer::GetInstance().InitSystemConfig();
+    ImeInfoInquirer::GetInstance().InitDynamicStartImeCfg();
     ImeStateManagerFactory::GetInstance().SetDynamicStartIme(ImeInfoInquirer::GetInstance().IsDynamicStartIme());
 #endif
     InitMonitors();
@@ -425,6 +426,7 @@ void InputMethodSystemAbility::OnStop()
     serviceHandler_ = nullptr;
     state_ = ServiceRunningState::STATE_NOT_START;
     Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 0, INPUT_METHOD_SYSTEM_ABILITY_ID);
+    NumkeyAppsManager::GetInstance().Release();
     SettingsDataUtils::GetInstance().Release();
 }
 // LCOV_EXCL_STOP

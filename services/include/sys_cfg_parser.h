@@ -36,8 +36,7 @@ struct SystemConfig : public Serializable {
     std::unordered_set<std::string> defaultImeScreenList;
     std::unordered_set<std::string> defaultMainDisplayScreenList;
     std::unordered_set<std::string> supportedCapacityList;
-    std::string dynamicStartImeSysParam;
-    std::string dynamicStartImeValue;
+
     bool Unmarshal(cJSON *node) override
     {
         GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);
@@ -56,8 +55,6 @@ struct SystemConfig : public Serializable {
         GetValue(node, GET_NAME(defaultImeScreenList), defaultImeScreenList);
         GetValue(node, GET_NAME(defaultMainDisplayScreenList), defaultMainDisplayScreenList);
         GetValue(node, GET_NAME(supportedCapacityList), supportedCapacityList);
-        GetValue(node, GET_NAME(dynamicStartImeSysParam), dynamicStartImeSysParam);
-        GetValue(node, GET_NAME(dynamicStartImeValue), dynamicStartImeValue);
         return true;
     }
 };
@@ -91,6 +88,31 @@ struct InputTypeCfg : public Serializable {
     bool Unmarshal(cJSON *node) override
     {
         return GetValue(node, GET_NAME(supportedInputTypeList), inputType);
+    }
+};
+
+struct DynamicStartImeCfgItem : public Serializable {
+    std::string sysParam;
+    std::string value;
+    DynamicStartImeCfgItem(const std::string &sysParam = "", const std::string &value = "")
+    {
+        this->sysParam = sysParam;
+        this->value = value;
+    }
+
+    bool Unmarshal(cJSON *node) override
+    {
+        auto ret = GetValue(node, GET_NAME(sysParam), sysParam);
+        ret = GetValue(node, GET_NAME(value), value) && ret;
+        return ret;
+    }
+};
+
+struct DynamicStartImeCfg : public Serializable {
+    std::vector<DynamicStartImeCfgItem> dynamicStartImeCfgList;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(dynamicStartImeCfgList), dynamicStartImeCfgList);
     }
 };
 
@@ -163,6 +185,7 @@ public:
     static bool ParsePanelAdjust(std::vector<SysPanelAdjust> &sysPanelAdjust);
     static bool ParseDefaultFullIme(std::vector<DefaultFullImeInfo> &defaultFullImeList);
     static bool ParseIgnoreSysPanelAdjust(IgnoreSysPanelAdjust &ignoreSysPanelAdjust);
+    static bool ParseDynamicStartImeCfg(std::vector<DynamicStartImeCfgItem> &dynamicStartImeCfgList);
 
 private:
     static std::string GetSysCfgContent(const std::string &key);
