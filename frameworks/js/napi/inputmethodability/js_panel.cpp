@@ -638,7 +638,6 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 1, "at least two parameters is required", TYPE_NONE, napi_generic_failure);
-        napi_status status = napi_generic_failure;
         if (!IsEnhancedAdjust(env, argv)) {
             CHECK_RETURN(CheckParam(env, argc, argv, ctxt) == napi_ok, "check param", napi_generic_failure);
         } else {
@@ -779,8 +778,6 @@ bool JsImmersiveEffect::Read(napi_env env, napi_value object, ImmersiveEffect &e
 
 bool JsEnhancedPanelRect::Read(napi_env env, napi_value object, EnhancedLayoutParams &layoutParams)
 {
-    napi_status status = napi_generic_failure;
-    napi_value jsObject = nullptr;
     bool ret = JsUtils::ReadOptionalProperty(
         env, object, { napi_boolean, TYPE_BOOLEAN, "fullScreenMode" }, layoutParams.isFullScreen);
     if (ret && layoutParams.isFullScreen) {
