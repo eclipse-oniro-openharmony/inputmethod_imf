@@ -166,8 +166,7 @@ void TestInputMethodSysEvent(const uint8_t *data, size_t size)
     auto fuzzInt32 = provider.ConsumeIntegral<int32_t>();
     auto fuzzUint32 = provider.ConsumeIntegral<uint32_t>();
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
-    using TimerCallback = std::function<void()>;
-    TimerCallback tc;
+    auto tc = []() {};
     InputMethodSysEvent::GetInstance().ServiceFaultReporter(fuzzedString, fuzzInt32);
     InputMethodSysEvent::GetInstance().ImeUsageBehaviourReporter();
     InputMethodSysEvent::GetInstance().GetOperateInfo(fuzzInt32);
@@ -182,8 +181,7 @@ void TestOnDemandStartStopSa(const uint8_t *data, size_t size)
     auto fuzzInt32 = provider.ConsumeIntegral<int32_t>();
     auto fuzzUint32 = provider.ConsumeIntegral<uint32_t>();
     std::string fuzzedString(reinterpret_cast<const char *>(data), size);
-    using TimerCallback = std::function<void()>;
-    TimerCallback tc;
+    auto tc = []() {};
     InputMethodSysEvent::GetInstance().ServiceFaultReporter(fuzzedString, fuzzInt32);
     InputMethodSysEvent::GetInstance().ImeUsageBehaviourReporter();
     InputMethodSysEvent::GetInstance().GetOperateInfo(fuzzInt32);
