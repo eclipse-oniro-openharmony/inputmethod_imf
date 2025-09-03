@@ -36,9 +36,6 @@ namespace MiscServices {
 using namespace std::chrono;
 thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
-constexpr int32_t DEVICE_TYPE_2IN1 = 7;
-constexpr int32_t MAX_WAIT_TIME = 5000;
-constexpr int32_t MAX_WAIT_TIME_PRIVATE_COMMAND = 2000;
 constexpr int32_t MAX_WAIT_TIME_MESSAGE_HANDLER = 2000;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_ONE = 1;
