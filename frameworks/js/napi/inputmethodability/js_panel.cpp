@@ -65,6 +65,7 @@ napi_value JsPanel::Init(napi_env env)
         DECLARE_NAPI_FUNCTION("getImmersiveMode", GetImmersiveMode),
         DECLARE_NAPI_FUNCTION("setImmersiveEffect", SetImmersiveEffect),
         DECLARE_NAPI_FUNCTION("setKeepScreenOn", SetKeepScreenOn),
+        DECLARE_NAPI_FUNCTION("getSystemPanelCurrentInsets", GetSystemPanelCurrentInsets),
     };
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
@@ -919,6 +920,59 @@ napi_value JsPanel::SetKeepScreenOn(napi_env env, napi_callback_info info)
     // 1 means JsAPI:setKeepScreenOn has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "setKeepScreenOn");
+}
+
+napi_value JsPanel::WriteCurrentInsetsOutput(napi_env env, SystemPanelInsets systemPanelInsets)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret =
+        JsUtil::Object::WriteProperty(env, jsObject, "left", systemPanelInsets.left);
+    ret = ret &&
+          JsUtil::Object::WriteProperty(env, jsObject, "right", systemPanelInsets.right);
+    ret = ret &&
+          JsUtil::Object::WriteProperty(env, jsObject, "bottom", systemPanelInsets.bottom);
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+napi_value JsPanel::GetSystemPanelCurrentInsets(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, ctxt->inputMethodPanel != nullptr, "panel is null", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameters is required", TYPE_NONE, napi_generic_failure);
+        uint32_t displayId = 0;
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], displayId) == napi_ok, "failed to get displayId",
+            TYPE_NONE, napi_generic_failure);
+        ctxt->displayId = static_cast<uint64_t>(displayId);
+        ctxt->info = { std::chrono::system_clock::now(), JsEvent::GET_SYSTEM_PANEL_CURRENT_INSETS };
+        jsQueue_.Push(ctxt->info);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        jsQueue_.Wait(ctxt->info);
+        if (ctxt->inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel_ is nullptr!");
+            jsQueue_.Pop();
+            return napi_generic_failure;
+        }
+        auto ret = ctxt->inputMethodPanel->GetSystemPanelCurrentInsets(ctxt->displayId, ctxt->systemPanelInsets);
+        jsQueue_.Pop();
+        if (ret == ErrorCode::NO_ERROR) {
+            ctxt->SetState(napi_ok);
+            return napi_ok;
+        }
+        ctxt->SetErrorCode(ret);
+        return napi_generic_failure;
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        *result = WriteCurrentInsetsOutput(env, ctxt->systemPanelInsets);
+        return napi_ok;
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    // 1 means JsAPI:getSystemPanelInsets has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec, "getSystemPanelCurrentInsets");
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -53,6 +53,7 @@ enum TEST_FUNCTION {
   SET_PREVIEW_TEXT,
   FINISH_TEXT_PREVIEW,
   SET_KEEP_SCREEN_ON,
+  GET_SYSTEM_PANEL_INSETS,
 }
 
 export class KeyboardController {
@@ -196,11 +197,29 @@ export class KeyboardController {
           case TEST_FUNCTION.SET_KEEP_SCREEN_ON:
             this.setKeepScreenOn();
             break;
+          case TEST_FUNCTION.GET_SYSTEM_PANEL_INSETS:
+            this.getSystemPanelInsets();
+            break;
           default:
             break;
         }
       })
     })
+  }
+
+  private async getSystemPanelInsets() {
+    try {
+      let displayId: number = await this.panel.getDisplayId();
+      let insets = await this.panel.getSystemPanelCurrentInsets(displayId);
+      if (insets === undefined || insets === null) {
+        console.log('[getSystemPanelInsets] failed, insets is null.' )
+        this.publishCommonEvent('getSystemPanelInsets', TEST_RESULT_CODE.FAILED);
+      }
+      this.publishCommonEvent('getSystemPanelInsets', TEST_RESULT_CODE.SUCCESS);
+    } catch (err) {
+      console.log('[getSystemPanelInsets] failed.' )
+      this.publishCommonEvent('getSystemPanelInsets', TEST_RESULT_CODE.FAILED);
+    }
   }
 
   private async setKeepScreenOn() { 

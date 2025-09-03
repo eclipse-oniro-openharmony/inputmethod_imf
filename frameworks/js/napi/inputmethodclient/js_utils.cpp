@@ -94,6 +94,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_IMA_DATA_CHANNEL_ABNORMAL, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_IMA_INVALID_IMMERSIVE_EFFECT, EXCEPTION_INVALID_IMMERSIVE_EFFECT },
     { ErrorCode::ERROR_IMA_PRECONDITION_REQUIRED, EXCEPTION_PRECONDITION_REQUIRED },
+    { ErrorCode::ERROR_INVALID_DISPLAYID, EXCEPTION_INVALID_DISPLAYID },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -129,6 +130,7 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
         2.The fluid light mode can only be used when the gradient mode is enabled.\n\
         3.When the gradient mode is not enabled, the gradient height can only be 0." },
     { EXCEPTION_PRECONDITION_REQUIRED, "this operation must be called after adjustPanelRect or resize." },
+    { EXCEPTION_INVALID_DISPLAYID, "invalid display id." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {

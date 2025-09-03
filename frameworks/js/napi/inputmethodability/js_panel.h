@@ -44,6 +44,7 @@ enum class JsEvent : uint32_t {
     SET_IMMERSIVE_MODE,
     GET_IMMERSIVE_MODE,
     SET_IMMERSIVE_EFFECT,
+    GET_SYSTEM_PANEL_CURRENT_INSETS,
     EVENT_END,
 };
 
@@ -97,6 +98,7 @@ public:
     static napi_value GetImmersiveMode(napi_env env, napi_callback_info info);
     static napi_value SetImmersiveEffect(napi_env env, napi_callback_info info);
     static napi_value SetKeepScreenOn(napi_env env, napi_callback_info info);
+    static napi_value GetSystemPanelCurrentInsets(napi_env env, napi_callback_info info);
 
 private:
     struct PanelContentContext : public AsyncCall::Context {
@@ -113,6 +115,7 @@ private:
         int32_t y = 0;
         uint64_t displayId = 0;
         bool isKeepScreenOn = false;
+        SystemPanelInsets systemPanelInsets = {0, 0, 0};
         std::shared_ptr<InputMethodPanel> inputMethodPanel = nullptr;
         std::shared_ptr<NativeReference> contentStorage = nullptr;
         JsEventInfo info;
@@ -154,6 +157,7 @@ private:
         napi_env env, size_t argc, napi_value *argv, std::shared_ptr<PanelContentContext> ctxt);
     static void AdjustLayoutParam(std::shared_ptr<PanelContentContext> ctxt);
     static void AdjustEnhancedLayoutParam(std::shared_ptr<PanelContentContext> ctxt);
+    static napi_value WriteCurrentInsetsOutput(napi_env env, SystemPanelInsets systemPanelInsets);
 
     static const std::string CLASS_NAME;
     static constexpr size_t ARGC_MAX = 6;

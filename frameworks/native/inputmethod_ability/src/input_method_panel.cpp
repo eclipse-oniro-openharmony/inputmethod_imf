@@ -2155,7 +2155,7 @@ std::vector<int32_t> InputMethodPanel::GetIgnoreAdjustInputTypes()
     return ignoreAdjustInputTypes_;
 }
 
-bool InputMethodPanel::IsNeedConfig()
+bool InputMethodPanel::IsNeedConfig(bool ignoreIsMainDisplay)
 {
     bool needConfig = true;
     bool isSpecialInputType = false;
@@ -2174,7 +2174,10 @@ bool InputMethodPanel::IsNeedConfig()
             return static_cast<int32_t>(inputType) == mInputType;
         });
     isSpecialInputType = (it != ignoreAdjustInputTypes.end());
-    if (isSpecialInputType || !IsInMainDisplay()) {
+    if (isSpecialInputType) {
+        needConfig = false;
+    }
+    if (!ignoreIsMainDisplay && !IsInMainDisplay()) {
         needConfig = false;
     }
     IMSA_HILOGD("isNeedConfig is %{public}d", needConfig);
@@ -2242,6 +2245,106 @@ void InputMethodPanel::SetChangeY(ChangeY changeY)
 {
     std::lock_guard<std::mutex> lock(changeYMutex_);
     changeY_ = changeY;
+}
+
+bool InputMethodPanel::IsVectorsEqual(const std::vector<std::string>& vec1, const std::vector<std::string>& vec2)
+{
+    return vec1 == vec2;
+}
+
+int32_t InputMethodPanel::AreaInsets(SystemPanelInsets &systemPanelInsets, sptr<Rosen::Display> display)
+{
+    if (display == nullptr) {
+        IMSA_HILOGE("display is null!");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    std::lock_guard<std::mutex> lock(getInsetsMutex_);
+    std::vector<SysPanelAdjust> configs;
+    auto isSuccess = SysCfgParser::ParsePanelAdjust(configs);
+    if (!isSuccess) {
+        systemPanelInsets = { 0, 0, 0 };
+        return ErrorCode::NO_ERROR;
+    }
+    auto displayInfo = display->GetDisplayInfo();
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("GetDisplayInfo failed!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    float densityDpi = displayInfo->GetDensityInCurResolution();
+    if (densityDpi <= 0) {
+        IMSA_HILOGE("densityDpi failed!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    bool isPortrait = true;
+    auto width = displayInfo->GetWidth();
+    auto height = displayInfo->GetHeight();
+    IMSA_HILOGI("display getDensityDpi: %{public}f, width : %{public}d, height: %{public}d",
+        densityDpi, width, height);
+
+    if (width != height) {
+        isPortrait = (width < height);
+    } else {
+        auto orientation = displayInfo->GetDisplayOrientation();
+        IMSA_HILOGI("width equals to height, orientation: %{public}u", static_cast<uint32_t>(orientation));
+        isPortrait =
+            (orientation == DisplayOrientation::PORTRAIT || orientation == DisplayOrientation::PORTRAIT_INVERTED);
+    }
+    auto keys = GetScreenStatus(panelFlag_);
+    auto styleKey = isPortrait ? std::get<1>(keys) : std::get<0>(keys);
+    for (const auto &config : configs) {
+        if (IsVectorsEqual(config.style, styleKey)) {
+            systemPanelInsets.left = static_cast<int32_t>(config.left * densityDpi);
+            systemPanelInsets.right = static_cast<int32_t>(config.right * densityDpi);
+            systemPanelInsets.bottom = static_cast<int32_t>(config.bottom * densityDpi);
+            return ErrorCode::NO_ERROR;
+        }
+    }
+    systemPanelInsets = { 0, 0, 0 };
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::GetSystemPanelCurrentInsets(uint64_t displayId, SystemPanelInsets &systemPanelInsets)
+{
+    IMSA_HILOGD("enter!!");
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr!");
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (panelType_ == PanelType::STATUS_BAR) {
+        IMSA_HILOGE("invalid panel type!");
+        return ErrorCode::ERROR_INVALID_PANEL_TYPE;
+    }
+    if (panelFlag_ == PanelFlag::FLG_CANDIDATE_COLUMN) {
+        IMSA_HILOGE("panelFlag_ is candidate column");
+        return ErrorCode::ERROR_INVALID_PANEL_FLAG;
+    }
+    auto specifyDisplay = Rosen::DisplayManager::GetInstance().GetDisplayById(displayId);
+    if (specifyDisplay == nullptr) {
+        IMSA_HILOGE("get display info err:%{public}" PRIu64 "!", displayId);
+        return ErrorCode::ERROR_INVALID_DISPLAYID;
+    }
+    auto primaryDisplay = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    if (primaryDisplay == nullptr) {
+        IMSA_HILOGE("primaryDisplay failed!");
+        systemPanelInsets = { 0, 0, 0 };
+        return ErrorCode::ERROR_WINDOW_MANAGER;
+    }
+    if (primaryDisplay->GetId() != displayId) {
+        IMSA_HILOGD("is not main display");
+        systemPanelInsets = { 0, 0, 0 };
+        return ErrorCode::NO_ERROR;
+    }
+    if (!IsNeedConfig(true)) {
+        IMSA_HILOGD("is special InputType");
+        systemPanelInsets = { 0, 0, 0 };
+        return ErrorCode::NO_ERROR;
+    }
+    auto code = AreaInsets(systemPanelInsets, specifyDisplay);
+    if (code != ErrorCode::NO_ERROR) {
+        return code;
+    }
+    IMSA_HILOGD("GetSystemPanelInsets success!!");
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

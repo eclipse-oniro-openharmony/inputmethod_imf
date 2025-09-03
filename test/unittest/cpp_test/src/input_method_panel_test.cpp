@@ -80,6 +80,7 @@ enum ListeningStatus : uint32_t {
     OFF,
     NONE
 };
+
 class InputMethodPanelTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -2617,6 +2618,294 @@ HWTEST_F(InputMethodPanelTest, TestInitAdjustInfo, TestSize.Level0)
     panel->panelAdjust_.clear();
     ret = panel->InitAdjustInfo();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets1
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets1, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets1 start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::SOFT_KEYBOARD;
+    panelInfo.panelFlag = PanelFlag::FLG_FIXED;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    uint64_t displayId = 0;
+    ret = inputMethodPanel->GetDisplayId(displayId);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    SystemPanelInsets panelInsets = {0, 0, 0};
+    ret = inputMethodPanel->GetSystemPanelCurrentInsets(displayId, panelInsets);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets2
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets2, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets2 start.");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::SOFT_KEYBOARD;
+    panelInfo.panelFlag = PanelFlag::FLG_FLOATING;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+
+    SystemPanelInsets panelInsets = {0, 0, 0};
+    uint64_t displayId = 0;
+    inputMethodPanel->GetDisplayId(displayId);
+    ret = inputMethodPanel->GetSystemPanelCurrentInsets(displayId, panelInsets);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets3
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets3, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets3 start.");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::STATUS_BAR;
+    panelInfo.panelFlag = PanelFlag::FLG_CANDIDATE_COLUMN;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+
+    SystemPanelInsets panelInsets = {0, 0, 0};
+    uint64_t displayId = 0;
+    inputMethodPanel->GetDisplayId(displayId);
+    ret = inputMethodPanel->GetSystemPanelCurrentInsets(displayId, panelInsets);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_TYPE);
+
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets4
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets4, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets4 start.");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::SOFT_KEYBOARD;
+    panelInfo.panelFlag = PanelFlag::FLG_CANDIDATE_COLUMN;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+
+    SystemPanelInsets panelInsets = {0, 0, 0};
+    uint64_t displayId = 0;
+    inputMethodPanel->GetDisplayId(displayId);
+    ret = inputMethodPanel->GetSystemPanelCurrentInsets(displayId, panelInsets);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PANEL_FLAG);
+
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets5
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets5, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets5 start.");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::SOFT_KEYBOARD;;
+    panelInfo.panelFlag = PanelFlag::FLG_FIXED;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+
+    SystemPanelInsets panelInsets = {0, 0, 0};
+    uint64_t displayId = 10;
+    ret = inputMethodPanel->GetSystemPanelCurrentInsets(displayId, panelInsets);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_DISPLAYID);
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets6
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets6, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets6 start.");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::SOFT_KEYBOARD;;
+    panelInfo.panelFlag = PanelFlag::FLG_FIXED;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+
+    SystemPanelInsets panelInsets = {0, 0, 0};
+    uint64_t displayId = 0;
+
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+    inputMethodPanel->window_ = nullptr;
+    ret = inputMethodPanel->GetSystemPanelCurrentInsets(displayId, panelInsets);
+    EXPECT_EQ(ret, ErrorCode::ERROR_WINDOW_MANAGER);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets7
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets7, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets7 start.");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::SOFT_KEYBOARD;;
+    panelInfo.panelFlag = PanelFlag::FLG_FIXED;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+
+    SystemPanelInsets panelInsets = {0, 0, 0};
+    uint64_t displayId = 0;
+
+    ima_.inputType_ = InputType::SECURITY_INPUT;
+    ret = inputMethodPanel->GetSystemPanelCurrentInsets(displayId, panelInsets);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(0, panelInsets.left);
+    EXPECT_EQ(0, panelInsets.right);
+    EXPECT_EQ(0, panelInsets.bottom);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets8
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets8, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets8 start.");
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+
+    std::vector<std::string> vec1 = { "123", "234"};
+    std::vector<std::string> vec2 = { "123" };
+
+    bool ret = inputMethodPanel->IsVectorsEqual(vec1, vec2);
+    EXPECT_EQ(ret, false);
+
+    vec2 = { "123", "345" };
+    ret = inputMethodPanel->IsVectorsEqual(vec1, vec2);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets9
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets9, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets9 start.");
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+
+    std::vector<std::string> vec1 = {};
+    std::vector<std::string> vec2 = {};
+    bool ret = inputMethodPanel->IsVectorsEqual(vec1, vec2);
+    EXPECT_EQ(ret, true);
+
+    vec1 = { "123", "234"};
+    ret = inputMethodPanel->IsVectorsEqual(vec1, vec2);
+    EXPECT_EQ(ret, false);
+
+    vec2 = { "123", "234"};
+    ret = inputMethodPanel->IsVectorsEqual(vec1, vec2);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets10
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets10, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets10 start.");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::SOFT_KEYBOARD;;
+    panelInfo.panelFlag = PanelFlag::FLG_FIXED;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ima_.inputType_ = InputType::SECURITY_INPUT;
+
+    std::vector<int32_t> inputTypes{static_cast<int32_t>(InputType::SECURITY_INPUT)};
+    inputMethodPanel->SetIgnoreAdjustInputTypes(inputTypes);
+
+    bool isNeedConfig = inputMethodPanel->IsNeedConfig(true);
+    EXPECT_EQ(isNeedConfig, false);
+    isNeedConfig = inputMethodPanel->IsNeedConfig(false);
+    EXPECT_EQ(isNeedConfig, false);
+
+    ima_.inputType_ = InputType::NONE;
+    isNeedConfig = inputMethodPanel->IsNeedConfig(false);
+    EXPECT_EQ(isNeedConfig, true);
+    isNeedConfig = inputMethodPanel->IsNeedConfig(true);
+    EXPECT_EQ(isNeedConfig, true);
+
+    InputMethodPanelTest::DestroyPanel(inputMethodPanel);
+}
+
+/**
+ * @tc.name: testGetSystemPanelInsets11
+ * @tc.desc: Test GetSystemPanelInsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetSystemPanelInsets11, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetSystemPanelInsets11 start.");
+
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo;
+    panelInfo.panelType = PanelType::SOFT_KEYBOARD;;
+    panelInfo.panelFlag = PanelFlag::FLG_FIXED;
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    SystemPanelInsets panelInsets = {0, 0, 0};
+    inputMethodPanel->panelFlag_ = PanelFlag::FLG_FIXED;
+    auto display = Rosen::DisplayManager::GetInstance().GetPrimaryDisplaySync();
+    ret = inputMethodPanel->AreaInsets(panelInsets, display);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    inputMethodPanel->panelFlag_ = PanelFlag::FLG_FLOATING;
+    ret = inputMethodPanel->AreaInsets(panelInsets, display);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    display = Rosen::DisplayManager::GetInstance().GetDisplayById(1000);
+    ret = inputMethodPanel->AreaInsets(panelInsets, display);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 } // namespace MiscServices
 } // namespace OHOS
