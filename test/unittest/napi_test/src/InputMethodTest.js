@@ -506,15 +506,15 @@ describe('InputMethodTest', function () {
       id:extName1[0],
     };
     inputMethod.switchCurrentInputMethodAndSubtype(inputMethodProperty, InputMethodSubtype).then(ret => {
-      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 1`);
+      console.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 1`);
       expect(ret).assertTrue();
-      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 2`);
+      console.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 2`);
       let subProp = inputMethod.getCurrentInputMethodSubtype();
-      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 3`);
+      console.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 3`);
       checkImeCurrentSubProp(subProp, 0);
-      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 4`);
+      console.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 4`);
       let property = inputMethod.getCurrentInputMethod();
-      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 5`);
+      console.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 5`);
       checkImeCurrentProp(property, 0);
       console.info('************* inputmethod_test_switchCurrentInputMethodAndSubtype_001 Test end*************');
       wait(WAIT_DEAL_OK);
