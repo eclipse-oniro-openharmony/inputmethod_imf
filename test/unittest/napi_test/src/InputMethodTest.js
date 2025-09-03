@@ -78,16 +78,24 @@ describe('InputMethodTest', function () {
   }
 
   function checkImeCurrentProp(property, index) {
+    console.error(`checkImeCurrentProp props.length: ${JSON.stringify(property.length)}`);
     expect(property.name).assertEqual(bundleName1);
+    console.error(`checkImeCurrentProp props.length: ${JSON.stringify(property.id)}`);
     expect(property.id).assertEqual(extName1[index]);
+    console.error(`checkImeCurrentProp props.length: ${JSON.stringify(property.packageName)}`);
     expect(property.packageName).assertEqual(bundleName1);
+    console.error(`checkImeCurrentProp props.length: ${JSON.stringify(property.methodId)}`);
     expect(property.methodId).assertEqual(extName1[index]);
   }
 
   function checkImeCurrentSubProp(subProp, index) {
+    console.error(`checkImeCurrentSubProp subProp.length: ${JSON.stringify(subProp.length)}`);
     expect(subProp.name).assertEqual(bundleName1);
+    console.error(`checkImeCurrentSubProp subProp.length: ${JSON.stringify(subProp.id)}`);
     expect(subProp.id).assertEqual(extName1[index]);
+    console.error(`checkImeCurrentSubProp subProp.length: ${JSON.stringify(subProp.locale)}`);
     expect(subProp.locale).assertEqual(locale1[index]);
+    console.error(`checkImeCurrentSubProp subProp.length: ${JSON.stringify(subProp.language)}`);
     expect(subProp.language).assertEqual(language1[index]);
   }
 
@@ -313,8 +321,11 @@ describe('InputMethodTest', function () {
     console.info('************* inputmethod_test_getInputMethods_001 Test start*************');
     let inputMethodSetting = inputMethod.getInputMethodSetting();
     await inputMethodSetting.getInputMethods(true).then((props)=>{
+      console.error(`inputmethod_test_getInputMethods_001 props.length: ${JSON.stringify(props.length)}`);
       expect(props.length).assertEqual(ENABLE_IME_NUM);
+      console.info('************* inputmethod_test_getInputMethods_001 1');
       let imeProp = props.find(function (prop) {return prop.name === bundleName;});
+      console.info('************* inputmethod_test_getInputMethods_001 2');
       expect(imeProp != undefined).assertTrue();
       console.info('************* inputmethod_test_getInputMethods_001 Test end*************');
       done();
@@ -358,8 +369,11 @@ describe('InputMethodTest', function () {
     console.info('************* inputmethod_test_getInputMethods_003 Test start*************');
     let inputMethodSetting = inputMethod.getInputMethodSetting();
     await inputMethodSetting.getInputMethods(false).then((props)=>{
+      console.error(`inputmethod_test_getInputMethods_003 props.length: ${JSON.stringify(props.length)}`);
       expect(props.length >= DISABLED_IME_COUNT).assertTrue();
+      console.info('************* inputmethod_test_getInputMethods_003 1');
       let imeProp = props.find(function (prop) {return prop.name === bundleName1;});
+      console.info('************* inputmethod_test_getInputMethods_003 2');
       expect(imeProp == undefined).assertTrue();
       console.info('************* inputmethod_test_getInputMethods_003 Test end*************');
       done();
@@ -386,8 +400,11 @@ describe('InputMethodTest', function () {
         done();
         return;
       }
+      console.error(`inputmethod_test_getInputMethods_004 props.length: ${JSON.stringify(props.length)}`);
       expect(props.length >= DISABLED_IME_COUNT).assertTrue();
+      console.info('************* inputmethod_test_getInputMethods_004 1');
       let imeProp = props.find(function (prop) {return prop.name === bundleName1;});
+      console.info('************* inputmethod_test_getInputMethods_004 2');
       expect(imeProp == undefined).assertTrue();
       console.info('************* inputmethod_test_getInputMethods_004 Test end*************');
       done();
@@ -489,10 +506,15 @@ describe('InputMethodTest', function () {
       id:extName1[0],
     };
     inputMethod.switchCurrentInputMethodAndSubtype(inputMethodProperty, InputMethodSubtype).then(ret => {
+      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 1`);
       expect(ret).assertTrue();
+      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 2`);
       let subProp = inputMethod.getCurrentInputMethodSubtype();
+      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 3`);
       checkImeCurrentSubProp(subProp, 0);
+      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 4`);
       let property = inputMethod.getCurrentInputMethod();
+      onsole.error(`inputmethod_test_switchCurrentInputMethodAndSubtype_001 5`);
       checkImeCurrentProp(property, 0);
       console.info('************* inputmethod_test_switchCurrentInputMethodAndSubtype_001 Test end*************');
       wait(WAIT_DEAL_OK);
