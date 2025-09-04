@@ -66,6 +66,7 @@ public:
 
 private:
     bool SubscribeManagerServiceCommon(const Handler &handler, int32_t saId);
+    std::shared_ptr<EventSubscriber> CreateLargeMemorySubscriber();
     class SystemAbilityStatusChangeListener : public SystemAbilityStatusChangeStub {
     public:
         explicit SystemAbilityStatusChangeListener(std::function<void()>);
