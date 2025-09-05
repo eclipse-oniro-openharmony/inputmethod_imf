@@ -57,6 +57,15 @@ sptr<ImCommonEventManager> ImCommonEventManager::GetInstance()
     return instance_;
 }
 
+std::shared_ptr<ImCommonEventManager::EventSubscriber> ImCommonEventManager::CreateLargeMemorySubscriber()
+{
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EVENT_LARGE_MEMORY_STATUS_CHANGED);
+    EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
+    subscriberInfo.SetPermission("ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT");
+    return std::make_shared<EventSubscriber>(subscriberInfo);
+}
+
 bool ImCommonEventManager::SubscribeEvent()
 {
     EventFwk::MatchingSkills matchingSkills;
@@ -71,7 +80,6 @@ bool ImCommonEventManager::SubscribeEvent()
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED);
-    matchingSkills.AddEvent(EVENT_LARGE_MEMORY_STATUS_CHANGED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BUNDLE_RESOURCES_CHANGED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
@@ -82,10 +90,15 @@ bool ImCommonEventManager::SubscribeEvent()
         IMSA_HILOGE("SubscribeEvent abilityManager is nullptr!");
         return false;
     }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([subscriber]() {
-        bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
-        IMSA_HILOGI("SubscribeCommonEvent ret: %{public}d", subscribeResult);
-    });
+
+    auto largeMemorySubscriber = CreateLargeMemorySubscriber();
+    sptr<ISystemAbilityStatusChange> listener =
+        new (std::nothrow) SystemAbilityStatusChangeListener([subscriber, largeMemorySubscriber]() {
+            bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
+            IMSA_HILOGI("SubscribeCommonEvent ret: %{public}d", subscribeResult);
+            subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(largeMemorySubscriber);
+            IMSA_HILOGI("SubscribeCommonEvent largeMemorySubscriber ret: %{public}d", subscribeResult);
+        });
     if (listener == nullptr) {
         IMSA_HILOGE("SubscribeEvent listener is nullptr!");
         return false;
