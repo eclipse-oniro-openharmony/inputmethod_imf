@@ -18,6 +18,7 @@
 #include "ability_handler.h"
 #include "ability_info.h"
 #include "configuration_utils.h"
+#include "display_info.h"
 #include "global.h"
 #include "input_method_ability.h"
 #include "inputmethod_extension_ability_service_impl.h"
@@ -31,6 +32,7 @@
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "parameters.h"
 #include "tasks/task_ams.h"
 #include "tasks/task_imsa.h"
 #include "task_manager.h"
@@ -40,6 +42,8 @@ namespace AbilityRuntime {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+const std::string FOLD_SCREEN_TYPE = OHOS::system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+constexpr const char *EXTEND_FOLD_TYPE = "4";
 } // namespace
 JsInputMethodExtension *JsInputMethodExtension::jsInputMethodExtension = nullptr;
 using namespace OHOS::AppExecFwk;
@@ -428,6 +432,10 @@ void JsInputMethodExtension::OnDestroy(Rosen::DisplayId displayId)
 
 void JsInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
 {
+    if (FOLD_SCREEN_TYPE.empty() || FOLD_SCREEN_TYPE[0] != *EXTEND_FOLD_TYPE) {
+        IMSA_HILOGD("The current device is a non-foldable device.");
+        return;
+    }
     auto displayPtr = Rosen::DisplayManager::GetInstance().GetDefaultDisplaySync();
     if (displayPtr == nullptr) {
         return;
@@ -437,9 +445,14 @@ void JsInputMethodExtension::CheckNeedAdjustKeyboard(Rosen::DisplayId displayId)
         return;
     }
     auto foldStatus = Rosen::DisplayManager::GetInstance().GetFoldStatus();
-    auto width = displayPtr->GetWidth();
-    auto height = displayPtr->GetHeight();
-    auto rotation = displayPtr->GetRotation();
+    auto displayInfo = displayPtr->GetDisplayInfo();
+    if (displayInfo == nullptr) {
+        IMSA_HILOGE("displayInfo is nullptr");
+        return;
+    }
+    auto width = displayInfo->GetWidth();
+    auto height = displayInfo->GetHeight();
+    auto rotation = displayInfo->GetRotation();
     IMSA_HILOGD("display width: %{public}d, height: %{public}d, rotation: %{public}d, foldStatus: %{public}d",
         width, height, rotation, foldStatus);
     if (!cacheDisplay_.IsEmpty()) {
