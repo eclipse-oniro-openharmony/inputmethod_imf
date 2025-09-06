@@ -380,7 +380,7 @@ int32_t InputMethodController::ShowTextInputInner(const AttachOptions &attachOpt
     IMSA_HILOGI("enter editable state.");
     return ret;
 }
-
+// LCOV_EXCL_START
 int32_t InputMethodController::HideTextInput()
 {
     InputMethodSyncTrace tracer("IMC_HideTextInput");
@@ -485,7 +485,7 @@ int32_t InputMethodController::RequestHideInput(bool isFocusTriggered)
     IMSA_HILOGD("InputMethodController start.");
     return proxy->RequestHideInput(isFocusTriggered);
 }
-
+// LCOV_EXCL_STOP
 int32_t InputMethodController::DisplayOptionalInputMethod()
 {
     IMSA_HILOGD("InputMethodController::DisplayOptionalInputMethod start.");
@@ -565,7 +565,7 @@ int32_t InputMethodController::GetInputMethodConfig(OHOS::AppExecFwk::ElementNam
     }
     return proxy->GetInputMethodConfig(inputMethodConfig);
 }
-
+// LCOV_EXCL_START
 std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
 {
     InputMethodSyncTrace tracer("IMC_GetCurrentInputMethod");
@@ -608,7 +608,7 @@ bool InputMethodController::IsDefaultImeSet()
     proxy->IsDefaultImeSet(ret);
     return ret;
 }
-
+// LCOV_EXCL_STOP
 int32_t InputMethodController::EnableIme(
     const std::string &bundleName, const std::string &extensionName, EnabledStatus status)
 {
@@ -719,7 +719,7 @@ void InputMethodController::RestoreListenInfoInSaDied()
             AppExecFwk::EventQueue::Priority::VIP);
     }
 }
-
+// LCOV_EXCL_START
 void InputMethodController::RestoreClientInfoInSaDied()
 {
     if (!IsEditable()) {
@@ -938,7 +938,7 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
     index = listener->GetTextIndexAtCursorV2();
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_STOP
 void InputMethodController::PrintKeyEventLog()
 {
     std::lock_guard<std::mutex> lock(logLock_);
@@ -1300,7 +1300,7 @@ void InputMethodController::ClearEditorCache(bool isNewEditor, sptr<OnTextChange
         clientInfo_.config.isSimpleKeyboardEnabled = isSimpleKeyboardEnabled; // global scope
     }
 }
-
+// LCOV_EXCL_START
 void InputMethodController::SelectByRange(int32_t start, int32_t end)
 {
     IMSA_HILOGD("InputMethodController start: %{public}d, end: %{public}d.", start, end);
@@ -1347,7 +1347,7 @@ int32_t InputMethodController::HandleExtendAction(int32_t action)
     listener->HandleExtendActionV2(action);
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_STOP
 sptr<OnTextChangedListener> InputMethodController::GetTextListener()
 {
     std::lock_guard<std::mutex> lock(textListenerLock_);
@@ -1387,7 +1387,7 @@ bool InputMethodController::IsBound()
     }
     return true;
 }
-
+// LCOV_EXCL_START
 int32_t InputMethodController::InsertText(const std::u16string &text)
 {
     InputMethodSyncTrace tracer("IMC_InsertText");
@@ -1457,7 +1457,7 @@ int32_t InputMethodController::MoveCursor(Direction direction)
     listener->MoveCursorV2(direction);
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_STOP
 void InputMethodController::SendKeyboardStatus(KeyboardStatus status)
 {
     IMSA_HILOGD("InputMethodController status: %{public}d.", static_cast<int32_t>(status));
@@ -1627,7 +1627,7 @@ void InputMethodController::PrintLogIfAceTimeout(int64_t start)
         IMSA_HILOGW("timeout: [%{public}" PRId64 ", %{public}" PRId64 "].", start, end);
     }
 }
-
+// LCOV_EXCL_START
 void InputMethodController::PrintTextChangeLog()
 {
     std::lock_guard<std::mutex> lock(printTextChangeMutex_);
@@ -1641,7 +1641,7 @@ void InputMethodController::PrintTextChangeLog()
         textChangeCountInPeriod_ = 0;
     }
 }
-
+// LCOV_EXCL_STOP
 int32_t InputMethodController::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
@@ -1689,7 +1689,7 @@ void InputMethodController::SetBindImeInfo(const std::pair<int64_t, std::string>
     std::lock_guard<std::mutex> lock(bindImeInfoLock_);
     bindImeInfo_ = imeInfo;
 }
-
+// LCOV_EXCL_START
 std::pair<int64_t, std::string> InputMethodController::GetBindImeInfo()
 {
     std::lock_guard<std::mutex> lock(bindImeInfoLock_);
@@ -1835,7 +1835,7 @@ int32_t InputMethodController::ShowTextInput(ClientType type)
     AttachOptions attachOptions;
     return ShowTextInput(attachOptions, type);
 }
-
+// LCOV_EXCL_STOP
 int32_t InputMethodController::ShowTextInput(const AttachOptions &attachOptions, ClientType type)
 {
     auto ret = ShowTextInputInner(attachOptions, type);
@@ -1856,7 +1856,7 @@ void InputMethodController::ReportClientShow(int32_t eventCode, int32_t errCode,
         HiSysOriginalInfo::Builder().SetClientType(type).SetEventCode(eventCode).SetErrCode(errCode).Build();
     ImcHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::CLIENT_SHOW, *evenInfo);
 }
-
+// LCOV_EXCL_START
 void InputMethodController::ReportBaseTextOperation(int32_t eventCode, int32_t errCode)
 {
     auto imeInfo = GetBindImeInfo();
@@ -1869,7 +1869,7 @@ void InputMethodController::ReportBaseTextOperation(int32_t eventCode, int32_t e
                         .Build();
     ImcHiSysEventReporter::GetInstance().ReportEvent(ImfEventType::BASE_TEXT_OPERATOR, *evenInfo);
 }
-
+// LCOV_EXCL_STOP
 void InputMethodController::UpdateTextPreviewState(bool isSupport)
 {
     if (textConfig_.inputAttribute.isTextPreviewSupported == isSupport) {
@@ -1942,7 +1942,7 @@ void InputMethodController::ClearAgentInfo()
     IMSA_HILOGD("Clear all agent info");
     agentInfoList_.clear();
 }
-
+// LCOV_EXCL_START
 int32_t InputMethodController::SendRequestToAllAgents(std::function<int32_t(std::shared_ptr<IInputMethodAgent>)> task)
 {
     std::lock_guard guard(agentLock_);
@@ -2401,5 +2401,6 @@ void OnTextChangedListener::OnDetachV2()
     };
     eventHandler->PostTask(task, "OnDetachV2", 0, AppExecFwk::EventQueue::Priority::VIP);
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

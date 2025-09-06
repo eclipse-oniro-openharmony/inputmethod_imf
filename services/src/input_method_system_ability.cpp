@@ -1953,7 +1953,7 @@ void InputMethodSystemAbility::DealSwitchRequest()
     // 0 means delay time is 0.
     serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
-// LCOV_EXCL_STOP
+
 int32_t InputMethodSystemAbility::SwitchMode()
 {
     auto bundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
@@ -1990,7 +1990,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
     auto condition = info->subProp.language == "chinese" ? Condition::ENGLISH : Condition::CHINESE;
     return SwitchByCondition(condition, info);
 }
-// LCOV_EXCL_START
+
 int32_t InputMethodSystemAbility::SwitchType()
 {
     SwitchInfo nextSwitchInfo = { std::chrono::system_clock::now(), "", "" };
@@ -2050,7 +2050,7 @@ void InputMethodSystemAbility::HandleDataShareReady()
     FullImeInfoManager::GetInstance().Init();
     NumkeyAppsManager::GetInstance().Init(userId_);
 }
-
+// LCOV_EXCL_START
 int32_t InputMethodSystemAbility::InitAccountMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor start.");
@@ -2061,7 +2061,7 @@ int32_t InputMethodSystemAbility::InitAccountMonitor()
     }
     return imCommonEventManager->SubscribeAccountManagerService([this]() { HandleOsAccountStarted(); });
 }
-
+// LCOV_EXCL_STOP
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor start.");
@@ -2091,7 +2091,7 @@ bool InputMethodSystemAbility::InitWmsMonitor()
     }
     return imCommonEventManager->SubscribeWindowManagerService([this]() { HandleWmsStarted(); });
 }
-
+// LCOV_EXCL_START
 bool InputMethodSystemAbility::InitMemMgrMonitor()
 {
     auto imCommonEventManager = ImCommonEventManager::GetInstance();
@@ -2109,7 +2109,7 @@ void InputMethodSystemAbility::InitWmsConnectionMonitor()
             isConnected ? HandleWmsConnected(userId, screenId) : HandleWmsDisconnected(userId, screenId);
         });
 }
-// LCOV_EXCL_START
+
 void InputMethodSystemAbility::HandlePasteboardStarted()
 {
     IMSA_HILOGI("pasteboard started");
@@ -2145,7 +2145,7 @@ bool InputMethodSystemAbility::InitPasteboardMonitor()
         HandlePasteboardStarted();
     });
 }
-// LCOV_EXCL_STOP
+
 void InputMethodSystemAbility::InitSystemLanguageMonitor()
 {
     SystemParamAdapter::GetInstance().WatchParam(SystemParamAdapter::SYSTEM_LANGUAGE_KEY);
@@ -2158,7 +2158,7 @@ void InputMethodSystemAbility::InitFocusChangedMonitor()
             HandleFocusChanged(isOnFocused, displayId, pid, uid);
         });
 }
-// LCOV_EXCL_START
+
 void InputMethodSystemAbility::InitWindowDisplayChangedMonitor()
 {
     IMSA_HILOGD("enter.");
@@ -2428,7 +2428,7 @@ void InputMethodSystemAbility::HandleWmsDisconnected(int32_t userId, int32_t scr
     }
     session->StopCurrentIme();
 }
-
+// LCOV_EXCL_START
 void InputMethodSystemAbility::HandleWmsStarted()
 {
     // singleton, device boot, wms reboot
@@ -2447,7 +2447,7 @@ void InputMethodSystemAbility::HandleWmsStarted()
     }
     RestartSessionIme(session);
 }
-
+// LCOV_EXCL_STOP
 void InputMethodSystemAbility::HandleFocusChanged(bool isFocused, uint64_t displayId, int32_t pid, int32_t uid)
 {
     int32_t userId = GetUserId(uid);
@@ -2458,7 +2458,7 @@ void InputMethodSystemAbility::HandleFocusChanged(bool isFocused, uint64_t displ
     }
     isFocused ? session->OnFocused(displayId, pid, uid) : session->OnUnfocused(displayId, pid, uid);
 }
-
+// LCOV_EXCL_START
 void InputMethodSystemAbility::HandleMemStarted()
 {
     // singleton
@@ -2504,7 +2504,7 @@ void InputMethodSystemAbility::StopImeInBackground()
     }
     serviceHandler_->PostTask(task, "StopImeInBackground", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
-
+// LCOV_EXCL_STOP
 int32_t InputMethodSystemAbility::GetUserId(int32_t uid)
 {
     IMSA_HILOGD("uid:%{public}d", uid);

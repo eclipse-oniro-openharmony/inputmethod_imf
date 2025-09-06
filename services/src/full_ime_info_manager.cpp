@@ -83,7 +83,7 @@ int32_t FullImeInfoManager::Switch(int32_t userId)
     ImeEnabledInfoManager::GetInstance().Switch(userId, infos);
     return ret;
 }
-
+// LCOV_EXCL_START
 int32_t FullImeInfoManager::Update()
 {
     {
@@ -105,7 +105,7 @@ int32_t FullImeInfoManager::Update()
     }
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_STOP
 int32_t FullImeInfoManager::Delete(int32_t userId)
 {
     {

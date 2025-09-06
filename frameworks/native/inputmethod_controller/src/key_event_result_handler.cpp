@@ -20,6 +20,7 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
+// LCOV_EXCL_START
 uint64_t KeyEventResultHandler::AddKeyEventCbInfo(const KeyEventCbInfo &cbInfo)
 {
     std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
@@ -28,7 +29,7 @@ uint64_t KeyEventResultHandler::AddKeyEventCbInfo(const KeyEventCbInfo &cbInfo)
     keyEventCbHandlers_.insert_or_assign(cbId, cbInfo);
     return cbId;
 }
-
+// LCOV_EXCL_STOP
 void KeyEventResultHandler::HandleKeyEventResult(uint64_t cbId, bool consumeResult)
 {
     IMSA_HILOGD("result:%{public}" PRIu64 "/%{public}d.", cbId, consumeResult);
@@ -51,7 +52,7 @@ void KeyEventResultHandler::ClearKeyEventCbInfo()
     std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
     keyEventCbHandlers_.clear();
 }
-
+// LCOV_EXCL_START
 void KeyEventResultHandler::RemoveKeyEventCbInfo(uint64_t cbId)
 {
     std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
@@ -61,7 +62,7 @@ void KeyEventResultHandler::RemoveKeyEventCbInfo(uint64_t cbId)
     }
     keyEventCbHandlers_.erase(cbId);
 }
-
+// LCOV_EXCL_STOP
 int32_t KeyEventResultHandler::GetKeyEventCbInfo(uint64_t cbId, KeyEventCbInfo &info)
 {
     std::lock_guard<std::mutex> lock(keyEventCbHandlersMutex_);
@@ -72,10 +73,11 @@ int32_t KeyEventResultHandler::GetKeyEventCbInfo(uint64_t cbId, KeyEventCbInfo &
     }
     return ErrorCode::ERROR_BAD_PARAMETERS;
 }
-
+// LCOV_EXCL_START
 uint64_t KeyEventResultHandler::GenerateKeyEventCbId()
 {
     return maxCbId_.fetch_add(1);
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

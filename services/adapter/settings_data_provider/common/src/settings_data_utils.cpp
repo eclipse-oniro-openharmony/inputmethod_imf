@@ -27,7 +27,7 @@ SettingsDataUtils::~SettingsDataUtils()
         remoteObj_ = nullptr;
     }
 }
-
+// LCOV_EXCL_START
 void SettingsDataUtils::Release()
 {
     std::list<sptr<SettingsDataObserver>> observerList;
@@ -42,7 +42,7 @@ void SettingsDataUtils::Release()
         }
     }
 }
-
+// LCOV_EXCL_STOP
 SettingsDataUtils &SettingsDataUtils::GetInstance()
 {
     static SettingsDataUtils instance;

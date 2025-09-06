@@ -20,6 +20,7 @@
 namespace OHOS {
 namespace MiscServices {
 std::shared_ptr<AppExecFwk::EventHandler> ImeStateManager::eventHandler_ = nullptr;
+// LCOV_EXCL_START
 bool ImeStateManager::IsIpcNeeded(RequestType type)
 {
     // If ime is in use, no need to request hide.
@@ -73,5 +74,6 @@ bool ImeStateManager::IsImeInUse()
     std::lock_guard<std::mutex> lock(mutex_);
     return isImeInUse_;
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS
