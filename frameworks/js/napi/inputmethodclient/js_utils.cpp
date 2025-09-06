@@ -19,7 +19,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t STR_MAX_LENGTH = 4096;
+constexpr int32_t STR_MAX_LENGTH = 1024 * 1024 * 128; // 128MB
 constexpr size_t STR_TAIL_LENGTH = 1;
 constexpr size_t ARGC_MAX = 6;
 constexpr size_t ARGC_ONE = 1;
@@ -291,7 +291,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
     }
 
     if (maxLen > STR_MAX_LENGTH) {
-        IMSA_HILOGE("string length is too long.");
+        IMSA_HILOGE("string length is too long, maxLen: %{public}zu.", maxLen);
         return napi_generic_failure;
     }
     IMSA_HILOGD("napi_value -> std::string get length %{public}zu", maxLen);
