@@ -83,6 +83,7 @@ public:
     bool IsInMainDisplay();
     int32_t SetImmersiveEffect(const ImmersiveEffect &effect);
     int32_t SetKeepScreenOn(bool isKeepScreenOn);
+    int32_t GetSystemPanelCurrentInsets(uint64_t displayId, SystemPanelInsets &systemPanelInsets);
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -158,7 +159,6 @@ private:
 
     int32_t InitAdjustInfo();
     int32_t GetAdjustInfo(PanelFlag panelFlag, FullPanelAdjustInfo &fullPanelAdjustInfo);
-
     void UpdateResizeParams();
     void UpdateHotAreas();
     void UpdateLayoutInfo(PanelFlag panelFlag, const LayoutParams &params, const EnhancedLayoutParams &enhancedParams,
@@ -171,7 +171,7 @@ private:
 
     sptr<Rosen::Display> GetCurDisplay();
     uint64_t GetCurDisplayId();
-    bool IsNeedConfig();
+    bool IsNeedConfig(bool ignoreIsMainDisplay = false);
     int32_t IsValidParam(const ImmersiveEffect &effect, const Rosen::KeyboardLayoutParams &layoutParams);
     int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param);
     int32_t AdjustLayout(const Rosen::KeyboardLayoutParams &param, const ImmersiveEffect &effect);
@@ -200,6 +200,8 @@ private:
 
     void StoreImmersiveMode(ImmersiveMode mode);
     CallbackFunc GetPanelHeightCallback();
+    bool IsVectorsEqual(const std::vector<std::string>& vec1, const std::vector<std::string>& vec2);
+    int32_t AreaInsets(SystemPanelInsets &systemPanelInsets, sptr<Rosen::Display> displayPtr);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
@@ -259,6 +261,8 @@ private:
     ImmersiveEffect immersiveEffect_ { 0, GradientMode::NONE, FluidLightMode::NONE };
     std::mutex changeYMutex_;
     ChangeY changeY_;
+
+    std::mutex getInsetsMutex_;
 };
 } // namespace MiscServices
 } // namespace OHOS

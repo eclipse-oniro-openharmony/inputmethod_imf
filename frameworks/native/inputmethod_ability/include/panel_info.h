@@ -99,6 +99,12 @@ struct ImmersiveEffect {
         return ss.str();
     }
 };
+
+struct SystemPanelInsets {
+    int32_t left{ 0 };
+    int32_t right{ 0 };
+    int32_t bottom{ 0 };
+};
 } // namespace MiscServices
 } // namespace OHOS
 

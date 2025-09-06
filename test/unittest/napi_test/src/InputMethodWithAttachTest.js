@@ -44,7 +44,8 @@ describe('InputMethodWithAttachTest', function () {
     ADJUST_SUCCESS: 19,
     SET_PREVIEW_TEXT: 20,
     FINISH_TEXT_PREVIEW: 21,
-    SET_KEEP_SCREEN_ON: 22
+    SET_KEEP_SCREEN_ON: 22,
+    GET_SYSTEM_PANEL_INSETS: 23
   }
 
   beforeAll(async function (done) {
@@ -678,6 +679,28 @@ describe('InputMethodWithAttachTest', function () {
       subscribe(subscribeInfo, TEST_FUNCTION.GET_ATTRIBUTE_SYNC, done);
     } catch(error) {
       console.info(`inputmethod_test_getEditorAttributeSync_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_getSystemPanelInsets_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_getSystemPanelInsets_001', 0, async function (done) {
+    console.info('************* inputmethod_test_getSystemPanelInsets_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    try {
+      let subscribeInfo = {
+        events: ['getSystemPanelInsets']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.GET_SYSTEM_PANEL_INSETS, done);
+    } catch(error) {
+      console.info(`inputmethod_test_getSystemPanelInsets_001 result: ${JSON.stringify(error)}`);
       expect().assertFail();
       done();
     }
