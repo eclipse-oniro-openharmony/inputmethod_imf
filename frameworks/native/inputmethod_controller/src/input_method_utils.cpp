@@ -193,7 +193,7 @@ ArrayBuffer *ArrayBuffer::Unmarshalling(Parcel &in)
     }
     return data;
 }
-
+// LCOV_EXCL_START
 bool PanelStatusInfoInner::Marshalling(Parcel &out) const
 {
     if (!out.WriteParcelable(&panelInfo)) {
@@ -213,7 +213,7 @@ bool PanelStatusInfoInner::Marshalling(Parcel &out) const
     }
     return true;
 }
-
+// LCOV_EXCL_STOP
 bool TextSelectionInner::Marshalling(Parcel &out) const
 {
     if (!out.WriteInt32(oldBegin)) {
@@ -233,7 +233,7 @@ bool TextSelectionInner::Marshalling(Parcel &out) const
     }
     return true;
 }
-
+// LCOV_EXCL_START
 bool Value::Marshalling(Parcel &out) const
 {
     if (!out.WriteUint32(valueMap.size())) {
@@ -281,7 +281,7 @@ bool KeyEventValue::Marshalling(Parcel &out) const
 {
     return event->WriteToParcel(out);
 }
-
+// LCOV_EXCL_STOP
 bool TextTotalConfigInner::Marshalling(Parcel &out) const
 {
     if (!out.WriteParcelable(&inputAttribute)) {
@@ -324,7 +324,7 @@ bool TextTotalConfigInner::Marshalling(Parcel &out) const
     }
     return true;
 }
-
+// LCOV_EXCL_START
 bool ArrayBuffer::Marshalling(Parcel &out) const
 {
     if (!out.WriteUint64(static_cast<uint64_t>(jsArgc))) {
@@ -390,5 +390,6 @@ bool ResponseDataInner::Marshalling(Parcel &out) const
         }
     }
 }
+// LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

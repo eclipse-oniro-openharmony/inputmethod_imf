@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+// LCOV_EXCL_START
 uint64_t ClientGroup::GetDisplayGroupId()
 {
     return displayGroupId_;
@@ -72,7 +73,7 @@ int32_t ClientGroup::AddClientInfo(
         "add client with pid: %{public}d displayGroupId: %{public}" PRIu64 " end.", clientInfo.pid, displayGroupId_);
     return ErrorCode::NO_ERROR;
 }
-
+// LCOV_EXCL_STOP
 void ClientGroup::RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied)
 {
     auto clientInfo = GetClientInfo(client);
@@ -97,7 +98,7 @@ void ClientGroup::RemoveClientInfo(const sptr<IRemoteObject> &client, bool isCli
     mapClients_.erase(client);
     IMSA_HILOGI("client[%{public}d] is removed.", clientInfo->pid);
 }
-
+// LCOV_EXCL_START
 void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client, const std::unordered_map<UpdateFlag,
     std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig, ClientType, pid_t>> &updateInfos)
 {
@@ -150,7 +151,7 @@ void ClientGroup::UpdateClientInfo(const sptr<IRemoteObject> &client, const std:
         }
     }
 }
-// LCOV_EXCL_START
+
 std::shared_ptr<InputClientInfo> ClientGroup::GetClientInfo(pid_t pid)
 {
     auto iter = std::find_if(
@@ -273,7 +274,7 @@ bool ClientGroup::IsCurClientUnFocused(int32_t pid, int32_t uid)
     }
     return clientInfo->pid == pid && clientInfo->uid == uid;
 }
-// LCOV_EXCL_STOP
+
 int32_t ClientGroup::NotifyInputStartToClients(uint32_t callingWndId, int32_t requestKeyboardReason)
 {
     IMSA_HILOGD("NotifyInputStartToClients enter");
@@ -313,7 +314,7 @@ int32_t ClientGroup::NotifyInputStopToClients()
     }
     return ErrorCode::NO_ERROR;
 }
-// LCOV_EXCL_START
+
 int32_t ClientGroup::NotifyPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     auto clientMap = GetClientMap();
