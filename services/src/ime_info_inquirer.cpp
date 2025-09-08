@@ -733,6 +733,9 @@ bool ImeInfoInquirer::IsImeInstalled(const int32_t userId, const std::string &bu
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, extName: %{public}s.", userId, bundleName.c_str(),
         extName.c_str());
+    if (FullImeInfoManager::GetInstance().Has(userId, bundleName)) {
+        return true;
+    }
     std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> extInfos;
     GetExtInfosByBundleName(userId, bundleName, extInfos);
     auto iter = std::find_if(extInfos.begin(), extInfos.end(),
