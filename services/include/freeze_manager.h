@@ -31,8 +31,6 @@ public:
     FreezeManager(const FreezeManager&) = delete;
     FreezeManager &operator=(const FreezeManager&) = delete;
     void TemporaryActiveIme() override;
-
-private:
     static void ReportRss(bool shouldFreeze, pid_t pid);
 };
 } // namespace MiscServices

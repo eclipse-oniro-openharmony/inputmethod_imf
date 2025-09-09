@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "ime_lifecycle_manager.h"
+#include "freeze_manager.h"
 
 #include "global.h"
 
@@ -27,11 +28,13 @@ void ImeLifecycleManager::ControlIme(bool shouldApply)
     }
 
     if (!shouldApply) {
+        FreezeManager::ReportRss(false, pid_);
         // Cancel the unexecuted stop task.
         eventHandler_->RemoveTask(STOP_IME_TASK_NAME);
         return;
     }
 
+    FreezeManager::ReportRss(true, pid_);
     // Delay the stop report by 20s.
     std::weak_ptr<ImeLifecycleManager> weakThis = shared_from_this();
     eventHandler_->PostTask(
