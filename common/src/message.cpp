@@ -32,49 +32,6 @@ Message::Message(int32_t msgId, MessageParcel *msgContent)
     }
 }
 
-/*!Constructor
- * @param msg a source message
- */
-Message::Message(const Message &msg)
-{
-    msgId_ = msg.msgId_;
-    if (msgContent_ != nullptr) {
-        delete msgContent_;
-        msgContent_ = nullptr;
-    }
-    MessageParcel *src = msg.msgContent_;
-    if (src != nullptr) {
-        msgContent_ = new (std::nothrow) MessageParcel();
-        if (msgContent_ == nullptr) {
-            IMSA_HILOGE("new MessageParcel failed");
-            return;
-        }
-        msgContent_->ParseFrom(src->GetData(), src->GetDataSize());
-    }
-}
-
-Message &Message::operator=(const Message &msg)
-{
-    if (this == &msg) {
-        return *this;
-    }
-    msgId_ = msg.msgId_;
-    if (msgContent_ != nullptr) {
-        delete msgContent_;
-        msgContent_ = nullptr;
-    }
-    if (msg.msgContent_ != nullptr) {
-        msgContent_ = new (std::nothrow) MessageParcel();
-        if (msgContent_ == nullptr) {
-            IMSA_HILOGE("new MessageParcel failed");
-            return *this;
-        }
-        msgContent_->ParseFrom(msg.msgContent_->GetData(), msg.msgContent_->GetDataSize());
-        msgContent_->RewindRead(0);
-    }
-    return *this;
-}
-
 Message::~Message()
 {
     if (msgContent_ != nullptr) {

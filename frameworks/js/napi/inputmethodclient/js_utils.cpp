@@ -106,7 +106,8 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_IMENGINE, "input method engine error. Possible causes: 1.input method panel not created.\
         2.the input method application does not subscribe to related events." },
     { EXCEPTION_IMCLIENT, "input method client error. Possible causes: 1.the edit box is not focused.\
-        2.no edit box is bound to current input method application." },
+        2.no edit box is bound to current input method application.\
+        3.ipc failed due to the large amount of data transferred or other reasons." },
     { EXCEPTION_IME, "not an input method application." },
     { EXCEPTION_CONFPERSIST, "configuration persistence error." },
     { EXCEPTION_CONTROLLER, "input method controller error.\
